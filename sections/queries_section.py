@@ -59,6 +59,7 @@ class QueriesSection:
             eeDock.disconnectResultsDock()
 
     """Main methods"""
+
     def runThematicMaps(self):
         if not self.checkDependencies():
             return
@@ -147,7 +148,7 @@ class QueriesSection:
             getattr(self, 'statisticsDock', None)
         )
         self.connectElementExplorerToResultsDock()
-        self.openFindElementsDialog.setChecked(False) # Not a tool, don't keep it checked
+        self.openFindElementsDialog.setChecked(False)  # Not a tool, don't keep it checked
 
     def runElementsProperty(self):
         if not self.validateProject(self.openElementsPropertyDialog):
@@ -215,12 +216,12 @@ class QueriesSection:
             with suppress(RuntimeError):
                 existing.raise_()
                 QGISRedUIUtils.arrangeDockOrder(
-            self.iface.mainWindow(),
-            self.ResultDockwidget,
-            QGISRedElementExplorerDock._instance,
-            getattr(self, 'queriesByPropertiesDock', None),
-            getattr(self, 'statisticsDock', None)
-        )
+                    self.iface.mainWindow(),
+                    self.ResultDockwidget,
+                    QGISRedElementExplorerDock._instance,
+                    getattr(self, 'queriesByPropertiesDock', None),
+                    getattr(self, 'statisticsDock', None)
+                )
                 return
         self.queriesByPropertiesDock = QGISRedQueriesByPropertiesDock(self.iface)
         self.queriesByPropertiesDock.setAttribute(Qt.WidgetAttribute.WA_DeleteOnClose)

@@ -9,7 +9,7 @@ import unicodedata
 from qgis.core import QgsProject, QgsVectorLayer, QgsLayerTreeGroup, QgsLayerTreeLayer, QgsDataProvider
 from qgis.PyQt.QtWidgets import QApplication, QMessageBox
 from qgis.PyQt.QtGui import QIcon
-from qgis.PyQt.QtCore import Qt, QCoreApplication, QTimer
+from qgis.PyQt.QtCore import Qt, QTimer
 from ..compat import QAction
 
 from ..tools.utils.qgisred_layer_utils import QGISRedLayerUtils
@@ -49,7 +49,8 @@ class ProjectManagementSection:
 
     def isOpenedProject(self, push_fn=None):
         if push_fn is None:
-            push_fn = lambda msg, level=0, duration=5: self.pushMessage(msg, level=level, duration=duration)
+            def push_fn(msg, level=0, duration=5):
+                return self.pushMessage(msg, level=level, duration=duration)
         layers = self.getLayers()
         for layer in layers:
             if layer.isEditable():
@@ -143,7 +144,6 @@ class ProjectManagementSection:
 
         return False
 
-
     def runOpenedQgisProject(self):
         if self._loading_project:
             return
@@ -178,7 +178,6 @@ class ProjectManagementSection:
                         translatedName = identifiers.getTranslatedNameForIdentifier(identifier)
                         if translatedName and layer.name() != translatedName:
                             layer.setName(translatedName)
-
 
         QTimer.singleShot(0, lambda: self._post_qgz_open(style_snapshot))
 
@@ -224,6 +223,7 @@ class ProjectManagementSection:
             clear_all_timeseries(self)
 
     """Read/Write methods"""
+
     def readOptions(self, folder="", network=""):
         if folder == "" and network == "":
             self.defineCurrentProject()
@@ -240,6 +240,7 @@ class ProjectManagementSection:
         for feature in dbf.getFeatures():
             attrs = feature.attributes()
             # QGIS may return DBF attributes as QVariant; QgsProject.writeEntry expects native types.
+
             def _as_str(v):
                 try:
                     if v is None:
@@ -380,8 +381,8 @@ class ProjectManagementSection:
         else:
             self.pushMessage(resMessage, level=2, duration=5)
 
-
     """Main methods"""
+
     def runProjectManager(self):
         if not self.checkDependencies():
             return

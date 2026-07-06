@@ -15,7 +15,7 @@ import ssl
 from qgis.core import QgsProject, QgsMessageLog, QgsApplication
 from qgis.PyQt.QtGui import QIcon
 from qgis.PyQt.QtWidgets import QMessageBox, QMenu, QToolButton
-from qgis.PyQt.QtCore import Qt, QSettings, QTranslator, qVersion, QCoreApplication, QTimer
+from qgis.PyQt.QtCore import Qt, QTranslator, qVersion, QCoreApplication, QTimer
 from ..compat import QAction, QGIS_INFO
 
 from .. import resources3x  # noqa: F401  (registers Qt resources)
@@ -120,7 +120,6 @@ class LifecycleSection:
                 return result
         return message
 
-
     def _make_action(self, icon_path, text, callback, checkable=False, enabled_flag=True, parent=None):
         """Create a QAction, connect its callback and register it in self.actions."""
         action = QAction(QIcon(icon_path), text, parent)
@@ -166,7 +165,6 @@ class LifecycleSection:
         menu.addAction(action)
         toolbar.addAction(action)
         return action
-
 
     def initGui(self):
         if not platform.system() == "Windows":

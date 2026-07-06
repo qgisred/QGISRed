@@ -2,7 +2,7 @@
 """Tools section for QGISRed (lengths, roughness, elevation, demands, scenarios, isolated segments, tree)."""
 
 from qgis.PyQt.QtWidgets import QApplication, QFileDialog, QMessageBox
-from qgis.PyQt.QtCore import Qt, QVariant
+from qgis.PyQt.QtCore import Qt
 from qgis.PyQt.QtGui import QColor
 from qgis.core import QgsProject, QgsLayerTreeGroup, QgsSingleSymbolRenderer, QgsSymbol, QgsCategorizedSymbolRenderer, QgsRendererCategory
 from qgis.core import QgsPalLayerSettings, QgsVectorLayerSimpleLabeling, QgsTextFormat, QgsProperty
@@ -188,7 +188,7 @@ class ToolsSection:
         if points:
             result = "[POINT]" + ";".join(points)
         return result
-    
+
     def _getDemandsBuilderLineLayers(self):
         lines = []
         demands_builder_id = QGISRedLayerUtils.groupIdentifiers.get("DemandsBuilder")
@@ -223,7 +223,7 @@ class ToolsSection:
         if lines:
             result = "[LINE]" + ";".join(lines)
         return result
-    
+
     def _getDemandsBuilderSectorLayersByKind(self, kind):
         polygons = []
         demands_builder_id = QGISRedLayerUtils.groupIdentifiers.get("DemandsBuilder")
@@ -278,7 +278,7 @@ class ToolsSection:
 
     def _getDemandsBuilderPatternSectorLayers(self):
         return self._getDemandsBuilderSectorLayersByKind("pattern")
-    
+
     def runDemandsBuilder(self):
         if not self.checkDependencies():
             return
@@ -296,7 +296,7 @@ class ToolsSection:
 
         externalLayers = self._getExternalLoadedLayers()
         qgisredPointLayers = self._getDemandsBuilderPointLayers()
-        qgisredLineLayers = self._getDemandsBuilderLineLayers() 
+        qgisredLineLayers = self._getDemandsBuilderLineLayers()
         qgisredEfficiencySectorLayers = self._getDemandsBuilderEfficiencySectorLayers()
         qgisredPatternSectorLayers = self._getDemandsBuilderPatternSectorLayers()
         selectedAuxiliaryLayerFids = self._getSelectedAuxiliaryLayerFids()
@@ -304,7 +304,8 @@ class ToolsSection:
         # Process
         QApplication.setOverrideCursor(Qt.CursorShape.WaitCursor)
         self.especificComplementaryLayers = ["ServiceConnections"]
-        resMessage = GISRed.DemandsBuilder(self.ProjectDirectory,
+        resMessage = GISRed.DemandsBuilder(
+            self.ProjectDirectory,
             self.NetworkName,
             self.tempFolder,
             ids,
@@ -317,7 +318,7 @@ class ToolsSection:
         )
         QApplication.restoreOverrideCursor()
 
-        self.processCsharpResult(resMessage, "", layerType = "demandsBuilder")
+        self.processCsharpResult(resMessage, "", layerType="demandsBuilder")
         self.selectedFids = {}
 
     def runScenarioManager(self):
@@ -426,7 +427,7 @@ class ToolsSection:
 
         resMessage = "Select"
         tool = "pointIsolatedSegment"
-        if point == True or point == False:
+        if point is True or point is False:
             point = ""
             self.gisredDll = None
         if not point == "":
@@ -480,7 +481,7 @@ class ToolsSection:
             ).setStyle(vlayer, "DemandsBuilderIsolatedDemandsServiceConnections")
             vlayer.triggerRepaint()
             return
-        
+
         geom_type = vlayer.geometryType()
         field_index = vlayer.fields().indexFromName("Category")
 
@@ -568,7 +569,7 @@ class ToolsSection:
                     f"THEN '{hex_color}' "
                 )
             color_expression += "ELSE 'gray' END"
-            
+
             label_settings.dataDefinedProperties().setProperty(QgsPalLayerSettings.Color, QgsProperty.fromExpression(color_expression))
 
         if geom_type == 1:
@@ -593,7 +594,7 @@ class ToolsSection:
                 point_text_format.setSize(12)
                 point_text_format.setColor(QColor("black"))
                 label_settings.setFormat(point_text_format)
-                
+
                 label_settings.fieldName = f'"{base_demand_field}"'
                 label_settings.isExpression = True
                 label_settings.enabled = True
@@ -648,4 +649,3 @@ class ToolsSection:
         else:
             self.myMapTools[tool] = QGISRedSelectPointTool(None, self, self.runTree, SelectPointType.Point)
             self.iface.mapCanvas().setMapTool(self.myMapTools[tool])
-

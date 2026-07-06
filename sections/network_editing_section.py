@@ -241,7 +241,7 @@ class NetworkEditingSection:
             self.reverseLinkButton.setChecked(False)
             return
 
-        if self.linkIds == "" and not "ServiceConnections" in self.selectedIds:
+        if self.linkIds == "" and "ServiceConnections" not in self.selectedIds:
             self.runSelectReverseLinkPoint()
             return
         self.reverseLinkButton.setChecked(False)

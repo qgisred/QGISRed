@@ -60,8 +60,8 @@ class MenuSection:
         #    #Buttons
         generalDropButton = QToolButton()
         action = self._make_action(
-            ":/images/iconGeneralMenu.svg", 
-            self.tr("General"), 
+            ":/images/iconGeneralMenu.svg",
+            self.tr("General"),
             self.runGeneralToolbar,
             checkable=True, parent=self.iface.mainWindow(),
         )
@@ -70,8 +70,8 @@ class MenuSection:
         self.generalToolbar.visibilityChanged.connect(self.changeGeneralToolbarVisibility)
 
         action = self._make_action(
-            ":/images/iconProjectManager.svg", 
-            self.tr("Project manager..."), 
+            ":/images/iconProjectManager.svg",
+            self.tr("Project manager..."),
             self.runProjectManager,
             parent=self.iface.mainWindow(),
         )
@@ -79,8 +79,8 @@ class MenuSection:
         self.add_to_dropdown(action, generalDropButton)
 
         action = self._make_action(
-            ":/images/iconOpenProject.svg", 
-            self.tr("Open project..."), 
+            ":/images/iconOpenProject.svg",
+            self.tr("Open project..."),
             self.runCanOpenProject,
             parent=self.iface.mainWindow(),
         )
@@ -88,8 +88,8 @@ class MenuSection:
         self.add_to_dropdown(action, generalDropButton)
 
         action = self._make_action(
-            ":/images/iconCreateProject.svg", 
-            self.tr("Create project..."), 
+            ":/images/iconCreateProject.svg",
+            self.tr("Create project..."),
             self.runCanCreateProject,
             parent=self.iface.mainWindow(),
         )
@@ -97,8 +97,8 @@ class MenuSection:
         self.add_to_dropdown(action, generalDropButton)
 
         action = self._make_action(
-            ":/images/iconImportProject.svg", 
-            self.tr("Import project..."), 
+            ":/images/iconImportProject.svg",
+            self.tr("Import project..."),
             self.runCanImportData,
             parent=self.iface.mainWindow(),
         )
@@ -144,10 +144,10 @@ class MenuSection:
         #    #Buttons
         projectDropButton = QToolButton()
         action = self._make_action(
-            ":/images/iconProjectMenu.svg", 
-            self.tr("Project"), 
+            ":/images/iconProjectMenu.svg",
+            self.tr("Project"),
             self.runProjectToolbar,
-            checkable=True, 
+            checkable=True,
             parent=self.iface.mainWindow(),
         )
         self.setup_dropdown_button(action, projectDropButton, self.toolbar)
@@ -155,8 +155,8 @@ class MenuSection:
         self.projectToolbar.visibilityChanged.connect(self.changeProjectToolbarVisibility)
 
         action = self._make_action(
-            ":/images/iconSummary.svg", 
-            self.tr("Summary..."), 
+            ":/images/iconSummary.svg",
+            self.tr("Summary..."),
             self.runSummary,
             parent=self.iface.mainWindow(),
         )
@@ -164,8 +164,8 @@ class MenuSection:
         self.add_to_dropdown(action, projectDropButton)
 
         action = self._make_action(
-            ":/images/iconAddData.svg", 
-            self.tr("Add data by import..."), 
+            ":/images/iconAddData.svg",
+            self.tr("Add data by import..."),
             self.runCanAddData,
             parent=self.iface.mainWindow(),
         )
@@ -173,8 +173,8 @@ class MenuSection:
         self.add_to_dropdown(action, projectDropButton)
 
         action = self._make_action(
-            ":/images/iconLayerManagement.svg", 
-            self.tr("Layer manager..."), 
+            ":/images/iconLayerManagement.svg",
+            self.tr("Layer manager..."),
             self.runLayerManagement,
             parent=self.iface.mainWindow(),
         )
@@ -182,8 +182,8 @@ class MenuSection:
         self.add_to_dropdown(action, projectDropButton)
 
         action = self._make_action(
-            ":/images/iconThematicMaps.svg", 
-            self.tr("Legend editor..."), 
+            ":/images/iconThematicMaps.svg",
+            self.tr("Legend editor..."),
             self.runLegends,
             parent=self.iface.mainWindow(),
         )
@@ -195,8 +195,8 @@ class MenuSection:
         self.projectMenu.addSeparator()
 
         action = self._make_action(
-            ":/images/iconProjectSettings.svg", 
-            self.tr("Project settings..."), 
+            ":/images/iconProjectSettings.svg",
+            self.tr("Project settings..."),
             self.runSettings,
             parent=self.iface.mainWindow(),
         )
@@ -204,8 +204,8 @@ class MenuSection:
         self.add_to_dropdown(action, projectDropButton)
 
         action = self._make_action(
-            ":/images/iconDefaultValues.svg", 
-            self.tr("Default values..."), 
+            ":/images/iconDefaultValues.svg",
+            self.tr("Default values..."),
             self.runDefaultValues,
             parent=self.iface.mainWindow(),
         )
@@ -213,8 +213,8 @@ class MenuSection:
         self.add_to_dropdown(action, projectDropButton)
 
         action = self._make_action(
-            ":/images/iconMaterials.svg", 
-            self.tr("Materials table..."), 
+            ":/images/iconMaterials.svg",
+            self.tr("Materials table..."),
             self.runMaterials,
             parent=self.iface.mainWindow(),
         )
@@ -226,8 +226,8 @@ class MenuSection:
         self.projectMenu.addSeparator()
 
         action = self._make_action(
-            ":/images/iconSaveProject.svg", 
-            self.tr("Save project map"), 
+            ":/images/iconSaveProject.svg",
+            self.tr("Save project map"),
             self.runSaveActionProject,
             parent=self.iface.mainWindow(),
         )
@@ -235,8 +235,8 @@ class MenuSection:
         self.add_to_dropdown(action, projectDropButton)
 
         action = self._make_action(
-            ":/images/iconBackUpProject.svg", 
-            self.tr("Project backup"), 
+            ":/images/iconBackUpProject.svg",
+            self.tr("Project backup"),
             self.runCreateBackup,
             parent=self.iface.mainWindow(),
         )
@@ -244,8 +244,8 @@ class MenuSection:
         self.add_to_dropdown(action, projectDropButton)
 
         action = self._make_action(
-            ":/images/iconCloseProject.svg", 
-            self.tr("Close project"), 
+            ":/images/iconCloseProject.svg",
+            self.tr("Close project"),
             self.runCloseProject,
             parent=self.iface.mainWindow(),
         )
@@ -264,10 +264,10 @@ class MenuSection:
         #    #Buttons
         editDropButton = QToolButton()
         action = self._make_action(
-            ":/images/iconEditMenu.svg", 
-            self.tr("Edition"), 
+            ":/images/iconEditMenu.svg",
+            self.tr("Edition"),
             self.runEditionToolbar,
-            checkable=True, 
+            checkable=True,
             parent=self.iface.mainWindow(),
         )
         self.setup_dropdown_button(action, editDropButton, self.toolbar)
@@ -282,40 +282,40 @@ class MenuSection:
         self.add_to_dropdown(self.addPipeButton, editDropButton)
 
         self.addTankButton = self._make_action(
-            ":/images/iconAddTank.svg", 
-            self.tr("Add tank"), 
+            ":/images/iconAddTank.svg",
+            self.tr("Add tank"),
             self.runSelectTankPoint,
-            checkable=True, 
+            checkable=True,
             parent=self.iface.mainWindow(),
         )
         self.add_to_group(self.addTankButton, self.editionMenu, self.editionToolbar)
         self.add_to_dropdown(self.addTankButton, editDropButton)
 
         self.addReservoirButton = self._make_action(
-            ":/images/iconAddReservoir.svg", 
-            self.tr("Add reservoir"), 
+            ":/images/iconAddReservoir.svg",
+            self.tr("Add reservoir"),
             self.runSelectReservoirPoint,
-            checkable=True, 
+            checkable=True,
             parent=self.iface.mainWindow(),
         )
         self.add_to_group(self.addReservoirButton, self.editionMenu, self.editionToolbar)
         self.add_to_dropdown(self.addReservoirButton, editDropButton)
 
         self.insertValveButton = self._make_action(
-            ":/images/iconAddValve.svg", 
-            self.tr("Insert valve in pipe"), 
+            ":/images/iconAddValve.svg",
+            self.tr("Insert valve in pipe"),
             self.runSelectValvePoint,
-            checkable=True, 
+            checkable=True,
             parent=self.iface.mainWindow(),
         )
         self.add_to_group(self.insertValveButton, self.editionMenu, self.editionToolbar)
         self.add_to_dropdown(self.insertValveButton, editDropButton)
 
         self.insertPumpButton = self._make_action(
-            ":/images/iconAddPump.svg", 
-            self.tr("Insert pump in pipe"), 
+            ":/images/iconAddPump.svg",
+            self.tr("Insert pump in pipe"),
             self.runSelectPumpPoint,
-            checkable=True, 
+            checkable=True,
             parent=self.iface.mainWindow(),
         )
         self.add_to_group(self.insertPumpButton, self.editionMenu, self.editionToolbar)
@@ -326,110 +326,110 @@ class MenuSection:
         self.editionMenu.addSeparator()
 
         self.selectElementsButton = self._make_action(
-            ":/images/iconMultipleSelection.svg", 
-            self.tr("Select multiple elements"), 
+            ":/images/iconMultipleSelection.svg",
+            self.tr("Select multiple elements"),
             self.runSelectElements,
-            checkable=True, 
+            checkable=True,
             parent=self.iface.mainWindow(),
         )
         self.add_to_group(self.selectElementsButton, self.editionMenu, self.editionToolbar)
         self.add_to_dropdown(self.selectElementsButton, editDropButton)
 
         self.moveElementsButton = self._make_action(
-            ":/images/iconMoveNodes.svg", 
-            self.tr("Move nodes"), 
+            ":/images/iconMoveNodes.svg",
+            self.tr("Move nodes"),
             self.runMoveElements,
-            checkable=True, 
+            checkable=True,
             parent=self.iface.mainWindow(),
         )
         self.add_to_group(self.moveElementsButton, self.editionMenu, self.editionToolbar)
         self.add_to_dropdown(self.moveElementsButton, editDropButton)
 
         self.moveVertexsButton = self._make_action(
-            ":/images/iconEditVertices.svg", 
-            self.tr("Edit link vertices"), 
+            ":/images/iconEditVertices.svg",
+            self.tr("Edit link vertices"),
             self.runEditLinkGeometry,
-            checkable=True, 
+            checkable=True,
             parent=self.iface.mainWindow(),
         )
         self.add_to_group(self.moveVertexsButton, self.editionMenu, self.editionToolbar)
         self.add_to_dropdown(self.moveVertexsButton, editDropButton)
 
         self.reverseLinkButton = self._make_action(
-            ":/images/iconReverseElements.svg", 
-            self.tr("Reverse elements"), 
+            ":/images/iconReverseElements.svg",
+            self.tr("Reverse elements"),
             self.canReverseLink,
-            checkable=True, 
+            checkable=True,
             parent=self.iface.mainWindow(),
         )
         self.add_to_group(self.reverseLinkButton, self.editionMenu, self.editionToolbar)
         self.add_to_dropdown(self.reverseLinkButton, editDropButton)
 
         self.splitPipeButton = self._make_action(
-            ":/images/iconSplitJoinPipes.svg", 
-            self.tr("Split/Join pipes"), 
+            ":/images/iconSplitJoinPipes.svg",
+            self.tr("Split/Join pipes"),
             self.runSelectSplitPoint,
-            checkable=True, 
+            checkable=True,
             parent=self.iface.mainWindow(),
         )
         self.add_to_group(self.splitPipeButton, self.editionMenu, self.editionToolbar)
         self.add_to_dropdown(self.splitPipeButton, editDropButton)
 
         self.mergeSplitJunctionButton = self._make_action(
-            ":/images/iconMergeSplitJunctions.svg", 
-            self.tr("Merge/Dissolve junctions"), 
+            ":/images/iconMergeSplitJunctions.svg",
+            self.tr("Merge/Dissolve junctions"),
             self.runSelectPointToMergeSplit,
-            checkable=True, 
+            checkable=True,
             parent=self.iface.mainWindow(),
         )
         self.add_to_group(self.mergeSplitJunctionButton, self.editionMenu, self.editionToolbar)
         self.add_to_dropdown(self.mergeSplitJunctionButton, editDropButton)
 
         self.createReverseTconButton = self._make_action(
-            ":/images/iconCreateRemoveTConnections.svg", 
-            self.tr("Create/Remove T connections"), 
+            ":/images/iconCreateRemoveTConnections.svg",
+            self.tr("Create/Remove T connections"),
             self.runSelectPointToTconnections,
-            checkable=True, 
+            checkable=True,
             parent=self.iface.mainWindow(),
         )
         self.add_to_group(self.createReverseTconButton, self.editionMenu, self.editionToolbar)
         self.add_to_dropdown(self.createReverseTconButton, editDropButton)
 
         self.createReverseCrossButton = self._make_action(
-            ":/images/iconCreateRemoveCrossings.svg", 
-            self.tr("Create/Remove crossings"), 
+            ":/images/iconCreateRemoveCrossings.svg",
+            self.tr("Create/Remove crossings"),
             self.runSelectPointToCrossings,
-            checkable=True, 
+            checkable=True,
             parent=self.iface.mainWindow(),
         )
         self.add_to_group(self.createReverseCrossButton, self.editionMenu, self.editionToolbar)
         self.add_to_dropdown(self.createReverseCrossButton, editDropButton)
 
         self.moveValvePumpButton = self._make_action(
-            ":/images/iconMoveElements.svg", 
-            self.tr("Move valves/pumps"), 
+            ":/images/iconMoveElements.svg",
+            self.tr("Move valves/pumps"),
             self.runSelectValvePumpPoints,
-            checkable=True, 
+            checkable=True,
             parent=self.iface.mainWindow(),
         )
         self.add_to_group(self.moveValvePumpButton, self.editionMenu, self.editionToolbar)
         self.add_to_dropdown(self.moveValvePumpButton, editDropButton)
 
         self.changeStatusButton = self._make_action(
-            ":/images/iconChangeStatus.svg", 
-            self.tr("Change element status"), 
+            ":/images/iconChangeStatus.svg",
+            self.tr("Change element status"),
             self.runSelectElementStatusPoint,
-            checkable=True, 
+            checkable=True,
             parent=self.iface.mainWindow(),
         )
         self.add_to_group(self.changeStatusButton, self.editionMenu, self.editionToolbar)
         self.add_to_dropdown(self.changeStatusButton, editDropButton)
 
         self.removeElementsButton = self._make_action(
-            ":/images/iconDeleteElements.svg", 
-            self.tr("Delete elements"), 
+            ":/images/iconDeleteElements.svg",
+            self.tr("Delete elements"),
             self.canDeleteElements,
-            checkable=True, 
+            checkable=True,
             parent=self.iface.mainWindow(),
         )
         self.add_to_group(self.removeElementsButton, self.editionMenu, self.editionToolbar)
@@ -440,10 +440,10 @@ class MenuSection:
         self.editionMenu.addSeparator()
 
         self.editElementButton = self._make_action(
-            ":/images/iconEditMenu.svg", 
-            self.tr("Edit element properties..."), 
+            ":/images/iconEditMenu.svg",
+            self.tr("Edit element properties..."),
             self.runSelectPointProperties,
-            checkable=True, 
+            checkable=True,
             parent=self.iface.mainWindow(),
         )
         self.add_to_group(self.editElementButton, self.editionMenu, self.editionToolbar)
@@ -459,8 +459,8 @@ class MenuSection:
         self.add_to_dropdown(self.openGroupEditDialog, editDropButton)
 
         action = self._make_action(
-            ":/images/iconPatternsAndCurves.svg", 
-            self.tr("Edit patterns and curves..."), 
+            ":/images/iconPatternsAndCurves.svg",
+            self.tr("Edit patterns and curves..."),
             self.runPatternsCurves,
             parent=self.iface.mainWindow(),
         )
@@ -468,8 +468,8 @@ class MenuSection:
         self.add_to_dropdown(action, editDropButton)
 
         action = self._make_action(
-            ":/images/iconControlsAndRules.svg", 
-            self.tr("Edit controls..."), 
+            ":/images/iconControlsAndRules.svg",
+            self.tr("Edit controls..."),
             self.runControls,
             parent=self.iface.mainWindow(),
         )
@@ -487,10 +487,10 @@ class MenuSection:
         #    #Buttons
         debugDropButton = QToolButton()
         action = self._make_action(
-            ":/images/iconDebugMenu.svg", 
-            self.tr("Debug"), 
+            ":/images/iconDebugMenu.svg",
+            self.tr("Debug"),
             self.runDebugToolbar,
-            checkable=True, 
+            checkable=True,
             parent=self.iface.mainWindow(),
         )
         self.setup_dropdown_button(action, debugDropButton, self.toolbar)
@@ -498,8 +498,8 @@ class MenuSection:
         self.debugToolbar.visibilityChanged.connect(self.changeDebugToolbarVisibility)
 
         action = self._make_action(
-            ":/images/iconDebugMenu.svg", 
-            self.tr("Check && commit data"), 
+            ":/images/iconDebugMenu.svg",
+            self.tr("Check && commit data"),
             self.runCommit,
             parent=self.iface.mainWindow(),
         )
@@ -507,8 +507,8 @@ class MenuSection:
         self.add_to_dropdown(action, debugDropButton)
 
         action = self._make_action(
-            ":/images/iconRemoveOverlappings.svg", 
-            self.tr("Remove overlapping elements"), 
+            ":/images/iconRemoveOverlappings.svg",
+            self.tr("Remove overlapping elements"),
             self.runCheckOverlappingElements,
             parent=self.iface.mainWindow(),
         )
@@ -516,8 +516,8 @@ class MenuSection:
         self.add_to_dropdown(action, debugDropButton)
 
         action = self._make_action(
-            ":/images/iconSimplifyVertices.svg", 
-            self.tr("Simplify link vertices"), 
+            ":/images/iconSimplifyVertices.svg",
+            self.tr("Simplify link vertices"),
             self.runSimplifyVertices,
             parent=self.iface.mainWindow(),
         )
@@ -525,8 +525,8 @@ class MenuSection:
         self.add_to_dropdown(action, debugDropButton)
 
         action = self._make_action(
-            ":/images/iconJoinPipes.svg", 
-            self.tr("Join consecutive pipes (= diameter, material and year)"), 
+            ":/images/iconJoinPipes.svg",
+            self.tr("Join consecutive pipes (= diameter, material and year)"),
             self.runCheckJoinPipes,
             parent=self.iface.mainWindow(),
         )
@@ -534,8 +534,8 @@ class MenuSection:
         self.add_to_dropdown(action, debugDropButton)
 
         action = self._make_action(
-            ":/images/iconCreateTConnections.svg", 
-            self.tr("Create T connections"), 
+            ":/images/iconCreateTConnections.svg",
+            self.tr("Create T connections"),
             self.runCheckTConncetions,
             parent=self.iface.mainWindow(),
         )
@@ -545,8 +545,8 @@ class MenuSection:
         # Connectivity sub-dropdown
         dropButton = QToolButton()
         action = self._make_action(
-            ":/images/iconCheckConnectivity.svg", 
-            self.tr("Check connectivity"), 
+            ":/images/iconCheckConnectivity.svg",
+            self.tr("Check connectivity"),
             self.runCheckConnectivityM,
             parent=self.iface.mainWindow(),
         )
@@ -556,8 +556,8 @@ class MenuSection:
         self.add_to_dropdown(action, dropButton)
 
         action = self._make_action(
-            ":/images/iconDeleteIsolatedAreas.svg", 
-            self.tr("Delete issolated subzones"), 
+            ":/images/iconDeleteIsolatedAreas.svg",
+            self.tr("Delete issolated subzones"),
             self.runCheckConnectivityC,
             parent=self.iface.mainWindow(),
         )
@@ -569,8 +569,8 @@ class MenuSection:
         self.debugMenu.addSeparator()
 
         action = self._make_action(
-            ":/images/iconCheckPipeLengths.svg", 
-            self.tr("Check pipe lengths"), 
+            ":/images/iconCheckPipeLengths.svg",
+            self.tr("Check pipe lengths"),
             self.runCheckLengths,
             parent=self.iface.mainWindow(),
         )
@@ -578,8 +578,8 @@ class MenuSection:
         self.add_to_dropdown(action, debugDropButton)
 
         action = self._make_action(
-            ":/images/iconCheckDiameters.svg", 
-            self.tr("Check diameters"), 
+            ":/images/iconCheckDiameters.svg",
+            self.tr("Check diameters"),
             self.runCheckDiameters,
             parent=self.iface.mainWindow(),
         )
@@ -587,8 +587,8 @@ class MenuSection:
         self.add_to_dropdown(action, debugDropButton)
 
         action = self._make_action(
-            ":/images/iconCheckMaterials.svg", 
-            self.tr("Check pipe materials"), 
+            ":/images/iconCheckMaterials.svg",
+            self.tr("Check pipe materials"),
             self.runCheckMaterials,
             parent=self.iface.mainWindow(),
         )
@@ -596,8 +596,8 @@ class MenuSection:
         self.add_to_dropdown(action, debugDropButton)
 
         action = self._make_action(
-            ":/images/iconCheckInstalationDates.svg", 
-            self.tr("Check pipe installation dates"), 
+            ":/images/iconCheckInstalationDates.svg",
+            self.tr("Check pipe installation dates"),
             self.runCheckInstallationDates,
             parent=self.iface.mainWindow(),
         )
@@ -609,8 +609,8 @@ class MenuSection:
         self.debugMenu.addSeparator()
 
         action = self._make_action(
-            ":/images/iconCheckHydraulicSectors.svg", 
-            self.tr("Check hydraulic sectors"), 
+            ":/images/iconCheckHydraulicSectors.svg",
+            self.tr("Check hydraulic sectors"),
             self.runHydraulicSectors,
             parent=self.iface.mainWindow(),
         )
@@ -628,10 +628,10 @@ class MenuSection:
         #    #Buttons
         toolDropButton = QToolButton()
         action = self._make_action(
-            ":/images/iconToolsMenu.svg", 
-            self.tr("Tools"), 
+            ":/images/iconToolsMenu.svg",
+            self.tr("Tools"),
             self.runToolsToolbar,
-            checkable=True, 
+            checkable=True,
             parent=self.iface.mainWindow(),
         )
         self.setup_dropdown_button(action, toolDropButton, self.toolbar)
@@ -639,8 +639,8 @@ class MenuSection:
         self.toolsToolbar.visibilityChanged.connect(self.changeToolsToolbarVisibility)
 
         action = self._make_action(
-            ":/images/iconCalculatePipeLengths.svg", 
-            self.tr("Automatically calculate pipe lengths"), 
+            ":/images/iconCalculatePipeLengths.svg",
+            self.tr("Automatically calculate pipe lengths"),
             self.runCalculateLengths,
             parent=self.iface.mainWindow(),
         )
@@ -648,8 +648,8 @@ class MenuSection:
         self.add_to_dropdown(action, toolDropButton)
 
         action = self._make_action(
-            ":/images/iconInterpolateNodeElevations.svg", 
-            self.tr("Interpolate elevation from .asc files..."), 
+            ":/images/iconInterpolateNodeElevations.svg",
+            self.tr("Interpolate elevation from .asc files..."),
             self.runElevationInterpolation,
             parent=self.iface.mainWindow(),
         )
@@ -657,8 +657,8 @@ class MenuSection:
         self.add_to_dropdown(action, toolDropButton)
 
         action = self._make_action(
-            ":/images/iconSetRoughnessFromMaterialDate.svg", 
-            self.tr("Set roughness coefficients (from Material and Date)"), 
+            ":/images/iconSetRoughnessFromMaterialDate.svg",
+            self.tr("Set roughness coefficients (from Material and Date)"),
             self.runSetRoughness,
             parent=self.iface.mainWindow(),
         )
@@ -666,8 +666,8 @@ class MenuSection:
         self.add_to_dropdown(action, toolDropButton)
 
         action = self._make_action(
-            ":/images/iconConvertRoughnessCoeff.svg", 
-            self.tr("Convert roughness coefficients..."), 
+            ":/images/iconConvertRoughnessCoeff.svg",
+            self.tr("Convert roughness coefficients..."),
             self.runConvertRoughness,
             parent=self.iface.mainWindow(),
         )
@@ -679,8 +679,8 @@ class MenuSection:
         self.toolsMenu.addSeparator()
 
         action = self._make_action(
-            ":/images/iconDemandBuilder.svg", 
-            self.tr("Nodal demand builder..."), 
+            ":/images/iconDemandBuilder.svg",
+            self.tr("Nodal demand builder..."),
             self.runDemandsBuilder,
             parent=self.iface.mainWindow(),
         )
@@ -688,8 +688,8 @@ class MenuSection:
         self.add_to_dropdown(action, toolDropButton)
 
         action = self._make_action(
-            ":/images/iconScenarioBuilder.svg", 
-            self.tr("Scenario builder..."), 
+            ":/images/iconScenarioBuilder.svg",
+            self.tr("Scenario builder..."),
             self.runScenarioManager,
             parent=self.iface.mainWindow(),
         )
@@ -697,10 +697,10 @@ class MenuSection:
         self.add_to_dropdown(action, toolDropButton)
 
         self.isolatedSegmentsButton = self._make_action(
-            ":/images/iconIsolatedSegments.svg", 
-            self.tr("Isolated segments..."), 
+            ":/images/iconIsolatedSegments.svg",
+            self.tr("Isolated segments..."),
             self.runIsolatedSegments,
-            checkable=True, 
+            checkable=True,
             parent=self.iface.mainWindow(),
         )
         self.add_to_group(self.isolatedSegmentsButton, self.toolsMenu, self.toolsToolbar)
@@ -711,8 +711,8 @@ class MenuSection:
         self.toolsMenu.addSeparator()
 
         action = self._make_action(
-            ":/images/iconDemandSectors.svg", 
-            self.tr("Demand sector builder..."), 
+            ":/images/iconDemandSectors.svg",
+            self.tr("Demand sector builder..."),
             self.runDemandSectorBuilder,
             parent=self.iface.mainWindow(),
         )
@@ -720,8 +720,8 @@ class MenuSection:
         self.add_to_dropdown(action, toolDropButton)
 
         action = self._make_action(
-            ":/images/iconGraphTree.svg", 
-            self.tr("Minimum Cost Tree..."), 
+            ":/images/iconGraphTree.svg",
+            self.tr("Minimum Cost Tree..."),
             self.runTree,
             parent=self.iface.mainWindow(),
         )
@@ -739,10 +739,10 @@ class MenuSection:
         #    #Buttons
         queriesDropButton = QToolButton()
         action = self._make_action(
-            ":/images/iconQueriesMenu.svg", 
-            self.tr("Queries"), 
+            ":/images/iconQueriesMenu.svg",
+            self.tr("Queries"),
             self.runQueriesToolbar,
-            checkable=True, 
+            checkable=True,
             parent=self.iface.mainWindow(),
         )
         self.setup_dropdown_button(action, queriesDropButton, self.toolbar)
@@ -750,28 +750,28 @@ class MenuSection:
         self.queriesToolbar.visibilityChanged.connect(self.changeQueriesToolbarVisibility)
 
         self.openFindElementsDialog = self._make_action(
-            ":/images/iconFindElements.svg", 
-            self.tr("Find elements by ID..."), 
+            ":/images/iconFindElements.svg",
+            self.tr("Find elements by ID..."),
             self.runFindElements,
-            checkable=True, 
+            checkable=True,
             parent=self.iface.mainWindow(),
         )
         self.add_to_group(self.openFindElementsDialog, self.queriesMenu, self.queriesToolbar)
         self.add_to_dropdown(self.openFindElementsDialog, queriesDropButton)
 
         self.openElementsPropertyDialog = self._make_action(
-            ":/images/iconElementProperties.svg", 
-            self.tr("Element properties..."), 
+            ":/images/iconElementProperties.svg",
+            self.tr("Element properties..."),
             self.runElementsProperty,
-            checkable=True, 
+            checkable=True,
             parent=self.iface.mainWindow(),
         )
         self.add_to_group(self.openElementsPropertyDialog, self.queriesMenu, self.queriesToolbar)
         self.add_to_dropdown(self.openElementsPropertyDialog, queriesDropButton)
 
         self.openThematicMapsDialog = self._make_action(
-            ":/images/iconThematicMaps.svg", 
-            self.tr("Thematic maps..."), 
+            ":/images/iconThematicMaps.svg",
+            self.tr("Thematic maps..."),
             self.runThematicMaps,
             parent=self.iface.mainWindow(),
         )
@@ -807,10 +807,10 @@ class MenuSection:
         #    #Buttons
         analysisDropButton = QToolButton()
         action = self._make_action(
-            ":/images/iconAnalysisMenu.svg", 
-            self.tr("Analysis"), 
+            ":/images/iconAnalysisMenu.svg",
+            self.tr("Analysis"),
             self.runAnalysisToolbar,
-            checkable=True, 
+            checkable=True,
             parent=self.iface.mainWindow(),
         )
         self.setup_dropdown_button(action, analysisDropButton, self.toolbar)
@@ -820,8 +820,8 @@ class MenuSection:
         # Run model sub-dropdown (groups Run model / Results browser / Status report)
         dropButton = QToolButton()
         action = self._make_action(
-            ":/images/iconAnalysisMenu.svg", 
-            self.tr("Run model"), 
+            ":/images/iconAnalysisMenu.svg",
+            self.tr("Run model"),
             self.runModel,
             parent=self.iface.mainWindow(),
         )
@@ -831,8 +831,8 @@ class MenuSection:
         self.add_to_dropdown(action, dropButton)
 
         action = self._make_action(
-            ":/images/iconResultsBrowser.svg", 
-            self.tr("Results browser"), 
+            ":/images/iconResultsBrowser.svg",
+            self.tr("Results browser"),
             self.runShowResultsDock,
             parent=self.iface.mainWindow(),
         )
@@ -841,8 +841,8 @@ class MenuSection:
         self.add_to_dropdown(action, analysisDropButton)
 
         action = self._make_action(
-            ":/images/iconAnalysisMenu.svg", 
-            self.tr("Status report"), 
+            ":/images/iconAnalysisMenu.svg",
+            self.tr("Status report"),
             self.runOpenStatusReport,
             parent=self.iface.mainWindow(),
         )
@@ -851,8 +851,8 @@ class MenuSection:
         self.add_to_dropdown(action, analysisDropButton)
 
         action = self._make_action(
-            ":/images/iconAnalysisOptions.svg", 
-            self.tr("Analysis options..."), 
+            ":/images/iconAnalysisOptions.svg",
+            self.tr("Analysis options..."),
             self.runAnalysisOptions,
             parent=self.iface.mainWindow(),
         )
@@ -864,10 +864,10 @@ class MenuSection:
         self.analysisMenu.addSeparator()
 
         self.timeSeriesButton = self._make_action(
-            ":/images/iconTimeSeries.svg", 
-            self.tr("Time series..."), 
+            ":/images/iconTimeSeries.svg",
+            self.tr("Time series..."),
             self.runTimeSeries,
-            checkable=True, 
+            checkable=True,
             parent=self.iface.mainWindow(),
         )
         self.add_to_group(self.timeSeriesButton, self.analysisMenu, self.analysisToolbar)
@@ -887,13 +887,13 @@ class MenuSection:
         self.add_to_dropdown(action, analysisDropButton)
 
         action = self._make_action(
-            ":/images/iconExportToEpanet.svg", 
-            self.tr("Export model to INP..."), 
+            ":/images/iconExportToEpanet.svg",
+            self.tr("Export model to INP..."),
             self.runExportInp,
             parent=self.iface.mainWindow(),
         )
         self.add_to_group(action, self.analysisMenu, self.analysisToolbar)
-        self.add_to_dropdown(action, analysisDropButton)    
+        self.add_to_dropdown(action, analysisDropButton)
 
     def addDigitalTwinMenu(self):
         #    #Menu
@@ -906,10 +906,10 @@ class MenuSection:
         #    #Buttons
         dtDropButton = QToolButton()
         action = self._make_action(
-            ":/images/iconDigitalTwinMenu.svg", 
-            self.tr("Digital Twin"), 
+            ":/images/iconDigitalTwinMenu.svg",
+            self.tr("Digital Twin"),
             self.runDtToolbar,
-            checkable=True, 
+            checkable=True,
             parent=self.iface.mainWindow(),
         )
         self.setup_dropdown_button(action, dtDropButton, self.toolbar)
@@ -917,20 +917,20 @@ class MenuSection:
         self.dtToolbar.visibilityChanged.connect(self.changeDtToolbarVisibility)
 
         self.addServConnButton = self._make_action(
-            ":/images/iconAddConnection.svg", 
-            self.tr("Add service connection"), 
+            ":/images/iconAddConnection.svg",
+            self.tr("Add service connection"),
             self.runPaintServiceConnection,
-            checkable=True, 
+            checkable=True,
             parent=self.iface.mainWindow(),
         )
         self.add_to_group(self.addServConnButton, self.dtMenu, self.dtToolbar)
         self.add_to_dropdown(self.addServConnButton, dtDropButton)
 
         self.addIsolationValveButton = self._make_action(
-            ":/images/iconAddIsolationValve.svg", 
-            self.tr("Add isolation valve"), 
+            ":/images/iconAddIsolationValve.svg",
+            self.tr("Add isolation valve"),
             self.runSelectIsolationValvePoint,
-            checkable=True, 
+            checkable=True,
             parent=self.iface.mainWindow(),
         )
         self.add_to_group(self.addIsolationValveButton, self.dtMenu, self.dtToolbar)
@@ -948,19 +948,19 @@ class MenuSection:
         self.currentMeter = "Undefined"
         self.addMeterDropButton = QToolButton()
         action = self._make_action(
-            ":/images/iconAddDefaultMeter.svg", 
-            self.tr("Add meter"), 
+            ":/images/iconAddDefaultMeter.svg",
+            self.tr("Add meter"),
             self.runSelectDefaultMeterPoint,
-            checkable=True, 
+            checkable=True,
             parent=self.iface.mainWindow(),
         )
         self.setup_dropdown_button(action, self.addMeterDropButton, self.dtToolbar)
 
         self.addAutoMeterButton = self._make_action(
-            ":/images/iconAddAutometer.svg", 
-            self.tr("Add automatic meter"), 
+            ":/images/iconAddAutometer.svg",
+            self.tr("Add automatic meter"),
             self.runSelectAutoMeterPoint,
-            checkable=True, 
+            checkable=True,
             parent=self.iface.mainWindow(),
         )
         self.add_to_group(self.addAutoMeterButton, self.meterSubMenu)
@@ -968,100 +968,100 @@ class MenuSection:
         self.addMeterDropButton.setDefaultAction(self.addAutoMeterButton)
 
         self.addManometerButton = self._make_action(
-            ":/images/iconAddManometer.svg", 
-            self.tr("Add manometer"), 
+            ":/images/iconAddManometer.svg",
+            self.tr("Add manometer"),
             self.runSelectManometerPoint,
-            checkable=True, 
+            checkable=True,
             parent=self.iface.mainWindow(),
         )
         self.add_to_group(self.addManometerButton, self.meterSubMenu)
         self.add_to_dropdown(self.addManometerButton, self.addMeterDropButton)
 
         self.addFlowmeterButton = self._make_action(
-            ":/images/iconAddFlowmeter.svg", 
-            self.tr("Add flowmeter"), 
+            ":/images/iconAddFlowmeter.svg",
+            self.tr("Add flowmeter"),
             self.runSelectFlowmeterPoint,
-            checkable=True, 
+            checkable=True,
             parent=self.iface.mainWindow(),
         )
         self.add_to_group(self.addFlowmeterButton, self.meterSubMenu)
         self.add_to_dropdown(self.addFlowmeterButton, self.addMeterDropButton)
 
         self.addCountermeterButton = self._make_action(
-            ":/images/iconAddCountermeter.svg", 
-            self.tr("Add countermeter"), 
+            ":/images/iconAddCountermeter.svg",
+            self.tr("Add countermeter"),
             self.runSelectCountermeterPoint,
-            checkable=True, 
+            checkable=True,
             parent=self.iface.mainWindow(),
         )
         self.add_to_group(self.addCountermeterButton, self.meterSubMenu)
         self.add_to_dropdown(self.addCountermeterButton, self.addMeterDropButton)
 
         self.addLevelSensorButton = self._make_action(
-            ":/images/iconAddLevelSensor.svg", 
-            self.tr("Add level sensor"), 
+            ":/images/iconAddLevelSensor.svg",
+            self.tr("Add level sensor"),
             self.runSelectLevelSensorPoint,
-            checkable=True, 
+            checkable=True,
             parent=self.iface.mainWindow(),
         )
         self.add_to_group(self.addLevelSensorButton, self.meterSubMenu)
         self.add_to_dropdown(self.addLevelSensorButton, self.addMeterDropButton)
 
         self.addDifferentialManometerButton = self._make_action(
-            ":/images/iconAddDiffManometer.svg", 
-            self.tr("Add differential manometer"), 
+            ":/images/iconAddDiffManometer.svg",
+            self.tr("Add differential manometer"),
             self.runSelectDifferentialManometerPoint,
-            checkable=True, 
+            checkable=True,
             parent=self.iface.mainWindow(),
         )
         self.add_to_group(self.addDifferentialManometerButton, self.meterSubMenu)
         self.add_to_dropdown(self.addDifferentialManometerButton, self.addMeterDropButton)
 
         self.addQualitySensorButton = self._make_action(
-            ":/images/iconAddQualitySensor.svg", 
-            self.tr("Add quality sensor"), 
+            ":/images/iconAddQualitySensor.svg",
+            self.tr("Add quality sensor"),
             self.runSelectQualitySensorPoint,
-            checkable=True, 
+            checkable=True,
             parent=self.iface.mainWindow(),
         )
         self.add_to_group(self.addQualitySensorButton, self.meterSubMenu)
         self.add_to_dropdown(self.addQualitySensorButton, self.addMeterDropButton)
 
         self.addEnergySensorButton = self._make_action(
-            ":/images/iconAddEnergySensor.svg", 
-            self.tr("Add energy sensor"), 
+            ":/images/iconAddEnergySensor.svg",
+            self.tr("Add energy sensor"),
             self.runSelectEnergySensorPoint,
-            checkable=True, 
+            checkable=True,
             parent=self.iface.mainWindow(),
         )
         self.add_to_group(self.addEnergySensorButton, self.meterSubMenu)
         self.add_to_dropdown(self.addEnergySensorButton, self.addMeterDropButton)
 
         self.addStatusSensorButton = self._make_action(
-            ":/images/iconAddStatusSensor.svg", 
-            self.tr("Add status sensor"), 
+            ":/images/iconAddStatusSensor.svg",
+            self.tr("Add status sensor"),
             self.runSelectStatusSensorPoint,
-            checkable=True, 
+            checkable=True,
             parent=self.iface.mainWindow(),
         )
         self.add_to_group(self.addStatusSensorButton, self.meterSubMenu)
         self.add_to_dropdown(self.addStatusSensorButton, self.addMeterDropButton)
 
         self.addValveOpeningButton = self._make_action(
-            ":/images/iconAddValveOpening.svg", 
-            self.tr("Add valve opening"), 
+            ":/images/iconAddValveOpening.svg",
+            self.tr("Add valve opening"),
             self.runSelectValveOpeningPoint,
-            checkable=True, 
+            checkable=True,
             parent=self.iface.mainWindow(),
         )
         self.add_to_group(self.addValveOpeningButton, self.meterSubMenu)
         self.add_to_dropdown(self.addValveOpeningButton, self.addMeterDropButton)
 
         self.addTachometerButton = self._make_action(
-            ":/images/iconAddTachometer.svg", 
-            self.tr("Add tachometer"), 
+            ":/images/iconAddTachometer.svg",
+            self.tr("Add tachometer"),
             self.runSelectTachometerPoint,
-            checkable=True, 
+            checkable=True,
             parent=self.iface.mainWindow(),
         )
         self.add_to_group(self.addTachometerButton, self.meterSubMenu)
@@ -1088,8 +1088,8 @@ class MenuSection:
         self.dtToolbar.addSeparator()
 
         action = self._make_action(
-            ":/images/iconLoadMeterReadings.svg", 
-            self.tr("Load meter readings..."), 
+            ":/images/iconLoadMeterReadings.svg",
+            self.tr("Load meter readings..."),
             self.runLoadReadings,
             parent=self.iface.mainWindow(),
         )
@@ -1097,8 +1097,8 @@ class MenuSection:
         self.add_to_dropdown(action, dtDropButton)
 
         action = self._make_action(
-            ":/images/iconSetPipeStatusFromValves.svg", 
-            self.tr("Set pipe's initial status from isolation valves"), 
+            ":/images/iconSetPipeStatusFromValves.svg",
+            self.tr("Set pipe's initial status from isolation valves"),
             self.runSetPipeStatus,
             parent=self.iface.mainWindow(),
         )
@@ -1106,8 +1106,8 @@ class MenuSection:
         self.add_to_dropdown(action, dtDropButton)
 
         action = self._make_action(
-            ":/images/iconLoadFieldData.svg", 
-            self.tr("Load field data..."), 
+            ":/images/iconLoadFieldData.svg",
+            self.tr("Load field data..."),
             self.runLoadScada,
             parent=self.iface.mainWindow(),
         )
@@ -1119,8 +1119,8 @@ class MenuSection:
         self.dtToolbar.addSeparator()
 
         action = self._make_action(
-            ":/images/iconIncorporateConnectionsToModel.svg", 
-            self.tr("Convert service connections into pipes/nodes"), 
+            ":/images/iconIncorporateConnectionsToModel.svg",
+            self.tr("Convert service connections into pipes/nodes"),
             self.runAddConnections,
             parent=self.iface.mainWindow(),
         )

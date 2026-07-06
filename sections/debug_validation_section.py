@@ -2,7 +2,7 @@
 """Debug and validation section for QGISRed (network checks, commit, connectivity, sectors)."""
 
 from qgis.PyQt.QtWidgets import QApplication
-from qgis.PyQt.QtCore import Qt, QCoreApplication
+from qgis.PyQt.QtCore import Qt
 
 from ..tools.qgisred_dependencies import QGISRedDependencies as GISRed
 from ..ui.debug.qgisred_toolLength_dialog import QGISRedLengthToolDialog

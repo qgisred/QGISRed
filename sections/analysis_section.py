@@ -1,11 +1,11 @@
-﻿# -*- coding: utf-8 -*-
+# -*- coding: utf-8 -*-
 """Analysis and results section for QGISRed (model, results dock, time series, export)."""
 
 from contextlib import suppress
 import os
 
 from qgis.core import QgsRectangle
-from qgis.PyQt.QtWidgets import QApplication, QDialog
+from qgis.PyQt.QtWidgets import QApplication
 from qgis.PyQt.QtCore import Qt, QTimer
 from qgis.PyQt.QtGui import QColor
 from qgis.gui import QgsHighlight
@@ -152,7 +152,7 @@ class AnalysisSection:
         QApplication.restoreOverrideCursor()
 
         if resMessage == "True":
-            self.processCsharpResult("commit", "") #To copy temporal DBF file
+            self.processCsharpResult("commit", "")  # To copy temporal DBF file
             self.readOptions()
         elif resMessage == "commit":
             self.processCsharpResult(resMessage, self.tr("Pipe's roughness converted"))
@@ -772,9 +772,9 @@ class AnalysisSection:
         category = ""
         for identifier, cat in layers_to_check:
             layer = None
-            for l in QGISRedLayerUtils().getLayers():
-                if l.customProperty("qgisred_identifier") == identifier:
-                    layer = l
+            for lyr in QGISRedLayerUtils().getLayers():
+                if lyr.customProperty("qgisred_identifier") == identifier:
+                    layer = lyr
                     break
             if layer:
                 for feature in layer.getFeatures(rect):
@@ -812,9 +812,9 @@ class AnalysisSection:
         identifier = remembered.get("layer_identifier")
         element_id = remembered.get("element_id")
         layer = None
-        for l in QGISRedLayerUtils().getLayers():
-            if l.customProperty("qgisred_identifier") == identifier:
-                layer = l
+        for lyr in QGISRedLayerUtils().getLayers():
+            if lyr.customProperty("qgisred_identifier") == identifier:
+                layer = lyr
                 break
         if layer is None:
             return None, None
@@ -1260,9 +1260,9 @@ class AnalysisSection:
             layers = QGISRedLayerUtils().getLayers()
         except Exception:
             layers = []
-        for l in layers:
+        for lyr in layers:
             try:
-                identifier = l.customProperty("qgisred_identifier")
+                identifier = lyr.customProperty("qgisred_identifier")
             except Exception:
                 identifier = None
             if identifier in (
@@ -1270,7 +1270,7 @@ class AnalysisSection:
                 "qgisred_pipes", "qgisred_valves", "qgisred_pumps"
             ):
                 with suppress(Exception):
-                    l.removeSelection()
+                    lyr.removeSelection()
 
     def _setTimeSeriesHighlight(self, layer, feature, color=None, width=5, dock=None):
         dock = dock if dock is not None else self.activeTimeSeriesDock
@@ -1475,9 +1475,9 @@ class AnalysisSection:
 
         for identifier, cat in layers_to_check:
             layer = None
-            for l in QGISRedLayerUtils().getLayers():
-                if l.customProperty("qgisred_identifier") == identifier:
-                    layer = l
+            for lyr in QGISRedLayerUtils().getLayers():
+                if lyr.customProperty("qgisred_identifier") == identifier:
+                    layer = lyr
                     break
 
             if layer:
@@ -1485,7 +1485,8 @@ class AnalysisSection:
                     found_feature = feature
                     category = cat
                     break
-            if found_feature: break
+            if found_feature:
+                break
 
         if not found_feature:
             self.pushMessage(self.tr("No network element found at this location."), level=1)
@@ -2127,10 +2128,10 @@ class AnalysisSection:
                 layers = []
             for identifier, ids in needed_ids.items():
                 layer = None
-                for l in layers:
+                for lyr in layers:
                     with suppress(Exception):
-                        if l.customProperty("qgisred_identifier") == identifier:
-                            layer = l
+                        if lyr.customProperty("qgisred_identifier") == identifier:
+                            layer = lyr
                             break
                 layer_by_identifier[identifier] = layer
                 feat_map = {}

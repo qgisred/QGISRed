@@ -6,7 +6,7 @@ import os
 import shutil
 
 from qgis.core import QgsProject, QgsVectorLayer, QgsLayerTreeLayer
-from qgis.PyQt.QtWidgets import QApplication, QMessageBox
+from qgis.PyQt.QtWidgets import QApplication
 from qgis.PyQt.QtCore import Qt
 
 from ..tools.utils.qgisred_layer_utils import QGISRedLayerUtils
@@ -76,7 +76,6 @@ class LayerManagementSection:
         utils.removeLayers([self.Sectors + "_Links", self.Sectors + "_Nodes"])
         sectorGroupName = self.getSectorGroupName()
         self.removeEmptyQuerySubGroup(sectorGroupName)
-
 
     """Open Layers"""
 
@@ -233,8 +232,6 @@ class LayerManagementSection:
             sectorizationName,
             f"{sectorizationName}_{themeName}.shp"
         ))
-
-        folder = os.path.dirname(shpPath)
 
         if not os.path.exists(shpPath):
             return
@@ -605,4 +602,3 @@ class LayerManagementSection:
                 continue
 
             layer.setReadOnly(readonly)
-
