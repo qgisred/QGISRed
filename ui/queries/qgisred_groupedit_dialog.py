@@ -130,14 +130,17 @@ _curveTypeByField = {
     "IdEffiCur":  "efficiency",
     "IdHeadLoss": "headloss",
 }
-# Pattern reference fields. Patterns are stored untyped in {Network}_Patterns.dbf (Type is "Undefined"),
-# so every declared pattern is offered regardless of field; this mapping only flags pattern fields.
+# Pattern reference fields -> accepted pattern types, used to list only matching declared patterns
+# from {Network}_Patterns.dbf. Keyed by (identifier, fieldName) because the same field name means a
+# different pattern type per element (e.g. IdPattern is quality on Sources but demand on Demands).
 _patternTypeByField = {
-    "IdPattDem":  "demand",
-    "IdPattern":  "demand",
-    "IdHeadPatt": "head",
-    "IdSpeedPat": "speed",
-    "IdPricePat": "price",
+    ("qgisred_junctions", "IdPattDem"):        ("demand",),
+    ("qgisred_demands", "IdPattern"):          ("demand",),
+    ("qgisred_sources", "IdPattern"):          ("quality",),
+    ("qgisred_reservoirs", "IdHeadPatt"):      ("head",),
+    ("qgisred_pumps", "IdSpeedPat"):           ("speed", "velocity"),
+    ("qgisred_pumps", "IdPricePat"):           ("price",),
+    ("qgisred_serviceconnections", "Pattern"): ("demand",),
 }
 
 # Numeric fields that intentionally show no unit (mirrors Queries by Properties).
@@ -421,7 +424,7 @@ class QGISRedGroupEditDialog(QDialog, FORM_CLASS):
             return "enum-material"
         if fieldName in _curveTypeByField:
             return "enum-curve"
-        if fieldName in _patternTypeByField:
+        if (identifier, fieldName) in _patternTypeByField:
             return "enum-pattern"
         if self._isDateField(identifier, fieldName):
             return "date"
@@ -443,7 +446,9 @@ class QGISRedGroupEditDialog(QDialog, FORM_CLASS):
         elif kind == "enum-curve":
             values = self._declaredCurveOrPatternValues(self._projectDbfPath("Curves"), _curveTypeByField.get(fieldName))
         elif kind == "enum-pattern":
-            values = self._declaredCurveOrPatternValues(self._projectDbfPath("Patterns"), None)
+            values = self._declaredCurveOrPatternValues(
+                self._projectDbfPath("Patterns"), _patternTypeByField.get((identifier, fieldName))
+            )
         else:
             values = []
         previous = self.cbEnum.currentText()
@@ -552,9 +557,11 @@ class QGISRedGroupEditDialog(QDialog, FORM_CLASS):
             return ""
         return os.path.join(projectDirectory, "%s_%s.dbf" % (networkName, suffix))
 
-    def _declaredCurveOrPatternValues(self, path, expectedType):
+    def _declaredCurveOrPatternValues(self, path, expectedTypes):
         if not path or not os.path.exists(path):
             return []
+        if isinstance(expectedTypes, str):
+            expectedTypes = (expectedTypes,)
         layer = QgsVectorLayer(path, "groupedit_cp", "ogr")
         if not layer.isValid():
             return []
@@ -566,9 +573,9 @@ class QGISRedGroupEditDialog(QDialog, FORM_CLASS):
         values = []
         seen = set()
         for feature in layer.getFeatures():
-            if typeField is not None and expectedType is not None:
+            if typeField is not None and expectedTypes is not None:
                 typeValue = feature[typeField]
-                if typeValue is None or str(typeValue).strip().lower() != expectedType:
+                if typeValue is None or str(typeValue).strip().lower() not in expectedTypes:
                     continue
             idValue = feature[idField]
             if idValue is None:
