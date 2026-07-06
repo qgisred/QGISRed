@@ -482,11 +482,9 @@ class TimeSeriesPlotRenderer:
         if is_stepped and ys is not None and len(ys) >= n:
             indices = [0]
             for i in range(1, n):
-                try:
+                with suppress(Exception):
                     if ys[i] != ys[i - 1]:
                         indices.append(i)
-                except Exception:
-                    continue
             if n > 1 and indices[-1] != n - 1:
                 indices.append(n - 1)
             return indices
@@ -1712,10 +1710,10 @@ class TimeSeriesPlotRenderer:
             if not xs or not ys or len(xs) <= hover_index or len(ys) <= hover_index:
                 continue
 
-            try:
-                if abs(float(xs[hover_index]) - float(val_x)) > 1e-6:
-                    continue
-            except Exception:
+            close_enough = False
+            with suppress(Exception):
+                close_enough = abs(float(xs[hover_index]) - float(val_x)) <= 1e-6
+            if not close_enough:
                 continue
 
             color = s.get("color") or DEFAULT_SERIES_COLOR

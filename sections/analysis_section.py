@@ -2128,12 +2128,10 @@ class AnalysisSection:
             for identifier, ids in needed_ids.items():
                 layer = None
                 for l in layers:
-                    try:
+                    with suppress(Exception):
                         if l.customProperty("qgisred_identifier") == identifier:
                             layer = l
                             break
-                    except Exception:
-                        continue
                 layer_by_identifier[identifier] = layer
                 feat_map = {}
                 if layer is not None:

@@ -819,12 +819,10 @@ class QGISRedProjectIO:
             qlrFilename = f"{identifier}.qlr"
             qlrPath = os.path.join(qlrFolder, qlrFilename)
 
-            try:
+            with suppress(Exception):
                 success = QgsLayerDefinition.exportLayerDefinition(qlrPath, [layerNode])
                 if success:
                     savedCount += 1
-            except Exception:
-                continue
 
         if savedCount > 0:
             metadataPath = os.path.join(qlrFolder, "layer_metadata.json")
@@ -859,7 +857,7 @@ class QGISRedProjectIO:
             qlrPath = os.path.join(qlrFolder, qlrFile)
             identifier = qlrFile.replace('.qlr', '')
 
-            try:
+            with suppress(Exception):
                 success = QgsLayerDefinition().loadLayerDefinition(
                     qlrPath,
                     QgsProject.instance(),
@@ -870,8 +868,6 @@ class QGISRedProjectIO:
                         if layer.customProperty("qgisred_identifier") == identifier:
                             loadedLayers.append((layer, identifier))
                             break
-            except Exception:
-                continue
 
         for layer, identifier in loadedLayers:
             metadata = layerMeta.get(identifier, {})
