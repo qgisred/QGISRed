@@ -19,7 +19,7 @@ Usage in other plugin files:
 try:
     from qgis.PyQt import sip
 except ImportError:
-    import sip  # fallback bare import
+    import sip  # noqa: F401  fallback bare import, re-exported for other plugin files
 
 # ---------------------------------------------------------------------------
 # QAction — moved from QtWidgets (Qt5) to QtGui (Qt6).
@@ -27,7 +27,7 @@ except ImportError:
 try:
     from qgis.PyQt.QtGui import QAction       # Qt6 / PyQt6
 except ImportError:
-    from qgis.PyQt.QtWidgets import QAction   # Qt5 / PyQt5
+    from qgis.PyQt.QtWidgets import QAction   # noqa: F401  Qt5 / PyQt5, re-exported for other plugin files
 
 # ---------------------------------------------------------------------------
 # QVariant type constants.
@@ -200,7 +200,7 @@ VERTEX_ICON_X = getattr(_vertex_icon_ns, 'ICON_X', None)
 # QGIS 3: QgsLayerTreeNode.NodeLayer / NodeGroup (flat)
 # QGIS 4: QgsLayerTreeNode.NodeType.NodeLayer / NodeGroup (scoped)
 # ---------------------------------------------------------------------------
-from qgis.core import QgsLayerTreeNode as _QgsLTN
+from qgis.core import QgsLayerTreeNode as _QgsLTN  # noqa: E402  placed next to the constants it defines, by design
 
 try:
     NODE_TYPE_LAYER = _QgsLTN.NodeLayer

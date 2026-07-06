@@ -12,6 +12,8 @@ from .sections.debug_validation_section import DebugValidationSection
 from .sections.tools_section import ToolsSection
 from .sections.digital_twin_section import DigitalTwinSection
 from .sections.queries_section import QueriesSection
+
+
 class QGISRed(
     LifecycleSection,
     MenuSection,
