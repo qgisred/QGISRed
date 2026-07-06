@@ -16,7 +16,7 @@ DIR_CONNECTIVITY      = "Connectivity"
 DIR_HYDRAULIC_SECTORS = "HydraulicSectors"
 DIR_DEMAND_SECTORS    = "DemandSectors"
 DIR_ISOLATED_SEGMENTS = "IsolatedSegments"
-DIR_AUXILIARY_LAYERS  = "AuxiliaryLayers"
+DIR_AUXILIARY_LAYERS  = "Auxiliary Layers"
 DIR_DEMANDS_BUILDER    = "DemandsBuilder"
 
 # Single source of truth: layer-type key → {subdir, tree_path, flags}
