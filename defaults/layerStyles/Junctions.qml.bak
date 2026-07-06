@@ -352,6 +352,6 @@
   </constraintExpressions>
   <expressionfields/>
   <previewExpression>"Id"</previewExpression>
-  <mapTip enabled="1">Junction [% "Id" %]</mapTip>
+  <mapTip enabled="1">Junction [% coalesce(attribute($currentfeature,'JunctionID'), attribute($currentfeature,'Id')) %]</mapTip>
   <layerGeometryType>0</layerGeometryType>
 </qgis>

@@ -297,6 +297,6 @@
   </constraintExpressions>
   <expressionfields/>
   <previewExpression>"Id"</previewExpression>
-  <mapTip enabled="1">Reservoir [% "Id" %]</mapTip>
+  <mapTip enabled="1">Reservoir [% coalesce(attribute($currentfeature,'ReservoirID'), attribute($currentfeature,'Id')) %]</mapTip>
   <layerGeometryType>0</layerGeometryType>
 </qgis>

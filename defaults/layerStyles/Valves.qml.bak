@@ -414,6 +414,6 @@
   </constraintExpressions>
   <expressionfields/>
   <previewExpression>"Id"</previewExpression>
-  <mapTip enabled="1">[% "Type" %] [% "Id" %]</mapTip>
+  <mapTip enabled="1">[% "Type" %] [% coalesce(attribute($currentfeature,'ValveID'), attribute($currentfeature,'Id')) %]</mapTip>
   <layerGeometryType>1</layerGeometryType>
 </qgis>

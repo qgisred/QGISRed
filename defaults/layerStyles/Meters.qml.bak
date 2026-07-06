@@ -718,6 +718,6 @@
   </constraintExpressions>
   <expressionfields/>
   <previewExpression>"Descrip"</previewExpression>
-  <mapTip enabled="1">[[% "Type" %]] [% "Id" %]</mapTip>
+  <mapTip enabled="1">[[% "Type" %]] [% coalesce(attribute($currentfeature,'MeterID'), attribute($currentfeature,'Id')) %]</mapTip>
   <layerGeometryType>0</layerGeometryType>
 </qgis>

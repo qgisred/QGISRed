@@ -235,6 +235,6 @@
   <blendMode>0</blendMode>
   <featureBlendMode>0</featureBlendMode>
   <previewExpression>"Descrip"</previewExpression>
-  <mapTip enabled="1">Isolation Valve [% "Id" %]</mapTip>
+  <mapTip enabled="1">Isolation Valve [% coalesce(attribute($currentfeature,'IsolationValveID'), attribute($currentfeature,'Id')) %]</mapTip>
   <layerGeometryType>0</layerGeometryType>
 </qgis>

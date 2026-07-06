@@ -360,6 +360,6 @@
   </constraintExpressions>
   <expressionfields/>
   <previewExpression>"Id"</previewExpression>
-  <mapTip enabled="1">Tank [% "Id" %]</mapTip>
+  <mapTip enabled="1">Tank [% coalesce(attribute($currentfeature,'TankID'), attribute($currentfeature,'Id')) %]</mapTip>
   <layerGeometryType>0</layerGeometryType>
 </qgis>

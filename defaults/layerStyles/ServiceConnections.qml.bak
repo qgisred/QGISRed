@@ -752,6 +752,6 @@ def my_form_open(dialog, layer, feature):
   <dataDefinedFieldProperties/>
   <widgets/>
   <previewExpression>"Id"</previewExpression>
-  <mapTip enabled="1">SConnec [% "Id" %]</mapTip>
+  <mapTip enabled="1">SConnec [% coalesce(attribute($currentfeature,'ServiceConnectionID'), attribute($currentfeature,'Id')) %]</mapTip>
   <layerGeometryType>1</layerGeometryType>
 </qgis>
