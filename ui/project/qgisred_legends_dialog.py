@@ -1,5 +1,6 @@
 # -*- coding: utf-8 -*-
 
+from contextlib import suppress
 import os
 import re
 import json
@@ -208,11 +209,9 @@ class QGISRedLegendsDialog(QDialog, formClass):
 
         values = []
         for feature in allLayer.getFeatures():
-            try:
+            with suppress(Exception):
                 val = float(feature[fieldName])
                 values.append(val)
-            except:
-                pass
 
         del allLayer
         return sorted(values)
@@ -2721,10 +2720,8 @@ class QGISRedLegendsDialog(QDialog, formClass):
         # Original implementation for non-results layers
         values = []
         for feature in self.currentLayer.getFeatures():
-            try:
+            with suppress(Exception):
                 values.append(float(feature[self.currentFieldName]))
-            except:
-                pass
 
         return sorted(values)
 
@@ -2790,7 +2787,7 @@ class QGISRedLegendsDialog(QDialog, formClass):
         return True
 
     def onSizeChanged(self, row, text):
-        try:
+        with suppress(Exception):
             size = float(text)
             colorContainer = self.tableView.cellWidget(row, 1)
             colorWidget = colorContainer.findChild(QGISRedSymbolColorSelector) if colorContainer else None
@@ -2806,8 +2803,6 @@ class QGISRedLegendsDialog(QDialog, formClass):
                 currentSizes = self.collectCurrentTableSizes()
                 if len(currentSizes) >= 2:
                     self.sizePaletteEmulator.setPaletteFromSizes(currentSizes)
-        except:
-            pass
 
     # ============================================================
     # RENDERER CONVERSION
@@ -3034,10 +3029,8 @@ class QGISRedLegendsDialog(QDialog, formClass):
             newColor = colorWidget.activeColor
 
         newSize = None
-        try:
+        with suppress(Exception):
             newSize = float(sizeWidget.text())
-        except Exception:
-            pass
 
         inputAppliers = {
             "qgisred_junctions": self._applyJunctionsLegend,
@@ -3293,11 +3286,9 @@ class QGISRedLegendsDialog(QDialog, formClass):
             if colorWidget:
                 self.applyColorToSymbol(symbol, colorWidget.activeColor)
 
-            try:
+            with suppress(Exception):
                 size = float(sizeWidget.text())
                 self.applySizeToSymbol(symbol, size)
-            except:
-                pass
 
             if isProportionalMode:
                 self.applyProportionalSizeExpression(symbol)
@@ -3374,11 +3365,9 @@ class QGISRedLegendsDialog(QDialog, formClass):
             if colorWidget:
                 self.applyColorToSymbol(symbol, colorWidget.activeColor)
 
-            try:
+            with suppress(Exception):
                 size = float(sizeWidget.text())
                 self.applySizeToSymbol(symbol, size)
-            except:
-                pass
 
             category = QgsRendererCategory(realValue, symbol, label)
             category.setRenderState(checkbox.isChecked() if checkbox else True)
@@ -4481,10 +4470,8 @@ class QGISRedLegendsDialog(QDialog, formClass):
 
     def disconnectLayerTreeSignal(self):
         if self.layerTreeViewConnection and iface and iface.layerTreeView():
-            try:
+            with suppress(Exception):
                 iface.layerTreeView().currentLayerChanged.disconnect(self.onQgisLayerSelectionChanged)
-            except:
-                pass
 
     def cleanupParentReference(self):
         if self.parentPlugin and hasattr(self.parentPlugin, "legendsDialog"):

@@ -8,6 +8,7 @@ caller (analysis_section).
 """
 from __future__ import annotations
 
+from contextlib import suppress
 import os
 import xml.etree.ElementTree as ET
 from dataclasses import fields
@@ -174,10 +175,8 @@ def serialize_timeseries_config(
     comment: str = "",
 ) -> bytes:
     root = build_config_tree(curves, axis_x, axis_y_left, axis_y_right, general, comment)
-    try:
+    with suppress(AttributeError):
         ET.indent(root)
-    except AttributeError:
-        pass
     return ET.tostring(root, encoding="utf-8", xml_declaration=True)
 
 
@@ -191,10 +190,8 @@ def write_timeseries_config(
     comment: str = "",
 ) -> None:
     root = build_config_tree(curves, axis_x, axis_y_left, axis_y_right, general, comment)
-    try:
+    with suppress(AttributeError):
         ET.indent(root)
-    except AttributeError:
-        pass
     ET.ElementTree(root).write(path, encoding="utf-8", xml_declaration=True)
 
 

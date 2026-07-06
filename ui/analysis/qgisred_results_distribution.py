@@ -2,6 +2,7 @@
 """Distribution histogram helpers and dock mixin for simulation results."""
 from __future__ import annotations
 
+from contextlib import suppress
 import re
 from bisect import bisect_right
 
@@ -272,10 +273,8 @@ def build_distribution_bins(layer, field_name):
             continue
         bins[class_index]["count"] += 1
         if mode == "numeric":
-            try:
+            with suppress(TypeError, ValueError):
                 bins[class_index]["sum"] += float(value)
-            except (TypeError, ValueError):
-                pass
 
     for bin_data in bins:
         _finalize_bin(bin_data)
@@ -524,10 +523,8 @@ class _ResultsDistributionMixin:
 
         self.cbNodeDistribution.clicked.connect(self.nodeDistributionClicked)
         self.cbLinkDistribution.clicked.connect(self.linkDistributionClicked)
-        try:
+        with suppress(Exception):
             self.visibilityChanged.connect(self._onDistributionDockVisibilityChanged)
-        except Exception:
-            pass
         self._updateDistributionCheckboxLabels()
         self._syncDistributionPanelVisibility()
 

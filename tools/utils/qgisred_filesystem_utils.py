@@ -1,4 +1,5 @@
 # -*- coding: utf-8 -*-
+from contextlib import suppress
 import os
 import tempfile
 import shutil
@@ -126,19 +127,15 @@ class QGISRedFileSystemUtils:
 
     def copyFolderFiles(self, originalFolder, destinationFolder):
         if not os.path.exists(destinationFolder):
-            try:
+            with suppress(Exception):
                 os.mkdir(destinationFolder)
-            except Exception:
-                pass
 
         folder = self.getUniformedPath(originalFolder)
         for f in os.listdir(folder):
             filepath = os.path.join(folder, f)
             if os.path.isfile(filepath):
-                try:
+                with suppress(Exception):
                     copyfile(r"" + filepath, r"" + filepath.replace(folder, destinationFolder))
-                except:
-                    pass
             elif os.path.isdir(filepath):
                 self.copyFolderFiles(filepath, os.path.join(destinationFolder, f))
 

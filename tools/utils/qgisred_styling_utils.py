@@ -1,4 +1,5 @@
 # -*- coding: utf-8 -*-
+from contextlib import suppress
 import math
 import os
 import json
@@ -42,10 +43,8 @@ def create_combined_cursor(icon, iface=None, icon_size=24):
 
     ratio = 1.0
     if iface is not None:
-        try:
+        with suppress(Exception):
             ratio = iface.mainWindow().devicePixelRatioF()
-        except Exception:
-            pass
 
     canvas_size = max(32, 12 + icon_size)
     pixmap = QPixmap(int(canvas_size * ratio), int(canvas_size * ratio))
@@ -291,13 +290,11 @@ class QGISRedStylingUtils:
     def cloneRendererTemplateSymbol(self, layer):
         renderer = layer.renderer()
         if renderer is not None:
-            try:
+            with suppress(Exception):
                 context = QgsRenderContext()
                 symbols = renderer.symbols(context)
                 if symbols:
                     return symbols[0].clone()
-            except Exception:
-                pass
         return QgsSymbol.defaultSymbol(layer.geometryType())
 
     def cloneRendererRamp(self, layer):
@@ -681,13 +678,11 @@ class QGISRedStylingUtils:
                 return
             for i in range(symbol.symbolLayerCount()):
                 sl = symbol.symbolLayer(i)
-                try:
+                with suppress(Exception):
                     # Most layers respond to setColor
                     sl.setColor(QColor(192, 192, 192))
                     if hasattr(sl, "setStrokeColor"):
                         sl.setStrokeColor(QColor(160, 160, 160))
-                except:
-                    pass
                 # Handle sub-symbols recursively (needed for arrows, marker lines, etc.)
                 if hasattr(sl, "subSymbol") and sl.subSymbol():
                     make_gray(sl.subSymbol())

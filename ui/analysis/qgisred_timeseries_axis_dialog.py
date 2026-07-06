@@ -1,6 +1,7 @@
 # -*- coding: utf-8 -*-
 from __future__ import annotations
 
+from contextlib import suppress
 import copy
 import math
 import os
@@ -137,10 +138,8 @@ class TimeSeriesAxisOptionsDialog(QDialog):
 
     def _limit_field_width(self, field: QWidget, width=None) -> QWidget:
         field.setMaximumWidth(int(width or self._FORM_FIELD_WIDTH))
-        try:
+        with suppress(Exception):
             field.setSizePolicy(QSizePolicy.Policy.Preferred, field.sizePolicy().verticalPolicy())
-        except Exception:
-            pass
         return field
 
     def _show_color_on_button(self, btn: QPushButton, color: QColor) -> None:
@@ -171,20 +170,16 @@ class TimeSeriesAxisOptionsDialog(QDialog):
             return False
 
     def _save_live_update_pref(self, enabled: bool) -> None:
-        try:
+        with suppress(Exception):
             from qgis.core import QgsSettings
 
             QgsSettings().setValue(self._LIVE_UPDATE_SETTINGS_KEY, bool(enabled))
-        except Exception:
-            pass
 
     def _schedule_live_apply(self, *_args) -> None:
         sender = self.sender()
-        try:
+        with suppress(Exception):
             if sender is not None and bool(sender.property("qgisred_skip_live_update")):
                 return
-        except Exception:
-            pass
         if bool(getattr(self._tab_curves, "_curve_loading", False)):
             return
         if not self._chk_live_update.isChecked():
@@ -216,10 +211,8 @@ class TimeSeriesAxisOptionsDialog(QDialog):
         for radio in root.findChildren(QRadioButton):
             radio.toggled.connect(self._schedule_live_apply)
         for font_combo in root.findChildren(QFontComboBox):
-            try:
+            with suppress(Exception):
                 font_combo.currentFontChanged.connect(self._schedule_live_apply)
-            except Exception:
-                pass
         for grp in root.findChildren(QGroupBox):
             if grp.isCheckable():
                 grp.toggled.connect(self._schedule_live_apply)
@@ -238,10 +231,8 @@ class TimeSeriesAxisOptionsDialog(QDialog):
                 series[idx].update(copy.deepcopy(snap))
         self._plot._updateMinimumWidthForTitle()
         self._plot.update()
-        try:
+        with suppress(Exception):
             self._plot._emitSeriesEmphasisChanged()
-        except Exception:
-            pass
 
     def _has_pending_changes(self) -> bool:
         return bool(self._ui_dirty or self._dirty_applied)
@@ -431,26 +422,20 @@ class TimeSeriesAxisOptionsDialog(QDialog):
     def _configure_initial_geometry(self) -> None:
         max_w = max(self._MIN_DIALOG_WIDTH, 700)
         max_h = max(self._MIN_DIALOG_HEIGHT, 720)
-        try:
+        with suppress(Exception):
             screen = self.screen() or QApplication.primaryScreen()
             if screen is not None:
                 available = screen.availableGeometry()
                 max_w = max(self._MIN_DIALOG_WIDTH, int(available.width() * 0.85))
                 max_h = max(self._MIN_DIALOG_HEIGHT, int(available.height() * 0.92))
                 self.setMaximumSize(max_w, max_h)
-        except Exception:
-            pass
 
-        try:
+        with suppress(Exception):
             self.layout().activate()
-        except Exception:
-            pass
 
         time_axis_h = self._MIN_DIALOG_HEIGHT
-        try:
+        with suppress(Exception):
             time_axis_h = int(self._axes_tabs.widget(0).sizeHint().height())
-        except Exception:
-            pass
         target_h = min(max_h, max(self._MIN_DIALOG_HEIGHT, time_axis_h + 110))
         self.resize(min(max_w, self.minimumWidth()), target_h)
 
@@ -1062,10 +1047,8 @@ class TimeSeriesAxisOptionsDialog(QDialog):
         colors_form.setLabelAlignment(Qt.AlignmentFlag.AlignRight | Qt.AlignmentFlag.AlignVCenter)
         colors_form.setHorizontalSpacing(12)
         colors_form.setVerticalSpacing(8)
-        try:
+        with suppress(Exception):
             colors_form.setRowWrapPolicy(QFormLayout.RowWrapPolicy.WrapLongRows)
-        except Exception:
-            pass
 
         widget_bg_row, widget_bg_value = make_color_picker(
             cfg.widget_bg_hex,
@@ -1089,10 +1072,8 @@ class TimeSeriesAxisOptionsDialog(QDialog):
         frame_form.setLabelAlignment(Qt.AlignmentFlag.AlignRight | Qt.AlignmentFlag.AlignVCenter)
         frame_form.setHorizontalSpacing(12)
         frame_form.setVerticalSpacing(8)
-        try:
+        with suppress(Exception):
             frame_form.setRowWrapPolicy(QFormLayout.RowWrapPolicy.WrapLongRows)
-        except Exception:
-            pass
 
         frame_color_row, frame_color_value = make_color_picker(
             cfg.frame_color_hex,
@@ -1176,10 +1157,8 @@ class TimeSeriesAxisOptionsDialog(QDialog):
         legend_form.setLabelAlignment(Qt.AlignmentFlag.AlignRight | Qt.AlignmentFlag.AlignVCenter)
         legend_form.setHorizontalSpacing(12)
         legend_form.setVerticalSpacing(8)
-        try:
+        with suppress(Exception):
             legend_form.setRowWrapPolicy(QFormLayout.RowWrapPolicy.WrapLongRows)
-        except Exception:
-            pass
 
         cb_pos = QComboBox()
         cb_pos.addItem(self.tr("Right (outside)"), "right")
@@ -1268,10 +1247,8 @@ class TimeSeriesAxisOptionsDialog(QDialog):
         scale_form.setLabelAlignment(Qt.AlignmentFlag.AlignRight | Qt.AlignmentFlag.AlignVCenter)
         scale_form.setHorizontalSpacing(12)
         scale_form.setVerticalSpacing(8)
-        try:
+        with suppress(Exception):
             scale_form.setRowWrapPolicy(QFormLayout.RowWrapPolicy.WrapLongRows)
-        except Exception:
-            pass
         try:
             scale_form.setFieldGrowthPolicy(QFormLayout.FieldGrowthPolicy.ExpandingFieldsGrow)
         except AttributeError:
@@ -1373,10 +1350,8 @@ class TimeSeriesAxisOptionsDialog(QDialog):
         grid_form.setLabelAlignment(Qt.AlignmentFlag.AlignRight | Qt.AlignmentFlag.AlignVCenter)
         grid_form.setHorizontalSpacing(12)
         grid_form.setVerticalSpacing(8)
-        try:
+        with suppress(Exception):
             grid_form.setRowWrapPolicy(QFormLayout.RowWrapPolicy.WrapLongRows)
-        except Exception:
-            pass
 
         chk_grid = QCheckBox(self.tr("Show grid lines for this axis"))
         chk_grid.setChecked(cfg.show_grid)
@@ -1618,10 +1593,8 @@ class TimeSeriesAxisOptionsDialog(QDialog):
         w = self._plot.parent()
         while w is not None:
             if hasattr(w, "_emitCurveSettingsChanged"):
-                try:
+                with suppress(Exception):
                     w._emitCurveSettingsChanged()
-                except Exception:
-                    pass
                 return
             w = w.parent()
 
@@ -1673,11 +1646,7 @@ class TimeSeriesAxisOptionsDialog(QDialog):
                 if idx >= len(series):
                     break
                 self._apply_curve_cfg_to_series(curve, series[idx])
-        try:
+        with suppress(Exception):
             self._plot._assignYAxisByMagnitude()
-        except Exception:
-            pass
-        try:
+        with suppress(Exception):
             self._plot._emitSeriesEmphasisChanged()
-        except Exception:
-            pass

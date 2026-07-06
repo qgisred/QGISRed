@@ -1,6 +1,7 @@
 # -*- coding: utf-8 -*-
 """Project management section for QGISRed (define project, open/create/import, settings, backup)."""
 
+from contextlib import suppress
 import os
 import shutil
 import unicodedata
@@ -205,28 +206,22 @@ class ProjectManagementSection:
         self.gisredDll = None
 
         # Deactivate all map tools to prevent callbacks during cleanup
-        try:
+        with suppress(Exception):
             if hasattr(self, 'myMapTools'):
                 for tool_name, tool in list(self.myMapTools.items()):
-                    try:
+                    with suppress(Exception):
                         if tool is not None:
                             if self.iface.mapCanvas().mapTool() is tool:
                                 self.iface.mapCanvas().unsetMapTool(tool)
                             tool.deactivate()
-                    except Exception:
-                        pass
                 self.myMapTools.clear()
-        except Exception:
-            pass
 
         # Disconnect and close all dock widgets
         self.cleanupDocks()
 
         # Time series: selection and QgsHighlight overlays survive project clear unless reset here.
-        try:
+        with suppress(Exception):
             clear_all_timeseries(self)
-        except Exception:
-            pass
 
     """Read/Write methods"""
     def readOptions(self, folder="", network=""):
@@ -794,10 +789,8 @@ class ProjectManagementSection:
         for fname in os.listdir(results_dir):
             base = fname.split('.')[0]
             if pattern.match(base):
-                try:
+                with suppress(OSError):
                     os.remove(os.path.join(results_dir, fname))
-                except OSError:
-                    pass
 
     def _migrateLayersToSubfolders(self):
         """Silently migrate layers that are not yet in their correct deep subfolder.
@@ -903,10 +896,8 @@ class ProjectManagementSection:
     def _deleteMigratedFiles(self, paths):
         """Delete root-level files that were migrated to a subfolder."""
         for path in paths:
-            try:
+            with suppress(OSError):
                 os.remove(path)
-            except OSError:
-                pass
 
     def _post_qgz_open(self, snapshot):
         """Common post-processing after a project with QGZ is loaded.

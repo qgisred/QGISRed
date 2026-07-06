@@ -1,3 +1,4 @@
+from contextlib import suppress
 from qgis.PyQt.QtCore import Qt
 from qgis.PyQt.QtGui import QCursor, QColor
 from qgis.core import QgsPointXY, QgsPoint, QgsFeatureRequest, QgsFeature, QgsGeometry, QgsProject, QgsVector
@@ -7,10 +8,8 @@ from qgis.gui import QgsMapTool, QgsVertexMarker, QgsRubberBand, QgsMapCanvasSna
 try:
     from qgis.gui import Qgis
 except:
-    try:
+    with suppress(Exception):
         from qgis.core import Qgis # Compatibility with QGis 3.4x
-    except:
-        pass
 
 from ..utils.qgisred_filesystem_utils import QGISRedFileSystemUtils
 from ..utils.qgisred_layer_utils import QGISRedLayerUtils
@@ -115,10 +114,8 @@ class QGISRedEditLinksGeometryTool(QgsMapTool):
         self._clearAllHighlights()
         self.toolbarButton.setChecked(False)
         for layer in getattr(self, "_connectedEditLayers", []):
-            try:
+            with suppress(Exception):
                 layer.editingStarted.disconnect(self._deactivateDueToEdit)
-            except Exception:
-                pass
         self._connectedEditLayers = []
 
     def _deactivateDueToEdit(self):

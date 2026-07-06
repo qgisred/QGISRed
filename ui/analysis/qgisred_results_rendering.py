@@ -1,4 +1,5 @@
 # -*- coding: utf-8 -*-
+from contextlib import suppress
 import re
 
 from qgis.core import (
@@ -490,7 +491,7 @@ class _ResultsRenderingMixin:
                 # Proportional pipe width via data-defined property on the main line symbol layer.
                 sl0 = sym.symbolLayer(0)
                 if sl0 is not None:
-                    try:
+                    with suppress(Exception):
                         if can_be_proportional and prop_field_max_abs > 0:
                             pipe_max = round(target_pipe_width * 4, 6)
                             prop_expr = (
@@ -503,12 +504,10 @@ class _ResultsRenderingMixin:
                         else:
                             sl0.setDataDefinedProperty(
                                 _SL_PROP_STROKE_WIDTH, QgsProperty())
-                    except Exception:
-                        pass
                 # Pump/valve SVG icon sizes (MarkerLine at indices 1, 2).
                 # Scale with pipe_factor since they are link elements.
                 for icon_idx in (1, 2):
-                    try:
+                    with suppress(Exception):
                         sl = sym.symbolLayer(icon_idx)
                         if sl is None:
                             continue
@@ -533,11 +532,9 @@ class _ResultsRenderingMixin:
                                 if new_expr != old_expr:
                                     ddp.setProperty(0, QgsProperty.fromExpression(new_expr))
                                     svg_sl.setDataDefinedProperties(ddp)
-                    except Exception:
-                        pass
                 # Arrow sizes — absolute replacement in the data-defined expression
                 for arrow_idx in (3, 4):
-                    try:
+                    with suppress(Exception):
                         sl = sym.symbolLayer(arrow_idx)
                         if sl is None:
                             continue
@@ -557,14 +554,12 @@ class _ResultsRenderingMixin:
                         )
                         if new_expr != old_expr:
                             sub.setDataDefinedSize(QgsProperty.fromExpression(new_expr))
-                    except Exception:
-                        pass
             elif is_point:
                 # Node sizes are set via data-defined expressions on each symbol layer.
                 # sym.setSize() has no effect because those expressions override it.
                 node_border = getattr(self, '_nodeBorder', False)
                 for sl_idx in range(sym.symbolLayerCount()):
-                    try:
+                    with suppress(Exception):
                         sl = sym.symbolLayer(sl_idx)
                         if sl is None:
                             continue
@@ -587,7 +582,7 @@ class _ResultsRenderingMixin:
                         # SimpleMarker without relying on hasattr, same mechanism as pipe width).
                         # Tank QML has white outline_color so we must also force the color.
                         # SVG markers (7 mm symbols) use a thicker border than SimpleMarker (2 mm).
-                        try:
+                        with suppress(Exception):
                             if node_border:
                                 is_svg = 'Svg' in type(sl).__name__
                                 width_expr = "1.0" if is_svg else "0.6"
@@ -602,10 +597,6 @@ class _ResultsRenderingMixin:
                                     _SL_PROP_STROKE_WIDTH, QgsProperty())
                                 sl.setDataDefinedProperty(
                                     _SL_PROP_STROKE_COLOR, QgsProperty())
-                        except Exception:
-                            pass
-                    except Exception:
-                        pass
 
         layer.setRenderer(new_renderer)
         layer.triggerRepaint()
@@ -682,14 +673,12 @@ class _ResultsRenderingMixin:
                 renderer.setClassAttribute(field)
 
         # Update arrow visibility
-        try:
+        with suppress(Exception):
             flow_field = self._flowDirectionField()
             symbols = renderer.symbols(QgsRenderContext())
             for symbol in symbols:
                 if symbol.type() == 1:  # line
                     self.setArrowsVisibility(symbol, layer, flow_field)
-        except:
-            pass
 
         layer.setRenderer(renderer)
         QGISRedStylingUtils(self.ProjectDirectory, self.NetworkName, self.iface).applyNullStyle(layer)

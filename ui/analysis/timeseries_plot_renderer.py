@@ -1,6 +1,8 @@
 # -*- coding: utf-8 -*-
 from __future__ import annotations
 
+from contextlib import suppress
+
 from typing import Any, Dict, List, Optional, Sequence, Tuple
 
 import math
@@ -350,10 +352,8 @@ class TimeSeriesPlotRenderer:
             return None
         display_decimals = s.get("y_display_decimals")
         if display_decimals is not None:
-            try:
+            with suppress(TypeError, ValueError):
                 return max(0, int(display_decimals))
-            except (TypeError, ValueError):
-                pass
         try:
             parts = str(s.get("series_key") or "").split(":")
             if len(parts) < 3 or not parts[2]:

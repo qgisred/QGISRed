@@ -1,6 +1,7 @@
 # -*- coding: utf-8 -*-
 """Layer management section for QGISRed (open/remove layers, groups, metadata, processCsharpResult)."""
 
+from contextlib import suppress
 import os
 import shutil
 
@@ -308,7 +309,7 @@ class LayerManagementSection:
             return
         if self.ResultDockwidget is None:
             return
-        try:
+        with suppress(Exception):
             utils = QGISRedLayerUtils(self.ProjectDirectory, self.NetworkName, self.iface)
             group = utils.getOrCreateGroup("Inputs")
             if group is not None:
@@ -316,8 +317,6 @@ class LayerManagementSection:
             group = utils.getOrCreateGroup("Results")
             if group is not None:
                 group.setItemVisibilityChecked(self.ResultDockwidget.isVisible())
-        except Exception:
-            pass
 
     def getInputGroup(self):
         utils = QGISRedLayerUtils(self.ProjectDirectory, self.NetworkName, self.iface)

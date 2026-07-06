@@ -1,4 +1,5 @@
 # -*- coding: utf-8 -*-
+from contextlib import suppress
 import os
 
 from qgis.PyQt import uic
@@ -640,10 +641,8 @@ class QGISRedGroupEditDialog(QDialog, FORM_CLASS):
                 unit = ""
         self.lblUnit.setText(unit)
         decimals = 4
-        try:
+        with suppress(Exception):
             decimals = max(2, self.fieldUtils.getDecimals(normalize_element(identifier), fieldName, default=4))
-        except Exception:
-            pass
         self.sbNumber.setDecimals(decimals)
 
     def _updateUnitVisibility(self, actionKey, kind):
@@ -762,11 +761,9 @@ class QGISRedGroupEditDialog(QDialog, FORM_CLASS):
         self._disconnectCountSignals()
         elementLayer = self._currentLayer()
         if elementLayer is not None:
-            try:
+            with suppress(Exception):
                 elementLayer.selectionChanged.connect(self._scheduleCount)
                 self._countSignalLayers.append(elementLayer)
-            except Exception:
-                pass
 
     def _disconnectCountSignals(self):
         for layer in self._countSignalLayers:
@@ -774,10 +771,8 @@ class QGISRedGroupEditDialog(QDialog, FORM_CLASS):
         self._countSignalLayers = []
 
     def safeDisconnect(self, signal, slot):
-        try:
+        with suppress(TypeError, RuntimeError):
             signal.disconnect(slot)
-        except (TypeError, RuntimeError):
-            pass
 
     """Affected count and matching"""
 
@@ -895,21 +890,15 @@ class QGISRedGroupEditDialog(QDialog, FORM_CLASS):
             return
         scene = self.canvas.scene() if self.canvas is not None else None
         for highlight in self.previewHighlights:
-            try:
+            with suppress(Exception):
                 highlight.hide()
-            except Exception:
-                pass
             if scene is not None:
-                try:
+                with suppress(Exception):
                     scene.removeItem(highlight)
-                except Exception:
-                    pass
         self.previewHighlights = []
         if self.canvas is not None:
-            try:
+            with suppress(Exception):
                 self.canvas.refresh()
-            except Exception:
-                pass
 
     """Apply"""
 

@@ -1,4 +1,5 @@
 # -*- coding: utf-8 -*-
+from contextlib import suppress
 import os
 import xml.etree.ElementTree as ET
 
@@ -244,17 +245,15 @@ class _ResultsAppearanceMixin:
                       nodeBorder="true" if self._nodeBorder else "false")
         ET.SubElement(root, "Background",
                       color=self._bgColor.name() if self._bgColor else "")
-        try:
+        with suppress(Exception):
             path = self._appearanceFilePath()
             ET.indent(root)
             ET.ElementTree(root).write(path, encoding="utf-8", xml_declaration=True)
-        except Exception:
-            pass
 
     def loadAppearanceSettings(self):
         path = self._appearanceFilePath()
         if os.path.isfile(path):
-            try:
+            with suppress(Exception):
                 tree = ET.parse(path)
                 root = tree.getroot()
 
@@ -270,10 +269,8 @@ class _ResultsAppearanceMixin:
                         name = var_elem.get("name", "")
                         val = var_elem.get("value", "")
                         if name and val:
-                            try:
+                            with suppress(ValueError):
                                 self._varDecimals[name] = int(val)
-                            except ValueError:
-                                pass
 
                 symbols = root.find("Symbols")
                 if symbols is not None:
@@ -287,8 +284,6 @@ class _ResultsAppearanceMixin:
                 if bg is not None:
                     bg_hex = bg.get("color", "")
                     self._bgColor = QColor(bg_hex) if bg_hex else None
-            except Exception:
-                pass
 
         # Always update widgets for current state (with or without saved file)
         self.spFontSize.blockSignals(True)

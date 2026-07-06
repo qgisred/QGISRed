@@ -1,4 +1,5 @@
 # -*- coding: utf-8 -*-
+from contextlib import suppress
 from qgis.PyQt.QtWidgets import QDockWidget, QApplication, QColorDialog
 from qgis.PyQt.QtCore import Qt, pyqtSignal, QTimer, QCoreApplication
 from qgis.PyQt.QtGui import QPixmap, QIcon, QColor
@@ -1214,15 +1215,13 @@ class QGISRedResultsDock(
             cls = widget.metaObject().className()
             if cls not in cast_map:
                 continue
-            try:
+            with suppress(Exception):
                 typed = sip.cast(widget, cast_map[cls])
                 # layer() is not in QgsDualView in QGIS 3.4, but masterModel().layer() is
                 w_layer = typed.masterModel().layer()
                 if w_layer and w_layer.id() == layer_id:
                     typed.setAttributeTableConfig(config)
                     refreshed_count += 1
-            except Exception:
-                pass
         if refreshed_count > 0:
             QApplication.processEvents()
 

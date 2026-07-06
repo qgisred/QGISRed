@@ -1,4 +1,5 @@
 # -*- coding: utf-8 -*-
+from contextlib import suppress
 from qgis.PyQt.QtWidgets import QTableWidgetItem, QDialog, QFileDialog, QMessageBox, QApplication
 from qgis.PyQt.QtCore import Qt, QDateTime
 from qgis.PyQt.QtGui import QFont
@@ -114,24 +115,18 @@ class QGISRedProjectManagerDialog(QDialog, FORM_CLASS):
                     shouldDelete = os.path.normcase(io.stripAllExtensions(filepath)) == os.path.normcase(_qgisProjectBase)
 
                 if shouldDelete:
-                    try:
+                    with suppress(Exception):
                         os.remove(filepath)
-                    except Exception:
-                        pass
             elif os.path.isdir(filepath):
                 if os.path.basename(filepath).lower() == "layerstyles": # Temporal fix
-                    try:
+                    with suppress(Exception):
                         rmtree(filepath)
-                    except Exception:
-                        pass
                 else:
                     self._removeFilesFromFolder(filepath, networkName, _qgisProjectBase)
 
-        try:
+        with suppress(Exception):
             if len(os.listdir(folder)) == 0:
                 os.rmdir(folder)
-        except Exception:
-            pass
 
     def _getIO(self, projectPath=None, networkName=None):
         return QGISRedProjectIO(projectPath or self.ProjectDirectory, networkName or self.NetworkName, self.iface)
@@ -598,10 +593,8 @@ class QGISRedProjectManagerDialog(QDialog, FORM_CLASS):
                             # 2. Rename zip file itself
                             newZipName = f.replace(oldPrefix, newPrefix, 1)
                             newZipPath = os.path.join(backupsFolder, newZipName)
-                            try:
+                            with suppress(Exception):
                                 os.rename(zipPath, newZipPath)
-                            except Exception:
-                                pass
             if newProjectName:
                 io.processProjectFiles(projectPath, projectNetwork, newProjectName, projectPath, deleteSource=True, excludeDirs=['backups'])
             if newQgisPath:
@@ -609,15 +602,13 @@ class QGISRedProjectManagerDialog(QDialog, FORM_CLASS):
             if newProjectName and canRenameFolder:
                 newProjectPath = os.path.join(os.path.dirname(projectPath), newProjectName)
                 if not os.path.exists(newProjectPath):
-                    try:
+                    with suppress(Exception):
                         copytree(projectPath, newProjectPath)
                         rmtree(projectPath)
                         projectPath = self._getUniformedPath(newProjectPath)
                         if newQgisPath:
                             newQgisPath = self._getUniformedPath(newQgisPath.replace(oldProjectPath, projectPath))
                         self.twProjectList.setItem(rowIndex, 3, QTableWidgetItem(projectPath))
-                    except Exception:
-                        pass
             if qgisBase:
                 oldQgisDir = os.path.dirname(qgisBase)
                 if newQgisPath and os.path.exists(newQgisPath):

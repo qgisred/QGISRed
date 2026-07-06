@@ -1,4 +1,5 @@
 ﻿# -*- coding: utf-8 -*-
+from contextlib import suppress
 import csv
 import json
 import math
@@ -169,11 +170,9 @@ class QGISRedStatisticsDock(QDockWidget, formClass):
     def __init__(self, iface, parent=None):
         super(QGISRedStatisticsDock, self).__init__(parent or iface.mainWindow())
         self.setupUi(self)
-        try:
+        with suppress(Exception):
             self.mSecondClassGroupBox.setSaveCollapsedState(False)
             self.mFiltersGroupBox.setSaveCollapsedState(False)
-        except Exception:
-            pass
         self.mSecondClassGroupBox.setCollapsed(True)
         self.mFiltersGroupBox.setCollapsed(True)
         self.iface = iface
@@ -232,10 +231,8 @@ class QGISRedStatisticsDock(QDockWidget, formClass):
         super().closeEvent(event)
 
     def safeDisconnect(self, signal, slot):
-        try:
+        with suppress(TypeError, RuntimeError):
             signal.disconnect(slot)
-        except (TypeError, RuntimeError):
-            pass
 
     def setupHistogram(self):
         self.tbExcel.setEditTriggers(QAbstractItemView.EditTrigger.NoEditTriggers)
@@ -434,22 +431,18 @@ class QGISRedStatisticsDock(QDockWidget, formClass):
                     self.connectLayerSignals(layerNode)
 
     def connectGroupSignals(self, group):
-        try:
+        with suppress(Exception):
             group.addedChildren.connect(self.onLayerTreeChanged)
             group.removedChildren.connect(self.onLayerTreeChanged)
             self.connectedGroups.append(group)
-        except Exception:
-            pass
 
     def disconnectGroupSignals(self, group):
-        try:
+        with suppress(Exception):
             self.safeDisconnect(group.addedChildren, self.onLayerTreeChanged)
             self.safeDisconnect(group.removedChildren, self.onLayerTreeChanged)
-        except Exception:
-            pass
 
     def connectLayerSignals(self, layerNode):
-        try:
+        with suppress(Exception):
             layerNode.nameChanged.connect(self.onLayerTreeChanged)
             layer = layerNode.layer()
             if layer is not None:
@@ -459,11 +452,9 @@ class QGISRedStatisticsDock(QDockWidget, formClass):
                 layer.attributeValueChanged.connect(self.onLayerTreeChanged)
                 layer.committedAttributeValuesChanges.connect(self.onLayerTreeChanged)
             self.connectedLayerNodes.append(layerNode)
-        except Exception:
-            pass
 
     def disconnectLayerNode(self, layerNode):
-        try:
+        with suppress(Exception):
             self.safeDisconnect(layerNode.nameChanged, self.onLayerTreeChanged)
             layer = layerNode.layer()
             if layer is not None:
@@ -472,8 +463,6 @@ class QGISRedStatisticsDock(QDockWidget, formClass):
                 self.safeDisconnect(layer.featureDeleted, self.onLayerTreeChanged)
                 self.safeDisconnect(layer.attributeValueChanged, self.onLayerTreeChanged)
                 self.safeDisconnect(layer.committedAttributeValuesChanges, self.onLayerTreeChanged)
-        except Exception:
-            pass
 
     def onLayerTreeChanged(self, *args):
         self.layerTreeChangeTimer.start()
@@ -554,10 +543,8 @@ class QGISRedStatisticsDock(QDockWidget, formClass):
             self.cbClasses.setValue(int(classes))
         interval = state.get("interval")
         if interval is not None:
-            try:
+            with suppress(TypeError, ValueError):
                 self.spinIntervalRange.setValue(float(interval))
-            except (TypeError, ValueError):
-                pass
         attributeIndex = self.cbAttribute.findData(state.get("attribute") or "")
         if attributeIndex >= 0:
             self.cbAttribute.setCurrentIndex(attributeIndex)
@@ -2336,10 +2323,8 @@ class QGISRedStatisticsDock(QDockWidget, formClass):
 
         interval = data.get("interval")
         if interval is not None:
-            try:
+            with suppress(TypeError, ValueError):
                 self.spinIntervalRange.setValue(float(interval))
-            except (TypeError, ValueError):
-                pass
 
         filterData = data.get("filter") or {}
         attributeIndex = self.cbAttribute.findData(filterData.get("attribute", "") or "")

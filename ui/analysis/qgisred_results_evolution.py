@@ -1,6 +1,7 @@
 # -*- coding: utf-8 -*-
 from __future__ import annotations
 
+from contextlib import suppress
 from qgis.PyQt.QtCore import Qt
 from qgis.PyQt.QtWidgets import QHBoxLayout, QToolButton, QVBoxLayout, QWidget
 
@@ -113,10 +114,8 @@ class _ResultsEvolutionMixin:
 
         self.cbNodeEvolution.clicked.connect(self.nodeEvolutionClicked)
         self.cbLinkEvolution.clicked.connect(self.linkEvolutionClicked)
-        try:
+        with suppress(Exception):
             self.visibilityChanged.connect(self._onEvolutionDockVisibilityChanged)
-        except Exception:
-            pass
         self._updateEvolutionCheckboxLabels()
         self._syncEvolutionPanelVisibility()
 

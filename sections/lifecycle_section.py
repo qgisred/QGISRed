@@ -1,6 +1,7 @@
 # -*- coding: utf-8 -*-
 """Lifecycle section for QGISRed (__init__, initGui, unload, dependencies, updates)."""
 
+from contextlib import suppress
 import os
 import time
 import tempfile
@@ -249,63 +250,39 @@ class LifecycleSection:
 
     def cleanupDocks(self):
         """Disconnects signals and removes all plugin docks to ensure a clean state."""
-        try:
+        with suppress(Exception):
             self._resetResultsEvolutionMapState()
-        except Exception:
-            pass
-        try:
+        with suppress(Exception):
             from qgis.PyQt.QtWidgets import QApplication
             QApplication.instance().focusChanged.disconnect(self._onPickPanelFocusChanged)
-        except Exception:
-            pass
         docks_to_clean = []
         if self.ResultDockwidget is not None:
             self.disconnectElementExplorerFromResultsDock()
-            try:
+            with suppress(Exception):
                 self.ResultDockwidget.visibilityChanged.disconnect(self.activeInputGroup)
-                try:
+                with suppress(Exception):
                     self.ResultDockwidget.visibilityChanged.disconnect(self._arrangeDocksIfVisible)
-                except Exception:
-                    pass
-                try:
+                with suppress(Exception):
                     self.ResultDockwidget.visibilityChanged.disconnect(self._onResultsDockVisibilityForEvolution)
-                except Exception:
-                    pass
                 if hasattr(self, 'refreshTimeSeries'):
-                    try:
+                    with suppress(Exception):
                         self.ResultDockwidget.simulationFinished.disconnect(self.refreshTimeSeries)
-                    except Exception:
-                        pass
-                    try:
+                    with suppress(Exception):
                         self.ResultDockwidget.simulationFinished.disconnect(self.updateMetadata)
-                    except Exception:
-                        pass
-                    try:
+                    with suppress(Exception):
                         self.ResultDockwidget.resultPropertyChanged.disconnect(self.refreshTimeSeries)
-                    except Exception:
-                        pass
-                    try:
+                    with suppress(Exception):
                         self.ResultDockwidget.resultPropertyChanged.disconnect(self.updateMetadata)
-                    except Exception:
-                        pass
-                    try:
+                    with suppress(Exception):
                         self.ResultDockwidget.statisticsModeChanged.disconnect(self._onStatisticsModeChanged)
-                    except Exception:
-                        pass
-            except Exception:
-                pass
             docks_to_clean.append(('ResultDockwidget', self.ResultDockwidget))
             self.ResultDockwidget = None
 
         for ts_dock in list(getattr(self, 'timeSeriesDocks', None) or []):
-            try:
+            with suppress(Exception):
                 ts_dock.visibilityChanged.disconnect(self.timeSeriesDockVisibilityChanged)
-            except Exception:
-                pass
-            try:
+            with suppress(Exception):
                 ts_dock.destroyed.disconnect(self._onTimeSeriesDockDestroyed)
-            except Exception:
-                pass
             docks_to_clean.append(('timeSeriesDock', ts_dock))
         self.timeSeriesDocks = []
         self._activeTimeSeriesDock = None
@@ -324,13 +301,11 @@ class LifecycleSection:
             docks_to_clean.append(('elementExplorerDock', eeDock))
 
         for name, dock in docks_to_clean:
-            try:
+            with suppress(Exception):
                 dock.close()
                 self.iface.removeDockWidget(dock)
                 dock.setParent(None)
                 dock.deleteLater()
-            except Exception:
-                pass
 
         # Clear Element Explorer singleton reference explicitly
         if eeDock is not None:
@@ -338,10 +313,8 @@ class LifecycleSection:
 
     def unload(self):
         """Removes the plugin menu item and icon from QGIS GUI."""
-        try:
+        with suppress(Exception):
             self._staleLayerManager.stop()
-        except Exception:
-            pass
 
         # Set flag to prevent DLL calls during shutdown
         self.isUnloading = False
@@ -350,46 +323,30 @@ class LifecycleSection:
         self.gisredDll = None
 
         # Deactivate all map tools to prevent callbacks during shutdown
-        try:
+        with suppress(Exception):
             if hasattr(self, 'myMapTools'):
                 for tool_name, tool in list(self.myMapTools.items()):
-                    try:
+                    with suppress(Exception):
                         if tool is not None:
                             if self.iface.mapCanvas().mapTool() is tool:
                                 self.iface.mapCanvas().unsetMapTool(tool)
                             tool.deactivate()
-                    except Exception:
-                        pass
                 self.myMapTools.clear()
-        except Exception:
-            pass
 
-        try:
+        with suppress(Exception):
             self._mapTip.stop()
-        except Exception:
-            pass
 
         # Disconnect signal handlers to prevent callbacks during cleanup
-        try:
+        with suppress(Exception):
             QgsProject.instance().projectSaved.disconnect(self.runSaveProject)
-        except Exception:
-            pass
-        try:
+        with suppress(Exception):
             QgsProject.instance().cleared.disconnect(self.runClearedProject)
-        except Exception:
-            pass
-        try:
+        with suppress(Exception):
             QgsProject.instance().layersRemoved.disconnect(self.runLegendChanged)
-        except Exception:
-            pass
-        try:
+        with suppress(Exception):
             QgsProject.instance().layersAdded.disconnect(self.runLegendChanged)
-        except Exception:
-            pass
-        try:
+        with suppress(Exception):
             QgsProject.instance().readProject.disconnect(self.runOpenedQgisProject)
-        except Exception:
-            pass
 
         QGISRedFileSystemUtils().removeFolder(self.tempFolder)
 
@@ -440,10 +397,8 @@ class LifecycleSection:
 
     def setCulture(self):
         ui_language = QgsApplication.locale()
-        try:
+        with suppress(Exception):
             GISRed.SetCulture(ui_language)
-        except Exception:
-            pass
 
     def getVersion(self, filename, what):
         try:
@@ -486,32 +441,26 @@ class LifecycleSection:
                     for _ in range(60):  # 60 × 2 s = 2 min timeout
                         time.sleep(2)
                         QCoreApplication.processEvents()
-                        try:
+                        with suppress(Exception):
                             os.remove(localFile)
                             installed = True
                             break
-                        except Exception:
-                            pass
                     if installed:
                         valid = self.checkDependencies()
                         if valid:
                             QGISRedFileSystemUtils().copyDependencies()
                             self.setCulture()
                     else:
-                        try:
+                        with suppress(Exception):
                             os.remove(localFile)
-                        except Exception:
-                            pass
                         QMessageBox.warning(
                             self.iface.mainWindow(),
                             self.tr("QGISRed Dependencies"),
                             self.tr("The installation may have failed. Please try again or report the issue in GitHub"),
                         )
                 except Exception:
-                    try:
+                    with suppress(Exception):
                         os.remove(localFile)
-                    except Exception:
-                        pass
 
         return valid
 
@@ -520,7 +469,7 @@ class LifecycleSection:
         language = "es" if QgsApplication.locale()[0:2] == "es" else "en"
         news_url = "https://qgisred.upv.es/files/news/" + language + "/news.json"
         _ctx = ssl.create_default_context()
-        try:
+        with suppress(Exception):
             with urllib.request.urlopen(news_url, timeout=10, context=_ctx) as response:  # nosec B310 — news_url is a hardcoded https:// constant
                 data = json.loads(response.read().decode("utf-8"))
             news_id = data.get("id", "")
@@ -550,8 +499,6 @@ class LifecycleSection:
             self._latestNewsTitle = title
             self._latestNewsHtml = html_content
             self.runNewsDialog(force=force)
-        except Exception:
-            pass
 
     def runNewsDialog(self, force=False):
         """Open the news dialog. force=True: skip seen-ids check and hide the 'don't show' checkbox."""

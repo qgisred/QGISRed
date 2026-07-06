@@ -1,4 +1,5 @@
 # -*- coding: utf-8 -*-
+from contextlib import suppress
 import os
 import glob as _glob
 
@@ -131,7 +132,5 @@ class StaleLayerManager:
     def stop(self):
         self._timer.stop()
         self._clearAll()
-        try:
+        with suppress(Exception):
             QgsProject.instance().layersRemoved.disconnect(self._onLayersRemoved)
-        except Exception:
-            pass

@@ -1,3 +1,4 @@
+from contextlib import suppress
 from ...ui.queries.qgisred_element_explorer_dock import QGISRedElementExplorerDock
 from qgis.gui import QgsMapToolIdentify, QgsHighlight
 from qgis.utils import iface
@@ -52,10 +53,8 @@ class QGISRedIdentifyFeature(QgsMapToolIdentify):
     def setDockConnections(self):
         if self.dock is not None:
             # Disconnect first to avoid stacking duplicate connections
-            try:
+            with suppress(TypeError, RuntimeError):
                 self.dock.dockClosed.disconnect(self.onDockClosed)
-            except (TypeError, RuntimeError):
-                pass
             self.dock.dockClosed.connect(self.onDockClosed)
 
     def onDockClosed(self, closed):
@@ -302,14 +301,10 @@ class QGISRedIdentifyFeature(QgsMapToolIdentify):
 
     def disconnectProjectSignals(self):
         project = QgsProject.instance()
-        try:
+        with suppress(Exception):
             project.readProject.disconnect(self.deactivate)
-        except Exception as e:
-            pass
-        try:
+        with suppress(Exception):
             project.cleared.disconnect(self.deactivate)
-        except Exception as e:
-            pass
 
     def setActionUnchecked(self):
         if self.toggleAction:
@@ -317,10 +312,8 @@ class QGISRedIdentifyFeature(QgsMapToolIdentify):
 
     def disconnectDockSignals(self):
         if self.dock is not None:
-            try:
+            with suppress(TypeError, RuntimeError):
                 self.dock.dockClosed.disconnect(self.onDockClosed)
-            except (TypeError, RuntimeError):
-                pass
 
     def removeVertexMarkers(self):
         if self.startMarker:

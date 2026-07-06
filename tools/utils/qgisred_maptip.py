@@ -1,4 +1,5 @@
 # -*- coding: utf-8 -*-
+from contextlib import suppress
 from qgis.core import (QgsProject, QgsVectorLayer, QgsFeatureRequest,
                        QgsRectangle, QgsExpression,
                        QgsExpressionContext, QgsExpressionContextUtils)
@@ -63,7 +64,7 @@ class QGISRedMapTip(QObject):
 
     def stop(self):
         """Disconnect signals and destroy the floating widget."""
-        try:
+        with suppress(Exception):
             self._showTimer.stop()
             self._hideTimer.stop()
             self._iface.mapCanvas().xyCoordinates.disconnect(self._onMove)
@@ -71,8 +72,6 @@ class QGISRedMapTip(QObject):
             QApplication.instance().applicationStateChanged.disconnect(self._onAppState)
             self._label.hide()
             self._label.deleteLater()
-        except Exception:
-            pass
 
     # ------------------------------------------------------------------
     # Internal

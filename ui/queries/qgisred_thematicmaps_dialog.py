@@ -1,6 +1,7 @@
 # -*- coding: utf-8 -*-
 
 # Standard library imports
+from contextlib import suppress
 import os
 
 # Third-party imports
@@ -246,7 +247,7 @@ class QGISRedThematicMapsDialog(QDialog, FORM_CLASS):
         layerPosition = 0
         
         if existingLayer is not None:
-            try:
+            with suppress(Exception):
                 parentGroup = existingLayer.parent()
                 
                 layerId = None
@@ -261,8 +262,6 @@ class QGISRedThematicMapsDialog(QDialog, FORM_CLASS):
                 if parentGroup and not sip.isdeleted(parentGroup):
                     parentGroup.removeChildNode(existingLayer)
                     
-            except Exception:
-                pass
 
         derivedLayer = self.createDerivedLayer(mainLayer, layerName, field)
         

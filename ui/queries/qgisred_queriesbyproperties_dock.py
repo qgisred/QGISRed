@@ -1,4 +1,5 @@
 ﻿# -*- coding: utf-8 -*-
+from contextlib import suppress
 from qgis.PyQt.QtWidgets import QDockWidget, QTableWidgetItem, QHeaderView, QAbstractItemView, QToolButton, QComboBox, QStackedWidget, QLabel
 from qgis.PyQt.QtCore import Qt, QTimer
 from qgis.PyQt.QtGui import QBrush, QColor, QIcon, QFont
@@ -87,11 +88,9 @@ class QGISRedQueriesByPropertiesDock(QDockWidget, FORM_CLASS):
     def clearMapSelection(self):
         self.clearHighlights()
         if self.lastSelectedLayer is not None:
-            try:
+            with suppress(RuntimeError):
                 if not sip.isdeleted(self.lastSelectedLayer):
                     self.lastSelectedLayer.removeSelection()
-            except RuntimeError:
-                pass
             self.lastSelectedLayer = None
             self.canvas.refresh()
 
@@ -338,28 +337,22 @@ class QGISRedQueriesByPropertiesDock(QDockWidget, FORM_CLASS):
                     self.connectLayerSignals(layerNode)
 
     def safeDisconnect(self, signal, slot):
-        try:
+        with suppress(TypeError, RuntimeError):
             signal.disconnect(slot)
-        except (TypeError, RuntimeError):
-            pass
 
     def connectGroupSignals(self, group):
-        try:
+        with suppress(Exception):
             group.addedChildren.connect(self.onLayerTreeChanged)
             group.removedChildren.connect(self.onLayerTreeChanged)
             self.connectedGroups.append(group)
-        except Exception:
-            pass
 
     def disconnectGroupSignals(self, group):
-        try:
+        with suppress(RuntimeError, TypeError):
             self.safeDisconnect(group.addedChildren, self.onLayerTreeChanged)
             self.safeDisconnect(group.removedChildren, self.onLayerTreeChanged)
-        except (RuntimeError, TypeError):
-            pass
 
     def connectLayerSignals(self, layerNode):
-        try:
+        with suppress(Exception):
             layerNode.nameChanged.connect(self.onLayerTreeChanged)
             layer = layerNode.layer()
             if layer:
@@ -369,11 +362,9 @@ class QGISRedQueriesByPropertiesDock(QDockWidget, FORM_CLASS):
                 layer.attributeValueChanged.connect(self.onLayerTreeChanged)
                 layer.committedAttributeValuesChanges.connect(self.onLayerTreeChanged)
             self.connectedLayerNodes.append(layerNode)
-        except Exception:
-            pass
 
     def disconnectLayerNode(self, layerNode):
-        try:
+        with suppress(RuntimeError, TypeError):
             self.safeDisconnect(layerNode.nameChanged, self.onLayerTreeChanged)
             layer = layerNode.layer()
             if layer:
@@ -382,8 +373,6 @@ class QGISRedQueriesByPropertiesDock(QDockWidget, FORM_CLASS):
                 self.safeDisconnect(layer.featureDeleted, self.onLayerTreeChanged)
                 self.safeDisconnect(layer.attributeValueChanged, self.onLayerTreeChanged)
                 self.safeDisconnect(layer.committedAttributeValuesChanges, self.onLayerTreeChanged)
-        except (RuntimeError, TypeError):
-            pass
 
     def reconnectLayerSignals(self):
         for layerNode in self.connectedLayerNodes:
@@ -1481,11 +1470,9 @@ class QGISRedQueriesByPropertiesDock(QDockWidget, FORM_CLASS):
 
         # Clear previous layer's selection if the target layer changed
         if self.lastSelectedLayer is not None and self.lastSelectedLayer is not selectedLayer:
-            try:
+            with suppress(RuntimeError):
                 if not sip.isdeleted(self.lastSelectedLayer):
                     self.lastSelectedLayer.removeSelection()
-            except RuntimeError:
-                pass
 
         targetField = self.getComboInternalName(self.cbStatisticsFor)
         if not targetField:
@@ -1883,22 +1870,14 @@ class QGISRedQueriesByPropertiesDock(QDockWidget, FORM_CLASS):
     def disconnectResultsDock(self):
         if self.resultsDock is not None:
             if not sip.isdeleted(self.resultsDock):
-                try:
+                with suppress(TypeError, RuntimeError):
                     self.resultsDock.timeTextChanged.disconnect(self.onResultsTimeChanged)
-                except (TypeError, RuntimeError):
-                    pass
-                try:
+                with suppress(TypeError, RuntimeError):
                     self.resultsDock.statisticsModeChanged.disconnect(self.onResultsStatisticsChanged)
-                except (TypeError, RuntimeError):
-                    pass
-                try:
+                with suppress(TypeError, RuntimeError):
                     self.resultsDock.resultPropertyChanged.disconnect(self.onResultsPropertyChanged)
-                except (TypeError, RuntimeError):
-                    pass
-                try:
+                with suppress(TypeError, RuntimeError):
                     self.resultsDock.visibilityChanged.disconnect(self.onResultsDockVisibilityChanged)
-                except (TypeError, RuntimeError):
-                    pass
             self.resultsDock = None
         self.currentResultsStatText = ""
         # Fall back to layer time instead of clearing

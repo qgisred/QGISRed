@@ -1,3 +1,4 @@
+from contextlib import suppress
 import math
 import os
 from qgis.PyQt.QtCore import Qt, QEvent, QPoint, QCoreApplication
@@ -10,10 +11,8 @@ from qgis.gui import QgsMapTool, QgsVertexMarker, QgsRubberBand, QgsMapCanvasSna
 try:
     from qgis.gui import Qgis
 except:
-    try:
+    with suppress(Exception):
         from qgis.core import Qgis  # Compatibility with QGis 3.4x
-    except:
-        pass
 
 
 class QGISRedCreateLineTool(QgsMapTool):
@@ -82,10 +81,8 @@ class QGISRedCreateLineTool(QgsMapTool):
 
     def deactivate(self):
         if self._showGrid:
-            try:
+            with suppress(Exception):
                 self.iface.mapCanvas().extentsChanged.disconnect(self._updateGrid)
-            except Exception:
-                pass
         if self._gridOverlayWidget is not None:
             self.iface.mainWindow().removeEventFilter(self)
             self._gridOverlayWidget.deleteLater()
@@ -323,21 +320,17 @@ class QGISRedCreateLineTool(QgsMapTool):
             self._updateGrid()
             self.iface.mapCanvas().extentsChanged.connect(self._updateGrid)
         else:
-            try:
+            with suppress(Exception):
                 self.iface.mapCanvas().extentsChanged.disconnect(self._updateGrid)
-            except Exception:
-                pass
             self._clearGrid()
 
     """Snapping helpers"""
 
     def _markerIcon(self, match):
         if match is not None:
-            try:
+            with suppress(Exception):
                 if match.type() & SNAP_MATCH_EDGE:
                     return QgsVertexMarker.ICON_X
-            except Exception:
-                pass
         return QgsVertexMarker.ICON_BOX
 
     def _filterMatch(self, match):

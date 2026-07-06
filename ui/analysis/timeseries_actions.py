@@ -1,3 +1,4 @@
+from contextlib import suppress
 # -*- coding: utf-8 -*-
 """Time series actions.
 
@@ -71,37 +72,25 @@ def clear_all_timeseries(section, dock=None) -> None:
     try:
         section._timeSeriesResetSelection(dock)
     except Exception:
-        try:
+        with suppress(Exception):
             dock.selection = []
             dock.selectionKey = None
-        except Exception:
-            pass
 
-    try:
+    with suppress(Exception):
         dock.lastFeature = None
         dock.lastLayer = None
         dock.lastCategory = None
-    except Exception:
-        pass
 
-    try:
+    with suppress(Exception):
         if dock is getattr(section, "activeTimeSeriesDock", None):
             section._clearTimeSeriesMapSelection()
-    except Exception:
-        pass
 
-    try:
+    with suppress(Exception):
         section._clearTimeSeriesHighlight(dock)
-    except Exception:
-        pass
 
-    try:
+    with suppress(Exception):
         if dock is not None:
             dock.updatePlotSeries([], "", "", "")
-            try:
+            with suppress(Exception):
                 dock.resetGlobalVarCombos()
-            except Exception:
-                pass
-    except Exception:
-        pass
 

@@ -1,4 +1,5 @@
 ﻿# -*- coding: utf-8 -*-
+from contextlib import suppress
 import os
 from qgis.PyQt.QtCore import Qt, pyqtSlot, pyqtSignal, QEvent, QTimer
 from qgis.PyQt.QtGui import QIcon, QFont, QColor, QBrush
@@ -63,11 +64,9 @@ class QGISRedElementExplorerDock(QDockWidget, FORM_CLASS):
     def getInstance(cls, canvas, parent=None, showFindElements=True, showElementProperties=True):
         if cls._instance is None or not cls._instance.isVisible():
             if cls._instance is not None:
-                try:
+                with suppress(RuntimeError):
                     cls._instance.close()
                     cls._instance.deleteLater()
-                except RuntimeError:
-                    pass
             cls._instance = cls(canvas, parent, showFindElements, showElementProperties)
         return cls._instance
 
@@ -486,22 +485,18 @@ class QGISRedElementExplorerDock(QDockWidget, FORM_CLASS):
                     self.connectLayerSignals(layerNode)
 
     def connectGroupSignals(self, group):
-        try:
+        with suppress(Exception):
             group.addedChildren.connect(self.onLayerTreeChanged)
             group.removedChildren.connect(self.onLayerTreeChanged)
             self.connectedGroups.append(group)
-        except Exception:
-            pass
 
     def disconnectGroupSignals(self, group):
-        try:
+        with suppress(RuntimeError, TypeError):
             self.safeDisconnect(group.addedChildren, self.onLayerTreeChanged)
             self.safeDisconnect(group.removedChildren, self.onLayerTreeChanged)
-        except (RuntimeError, TypeError):
-            pass
 
     def connectLayerSignals(self, layerNode):
-        try:
+        with suppress(Exception):
             layerNode.nameChanged.connect(self.onLayerTreeChanged)
             if layerNode.layer():
                 layer = layerNode.layer()
@@ -510,11 +505,9 @@ class QGISRedElementExplorerDock(QDockWidget, FORM_CLASS):
                     layer.featureAdded.connect(self.updateElementIds)
                     layer.featureDeleted.connect(self.updateElementIds)
             self.connectedLayerNodes.append(layerNode)
-        except Exception:
-            pass
 
     def disconnectLayerNode(self, layerNode):
-        try:
+        with suppress(RuntimeError, TypeError):
             self.safeDisconnect(layerNode.nameChanged, self.onLayerTreeChanged)
             layer = layerNode.layer()
             if layer:
@@ -522,27 +515,19 @@ class QGISRedElementExplorerDock(QDockWidget, FORM_CLASS):
                 if not self.isResultsLayer(layer):
                     self.safeDisconnect(layer.featureAdded, self.updateElementIds)
                     self.safeDisconnect(layer.featureDeleted, self.updateElementIds)
-        except (RuntimeError, TypeError):
-            pass
 
     def isResultsLayer(self, layer):
         identifier = layer.customProperty("qgisred_identifier", "") if layer else ""
         return identifier.startswith("qgisred_node") or identifier.startswith("qgisred_link")
 
     def disconnectLayerSignals(self, layer):
-        try:
+        with suppress(Exception):
             if hasattr(layer, 'nameChanged'):
-                try:
+                with suppress(Exception):
                     layer.nameChanged.disconnect(self.onLayerTreeChanged)
-                except Exception:
-                    pass
             if hasattr(layer, 'dataChanged'):
-                try:
+                with suppress(Exception):
                     layer.dataChanged.disconnect(self.onLayerTreeChanged)
-                except Exception:
-                    pass
-        except Exception:
-            pass
 
     def reconnectLayerSignals(self):
         # Disconnect all previously connected layer nodes and groups
@@ -679,10 +664,8 @@ class QGISRedElementExplorerDock(QDockWidget, FORM_CLASS):
             super(QDockWidget, self).closeEvent(event)
 
     def safeDisconnect(self, signal, slot):
-        try:
+        with suppress(TypeError, RuntimeError):
             signal.disconnect(slot)
-        except (TypeError, RuntimeError):
-            pass
 
     def removeEventFiltersRecursive(self, widget):
         if widget:
@@ -2501,26 +2484,16 @@ class QGISRedElementExplorerDock(QDockWidget, FORM_CLASS):
     def disconnectResultsDock(self):
         """Disconnect from the results dock and show placeholder."""
         if self.resultsDock is not None:
-            try:
+            with suppress(TypeError, RuntimeError):
                 self.resultsDock.timeTextChanged.disconnect(self.onResultsTimeChanged)
-            except (TypeError, RuntimeError):
-                pass
-            try:
+            with suppress(TypeError, RuntimeError):
                 self.resultsDock.statisticsModeChanged.disconnect(self.onResultsStatisticsChanged)
-            except (TypeError, RuntimeError):
-                pass
-            try:
+            with suppress(TypeError, RuntimeError):
                 self.resultsDock.visibilityChanged.disconnect(self.onResultsDockVisibilityChanged)
-            except (TypeError, RuntimeError):
-                pass
-            try:
+            with suppress(TypeError, RuntimeError):
                 self.resultsDock.simulationFinished.disconnect(self.onResultsSimulationFinished)
-            except (TypeError, RuntimeError):
-                pass
-            try:
+            with suppress(TypeError, RuntimeError):
                 self.resultsDock.resultPropertyChanged.disconnect(self.onResultsSimulationFinished)
-            except (TypeError, RuntimeError):
-                pass
             self.resultsDock = None
         self.resultsCurrentTimeText = ""
         self.resultsCurrentStat = ""

@@ -1,3 +1,4 @@
+from contextlib import suppress
 from qgis.PyQt.QtCore import Qt
 from qgis.PyQt.QtGui import QColor
 from qgis.PyQt.QtWidgets import QApplication
@@ -8,10 +9,8 @@ from qgis.utils import Qgis
 try:
     from qgis.gui import Qgis as QgisGui
 except:
-    try:
+    with suppress(Exception):
         from qgis.core import Qgis as QgisGui # Compatibility with QGis 3.4x
-    except:
-        pass
 import processing
 from ..utils.qgisred_filesystem_utils import QGISRedFileSystemUtils
 from ..utils.qgisred_ui_utils import QGISRedUIUtils

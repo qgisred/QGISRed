@@ -1,4 +1,5 @@
 # -*- coding: utf-8 -*-
+from contextlib import suppress
 from qgis.PyQt.QtCore import QRectF, QSize, Qt, pyqtSignal
 from qgis.PyQt.QtGui import QIcon
 from qgis.PyQt.QtWidgets import QToolButton
@@ -76,15 +77,13 @@ class ResultsEvolutionPlotWidget(TimeSeriesPlotWidget):
         self._positionOverlayButtons()
 
     def _positionOverlayButtons(self):
-        try:
+        with suppress(Exception):
             margin = 2
             self._expandButton.adjustSize()
             expand_w = self._expandButton.width()
             right = self.width() - margin
             self._expandButton.move(max(margin, right - expand_w), margin)
             self._expandButton.raise_()
-        except Exception:
-            pass
 
     def setExpandState(self, expanded, expand_tip="", collapse_tip=""):
         self._expandButton.setToolTip(collapse_tip if expanded else expand_tip)

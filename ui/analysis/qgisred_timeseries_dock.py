@@ -1,4 +1,5 @@
 # -*- coding: utf-8 -*-
+from contextlib import suppress
 import csv
 import math
 import os
@@ -449,14 +450,12 @@ class TimeSeriesPlotWidget(QWidget):
         if not ys:
             return None
 
-        try:
+        with suppress(Exception):
             hi = self.hover_index
             if hi is not None and 0 <= int(hi) < len(ys):
                 v = ys[int(hi)]
                 if v is not None:
                     return v
-        except Exception:
-            pass
 
         for v in reversed(ys):
             if v is not None:
@@ -715,10 +714,8 @@ class TimeSeriesPlotWidget(QWidget):
             return
         self._synced_cursor_time_hours = value
         self.update()
-        try:
+        with suppress(Exception):
             self.cursorTimeChanged.emit(float(value))
-        except Exception:
-            pass
 
     def clearSyncedCursor(self) -> None:
         if self._synced_cursor_time_hours is not None:
@@ -883,10 +880,8 @@ class TimeSeriesPlotWidget(QWidget):
         self._zoom_window_mode = bool(enabled)
         self._zoom_window_active = False
         self._zoom_window_start_pos = None
-        try:
+        with suppress(Exception):
             self._zoom_rubber_band.hide()
-        except Exception:
-            pass
         if enabled:
             self._pan_mode = False
             self._pan_active = False
@@ -985,10 +980,8 @@ class TimeSeriesPlotWidget(QWidget):
     def mouseReleaseEvent(self, event):
         if self._zoom_window_active:
             self._zoom_window_active = False
-            try:
+            with suppress(Exception):
                 self._zoom_rubber_band.hide()
-            except Exception:
-                pass
             if event.button() == Qt.MouseButton.LeftButton and self._axis_cfg_x.auto_scale:
                 plot_rect, _, _ = self.getPlotRect()
                 if plot_rect.width() > 0:
@@ -1126,7 +1119,7 @@ class TimeSeriesPlotWidget(QWidget):
         if x_range <= 0:
             x_range = 1
 
-        try:
+        with suppress(ZeroDivisionError):
             rel_x = (mouse_pos.x() - plot_rect.left()) / plot_rect.width()
             target_x = x_min + rel_x * x_range
 
@@ -1136,12 +1129,8 @@ class TimeSeriesPlotWidget(QWidget):
                 self.hover_index = best_idx
                 self._hover_series_idx = hover_idx
                 self.update()
-                try:
+                with suppress(Exception):
                     self.cursorTimeChanged.emit(float(xs[best_idx]))
-                except Exception:
-                    pass
-        except ZeroDivisionError:
-            pass
 
 
 class QGISRedTimeSeriesDock(QDockWidget, FORM_CLASS):
@@ -1218,51 +1207,39 @@ class QGISRedTimeSeriesDock(QDockWidget, FORM_CLASS):
             self.setMinimumWidth(max(int(self.minimumWidth()), min_w))
 
     def changeEvent(self, event) -> None:
-        try:
+        with suppress(Exception):
             if event is not None and event.type() == QEvent.Type.LanguageChange:
                 self.retranslateUi(self)
                 self._populateGlobalSystemCombo()
                 self._updateMinimumWidthForDockTitle()
-        except Exception:
-            pass
         super(QGISRedTimeSeriesDock, self).changeEvent(event)
 
     def event(self, event):
-        try:
+        with suppress(Exception):
             if event is not None and event.type() == QEvent.Type.WindowTitleChange:
                 self._updateMinimumWidthForDockTitle()
-        except Exception:
-            pass
         return super(QGISRedTimeSeriesDock, self).event(event)
 
     def eventFilter(self, obj, event):
-        try:
+        with suppress(Exception):
             if event is not None and event.type() == QEvent.Type.MouseButtonPress:
                 self.activated.emit()
-        except Exception:
-            pass
         return super(QGISRedTimeSeriesDock, self).eventFilter(obj, event)
 
     def focusInEvent(self, event):
-        try:
+        with suppress(Exception):
             self.activated.emit()
-        except Exception:
-            pass
         super(QGISRedTimeSeriesDock, self).focusInEvent(event)
 
     def mousePressEvent(self, event):
-        try:
+        with suppress(Exception):
             self.activated.emit()
-        except Exception:
-            pass
         super(QGISRedTimeSeriesDock, self).mousePressEvent(event)
 
     def showEvent(self, event):
         super(QGISRedTimeSeriesDock, self).showEvent(event)
-        try:
+        with suppress(Exception):
             self.activated.emit()
-        except Exception:
-            pass
 
     def _initToolbar(self) -> None:
         try:
@@ -1418,14 +1395,12 @@ class QGISRedTimeSeriesDock(QDockWidget, FORM_CLASS):
         combo = getattr(self, "cbGlobalSystemVar", None)
         if combo is None:
             return
-        try:
+        with suppress(Exception):
             QGISRedUIUtils.applyComboStyle(combo)
             combo.setSizeAdjustPolicy(
                 QComboBox.SizeAdjustPolicy.AdjustToMinimumContentsLengthWithIcon
             )
             combo.setMinimumContentsLength(22)
-        except Exception:
-            pass
 
     def resetGlobalVarCombos(self) -> None:
         combo = getattr(self, "cbGlobalSystemVar", None)
@@ -1448,10 +1423,8 @@ class QGISRedTimeSeriesDock(QDockWidget, FORM_CLASS):
         key = str(combo.itemData(int(index), Qt.ItemDataRole.UserRole) or "").strip()
         if not key:
             return
-        try:
+        with suppress(Exception):
             signal.emit(key)
-        except Exception:
-            pass
 
     def _initPlotAndTableLayout(self) -> None:
         try:
@@ -1471,12 +1444,10 @@ class QGISRedTimeSeriesDock(QDockWidget, FORM_CLASS):
             table.setHorizontalScrollBarPolicy(Qt.ScrollBarPolicy.ScrollBarAsNeeded)
             table.verticalHeader().setVisible(False)
             table.horizontalHeader().setStretchLastSection(False)
-            try:
+            with suppress(Exception):
                 hdr_font = table.horizontalHeader().font()
                 hdr_font.setBold(True)
                 table.horizontalHeader().setFont(hdr_font)
-            except Exception:
-                pass
             _hdr_section_style = (
                 "QHeaderView::section {"
                 "  font-weight: 700;"
@@ -1487,10 +1458,8 @@ class QGISRedTimeSeriesDock(QDockWidget, FORM_CLASS):
             )
             table.horizontalHeader().setStyleSheet(_hdr_section_style)
             table.setStyleSheet("QTableWidget { gridline-color: #c8c8c8; }")
-            try:
+            with suppress(Exception):
                 table.horizontalHeader().setSectionResizeMode(QHeaderView.ResizeMode.ResizeToContents)
-            except Exception:
-                pass
             table.setContextMenuPolicy(Qt.ContextMenuPolicy.CustomContextMenu)
             table.customContextMenuRequested.connect(self._onTableContextMenu)
             table.cellClicked.connect(self._onTableCellClicked)
@@ -1529,7 +1498,7 @@ class QGISRedTimeSeriesDock(QDockWidget, FORM_CLASS):
             return
         if self._tableVisible:
             table.show()
-            try:
+            with suppress(Exception):
                 series_count = self._tableSeriesCountForLayout()
                 if series_count > 2:
                     total_w = max(1, int(self.width()))
@@ -1538,8 +1507,6 @@ class QGISRedTimeSeriesDock(QDockWidget, FORM_CLASS):
                     self._splitter.setSizes([table_w, plot_w])
                 else:
                     self._fitTablePaneToContents()
-            except Exception:
-                pass
             self._syncTableRowToCursor()
         else:
             table.hide()
@@ -1587,23 +1554,20 @@ class QGISRedTimeSeriesDock(QDockWidget, FORM_CLASS):
 
         self._table_row_sync_blocked = True
         try:
-            table.blockSignals(True)
-            table.clearSelection()
-            table.selectRow(int(row))
-            table.setCurrentCell(int(row), 0)
-            item = table.item(int(row), 0)
-            if item is not None:
-                table.scrollToItem(
-                    item,
-                    QAbstractItemView.ScrollHint.PositionAtCenter,
-                )
-        except Exception:
-            pass
+            with suppress(Exception):
+                table.blockSignals(True)
+                table.clearSelection()
+                table.selectRow(int(row))
+                table.setCurrentCell(int(row), 0)
+                item = table.item(int(row), 0)
+                if item is not None:
+                    table.scrollToItem(
+                        item,
+                        QAbstractItemView.ScrollHint.PositionAtCenter,
+                    )
         finally:
-            try:
+            with suppress(Exception):
                 table.blockSignals(False)
-            except Exception:
-                pass
             self._table_row_sync_blocked = False
 
     def _onPlotCursorTimeChanged(self, hours: float) -> None:
@@ -1649,19 +1613,14 @@ class QGISRedTimeSeriesDock(QDockWidget, FORM_CLASS):
                 best_dist = dist
                 best_idx = int(i)
         try:
-            dock.cbTimes.blockSignals(True)
-            dock.cbTimes.setCurrentIndex(best_idx)
-        except Exception:
-            pass
+            with suppress(Exception):
+                dock.cbTimes.blockSignals(True)
+                dock.cbTimes.setCurrentIndex(best_idx)
         finally:
-            try:
+            with suppress(Exception):
                 dock.cbTimes.blockSignals(False)
-            except Exception:
-                pass
-        try:
+        with suppress(Exception):
             dock.timeChanged()
-        except Exception:
-            pass
 
     def _onTableContextMenu(self, pos) -> None:
         table = getattr(self, "_table", None)
@@ -1802,10 +1761,8 @@ class QGISRedTimeSeriesDock(QDockWidget, FORM_CLASS):
     def _tableSeriesCountForLayout(self) -> int:
         table = getattr(self, "_table", None)
         if table is not None:
-            try:
+            with suppress(Exception):
                 return max(0, int(table.columnCount()) - 2)
-            except Exception:
-                pass
         try:
             return max(0, len(getattr(self.plot, "series", []) or []))
         except Exception:
@@ -1823,14 +1780,10 @@ class QGISRedTimeSeriesDock(QDockWidget, FORM_CLASS):
             return 280
         total = 0
         for c in range(cols):
-            try:
+            with suppress(Exception):
                 total += int(table.columnWidth(c))
-            except Exception:
-                pass
-        try:
+        with suppress(Exception):
             total += int(table.frameWidth()) * 2
-        except Exception:
-            pass
         try:
             total += int(table.verticalScrollBar().sizeHint().width())
         except Exception:
@@ -1937,14 +1890,12 @@ class QGISRedTimeSeriesDock(QDockWidget, FORM_CLASS):
         return table_headers, [csv_row_element, csv_row_variable]
 
     def _applyValuesTableHeaderLayout(self, table) -> None:
-        try:
+        with suppress(Exception):
             hdr = table.horizontalHeader()
             hdr.setDefaultAlignment(Qt.AlignmentFlag.AlignCenter)
             fm = QFontMetrics(hdr.font())
             line_h = max(12, int(fm.height()))
             hdr.setMinimumHeight(line_h * 2 + 8)
-        except Exception:
-            pass
 
     def _valuesTableData(self):
         """Return (table_headers, csv_header_rows, row cells, x hours) or None if empty."""
@@ -2014,30 +1965,22 @@ class QGISRedTimeSeriesDock(QDockWidget, FORM_CLASS):
                 table.setItem(row, col, item)
 
         if current_signature != self._tableAutoSizedSignature:
-            try:
+            with suppress(Exception):
                 table.resizeColumnsToContents()
-            except Exception:
-                pass
             self._tableAutoSizedSignature = current_signature
             if self._tableVisible and self._tableSeriesCountForLayout() <= 2:
-                try:
+                with suppress(Exception):
                     self._fitTablePaneToContents()
                     prev_sizes = None
-                except Exception:
-                    pass
 
         if prev_sizes:
-            try:
+            with suppress(Exception):
                 splitter.setSizes(prev_sizes)
-            except Exception:
-                pass
 
         overlay = getattr(self, "_tableFrozenOverlay", None)
         if overlay is not None:
-            try:
+            with suppress(Exception):
                 overlay.refresh()
-            except Exception:
-                pass
 
         self._syncTableRowToCursor()
 
@@ -2117,18 +2060,14 @@ class QGISRedTimeSeriesDock(QDockWidget, FORM_CLASS):
             return
 
         if self._resultsDock is not None:
-            try:
+            with suppress(Exception):
                 self._resultsDock.timeTextChanged.disconnect(self._onResultsTimeTextChanged)
-            except Exception:
-                pass
 
         self._resultsDock = results_dock
         self._resultsTimeFormatKey = None
         if self._resultsDock is not None:
-            try:
+            with suppress(Exception):
                 self._resultsDock.timeTextChanged.connect(self._onResultsTimeTextChanged)
-            except Exception:
-                pass
             self._syncCurrentResultsTime()
             self._syncFormatFromResultsDock()
         self._refreshStartClockSeconds()
@@ -2136,10 +2075,8 @@ class QGISRedTimeSeriesDock(QDockWidget, FORM_CLASS):
 
     def disconnectResultsDock(self) -> None:
         if self._resultsDock is not None:
-            try:
+            with suppress(Exception):
                 self._resultsDock.timeTextChanged.disconnect(self._onResultsTimeTextChanged)
-            except Exception:
-                pass
         self._resultsDock = None
         self._lastResultsTimeText = ""
         self._resultsTimeFormatKey = None
@@ -2204,13 +2141,11 @@ class QGISRedTimeSeriesDock(QDockWidget, FORM_CLASS):
         dock = self._resultsDock
         if dock is None:
             return ""
-        try:
+        with suppress(Exception):
             idx = int(dock.cbTimes.currentIndex())
             labels = getattr(dock, "TimeLabels", None) or []
             if 0 <= idx < len(labels):
                 return str(labels[idx]).strip()
-        except Exception:
-            pass
         return ""
 
     def _syncCurrentResultsTime(self) -> None:
@@ -2234,17 +2169,13 @@ class QGISRedTimeSeriesDock(QDockWidget, FORM_CLASS):
             return None
         dock = self._resultsDock
         if dock is not None:
-            try:
+            with suppress(Exception):
                 if text == dock.lbl_singlePeriod:
                     return 0.0
-            except Exception:
-                pass
-            try:
+            with suppress(Exception):
                 hours = dock._elapsedTextToHours(text)
                 if hours is not None:
                     return float(hours)
-            except Exception:
-                pass
         if text == self.tr("Single Period"):
             return 0.0
 
@@ -2388,10 +2319,8 @@ class QGISRedTimeSeriesDock(QDockWidget, FORM_CLASS):
             return None
         display_decimals = series_dict.get("y_display_decimals")
         if display_decimals is not None:
-            try:
+            with suppress(TypeError, ValueError):
                 return f"{float(value):.{max(0, int(display_decimals))}f}"
-            except (TypeError, ValueError):
-                pass
         renderer = getattr(getattr(self, "plot", None), "_renderer", None)
         if renderer is not None:
             return renderer._point_value_text(series_dict, value)
@@ -2401,15 +2330,13 @@ class QGISRedTimeSeriesDock(QDockWidget, FORM_CLASS):
                 return labels[int(round(float(value)))]
             except Exception:
                 return value
-        try:
+        with suppress(Exception):
             from ...tools.utils.qgisred_field_utils import QGISRedFieldUtils, normalize_element
 
             parts = str(series_dict.get("series_key") or "").split(":")
             if len(parts) >= 3 and parts[2]:
                 dec = QGISRedFieldUtils().getDecimals(normalize_element(parts[0]), parts[2])
                 return f"{float(value):.{max(0, int(dec))}f}"
-        except Exception:
-            pass
         return value
 
     def _onExportCsvClicked(self) -> None:
@@ -2454,13 +2381,11 @@ class QGISRedTimeSeriesDock(QDockWidget, FORM_CLASS):
 
     def _timeSeriesConfigDefaultPath(self) -> str:
         dock = self._resultsDock
-        try:
+        with suppress(Exception):
             results_path = dock.getResultsPath() if dock is not None else ""
             network_name = getattr(dock, "NetworkName", "") if dock is not None else ""
             if results_path and network_name:
                 return os.path.join(results_path, f"{network_name}_TimeSeries_Config.cfg")
-        except Exception:
-            pass
         return os.path.join(os.path.expanduser("~"), "TimeSeries_Config.cfg")
 
     def _timeSeriesConfigExportDefaultPath(self) -> str:

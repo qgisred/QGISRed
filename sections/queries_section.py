@@ -1,6 +1,7 @@
 # -*- coding: utf-8 -*-
 """Queries and exploration section for QGISRed."""
 
+from contextlib import suppress
 from qgis.PyQt.QtCore import Qt, QTimer
 
 from ..ui.queries.qgisred_thematicmaps_dialog import QGISRedThematicMapsDialog
@@ -84,12 +85,10 @@ class QueriesSection:
 
         existing = getattr(self, 'groupEditDialog', None)
         if existing is not None:
-            try:
+            with suppress(RuntimeError):
                 existing.raise_()
                 existing.activateWindow()
                 return
-            except RuntimeError:
-                pass
         self.groupEditDialog = QGISRedGroupEditDialog()
         self.groupEditDialog.config(self.iface, self.ProjectDirectory, self.NetworkName)
         self.groupEditDialog.setAttribute(Qt.WidgetAttribute.WA_DeleteOnClose)
@@ -213,7 +212,7 @@ class QueriesSection:
 
         existing = getattr(self, 'queriesByPropertiesDock', None)
         if existing is not None:
-            try:
+            with suppress(RuntimeError):
                 existing.raise_()
                 QGISRedUIUtils.arrangeDockOrder(
             self.iface.mainWindow(),
@@ -223,8 +222,6 @@ class QueriesSection:
             getattr(self, 'statisticsDock', None)
         )
                 return
-            except RuntimeError:
-                pass
         self.queriesByPropertiesDock = QGISRedQueriesByPropertiesDock(self.iface)
         self.queriesByPropertiesDock.setAttribute(Qt.WidgetAttribute.WA_DeleteOnClose)
         self.queriesByPropertiesDock.destroyed.connect(
@@ -251,11 +248,9 @@ class QueriesSection:
 
         existing = getattr(self, 'statisticsDock', None)
         if existing is not None:
-            try:
+            with suppress(Exception):
                 existing.close()
                 existing.deleteLater()
-            except Exception:
-                pass
             self.statisticsDock = None
         self.statisticsDock = QGISRedStatisticsDock(self.iface)
         self.iface.addDockWidget(Qt.DockWidgetArea.RightDockWidgetArea, self.statisticsDock)

@@ -1,4 +1,5 @@
 # -*- coding: utf-8 -*-
+from contextlib import suppress
 import os
 import datetime
 import json
@@ -347,13 +348,11 @@ class QGISRedProjectIO:
                     os.makedirs(externalLayersDir, exist_ok=True)
                     basePath = self.stripAllExtensions(cleanPath)
                     parent = os.path.dirname(cleanPath)
-                    try:
+                    with suppress(Exception):
                         for f in os.listdir(parent):
                             current_file_path = os.path.join(parent, f)
                             if os.path.normcase(self.stripAllExtensions(current_file_path)) == os.path.normcase(basePath):
                                 shutil.copy2(current_file_path, os.path.join(externalLayersDir, f))
-                    except Exception:
-                        pass
                     
                     suffix = ""
                     if '|' in absPath:
@@ -370,12 +369,9 @@ class QGISRedProjectIO:
             # need to update the relative path if the original was relative.
             if not collectExternal and wasRelative:
                 targetQgisDir = newQgisDir if newQgisDir else oldQgisDir
-                try:
+                with suppress(ValueError):
                     rel = os.path.relpath(absPath, targetQgisDir)
                     return protocol + rel.replace('\\', '/')
-                except ValueError:
-                    # Occurs if on different drives on Windows
-                    pass
 
             return logical_val
 
@@ -428,7 +424,7 @@ class QGISRedProjectIO:
         metadataFile = os.path.join(folder, networkName + "_Metadata.txt")
         if not os.path.exists(metadataFile):
             return None
-        try:
+        with suppress(Exception):
             with open(metadataFile, "r", encoding="latin-1") as mf:
                 data = mf.read()
             xmlRoot = ElementTree.fromstring(data)  # nosec B314 — local file written by plugin DLL, not user input
@@ -438,8 +434,6 @@ class QGISRedProjectIO:
                     if not os.path.isabs(qgisPath):
                         qgisPath = os.path.normpath(os.path.join(folder, qgisPath))
                     return self.stripAllExtensions(self._fs().getUniformedPath(qgisPath))
-        except Exception:
-            pass
         return None
 
     def findQGisProjectFile(self, qgisBase):
@@ -454,15 +448,13 @@ class QGISRedProjectIO:
 
     def _hasProjectFiles(self, folder, prefix):
         """Returns True if folder (recursively) contains any file starting with prefix + '_'."""
-        try:
+        with suppress(Exception):
             for f in os.listdir(folder):
                 filepath = os.path.join(folder, f)
                 if os.path.isfile(filepath) and f.startswith(prefix + "_"):
                     return True
                 if os.path.isdir(filepath) and self._hasProjectFiles(filepath, prefix):
                     return True
-        except Exception:
-            pass
         return False
 
     def processProjectFiles(self, folder, oldName, newName, targetDir, deleteSource=False, excludeDirs=None):
@@ -476,13 +468,11 @@ class QGISRedProjectIO:
         for f in os.listdir(folder):
             filepath = os.path.join(folder, f)
             if os.path.isfile(filepath) and f.startswith(oldName + "_"):
-                try:
+                with suppress(Exception):
                     destName = f.replace(oldName + "_", newName + "_", 1)
                     shutil.copy2(filepath, os.path.join(targetDir, destName))
                     if deleteSource:
                         os.remove(filepath)
-                except Exception:
-                    pass
             elif os.path.isdir(filepath):
                 if f.lower() in [d.lower() for d in excludeDirs]:
                     continue
@@ -499,17 +489,13 @@ class QGISRedProjectIO:
                      os.makedirs(subTarget, exist_ok=True)
                 self.processProjectFiles(filepath, oldName, newName, subTarget, deleteSource, excludeDirs)
                 if deleteSource:
-                    try:
+                    with suppress(Exception):
                         if not os.listdir(filepath):
                             os.rmdir(filepath)
-                    except Exception:
-                        pass
         if deleteSource:
-            try:
+            with suppress(Exception):
                 if self._fs().getUniformedPath(folder) != self._fs().getUniformedPath(targetDir) and not os.listdir(folder):
                     os.rmdir(folder)
-            except Exception:
-                pass
 
     def processQGisProjectFiles(self, qgisBase, newName, targetDir, deleteSource=False):
         """Copies/moves QGIS project files (.qgz/.qgs and backups) to targetDir.
@@ -517,7 +503,7 @@ class QGISRedProjectIO:
         parentDir = os.path.dirname(qgisBase)
         oldBaseName = os.path.basename(qgisBase)
         newQgisPath = None
-        try:
+        with suppress(Exception):
             for f in os.listdir(parentDir):
                 filepath = os.path.join(parentDir, f)
                 if os.path.isfile(filepath):
@@ -525,27 +511,21 @@ class QGISRedProjectIO:
                     if os.path.normcase(stripped) == os.path.normcase(qgisBase):
                         extensions = f[len(oldBaseName):]
                         newFilepath = os.path.join(targetDir, newName + extensions)
-                        try:
+                        with suppress(Exception):
                             shutil.copy2(filepath, newFilepath)
                             if deleteSource:
                                 os.remove(filepath)
                             if newQgisPath is None and (f.endswith(".qgs") or f.endswith(".qgz")):
                                 newQgisPath = newFilepath
-                        except Exception:
-                            pass
             if deleteSource:
-                try:
+                with suppress(Exception):
                     if self._fs().getUniformedPath(parentDir) != self._fs().getUniformedPath(targetDir) and not os.listdir(parentDir):
                         os.rmdir(parentDir)
-                except Exception:
-                    pass
-        except Exception:
-            pass
         return newQgisPath
 
     def updateQGisProjectContent(self, qgisPath, oldName, newName, oldFolder, newFolder, oldQgisDir=None, newQgisDir=None, collectExternal=False):
         """Updates internal project references."""
-        try:
+        with suppress(Exception):
             if qgisPath.endswith('.qgz'):
                 files = {}
                 with ZipFile(qgisPath, 'r') as zin:
@@ -565,8 +545,6 @@ class QGISRedProjectIO:
                 content = self._applyQGisReplacements(content, oldName, newName, oldFolder, newFolder, oldQgisDir, newQgisDir, collectExternal)
                 with open(qgisPath, 'w', encoding='utf-8') as f:
                     f.write(content)
-        except Exception:
-            pass
 
     """Methods"""
     def updateMetadataQGisProject(self, projectPath, networkName, newQgisPath):
@@ -574,7 +552,7 @@ class QGISRedProjectIO:
         metadataFile = os.path.join(projectPath, networkName + "_Metadata.txt")
         if not os.path.exists(metadataFile):
             return
-        try:
+        with suppress(Exception):
             with open(metadataFile, "r", encoding="latin-1") as mf:
                 data = mf.read()
             xmlRoot = ElementTree.fromstring(data)  # nosec B314 — local file written by plugin DLL, not user input
@@ -586,8 +564,6 @@ class QGISRedProjectIO:
             if updated:
                 with open(metadataFile, "w", encoding="latin-1") as mf:
                     mf.write(ElementTree.tostring(xmlRoot, encoding="unicode"))
-        except Exception:
-            pass
 
     def openProjectInQgis(self):
         metadataFile = os.path.join(self.ProjectDirectory, self.NetworkName + "_Metadata.txt")
@@ -773,10 +749,8 @@ class QGISRedProjectIO:
     def saveBackup(self):
         dirpath = os.path.join(self.ProjectDirectory, "backups")
         if not os.path.exists(dirpath):
-            try:
+            with suppress(Exception):
                 os.mkdir(dirpath)
-            except Exception:
-                pass
 
         timeString = datetime.datetime.now().timestamp()
         zipPath = os.path.join(dirpath, self.NetworkName + "_" + str(timeString) + ".zip")
@@ -788,15 +762,13 @@ class QGISRedProjectIO:
     def getProjectGuid(self):
         metadataFile = os.path.join(self.ProjectDirectory, self.NetworkName + "_Metadata.txt")
         if os.path.exists(metadataFile):
-            try:
+            with suppress(Exception):
                 with open(metadataFile, "r", encoding="latin-1") as f:
                     data = f.read()
                 root = ElementTree.fromstring(data)  # nosec B314 — local project file written by plugin DLL, not user input
                 guidNode = root.find("Guid")
                 if guidNode is not None and guidNode.text:
                     return guidNode.text
-            except Exception:
-                pass
         return self.NetworkName
 
     def getQLRFolder(self):
@@ -937,17 +909,13 @@ class QGISRedProjectIO:
 
         for filename in os.listdir(qlrFolder):
             if filename.endswith('.qlr') or filename == 'layer_metadata.json':
-                try:
+                with suppress(Exception):
                     os.remove(os.path.join(qlrFolder, filename))
                     deletedAny = True
-                except Exception:
-                    pass
 
-        try:
+        with suppress(Exception):
             if not os.listdir(qlrFolder):
                 os.rmdir(qlrFolder)
-        except Exception:
-            pass
 
         return deletedAny
 
