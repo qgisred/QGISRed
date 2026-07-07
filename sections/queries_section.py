@@ -107,10 +107,13 @@ class QueriesSection:
 
         existingDock = QGISRedElementExplorerDock._instance
 
-        # Unset map tool if it was one of the search tools, as this button doesn't use tools
-        currentTool = self.iface.mapCanvas().mapTool()
-        if currentTool and type(currentTool).__name__ == "QGISRedIdentifyFeature":
-            self.iface.mapCanvas().unsetMapTool(currentTool)
+        tool = "identifyFeatureFindElements"
+        if self.isToolAlreadyActive(tool, self.openFindElementsDialog):
+            self.openFindElementsDialog.setChecked(False)
+            currentTool = self.iface.mapCanvas().mapTool()
+            if currentTool:
+                self.iface.mapCanvas().unsetMapTool(currentTool)
+            return
 
         if existingDock:
             existingDock.show()
@@ -148,7 +151,7 @@ class QueriesSection:
             getattr(self, 'statisticsDock', None)
         )
         self.connectElementExplorerToResultsDock()
-        self.openFindElementsDialog.setChecked(False)  # Not a tool, don't keep it checked
+        self.switchToIdentifyTool(tool, self.openFindElementsDialog, False, dock)
 
     def runElementsProperty(self):
         if not self.validateProject(self.openElementsPropertyDialog):
