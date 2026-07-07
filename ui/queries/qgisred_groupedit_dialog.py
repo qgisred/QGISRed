@@ -10,6 +10,7 @@ from qgis.PyQt.QtWidgets import (
     QCalendarWidget,
     QComboBox,
     QDialog,
+    QDockWidget,
     QLayout,
     QListView,
     QMessageBox,
@@ -24,10 +25,12 @@ from qgis.core import (
     QgsExpressionContextUtils,
     QgsFeatureRequest,
     QgsProject,
+    QgsSettings,
     QgsVectorLayer,
 )
 from qgis.gui import QgsHighlight
 
+from ...compat import QAction
 from ...tools.utils.qgisred_field_utils import QGISRedFieldUtils, normalize_element
 from ...tools.utils.qgisred_filesystem_utils import QGISRedFileSystemUtils
 from ...tools.utils.qgisred_ui_utils import QGISRedBanner, QGISRED_COMBO_STYLE
@@ -194,6 +197,7 @@ class QGISRedGroupEditDialog(QDialog, FORM_CLASS):
         self.layersByIdentifier = {}
         self.previewHighlights = []
         self.editedLayers = []
+        self.openedAttributeTables = {}
         self._countSignalLayers = []
 
         self.banner = QGISRedBanner.inject(self, self.rootLayout)
@@ -953,6 +957,7 @@ class QGISRedGroupEditDialog(QDialog, FORM_CLASS):
             return
         identifier = layer.customProperty("qgisred_identifier")
         self._warnSoftBounds(identifier, fieldName, edits)
+        self._openAttributeTable(layer, [fid for fid, _oldVal, _newVal in edits])
 
     def _computeEdits(self, features, fieldName, actionKey, actionKind, layer):
         edits = []  # list of (fid, oldValue, newValue)
@@ -1081,6 +1086,44 @@ class QGISRedGroupEditDialog(QDialog, FORM_CLASS):
         self._refreshAffectedCount()
         return True
 
+    def _openAttributeTable(self, layer, fids):
+        layer.selectByIds(fids)
+        dialog = self.openedAttributeTables.get(layer.id())
+        if dialog is not None:
+            with suppress(RuntimeError):
+                self._raiseAttributeTable(dialog)
+                return
+        settings = QgsSettings()
+        previousDocked = settings.value("qgis/dockAttributeTable", False, type=bool)
+        settings.setValue("qgis/dockAttributeTable", True)
+        try:
+            dialog = self.iface.showAttributeTable(layer)
+        finally:
+            settings.setValue("qgis/dockAttributeTable", previousDocked)
+        if dialog is not None:
+            self.openedAttributeTables[layer.id()] = dialog
+            self._raiseAttributeTable(dialog)
+
+    def _raiseAttributeTable(self, dialog):
+        selectedOnTop = dialog.findChild(QAction, "mActionSelectedToTop")
+        if selectedOnTop is not None and not selectedOnTop.isChecked():
+            selectedOnTop.setChecked(True)
+        dock = self._enclosingDock(dialog)
+        if dock is not None:
+            dock.show()
+            dock.raise_()
+        else:
+            dialog.show()
+            dialog.raise_()
+
+    def _enclosingDock(self, widget):
+        parent = widget.parent()
+        while parent is not None:
+            if isinstance(parent, QDockWidget):
+                return parent
+            parent = parent.parent()
+        return None
+
     def _onAccept(self):
         for layer in self.editedLayers:
             if layer.isEditable() and not layer.commitChanges():
@@ -1107,7 +1150,12 @@ class QGISRedGroupEditDialog(QDialog, FORM_CLASS):
             widgets += self.iface.mainWindow().findChildren(QDialog)
         for widget in widgets:
             if widget.metaObject().className() == "QgsAttributeTableDialog":
+                dock = self._enclosingDock(widget)
                 widget.close()
+                if dock is not None:
+                    with suppress(RuntimeError):
+                        dock.close()
+        self.openedAttributeTables = {}
 
     def _currentLayer(self):
         identifier = self.cbElementType.currentData()
