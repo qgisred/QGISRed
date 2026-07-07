@@ -1125,6 +1125,9 @@ class QGISRedGroupEditDialog(QDialog, FORM_CLASS):
         return None
 
     def _onAccept(self):
+        summaryLines = self._pendingChangesSummary()
+        if summaryLines and not self._confirmAccept(summaryLines):
+            return
         for layer in self.editedLayers:
             if layer.isEditable() and not layer.commitChanges():
                 self.banner.pushMessage(self.tr("Accept"),
@@ -1134,6 +1137,40 @@ class QGISRedGroupEditDialog(QDialog, FORM_CLASS):
         self.editedLayers = []
         self._closeAttributeTables()
         self.accept()
+
+    def _pendingChangesSummary(self):
+        lines = []
+        for layer in self.editedLayers:
+            if not layer.isEditable():
+                continue
+            changed = layer.editBuffer().changedAttributeValues()
+            if not changed:
+                continue
+            identifier = layer.customProperty("qgisred_identifier")
+            fieldIndexes = set()
+            for attributes in changed.values():
+                fieldIndexes.update(attributes.keys())
+            prettyFields = [
+                self.fieldUtils.getProperty(normalize_element(identifier), layer.fields().at(index).name())
+                for index in sorted(fieldIndexes)
+            ]
+            lines.append("- %s: %s (%d %s)" % (self._elementDisplayName(identifier), ", ".join(prettyFields),
+                                               len(changed), self.tr("elements")))
+        return lines
+
+    def _confirmAccept(self, summaryLines):
+        bodyLines = [self.tr("The following changes will be saved:"), ""]
+        bodyLines.extend(summaryLines)
+        bodyLines.append("")
+        bodyLines.append(self.tr("Continue?"))
+        reply = QMessageBox.question(
+            self,
+            self.tr("Edit properties by group"),
+            "\n".join(bodyLines),
+            QMessageBox.StandardButton.Yes | QMessageBox.StandardButton.No,
+            QMessageBox.StandardButton.Yes,
+        )
+        return reply == QMessageBox.StandardButton.Yes
 
     def _rollbackEdits(self):
         for layer in self.editedLayers:
