@@ -119,6 +119,21 @@ class QGISRedElementExplorerDock(QDockWidget, FORM_CLASS):
             'qgisred_meters':             self.tr('Meter'),
         }
 
+        # Identifier → per-layer identifier field name; layers may still use the legacy "Id"
+        self.identifierIdFields = {
+            'qgisred_pipes':              'PipeID',
+            'qgisred_junctions':          'JunctionID',
+            'qgisred_demands':            'DemandID',
+            'qgisred_reservoirs':         'ReservoirID',
+            'qgisred_tanks':              'TankID',
+            'qgisred_pumps':              'PumpID',
+            'qgisred_valves':             'ValveID',
+            'qgisred_sources':            'SourceID',
+            'qgisred_serviceconnections': 'ServiceConnectionID',
+            'qgisred_isolationvalves':    'IsolationValveID',
+            'qgisred_meters':             'MeterID',
+        }
+
         self.originalIds = []
         self.adjacentHighlights = []
         self.mainHighlight = None
@@ -757,8 +772,9 @@ class QGISRedElementExplorerDock(QDockWidget, FORM_CLASS):
             return
 
         newFeature = None
+        idFieldName = self.getIdFieldName(newLayer)
         for feat in newLayer.getFeatures():
-            if feat.attribute("Id") == prevFeatureIdAttr:
+            if feat.attribute(idFieldName) == prevFeatureIdAttr:
                 newFeature = feat
                 break
 
@@ -884,7 +900,7 @@ class QGISRedElementExplorerDock(QDockWidget, FORM_CLASS):
                 else:
                     nodeFeature, nodeLayer = self.findOverlappingNodeOptimized(geom)
                     if nodeFeature and nodeLayer:
-                        nodeId = self.extractNodeId(nodeFeature.attribute("Id"))
+                        nodeId = self.extractNodeId(nodeFeature.attribute(self.getIdFieldName(nodeLayer)))
                     else:
                         nodeId, nodeLayer = None, None
                     coordCache[coordKey] = (nodeId, nodeLayer)
@@ -905,6 +921,7 @@ class QGISRedElementExplorerDock(QDockWidget, FORM_CLASS):
         """Extract IDs directly from layer without special naming logic.
         Uses pre-built spatial indices for source/demand overlap checks."""
         ids = []
+        idFieldName = self.getIdFieldName(layer)
 
         # For node layers that might have source/demand suffixes
         if identifier in ["qgisred_junctions", "qgisred_reservoirs", "qgisred_tanks"]:
@@ -913,7 +930,7 @@ class QGISRedElementExplorerDock(QDockWidget, FORM_CLASS):
                               self.demandSpatialIndex is not None and self.demandSpatialLayer is not None)
 
             for feature in layer.getFeatures():
-                value = feature.attribute("Id")
+                value = feature.attribute(idFieldName)
                 idStr = str(value) if value is not None else ""
 
                 featGeom = feature.geometry()
@@ -946,7 +963,7 @@ class QGISRedElementExplorerDock(QDockWidget, FORM_CLASS):
         else:
             # Simple ID extraction for other layers
             for feature in layer.getFeatures():
-                value = feature.attribute("Id")
+                value = feature.attribute(idFieldName)
                 if value is not None:
                     ids.append(str(value))
 
@@ -1135,7 +1152,7 @@ class QGISRedElementExplorerDock(QDockWidget, FORM_CLASS):
         attributes = self.currentFeature.attributes()
 
         # Skip fields already shown in the header labels
-        skipFields = {"Id", "Tag", "Descrip"}
+        skipFields = {"Id", self.getIdFieldName(self.currentLayer), "Tag", "Descrip"}
 
         # Get the layer identifier for pretty name lookup
         layerIdentifier = self.currentLayer.customProperty("qgisred_identifier") if self.currentLayer else None
@@ -1328,7 +1345,7 @@ class QGISRedElementExplorerDock(QDockWidget, FORM_CLASS):
 
     def appendDemandRows(self, startRow, demandFeatures, demandLayer, utils, startIndex=1, showIndex=None):
         layerIdentifier = demandLayer.customProperty("qgisred_identifier") or "qgisred_demands"
-        skipFields = {"Id"}
+        skipFields = {"Id", self.getIdFieldName(demandLayer)}
         row = startRow
         if showIndex is None:
             showIndex = len(demandFeatures) > 1
@@ -1388,7 +1405,7 @@ class QGISRedElementExplorerDock(QDockWidget, FORM_CLASS):
 
     def appendSourceRows(self, startRow, sourceFeature, sourceLayer, utils):
         layerIdentifier = sourceLayer.customProperty("qgisred_identifier") or "qgisred_sources"
-        skipFields = {"Id"}
+        skipFields = {"Id", self.getIdFieldName(sourceLayer)}
         row = startRow
         fields = sourceFeature.fields()
         attributes = sourceFeature.attributes()
@@ -1716,6 +1733,20 @@ class QGISRedElementExplorerDock(QDockWidget, FORM_CLASS):
                 return layer
         return None
 
+    def getIdFieldName(self, layer):
+        fields = layer.fields()
+        expectedField = self.identifierIdFields.get(layer.customProperty("qgisred_identifier", "") or "")
+        if expectedField and fields.indexFromName(expectedField) != -1:
+            return expectedField
+        knownIdFields = set(self.identifierIdFields.values())
+        for field in fields:
+            if field.name() in knownIdFields:
+                return field.name()
+        for candidate in ("Id", "ID", "id"):
+            if fields.indexFromName(candidate) != -1:
+                return candidate
+        return "Id"
+
     def getFeatureIdValue(self, feature, layer, specialNaming=False):
         if not layer:
             return "Id"
@@ -1736,7 +1767,7 @@ class QGISRedElementExplorerDock(QDockWidget, FORM_CLASS):
                 nodeFeature, nodeLayer = self.findOverlappingNodeOptimized(feature.geometry())
 
                 if nodeFeature and nodeLayer:
-                    nodeId = self.extractNodeId(nodeFeature.attribute("Id"))
+                    nodeId = self.extractNodeId(nodeFeature.attribute(self.getIdFieldName(nodeLayer)))
                     nodeIdentifier = nodeLayer.customProperty("qgisred_identifier", "")
                     self.sourcesDemandToNodeCache[cacheKey] = (nodeId, nodeIdentifier)
                 else:
@@ -1754,7 +1785,7 @@ class QGISRedElementExplorerDock(QDockWidget, FORM_CLASS):
             return ""
         else:
             # Original code for non-source/demand features
-            value = feature.attribute("Id")
+            value = feature.attribute(self.getIdFieldName(layer))
             idStr = str(value) if value is not None else ""
 
             if specialNaming and identifier in ["qgisred_junctions", "qgisred_reservoirs", "qgisred_tanks"]:
@@ -1939,7 +1970,7 @@ class QGISRedElementExplorerDock(QDockWidget, FORM_CLASS):
 
         for layer in resultsLayers:
             # Results layers may have different field names for ID
-            idFieldNames = ["Id", "ID", "id", "fid", "FID"]
+            idFieldNames = [self.getIdFieldName(layer), "Id", "ID", "id", "fid", "FID"]
             idFieldIndex = -1
 
             for fieldName in idFieldNames:
@@ -2184,7 +2215,7 @@ class QGISRedElementExplorerDock(QDockWidget, FORM_CLASS):
             dummyFeature.setGeometry(QgsGeometry.fromPointXY(pt))
             nodeFeature, nodeLayer = self.findOverlappedNode(dummyFeature, currentLayer)
             if nodeFeature and nodeLayer.customProperty("qgisred_identifier") == "qgisred_junctions":
-                rawId = str(nodeFeature.attribute("Id"))
+                rawId = str(nodeFeature.attribute(self.getIdFieldName(nodeLayer)))
                 suffixKinds = self.getNodeSuffixes(nodeFeature.geometry(), "qgisred_junctions")
                 singularName = self.getSingularForLayer(nodeLayer)
                 suffixText = self.composeSuffixText(suffixKinds)
@@ -2213,7 +2244,7 @@ class QGISRedElementExplorerDock(QDockWidget, FORM_CLASS):
         tolerance = 1e-6
         nodeFeature, nodeLayer = self.findOverlappedNode(feature, currentLayer)
         if nodeFeature and nodeLayer.customProperty("qgisred_identifier") == "qgisred_junctions":
-            rawId = str(nodeFeature.attribute("Id"))
+            rawId = str(nodeFeature.attribute(self.getIdFieldName(nodeLayer)))
             suffixKinds = self.getNodeSuffixes(nodeFeature.geometry(), "qgisred_junctions")
             singularName = self.getSingularForLayer(nodeLayer)
             suffixText = self.composeSuffixText(suffixKinds)
@@ -2240,7 +2271,7 @@ class QGISRedElementExplorerDock(QDockWidget, FORM_CLASS):
         tolerance = 1e-6
         nodeFeature, nodeLayer = self.findOverlappedNode(feature, currentLayer)
         if nodeFeature:
-            rawId = str(nodeFeature.attribute("Id"))
+            rawId = str(nodeFeature.attribute(self.getIdFieldName(nodeLayer)))
             nodeIdentifier = nodeLayer.customProperty("qgisred_identifier", "")
             suffixKinds = self.getNodeSuffixes(nodeFeature.geometry(), nodeIdentifier)
             singularName = self.getSingularForLayer(nodeLayer)
@@ -2288,15 +2319,16 @@ class QGISRedElementExplorerDock(QDockWidget, FORM_CLASS):
             return layer, feature
 
         # Match by Id field
-        featureId = feature.attribute("Id")
+        featureId = feature.attribute(self.getIdFieldName(layer))
         if featureId is None:
             return layer, feature
         featureIdStr = str(featureId)
 
         for inputLayer in self.getAllInputGroupLayers():
             if inputLayer.customProperty("qgisred_identifier") in searchIdentifiers:
+                inputIdFieldName = self.getIdFieldName(inputLayer)
                 for feat in inputLayer.getFeatures():
-                    if str(feat.attribute("Id")) == featureIdStr:
+                    if str(feat.attribute(inputIdFieldName)) == featureIdStr:
                         return inputLayer, feat
 
         return layer, feature
@@ -2608,7 +2640,7 @@ class QGISRedElementExplorerDock(QDockWidget, FORM_CLASS):
 
         try:
             # Get element Id
-            elementId = str(self.currentFeature.attribute("Id"))
+            elementId = str(self.currentFeature.attribute(self.getIdFieldName(self.currentLayer)))
 
             # Find the Results group layer for this element type
             resultsLayer = self.findResultsLayerForElement(isNode)
@@ -2619,10 +2651,11 @@ class QGISRedElementExplorerDock(QDockWidget, FORM_CLASS):
             # Determine query mode and find matching feature
             isStatsMode = bool(self.resultsCurrentStat)
             matchedFeature = None
+            resultsIdFieldName = self.getIdFieldName(resultsLayer)
 
             if isStatsMode:
                 # Statistics mode: one row per element, no Time column
-                expr = f"\"Id\" = '{elementId}'"
+                expr = f"\"{resultsIdFieldName}\" = '{elementId}'"
                 for feat in resultsLayer.getFeatures(expr):
                     matchedFeature = feat
                     break
@@ -2633,7 +2666,7 @@ class QGISRedElementExplorerDock(QDockWidget, FORM_CLASS):
                 if timeText:
                     # Results dock connected — one feature per element exists (current step),
                     # filter by Id only so the lookup is format-agnostic
-                    expr = f"\"Id\" = '{elementId}'"
+                    expr = f"\"{resultsIdFieldName}\" = '{elementId}'"
                     for feat in resultsLayer.getFeatures(expr):
                         matchedFeature = feat
                         if feat.fields().indexFromName("Time") >= 0:
@@ -2643,7 +2676,7 @@ class QGISRedElementExplorerDock(QDockWidget, FORM_CLASS):
                         break
                 else:
                     # No results dock — query by Id only, read time from the feature
-                    expr = f"\"Id\" = '{elementId}'"
+                    expr = f"\"{resultsIdFieldName}\" = '{elementId}'"
                     for feat in resultsLayer.getFeatures(expr):
                         matchedFeature = feat
                         if feat.fields().indexFromName("Time") >= 0:
