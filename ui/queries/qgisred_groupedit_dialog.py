@@ -110,8 +110,9 @@ _pageFindReplace = 3
 _pageDate = 4
 
 # Property items matching these (case-insensitive) get the grey background used
-# in Statistics / Queries by Properties for identifier-style fields.
-_idTagFields = {"id", "tag", "descrip"}
+# in Statistics / Queries by Properties for identifier-style fields. Identifier
+# fields themselves (Id, PipeID, JunctionID, ...) are detected via the CSV property.
+_idTagFields = {"tag", "descrip"}
 _darkBrushColor = "#D8D8D8"
 
 # Filter condition sets by field category, mirroring Queries by Properties.
@@ -122,7 +123,7 @@ _conditionsByType = {
 }
 
 # Free-text fields keep a typed value (no unique-value combobox) and default to ILIKE.
-_freeTextFields = {"Id", "Descrip", "InstalDate", "InstDate", "Time", "Time_H", "Time_Q", "Time_D"}
+_freeTextFields = {"Descrip", "InstalDate", "InstDate", "Time", "Time_H", "Time_Q", "Time_D"}
 
 # Fields whose Do value offers a combobox sourced from a global_defaults DBF instead of a typed input.
 _materialFields = {"Material"}
@@ -370,7 +371,7 @@ class QGISRedGroupEditDialog(QDialog, FORM_CLASS):
         self.cbProperty.clear()
         for name, pretty, field in editable:
             self.cbProperty.addItem(pretty, name)
-        self._setPropertyItemBackgrounds(self.cbProperty)
+        self._setPropertyItemBackgrounds(self.cbProperty, identifier)
         self._selectDefaultProperty(self.cbProperty, identifier)
         self.cbProperty.blockSignals(False)
 
@@ -378,7 +379,7 @@ class QGISRedGroupEditDialog(QDialog, FORM_CLASS):
         self.cbFilterProperty.clear()
         for name, pretty, field in filterable:
             self.cbFilterProperty.addItem(pretty, name)
-        self._setPropertyItemBackgrounds(self.cbFilterProperty)
+        self._setPropertyItemBackgrounds(self.cbFilterProperty, identifier)
         self._selectDefaultProperty(self.cbFilterProperty, identifier)
         self.cbFilterProperty.blockSignals(False)
 
@@ -392,10 +393,12 @@ class QGISRedGroupEditDialog(QDialog, FORM_CLASS):
                 combo.setCurrentIndex(index)
                 return
 
-    def _setPropertyItemBackgrounds(self, combo):
+    def _setPropertyItemBackgrounds(self, combo, identifier):
         for index in range(combo.count()):
             fieldName = combo.itemData(index)
-            if fieldName and str(fieldName).lower() in _idTagFields:
+            if not fieldName:
+                continue
+            if str(fieldName).lower() in _idTagFields or self._isIdentifierField(identifier, fieldName):
                 combo.setItemData(index, QBrush(QColor(_darkBrushColor)), Qt.ItemDataRole.BackgroundRole)
 
     def _updateComboBackground(self, combo):
@@ -1265,10 +1268,13 @@ class QGISRedGroupEditDialog(QDialog, FORM_CLASS):
             return str(data) if data is not None else self.cbFilterValueList.currentText()
         return self.leFilterValue.text()
 
+    def _isIdentifierField(self, identifier, fieldName):
+        return self.fieldUtils.getProperty(normalize_element(identifier), fieldName, translate=False) == "Identifier"
+
     def _isFreeTextField(self, identifier, fieldName):
         if identifier == "qgisred_demands" and fieldName == "Descrip":
             return False
-        return fieldName in _freeTextFields
+        return fieldName in _freeTextFields or self._isIdentifierField(identifier, fieldName)
 
     def _formatDateDisplay(self, rawValue):
         text = "" if rawValue is None else str(rawValue).strip()
