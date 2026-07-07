@@ -281,6 +281,14 @@ class TestCsvLoading:
             assert "Pipes" in defs["prettyNames"]
             assert defs["prettyNames"]["Pipes"]["Length"] == "Length"
 
+    def test_per_layer_id_fields_are_identifiers(self, fu):
+        with patch("QGISRed.tools.utils.qgisred_project_utils.QgsProject") as MockProj:
+            MockProj.instance.return_value = _make_project()
+            defs = fu.loadUnitDefinitions()
+            assert defs["prettyNames"]["Pipes"]["PipeID"] == "Identifier"
+            assert defs["prettyNames"]["MultipleDemands"]["DemandID"] == "Identifier"
+            assert fu.getProperty("Junctions", "JunctionID", translate=False) == "Identifier"
+
     def test_cache_reused(self, fu):
         with patch("QGISRed.tools.utils.qgisred_project_utils.QgsProject") as MockProj:
             MockProj.instance.return_value = _make_project()
