@@ -397,12 +397,9 @@
         </spacer>
        </item>
        <item>
-        <widget class="QPushButton" name="btApply">
+        <widget class="QPushButton" name="btAccept">
          <property name="text">
-          <string>Apply</string>
-         </property>
-         <property name="default">
-          <bool>true</bool>
+          <string>Accept</string>
          </property>
         </widget>
        </item>
@@ -414,9 +411,9 @@
         </widget>
        </item>
        <item>
-        <widget class="QPushButton" name="btAccept">
+        <widget class="QPushButton" name="btApply">
          <property name="text">
-          <string>Accept</string>
+          <string>Apply</string>
          </property>
         </widget>
        </item>

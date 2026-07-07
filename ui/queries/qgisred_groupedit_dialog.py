@@ -184,6 +184,9 @@ class QGISRedGroupEditDialog(QDialog, FORM_CLASS):
         self._setupFilterValueStack()
         self._setupTextValueStack()
         self._setupDateCalendarButton()
+        for button in (self.btAccept, self.btCancel, self.btApply):
+            button.setAutoDefault(False)
+            button.setDefault(False)
 
         self.iface = None
         self.canvas = None
