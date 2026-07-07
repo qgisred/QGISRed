@@ -15,6 +15,7 @@ from qgis.PyQt.QtWidgets import (
     QListView,
     QMessageBox,
     QStackedWidget,
+    QToolBar,
     QToolButton,
 )
 
@@ -1101,7 +1102,7 @@ class QGISRedGroupEditDialog(QDialog, FORM_CLASS):
             self.editedLayers.append(layer)
         layer.triggerRepaint()
         self.banner.pushMessage(self.tr("Apply"),
-                                self.tr("Updated %d elements.") % len(edits),
+                                self.tr("Changing %d elements.") % len(edits),
                                 level=0, duration=5)
         self._refreshAffectedCount()
         return True
@@ -1122,7 +1123,28 @@ class QGISRedGroupEditDialog(QDialog, FORM_CLASS):
             settings.setValue("qgis/dockAttributeTable", previousDocked)
         if dialog is not None:
             self.openedAttributeTables[layer.id()] = dialog
+            self._dockAttributeTable(dialog)
             self._raiseAttributeTable(dialog)
+
+    def _dockAttributeTable(self, dialog):
+        if self._enclosingDock(dialog) is not None:
+            return
+        dockAction = self._findDockAction(dialog)
+        if dockAction is not None and not dockAction.isChecked():
+            dockAction.setChecked(True)
+
+    def _findDockAction(self, dialog):
+        dockAction = dialog.findChild(QAction, "mActionDockUndock")
+        if dockAction is not None:
+            return dockAction
+        # Newer QGIS creates the dock action unnamed and appends it last to the table toolbar
+        toolbar = dialog.findChild(QToolBar, "mToolbar")
+        if toolbar is None:
+            return None
+        for toolbarAction in reversed(toolbar.actions()):
+            if toolbarAction.isCheckable():
+                return toolbarAction
+        return None
 
     def _raiseAttributeTable(self, dialog):
         selectedOnTop = dialog.findChild(QAction, "mActionSelectedToTop")
