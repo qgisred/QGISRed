@@ -294,6 +294,9 @@ class ToolsSection:
         if "Junctions" in self.selectedIds:
             ids = "Junctions:" + str(self.selectedIds["Junctions"]) + ";"
 
+        if "ServiceConnections" in self.selectedIds:
+            ids += "ServiceConnections:" + str(self.selectedIds["ServiceConnections"]) + ";"
+
         externalLayers = self._getExternalLoadedLayers()
         qgisredPointLayers = self._getDemandsBuilderPointLayers()
         qgisredLineLayers = self._getDemandsBuilderLineLayers()
