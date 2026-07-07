@@ -179,7 +179,7 @@ class QGISRedGroupEditDialog(QDialog, FORM_CLASS):
         super(QGISRedGroupEditDialog, self).__init__(parent)
         self.setupUi(self)
         self.setWindowIcon(QIcon(":/images/iconGroupEdit.svg"))
-        self.setWindowModality(Qt.WindowModality.ApplicationModal)
+        self.setWindowFlags(Qt.WindowType.Window | Qt.WindowType.WindowStaysOnTopHint | Qt.WindowType.WindowCloseButtonHint)
         self._applyStyle()
         self._setupFilterValueStack()
         self._setupTextValueStack()

@@ -77,6 +77,12 @@ class QueriesSection:
     def runGroupEdit(self):
         if not self.checkDependencies():
             return
+        existing = getattr(self, 'groupEditDialog', None)
+        if existing is not None:
+            with suppress(RuntimeError):
+                existing.raise_()
+                existing.activateWindow()
+                return
         # Validations
         self.defineCurrentProject()
         if not self.isValidProject():
@@ -84,12 +90,6 @@ class QueriesSection:
         if self.isLayerOnEdition():
             return
 
-        existing = getattr(self, 'groupEditDialog', None)
-        if existing is not None:
-            with suppress(RuntimeError):
-                existing.raise_()
-                existing.activateWindow()
-                return
         self.groupEditDialog = QGISRedGroupEditDialog()
         self.groupEditDialog.config(self.iface, self.ProjectDirectory, self.NetworkName)
         self.groupEditDialog.setAttribute(Qt.WidgetAttribute.WA_DeleteOnClose)
