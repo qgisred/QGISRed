@@ -62,6 +62,8 @@ class QGISRedProfileDock(QDockWidget):
         self.cbVariable = QComboBox(container)
         for display, _key in PROFILE_VARIABLES:
             self.cbVariable.addItem(self.tr(display))
+        default_index = next((i for i, (_d, key) in enumerate(PROFILE_VARIABLES) if key == "Head"), 0)
+        self.cbVariable.setCurrentIndex(default_index)
         self.cbVariable.currentIndexChanged.connect(self._onVariableChanged)
         toolbar.addWidget(self.cbVariable)
 
