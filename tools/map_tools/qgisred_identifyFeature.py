@@ -138,10 +138,12 @@ class QGISRedIdentifyFeature(QgsMapToolIdentify):
             if selectedHandler:
                 break
 
-        if not selectedHandler and allFeatures:
-            topResult = allFeatures[0]
-            selectedFeature = topResult.mFeature
-            selectedLayer = topResult.mLayer
+        if not selectedHandler:
+            for result in allFeatures:
+                if result.mLayer.customProperty("qgisred_identifier"):
+                    selectedFeature = result.mFeature
+                    selectedLayer = result.mLayer
+                    break
 
         return selectedLayer, selectedFeature, selectedHandler
 
@@ -150,6 +152,8 @@ class QGISRedIdentifyFeature(QgsMapToolIdentify):
         sortedResults = []
         for result in allFeatures:
             identifier = result.mLayer.customProperty("qgisred_identifier")
+            if not identifier:
+                continue
             if identifier in handlers:
                 priority = list(handlers.keys()).index(identifier)
             else:
@@ -237,6 +241,10 @@ class QGISRedIdentifyFeature(QgsMapToolIdentify):
             return
 
         selectedLayer, selectedFeature, selectedHandler = self.getFeatureByPriority(allFeatures)
+        if not selectedLayer:
+            if self.dock:
+                self.dock.deselectElement()
+            return
 
         self.clearSelections()
         self.selectFeature(selectedLayer, selectedFeature)
