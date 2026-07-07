@@ -6903,6 +6903,22 @@ Left-click: Add a new item below the current selection</source>
         <source>Quality</source>
         <translation>Qualité</translation>
     </message>
+    <message>
+        <source>Pick an intermediate node of the current profile path.</source>
+        <translation>Sélectionnez un nœud intermédiaire du tracé actuel du profil.</translation>
+    </message>
+    <message>
+        <source>Pick a declared profile point to remove.</source>
+        <translation>Sélectionnez un point de passage déclaré à supprimer.</translation>
+    </message>
+    <message>
+        <source>Only declared profile points can be moved.</source>
+        <translation>Seuls les points de passage déclarés peuvent être déplacés.</translation>
+    </message>
+    <message>
+        <source>The moved node cannot be connected along the network.</source>
+        <translation>Le nœud déplacé ne peut pas être connecté le long du réseau.</translation>
+    </message>
 </context>
 <context>
     <name>QGISRedProfileDock</name>
@@ -6917,6 +6933,30 @@ Left-click: Add a new item below the current selection</source>
     <message>
         <source>Click network nodes on the map to build the profile path</source>
         <translation>Cliquez sur les nœuds du réseau sur la carte pour construire le parcours du profil</translation>
+    </message>
+    <message>
+        <source>Add point</source>
+        <translation>Ajouter un point</translation>
+    </message>
+    <message>
+        <source>Remove point</source>
+        <translation>Supprimer un point</translation>
+    </message>
+    <message>
+        <source>Move point</source>
+        <translation>Déplacer un point</translation>
+    </message>
+    <message>
+        <source>Convert an intermediate node of the path into a profile point</source>
+        <translation>Convertir un nœud intermédiaire du tracé en point de passage</translation>
+    </message>
+    <message>
+        <source>Remove a declared profile point</source>
+        <translation>Supprimer un point de passage déclaré</translation>
+    </message>
+    <message>
+        <source>Move a profile point: click it, then its new position</source>
+        <translation>Déplacer un point de passage : cliquez dessus, puis sa nouvelle position</translation>
     </message>
     <message>
         <source>Clear</source>

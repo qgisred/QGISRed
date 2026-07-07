@@ -8,6 +8,10 @@ from QGISRed.tools.utils.qgisred_profile_path import (
     cumulative_distances,
     sample_node_variable,
     cumulative_link_losses,
+    reference_nodes_from_path,
+    add_pass_node,
+    remove_pass_node,
+    move_pass_node,
 )
 
 
@@ -74,3 +78,60 @@ def test_sample_node_variable_missing_value_is_none():
 def test_cumulative_link_losses():
     losses = {"L1": 20.0, "L2": 40.0}
     assert cumulative_link_losses(["L1", "L2"], losses) == [0.0, 20.0, 60.0]
+
+
+def test_reference_nodes_from_path():
+    path = build_profile_path(_network(), ["A", "C", "E"])
+    assert reference_nodes_from_path(path) == ["A", "C", "E"]
+
+
+def test_add_pass_node_converts_intermediate_without_changing_trace():
+    path = build_profile_path(_network(), ["A", "C"])
+    assert path["nodes"] == ["A", "B", "C"]
+    updated = add_pass_node(path, "B")
+    assert updated["nodes"] == ["A", "B", "C"]
+    assert updated["links"] == path["links"]
+    assert updated["is_reference"] == [True, True, True]
+    assert reference_nodes_from_path(updated) == ["A", "B", "C"]
+
+
+def test_add_pass_node_rejects_non_intermediate():
+    path = build_profile_path(_network(), ["A", "C"])
+    with pytest.raises(ProfilePathError):
+        add_pass_node(path, "A")
+    with pytest.raises(ProfilePathError):
+        add_pass_node(path, "E")
+
+
+def test_remove_interior_pass_node_merges_segment():
+    refs = ["A", "C", "E"]
+    new_refs = remove_pass_node(refs, "C")
+    assert new_refs == ["A", "E"]
+    path = build_profile_path(_network(), new_refs)
+    assert path["nodes"] == ["A", "B", "C", "D", "E"]
+    assert path["is_reference"] == [True, False, False, False, True]
+
+
+def test_remove_endpoint_pass_node_trims():
+    refs = ["A", "C", "E"]
+    path = build_profile_path(_network(), remove_pass_node(refs, "A"))
+    assert path["nodes"] == ["C", "D", "E"]
+
+
+def test_remove_pass_node_rejects_non_reference():
+    with pytest.raises(ProfilePathError):
+        remove_pass_node(["A", "C"], "B")
+
+
+def test_move_pass_node_recomputes_adjacent_segments():
+    refs = ["A", "C", "E"]
+    new_refs = move_pass_node(refs, "C", "D")
+    assert new_refs == ["A", "D", "E"]
+    path = build_profile_path(_network(), new_refs)
+    assert path["nodes"] == ["A", "B", "C", "D", "E"]
+    assert path["is_reference"] == [True, False, False, True, True]
+
+
+def test_move_pass_node_rejects_non_reference():
+    with pytest.raises(ProfilePathError):
+        move_pass_node(["A", "C"], "B", "D")

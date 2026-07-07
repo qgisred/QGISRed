@@ -67,3 +67,32 @@ def cumulative_link_losses(links, link_losses):
     for link in links:
         values.append(values[-1] + float(link_losses.get(link, 0.0)))
     return values
+
+
+def reference_nodes_from_path(path):
+    return [path["nodes"][i] for i, is_ref in enumerate(path["is_reference"]) if is_ref]
+
+
+def add_pass_node(path, node):
+    for i, current in enumerate(path["nodes"]):
+        if current == node and not path["is_reference"][i]:
+            new_is_reference = list(path["is_reference"])
+            new_is_reference[i] = True
+            return {
+                "nodes": list(path["nodes"]),
+                "links": list(path["links"]),
+                "is_reference": new_is_reference,
+            }
+    raise ProfilePathError("Node '{}' is not an intermediate point of the current path".format(node))
+
+
+def remove_pass_node(reference_nodes, node):
+    if node not in reference_nodes:
+        raise ProfilePathError("Node '{}' is not a declared profile point".format(node))
+    return [n for n in reference_nodes if n != node]
+
+
+def move_pass_node(reference_nodes, node, new_node):
+    if node not in reference_nodes:
+        raise ProfilePathError("Only declared profile points can be moved")
+    return [new_node if n == node else n for n in reference_nodes]

@@ -7035,6 +7035,22 @@ Click izquierdo: Añadir un nuevo item debajo de la selección actual</translati
         <source>Quality</source>
         <translation>Calidad</translation>
     </message>
+    <message>
+        <source>Pick an intermediate node of the current profile path.</source>
+        <translation>Seleccione un nudo intermedio del trazado actual del perfil.</translation>
+    </message>
+    <message>
+        <source>Pick a declared profile point to remove.</source>
+        <translation>Seleccione un nudo de paso declarado para eliminarlo.</translation>
+    </message>
+    <message>
+        <source>Only declared profile points can be moved.</source>
+        <translation>Solo se pueden mover los nudos de paso declarados.</translation>
+    </message>
+    <message>
+        <source>The moved node cannot be connected along the network.</source>
+        <translation>El nudo desplazado no puede conectarse a lo largo de la red.</translation>
+    </message>
 </context>
 <context>
     <name>QGISRedProfileDock</name>
@@ -7049,6 +7065,30 @@ Click izquierdo: Añadir un nuevo item debajo de la selección actual</translati
     <message>
         <source>Click network nodes on the map to build the profile path</source>
         <translation>Pulse sobre los nudos de la red en el mapa para construir el trayecto del perfil</translation>
+    </message>
+    <message>
+        <source>Add point</source>
+        <translation>Añadir nudo</translation>
+    </message>
+    <message>
+        <source>Remove point</source>
+        <translation>Eliminar nudo</translation>
+    </message>
+    <message>
+        <source>Move point</source>
+        <translation>Mover nudo</translation>
+    </message>
+    <message>
+        <source>Convert an intermediate node of the path into a profile point</source>
+        <translation>Convertir un nudo intermedio del trazado en nudo de paso</translation>
+    </message>
+    <message>
+        <source>Remove a declared profile point</source>
+        <translation>Eliminar un nudo de paso declarado</translation>
+    </message>
+    <message>
+        <source>Move a profile point: click it, then its new position</source>
+        <translation>Mover un nudo de paso: púlselo y luego su nueva posición</translation>
     </message>
     <message>
         <source>Clear</source>

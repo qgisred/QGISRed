@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 from qgis.PyQt.QtCore import Qt, pyqtSignal
 from qgis.PyQt.QtWidgets import (
-    QDockWidget, QWidget, QVBoxLayout, QHBoxLayout, QToolButton, QComboBox, QLabel
+    QDockWidget, QWidget, QVBoxLayout, QHBoxLayout, QToolButton, QComboBox, QLabel, QFrame
 )
 
 from .qgisred_profile_plot import ProfilePlotWidget
@@ -17,8 +17,7 @@ PROFILE_VARIABLES = [
 
 
 class QGISRedProfileDock(QDockWidget):
-    pickPathRequested = pyqtSignal()
-    pickPathCancelled = pyqtSignal()
+    profileModeChanged = pyqtSignal(str)
     clearRequested = pyqtSignal()
     variableChanged = pyqtSignal(str)
 
@@ -27,7 +26,8 @@ class QGISRedProfileDock(QDockWidget):
         self.iface = iface
         self.setWindowTitle(self.tr("Longitudinal profile"))
         self.setObjectName("QGISRedProfileDock")
-        self._suppress_pick_signal = False
+        self._suppress_mode_signal = False
+        self._modeButtons = {}
         self._buildUi()
 
     def _buildUi(self):
@@ -39,12 +39,16 @@ class QGISRedProfileDock(QDockWidget):
         toolbar = QHBoxLayout()
         toolbar.setSpacing(4)
 
-        self.btnPick = QToolButton(container)
-        self.btnPick.setText(self.tr("Pick path"))
-        self.btnPick.setToolTip(self.tr("Click network nodes on the map to build the profile path"))
-        self.btnPick.setCheckable(True)
-        self.btnPick.toggled.connect(self._onPickToggled)
-        toolbar.addWidget(self.btnPick)
+        self.btnPick = self._addModeButton(toolbar, "pick", self.tr("Pick path"),
+                                           self.tr("Click network nodes on the map to build the profile path"))
+        self.btnAdd = self._addModeButton(toolbar, "add", self.tr("Add point"),
+                                          self.tr("Convert an intermediate node of the path into a profile point"))
+        self.btnRemove = self._addModeButton(toolbar, "remove", self.tr("Remove point"),
+                                             self.tr("Remove a declared profile point"))
+        self.btnMove = self._addModeButton(toolbar, "move", self.tr("Move point"),
+                                           self.tr("Move a profile point: click it, then its new position"))
+
+        toolbar.addWidget(self._separator(container))
 
         self.btnClear = QToolButton(container)
         self.btnClear.setText(self.tr("Clear"))
@@ -70,16 +74,33 @@ class QGISRedProfileDock(QDockWidget):
 
         self.setWidget(container)
 
+    def _addModeButton(self, toolbar, mode, text, tooltip):
+        button = QToolButton(self.widget() if self.widget() else None)
+        button.setText(text)
+        button.setToolTip(tooltip)
+        button.setCheckable(True)
+        button.toggled.connect(lambda checked, m=mode: self._onModeToggled(m, checked))
+        toolbar.addWidget(button)
+        self._modeButtons[mode] = button
+        return button
+
+    def _separator(self, parent):
+        line = QFrame(parent)
+        line.setFrameShape(QFrame.Shape.VLine)
+        line.setFrameShadow(QFrame.Shadow.Sunken)
+        return line
+
     def currentVariableKey(self):
-        idx = self.cbVariable.currentIndex()
-        if 0 <= idx < len(PROFILE_VARIABLES):
-            return PROFILE_VARIABLES[idx][1]
+        index = self.cbVariable.currentIndex()
+        if 0 <= index < len(PROFILE_VARIABLES):
+            return PROFILE_VARIABLES[index][1]
         return "Elevation"
 
-    def setPickActive(self, active):
-        self._suppress_pick_signal = True
-        self.btnPick.setChecked(bool(active))
-        self._suppress_pick_signal = False
+    def setActiveMode(self, mode):
+        self._suppress_mode_signal = True
+        for m, button in self._modeButtons.items():
+            button.setChecked(m == mode)
+        self._suppress_mode_signal = False
 
     def setSeries(self, series, title, x_label, y_label):
         self.plot.setLabels(title, x_label, y_label)
@@ -88,13 +109,18 @@ class QGISRedProfileDock(QDockWidget):
     def clearPlot(self):
         self.plot.clear()
 
-    def _onPickToggled(self, checked):
-        if self._suppress_pick_signal:
+    def _onModeToggled(self, mode, checked):
+        if self._suppress_mode_signal:
             return
         if checked:
-            self.pickPathRequested.emit()
-        else:
-            self.pickPathCancelled.emit()
+            self._suppress_mode_signal = True
+            for other, button in self._modeButtons.items():
+                if other != mode:
+                    button.setChecked(False)
+            self._suppress_mode_signal = False
+            self.profileModeChanged.emit(mode)
+        elif not any(button.isChecked() for button in self._modeButtons.values()):
+            self.profileModeChanged.emit("")
 
-    def _onVariableChanged(self, _idx):
+    def _onVariableChanged(self, _index):
         self.variableChanged.emit(self.currentVariableKey())

@@ -6980,6 +6980,22 @@ Clique esquerdo: Adicionar um novo item abaixo da seleção atual</translation>
         <source>Quality</source>
         <translation>Qualidade</translation>
     </message>
+    <message>
+        <source>Pick an intermediate node of the current profile path.</source>
+        <translation>Selecione um nó intermédio do traçado atual do perfil.</translation>
+    </message>
+    <message>
+        <source>Pick a declared profile point to remove.</source>
+        <translation>Selecione um ponto de passagem declarado para remover.</translation>
+    </message>
+    <message>
+        <source>Only declared profile points can be moved.</source>
+        <translation>Apenas os pontos de passagem declarados podem ser movidos.</translation>
+    </message>
+    <message>
+        <source>The moved node cannot be connected along the network.</source>
+        <translation>O nó movido não pode ser ligado ao longo da rede.</translation>
+    </message>
 </context>
 <context>
     <name>QGISRedProfileDock</name>
@@ -6994,6 +7010,30 @@ Clique esquerdo: Adicionar um novo item abaixo da seleção atual</translation>
     <message>
         <source>Click network nodes on the map to build the profile path</source>
         <translation>Clique nos nós da rede no mapa para construir o trajeto do perfil</translation>
+    </message>
+    <message>
+        <source>Add point</source>
+        <translation>Adicionar nó</translation>
+    </message>
+    <message>
+        <source>Remove point</source>
+        <translation>Remover nó</translation>
+    </message>
+    <message>
+        <source>Move point</source>
+        <translation>Mover nó</translation>
+    </message>
+    <message>
+        <source>Convert an intermediate node of the path into a profile point</source>
+        <translation>Converter um nó intermédio do traçado em ponto de passagem</translation>
+    </message>
+    <message>
+        <source>Remove a declared profile point</source>
+        <translation>Remover um ponto de passagem declarado</translation>
+    </message>
+    <message>
+        <source>Move a profile point: click it, then its new position</source>
+        <translation>Mover um ponto de passagem: clique nele e depois na nova posição</translation>
     </message>
     <message>
         <source>Clear</source>

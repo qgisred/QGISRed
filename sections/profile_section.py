@@ -11,6 +11,10 @@ from ..tools.utils.qgisred_profile_path import (
     cumulative_distances,
     sample_node_variable,
     cumulative_link_losses,
+    reference_nodes_from_path,
+    add_pass_node,
+    remove_pass_node,
+    move_pass_node,
 )
 
 _NODE_LAYER_IDENTIFIERS = ("qgisred_junctions", "qgisred_tanks", "qgisred_reservoirs")
@@ -37,7 +41,7 @@ class ProfileSection:
         self.profileDock.clearPlot()
         self.profileDock.show()
         self.profileDock.raise_()
-        self.profileDock.setPickActive(True)
+        self.profileDock.setActiveMode("pick")
         self.runProfilePickTool()
 
     def _initProfileDock(self):
@@ -48,8 +52,7 @@ class ProfileSection:
 
         self.profileDock = QGISRedProfileDock(self.iface)
         self.iface.addDockWidget(Qt.DockWidgetArea.BottomDockWidgetArea, self.profileDock)
-        self.profileDock.pickPathRequested.connect(self._onProfilePickRequested)
-        self.profileDock.pickPathCancelled.connect(self._onProfilePickCancelled)
+        self.profileDock.profileModeChanged.connect(self._onProfileModeChanged)
         self.profileDock.clearRequested.connect(self._onProfileClearRequested)
         self.profileDock.variableChanged.connect(self._onProfileVariableChanged)
         self.profileDock.visibilityChanged.connect(self._onProfileDockVisibility)
@@ -60,12 +63,13 @@ class ProfileSection:
         self._profileHighlights = []
         self._profileMarkers = []
 
-    def runProfilePickTool(self):
+    def _setProfileMapTool(self, kind, callback):
         from ..tools.map_tools.qgisred_selectPoint import QGISRedSelectPointTool, SelectPointType
 
+        self._deactivateProfileMapTool()
+        point_type = SelectPointType.TwoPoints if kind == "two" else SelectPointType.Point
         self.myMapTools["Profile"] = QGISRedSelectPointTool(
-            None, self, self.profilePickCallback, SelectPointType.Point,
-            cursor=":/images/iconProfile.svg",
+            None, self, callback, point_type, cursor=":/images/iconProfile.svg",
         )
         self.iface.mapCanvas().setMapTool(self.myMapTools["Profile"])
 
@@ -74,11 +78,19 @@ class ProfileSection:
         if tool is not None and self.iface.mapCanvas().mapTool() is tool:
             self.iface.mapCanvas().unsetMapTool(tool)
 
-    def _onProfilePickRequested(self):
-        self.runProfilePickTool()
+    def runProfilePickTool(self):
+        self._setProfileMapTool("one", self.profilePickCallback)
 
-    def _onProfilePickCancelled(self):
+    def _onProfileModeChanged(self, mode):
         self._deactivateProfileMapTool()
+        if mode == "pick":
+            self._setProfileMapTool("one", self.profilePickCallback)
+        elif mode == "add":
+            self._setProfileMapTool("one", self.profileAddCallback)
+        elif mode == "remove":
+            self._setProfileMapTool("one", self.profileRemoveCallback)
+        elif mode == "move":
+            self._setProfileMapTool("two", self.profileMoveCallback)
 
     def _onProfileClearRequested(self):
         self._profileReferenceNodes = []
@@ -116,6 +128,71 @@ class ProfileSection:
                 self.tr("Selected node is not connected to the previous one along the network."),
                 level=1,
             )
+            return
+        self._redrawProfile()
+
+    def profileAddCallback(self, point):
+        node_id = self._resolveProfileNode(point)
+        if node_id is None:
+            self.pushMessage(self.tr("No network node found at this location."), level=1)
+            return
+        self._applyProfileAdd(node_id)
+
+    def profileRemoveCallback(self, point):
+        node_id = self._resolveProfileNode(point)
+        if node_id is None:
+            self.pushMessage(self.tr("No network node found at this location."), level=1)
+            return
+        self._applyProfileRemove(node_id)
+
+    def profileMoveCallback(self, point, new_point):
+        node_id = self._resolveProfileNode(point)
+        new_node_id = self._resolveProfileNode(new_point)
+        if node_id is None or new_node_id is None:
+            self.pushMessage(self.tr("No network node found at this location."), level=1)
+            return
+        self._applyProfileMove(node_id, new_node_id)
+
+    def _applyProfileAdd(self, node_id):
+        path = getattr(self, "_profilePath", None)
+        if not path or not path["nodes"]:
+            return
+        try:
+            new_path = add_pass_node(path, node_id)
+        except ProfilePathError:
+            self.pushMessage(self.tr("Pick an intermediate node of the current profile path."), level=1)
+            return
+        self._profilePath = new_path
+        self._profileReferenceNodes = reference_nodes_from_path(new_path)
+        self._profileDistances = cumulative_distances(new_path["links"], getattr(self, "_profileLinkLengths", {}))
+        self._redrawProfile()
+
+    def _applyProfileRemove(self, node_id):
+        refs = getattr(self, "_profileReferenceNodes", [])
+        if node_id not in refs:
+            self.pushMessage(self.tr("Pick a declared profile point to remove."), level=1)
+            return
+        self._profileReferenceNodes = remove_pass_node(refs, node_id)
+        try:
+            self._recomputeProfileStructure()
+        except ProfilePathError:
+            return
+        self._redrawProfile()
+
+    def _applyProfileMove(self, node_id, new_node_id):
+        refs = getattr(self, "_profileReferenceNodes", [])
+        if node_id not in refs:
+            self.pushMessage(self.tr("Only declared profile points can be moved."), level=1)
+            return
+        previous = list(refs)
+        self._profileReferenceNodes = move_pass_node(refs, node_id, new_node_id)
+        try:
+            self._recomputeProfileStructure()
+        except ProfilePathError:
+            self._profileReferenceNodes = previous
+            with suppress(ProfilePathError):
+                self._recomputeProfileStructure()
+            self.pushMessage(self.tr("The moved node cannot be connected along the network."), level=1)
             return
         self._redrawProfile()
 
