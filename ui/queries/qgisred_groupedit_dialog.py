@@ -949,11 +949,10 @@ class QGISRedGroupEditDialog(QDialog, FORM_CLASS):
             self.banner.pushMessage(self.tr("Apply"), str(e), level=2, duration=6)
             return
 
-        identifier = layer.customProperty("qgisred_identifier")
-        if not self._confirmApply(identifier, fieldName, actionKind, edits, layer):
+        if not self._applyEdits(layer, fieldName, edits):
             return
-
-        self._applyEdits(layer, fieldName, edits)
+        identifier = layer.customProperty("qgisred_identifier")
+        self._warnSoftBounds(identifier, fieldName, edits)
 
     def _computeEdits(self, features, fieldName, actionKey, actionKind, layer):
         edits = []  # list of (fid, oldValue, newValue)
@@ -1034,50 +1033,23 @@ class QGISRedGroupEditDialog(QDialog, FORM_CLASS):
         except (TypeError, ValueError):
             return None
 
-    def _confirmApply(self, identifier, fieldName, actionKind, edits, layer):
-        prettyField = self.fieldUtils.getProperty(normalize_element(identifier), fieldName)
-        elementName = self._elementDisplayName(identifier)
-        count = len(edits)
-
-        rangeLine = ""
-        warningLine = ""
-        if actionKind == "numeric":
-            oldValues = [e[1] for e in edits if self._coerceFloat(e[1]) is not None]
-            newValues = [e[2] for e in edits if isinstance(e[2], (int, float))]
-            if oldValues and newValues:
-                oldFloats = [self._coerceFloat(v) for v in oldValues]
-                rangeLine = self.tr("Current range: %.4g → %.4g") % (min(oldFloats), max(oldFloats))
-                rangeLine += "\n" + self.tr("New range:     %.4g → %.4g") % (min(newValues), max(newValues))
-            bounds = _softBounds.get((identifier, fieldName))
-            if bounds is not None:
-                lo, hi = bounds
-                outOfRange = 0
-                for v in newValues:
-                    if (lo is not None and v < lo) or (hi is not None and v > hi):
-                        outOfRange += 1
-                if outOfRange:
-                    warningLine = self.tr("Warning: %d value(s) fall outside the typical range for this field.") % outOfRange
-
-        bodyLines = [
-            self.tr("Will modify %s for %d %s.") % (prettyField, count, elementName),
-        ]
-        if rangeLine:
-            bodyLines.append("")
-            bodyLines.append(rangeLine)
-        if warningLine:
-            bodyLines.append("")
-            bodyLines.append(warningLine)
-        bodyLines.append("")
-        bodyLines.append(self.tr("Continue?"))
-
-        reply = QMessageBox.question(
-            self,
-            self.tr("Edit properties by group"),
-            "\n".join(bodyLines),
-            QMessageBox.StandardButton.Yes | QMessageBox.StandardButton.No,
-            QMessageBox.StandardButton.Yes,
-        )
-        return reply == QMessageBox.StandardButton.Yes
+    def _warnSoftBounds(self, identifier, fieldName, edits):
+        bounds = _softBounds.get((identifier, fieldName))
+        if bounds is None:
+            return
+        lo, hi = bounds
+        outOfRange = 0
+        for _fid, _oldVal, newVal in edits:
+            if not isinstance(newVal, (int, float)):
+                continue
+            if (lo is not None and newVal < lo) or (hi is not None and newVal > hi):
+                outOfRange += 1
+        if outOfRange:
+            self.banner.pushMessage(
+                self.tr("Apply"),
+                self.tr("Warning: %d value(s) fall outside the typical range for this field.") % outOfRange,
+                level=1, duration=6,
+            )
 
     def _applyEdits(self, layer, fieldName, edits):
         fieldIdx = layer.fields().indexFromName(fieldName)
@@ -1085,12 +1057,12 @@ class QGISRedGroupEditDialog(QDialog, FORM_CLASS):
             self.banner.pushMessage(self.tr("Apply"),
                                     self.tr("Field not found in layer."),
                                     level=2, duration=6)
-            return
+            return False
         if not layer.isEditable() and not layer.startEditing():
             self.banner.pushMessage(self.tr("Apply"),
                                     self.tr("Could not start editing the layer."),
                                     level=2, duration=6)
-            return
+            return False
         layer.beginEditCommand("Group Edit")
         try:
             for fid, _oldVal, newVal in edits:
@@ -1098,7 +1070,7 @@ class QGISRedGroupEditDialog(QDialog, FORM_CLASS):
         except Exception as e:
             layer.destroyEditCommand()
             self.banner.pushMessage(self.tr("Apply"), str(e), level=2, duration=6)
-            return
+            return False
         layer.endEditCommand()
         if layer not in self.editedLayers:
             self.editedLayers.append(layer)
@@ -1107,6 +1079,7 @@ class QGISRedGroupEditDialog(QDialog, FORM_CLASS):
                                 self.tr("Updated %d elements.") % len(edits),
                                 level=0, duration=5)
         self._refreshAffectedCount()
+        return True
 
     def _onAccept(self):
         for layer in self.editedLayers:
