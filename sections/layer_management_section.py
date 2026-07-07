@@ -601,4 +601,9 @@ class LayerManagementSection:
             if not layer or not isinstance(layer, QgsVectorLayer):
                 continue
 
+            identifier = layer.customProperty("qgisred_identifier")
+            if identifier and identifier.startswith("qgisred_query_"):
+                layer.setReadOnly(True)
+                continue
+
             layer.setReadOnly(readonly)
