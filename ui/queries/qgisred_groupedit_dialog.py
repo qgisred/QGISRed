@@ -207,6 +207,11 @@ class QGISRedGroupEditDialog(QDialog, FORM_CLASS):
         self._countTimer.setInterval(150)
         self._countTimer.timeout.connect(self._refreshAffectedCount)
 
+        self._valuesTimer = QTimer(self)
+        self._valuesTimer.setSingleShot(True)
+        self._valuesTimer.setInterval(300)
+        self._valuesTimer.timeout.connect(self._refreshValueLists)
+
         self._connectSignals()
         self.layout().setSizeConstraint(QLayout.SizeConstraint.SetMinimumSize)
         self.rootLayout.setColumnStretch(0, 1)
@@ -785,11 +790,13 @@ class QGISRedGroupEditDialog(QDialog, FORM_CLASS):
         if elementLayer is not None:
             with suppress(Exception):
                 elementLayer.selectionChanged.connect(self._scheduleCount)
+                elementLayer.layerModified.connect(self._scheduleValuesRefresh)
                 self._countSignalLayers.append(elementLayer)
 
     def _disconnectCountSignals(self):
         for layer in self._countSignalLayers:
             self.safeDisconnect(layer.selectionChanged, self._scheduleCount)
+            self.safeDisconnect(layer.layerModified, self._scheduleValuesRefresh)
         self._countSignalLayers = []
 
     def safeDisconnect(self, signal, slot):
@@ -800,6 +807,19 @@ class QGISRedGroupEditDialog(QDialog, FORM_CLASS):
 
     def _scheduleCount(self):
         self._countTimer.start()
+
+    def _scheduleValuesRefresh(self):
+        self._valuesTimer.start()
+
+    def _refreshValueLists(self):
+        layer = self._currentLayer()
+        if layer is None:
+            return
+        self._updateFilterValues()
+        fieldName = self.cbProperty.currentData()
+        if fieldName and self.stackedValue.currentIndex() == _pageDate:
+            self._populateDateValues(layer, fieldName)
+        self._scheduleCount()
 
     def _refreshAffectedCount(self):
         layer = self._currentLayer()
