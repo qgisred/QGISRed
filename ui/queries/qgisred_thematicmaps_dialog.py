@@ -281,8 +281,15 @@ class QGISRedThematicMapsDialog(QDialog, FORM_CLASS):
             if layerTreeLayer is not None:
                 layerTreeLayer.setCustomProperty("showFeatureCount", True)
 
-        mainLayer.dataChanged.connect(lambda: self.syncLayers(mainLayer, derivedLayer))
-        mainLayer.styleChanged.connect(lambda: self.syncLayers(mainLayer, derivedLayer))
+        def syncDerivedLayer():
+            if sip.isdeleted(derivedLayer):
+                self.safeDisconnect(mainLayer.dataChanged, syncDerivedLayer)
+                self.safeDisconnect(mainLayer.styleChanged, syncDerivedLayer)
+                return
+            self.syncLayers(mainLayer, derivedLayer)
+
+        mainLayer.dataChanged.connect(syncDerivedLayer)
+        mainLayer.styleChanged.connect(syncDerivedLayer)
         derivedLayer.dataChanged.connect(lambda: derivedLayer.triggerRepaint())
         derivedLayer.setReadOnly(True)
 
@@ -309,6 +316,10 @@ class QGISRedThematicMapsDialog(QDialog, FORM_CLASS):
         newRenderer = mainLayer.renderer().clone()
         derivedLayer.setRenderer(newRenderer)
         derivedLayer.triggerRepaint()
+
+    def safeDisconnect(self, signal, slot):
+        with suppress(TypeError, RuntimeError):
+            signal.disconnect(slot)
 
     def checkExistingLayer(self, queriesGroup, layerName, layerPath=None):
         existingLayer = None
