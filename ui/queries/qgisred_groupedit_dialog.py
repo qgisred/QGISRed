@@ -1124,6 +1124,7 @@ class QGISRedGroupEditDialog(QDialog, FORM_CLASS):
         if dialog is not None:
             self.openedAttributeTables[layer.id()] = dialog
             self._dockAttributeTable(dialog)
+            self._stackAttributeTables(dialog)
             self._raiseAttributeTable(dialog)
 
     def _dockAttributeTable(self, dialog):
@@ -1132,6 +1133,19 @@ class QGISRedGroupEditDialog(QDialog, FORM_CLASS):
         dockAction = self._findDockAction(dialog)
         if dockAction is not None and not dockAction.isChecked():
             dockAction.setChecked(True)
+
+    def _stackAttributeTables(self, dialog):
+        dock = self._enclosingDock(dialog)
+        if dock is None:
+            return
+        for otherDialog in self.openedAttributeTables.values():
+            if otherDialog is dialog:
+                continue
+            with suppress(RuntimeError):
+                otherDock = self._enclosingDock(otherDialog)
+                if otherDock is not None and otherDock is not dock:
+                    self.iface.mainWindow().tabifyDockWidget(otherDock, dock)
+                    return
 
     def _findDockAction(self, dialog):
         dockAction = dialog.findChild(QAction, "mActionDockUndock")
