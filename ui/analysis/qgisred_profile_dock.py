@@ -56,6 +56,13 @@ class QGISRedProfileDock(QDockWidget):
         self.btnClear.clicked.connect(self.clearRequested)
         toolbar.addWidget(self.btnClear)
 
+        self.btnLabels = QToolButton(container)
+        self.btnLabels.setText(self.tr("Show values"))
+        self.btnLabels.setToolTip(self.tr("Show the variable value at each declared profile point"))
+        self.btnLabels.setCheckable(True)
+        self.btnLabels.toggled.connect(self._onToggleValueLabels)
+        toolbar.addWidget(self.btnLabels)
+
         toolbar.addSpacing(12)
         toolbar.addWidget(QLabel(self.tr("Variable:"), container))
 
@@ -123,6 +130,9 @@ class QGISRedProfileDock(QDockWidget):
             self.profileModeChanged.emit(mode)
         elif not any(button.isChecked() for button in self._modeButtons.values()):
             self.profileModeChanged.emit("")
+
+    def _onToggleValueLabels(self, checked):
+        self.plot.setShowValueLabels(checked)
 
     def _onVariableChanged(self, _index):
         self.variableChanged.emit(self.currentVariableKey())

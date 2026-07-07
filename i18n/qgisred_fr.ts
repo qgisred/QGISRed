@@ -6994,5 +6994,13 @@ Left-click: Add a new item below the current selection</source>
         <source>Enable 'Pick path' and click nodes on the map</source>
         <translation>Activez « Tracer le parcours » et cliquez sur les nœuds de la carte</translation>
     </message>
+    <message>
+        <source>Show values</source>
+        <translation>Afficher les valeurs</translation>
+    </message>
+    <message>
+        <source>Show the variable value at each declared profile point</source>
+        <translation>Afficher la valeur de la variable à chaque point de passage déclaré</translation>
+    </message>
 </context>
 </TS>

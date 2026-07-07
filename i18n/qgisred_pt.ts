@@ -7071,5 +7071,13 @@ Clique esquerdo: Adicionar um novo item abaixo da seleção atual</translation>
         <source>Enable 'Pick path' and click nodes on the map</source>
         <translation>Ative «Marcar trajeto» e clique nos nós no mapa</translation>
     </message>
+    <message>
+        <source>Show values</source>
+        <translation>Mostrar valores</translation>
+    </message>
+    <message>
+        <source>Show the variable value at each declared profile point</source>
+        <translation>Mostrar o valor da variável em cada ponto de passagem declarado</translation>
+    </message>
 </context>
 </TS>

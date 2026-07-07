@@ -7126,5 +7126,13 @@ Click izquierdo: Añadir un nuevo item debajo de la selección actual</translati
         <source>Enable 'Pick path' and click nodes on the map</source>
         <translation>Active «Marcar trayecto» y pulse los nudos en el mapa</translation>
     </message>
+    <message>
+        <source>Show values</source>
+        <translation>Mostrar valores</translation>
+    </message>
+    <message>
+        <source>Show the variable value at each declared profile point</source>
+        <translation>Mostrar el valor de la variable en cada nudo de paso declarado</translation>
+    </message>
 </context>
 </TS>

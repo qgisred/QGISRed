@@ -33,9 +33,14 @@ class ProfilePlotWidget(QWidget):
         self._y_label = ""
         self._empty_text = ""
         self._hover_x = None
+        self._show_value_labels = False
 
     def setEmptyText(self, text):
         self._empty_text = text
+        self.update()
+
+    def setShowValueLabels(self, show):
+        self._show_value_labels = bool(show)
         self.update()
 
     def setLabels(self, title, x_label, y_label):
@@ -142,6 +147,9 @@ class ProfilePlotWidget(QWidget):
         for s in self._series:
             self._drawSeries(painter, s, px, py)
 
+        if self._show_value_labels and self._series:
+            self._drawValueLabels(painter, self._series[0], px, py)
+
         self._drawTitleAndAxisLabels(painter, full, plot)
         self._drawLegend(painter, plot)
         self._drawCursor(painter, plot, px, py, x0, x1)
@@ -171,6 +179,21 @@ class ProfilePlotWidget(QWidget):
                 painter.setPen(Qt.PenStyle.NoPen)
                 painter.setBrush(QBrush(color))
                 painter.drawEllipse(center, 2.2, 2.2)
+
+    def _drawValueLabels(self, painter, s, px, py):
+        painter.setFont(QFont("Arial", 8))
+        fm = QFontMetrics(painter.font())
+        for idx, (d, v) in enumerate(s["points"]):
+            if v is None or idx not in s["reference"]:
+                continue
+            text = format_profile_value(v)
+            width = fm.horizontalAdvance(text) + 8
+            rect = QRectF(px(d) - width / 2.0, py(v) - 22, width, 14)
+            painter.setPen(Qt.PenStyle.NoPen)
+            painter.setBrush(QBrush(QColor(255, 255, 255, 225)))
+            painter.drawRoundedRect(rect, 3, 3)
+            painter.setPen(QColor(40, 40, 40))
+            painter.drawText(rect, Qt.AlignmentFlag.AlignCenter, text)
 
     def _drawTitleAndAxisLabels(self, painter, full, plot):
         painter.setPen(QColor(30, 30, 30))
