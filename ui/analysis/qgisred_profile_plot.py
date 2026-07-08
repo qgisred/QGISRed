@@ -145,7 +145,7 @@ class ProfilePlotWidget(QWidget):
         painter.drawRect(plot)
 
         for s in self._series:
-            self._drawSeries(painter, s, px, py)
+            self._drawSeries(painter, s, px, py, plot.bottom())
 
         if self._show_value_labels and self._series:
             self._drawValueLabels(painter, self._series[0], px, py)
@@ -155,30 +155,33 @@ class ProfilePlotWidget(QWidget):
         self._drawCursor(painter, plot, px, py, x0, x1)
         painter.end()
 
-    def _drawSeries(self, painter, s, px, py):
+    def _drawSeries(self, painter, s, px, py, baseline_y):
         color = s["color"]
         points = s["points"]
+        segments = profile_line_segments(points)
+
+        fill = QColor(color)
+        fill.setAlpha(45)
+        painter.setPen(Qt.PenStyle.NoPen)
+        painter.setBrush(QBrush(fill))
+        for segment in segments:
+            top = [QPointF(px(d), py(v)) for d, v in segment]
+            polygon = QPolygonF(top + [QPointF(top[-1].x(), baseline_y), QPointF(top[0].x(), baseline_y)])
+            painter.drawPolygon(polygon)
 
         pen = QPen(color)
         pen.setWidthF(s["width"])
         painter.setPen(pen)
-        for segment in profile_line_segments(points):
-            poly = QPolygonF([QPointF(px(d), py(v)) for d, v in segment])
-            painter.drawPolyline(poly)
+        painter.setBrush(Qt.BrushStyle.NoBrush)
+        for segment in segments:
+            painter.drawPolyline(QPolygonF([QPointF(px(d), py(v)) for d, v in segment]))
 
-        reference = s["reference"]
+        painter.setPen(QPen(QColor(255, 255, 255), 1.2))
         for idx, (d, v) in enumerate(points):
-            if v is None:
+            if v is None or idx not in s["reference"]:
                 continue
-            center = QPointF(px(d), py(v))
-            if idx in reference:
-                painter.setPen(QPen(QColor(255, 255, 255), 1.2))
-                painter.setBrush(QBrush(color))
-                painter.drawEllipse(center, 4.0, 4.0)
-            else:
-                painter.setPen(Qt.PenStyle.NoPen)
-                painter.setBrush(QBrush(color))
-                painter.drawEllipse(center, 2.2, 2.2)
+            painter.setBrush(QBrush(color))
+            painter.drawEllipse(QPointF(px(d), py(v)), 4.0, 4.0)
 
     def _drawValueLabels(self, painter, s, px, py):
         painter.setFont(QFont("Arial", 8))
