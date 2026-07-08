@@ -119,21 +119,6 @@ class QGISRedElementExplorerDock(QDockWidget, FORM_CLASS):
             'qgisred_meters':             self.tr('Meter'),
         }
 
-        # Identifier → per-layer identifier field name; layers may still use the legacy "Id"
-        self.identifierIdFields = {
-            'qgisred_pipes':              'PipeID',
-            'qgisred_junctions':          'JunctionID',
-            'qgisred_demands':            'DemandID',
-            'qgisred_reservoirs':         'ReservoirID',
-            'qgisred_tanks':              'TankID',
-            'qgisred_pumps':              'PumpID',
-            'qgisred_valves':             'ValveID',
-            'qgisred_sources':            'SourceID',
-            'qgisred_serviceconnections': 'ServiceConnectionID',
-            'qgisred_isolationvalves':    'IsolationValveID',
-            'qgisred_meters':             'MeterID',
-        }
-
         self.originalIds = []
         self.adjacentHighlights = []
         self.mainHighlight = None
@@ -1734,14 +1719,17 @@ class QGISRedElementExplorerDock(QDockWidget, FORM_CLASS):
         return None
 
     def getIdFieldName(self, layer):
+        # Per-layer identifier fields (PipeID, TankID, ...) are detected via the CSV
+        # Identifier property; layers may still use the legacy "Id" field.
         fields = layer.fields()
-        expectedField = self.identifierIdFields.get(layer.customProperty("qgisred_identifier", "") or "")
-        if expectedField and fields.indexFromName(expectedField) != -1:
-            return expectedField
-        knownIdFields = set(self.identifierIdFields.values())
+        utils = QGISRedFieldUtils()
+        element = normalize_element(layer.customProperty("qgisred_identifier", "") or "")
         for field in fields:
-            if field.name() in knownIdFields:
-                return field.name()
+            fieldName = field.name()
+            if fieldName.lower() == "id":
+                continue
+            if utils.getProperty(element, fieldName, translate=False) == "Identifier":
+                return fieldName
         for candidate in ("Id", "ID", "id"):
             if fields.indexFromName(candidate) != -1:
                 return candidate

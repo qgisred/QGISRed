@@ -107,20 +107,6 @@ ALL_IDENTIFIERS = set(INPUT_ORDER) | set(DIGITAL_TWIN_ORDER)
 
 CUMULATIVE_PROPERTIES = {"Length", "MinVolume", "BaseDem", "BaseDemand", "BaseValue", "Power"}
 
-ID_FIELD_LOWER_BY_IDENTIFIER = {
-    "qgisred_junctions": "junctionid",
-    "qgisred_tanks": "tankid",
-    "qgisred_reservoirs": "reservoirid",
-    "qgisred_pipes": "pipeid",
-    "qgisred_valves": "valveid",
-    "qgisred_pumps": "pumpid",
-    "qgisred_demands": "demandid",
-    "qgisred_sources": "sourceid",
-    "qgisred_serviceconnections": "serviceconnectionid",
-    "qgisred_isolationvalves": "isolationvalveid",
-    "qgisred_meters": "meterid",
-}
-
 
 class _StatisticsHistogramPopoutWindow(QWidget):
     """Floating, resizable window showing an enlarged copy of the histogram."""
@@ -781,8 +767,9 @@ class QGISRedStatisticsDock(QDockWidget, formClass):
             return
         self.updateValueWidget()
 
-    def idFieldLowerFor(self, elementIdentifier):
-        return ID_FIELD_LOWER_BY_IDENTIFIER.get(elementIdentifier or "", "")
+    def isIdentifierField(self, elementIdentifier, fieldName):
+        # Per-layer identifier fields (PipeID, TankID, ...) are detected via the CSV Identifier property
+        return self.fieldUtils.getProperty(normalize_element(elementIdentifier or ""), fieldName, translate=False) == "Identifier"
 
     def updateProperties(self):
         self.suspendCascade = True
@@ -804,7 +791,6 @@ class QGISRedStatisticsDock(QDockWidget, formClass):
             "pressure", "head", "demand", "status",
         }
         skipLower = {"id", "descrip", "description"}
-        idFieldLower = self.idFieldLowerFor(elementIdentifier)
 
         qualityModel = QGISRedProjectUtils.getQualityModel().upper()
         nonChemicalFields = set()
@@ -821,7 +807,7 @@ class QGISRedStatisticsDock(QDockWidget, formClass):
         for field in layer.fields():
             fieldName = field.name()
             lower = fieldName.lower()
-            if lower in skipLower or lower == idFieldLower:
+            if lower in skipLower or self.isIdentifierField(elementIdentifier, fieldName):
                 continue
             if isResultsMode and lower in resultsMetaLower:
                 continue
@@ -891,7 +877,6 @@ class QGISRedStatisticsDock(QDockWidget, formClass):
             "pressure", "head", "demand", "status",
         }
         skipLower = {"id", "descrip", "description"}
-        idFieldLower = self.idFieldLowerFor(elementIdentifier)
 
         qualityModel = QGISRedProjectUtils.getQualityModel().upper()
         nonChemicalFields = set()
@@ -908,7 +893,7 @@ class QGISRedStatisticsDock(QDockWidget, formClass):
         for field in layer.fields():
             fieldName = field.name()
             lower = fieldName.lower()
-            if lower in skipLower or lower == idFieldLower:
+            if lower in skipLower or self.isIdentifierField(elementIdentifier, fieldName):
                 continue
             if isResultsMode and lower in resultsMetaLower:
                 continue
@@ -971,7 +956,6 @@ class QGISRedStatisticsDock(QDockWidget, formClass):
             "pressure", "head", "demand", "status",
         }
         skipLower = {"id", "descrip", "description"}
-        idFieldLower = self.idFieldLowerFor(elementIdentifier)
 
         qualityModel = QGISRedProjectUtils.getQualityModel().upper()
         nonChemicalFields = set()
@@ -988,7 +972,7 @@ class QGISRedStatisticsDock(QDockWidget, formClass):
         for field in layer.fields():
             fieldName = field.name()
             lower = fieldName.lower()
-            if lower in skipLower or lower == idFieldLower:
+            if lower in skipLower or self.isIdentifierField(elementIdentifier, fieldName):
                 continue
             if isResultsMode and lower in resultsMetaLower:
                 continue
@@ -1121,7 +1105,6 @@ class QGISRedStatisticsDock(QDockWidget, formClass):
             "pressure", "head", "demand", "status",
         }
         idTagLower = {"id", "tag", "descrip"}
-        idFieldLower = self.idFieldLowerFor(elementIdentifier)
 
         qualityModel = QGISRedProjectUtils.getQualityModel().upper()
         nonChemicalFields = set()
@@ -1134,6 +1117,7 @@ class QGISRedStatisticsDock(QDockWidget, formClass):
             }.get(elementIdentifier, set())
 
         idTagFieldsByKey = {}
+        identifierFields = []
         staticFields = []
         for field in layer.fields():
             fieldName = field.name()
@@ -1146,15 +1130,17 @@ class QGISRedStatisticsDock(QDockWidget, formClass):
                 continue
             if lower in idTagLower:
                 idTagFieldsByKey[lower] = field
-            elif lower == idFieldLower:
-                idTagFieldsByKey["id"] = field
+            elif self.isIdentifierField(elementIdentifier, fieldName):
+                identifierFields.append(field)
             else:
                 staticFields.append(field)
 
-        for key in ("id", "tag", "descrip"):
-            if key in idTagFieldsByKey:
-                self.addPropertyItem(self.cbAttribute, elementIdentifier, idTagFieldsByKey[key].name(), darkBrush)
-        if staticFields and idTagFieldsByKey:
+        idTagFields = [idTagFieldsByKey[k] for k in ("id", "tag", "descrip") if k in idTagFieldsByKey]
+        insertAt = 1 if "id" in idTagFieldsByKey else 0
+        idTagFields[insertAt:insertAt] = identifierFields
+        for field in idTagFields:
+            self.addPropertyItem(self.cbAttribute, elementIdentifier, field.name(), darkBrush)
+        if staticFields and idTagFields:
             self.cbAttribute.insertSeparator(self.cbAttribute.count())
         for field in staticFields:
             self.addPropertyItem(self.cbAttribute, elementIdentifier, field.name())

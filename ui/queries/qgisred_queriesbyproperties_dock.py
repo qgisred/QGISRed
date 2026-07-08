@@ -783,6 +783,7 @@ class QGISRedQueriesByPropertiesDock(QDockWidget, FORM_CLASS):
 
         staticFields = []
         idTagFieldsByKey = {}
+        identifierFields = []
         for field in layer.fields():
             fn = field.name()
             fnl = fn.lower()
@@ -792,9 +793,13 @@ class QGISRedQueriesByPropertiesDock(QDockWidget, FORM_CLASS):
                 continue
             if fnl in idTagFieldsLower:
                 idTagFieldsByKey[fnl] = field
+            elif self.isIdentifierField(fn):
+                identifierFields.append(field)
             else:
                 staticFields.append(field)
         idTagFields = [idTagFieldsByKey[k] for k in idTagOrder if k in idTagFieldsByKey]
+        insertAt = 1 if 'id' in idTagFieldsByKey else 0
+        idTagFields[insertAt:insertAt] = identifierFields
 
         resultsBrush = QBrush(QColor("#FFF8DC"))
         darkBrush = QBrush(QColor("#D8D8D8"))
@@ -1033,6 +1038,11 @@ class QGISRedQueriesByPropertiesDock(QDockWidget, FORM_CLASS):
                 self.cbValueList.setCurrentIndex(0)
         self.cbValue.setValue(text)
 
+    def isIdentifierField(self, fieldName):
+        # Per-layer identifier fields (PipeID, TankID, ...) are detected via the CSV Identifier property
+        qrIdent = self.cbElementType.currentData(Qt.ItemDataRole.UserRole) or ""
+        return QGISRedFieldUtils().getProperty(normalize_element(qrIdent), fieldName, translate=False) == "Identifier"
+
     def updateConditions(self):
         self.cbCondition.blockSignals(True)
         self.cbCondition.clear()
@@ -1061,7 +1071,7 @@ class QGISRedQueriesByPropertiesDock(QDockWidget, FORM_CLASS):
         elif cat == 'text':
             freeTextFields = {'Id', 'Descrip', 'InstalDate', 'InstDate',
                               'Time', 'Time_H', 'Time_Q', 'Time_D'}
-            defaultCond = 'ILIKE' if prop in freeTextFields else '='
+            defaultCond = 'ILIKE' if prop in freeTextFields or self.isIdentifierField(prop) else '='
             idx = self.cbCondition.findText(defaultCond)
             if idx >= 0:
                 self.cbCondition.setCurrentIndex(idx)
@@ -1099,7 +1109,7 @@ class QGISRedQueriesByPropertiesDock(QDockWidget, FORM_CLASS):
                         cat = 'listed'
                     freeTextFields = {'Id', 'Descrip', 'InstalDate', 'InstDate',
                                       'Time', 'Time_H', 'Time_Q', 'Time_D'}
-                    if (cat == 'text' and prop not in freeTextFields) or cat == 'listed':
+                    if (cat == 'text' and prop not in freeTextFields and not self.isIdentifierField(prop)) or cat == 'listed':
                         uniqueVals = self.getUniqueFieldValues(layer, prop)
                         strVals = sorted({str(v) for v in uniqueVals if v is not None and str(v).strip()})
                         useList = bool(strVals)

@@ -287,7 +287,17 @@ class TestCsvLoading:
             defs = fu.loadUnitDefinitions()
             assert defs["prettyNames"]["Pipes"]["PipeID"] == "Identifier"
             assert defs["prettyNames"]["MultipleDemands"]["DemandID"] == "Identifier"
+            assert defs["prettyNames"]["Sources"]["SourceID"] == "Identifier"
+            assert defs["prettyNames"]["IsolationValves"]["IsoValveID"] == "Identifier"
             assert fu.getProperty("Junctions", "JunctionID", translate=False) == "Identifier"
+
+    def test_renamed_fields_keep_pretty_names(self, fu):
+        with patch("QGISRed.tools.utils.qgisred_project_utils.QgsProject") as MockProj:
+            MockProj.instance.return_value = _make_project()
+            assert fu.getProperty("Pumps", "PumpCurvID", translate=False) == "Head Curve"
+            assert fu.getProperty("Pumps", "IdHFCurve", translate=False) == "Head Curve"
+            assert fu.getProperty("Valves", "ValveType", translate=False) == "Type"
+            assert fu.getProperty("Tanks", "VolCurveID", translate=False) == "Volume Curve"
 
     def test_cache_reused(self, fu):
         with patch("QGISRed.tools.utils.qgisred_project_utils.QgsProject") as MockProj:

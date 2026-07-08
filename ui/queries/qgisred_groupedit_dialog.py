@@ -59,8 +59,10 @@ _readonlyFields = {}
 _enumFields = {
     "qgisred_pipes":           {"IniStatus": ["OPEN", "CLOSED", "CV"]},
     "qgisred_pumps":           {"IniStatus": ["OPEN", "CLOSED"]},
-    "qgisred_valves":          {"IniStatus": ["OPEN", "CLOSED"], "Type": ["PRV", "PSV", "PBV", "FCV", "TCV", "GPV"]},
-    "qgisred_isolationvalves": {"Status": ["OPEN", "CLOSED"]},
+    "qgisred_valves":          {"IniStatus": ["OPEN", "CLOSED"],
+                                "Type":      ["PRV", "PSV", "PBV", "FCV", "TCV", "GPV"],
+                                "ValveType": ["PRV", "PSV", "PBV", "FCV", "TCV", "GPV"]},
+    "qgisred_isolationvalves": {"Status": ["OPEN", "CLOSED"], "IniStatus": ["OPEN", "CLOSED"]},
 }
 
 # Soft bounds: warn (not block) when computed value falls outside.
@@ -132,43 +134,55 @@ _materialFields = {"Material"}
 # {Network}_Curves.dbf. Stored Type values (PUMP/VOLUME/EFFICIENCY/HEADLOSS) are compared case-insensitively.
 _curveTypeByField = {
     "IdVolCurve": "volume",
+    "VolCurveID": "volume",
     "IdHFCurve":  "pump",
+    "PumpCurvID": "pump",
     "IdEffiCur":  "efficiency",
+    "EffiCurvID": "efficiency",
     "IdHeadLoss": "headloss",
+    "HeadLossID": "headloss",
 }
 # Pattern reference fields -> accepted pattern types, used to list only matching declared patterns
 # from {Network}_Patterns.dbf. Keyed by (identifier, fieldName) because the same field name means a
 # different pattern type per element (e.g. IdPattern is quality on Sources but demand on Demands).
 _patternTypeByField = {
-    ("qgisred_junctions", "IdPattDem"):        ("demand",),
-    ("qgisred_demands", "IdPattern"):          ("demand",),
-    ("qgisred_sources", "IdPattern"):          ("quality",),
-    ("qgisred_reservoirs", "IdHeadPatt"):      ("head",),
-    ("qgisred_pumps", "IdSpeedPat"):           ("speed", "velocity"),
-    ("qgisred_pumps", "IdPricePat"):           ("price",),
-    ("qgisred_serviceconnections", "Pattern"): ("demand",),
+    ("qgisred_junctions", "IdPattDem"):          ("demand",),
+    ("qgisred_junctions", "DemPattID"):          ("demand",),
+    ("qgisred_demands", "IdPattern"):            ("demand",),
+    ("qgisred_demands", "IdDemPatt"):            ("demand",),
+    ("qgisred_sources", "IdPattern"):            ("quality",),
+    ("qgisred_sources", "IdQualPatt"):           ("quality",),
+    ("qgisred_reservoirs", "IdHeadPatt"):        ("head",),
+    ("qgisred_reservoirs", "HeadPattID"):        ("head",),
+    ("qgisred_pumps", "IdSpeedPat"):             ("speed", "velocity"),
+    ("qgisred_pumps", "IdPricePat"):             ("price",),
+    ("qgisred_pumps", "PricePatID"):             ("price",),
+    ("qgisred_serviceconnections", "Pattern"):   ("demand",),
+    ("qgisred_serviceconnections", "DemPattID"): ("demand",),
 }
 
 # Numeric fields that intentionally show no unit (mirrors Queries by Properties).
 _suppressUnitProperties = {
     ("qgisred_valves", "Setting"),
     ("qgisred_sources", "BaseValue"),
+    ("qgisred_sources", "SourceQual"),
     ("qgisred_demands", "BaseValue"),
+    ("qgisred_demands", "BaseDem"),
 }
 
 # Preferred property to preselect per element type.
 # The first entry that exists as an editable field is selected.
 _defaultProperties = {
     "qgisred_pipes":              ["Diameter"],
-    "qgisred_pumps":              ["IdHFCurve"],
+    "qgisred_pumps":              ["PumpCurvID", "IdHFCurve"],
     "qgisred_valves":             ["Diameter"],
     "qgisred_junctions":          ["BaseDem"],
     "qgisred_tanks":              ["IniLevel"],
     "qgisred_reservoirs":         ["Head", "TotalHead"],
     "qgisred_serviceconnections": ["Diameter"],
-    "qgisred_isolationvalves":    ["Status"],
-    "qgisred_meters":             ["Type"],
-    "qgisred_sources":            ["Quality"],
+    "qgisred_isolationvalves":    ["IniStatus", "Status"],
+    "qgisred_meters":             ["MeterType", "Type"],
+    "qgisred_sources":            ["SourceQual", "BaseValue"],
 }
 
 # Blue highlight with white text, matching the Queries by Attributes dropdowns. A styled popup view
@@ -593,7 +607,7 @@ class QGISRedGroupEditDialog(QDialog, FORM_CLASS):
         if not fieldNames:
             return []
         idField = next((name for name in fieldNames if name.lower().endswith("id")), fieldNames[0])
-        typeField = next((name for name in fieldNames if name.lower() == "type"), None)
+        typeField = next((name for name in fieldNames if name.lower().endswith("type")), None)
         values = []
         seen = set()
         for feature in layer.getFeatures():
