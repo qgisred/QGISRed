@@ -366,6 +366,26 @@ class QGISRedFieldUtils:
         name = (row["si_name"] or row["us_name"] or "").strip().lower()
         return name == "year as text"
 
+    def getIdFieldName(self, layer):
+        """Return the element ID field name of a QGIS layer, for both naming schemes.
+
+        Prefers the per-layer identifier field (PipeID, TankID, ...) detected via the
+        CSV ``Identifier`` property; falls back to the legacy ``Id`` field. Callers must
+        still check that the returned field exists before reading it.
+        """
+        fields = layer.fields()
+        element = normalize_element(layer.customProperty("qgisred_identifier", "") or "")
+        for field in fields:
+            fieldName = field.name()
+            if fieldName.lower() == "id":
+                continue
+            if self.getProperty(element, fieldName, translate=False) == "Identifier":
+                return fieldName
+        for candidate in ("Id", "ID", "id"):
+            if fields.indexFromName(candidate) != -1:
+                return candidate
+        return "Id"
+
     # ------------------------------------------------------------------ #
     # CSV loading and row lookup                                           #
     # ------------------------------------------------------------------ #

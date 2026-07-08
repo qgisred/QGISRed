@@ -516,3 +516,70 @@ class TestGetCurrencyAbbr:
             MockProj.instance.return_value = _make_project()
             with patch.object(fu, "_getFirstRow", return_value={}):
                 assert fu._getCurrencyAbbr() == ""
+
+
+# ---------------------------------------------------------------------------
+# getIdFieldName (per-layer identifier field resolution on a layer)
+# ---------------------------------------------------------------------------
+class _StubField:
+    def __init__(self, name):
+        self._name = name
+
+    def name(self):
+        return self._name
+
+
+class _StubFields:
+    def __init__(self, names):
+        self._names = list(names)
+
+    def __iter__(self):
+        return iter(_StubField(n) for n in self._names)
+
+    def indexFromName(self, name):
+        return self._names.index(name) if name in self._names else -1
+
+
+class _StubLayer:
+    def __init__(self, identifier, fieldNames):
+        self._identifier = identifier
+        self._fields = _StubFields(fieldNames)
+
+    def fields(self):
+        return self._fields
+
+    def customProperty(self, key, default=None):
+        return self._identifier if key == "qgisred_identifier" else default
+
+
+class TestGetIdFieldName:
+    def test_new_format_layer_returns_per_layer_field(self, fu):
+        with patch("QGISRed.tools.utils.qgisred_project_utils.QgsProject") as MockProj:
+            MockProj.instance.return_value = _make_project()
+            layer = _StubLayer("qgisred_pipes", ["PipeID", "Length", "Diameter"])
+            assert fu.getIdFieldName(layer) == "PipeID"
+
+    def test_truncated_dbf_names_resolve(self, fu):
+        with patch("QGISRed.tools.utils.qgisred_project_utils.QgsProject") as MockProj:
+            MockProj.instance.return_value = _make_project()
+            assert fu.getIdFieldName(_StubLayer("qgisred_reservoirs", ["ReservID", "TotalHead"])) == "ReservID"
+            assert fu.getIdFieldName(_StubLayer("qgisred_serviceconnections", ["ConnectID", "Length"])) == "ConnectID"
+            assert fu.getIdFieldName(_StubLayer("qgisred_isolationvalves", ["IsoValveID", "Diameter"])) == "IsoValveID"
+
+    def test_legacy_layer_returns_id(self, fu):
+        with patch("QGISRed.tools.utils.qgisred_project_utils.QgsProject") as MockProj:
+            MockProj.instance.return_value = _make_project()
+            layer = _StubLayer("qgisred_pipes", ["Id", "Length", "Diameter"])
+            assert fu.getIdFieldName(layer) == "Id"
+
+    def test_layer_without_id_field_defaults_to_id(self, fu):
+        with patch("QGISRed.tools.utils.qgisred_project_utils.QgsProject") as MockProj:
+            MockProj.instance.return_value = _make_project()
+            layer = _StubLayer("qgisred_demands", ["BaseDem", "IdDemPatt", "Descrip"])
+            assert fu.getIdFieldName(layer) == "Id"
+
+    def test_layer_without_identifier_property_falls_back_to_id(self, fu):
+        with patch("QGISRed.tools.utils.qgisred_project_utils.QgsProject") as MockProj:
+            MockProj.instance.return_value = _make_project()
+            layer = _StubLayer(None, ["Id", "Length"])
+            assert fu.getIdFieldName(layer) == "Id"

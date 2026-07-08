@@ -1719,21 +1719,7 @@ class QGISRedElementExplorerDock(QDockWidget, FORM_CLASS):
         return None
 
     def getIdFieldName(self, layer):
-        # Per-layer identifier fields (PipeID, TankID, ...) are detected via the CSV
-        # Identifier property; layers may still use the legacy "Id" field.
-        fields = layer.fields()
-        utils = QGISRedFieldUtils()
-        element = normalize_element(layer.customProperty("qgisred_identifier", "") or "")
-        for field in fields:
-            fieldName = field.name()
-            if fieldName.lower() == "id":
-                continue
-            if utils.getProperty(element, fieldName, translate=False) == "Identifier":
-                return fieldName
-        for candidate in ("Id", "ID", "id"):
-            if fields.indexFromName(candidate) != -1:
-                return candidate
-        return "Id"
+        return QGISRedFieldUtils().getIdFieldName(layer)
 
     def getFeatureIdValue(self, feature, layer, specialNaming=False):
         if not layer:
