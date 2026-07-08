@@ -1397,25 +1397,29 @@ class QGISRedQueriesByPropertiesDock(QDockWidget, FORM_CLASS):
             return f"lower({fld}) {op} lower({val})"
         return f"{fld} {op} {val}"
 
-    def buildIdFilter(self, inputLayer):
-        if inputLayer.fields().indexFromName('Id') < 0:
+    def buildIdFilter(self, inputLayer, resultsLayer):
+        fieldUtils = QGISRedFieldUtils()
+        inputIdField = fieldUtils.getIdFieldName(inputLayer)
+        if inputLayer.fields().indexFromName(inputIdField) < 0:
             return ""
         ids = []
         for feat in inputLayer.getFeatures():
-            fid = feat['Id']
+            fid = feat[inputIdField]
             if fid is not None:
                 ids.append(str(fid))
         if not ids:
             return ""
+        resultsIdField = fieldUtils.getIdFieldName(resultsLayer)
         quoted = ", ".join(f"'{i}'" for i in ids)
-        return f'"Id" IN ({quoted})'
+        return f'"{resultsIdField}" IN ({quoted})'
 
     def collectIdSet(self, layer, featureRequest):
-        if layer.fields().indexFromName('Id') < 0:
+        idField = QGISRedFieldUtils().getIdFieldName(layer)
+        if layer.fields().indexFromName(idField) < 0:
             return None
         return {
-            str(feat['Id']) for feat in layer.getFeatures(featureRequest)
-            if feat['Id'] is not None
+            str(feat[idField]) for feat in layer.getFeatures(featureRequest)
+            if feat[idField] is not None
         }
 
     def constrainExpression(self, expression, idFilter):
@@ -1497,7 +1501,7 @@ class QGISRedQueriesByPropertiesDock(QDockWidget, FORM_CLASS):
         # When querying a results layer for a specific input type, restrict by Id
         idFilter = ""
         if resultsLayer and not self.isResultsMode:
-            idFilter = self.buildIdFilter(selectedLayer)
+            idFilter = self.buildIdFilter(selectedLayer, resultsLayer)
 
         # Determine if target is numeric and if Flow abs should be used
         isNoneTarget = targetField == '_none_'
@@ -1532,12 +1536,13 @@ class QGISRedQueriesByPropertiesDock(QDockWidget, FORM_CLASS):
                 ]
             else:
                 matchingIds = self.collectIdSet(critLayer, featureRequest)
-                if matchingIds is None or statsLayer.fields().indexFromName('Id') < 0:
+                statsIdField = QGISRedFieldUtils().getIdFieldName(statsLayer)
+                if matchingIds is None or statsLayer.fields().indexFromName(statsIdField) < 0:
                     featureValues = []
                 else:
                     featureValues = [
                         v for feat in statsLayer.getFeatures()
-                        if str(feat['Id']) in matchingIds
+                        if str(feat[statsIdField]) in matchingIds
                         and (v := extractValue(feat)) is not None
                     ]
             statsPerCriterion.append(featureValues)
@@ -1573,12 +1578,13 @@ class QGISRedQueriesByPropertiesDock(QDockWidget, FORM_CLASS):
             ]
         else:
             matchingIds = self.collectIdSet(criteriaLayer, allFeaturesRequest)
-            if matchingIds is None or statsLayer.fields().indexFromName('Id') < 0:
+            statsIdField = QGISRedFieldUtils().getIdFieldName(statsLayer)
+            if matchingIds is None or statsLayer.fields().indexFromName(statsIdField) < 0:
                 allFeatureValues = []
             else:
                 allFeatureValues = [
                     v for feat in statsLayer.getFeatures()
-                    if str(feat['Id']) in matchingIds
+                    if str(feat[statsIdField]) in matchingIds
                     and (v := extractValue(feat)) is not None
                 ]
         statsPerCriterion.append(allFeatureValues)
