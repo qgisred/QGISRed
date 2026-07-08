@@ -219,6 +219,33 @@ class QGISRedLayerUtils:
         return None
 
     @classmethod
+    def findGroupsByIdentifier(cls, identifier):
+        # Projects can hold duplicated groups with the same identifier (e.g. after a
+        # network rename), so consumers needing layers must merge all matches.
+        root = QgsProject.instance().layerTreeRoot()
+        groups = []
+        cls._collectGroupsByIdentifierRecursive(root, identifier, groups)
+        return groups
+
+    @classmethod
+    def _collectGroupsByIdentifierRecursive(cls, parent, identifier, groups):
+        for child in parent.children():
+            if isinstance(child, QgsLayerTreeGroup):
+                if child.customProperty("qgisred_identifier") == identifier:
+                    groups.append(child)
+                cls._collectGroupsByIdentifierRecursive(child, identifier, groups)
+
+    @classmethod
+    def getLayersByGroupIdentifier(cls, identifier):
+        layers = []
+        for group in cls.findGroupsByIdentifier(identifier):
+            for layerNode in group.findLayers():
+                layer = layerNode.layer()
+                if layer is not None:
+                    layers.append(layer)
+        return layers
+
+    @classmethod
     def setGroupIdentifier(cls, group, keyOrName):
         if group is None:
             return
