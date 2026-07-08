@@ -330,8 +330,7 @@ class QGISRedQueriesByPropertiesDock(QDockWidget, FORM_CLASS):
         project.cleared.connect(self.onProjectChanged)
 
         for identifier in ("qgisred_inputs", "qgisred_results"):
-            group = QGISRedLayerUtils.findGroupByIdentifier(identifier)
-            if group:
+            for group in QGISRedLayerUtils.findGroupsByIdentifier(identifier):
                 self.connectGroupSignals(group)
                 for layerNode in group.findLayers():
                     self.connectLayerSignals(layerNode)
@@ -383,8 +382,7 @@ class QGISRedQueriesByPropertiesDock(QDockWidget, FORM_CLASS):
         self.connectedGroups.clear()
 
         for identifier in ("qgisred_inputs", "qgisred_results"):
-            group = QGISRedLayerUtils.findGroupByIdentifier(identifier)
-            if group:
+            for group in QGISRedLayerUtils.findGroupsByIdentifier(identifier):
                 self.connectGroupSignals(group)
                 for layerNode in group.findLayers():
                     self.connectLayerSignals(layerNode)
@@ -531,27 +529,26 @@ class QGISRedQueriesByPropertiesDock(QDockWidget, FORM_CLASS):
 
         # Collect available input layers by identifier
         availableLayers = {}
-        inputsGroup = QGISRedLayerUtils.findGroupByIdentifier("qgisred_inputs")
-        if inputsGroup:
-            identifiers = set(self.elementIdentifiers.values())
-            for layerNode in inputsGroup.findLayers():
-                layer = layerNode.layer()
-                if layer and layer.customProperty("qgisred_identifier") in identifiers:
-                    availableLayers[layer.customProperty("qgisred_identifier")] = layer.name()
+        identifiers = set(self.elementIdentifiers.values())
+        for layer in QGISRedLayerUtils.getLayersByGroupIdentifier("qgisred_inputs"):
+            ident = layer.customProperty("qgisred_identifier")
+            if ident in identifiers and ident not in availableLayers:
+                availableLayers[ident] = layer.name()
+        if not availableLayers:
+            # No usable Inputs group: identifiers still live on the layers themselves
+            for layer in QgsProject.instance().mapLayers().values():
+                ident = layer.customProperty("qgisred_identifier")
+                if ident in identifiers and ident not in availableLayers:
+                    availableLayers[ident] = layer.name()
 
         # Collect results layers
         nodeIdent = linkIdent = None
-        resultsGroup = QGISRedLayerUtils.findGroupByIdentifier("qgisred_results")
-        if resultsGroup:
-            for layerNode in resultsGroup.findLayers():
-                layer = layerNode.layer()
-                if not layer:
-                    continue
-                ident = layer.customProperty("qgisred_identifier") or ""
-                if ident.startswith("qgisred_node") and nodeIdent is None:
-                    nodeIdent = ident
-                elif ident.startswith("qgisred_link") and linkIdent is None:
-                    linkIdent = ident
+        for layer in QGISRedLayerUtils.getLayersByGroupIdentifier("qgisred_results"):
+            ident = layer.customProperty("qgisred_identifier") or ""
+            if ident.startswith("qgisred_node") and nodeIdent is None:
+                nodeIdent = ident
+            elif ident.startswith("qgisred_link") and linkIdent is None:
+                linkIdent = ident
 
         hasResults = nodeIdent or linkIdent
 
@@ -599,14 +596,7 @@ class QGISRedQueriesByPropertiesDock(QDockWidget, FORM_CLASS):
         return ident.startswith("qgisred_node") or ident.startswith("qgisred_link")
 
     def getResultsExist(self):
-        resultsGroup = QGISRedLayerUtils.findGroupByIdentifier("qgisred_results")
-        if not resultsGroup:
-            return False
-        for layerNode in resultsGroup.findLayers():
-            layer = layerNode.layer()
-            if layer:
-                return True
-        return False
+        return bool(QGISRedLayerUtils.getLayersByGroupIdentifier("qgisred_results"))
 
     def getVisibleLinkResultProperties(self):
         isStatsMode = self.isResultsDockAlive() and self.resultsDock._statsMode
@@ -718,15 +708,9 @@ class QGISRedQueriesByPropertiesDock(QDockWidget, FORM_CLASS):
         return None
 
     def resolveResultsLayer(self, category):
-        """Find the results layer (Node or Link) from the Results group."""
+        """Find the results layer (Node or Link) from the Results groups."""
         prefix = "qgisred_node" if category == "Node" else "qgisred_link"
-        resultsGroup = QGISRedLayerUtils.findGroupByIdentifier("qgisred_results")
-        if not resultsGroup:
-            return None
-        for layerNode in resultsGroup.findLayers():
-            layer = layerNode.layer()
-            if not layer:
-                continue
+        for layer in QGISRedLayerUtils.getLayersByGroupIdentifier("qgisred_results"):
             ident = layer.customProperty("qgisred_identifier") or ""
             if ident.startswith(prefix):
                 return layer
@@ -1993,12 +1977,8 @@ class QGISRedQueriesByPropertiesDock(QDockWidget, FORM_CLASS):
                 return
 
     def fetchTimeFromResultsLayer(self):
-        resultsGroup = QGISRedLayerUtils.findGroupByIdentifier("qgisred_results")
-        if not resultsGroup:
-            return
-        for layerNode in resultsGroup.findLayers():
-            layer = layerNode.layer()
-            if layer and not sip.isdeleted(layer):
+        for layer in QGISRedLayerUtils.getLayersByGroupIdentifier("qgisred_results"):
+            if not sip.isdeleted(layer):
                 self.fetchTimeFromLayer(layer)
                 return
 
