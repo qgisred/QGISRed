@@ -35,6 +35,7 @@ class ProfilePlotWidget(QWidget):
         self._hover_x = None
         self._show_value_labels = False
         self._symbols = None
+        self._envelope = None
 
     def setEmptyText(self, text):
         self._empty_text = text
@@ -50,6 +51,20 @@ class ProfilePlotWidget(QWidget):
 
     def clearSymbols(self):
         self._symbols = None
+        self.update()
+
+    def setEnvelope(self, max_points, min_points):
+        if not max_points or not min_points:
+            self._envelope = None
+        else:
+            self._envelope = {
+                "max": [(float(d), None if v is None else float(v)) for d, v in max_points],
+                "min": [(float(d), None if v is None else float(v)) for d, v in min_points],
+            }
+        self.update()
+
+    def clearEnvelope(self):
+        self._envelope = None
         self.update()
 
     def setLabels(self, title, x_label, y_label):
@@ -79,6 +94,7 @@ class ProfilePlotWidget(QWidget):
         self._series = []
         self._hover_x = None
         self._symbols = None
+        self._envelope = None
         self.update()
 
     def _dataBounds(self):
@@ -90,6 +106,13 @@ class ProfilePlotWidget(QWidget):
                     continue
                 xs.append(d)
                 ys.append(v)
+        if self._envelope is not None:
+            for boundary in ("max", "min"):
+                for d, v in self._envelope[boundary]:
+                    if v is None:
+                        continue
+                    xs.append(d)
+                    ys.append(v)
         if not xs:
             return None
         return min(xs), max(xs), min(ys), max(ys)
@@ -100,7 +123,7 @@ class ProfilePlotWidget(QWidget):
         full = QRectF(self.rect())
         painter.fillRect(full, QColor(255, 255, 255))
 
-        left, right, top, bottom = 64.0, 18.0, 34.0, 48.0
+        left, right, top, bottom = 64.0, 18.0, 30.0, 48.0
         plot = QRectF(left, top, max(1.0, full.width() - left - right), max(1.0, full.height() - top - bottom))
 
         bounds = self._dataBounds()
@@ -154,6 +177,9 @@ class ProfilePlotWidget(QWidget):
         painter.setPen(QPen(QColor(150, 160, 175), 1.2))
         painter.drawRect(plot)
 
+        if self._envelope is not None:
+            self._drawEnvelope(painter, px, py)
+
         for s in self._series:
             self._drawSeries(painter, s, px, py, plot.bottom())
 
@@ -167,6 +193,39 @@ class ProfilePlotWidget(QWidget):
         self._drawLegend(painter, plot)
         self._drawCursor(painter, plot, px, py, x0, x1)
         painter.end()
+
+    def _drawEnvelope(self, painter, px, py):
+        color = self._series[0]["color"] if self._series else PALETTE[0]
+        max_points = self._envelope["max"]
+        min_points = self._envelope["min"]
+
+        band = QColor(color)
+        band.setAlpha(32)
+        painter.setPen(Qt.PenStyle.NoPen)
+        painter.setBrush(QBrush(band))
+        run = []
+        for i in range(min(len(max_points), len(min_points))):
+            d, vmax = max_points[i]
+            _d, vmin = min_points[i]
+            if vmax is None or vmin is None:
+                self._fillBand(painter, run, px, py)
+                run = []
+            else:
+                run.append((d, vmax, vmin))
+        self._fillBand(painter, run, px, py)
+
+        painter.setPen(QPen(color, 1.0, Qt.PenStyle.DashLine))
+        painter.setBrush(Qt.BrushStyle.NoBrush)
+        for points in (max_points, min_points):
+            for segment in profile_line_segments(points):
+                painter.drawPolyline(QPolygonF([QPointF(px(d), py(v)) for d, v in segment]))
+
+    def _fillBand(self, painter, run, px, py):
+        if len(run) < 2:
+            return
+        top = [QPointF(px(d), py(vmax)) for d, vmax, _vmin in run]
+        bottom = [QPointF(px(d), py(vmin)) for d, _vmax, vmin in reversed(run)]
+        painter.drawPolygon(QPolygonF(top + bottom))
 
     def _drawSeries(self, painter, s, px, py, baseline_y):
         color = s["color"]
@@ -288,10 +347,6 @@ class ProfilePlotWidget(QWidget):
 
     def _drawTitleAndAxisLabels(self, painter, full, plot):
         painter.setPen(QColor(30, 30, 30))
-        if self._title:
-            painter.setFont(QFont("Arial", 10, QFont.Weight.Bold))
-            painter.drawText(QRectF(0, 4, full.width(), 22),
-                             Qt.AlignmentFlag.AlignHCenter | Qt.AlignmentFlag.AlignTop, self._title)
         painter.setFont(QFont("Arial", 8))
         if self._x_label:
             painter.drawText(QRectF(plot.left(), full.height() - 16, plot.width(), 14),
@@ -309,20 +364,20 @@ class ProfilePlotWidget(QWidget):
             return
         painter.setFont(QFont("Arial", 8))
         fm = QFontMetrics(painter.font())
-        x = plot.left() + 10
-        y = plot.top() + 8
-        box = 22
-        for s in self._series:
-            label = s["label"] or ""
-            w = box + 4 + fm.horizontalAdvance(label) + 12
-            painter.fillRect(QRectF(x - 4, y - 2, w, 16), QColor(255, 255, 255, 210))
+        box = 18
+        gap = 14
+        widths = [box + 4 + fm.horizontalAdvance(s["label"] or "") for s in self._series]
+        total = sum(widths) + gap * max(0, len(self._series) - 1)
+        x = plot.left() + max(0.0, (plot.width() - total) / 2.0)
+        y = plot.top() - 18
+        for i, s in enumerate(self._series):
             pen = QPen(s["color"])
             pen.setWidthF(s["width"])
             painter.setPen(pen)
             painter.drawLine(QPointF(x, y + 6), QPointF(x + box, y + 6))
             painter.setPen(QColor(40, 40, 40))
-            painter.drawText(QPointF(x + box + 4, y + 9), label)
-            y += 18
+            painter.drawText(QPointF(x + box + 4, y + 9), s["label"] or "")
+            x += widths[i] + gap
 
     def _drawCursor(self, painter, plot, px, py, x0, x1):
         if self._hover_x is None or not self._series:

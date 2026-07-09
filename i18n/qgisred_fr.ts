@@ -7010,5 +7010,13 @@ Left-click: Add a new item below the current selection</source>
         <source>Show element symbols and flow direction along the profile</source>
         <translation>Afficher les symboles des éléments et le sens de l'écoulement le long du profil</translation>
     </message>
+    <message>
+        <source>Envelope</source>
+        <translation>Enveloppe</translation>
+    </message>
+    <message>
+        <source>Show the maximum and minimum at each node over the whole simulation</source>
+        <translation>Afficher le maximum et le minimum à chaque nœud sur toute la simulation</translation>
+    </message>
 </context>
 </TS>

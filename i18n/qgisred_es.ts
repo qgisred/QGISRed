@@ -7142,5 +7142,13 @@ Click izquierdo: Añadir un nuevo item debajo de la selección actual</translati
         <source>Show element symbols and flow direction along the profile</source>
         <translation>Mostrar los símbolos de los elementos y el sentido del flujo a lo largo del perfil</translation>
     </message>
+    <message>
+        <source>Envelope</source>
+        <translation>Envolvente</translation>
+    </message>
+    <message>
+        <source>Show the maximum and minimum at each node over the whole simulation</source>
+        <translation>Mostrar el máximo y el mínimo en cada nudo en toda la simulación</translation>
+    </message>
 </context>
 </TS>

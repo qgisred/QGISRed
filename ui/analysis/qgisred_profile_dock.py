@@ -21,6 +21,7 @@ class QGISRedProfileDock(QDockWidget):
     clearRequested = pyqtSignal()
     variableChanged = pyqtSignal(str)
     symbolsToggled = pyqtSignal(bool)
+    envelopeToggled = pyqtSignal(bool)
 
     def __init__(self, iface, parent=None):
         super(QGISRedProfileDock, self).__init__(parent or iface.mainWindow())
@@ -70,6 +71,13 @@ class QGISRedProfileDock(QDockWidget):
         self.btnSymbols.setCheckable(True)
         self.btnSymbols.toggled.connect(self.symbolsToggled)
         toolbar.addWidget(self.btnSymbols)
+
+        self.btnEnvelope = QToolButton(container)
+        self.btnEnvelope.setText(self.tr("Envelope"))
+        self.btnEnvelope.setToolTip(self.tr("Show the maximum and minimum at each node over the whole simulation"))
+        self.btnEnvelope.setCheckable(True)
+        self.btnEnvelope.toggled.connect(self.envelopeToggled)
+        toolbar.addWidget(self.btnEnvelope)
 
         toolbar.addSpacing(12)
         toolbar.addWidget(QLabel(self.tr("Variable:"), container))
@@ -128,6 +136,12 @@ class QGISRedProfileDock(QDockWidget):
 
     def clearSymbols(self):
         self.plot.clearSymbols()
+
+    def setEnvelope(self, max_points, min_points):
+        self.plot.setEnvelope(max_points, min_points)
+
+    def clearEnvelope(self):
+        self.plot.clearEnvelope()
 
     def clearPlot(self):
         self.plot.clear()

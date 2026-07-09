@@ -16,6 +16,7 @@ from ..tools.utils.qgisred_profile_path import (
     remove_pass_node,
     move_pass_node,
     flow_direction_along_path,
+    envelope_points,
 )
 
 _NODE_LAYER_IDENTIFIERS = ("qgisred_junctions", "qgisred_tanks", "qgisred_reservoirs")
@@ -38,6 +39,7 @@ class ProfileSection:
         self._initProfileDock()
         self._profileReferenceNodes = []
         self._profilePath = None
+        self._profileStatCache = None
         self._clearProfileHighlight()
         self.profileDock.clearPlot()
         self.profileDock.show()
@@ -57,6 +59,7 @@ class ProfileSection:
         self.profileDock.clearRequested.connect(self._onProfileClearRequested)
         self.profileDock.variableChanged.connect(self._onProfileVariableChanged)
         self.profileDock.symbolsToggled.connect(self._onProfileSymbolsToggled)
+        self.profileDock.envelopeToggled.connect(self._onProfileEnvelopeToggled)
         self.profileDock.visibilityChanged.connect(self._onProfileDockVisibility)
         with suppress(Exception):
             self._initResultsDock()
@@ -103,6 +106,32 @@ class ProfileSection:
 
     def _onProfileVariableChanged(self, _key):
         self._redrawProfile()
+
+    def _onProfileEnvelopeToggled(self, checked):
+        self._profileShowEnvelope = bool(checked)
+        self._redrawProfile()
+
+    def _profileStats(self):
+        cache = getattr(self, "_profileStatCache", None)
+        if cache is not None:
+            return cache
+        from ..ui.analysis.qgisred_results_binary import getOut_StatNodesProperties
+
+        out_path = self._outFilePath()
+        cache = (
+            getOut_StatNodesProperties(out_path, "Maximum"),
+            getOut_StatNodesProperties(out_path, "Minimum"),
+        )
+        self._profileStatCache = cache
+        return cache
+
+    def _applyProfileEnvelope(self, dock, key, nodes, distances):
+        if not getattr(self, "_profileShowEnvelope", False) or key not in ("Head", "Pressure", "Quality"):
+            dock.clearEnvelope()
+            return
+        stat_max, stat_min = self._profileStats()
+        max_points, min_points = envelope_points(nodes, distances, stat_max, stat_min, key)
+        dock.setEnvelope(max_points, min_points)
 
     def _onProfileSymbolsToggled(self, checked):
         self._profileShowSymbols = bool(checked)
@@ -376,6 +405,8 @@ class ProfileSection:
 
         dock.setSeries(series, self.tr("Longitudinal profile"), self.tr("Distance"), y_label)
         self._drawProfileHighlight()
+        with suppress(Exception):
+            self._applyProfileEnvelope(dock, key, nodes, distances)
         with suppress(Exception):
             self._applyProfileSymbols(dock, nodes, links)
 

@@ -13,6 +13,7 @@ from QGISRed.tools.utils.qgisred_profile_path import (
     remove_pass_node,
     move_pass_node,
     flow_direction_along_path,
+    envelope_points,
 )
 
 
@@ -165,3 +166,19 @@ def test_flow_direction_zero_or_missing_flow():
     links = ["L1", "L2"]
     endpoints = {"L1": ("A", "B"), "L2": ("B", "C")}
     assert flow_direction_along_path(nodes, links, endpoints, {"L1": 0.0}) == [0, 0]
+
+
+def test_envelope_points_aligns_max_min_to_nodes():
+    nodes = ["A", "B", "C"]
+    distances = [0.0, 100.0, 250.0]
+    stat_max = {"A": {"Head": {"Value": 82.0}}, "B": {"Head": {"Value": 71.0}}, "C": {"Head": {"Value": 61.0}}}
+    stat_min = {"A": {"Head": {"Value": 78.0}}, "B": {"Head": {"Value": 65.0}}, "C": {"Head": {"Value": 55.0}}}
+    max_pts, min_pts = envelope_points(nodes, distances, stat_max, stat_min, "Head")
+    assert max_pts == [(0.0, 82.0), (100.0, 71.0), (250.0, 61.0)]
+    assert min_pts == [(0.0, 78.0), (100.0, 65.0), (250.0, 55.0)]
+
+
+def test_envelope_points_missing_node_is_none():
+    max_pts, min_pts = envelope_points(["A", "X"], [0.0, 50.0], {"A": {"Head": {"Value": 5.0}}}, {}, "Head")
+    assert max_pts == [(0.0, 5.0), (50.0, None)]
+    assert min_pts == [(0.0, None), (50.0, None)]
