@@ -91,6 +91,31 @@ class QGISRedProfileDock(QDockWidget):
         self.btnClear.clicked.connect(self.clearRequested)
         toolbar.addWidget(self.btnClear)
 
+        toolbar.addWidget(self._separator(toolbar_widget))
+
+        self.btnZoomWindow = self._makeIconButton(toolbar_widget, ":/images/iconTsZoomWindow.svg",
+                                                  self.tr("Zoom window"), checkable=True)
+        self.btnZoomWindow.toggled.connect(self._onZoomWindowToggled)
+        toolbar.addWidget(self.btnZoomWindow)
+
+        self.btnPan = self._makeIconButton(toolbar_widget, ":/images/iconTsPan.svg", self.tr("Pan"), checkable=True)
+        self.btnPan.toggled.connect(self._onPanToggled)
+        toolbar.addWidget(self.btnPan)
+
+        self.btnZoomIn = self._makeIconButton(toolbar_widget, ":/images/iconTsZoomIn.svg", self.tr("Zoom in"))
+        self.btnZoomIn.clicked.connect(self._onZoomIn)
+        toolbar.addWidget(self.btnZoomIn)
+
+        self.btnZoomOut = self._makeIconButton(toolbar_widget, ":/images/iconTsZoomOut.svg", self.tr("Zoom out"))
+        self.btnZoomOut.clicked.connect(self._onZoomOut)
+        toolbar.addWidget(self.btnZoomOut)
+
+        self.btnFit = self._makeIconButton(toolbar_widget, ":/images/iconTsFit.svg", self.tr("Zoom to full extent"))
+        self.btnFit.clicked.connect(self._onFit)
+        toolbar.addWidget(self.btnFit)
+
+        toolbar.addWidget(self._separator(toolbar_widget))
+
         self.btnLabels = self._makeIconButton(toolbar_widget, ":/images/iconProfileLabels.svg",
                                               self.tr("Show the variable value at each declared profile point"),
                                               checkable=True)
@@ -202,6 +227,25 @@ class QGISRedProfileDock(QDockWidget):
 
     def _onToggleValueLabels(self, checked):
         self.plot.setShowValueLabels(checked)
+
+    def _onPanToggled(self, checked):
+        if checked and self.btnZoomWindow.isChecked():
+            self.btnZoomWindow.setChecked(False)
+        self.plot.setPanMode(checked)
+
+    def _onZoomWindowToggled(self, checked):
+        if checked and self.btnPan.isChecked():
+            self.btnPan.setChecked(False)
+        self.plot.setZoomWindowMode(checked)
+
+    def _onZoomIn(self):
+        self.plot.zoomIn()
+
+    def _onZoomOut(self):
+        self.plot.zoomOut()
+
+    def _onFit(self):
+        self.plot.fitView()
 
     def _onVariableChanged(self, _index):
         self.variableChanged.emit(self.currentVariableKey())

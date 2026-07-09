@@ -6979,6 +6979,26 @@ Left-click: Add a new item below the current selection</source>
         <translation>Ajouter une branche : cliquez sur un nœud du profil, puis les extrémités de la branche</translation>
     </message>
     <message>
+        <source>Zoom window</source>
+        <translation>Zoom fenêtre</translation>
+    </message>
+    <message>
+        <source>Pan</source>
+        <translation>Déplacer</translation>
+    </message>
+    <message>
+        <source>Zoom in</source>
+        <translation>Zoom avant</translation>
+    </message>
+    <message>
+        <source>Zoom out</source>
+        <translation>Zoom arrière</translation>
+    </message>
+    <message>
+        <source>Zoom to full extent</source>
+        <translation>Ajuster à l'étendue</translation>
+    </message>
+    <message>
         <source>Clear</source>
         <translation>Effacer</translation>
     </message>

@@ -36,6 +36,14 @@ class ProfilePlotWidget(QWidget):
         self._show_value_labels = False
         self._symbols = None
         self._envelope = None
+        self._view_x = None
+        self._pan_mode = False
+        self._zoom_window_mode = False
+        self._last_plot = None
+        self._last_view = None
+        self._drag_start = None
+        self._drag_start_view = None
+        self._zoom_rect = None
 
     def setEmptyText(self, text):
         self._empty_text = text
@@ -95,6 +103,8 @@ class ProfilePlotWidget(QWidget):
         self._hover_x = None
         self._symbols = None
         self._envelope = None
+        self._view_x = None
+        self._zoom_rect = None
         self.update()
 
     def _dataBounds(self):
@@ -117,6 +127,129 @@ class ProfilePlotWidget(QWidget):
             return None
         return min(xs), max(xs), min(ys), max(ys)
 
+    def _currentView(self):
+        bounds = self._dataBounds()
+        if bounds is None:
+            return None
+        if self._view_x is not None:
+            x0, x1 = self._view_x
+        else:
+            xs = compute_nice_scale(bounds[0], bounds[1], 8)
+            x0, x1 = xs.axis_min, xs.axis_max
+        if x1 == x0:
+            x1 = x0 + 1.0
+        y0, y1 = self._autoYForXRange(x0, x1)
+        return (x0, x1, y0, y1)
+
+    def _fullXRange(self):
+        bounds = self._dataBounds()
+        if bounds is None:
+            return None
+        xs = compute_nice_scale(bounds[0], bounds[1], 8)
+        lo, hi = xs.axis_min, xs.axis_max
+        if hi == lo:
+            hi = lo + 1.0
+        return lo, hi
+
+    def _autoYForXRange(self, x0, x1):
+        values = []
+        for s in self._series:
+            for d, v in s["points"]:
+                if v is not None and x0 - 1e-9 <= d <= x1 + 1e-9:
+                    values.append(v)
+        if self._envelope is not None:
+            for boundary in ("max", "min"):
+                for d, v in self._envelope[boundary]:
+                    if v is not None and x0 - 1e-9 <= d <= x1 + 1e-9:
+                        values.append(v)
+        if values:
+            ymin, ymax = min(values), max(values)
+        else:
+            bounds = self._dataBounds()
+            ymin, ymax = bounds[2], bounds[3]
+        ys = compute_nice_scale(ymin, ymax, 6)
+        y0, y1 = ys.axis_min, ys.axis_max
+        if y1 == y0:
+            y1 = y0 + 1.0
+        return y0, y1
+
+    def _clampX(self, x0, x1):
+        full = self._fullXRange()
+        if full is None:
+            return None
+        lo, hi = full
+        view_range = x1 - x0
+        if view_range <= 0 or view_range >= hi - lo:
+            return None
+        if x0 < lo:
+            x0, x1 = lo, lo + view_range
+        if x1 > hi:
+            x0, x1 = hi - view_range, hi
+        return (max(lo, x0), min(hi, x1))
+
+    def setPanMode(self, on):
+        self._pan_mode = bool(on)
+        if on:
+            self._zoom_window_mode = False
+        self._updateNavCursor()
+
+    def setZoomWindowMode(self, on):
+        self._zoom_window_mode = bool(on)
+        if on:
+            self._pan_mode = False
+        self._zoom_rect = None
+        self._updateNavCursor()
+
+    def _updateNavCursor(self):
+        if self._pan_mode:
+            self.setCursor(Qt.CursorShape.OpenHandCursor)
+        elif self._zoom_window_mode:
+            self.setCursor(Qt.CursorShape.CrossCursor)
+        else:
+            self.unsetCursor()
+
+    def fitView(self):
+        self._view_x = None
+        self.update()
+
+    def zoomIn(self):
+        self._zoomAroundCenter(1.0 / 1.5)
+
+    def zoomOut(self):
+        self._zoomAroundCenter(1.5)
+
+    def _zoomAroundCenter(self, factor):
+        view = self._currentView()
+        if view is None:
+            return
+        x0, x1 = view[0], view[1]
+        center = (x0 + x1) / 2.0
+        half = (x1 - x0) / 2.0 * factor
+        self._view_x = self._clampX(center - half, center + half)
+        self.update()
+
+    def _pixelToData(self, pixel_x, pixel_y):
+        if self._last_plot is None or self._last_view is None:
+            return None
+        plot = self._last_plot
+        if plot.width() <= 0 or plot.height() <= 0:
+            return None
+        x0, x1, y0, y1 = self._last_view
+        data_x = x0 + (pixel_x - plot.left()) / plot.width() * (x1 - x0)
+        data_y = y0 + (plot.bottom() - pixel_y) / plot.height() * (y1 - y0)
+        return data_x, data_y
+
+    def _drawZoomRect(self, painter, plot):
+        if self._zoom_rect is None:
+            return
+        p1, p2 = self._zoom_rect
+        left = min(p1.x(), p2.x())
+        right = max(p1.x(), p2.x())
+        rect = QRectF(left, plot.top(), right - left, plot.height()).intersected(plot)
+        painter.setPen(QPen(QColor(60, 120, 200), 1.0, Qt.PenStyle.DashLine))
+        painter.setBrush(QBrush(QColor(60, 120, 200, 40)))
+        painter.drawRect(rect)
+
     def paintEvent(self, event):
         painter = QPainter(self)
         painter.setRenderHint(QPainter.RenderHint.Antialiasing, True)
@@ -126,22 +259,18 @@ class ProfilePlotWidget(QWidget):
         left, right, top, bottom = 64.0, 18.0, 30.0, 48.0
         plot = QRectF(left, top, max(1.0, full.width() - left - right), max(1.0, full.height() - top - bottom))
 
-        bounds = self._dataBounds()
-        if bounds is None:
+        view = self._currentView()
+        if view is None:
             painter.setPen(QColor(130, 130, 130))
             painter.drawText(full, Qt.AlignmentFlag.AlignCenter, self._empty_text)
             painter.end()
             return
 
-        xmin, xmax, ymin, ymax = bounds
-        x_scale = compute_nice_scale(xmin, xmax, 8)
-        y_scale = compute_nice_scale(ymin, ymax, 6)
-        x0, x1 = x_scale.axis_min, x_scale.axis_max
-        y0, y1 = y_scale.axis_min, y_scale.axis_max
-        if x1 == x0:
-            x1 = x0 + 1.0
-        if y1 == y0:
-            y1 = y0 + 1.0
+        x0, x1, y0, y1 = view
+        self._last_plot = plot
+        self._last_view = view
+        x_scale = compute_nice_scale(x0, x1, 8)
+        y_scale = compute_nice_scale(y0, y1, 6)
 
         def px(d):
             return plot.left() + (d - x0) / (x1 - x0) * plot.width()
@@ -157,6 +286,8 @@ class ProfilePlotWidget(QWidget):
         painter.setFont(QFont("Arial", 8))
 
         for t in y_scale.ticks():
+            if t < y0 - 1e-9 or t > y1 + 1e-9:
+                continue
             y = py(t)
             painter.setPen(grid_pen)
             painter.drawLine(QPointF(plot.left(), y), QPointF(plot.right(), y))
@@ -166,6 +297,8 @@ class ProfilePlotWidget(QWidget):
                              format_number_tick(t, y_scale.step))
 
         for t in x_scale.ticks():
+            if t < x0 - 1e-9 or t > x1 + 1e-9:
+                continue
             x = px(t)
             painter.setPen(grid_pen)
             painter.drawLine(QPointF(x, plot.top()), QPointF(x, plot.bottom()))
@@ -177,21 +310,22 @@ class ProfilePlotWidget(QWidget):
         painter.setPen(QPen(QColor(150, 160, 175), 1.2))
         painter.drawRect(plot)
 
+        painter.save()
+        painter.setClipRect(plot)
         if self._envelope is not None:
             self._drawEnvelope(painter, px, py)
-
         for s in self._series:
             self._drawSeries(painter, s, px, py, plot.bottom())
-
         if self._symbols is not None and self._series:
             self._drawSymbols(painter, self._series[0], px, py)
-
         if self._show_value_labels and self._series:
             self._drawValueLabels(painter, self._series[0], px, py)
+        self._drawCursor(painter, plot, px, py, x0, x1)
+        painter.restore()
 
         self._drawTitleAndAxisLabels(painter, full, plot)
         self._drawLegend(painter, plot)
-        self._drawCursor(painter, plot, px, py, x0, x1)
+        self._drawZoomRect(painter, plot)
         painter.end()
 
     def _drawEnvelope(self, painter, px, py):
@@ -439,10 +573,87 @@ class ProfilePlotWidget(QWidget):
             painter.drawText(QPointF(text_x, ty + 11), text)
             ty += 15
 
+    @staticmethod
+    def _eventPos(event):
+        if hasattr(event, "position"):
+            pos = event.position()
+            return pos.x(), pos.y()
+        return event.x(), event.y()
+
+    def mousePressEvent(self, event):
+        x, y = self._eventPos(event)
+        if event.button() == Qt.MouseButton.LeftButton and self._zoom_window_mode:
+            self._zoom_rect = (QPointF(x, y), QPointF(x, y))
+        elif event.button() == Qt.MouseButton.LeftButton and self._pan_mode:
+            self._drag_start = (x, y)
+            self._drag_start_view = self._currentView()
+            self.setCursor(Qt.CursorShape.ClosedHandCursor)
+        super(ProfilePlotWidget, self).mousePressEvent(event)
+
     def mouseMoveEvent(self, event):
-        self._hover_x = event.position().x() if hasattr(event, "position") else event.x()
-        self.update()
+        x, y = self._eventPos(event)
+        if self._zoom_rect is not None:
+            self._zoom_rect = (self._zoom_rect[0], QPointF(x, y))
+            self._hover_x = None
+            self.update()
+        elif self._drag_start is not None and self._drag_start_view is not None:
+            self._panTo(x, y)
+        elif self._pan_mode or self._zoom_window_mode:
+            self._hover_x = None
+            self.update()
+        else:
+            self._hover_x = x
+            self.update()
         super(ProfilePlotWidget, self).mouseMoveEvent(event)
+
+    def _panTo(self, x, y):
+        plot = self._last_plot
+        if plot is None or plot.width() <= 0 or self._drag_start_view is None:
+            return
+        x0, x1 = self._drag_start_view[0], self._drag_start_view[1]
+        start_x = self._drag_start[0]
+        delta_x = (x - start_x) / plot.width() * (x1 - x0)
+        self._view_x = self._clampX(x0 - delta_x, x1 - delta_x)
+        self.update()
+
+    def mouseReleaseEvent(self, event):
+        if self._zoom_rect is not None:
+            self._applyZoomRect()
+            self._zoom_rect = None
+            self.update()
+        if self._drag_start is not None:
+            self._drag_start = None
+            self._drag_start_view = None
+            if self._pan_mode:
+                self.setCursor(Qt.CursorShape.OpenHandCursor)
+        super(ProfilePlotWidget, self).mouseReleaseEvent(event)
+
+    def _applyZoomRect(self):
+        p1, p2 = self._zoom_rect
+        if abs(p2.x() - p1.x()) < 4:
+            return
+        a = self._pixelToData(p1.x(), p1.y())
+        b = self._pixelToData(p2.x(), p2.y())
+        if a is None or b is None:
+            return
+        x0, x1 = sorted((a[0], b[0]))
+        if x1 - x0 <= 0:
+            return
+        self._view_x = self._clampX(x0, x1)
+
+    def wheelEvent(self, event):
+        x, y = self._eventPos(event)
+        data = self._pixelToData(x, y)
+        view = self._currentView()
+        if data is None or view is None:
+            super(ProfilePlotWidget, self).wheelEvent(event)
+            return
+        delta = event.angleDelta().y() if hasattr(event, "angleDelta") else 0
+        factor = (1.0 / 1.3) if delta > 0 else 1.3
+        x0, x1 = view[0], view[1]
+        data_x = data[0]
+        self._view_x = self._clampX(data_x + (x0 - data_x) * factor, data_x + (x1 - data_x) * factor)
+        self.update()
 
     def leaveEvent(self, event):
         self._hover_x = None

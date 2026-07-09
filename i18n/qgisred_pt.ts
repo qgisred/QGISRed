@@ -7056,6 +7056,26 @@ Clique esquerdo: Adicionar um novo item abaixo da seleção atual</translation>
         <translation>Adicionar um ramo: clique num nó do perfil e depois nos extremos do ramo</translation>
     </message>
     <message>
+        <source>Zoom window</source>
+        <translation>Zoom janela</translation>
+    </message>
+    <message>
+        <source>Pan</source>
+        <translation>Deslocar</translation>
+    </message>
+    <message>
+        <source>Zoom in</source>
+        <translation>Aproximar</translation>
+    </message>
+    <message>
+        <source>Zoom out</source>
+        <translation>Afastar</translation>
+    </message>
+    <message>
+        <source>Zoom to full extent</source>
+        <translation>Ajustar à extensão</translation>
+    </message>
+    <message>
         <source>Clear</source>
         <translation>Limpar</translation>
     </message>

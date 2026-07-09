@@ -7111,6 +7111,26 @@ Click izquierdo: Añadir un nuevo item debajo de la selección actual</translati
         <translation>Añadir una rama: pulse un nudo del perfil y luego los extremos de la rama</translation>
     </message>
     <message>
+        <source>Zoom window</source>
+        <translation>Zoom ventana</translation>
+    </message>
+    <message>
+        <source>Pan</source>
+        <translation>Desplazar</translation>
+    </message>
+    <message>
+        <source>Zoom in</source>
+        <translation>Acercar</translation>
+    </message>
+    <message>
+        <source>Zoom out</source>
+        <translation>Alejar</translation>
+    </message>
+    <message>
+        <source>Zoom to full extent</source>
+        <translation>Ajustar a los datos</translation>
+    </message>
+    <message>
         <source>Clear</source>
         <translation>Limpiar</translation>
     </message>
