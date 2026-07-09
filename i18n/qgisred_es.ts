@@ -7134,5 +7134,13 @@ Click izquierdo: Añadir un nuevo item debajo de la selección actual</translati
         <source>Show the variable value at each declared profile point</source>
         <translation>Mostrar el valor de la variable en cada nudo de paso declarado</translation>
     </message>
+    <message>
+        <source>Symbols</source>
+        <translation>Símbolos</translation>
+    </message>
+    <message>
+        <source>Show element symbols and flow direction along the profile</source>
+        <translation>Mostrar los símbolos de los elementos y el sentido del flujo a lo largo del perfil</translation>
+    </message>
 </context>
 </TS>

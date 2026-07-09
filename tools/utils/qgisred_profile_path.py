@@ -96,3 +96,26 @@ def move_pass_node(reference_nodes, node, new_node):
     if node not in reference_nodes:
         raise ProfilePathError("Only declared profile points can be moved")
     return [new_node if n == node else n for n in reference_nodes]
+
+
+def flow_direction_along_path(nodes, links, link_endpoints, link_flows):
+    directions = []
+    for i, link in enumerate(links):
+        endpoints = link_endpoints.get(link)
+        flow = link_flows.get(link)
+        if endpoints is None or flow is None:
+            directions.append(0)
+            continue
+        from_node, to_node = endpoints
+        if nodes[i] == to_node and nodes[i + 1] == from_node:
+            orientation = -1
+        else:
+            orientation = 1
+        if flow > 0:
+            sign = 1
+        elif flow < 0:
+            sign = -1
+        else:
+            sign = 0
+        directions.append(orientation * sign)
+    return directions

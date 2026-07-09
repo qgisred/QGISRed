@@ -12,6 +12,7 @@ from QGISRed.tools.utils.qgisred_profile_path import (
     add_pass_node,
     remove_pass_node,
     move_pass_node,
+    flow_direction_along_path,
 )
 
 
@@ -135,3 +136,32 @@ def test_move_pass_node_recomputes_adjacent_segments():
 def test_move_pass_node_rejects_non_reference():
     with pytest.raises(ProfilePathError):
         move_pass_node(["A", "C"], "B", "D")
+
+
+def test_flow_direction_forward_link_positive_flow():
+    nodes = ["A", "B"]
+    links = ["L1"]
+    endpoints = {"L1": ("A", "B")}
+    assert flow_direction_along_path(nodes, links, endpoints, {"L1": 5.0}) == [1]
+
+
+def test_flow_direction_forward_link_negative_flow():
+    nodes = ["A", "B"]
+    links = ["L1"]
+    endpoints = {"L1": ("A", "B")}
+    assert flow_direction_along_path(nodes, links, endpoints, {"L1": -5.0}) == [-1]
+
+
+def test_flow_direction_path_traverses_link_backwards():
+    nodes = ["B", "A"]
+    links = ["L1"]
+    endpoints = {"L1": ("A", "B")}
+    assert flow_direction_along_path(nodes, links, endpoints, {"L1": 5.0}) == [-1]
+    assert flow_direction_along_path(nodes, links, endpoints, {"L1": -5.0}) == [1]
+
+
+def test_flow_direction_zero_or_missing_flow():
+    nodes = ["A", "B", "C"]
+    links = ["L1", "L2"]
+    endpoints = {"L1": ("A", "B"), "L2": ("B", "C")}
+    assert flow_direction_along_path(nodes, links, endpoints, {"L1": 0.0}) == [0, 0]

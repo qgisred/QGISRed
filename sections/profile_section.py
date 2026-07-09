@@ -15,6 +15,7 @@ from ..tools.utils.qgisred_profile_path import (
     add_pass_node,
     remove_pass_node,
     move_pass_node,
+    flow_direction_along_path,
 )
 
 _NODE_LAYER_IDENTIFIERS = ("qgisred_junctions", "qgisred_tanks", "qgisred_reservoirs")
@@ -55,6 +56,7 @@ class ProfileSection:
         self.profileDock.profileModeChanged.connect(self._onProfileModeChanged)
         self.profileDock.clearRequested.connect(self._onProfileClearRequested)
         self.profileDock.variableChanged.connect(self._onProfileVariableChanged)
+        self.profileDock.symbolsToggled.connect(self._onProfileSymbolsToggled)
         self.profileDock.visibilityChanged.connect(self._onProfileDockVisibility)
         with suppress(Exception):
             self._initResultsDock()
@@ -101,6 +103,43 @@ class ProfileSection:
 
     def _onProfileVariableChanged(self, _key):
         self._redrawProfile()
+
+    def _onProfileSymbolsToggled(self, checked):
+        self._profileShowSymbols = bool(checked)
+        self._redrawProfile()
+
+    def _profileLinkFlows(self):
+        from ..ui.analysis.qgisred_results_binary import getOut_TimeLinksProperties
+
+        data = getOut_TimeLinksProperties(self._outFilePath(), self._profileCurrentTimeSeconds())
+        return {lid: props.get("Flow") for lid, props in data.items()}
+
+    def _applyProfileSymbols(self, dock, nodes, links):
+        if not getattr(self, "_profileShowSymbols", False):
+            dock.clearSymbols()
+            return
+        node_kind_map = {0: "junction", 1: "reservoir", 2: "tank"}
+        node_types = getattr(self, "_profileNodeTypes", {})
+        link_types = getattr(self, "_profileLinkTypes", {})
+        node_kinds = [node_kind_map.get(node_types.get(n), "junction") for n in nodes]
+        try:
+            flows = self._profileLinkFlows()
+            directions = flow_direction_along_path(
+                nodes, links, getattr(self, "_profileLinkEndpoints", {}), flows
+            )
+        except Exception:
+            directions = [0] * len(links)
+        link_info = []
+        for i, lid in enumerate(links):
+            link_type = link_types.get(lid, 1)
+            if link_type == 2:
+                kind = "pump"
+            elif link_type >= 3:
+                kind = "valve"
+            else:
+                kind = "pipe"
+            link_info.append({"kind": kind, "direction": directions[i] if i < len(directions) else 0})
+        dock.setSymbols(node_kinds, link_info)
 
     def _onProfileTimeChanged(self, _text):
         self._redrawProfile()
@@ -240,6 +279,18 @@ class ProfileSection:
             meta["node_ids"][i]: (meta["node_elevations"][i] if meta["node_elevations"] else 0.0)
             for i in range(len(meta["node_ids"]))
         }
+        node_ids = meta["node_ids"]
+        self._profileNodeTypes = {
+            node_ids[i]: meta["node_types"][i] for i in range(len(node_ids))
+        }
+        self._profileLinkTypes = {
+            meta["link_ids"][i]: meta["link_types"][i] for i in range(len(meta["link_ids"]))
+        }
+        self._profileLinkEndpoints = {
+            meta["link_ids"][i]: (node_ids[meta["link_from"][i]], node_ids[meta["link_to"][i]])
+            for i in range(len(meta["link_ids"]))
+            if 0 <= meta["link_from"][i] < len(node_ids) and 0 <= meta["link_to"][i] < len(node_ids)
+        }
         self._profileReportStart = meta["report_start"]
         self._profileReportStep = meta["report_step"]
 
@@ -325,6 +376,8 @@ class ProfileSection:
 
         dock.setSeries(series, self.tr("Longitudinal profile"), self.tr("Distance"), y_label)
         self._drawProfileHighlight()
+        with suppress(Exception):
+            self._applyProfileSymbols(dock, nodes, links)
 
     def _profileVariableLabel(self, key):
         return {

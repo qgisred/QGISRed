@@ -34,6 +34,7 @@ class ProfilePlotWidget(QWidget):
         self._empty_text = ""
         self._hover_x = None
         self._show_value_labels = False
+        self._symbols = None
 
     def setEmptyText(self, text):
         self._empty_text = text
@@ -41,6 +42,14 @@ class ProfilePlotWidget(QWidget):
 
     def setShowValueLabels(self, show):
         self._show_value_labels = bool(show)
+        self.update()
+
+    def setSymbols(self, node_kinds, link_info):
+        self._symbols = {"nodes": node_kinds or [], "links": link_info or []}
+        self.update()
+
+    def clearSymbols(self):
+        self._symbols = None
         self.update()
 
     def setLabels(self, title, x_label, y_label):
@@ -69,6 +78,7 @@ class ProfilePlotWidget(QWidget):
     def clear(self):
         self._series = []
         self._hover_x = None
+        self._symbols = None
         self.update()
 
     def _dataBounds(self):
@@ -147,6 +157,9 @@ class ProfilePlotWidget(QWidget):
         for s in self._series:
             self._drawSeries(painter, s, px, py, plot.bottom())
 
+        if self._symbols is not None and self._series:
+            self._drawSymbols(painter, self._series[0], px, py)
+
         if self._show_value_labels and self._series:
             self._drawValueLabels(painter, self._series[0], px, py)
 
@@ -182,6 +195,81 @@ class ProfilePlotWidget(QWidget):
                 continue
             painter.setBrush(QBrush(color))
             painter.drawEllipse(QPointF(px(d), py(v)), 4.0, 4.0)
+
+    def _drawSymbols(self, painter, s, px, py):
+        points = s["points"]
+        node_kinds = self._symbols.get("nodes", [])
+        link_info = self._symbols.get("links", [])
+
+        for i, info in enumerate(link_info):
+            if i + 1 >= len(points):
+                break
+            d0, v0 = points[i]
+            d1, v1 = points[i + 1]
+            if v0 is None or v1 is None:
+                continue
+            x0, y0 = px(d0), py(v0)
+            x1, y1 = px(d1), py(v1)
+            self._drawFlowArrow(painter, x0, y0, x1, y1, info.get("direction", 0))
+            kind = info.get("kind", "pipe")
+            if kind in ("pump", "valve"):
+                mx = (x0 + x1) / 2.0
+                my = (y0 + y1) / 2.0 - 11.0
+                if kind == "pump":
+                    self._drawPumpGlyph(painter, mx, my)
+                else:
+                    self._drawValveGlyph(painter, mx, my)
+
+        for idx, (d, v) in enumerate(points):
+            if v is None:
+                continue
+            kind = node_kinds[idx] if idx < len(node_kinds) else "junction"
+            self._drawNodeGlyph(painter, px(d), py(v), kind)
+
+    def _drawNodeGlyph(self, painter, x, y, kind):
+        if kind not in ("reservoir", "tank"):
+            return
+        painter.setPen(QPen(QColor(255, 255, 255), 1.0))
+        painter.setBrush(QBrush(QColor(60, 70, 90)))
+        if kind == "reservoir":
+            painter.drawPolygon(QPolygonF([QPointF(x, y - 6), QPointF(x - 5, y + 4), QPointF(x + 5, y + 4)]))
+        else:
+            painter.drawRect(QRectF(x - 5, y - 5, 10, 10))
+
+    def _drawPumpGlyph(self, painter, x, y):
+        painter.setPen(QPen(QColor(60, 70, 90), 1.2))
+        painter.setBrush(QBrush(QColor(255, 255, 255)))
+        painter.drawEllipse(QPointF(x, y), 4.5, 4.5)
+
+    def _drawValveGlyph(self, painter, x, y):
+        painter.setPen(QPen(QColor(60, 70, 90), 1.0))
+        painter.setBrush(QBrush(QColor(255, 255, 255)))
+        painter.drawPolygon(QPolygonF([QPointF(x - 5, y - 4), QPointF(x - 5, y + 4), QPointF(x, y)]))
+        painter.drawPolygon(QPolygonF([QPointF(x + 5, y - 4), QPointF(x + 5, y + 4), QPointF(x, y)]))
+
+    def _drawFlowArrow(self, painter, x0, y0, x1, y1, direction):
+        if direction == 0:
+            return
+        dx = x1 - x0
+        dy = y1 - y0
+        length = (dx * dx + dy * dy) ** 0.5
+        if length < 1e-6:
+            return
+        ux = dx / length
+        uy = dy / length
+        if direction < 0:
+            ux = -ux
+            uy = -uy
+        mx = (x0 + x1) / 2.0
+        my = (y0 + y1) / 2.0
+        perp_x = -uy
+        perp_y = ux
+        tip = QPointF(mx + ux * 5.0, my + uy * 5.0)
+        base1 = QPointF(mx - ux * 3.0 + perp_x * 3.0, my - uy * 3.0 + perp_y * 3.0)
+        base2 = QPointF(mx - ux * 3.0 - perp_x * 3.0, my - uy * 3.0 - perp_y * 3.0)
+        painter.setPen(Qt.PenStyle.NoPen)
+        painter.setBrush(QBrush(QColor(40, 40, 40)))
+        painter.drawPolygon(QPolygonF([tip, base1, base2]))
 
     def _drawValueLabels(self, painter, s, px, py):
         painter.setFont(QFont("Arial", 8))

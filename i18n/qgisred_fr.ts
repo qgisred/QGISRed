@@ -7002,5 +7002,13 @@ Left-click: Add a new item below the current selection</source>
         <source>Show the variable value at each declared profile point</source>
         <translation>Afficher la valeur de la variable à chaque point de passage déclaré</translation>
     </message>
+    <message>
+        <source>Symbols</source>
+        <translation>Symboles</translation>
+    </message>
+    <message>
+        <source>Show element symbols and flow direction along the profile</source>
+        <translation>Afficher les symboles des éléments et le sens de l'écoulement le long du profil</translation>
+    </message>
 </context>
 </TS>

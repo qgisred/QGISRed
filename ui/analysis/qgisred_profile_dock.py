@@ -20,6 +20,7 @@ class QGISRedProfileDock(QDockWidget):
     profileModeChanged = pyqtSignal(str)
     clearRequested = pyqtSignal()
     variableChanged = pyqtSignal(str)
+    symbolsToggled = pyqtSignal(bool)
 
     def __init__(self, iface, parent=None):
         super(QGISRedProfileDock, self).__init__(parent or iface.mainWindow())
@@ -62,6 +63,13 @@ class QGISRedProfileDock(QDockWidget):
         self.btnLabels.setCheckable(True)
         self.btnLabels.toggled.connect(self._onToggleValueLabels)
         toolbar.addWidget(self.btnLabels)
+
+        self.btnSymbols = QToolButton(container)
+        self.btnSymbols.setText(self.tr("Symbols"))
+        self.btnSymbols.setToolTip(self.tr("Show element symbols and flow direction along the profile"))
+        self.btnSymbols.setCheckable(True)
+        self.btnSymbols.toggled.connect(self.symbolsToggled)
+        toolbar.addWidget(self.btnSymbols)
 
         toolbar.addSpacing(12)
         toolbar.addWidget(QLabel(self.tr("Variable:"), container))
@@ -114,6 +122,12 @@ class QGISRedProfileDock(QDockWidget):
     def setSeries(self, series, title, x_label, y_label):
         self.plot.setLabels(title, x_label, y_label)
         self.plot.setSeries(series)
+
+    def setSymbols(self, node_kinds, link_info):
+        self.plot.setSymbols(node_kinds, link_info)
+
+    def clearSymbols(self):
+        self.plot.clearSymbols()
 
     def clearPlot(self):
         self.plot.clear()

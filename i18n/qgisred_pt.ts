@@ -7079,5 +7079,13 @@ Clique esquerdo: Adicionar um novo item abaixo da seleção atual</translation>
         <source>Show the variable value at each declared profile point</source>
         <translation>Mostrar o valor da variável em cada ponto de passagem declarado</translation>
     </message>
+    <message>
+        <source>Symbols</source>
+        <translation>Símbolos</translation>
+    </message>
+    <message>
+        <source>Show element symbols and flow direction along the profile</source>
+        <translation>Mostrar os símbolos dos elementos e o sentido do escoamento ao longo do perfil</translation>
+    </message>
 </context>
 </TS>
