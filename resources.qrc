@@ -83,6 +83,13 @@
         <file>images/iconQueriesMenu.svg</file>
         <file>images/iconQueryByProperties.svg</file>
         <file>images/iconProfile.svg</file>
+        <file>images/iconProfilePick.svg</file>
+        <file>images/iconProfileAddNode.svg</file>
+        <file>images/iconProfileRemoveNode.svg</file>
+        <file>images/iconProfileMoveNode.svg</file>
+        <file>images/iconProfileLabels.svg</file>
+        <file>images/iconProfileSymbols.svg</file>
+        <file>images/iconProfileEnvelope.svg</file>
         <file>images/iconResultsBrowser.svg</file>
         <file>images/iconReverseElements.svg</file>
         <file>images/iconSetRoughnessFromMaterialDate.svg</file>

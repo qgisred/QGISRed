@@ -7004,6 +7004,10 @@ Clique esquerdo: Adicionar um novo item abaixo da seleção atual</translation>
         <translation>Perfil longitudinal</translation>
     </message>
     <message>
+        <source>QGISRed: Longitudinal profile</source>
+        <translation>QGISRed: Perfil longitudinal</translation>
+    </message>
+    <message>
         <source>Pick path</source>
         <translation>Marcar trajeto</translation>
     </message>

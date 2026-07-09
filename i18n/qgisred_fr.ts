@@ -6927,6 +6927,10 @@ Left-click: Add a new item below the current selection</source>
         <translation>Profil en long</translation>
     </message>
     <message>
+        <source>QGISRed: Longitudinal profile</source>
+        <translation>QGISRed : Profil en long</translation>
+    </message>
+    <message>
         <source>Pick path</source>
         <translation>Tracer le parcours</translation>
     </message>
