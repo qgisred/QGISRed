@@ -4,7 +4,28 @@ from QGISRed.tools.utils.qgisred_profile_plot_utils import (
     nearest_visible_point,
     cursor_snapshot,
     format_profile_value,
+    resolve_envelope_mode,
 )
+
+
+def test_resolve_envelope_mode_off():
+    assert resolve_envelope_mode("off") == (False, False)
+
+
+def test_resolve_envelope_mode_band_only():
+    assert resolve_envelope_mode("band") == (True, False)
+
+
+def test_resolve_envelope_mode_lines_only():
+    assert resolve_envelope_mode("lines") == (False, True)
+
+
+def test_resolve_envelope_mode_both():
+    assert resolve_envelope_mode("both") == (True, True)
+
+
+def test_resolve_envelope_mode_unknown_is_off():
+    assert resolve_envelope_mode("") == (False, False)
 
 
 def test_line_segments_all_visible():

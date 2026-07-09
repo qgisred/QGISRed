@@ -8,6 +8,7 @@ from ...tools.utils.qgisred_profile_plot_utils import (
     profile_line_segments,
     cursor_snapshot,
     format_profile_value,
+    resolve_envelope_mode,
 )
 
 
@@ -19,6 +20,9 @@ PALETTE = [
     QColor(148, 103, 189),
     QColor(140, 86, 75),
 ]
+
+ENVELOPE_FILL = QColor(230, 159, 0)
+ENVELOPE_LINE = QColor(184, 111, 0)
 
 
 class ProfilePlotWidget(QWidget):
@@ -36,6 +40,7 @@ class ProfilePlotWidget(QWidget):
         self._empty_text = ""
         self._hover_x = None
         self._hover_node_index = -1
+        self._cursor_node_index = None
         self._show_value_labels = False
         self._symbols = None
         self._envelope = None
@@ -64,19 +69,30 @@ class ProfilePlotWidget(QWidget):
         self._symbols = None
         self.update()
 
-    def setEnvelope(self, max_points, min_points):
-        if not max_points or not min_points:
+    def setEnvelope(self, max_points, min_points, mode="both", labels=None):
+        if not max_points or not min_points or mode == "off":
             self._envelope = None
         else:
+            labels = labels or {}
             self._envelope = {
                 "max": [(float(d), None if v is None else float(v)) for d, v in max_points],
                 "min": [(float(d), None if v is None else float(v)) for d, v in min_points],
+                "mode": mode,
+                "max_label": labels.get("max", "Maxima"),
+                "min_label": labels.get("min", "Minima"),
+                "band_label": labels.get("band", "Envelope"),
             }
         self.update()
 
     def clearEnvelope(self):
         self._envelope = None
         self.update()
+
+    def setCursorNode(self, index):
+        new_index = index if (index is not None and index >= 0) else None
+        if new_index != self._cursor_node_index:
+            self._cursor_node_index = new_index
+            self.update()
 
     def setLabels(self, title, x_label, y_label):
         self._title = title or ""
@@ -104,6 +120,8 @@ class ProfilePlotWidget(QWidget):
     def clear(self):
         self._series = []
         self._hover_x = None
+        self._hover_node_index = -1
+        self._cursor_node_index = None
         self._symbols = None
         self._envelope = None
         self._view_x = None
@@ -332,30 +350,32 @@ class ProfilePlotWidget(QWidget):
         painter.end()
 
     def _drawEnvelope(self, painter, px, py):
-        color = self._series[0]["color"] if self._series else PALETTE[0]
+        show_band, show_lines = resolve_envelope_mode(self._envelope.get("mode", "both"))
         max_points = self._envelope["max"]
         min_points = self._envelope["min"]
 
-        band = QColor(color)
-        band.setAlpha(32)
-        painter.setPen(Qt.PenStyle.NoPen)
-        painter.setBrush(QBrush(band))
-        run = []
-        for i in range(min(len(max_points), len(min_points))):
-            d, vmax = max_points[i]
-            _d, vmin = min_points[i]
-            if vmax is None or vmin is None:
-                self._fillBand(painter, run, px, py)
-                run = []
-            else:
-                run.append((d, vmax, vmin))
-        self._fillBand(painter, run, px, py)
+        if show_band:
+            band = QColor(ENVELOPE_FILL)
+            band.setAlpha(55)
+            painter.setPen(Qt.PenStyle.NoPen)
+            painter.setBrush(QBrush(band))
+            run = []
+            for i in range(min(len(max_points), len(min_points))):
+                d, vmax = max_points[i]
+                _d, vmin = min_points[i]
+                if vmax is None or vmin is None:
+                    self._fillBand(painter, run, px, py)
+                    run = []
+                else:
+                    run.append((d, vmax, vmin))
+            self._fillBand(painter, run, px, py)
 
-        painter.setPen(QPen(color, 1.0, Qt.PenStyle.DashLine))
-        painter.setBrush(Qt.BrushStyle.NoBrush)
-        for points in (max_points, min_points):
-            for segment in profile_line_segments(points):
-                painter.drawPolyline(QPolygonF([QPointF(px(d), py(v)) for d, v in segment]))
+        if show_lines:
+            painter.setPen(QPen(ENVELOPE_LINE, 1.2, Qt.PenStyle.DashLine))
+            painter.setBrush(Qt.BrushStyle.NoBrush)
+            for points in (max_points, min_points):
+                for segment in profile_line_segments(points):
+                    painter.drawPolyline(QPolygonF([QPointF(px(d), py(v)) for d, v in segment]))
 
     def _fillBand(self, painter, run, px, py):
         if len(run) < 2:
@@ -496,32 +516,62 @@ class ProfilePlotWidget(QWidget):
                              Qt.AlignmentFlag.AlignHCenter | Qt.AlignmentFlag.AlignVCenter, self._y_label)
             painter.restore()
 
+    def _legendEntries(self):
+        entries = []
+        for s in self._series:
+            entries.append({"label": s["label"] or "", "kind": "line",
+                            "color": s["color"], "width": s["width"], "dashed": False})
+        if self._envelope is not None:
+            show_band, show_lines = resolve_envelope_mode(self._envelope.get("mode", "both"))
+            if show_lines:
+                entries.append({"label": self._envelope["max_label"], "kind": "line",
+                                "color": QColor(ENVELOPE_LINE), "width": 1.2, "dashed": True})
+                entries.append({"label": self._envelope["min_label"], "kind": "line",
+                                "color": QColor(ENVELOPE_LINE), "width": 1.2, "dashed": True})
+            elif show_band:
+                fill = QColor(ENVELOPE_FILL)
+                fill.setAlpha(120)
+                entries.append({"label": self._envelope["band_label"], "kind": "band", "color": fill})
+        return entries
+
     def _drawLegend(self, painter, plot):
-        if not self._series:
+        entries = self._legendEntries()
+        if not entries:
             return
         painter.setFont(QFont("Arial", 8))
         fm = QFontMetrics(painter.font())
         box = 18
         gap = 14
-        widths = [box + 4 + fm.horizontalAdvance(s["label"] or "") for s in self._series]
-        total = sum(widths) + gap * max(0, len(self._series) - 1)
+        widths = [box + 4 + fm.horizontalAdvance(e["label"]) for e in entries]
+        total = sum(widths) + gap * max(0, len(entries) - 1)
         x = plot.left() + max(0.0, (plot.width() - total) / 2.0)
         y = plot.top() - 18
-        for i, s in enumerate(self._series):
-            pen = QPen(s["color"])
-            pen.setWidthF(s["width"])
-            painter.setPen(pen)
-            painter.drawLine(QPointF(x, y + 6), QPointF(x + box, y + 6))
+        for i, e in enumerate(entries):
+            if e["kind"] == "band":
+                painter.setPen(Qt.PenStyle.NoPen)
+                painter.setBrush(QBrush(e["color"]))
+                painter.drawRect(QRectF(x, y + 2, box, 8))
+            else:
+                style = Qt.PenStyle.DashLine if e.get("dashed") else Qt.PenStyle.SolidLine
+                painter.setPen(QPen(e["color"], e["width"], style))
+                painter.drawLine(QPointF(x, y + 6), QPointF(x + box, y + 6))
             painter.setPen(QColor(40, 40, 40))
-            painter.drawText(QPointF(x + box + 4, y + 9), s["label"] or "")
+            painter.setBrush(Qt.BrushStyle.NoBrush)
+            painter.drawText(QPointF(x + box + 4, y + 9), e["label"])
             x += widths[i] + gap
 
     def _drawCursor(self, painter, plot, px, py, x0, x1):
-        if self._hover_x is None or not self._series:
+        if not self._series:
             return
-        if not (plot.left() <= self._hover_x <= plot.right()):
+        data_x = None
+        if self._hover_x is not None and plot.left() <= self._hover_x <= plot.right():
+            data_x = x0 + (self._hover_x - plot.left()) / plot.width() * (x1 - x0)
+        elif self._cursor_node_index is not None:
+            base = self._series[0]["points"]
+            if 0 <= self._cursor_node_index < len(base):
+                data_x = base[self._cursor_node_index][0]
+        if data_x is None:
             return
-        data_x = x0 + (self._hover_x - plot.left()) / plot.width() * (x1 - x0)
         snapshot = cursor_snapshot(self._series, data_x)
         if snapshot is None:
             return
@@ -604,6 +654,9 @@ class ProfilePlotWidget(QWidget):
                 snapshot = cursor_snapshot(self._series, data_x)
                 if snapshot is not None:
                     index = snapshot["index"]
+        if index < 0:
+            self._hover_node_index = -1
+            return
         if index != self._hover_node_index:
             self._hover_node_index = index
             self.cursorNodeChanged.emit(index)

@@ -6992,6 +6992,34 @@ Click izquierdo: Añadir un nuevo item debajo de la selección actual</translati
 <context>
     <name>ProfileSection</name>
     <message>
+        <source>Maxima</source>
+        <translation>Máximos</translation>
+    </message>
+    <message>
+        <source>Minima</source>
+        <translation>Mínimos</translation>
+    </message>
+    <message>
+        <source>Envelope</source>
+        <translation>Envolvente</translation>
+    </message>
+    <message>
+        <source>Maximum</source>
+        <translation>Máximo</translation>
+    </message>
+    <message>
+        <source>Max. time</source>
+        <translation>Hora máx.</translation>
+    </message>
+    <message>
+        <source>Minimum</source>
+        <translation>Mínimo</translation>
+    </message>
+    <message>
+        <source>Min. time</source>
+        <translation>Hora mín.</translation>
+    </message>
+    <message>
         <source>Longitudinal profile...</source>
         <translation>Perfil longitudinal...</translation>
     </message>
@@ -7189,6 +7217,22 @@ Click izquierdo: Añadir un nuevo item debajo de la selección actual</translati
     <message>
         <source>Envelope</source>
         <translation>Envolvente</translation>
+    </message>
+    <message>
+        <source>Off</source>
+        <translation>Desactivada</translation>
+    </message>
+    <message>
+        <source>Shaded band only</source>
+        <translation>Solo banda sombreada</translation>
+    </message>
+    <message>
+        <source>Boundary lines only</source>
+        <translation>Solo líneas de borde</translation>
+    </message>
+    <message>
+        <source>Band and lines</source>
+        <translation>Banda y líneas</translation>
     </message>
     <message>
         <source>Show the maximum and minimum at each node over the whole simulation</source>

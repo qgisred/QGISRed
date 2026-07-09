@@ -64,7 +64,7 @@ class ProfileSection:
         self.profileDock.clearRequested.connect(self._onProfileClearRequested)
         self.profileDock.variableChanged.connect(self._onProfileVariableChanged)
         self.profileDock.symbolsToggled.connect(self._onProfileSymbolsToggled)
-        self.profileDock.envelopeToggled.connect(self._onProfileEnvelopeToggled)
+        self.profileDock.envelopeModeChanged.connect(self._onProfileEnvelopeModeChanged)
         self.profileDock.visibilityChanged.connect(self._onProfileDockVisibility)
         with suppress(Exception):
             self._initResultsDock()
@@ -117,8 +117,8 @@ class ProfileSection:
     def _onProfileVariableChanged(self, _key):
         self._redrawProfile()
 
-    def _onProfileEnvelopeToggled(self, checked):
-        self._profileShowEnvelope = bool(checked)
+    def _onProfileEnvelopeModeChanged(self, mode):
+        self._profileEnvelopeMode = mode or "off"
         self._redrawProfile()
 
     def _profileStats(self):
@@ -135,13 +135,22 @@ class ProfileSection:
         self._profileStatCache = cache
         return cache
 
+    def _profileEnvelopeActive(self, key):
+        mode = getattr(self, "_profileEnvelopeMode", "off")
+        return mode != "off" and key in ("Head", "Pressure", "Quality")
+
     def _applyProfileEnvelope(self, dock, key, nodes, distances):
-        if not getattr(self, "_profileShowEnvelope", False) or key not in ("Head", "Pressure", "Quality"):
+        if not self._profileEnvelopeActive(key):
             dock.clearEnvelope()
             return
         stat_max, stat_min = self._profileStats()
         max_points, min_points = envelope_points(nodes, distances, stat_max, stat_min, key)
-        dock.setEnvelope(max_points, min_points)
+        labels = {
+            "max": self.tr("Maxima"),
+            "min": self.tr("Minima"),
+            "band": self.tr("Envelope"),
+        }
+        dock.setEnvelope(max_points, min_points, self._profileEnvelopeMode, labels)
 
     def _onProfileSymbolsToggled(self, checked):
         self._profileShowSymbols = bool(checked)
@@ -467,7 +476,7 @@ class ProfileSection:
             y_label = self.tr(self._profileVariableLabel(key))
 
         with suppress(Exception):
-            self._pushProfileTable(dock, series, nodes, distances)
+            self._pushProfileTable(dock, series, nodes, distances, key)
         with suppress(Exception):
             self._appendProfileBranchSeries(series, key)
         dock.setSeries(series, self.tr("Longitudinal profile"), self.tr("Distance"), y_label)
@@ -486,16 +495,39 @@ class ProfileSection:
             "HeadLoss": "Accumulated head loss",
         }.get(key, key)
 
-    def _pushProfileTable(self, dock, series, nodes, distances):
+    def _pushProfileTable(self, dock, series, nodes, distances, key):
         headers = [self.tr("Id"), self.tr("Distance")] + [s["label"] for s in series]
+        add_envelope = self._profileEnvelopeActive(key)
+        stat_max, stat_min = ({}, {})
+        if add_envelope:
+            headers += [self.tr("Maximum"), self.tr("Max. time"), self.tr("Minimum"), self.tr("Min. time")]
+            stat_max, stat_min = self._profileStats()
         rows = []
         for i, node in enumerate(nodes):
             row = [str(node), format_profile_value(distances[i])]
             for s in series:
                 value = s["points"][i][1] if i < len(s["points"]) else None
                 row.append(format_profile_value(value))
+            if add_envelope:
+                mx = stat_max.get(node, {}).get(key, {})
+                mn = stat_min.get(node, {}).get(key, {})
+                row += [
+                    format_profile_value(mx.get("Value")),
+                    self._formatStatTime(mx.get("Time")),
+                    format_profile_value(mn.get("Value")),
+                    self._formatStatTime(mn.get("Time")),
+                ]
             rows.append(row)
         dock.setTableData(headers, rows)
+
+    def _formatStatTime(self, seconds):
+        if seconds is None or seconds < 0:
+            return "-"
+        from ..ui.analysis.qgisred_results_data import seconds_to_time_str_no_seconds
+
+        with suppress(Exception):
+            return seconds_to_time_str_no_seconds(int(seconds))
+        return "-"
 
     def _appendProfileBranchSeries(self, series, key):
         branches = getattr(self, "_profileBranches", []) or []

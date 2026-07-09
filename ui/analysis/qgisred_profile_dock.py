@@ -5,7 +5,7 @@ from qgis.PyQt.QtCore import Qt, QSize, QRect, pyqtSignal
 from qgis.PyQt.QtGui import QIcon, QPixmap, QPainter
 from qgis.PyQt.QtWidgets import (
     QDockWidget, QWidget, QVBoxLayout, QHBoxLayout, QToolButton, QComboBox, QLabel, QFrame,
-    QSplitter, QTableWidget, QTableWidgetItem, QAbstractItemView, QFileDialog, QHeaderView
+    QSplitter, QTableWidget, QTableWidgetItem, QAbstractItemView, QFileDialog, QHeaderView, QMenu
 )
 
 from .qgisred_profile_plot import ProfilePlotWidget
@@ -34,13 +34,15 @@ _BTN_STYLE = (
     "QToolButton:focus { border: 1px solid #3399ff; }"
 )
 
+_MENU_BTN_STYLE = _BTN_STYLE + "QToolButton::menu-indicator { image: none; width: 0px; }"
+
 
 class QGISRedProfileDock(QDockWidget):
     profileModeChanged = pyqtSignal(str)
     clearRequested = pyqtSignal()
     variableChanged = pyqtSignal(str)
     symbolsToggled = pyqtSignal(bool)
-    envelopeToggled = pyqtSignal(bool)
+    envelopeModeChanged = pyqtSignal(str)
 
     def __init__(self, iface, parent=None):
         super(QGISRedProfileDock, self).__init__(parent or iface.mainWindow())
@@ -129,10 +131,24 @@ class QGISRedProfileDock(QDockWidget):
         self.btnSymbols.toggled.connect(self.symbolsToggled)
         toolbar.addWidget(self.btnSymbols)
 
-        self.btnEnvelope = self._makeIconButton(toolbar_widget, ":/images/iconProfileEnvelope.svg",
-                                                self.tr("Show the maximum and minimum at each node over the whole simulation"),
-                                                checkable=True)
-        self.btnEnvelope.toggled.connect(self.envelopeToggled)
+        self.btnEnvelope = self._makeMenuButton(
+            toolbar_widget, ":/images/iconProfileEnvelope.svg",
+            self.tr("Show the maximum and minimum at each node over the whole simulation"))
+        self._envelopeActions = {}
+        envelope_menu = QMenu(self.btnEnvelope)
+        envelope_modes = [
+            ("off", self.tr("Off")),
+            ("band", self.tr("Shaded band only")),
+            ("lines", self.tr("Boundary lines only")),
+            ("both", self.tr("Band and lines")),
+        ]
+        for mode, label in envelope_modes:
+            action = envelope_menu.addAction(label)
+            action.setCheckable(True)
+            action.triggered.connect(lambda _checked=False, m=mode: self._onEnvelopeModeSelected(m))
+            self._envelopeActions[mode] = action
+        self._envelopeActions["off"].setChecked(True)
+        self.btnEnvelope.setMenu(envelope_menu)
         toolbar.addWidget(self.btnEnvelope)
 
         toolbar.addWidget(self._separator(toolbar_widget))
@@ -203,6 +219,7 @@ class QGISRedProfileDock(QDockWidget):
         self.plot = ProfilePlotWidget(self._splitter)
         self.plot.setEmptyText(self.tr("Enable 'Pick path' and click nodes on the map"))
         self.plot.cursorNodeChanged.connect(self._onCursorNode)
+        self.table.currentCellChanged.connect(self._onTableRowChanged)
         self._splitter.addWidget(self.plot)
 
         self._splitter.setStretchFactor(0, 0)
@@ -222,6 +239,19 @@ class QGISRedProfileDock(QDockWidget):
         button.setIconSize(QSize(16, 16))
         button.setFixedSize(QSize(24, 24))
         button.setStyleSheet(_BTN_STYLE)
+        return button
+
+    def _makeMenuButton(self, parent, icon_path, tooltip):
+        button = QToolButton(parent)
+        button.setIcon(QIcon(icon_path))
+        button.setToolTip(tooltip)
+        button.setAutoRaise(True)
+        button.setCheckable(True)
+        button.setToolButtonStyle(Qt.ToolButtonStyle.ToolButtonIconOnly)
+        button.setIconSize(QSize(16, 16))
+        button.setFixedSize(QSize(24, 24))
+        button.setPopupMode(QToolButton.ToolButtonPopupMode.InstantPopup)
+        button.setStyleSheet(_MENU_BTN_STYLE)
         return button
 
     def _addModeButton(self, parent, toolbar, mode, icon_path, tooltip):
@@ -260,8 +290,20 @@ class QGISRedProfileDock(QDockWidget):
     def clearSymbols(self):
         self.plot.clearSymbols()
 
-    def setEnvelope(self, max_points, min_points):
-        self.plot.setEnvelope(max_points, min_points)
+    def setEnvelope(self, max_points, min_points, mode="both", labels=None):
+        self.plot.setEnvelope(max_points, min_points, mode, labels)
+
+    def currentEnvelopeMode(self):
+        for mode, action in self._envelopeActions.items():
+            if action.isChecked():
+                return mode
+        return "off"
+
+    def _onEnvelopeModeSelected(self, mode):
+        for m, action in self._envelopeActions.items():
+            action.setChecked(m == mode)
+        self.btnEnvelope.setChecked(mode != "off")
+        self.envelopeModeChanged.emit(mode)
 
     def clearEnvelope(self):
         self.plot.clearEnvelope()
@@ -285,11 +327,14 @@ class QGISRedProfileDock(QDockWidget):
         if not self.table.isVisible():
             return
         if index is None or index < 0 or index >= self.table.rowCount():
-            self.table.clearSelection()
             return
-        self.table.selectRow(index)
+        if self.table.currentRow() != index:
+            self.table.selectRow(index)
         with suppress(Exception):
             self.table.scrollToItem(self.table.item(index, 0))
+
+    def _onTableRowChanged(self, current_row, current_column=0, previous_row=-1, previous_column=-1):
+        self.plot.setCursorNode(current_row)
 
     def setTableData(self, headers, rows):
         self.table.clear()

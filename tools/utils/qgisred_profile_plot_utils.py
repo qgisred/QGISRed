@@ -1,5 +1,13 @@
 # -*- coding: utf-8 -*-
 
+ENVELOPE_MODES = ("off", "band", "lines", "both")
+
+
+def resolve_envelope_mode(mode):
+    show_band = mode in ("band", "both")
+    show_lines = mode in ("lines", "both")
+    return show_band, show_lines
+
 
 def profile_line_segments(points):
     segments = []

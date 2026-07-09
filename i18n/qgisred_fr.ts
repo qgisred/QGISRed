@@ -6860,6 +6860,34 @@ Left-click: Add a new item below the current selection</source>
 <context>
     <name>ProfileSection</name>
     <message>
+        <source>Maxima</source>
+        <translation>Maximums</translation>
+    </message>
+    <message>
+        <source>Minima</source>
+        <translation>Minimums</translation>
+    </message>
+    <message>
+        <source>Envelope</source>
+        <translation>Enveloppe</translation>
+    </message>
+    <message>
+        <source>Maximum</source>
+        <translation>Maximum</translation>
+    </message>
+    <message>
+        <source>Max. time</source>
+        <translation>Heure max.</translation>
+    </message>
+    <message>
+        <source>Minimum</source>
+        <translation>Minimum</translation>
+    </message>
+    <message>
+        <source>Min. time</source>
+        <translation>Heure min.</translation>
+    </message>
+    <message>
         <source>Longitudinal profile...</source>
         <translation>Profil en long...</translation>
     </message>
@@ -7057,6 +7085,22 @@ Left-click: Add a new item below the current selection</source>
     <message>
         <source>Envelope</source>
         <translation>Enveloppe</translation>
+    </message>
+    <message>
+        <source>Off</source>
+        <translation>Désactivée</translation>
+    </message>
+    <message>
+        <source>Shaded band only</source>
+        <translation>Bande ombrée seule</translation>
+    </message>
+    <message>
+        <source>Boundary lines only</source>
+        <translation>Lignes de contour seules</translation>
+    </message>
+    <message>
+        <source>Band and lines</source>
+        <translation>Bande et lignes</translation>
     </message>
     <message>
         <source>Show the maximum and minimum at each node over the whole simulation</source>
