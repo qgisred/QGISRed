@@ -789,7 +789,7 @@ class AnalysisSection:
             self.pushMessage(self.tr("No network element found at this location."), level=1)
             return
 
-        element_id = str(found_feature.attribute("ID"))
+        element_id = str(found_feature.attribute(QGISRedFieldUtils().getIdFieldName(found_layer)))
         layer_identifier = found_layer.customProperty("qgisred_identifier") if found_layer else ""
         self._resultsEvolutionElement = {
             "category": category,
@@ -818,8 +818,9 @@ class AnalysisSection:
                 break
         if layer is None:
             return None, None
+        idField = QGISRedFieldUtils().getIdFieldName(layer)
         for feature in layer.getFeatures():
-            if str(feature.attribute("ID")) == element_id:
+            if str(feature.attribute(idField)) == element_id:
                 return layer, feature
         return None, None
 
@@ -1283,7 +1284,7 @@ class AnalysisSection:
             highlight.setColor(color if isinstance(color, QColor) else QColor("blue"))
             highlight.setWidth(int(width) if width else 5)
             highlight.show()
-            key = (layer.id(), str(feature.attribute("ID")))
+            key = (layer.id(), str(feature.attribute(QGISRedFieldUtils().getIdFieldName(layer))))
             old = dock.highlights.get(key)
             if old is not None:
                 with suppress(Exception):
@@ -1503,7 +1504,7 @@ class AnalysisSection:
             fid = found_feature.id()
         except Exception:
             fid = None
-        element_id = str(found_feature.attribute("ID"))
+        element_id = str(found_feature.attribute(QGISRedFieldUtils().getIdFieldName(layer)))
         layer_identifier = layer.customProperty("qgisred_identifier") if layer else ""
 
         prop_internal = ""
@@ -1912,7 +1913,7 @@ class AnalysisSection:
     def performTimeSeriesPlotUpdate(self, found_feature, category, layer):
         if found_feature is None:
             return
-        element_id = str(found_feature.attribute("ID"))
+        element_id = str(found_feature.attribute(QGISRedFieldUtils().getIdFieldName(layer)))
 
         prop_internal = ""
         prop_display = ""
@@ -2136,9 +2137,10 @@ class AnalysisSection:
                 layer_by_identifier[identifier] = layer
                 feat_map = {}
                 if layer is not None:
+                    idField = QGISRedFieldUtils().getIdFieldName(layer)
                     with suppress(Exception):
                         for feat in layer.getFeatures():
-                            fid_attr = str(feat.attribute("ID"))
+                            fid_attr = str(feat.attribute(idField))
                             if fid_attr in ids:
                                 feat_map[fid_attr] = feat
                                 if len(feat_map) == len(ids):

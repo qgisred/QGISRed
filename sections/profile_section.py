@@ -4,6 +4,7 @@
 import os
 from contextlib import suppress
 
+from ..tools.utils.qgisred_field_utils import QGISRedFieldUtils
 from ..tools.utils.qgisred_network_graph import build_adjacency_from_meta
 from ..tools.utils.qgisred_profile_path import (
     ProfilePathError,
@@ -333,8 +334,9 @@ class ProfileSection:
             layer = self._profileLayerByIdentifier(identifier)
             if layer is None:
                 continue
+            idField = QGISRedFieldUtils().getIdFieldName(layer)
             for feature in layer.getFeatures(rect):
-                return str(feature.attribute("ID"))
+                return str(feature.attribute(idField))
         return None
 
     def _profileLayerByIdentifier(self, identifier):
@@ -544,8 +546,9 @@ class ProfileSection:
                 layer = self._profileLayerByIdentifier(identifier)
                 if layer is None:
                     continue
+                idField = QGISRedFieldUtils().getIdFieldName(layer)
                 for feature in layer.getFeatures():
-                    if str(feature.attribute("ID")) in link_ids:
+                    if str(feature.attribute(idField)) in link_ids:
                         band.addGeometry(feature.geometry(), layer)
             self._profileHighlights.append(band)
 
@@ -568,8 +571,9 @@ class ProfileSection:
             layer = self._profileLayerByIdentifier(identifier)
             if layer is None:
                 continue
+            idField = QGISRedFieldUtils().getIdFieldName(layer)
             for feature in layer.getFeatures():
-                fid = str(feature.attribute("ID"))
+                fid = str(feature.attribute(idField))
                 if fid in remaining:
                     geoms.append(feature.geometry())
                     remaining.discard(fid)
