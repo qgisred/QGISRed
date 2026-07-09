@@ -7051,6 +7051,18 @@ Click izquierdo: Añadir un nuevo item debajo de la selección actual</translati
         <source>The moved node cannot be connected along the network.</source>
         <translation>El nudo desplazado no puede conectarse a lo largo de la red.</translation>
     </message>
+    <message>
+        <source>Branch</source>
+        <translation>Rama</translation>
+    </message>
+    <message>
+        <source>Click a node of the current profile to start a branch.</source>
+        <translation>Pulse un nudo del perfil actual para iniciar una rama.</translation>
+    </message>
+    <message>
+        <source>Selected node is not connected to the branch along the network.</source>
+        <translation>El nudo seleccionado no está conectado con la rama a lo largo de la red.</translation>
+    </message>
 </context>
 <context>
     <name>QGISRedProfileDock</name>
@@ -7093,6 +7105,10 @@ Click izquierdo: Añadir un nuevo item debajo de la selección actual</translati
     <message>
         <source>Move a profile point: click it, then its new position</source>
         <translation>Mover un nudo de paso: púlselo y luego su nueva posición</translation>
+    </message>
+    <message>
+        <source>Add a branch: click a node of the profile, then the branch endpoints</source>
+        <translation>Añadir una rama: pulse un nudo del perfil y luego los extremos de la rama</translation>
     </message>
     <message>
         <source>Clear</source>

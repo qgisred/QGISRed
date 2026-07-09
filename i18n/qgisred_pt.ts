@@ -6996,6 +6996,18 @@ Clique esquerdo: Adicionar um novo item abaixo da seleção atual</translation>
         <source>The moved node cannot be connected along the network.</source>
         <translation>O nó movido não pode ser ligado ao longo da rede.</translation>
     </message>
+    <message>
+        <source>Branch</source>
+        <translation>Ramo</translation>
+    </message>
+    <message>
+        <source>Click a node of the current profile to start a branch.</source>
+        <translation>Clique num nó do perfil atual para iniciar um ramo.</translation>
+    </message>
+    <message>
+        <source>Selected node is not connected to the branch along the network.</source>
+        <translation>O nó selecionado não está ligado ao ramo ao longo da rede.</translation>
+    </message>
 </context>
 <context>
     <name>QGISRedProfileDock</name>
@@ -7038,6 +7050,10 @@ Clique esquerdo: Adicionar um novo item abaixo da seleção atual</translation>
     <message>
         <source>Move a profile point: click it, then its new position</source>
         <translation>Mover um ponto de passagem: clique nele e depois na nova posição</translation>
+    </message>
+    <message>
+        <source>Add a branch: click a node of the profile, then the branch endpoints</source>
+        <translation>Adicionar um ramo: clique num nó do perfil e depois nos extremos do ramo</translation>
     </message>
     <message>
         <source>Clear</source>

@@ -17,6 +17,7 @@ from ..tools.utils.qgisred_profile_path import (
     move_pass_node,
     flow_direction_along_path,
     envelope_points,
+    node_distance,
 )
 
 _NODE_LAYER_IDENTIFIERS = ("qgisred_junctions", "qgisred_tanks", "qgisred_reservoirs")
@@ -39,6 +40,8 @@ class ProfileSection:
         self._initProfileDock()
         self._profileReferenceNodes = []
         self._profilePath = None
+        self._profileBranches = []
+        self._profileCurrentBranch = None
         self._profileStatCache = None
         self._clearProfileHighlight()
         self.profileDock.clearPlot()
@@ -96,10 +99,15 @@ class ProfileSection:
             self._setProfileMapTool("one", self.profileRemoveCallback)
         elif mode == "move":
             self._setProfileMapTool("two", self.profileMoveCallback)
+        elif mode == "branch":
+            self._profileCurrentBranch = None
+            self._setProfileMapTool("one", self.profileBranchCallback)
 
     def _onProfileClearRequested(self):
         self._profileReferenceNodes = []
         self._profilePath = None
+        self._profileBranches = []
+        self._profileCurrentBranch = None
         self._clearProfileHighlight()
         if getattr(self, "profileDock", None) is not None:
             self.profileDock.clearPlot()
@@ -221,6 +229,57 @@ class ProfileSection:
             return
         self._applyProfileMove(node_id, new_node_id)
 
+    def profileBranchCallback(self, point):
+        node_id = self._resolveProfileNode(point)
+        if node_id is None:
+            self.pushMessage(self.tr("No network node found at this location."), level=1)
+            return
+        tree_distance = self._profileNodeTreeDistance(node_id)
+        current = getattr(self, "_profileCurrentBranch", None)
+        if tree_distance is not None:
+            if not isinstance(getattr(self, "_profileBranches", None), list):
+                self._profileBranches = []
+            branch = {"reference_nodes": [node_id], "offset": tree_distance, "path": None, "distances": None}
+            self._profileBranches.append(branch)
+            self._profileCurrentBranch = branch
+            self._recomputeBranch(branch)
+            self._redrawProfile()
+            return
+        if current is None:
+            self.pushMessage(self.tr("Click a node of the current profile to start a branch."), level=1)
+            return
+        current["reference_nodes"].append(node_id)
+        try:
+            self._recomputeBranch(current)
+        except ProfilePathError:
+            current["reference_nodes"].pop()
+            self.pushMessage(self.tr("Selected node is not connected to the branch along the network."), level=1)
+            return
+        self._redrawProfile()
+
+    def _profileNodeTreeDistance(self, node):
+        main_path = getattr(self, "_profilePath", None)
+        if main_path and main_path["nodes"]:
+            distance = node_distance(main_path["nodes"], self._profileDistances, node)
+            if distance is not None:
+                return distance
+        for branch in getattr(self, "_profileBranches", []) or []:
+            branch_path = branch.get("path")
+            if branch_path and branch_path["nodes"]:
+                distance = node_distance(branch_path["nodes"], branch["distances"], node)
+                if distance is not None:
+                    return distance
+        return None
+
+    def _recomputeBranch(self, branch):
+        adjacency = getattr(self, "_profileAdjacency", None)
+        if adjacency is None:
+            raise ProfilePathError("No network topology available")
+        path = build_profile_path(adjacency, branch["reference_nodes"])
+        branch["path"] = path
+        local = cumulative_distances(path["links"], getattr(self, "_profileLinkLengths", {}))
+        branch["distances"] = [branch["offset"] + d for d in local]
+
     def _applyProfileAdd(self, node_id):
         path = getattr(self, "_profilePath", None)
         if not path or not path["nodes"]:
@@ -300,6 +359,7 @@ class ProfileSection:
         if not meta:
             raise ProfilePathError("No results metadata available")
         adjacency = build_adjacency_from_meta(meta)
+        self._profileAdjacency = adjacency
         self._profileLinkLengths = {
             meta["link_ids"][i]: (meta["link_lengths"][i] if meta["link_lengths"] else 0.0)
             for i in range(len(meta["link_ids"]))
@@ -403,6 +463,8 @@ class ProfileSection:
                 })
             y_label = self.tr(self._profileVariableLabel(key))
 
+        with suppress(Exception):
+            self._appendProfileBranchSeries(series, key)
         dock.setSeries(series, self.tr("Longitudinal profile"), self.tr("Distance"), y_label)
         self._drawProfileHighlight()
         with suppress(Exception):
@@ -419,6 +481,36 @@ class ProfileSection:
             "HeadLoss": "Accumulated head loss",
         }.get(key, key)
 
+    def _appendProfileBranchSeries(self, series, key):
+        branches = getattr(self, "_profileBranches", []) or []
+        if not branches:
+            return
+        node_values = None
+        losses = None
+        if key == "HeadLoss":
+            losses = self._profileLinkLosses()
+        else:
+            node_values = self._profileNodeValues(key)
+        for i, branch in enumerate(branches):
+            branch_path = branch.get("path")
+            if not branch_path or len(branch_path["nodes"]) < 2:
+                continue
+            branch_nodes = branch_path["nodes"]
+            branch_distances = branch["distances"]
+            branch_is_reference = branch_path["is_reference"]
+            reference_indices = {j for j, r in enumerate(branch_is_reference) if r}
+            if key == "HeadLoss":
+                values = cumulative_link_losses(branch_path["links"], losses)
+                points = [(branch_distances[j], values[j]) for j in range(len(branch_nodes))]
+            else:
+                samples = sample_node_variable(branch_nodes, branch_distances, node_values, branch_is_reference)
+                points = [(s["distance"], s["value"]) for s in samples]
+            series.append({
+                "label": self.tr("Branch") + " " + str(i + 1),
+                "points": points,
+                "reference_indices": reference_indices,
+            })
+
     def _drawProfileHighlight(self):
         from qgis.gui import QgsRubberBand, QgsVertexMarker
         from qgis.core import Qgis, QgsGeometry, QgsPointXY
@@ -431,6 +523,19 @@ class ProfileSection:
 
         canvas = self.iface.mapCanvas()
         link_ids = set(path["links"])
+        reference_ids = {
+            path["nodes"][i] for i in range(len(path["nodes"])) if path["is_reference"][i]
+        }
+        for branch in getattr(self, "_profileBranches", []) or []:
+            branch_path = branch.get("path")
+            if branch_path and branch_path["nodes"]:
+                link_ids |= set(branch_path["links"])
+                reference_ids |= {
+                    branch_path["nodes"][i]
+                    for i in range(len(branch_path["nodes"]))
+                    if branch_path["is_reference"][i]
+                }
+
         if link_ids:
             band = QgsRubberBand(canvas, Qgis.GeometryType.Line)
             band.setColor(QColor(214, 39, 40, 200))
@@ -444,9 +549,6 @@ class ProfileSection:
                         band.addGeometry(feature.geometry(), layer)
             self._profileHighlights.append(band)
 
-        reference_ids = {
-            path["nodes"][i] for i in range(len(path["nodes"])) if path["is_reference"][i]
-        }
         node_geoms = self._profileNodeGeometries(reference_ids)
         for geom in node_geoms:
             marker = QgsVertexMarker(canvas)

@@ -98,6 +98,13 @@ def move_pass_node(reference_nodes, node, new_node):
     return [new_node if n == node else n for n in reference_nodes]
 
 
+def node_distance(nodes, distances, node):
+    for i, current in enumerate(nodes):
+        if current == node:
+            return distances[i]
+    return None
+
+
 def envelope_points(nodes, distances, stat_max, stat_min, key):
     max_points = []
     min_points = []

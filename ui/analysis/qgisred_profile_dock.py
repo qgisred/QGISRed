@@ -81,6 +81,8 @@ class QGISRedProfileDock(QDockWidget):
                                              self.tr("Remove a declared profile point"))
         self.btnMove = self._addModeButton(toolbar_widget, toolbar, "move", ":/images/iconProfileMoveNode.svg",
                                            self.tr("Move a profile point: click it, then its new position"))
+        self.btnBranch = self._addModeButton(toolbar_widget, toolbar, "branch", ":/images/iconProfileBranch.svg",
+                                             self.tr("Add a branch: click a node of the profile, then the branch endpoints"))
 
         toolbar.addWidget(self._separator(toolbar_widget))
 

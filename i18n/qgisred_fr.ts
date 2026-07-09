@@ -6919,6 +6919,18 @@ Left-click: Add a new item below the current selection</source>
         <source>The moved node cannot be connected along the network.</source>
         <translation>Le nœud déplacé ne peut pas être connecté le long du réseau.</translation>
     </message>
+    <message>
+        <source>Branch</source>
+        <translation>Branche</translation>
+    </message>
+    <message>
+        <source>Click a node of the current profile to start a branch.</source>
+        <translation>Cliquez sur un nœud du profil actuel pour démarrer une branche.</translation>
+    </message>
+    <message>
+        <source>Selected node is not connected to the branch along the network.</source>
+        <translation>Le nœud sélectionné n'est pas connecté à la branche le long du réseau.</translation>
+    </message>
 </context>
 <context>
     <name>QGISRedProfileDock</name>
@@ -6961,6 +6973,10 @@ Left-click: Add a new item below the current selection</source>
     <message>
         <source>Move a profile point: click it, then its new position</source>
         <translation>Déplacer un point de passage : cliquez dessus, puis sa nouvelle position</translation>
+    </message>
+    <message>
+        <source>Add a branch: click a node of the profile, then the branch endpoints</source>
+        <translation>Ajouter une branche : cliquez sur un nœud du profil, puis les extrémités de la branche</translation>
     </message>
     <message>
         <source>Clear</source>

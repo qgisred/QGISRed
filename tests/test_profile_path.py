@@ -14,6 +14,7 @@ from QGISRed.tools.utils.qgisred_profile_path import (
     move_pass_node,
     flow_direction_along_path,
     envelope_points,
+    node_distance,
 )
 
 
@@ -182,3 +183,11 @@ def test_envelope_points_missing_node_is_none():
     max_pts, min_pts = envelope_points(["A", "X"], [0.0, 50.0], {"A": {"Head": {"Value": 5.0}}}, {}, "Head")
     assert max_pts == [(0.0, 5.0), (50.0, None)]
     assert min_pts == [(0.0, None), (50.0, None)]
+
+
+def test_node_distance_found_and_missing():
+    nodes = ["A", "B", "C"]
+    distances = [0.0, 120.0, 300.0]
+    assert node_distance(nodes, distances, "B") == 120.0
+    assert node_distance(nodes, distances, "A") == 0.0
+    assert node_distance(nodes, distances, "Z") is None
