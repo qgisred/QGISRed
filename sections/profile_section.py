@@ -20,6 +20,7 @@ from ..tools.utils.qgisred_profile_path import (
     envelope_points,
     node_distance,
 )
+from ..tools.utils.qgisred_profile_plot_utils import format_profile_value
 
 _NODE_LAYER_IDENTIFIERS = ("qgisred_junctions", "qgisred_tanks", "qgisred_reservoirs")
 _LINK_LAYER_IDENTIFIERS = ("qgisred_pipes", "qgisred_pumps", "qgisred_valves")
@@ -466,6 +467,8 @@ class ProfileSection:
             y_label = self.tr(self._profileVariableLabel(key))
 
         with suppress(Exception):
+            self._pushProfileTable(dock, series, nodes, distances)
+        with suppress(Exception):
             self._appendProfileBranchSeries(series, key)
         dock.setSeries(series, self.tr("Longitudinal profile"), self.tr("Distance"), y_label)
         self._drawProfileHighlight()
@@ -482,6 +485,17 @@ class ProfileSection:
             "Quality": "Quality",
             "HeadLoss": "Accumulated head loss",
         }.get(key, key)
+
+    def _pushProfileTable(self, dock, series, nodes, distances):
+        headers = [self.tr("Id"), self.tr("Distance")] + [s["label"] for s in series]
+        rows = []
+        for i, node in enumerate(nodes):
+            row = [str(node), format_profile_value(distances[i])]
+            for s in series:
+                value = s["points"][i][1] if i < len(s["points"]) else None
+                row.append(format_profile_value(value))
+            rows.append(row)
+        dock.setTableData(headers, rows)
 
     def _appendProfileBranchSeries(self, series, key):
         branches = getattr(self, "_profileBranches", []) or []

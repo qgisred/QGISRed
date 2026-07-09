@@ -1,10 +1,11 @@
 # -*- coding: utf-8 -*-
 from contextlib import suppress
 
-from qgis.PyQt.QtCore import Qt, QSize, pyqtSignal
-from qgis.PyQt.QtGui import QIcon
+from qgis.PyQt.QtCore import Qt, QSize, QRect, pyqtSignal
+from qgis.PyQt.QtGui import QIcon, QPixmap, QPainter
 from qgis.PyQt.QtWidgets import (
-    QDockWidget, QWidget, QVBoxLayout, QHBoxLayout, QToolButton, QComboBox, QLabel, QFrame
+    QDockWidget, QWidget, QVBoxLayout, QHBoxLayout, QToolButton, QComboBox, QLabel, QFrame,
+    QSplitter, QTableWidget, QTableWidgetItem, QAbstractItemView, QFileDialog, QHeaderView
 )
 
 from .qgisred_profile_plot import ProfilePlotWidget
@@ -134,6 +135,23 @@ class QGISRedProfileDock(QDockWidget):
         self.btnEnvelope.toggled.connect(self.envelopeToggled)
         toolbar.addWidget(self.btnEnvelope)
 
+        toolbar.addWidget(self._separator(toolbar_widget))
+
+        self.btnTable = self._makeIconButton(toolbar_widget, ":/images/iconTsTable.svg",
+                                             self.tr("Show/Hide values table"), checkable=True)
+        self.btnTable.toggled.connect(self._onToggleTable)
+        toolbar.addWidget(self.btnTable)
+
+        self.btnExportCsv = self._makeIconButton(toolbar_widget, ":/images/iconTsExportCsv.svg",
+                                                 self.tr("Export values to CSV"))
+        self.btnExportCsv.clicked.connect(self._onExportCsv)
+        toolbar.addWidget(self.btnExportCsv)
+
+        self.btnExportImage = self._makeIconButton(toolbar_widget, ":/images/iconTsExportImage.svg",
+                                                   self.tr("Save chart as image"))
+        self.btnExportImage.clicked.connect(self._onExportImage)
+        toolbar.addWidget(self.btnExportImage)
+
         toolbar.addSpacing(10)
         variable_label = QLabel(self.tr("Variable:"), toolbar_widget)
         variable_label.setStyleSheet("QLabel { background: transparent; border: none; }")
@@ -150,11 +168,49 @@ class QGISRedProfileDock(QDockWidget):
         toolbar.addStretch(1)
         layout.addWidget(toolbar_widget)
 
-        self.plot = ProfilePlotWidget(container)
-        self.plot.setEmptyText(self.tr("Enable 'Pick path' and click nodes on the map"))
-        layout.addWidget(self.plot, 1)
+        self._splitter = QSplitter(Qt.Orientation.Horizontal, container)
+        self._splitter.setChildrenCollapsible(False)
 
+        # Table pane goes first (left); the plot follows on the right.
+        self.table = QTableWidget(self._splitter)
+        self.table.setObjectName("profileValuesTable")
+        self.table.setAlternatingRowColors(True)
+        self.table.setSelectionBehavior(QAbstractItemView.SelectionBehavior.SelectRows)
+        self.table.setSelectionMode(QAbstractItemView.SelectionMode.ExtendedSelection)
+        self.table.setEditTriggers(QAbstractItemView.EditTrigger.NoEditTriggers)
+        self.table.setSortingEnabled(False)
+        self.table.setHorizontalScrollBarPolicy(Qt.ScrollBarPolicy.ScrollBarAsNeeded)
+        self.table.verticalHeader().setVisible(False)
+        self.table.horizontalHeader().setStretchLastSection(False)
+        with suppress(Exception):
+            hdr_font = self.table.horizontalHeader().font()
+            hdr_font.setBold(True)
+            self.table.horizontalHeader().setFont(hdr_font)
+        self.table.horizontalHeader().setStyleSheet(
+            "QHeaderView::section {"
+            "  font-weight: 700;"
+            "  background-color: #f5f5f5;"
+            "  padding: 2px 6px;"
+            "  border: 1px solid #c8c8c8;"
+            "}"
+        )
+        self.table.setStyleSheet("QTableWidget { gridline-color: #c8c8c8; }")
+        with suppress(Exception):
+            self.table.horizontalHeader().setSectionResizeMode(QHeaderView.ResizeMode.ResizeToContents)
+        self.table.hide()
+        self._splitter.addWidget(self.table)
+
+        self.plot = ProfilePlotWidget(self._splitter)
+        self.plot.setEmptyText(self.tr("Enable 'Pick path' and click nodes on the map"))
+        self.plot.cursorNodeChanged.connect(self._onCursorNode)
+        self._splitter.addWidget(self.plot)
+
+        self._splitter.setStretchFactor(0, 0)
+        self._splitter.setStretchFactor(1, 1)
+
+        layout.addWidget(self._splitter, 1)
         self.setWidget(container)
+        self._updateChartActionsEnabled()
 
     def _makeIconButton(self, parent, icon_path, tooltip, checkable=False):
         button = QToolButton(parent)
@@ -196,6 +252,7 @@ class QGISRedProfileDock(QDockWidget):
     def setSeries(self, series, title, x_label, y_label):
         self.plot.setLabels(title, x_label, y_label)
         self.plot.setSeries(series)
+        self._updateChartActionsEnabled()
 
     def setSymbols(self, node_kinds, link_info):
         self.plot.setSymbols(node_kinds, link_info)
@@ -211,6 +268,143 @@ class QGISRedProfileDock(QDockWidget):
 
     def clearPlot(self):
         self.plot.clear()
+        self.table.clearContents()
+        self.table.setRowCount(0)
+        self._updateChartActionsEnabled()
+
+    def _updateChartActionsEnabled(self):
+        has_data = bool(getattr(self.plot, "_series", []))
+        for button in (self.btnAdd, self.btnRemove, self.btnMove, self.btnBranch, self.btnClear,
+                       self.btnZoomWindow, self.btnPan, self.btnZoomIn, self.btnZoomOut, self.btnFit,
+                       self.btnLabels, self.btnSymbols, self.btnEnvelope,
+                       self.btnTable, self.btnExportCsv, self.btnExportImage):
+            button.setEnabled(has_data)
+        self.table.setVisible(has_data and self.btnTable.isChecked())
+
+    def _onCursorNode(self, index):
+        if not self.table.isVisible():
+            return
+        if index is None or index < 0 or index >= self.table.rowCount():
+            self.table.clearSelection()
+            return
+        self.table.selectRow(index)
+        with suppress(Exception):
+            self.table.scrollToItem(self.table.item(index, 0))
+
+    def setTableData(self, headers, rows):
+        self.table.clear()
+        self.table.setColumnCount(len(headers))
+        self.table.setHorizontalHeaderLabels(headers)
+        self.table.setRowCount(len(rows))
+        for r, row in enumerate(rows):
+            for c, value in enumerate(row):
+                item = QTableWidgetItem("" if value is None else str(value))
+                if c >= 1:
+                    item.setTextAlignment(Qt.AlignmentFlag.AlignRight | Qt.AlignmentFlag.AlignVCenter)
+                self.table.setItem(r, c, item)
+        self.table.resizeColumnsToContents()
+
+    def _onToggleTable(self, checked):
+        self.table.setVisible(checked)
+        if checked:
+            total = max(self._splitter.width(), 600)
+            table_w = min(max(240, int(total * 0.28)), 360)
+            self._splitter.setSizes([table_w, max(200, total - table_w)])
+
+    def _chartHasCurves(self):
+        return bool(getattr(self.plot, "_series", []))
+
+    def _notify(self, text, level=3):
+        with suppress(Exception):
+            self.iface.messageBar().pushMessage("QGISRed", text, level=level, duration=4)
+
+    def _headerText(self, column):
+        item = self.table.horizontalHeaderItem(column)
+        return item.text() if item is not None else ""
+
+    def _onExportCsv(self):
+        import os
+        import csv
+        if self.table.rowCount() == 0 or self.table.columnCount() == 0:
+            self._notify(self.tr("There are no values to export"), level=1)
+            return
+        default_path = os.path.join(os.path.expanduser("~"), "longitudinal_profile.csv")
+        path, _selected = QFileDialog.getSaveFileName(
+            self, self.tr("Export values to CSV"), default_path, self.tr("CSV file (*.csv)"))
+        if not path:
+            return
+        if not path.lower().endswith(".csv"):
+            path += ".csv"
+        list_sep, decimal_sep = ",", "."
+        with suppress(Exception):
+            from .qgisred_results_data import get_regional_separators
+            list_sep, decimal_sep = get_regional_separators()
+        if list_sep == decimal_sep:
+            list_sep = ";"
+        try:
+            with open(path, "w", newline="", encoding="utf-8-sig") as f:
+                writer = csv.writer(f, delimiter=list_sep)
+                writer.writerow([self._headerText(c) for c in range(self.table.columnCount())])
+                for r in range(self.table.rowCount()):
+                    row = []
+                    for c in range(self.table.columnCount()):
+                        item = self.table.item(r, c)
+                        text = item.text() if item is not None else ""
+                        if c >= 1 and decimal_sep != ".":
+                            text = text.replace(".", decimal_sep)
+                        row.append(text)
+                    writer.writerow(row)
+        except Exception:
+            self._notify(self.tr("The values could not be exported"), level=2)
+            return
+        self._notify(self.tr("Values exported to CSV"))
+
+    def _onExportImage(self):
+        import os
+        if not self._chartHasCurves():
+            self._notify(self.tr("There is no chart to export"), level=1)
+            return
+        filters = [self.tr("PNG image (*.png)"), self.tr("SVG image (*.svg)")]
+        default_path = os.path.join(os.path.expanduser("~"), "longitudinal_profile.png")
+        path, _selected = QFileDialog.getSaveFileName(
+            self, self.tr("Save chart as image"), default_path, ";;".join(filters))
+        if not path:
+            return
+        try:
+            if path.lower().endswith(".svg"):
+                self._saveChartSvg(path)
+            else:
+                if not path.lower().endswith((".png", ".jpg", ".jpeg", ".bmp")):
+                    path += ".png"
+                self._renderPlotToPixmap().save(path)
+        except Exception:
+            self._notify(self.tr("The chart image could not be saved"), level=2)
+            return
+        self._notify(self.tr("Chart image saved"))
+
+    def _renderPlotToPixmap(self):
+        pixmap = QPixmap(self.plot.size())
+        pixmap.fill(Qt.GlobalColor.white)
+        painter = QPainter(pixmap)
+        self.plot.render(painter)
+        painter.end()
+        return pixmap
+
+    def _saveChartSvg(self, path):
+        try:
+            from qgis.PyQt.QtSvg import QSvgGenerator
+        except Exception:
+            QSvgGenerator = None
+        if QSvgGenerator is None:
+            self._renderPlotToPixmap().save(path[:-4] + ".png")
+            return
+        generator = QSvgGenerator()
+        generator.setFileName(path)
+        generator.setSize(self.plot.size())
+        generator.setViewBox(QRect(0, 0, self.plot.width(), self.plot.height()))
+        painter = QPainter(generator)
+        self.plot.render(painter)
+        painter.end()
 
     def _onModeToggled(self, mode, checked):
         if self._suppress_mode_signal:

@@ -7063,6 +7063,10 @@ Click izquierdo: Añadir un nuevo item debajo de la selección actual</translati
         <source>Selected node is not connected to the branch along the network.</source>
         <translation>El nudo seleccionado no está conectado con la rama a lo largo de la red.</translation>
     </message>
+    <message>
+        <source>Id</source>
+        <translation>Id</translation>
+    </message>
 </context>
 <context>
     <name>QGISRedProfileDock</name>
@@ -7189,6 +7193,54 @@ Click izquierdo: Añadir un nuevo item debajo de la selección actual</translati
     <message>
         <source>Show the maximum and minimum at each node over the whole simulation</source>
         <translation>Mostrar el máximo y el mínimo en cada nudo en toda la simulación</translation>
+    </message>
+    <message>
+        <source>Show/Hide values table</source>
+        <translation>Mostrar/Ocultar tabla de valores</translation>
+    </message>
+    <message>
+        <source>Export values to CSV</source>
+        <translation>Exportar valores a CSV</translation>
+    </message>
+    <message>
+        <source>Save chart as image</source>
+        <translation>Guardar la gráfica como imagen</translation>
+    </message>
+    <message>
+        <source>CSV file (*.csv)</source>
+        <translation>Archivo CSV (*.csv)</translation>
+    </message>
+    <message>
+        <source>PNG image (*.png)</source>
+        <translation>Imagen PNG (*.png)</translation>
+    </message>
+    <message>
+        <source>SVG image (*.svg)</source>
+        <translation>Imagen SVG (*.svg)</translation>
+    </message>
+    <message>
+        <source>There are no values to export</source>
+        <translation>No hay valores que exportar</translation>
+    </message>
+    <message>
+        <source>The values could not be exported</source>
+        <translation>No se han podido exportar los valores</translation>
+    </message>
+    <message>
+        <source>Values exported to CSV</source>
+        <translation>Valores exportados a CSV</translation>
+    </message>
+    <message>
+        <source>There is no chart to export</source>
+        <translation>No hay ninguna gráfica que exportar</translation>
+    </message>
+    <message>
+        <source>The chart image could not be saved</source>
+        <translation>No se ha podido guardar la imagen de la gráfica</translation>
+    </message>
+    <message>
+        <source>Chart image saved</source>
+        <translation>Imagen de la gráfica guardada</translation>
     </message>
 </context>
 </TS>

@@ -1,5 +1,5 @@
 # -*- coding: utf-8 -*-
-from qgis.PyQt.QtCore import Qt, QPointF, QRectF
+from qgis.PyQt.QtCore import Qt, QPointF, QRectF, pyqtSignal
 from qgis.PyQt.QtGui import QPainter, QColor, QPen, QBrush, QFont, QFontMetrics, QPolygonF
 from qgis.PyQt.QtWidgets import QWidget, QSizePolicy
 
@@ -22,6 +22,8 @@ PALETTE = [
 
 
 class ProfilePlotWidget(QWidget):
+    cursorNodeChanged = pyqtSignal(int)
+
     def __init__(self, parent=None):
         super(ProfilePlotWidget, self).__init__(parent)
         self.setSizePolicy(QSizePolicy.Policy.Expanding, QSizePolicy.Policy.Expanding)
@@ -33,6 +35,7 @@ class ProfilePlotWidget(QWidget):
         self._y_label = ""
         self._empty_text = ""
         self._hover_x = None
+        self._hover_node_index = -1
         self._show_value_labels = False
         self._symbols = None
         self._envelope = None
@@ -590,6 +593,21 @@ class ProfilePlotWidget(QWidget):
             self.setCursor(Qt.CursorShape.ClosedHandCursor)
         super(ProfilePlotWidget, self).mousePressEvent(event)
 
+    def _emitCursorNode(self):
+        index = -1
+        if (self._hover_x is not None and self._last_plot is not None
+                and self._last_view is not None and self._series):
+            plot = self._last_plot
+            if plot.left() <= self._hover_x <= plot.right() and plot.width() > 0:
+                x0, x1 = self._last_view[0], self._last_view[1]
+                data_x = x0 + (self._hover_x - plot.left()) / plot.width() * (x1 - x0)
+                snapshot = cursor_snapshot(self._series, data_x)
+                if snapshot is not None:
+                    index = snapshot["index"]
+        if index != self._hover_node_index:
+            self._hover_node_index = index
+            self.cursorNodeChanged.emit(index)
+
     def mouseMoveEvent(self, event):
         x, y = self._eventPos(event)
         if self._zoom_rect is not None:
@@ -604,6 +622,7 @@ class ProfilePlotWidget(QWidget):
         else:
             self._hover_x = x
             self.update()
+        self._emitCursorNode()
         super(ProfilePlotWidget, self).mouseMoveEvent(event)
 
     def _panTo(self, x, y):
@@ -658,4 +677,5 @@ class ProfilePlotWidget(QWidget):
     def leaveEvent(self, event):
         self._hover_x = None
         self.update()
+        self._emitCursorNode()
         super(ProfilePlotWidget, self).leaveEvent(event)
