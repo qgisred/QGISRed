@@ -39,18 +39,22 @@ class ProfileSection:
             self.pushMessage(self.tr("Run a simulation first to build a longitudinal profile."), level=1)
             return
 
+        first_time = getattr(self, "profileDock", None) is None
         self._initProfileDock()
-        self._profileReferenceNodes = []
-        self._profilePath = None
-        self._profileBranches = []
-        self._profileCurrentBranch = None
-        self._profileStatCache = None
-        self._clearProfileHighlight()
-        self.profileDock.clearPlot()
+        if first_time:
+            self._profileReferenceNodes = []
+            self._profilePath = None
+            self._profileBranches = []
+            self._profileCurrentBranch = None
+            self._profileStatCache = None
+            self._clearProfileHighlight()
+            self.profileDock.clearPlot()
         self.profileDock.show()
         self.profileDock.raise_()
         self.profileDock.setActiveMode("pick")
         self.runProfilePickTool()
+        if not first_time:
+            self._drawProfileHighlight()
 
     def _initProfileDock(self):
         if getattr(self, "profileDock", None) is not None:
@@ -195,6 +199,10 @@ class ProfileSection:
     def _onProfileDockVisibility(self, visible):
         if not visible:
             self._deactivateProfileMapTool()
+            self._clearProfileHighlight()
+        else:
+            with suppress(Exception):
+                self._drawProfileHighlight()
 
     def profilePickCallback(self, point):
         node_id = self._resolveProfileNode(point)

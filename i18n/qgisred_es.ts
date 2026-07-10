@@ -6992,34 +6992,6 @@ Click izquierdo: Añadir un nuevo item debajo de la selección actual</translati
 <context>
     <name>ProfileSection</name>
     <message>
-        <source>Maxima</source>
-        <translation>Máximos</translation>
-    </message>
-    <message>
-        <source>Minima</source>
-        <translation>Mínimos</translation>
-    </message>
-    <message>
-        <source>Envelope</source>
-        <translation>Envolvente</translation>
-    </message>
-    <message>
-        <source>Maximum</source>
-        <translation>Máximo</translation>
-    </message>
-    <message>
-        <source>Max. time</source>
-        <translation>Hora máx.</translation>
-    </message>
-    <message>
-        <source>Minimum</source>
-        <translation>Mínimo</translation>
-    </message>
-    <message>
-        <source>Min. time</source>
-        <translation>Hora mín.</translation>
-    </message>
-    <message>
         <source>Longitudinal profile...</source>
         <translation>Perfil longitudinal...</translation>
     </message>
@@ -7219,22 +7191,6 @@ Click izquierdo: Añadir un nuevo item debajo de la selección actual</translati
         <translation>Envolvente</translation>
     </message>
     <message>
-        <source>Off</source>
-        <translation>Desactivada</translation>
-    </message>
-    <message>
-        <source>Shaded band only</source>
-        <translation>Solo banda sombreada</translation>
-    </message>
-    <message>
-        <source>Boundary lines only</source>
-        <translation>Solo líneas de borde</translation>
-    </message>
-    <message>
-        <source>Band and lines</source>
-        <translation>Banda y líneas</translation>
-    </message>
-    <message>
         <source>Show the maximum and minimum at each node over the whole simulation</source>
         <translation>Mostrar el máximo y el mínimo en cada nudo en toda la simulación</translation>
     </message>
@@ -7249,6 +7205,10 @@ Click izquierdo: Añadir un nuevo item debajo de la selección actual</translati
     <message>
         <source>Save chart as image</source>
         <translation>Guardar la gráfica como imagen</translation>
+    </message>
+    <message>
+        <source>Chart options</source>
+        <translation>Opciones del gráfico</translation>
     </message>
     <message>
         <source>CSV file (*.csv)</source>
@@ -7285,6 +7245,141 @@ Click izquierdo: Añadir un nuevo item debajo de la selección actual</translati
     <message>
         <source>Chart image saved</source>
         <translation>Imagen de la gráfica guardada</translation>
+    </message>
+</context>
+<context>
+    <name>QGISRedProfileChartOptionsDialog</name>
+    <message>
+        <source>QGISRed: Chart options</source>
+        <translation>QGISRed: Opciones del gráfico</translation>
+    </message>
+    <message>
+        <source>Axes</source>
+        <translation>Ejes</translation>
+    </message>
+    <message>
+        <source>Curves</source>
+        <translation>Curvas</translation>
+    </message>
+    <message>
+        <source>General</source>
+        <translation>General</translation>
+    </message>
+    <message>
+        <source>X axis (distance)</source>
+        <translation>Eje X (distancia)</translation>
+    </message>
+    <message>
+        <source>Y axis (variable)</source>
+        <translation>Eje Y (variable)</translation>
+    </message>
+    <message>
+        <source>Title:</source>
+        <translation>Título:</translation>
+    </message>
+    <message>
+        <source>Auto scale</source>
+        <translation>Escala automática</translation>
+    </message>
+    <message>
+        <source>Minimum:</source>
+        <translation>Mínimo:</translation>
+    </message>
+    <message>
+        <source>Maximum:</source>
+        <translation>Máximo:</translation>
+    </message>
+    <message>
+        <source>Show grid</source>
+        <translation>Mostrar rejilla</translation>
+    </message>
+    <message>
+        <source>Curve</source>
+        <translation>Curva</translation>
+    </message>
+    <message>
+        <source>Color</source>
+        <translation>Color</translation>
+    </message>
+    <message>
+        <source>Line style</source>
+        <translation>Estilo de línea</translation>
+    </message>
+    <message>
+        <source>Solid</source>
+        <translation>Continua</translation>
+    </message>
+    <message>
+        <source>Dashed</source>
+        <translation>Discontinua</translation>
+    </message>
+    <message>
+        <source>Dotted</source>
+        <translation>Punteada</translation>
+    </message>
+    <message>
+        <source>Width</source>
+        <translation>Grosor</translation>
+    </message>
+    <message>
+        <source>Markers</source>
+        <translation>Marcadores</translation>
+    </message>
+    <message>
+        <source>Marker size</source>
+        <translation>Tamaño de marcador</translation>
+    </message>
+    <message>
+        <source>Curve color</source>
+        <translation>Color de la curva</translation>
+    </message>
+    <message>
+        <source>Show legend</source>
+        <translation>Mostrar leyenda</translation>
+    </message>
+    <message>
+        <source>Background color</source>
+        <translation>Color de fondo</translation>
+    </message>
+    <message>
+        <source>Plot background:</source>
+        <translation>Fondo del gráfico:</translation>
+    </message>
+    <message>
+        <source>Legend</source>
+        <translation>Leyenda</translation>
+    </message>
+    <message>
+        <source>Position:</source>
+        <translation>Posición:</translation>
+    </message>
+    <message>
+        <source>Left</source>
+        <translation>Izquierda</translation>
+    </message>
+    <message>
+        <source>Center</source>
+        <translation>Centro</translation>
+    </message>
+    <message>
+        <source>Right</source>
+        <translation>Derecha</translation>
+    </message>
+    <message>
+        <source>Font size:</source>
+        <translation>Tamaño de letra:</translation>
+    </message>
+    <message>
+        <source>Symbol size:</source>
+        <translation>Tamaño del símbolo:</translation>
+    </message>
+    <message>
+        <source>Show frame</source>
+        <translation>Mostrar marco</translation>
+    </message>
+    <message>
+        <source>Background:</source>
+        <translation>Fondo:</translation>
     </message>
 </context>
 </TS>

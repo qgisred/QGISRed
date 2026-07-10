@@ -10,6 +10,13 @@ from ...tools.utils.qgisred_profile_plot_utils import (
     format_profile_value,
     resolve_envelope_mode,
 )
+from .profile_chart_settings import ProfileAxisSettings, ProfileGeneralSettings
+
+_LINE_STYLES = {
+    "solid": Qt.PenStyle.SolidLine,
+    "dashed": Qt.PenStyle.DashLine,
+    "dotted": Qt.PenStyle.DotLine,
+}
 
 
 PALETTE = [
@@ -52,6 +59,10 @@ class ProfilePlotWidget(QWidget):
         self._drag_start = None
         self._drag_start_view = None
         self._zoom_rect = None
+        self._axis_cfg_x = ProfileAxisSettings()
+        self._axis_cfg_y = ProfileAxisSettings()
+        self._general_cfg = ProfileGeneralSettings()
+        self._curve_overrides = {}
 
     def setEmptyText(self, text):
         self._empty_text = text
@@ -107,14 +118,46 @@ class ProfilePlotWidget(QWidget):
                 (float(d), None if v is None else float(v))
                 for d, v in s.get("points", [])
             ]
-            normalized.append({
+            base_color = s.get("color") or PALETTE[i % len(PALETTE)]
+            base_width = float(s.get("width", 2.0))
+            entry = {
                 "label": s.get("label", ""),
-                "color": s.get("color") or PALETTE[i % len(PALETTE)],
+                "color": base_color,
+                "base_color": base_color,
+                "base_width": base_width,
                 "points": points,
                 "reference": set(s.get("reference_indices", set())),
-                "width": float(s.get("width", 2.0)),
-            })
+                "width": base_width,
+                "line_style": "solid",
+                "show_markers": True,
+                "marker_size": 4.0,
+            }
+            self._applyCurveOverride(entry)
+            normalized.append(entry)
         self._series = normalized
+        self.update()
+
+    def _applyCurveOverride(self, entry):
+        override = self._curve_overrides.get(entry["label"])
+        if override is None:
+            return
+        if override.color_hex:
+            color = QColor(override.color_hex)
+            if color.isValid():
+                entry["color"] = color
+        entry["width"] = float(override.width)
+        entry["line_style"] = override.line_style
+        entry["show_markers"] = bool(override.show_markers)
+        entry["marker_size"] = float(override.marker_size)
+
+    def applyChartSettings(self):
+        for entry in self._series:
+            entry["color"] = entry.get("base_color", entry["color"])
+            entry["width"] = entry.get("base_width", 2.0)
+            entry["line_style"] = "solid"
+            entry["show_markers"] = True
+            entry["marker_size"] = 4.0
+            self._applyCurveOverride(entry)
         self.update()
 
     def clear(self):
@@ -154,6 +197,8 @@ class ProfilePlotWidget(QWidget):
             return None
         if self._view_x is not None:
             x0, x1 = self._view_x
+        elif not self._axis_cfg_x.auto_scale:
+            x0, x1 = self._axis_cfg_x.fixed_min, self._axis_cfg_x.fixed_max
         else:
             xs = compute_nice_scale(bounds[0], bounds[1], 8)
             x0, x1 = xs.axis_min, xs.axis_max
@@ -173,6 +218,11 @@ class ProfilePlotWidget(QWidget):
         return lo, hi
 
     def _autoYForXRange(self, x0, x1):
+        if not self._axis_cfg_y.auto_scale:
+            y0, y1 = self._axis_cfg_y.fixed_min, self._axis_cfg_y.fixed_max
+            if y1 == y0:
+                y1 = y0 + 1.0
+            return y0, y1
         values = []
         for s in self._series:
             for d, v in s["points"]:
@@ -277,7 +327,7 @@ class ProfilePlotWidget(QWidget):
         full = QRectF(self.rect())
         painter.fillRect(full, QColor(255, 255, 255))
 
-        left, right, top, bottom = 64.0, 18.0, 30.0, 48.0
+        left, right, top, bottom = 64.0, 18.0, 42.0, 48.0
         plot = QRectF(left, top, max(1.0, full.width() - left - right), max(1.0, full.height() - top - bottom))
 
         view = self._currentView()
@@ -299,7 +349,7 @@ class ProfilePlotWidget(QWidget):
         def py(v):
             return plot.bottom() - (v - y0) / (y1 - y0) * plot.height()
 
-        painter.fillRect(plot, QColor(250, 252, 255))
+        painter.fillRect(plot, self._plotBgColor())
 
         grid_pen = QPen(QColor(223, 233, 244))
         grid_pen.setWidthF(1.0)
@@ -310,8 +360,9 @@ class ProfilePlotWidget(QWidget):
             if t < y0 - 1e-9 or t > y1 + 1e-9:
                 continue
             y = py(t)
-            painter.setPen(grid_pen)
-            painter.drawLine(QPointF(plot.left(), y), QPointF(plot.right(), y))
+            if self._axis_cfg_y.show_grid:
+                painter.setPen(grid_pen)
+                painter.drawLine(QPointF(plot.left(), y), QPointF(plot.right(), y))
             painter.setPen(tick_pen)
             painter.drawText(QRectF(0, y - 8, left - 6, 16),
                              Qt.AlignmentFlag.AlignRight | Qt.AlignmentFlag.AlignVCenter,
@@ -321,8 +372,9 @@ class ProfilePlotWidget(QWidget):
             if t < x0 - 1e-9 or t > x1 + 1e-9:
                 continue
             x = px(t)
-            painter.setPen(grid_pen)
-            painter.drawLine(QPointF(x, plot.top()), QPointF(x, plot.bottom()))
+            if self._axis_cfg_x.show_grid:
+                painter.setPen(grid_pen)
+                painter.drawLine(QPointF(x, plot.top()), QPointF(x, plot.bottom()))
             painter.setPen(tick_pen)
             painter.drawText(QRectF(x - 40, plot.bottom() + 4, 80, 14),
                              Qt.AlignmentFlag.AlignHCenter | Qt.AlignmentFlag.AlignTop,
@@ -345,9 +397,14 @@ class ProfilePlotWidget(QWidget):
         painter.restore()
 
         self._drawTitleAndAxisLabels(painter, full, plot)
-        self._drawLegend(painter, plot)
+        if self._general_cfg.show_legend:
+            self._drawLegend(painter, plot)
         self._drawZoomRect(painter, plot)
         painter.end()
+
+    def _plotBgColor(self):
+        color = QColor(self._general_cfg.plot_bg_hex)
+        return color if color.isValid() else QColor(250, 252, 255)
 
     def _drawEnvelope(self, painter, px, py):
         show_band, show_lines = resolve_envelope_mode(self._envelope.get("mode", "both"))
@@ -400,17 +457,21 @@ class ProfilePlotWidget(QWidget):
 
         pen = QPen(color)
         pen.setWidthF(s["width"])
+        pen.setStyle(_LINE_STYLES.get(s.get("line_style", "solid"), Qt.PenStyle.SolidLine))
         painter.setPen(pen)
         painter.setBrush(Qt.BrushStyle.NoBrush)
         for segment in segments:
             painter.drawPolyline(QPolygonF([QPointF(px(d), py(v)) for d, v in segment]))
 
+        if not s.get("show_markers", True):
+            return
+        marker_size = s.get("marker_size", 4.0)
         painter.setPen(QPen(QColor(255, 255, 255), 1.2))
         for idx, (d, v) in enumerate(points):
             if v is None or idx not in s["reference"]:
                 continue
             painter.setBrush(QBrush(color))
-            painter.drawEllipse(QPointF(px(d), py(v)), 4.0, 4.0)
+            painter.drawEllipse(QPointF(px(d), py(v)), marker_size, marker_size)
 
     def _drawSymbols(self, painter, s, px, py):
         points = s["points"]
@@ -505,15 +566,17 @@ class ProfilePlotWidget(QWidget):
     def _drawTitleAndAxisLabels(self, painter, full, plot):
         painter.setPen(QColor(30, 30, 30))
         painter.setFont(QFont("Arial", 8))
-        if self._x_label:
+        x_title = self._axis_cfg_x.title or self._x_label
+        y_title = self._axis_cfg_y.title or self._y_label
+        if x_title:
             painter.drawText(QRectF(plot.left(), full.height() - 16, plot.width(), 14),
-                             Qt.AlignmentFlag.AlignHCenter | Qt.AlignmentFlag.AlignTop, self._x_label)
-        if self._y_label:
+                             Qt.AlignmentFlag.AlignHCenter | Qt.AlignmentFlag.AlignTop, x_title)
+        if y_title:
             painter.save()
             painter.translate(14, plot.center().y())
             painter.rotate(-90)
             painter.drawText(QRectF(-plot.height() / 2, -10, plot.height(), 14),
-                             Qt.AlignmentFlag.AlignHCenter | Qt.AlignmentFlag.AlignVCenter, self._y_label)
+                             Qt.AlignmentFlag.AlignHCenter | Qt.AlignmentFlag.AlignVCenter, y_title)
             painter.restore()
 
     def _legendEntries(self):
@@ -538,26 +601,45 @@ class ProfilePlotWidget(QWidget):
         entries = self._legendEntries()
         if not entries:
             return
-        painter.setFont(QFont("Arial", 8))
-        fm = QFontMetrics(painter.font())
-        box = 18
+        cfg = self._general_cfg
+        box = max(6, int(cfg.legend_symbol_size))
         gap = 14
+        painter.setFont(QFont("Arial", max(6, int(cfg.legend_font_size))))
+        fm = QFontMetrics(painter.font())
         widths = [box + 4 + fm.horizontalAdvance(e["label"]) for e in entries]
         total = sum(widths) + gap * max(0, len(entries) - 1)
-        x = plot.left() + max(0.0, (plot.width() - total) / 2.0)
-        y = plot.top() - 18
+        if cfg.legend_position == "left":
+            x = plot.left() + 4
+        elif cfg.legend_position == "right":
+            x = plot.right() - total - 4
+        else:
+            x = plot.left() + max(0.0, (plot.width() - total) / 2.0)
+        gap_below = 10.0
+        row_h = fm.height() + 6.0
+        frame_bottom = plot.top() - gap_below
+        frame_top = frame_bottom - row_h
+        cy = (frame_top + frame_bottom) / 2.0
+
+        bg_hex = (cfg.legend_bg_hex or "").strip()
+        if cfg.legend_show_frame or bg_hex:
+            rect = QRectF(x - 6, frame_top, total + 12, row_h)
+            painter.setBrush(QBrush(QColor(bg_hex)) if bg_hex else Qt.BrushStyle.NoBrush)
+            painter.setPen(QPen(QColor(150, 160, 175), 1.0) if cfg.legend_show_frame else Qt.PenStyle.NoPen)
+            painter.drawRoundedRect(rect, 3, 3)
+
+        baseline = cy + (fm.ascent() - fm.descent()) / 2.0
         for i, e in enumerate(entries):
             if e["kind"] == "band":
                 painter.setPen(Qt.PenStyle.NoPen)
                 painter.setBrush(QBrush(e["color"]))
-                painter.drawRect(QRectF(x, y + 2, box, 8))
+                painter.drawRect(QRectF(x, cy - 4, box, 8))
             else:
                 style = Qt.PenStyle.DashLine if e.get("dashed") else Qt.PenStyle.SolidLine
                 painter.setPen(QPen(e["color"], e["width"], style))
-                painter.drawLine(QPointF(x, y + 6), QPointF(x + box, y + 6))
+                painter.drawLine(QPointF(x, cy), QPointF(x + box, cy))
             painter.setPen(QColor(40, 40, 40))
             painter.setBrush(Qt.BrushStyle.NoBrush)
-            painter.drawText(QPointF(x + box + 4, y + 9), e["label"])
+            painter.drawText(QPointF(x + box + 4, baseline), e["label"])
             x += widths[i] + gap
 
     def _drawCursor(self, painter, plot, px, py, x0, x1):

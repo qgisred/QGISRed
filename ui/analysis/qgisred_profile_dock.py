@@ -151,6 +151,11 @@ class QGISRedProfileDock(QDockWidget):
         self.btnEnvelope.setMenu(envelope_menu)
         toolbar.addWidget(self.btnEnvelope)
 
+        self.btnChartOptions = self._makeIconButton(toolbar_widget, ":/images/iconTsAxes.svg",
+                                                    self.tr("Chart options"))
+        self.btnChartOptions.clicked.connect(self._onChartOptions)
+        toolbar.addWidget(self.btnChartOptions)
+
         toolbar.addWidget(self._separator(toolbar_widget))
 
         self.btnTable = self._makeIconButton(toolbar_widget, ":/images/iconTsTable.svg",
@@ -318,7 +323,7 @@ class QGISRedProfileDock(QDockWidget):
         has_data = bool(getattr(self.plot, "_series", []))
         for button in (self.btnAdd, self.btnRemove, self.btnMove, self.btnBranch, self.btnClear,
                        self.btnZoomWindow, self.btnPan, self.btnZoomIn, self.btnZoomOut, self.btnFit,
-                       self.btnLabels, self.btnSymbols, self.btnEnvelope,
+                       self.btnLabels, self.btnSymbols, self.btnEnvelope, self.btnChartOptions,
                        self.btnTable, self.btnExportCsv, self.btnExportImage):
             button.setEnabled(has_data)
         self.table.setVisible(has_data and self.btnTable.isChecked())
@@ -463,6 +468,11 @@ class QGISRedProfileDock(QDockWidget):
             self.profileModeChanged.emit(mode)
         elif not any(button.isChecked() for button in self._modeButtons.values()):
             self.profileModeChanged.emit("")
+
+    def _onChartOptions(self):
+        from .qgisred_profile_chart_options_dialog import QGISRedProfileChartOptionsDialog
+        dialog = QGISRedProfileChartOptionsDialog(self.plot, self)
+        dialog.exec()
 
     def _onToggleValueLabels(self, checked):
         self.plot.setShowValueLabels(checked)
