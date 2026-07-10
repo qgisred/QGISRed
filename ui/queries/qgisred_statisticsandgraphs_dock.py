@@ -511,7 +511,8 @@ class QGISRedStatisticsDock(QDockWidget, formClass):
         propertyIndex = self.cbProperty.findData(state.get("property")) if state.get("property") else -1
         if propertyIndex >= 0:
             self.cbProperty.setCurrentIndex(propertyIndex)
-        classifyIndex = self.cbClassifiedBy.findData(state.get("classifyBy")) if state.get("classifyBy") else -1
+        classifyValue = state.get("classifyBy")
+        classifyIndex = self.cbClassifiedBy.findData(classifyValue) if classifyValue is not None else -1
         if classifyIndex >= 0:
             self.cbClassifiedBy.setCurrentIndex(classifyIndex)
             self.updateRanged()
@@ -681,6 +682,8 @@ class QGISRedStatisticsDock(QDockWidget, formClass):
     def onRangedChanged(self):
         if self.suspendCascade:
             return
+        if not self.cbClassifiedBy.currentData(Qt.ItemDataRole.UserRole):
+            return
         rangedId = self.cbRanged.currentData(Qt.ItemDataRole.UserRole) or ""
         isFixedInterval = rangedId == "FixedInterval"
         isManual = rangedId == "Manual"
@@ -837,6 +840,7 @@ class QGISRedStatisticsDock(QDockWidget, formClass):
     def updateClassifyBy(self):
         self.suspendCascade = True
         self.cbClassifiedBy.clear()
+        self.cbClassifiedBy.addItem(self.tr("None"), "")
         layer = self.resolveLayer()
         if layer is None:
             self.suspendCascade = False
@@ -1031,7 +1035,16 @@ class QGISRedStatisticsDock(QDockWidget, formClass):
         self.suspendCascade = True
         self.cbRanged.clear()
         classifyField = self.cbClassifiedBy.currentData(Qt.ItemDataRole.UserRole)
-        if not classifyField:
+        hasField = bool(classifyField)
+        self.labelRanged.setVisible(hasField)
+        self.cbRanged.setVisible(hasField)
+        self.mSecondClassGroupBox.setEnabled(hasField)
+        if not hasField:
+            self.labelClasses.setVisible(False)
+            self.cbClasses.setVisible(False)
+            self.labelIntervalRange.setVisible(False)
+            self.spinIntervalRange.setVisible(False)
+            self.btManualBreaks.setVisible(False)
             self.suspendCascade = False
             self.updateComboBoxBackground(self.cbRanged)
             return
@@ -1389,45 +1402,51 @@ class QGISRedStatisticsDock(QDockWidget, formClass):
         elementIdentifier = self.cbElementType.currentData(Qt.ItemDataRole.UserRole)
         propertyField = self.cbProperty.currentData(Qt.ItemDataRole.UserRole)
         classifyField = self.cbClassifiedBy.currentData(Qt.ItemDataRole.UserRole)
-        if not propertyField or not classifyField:
+        if not propertyField:
             return
 
         propertyLayer = self.resolveLayerForClassifyField(propertyField)
-        classifyLayer = self.resolveLayerForClassifyField(classifyField)
-        if propertyLayer is None or classifyLayer is None:
+        if propertyLayer is None:
             QMessageBox.warning(self, self.tr("No layer"), self.tr("Cannot resolve the data layer for the selected fields."))
             return
-        if propertyLayer is not classifyLayer:
-            QMessageBox.warning(
-                self,
-                self.tr("Layer mismatch"),
-                self.tr("Property and classification fields must come from the same layer."),
-            )
-            return
+        if classifyField:
+            classifyLayer = self.resolveLayerForClassifyField(classifyField)
+            if classifyLayer is None:
+                QMessageBox.warning(self, self.tr("No layer"), self.tr("Cannot resolve the data layer for the selected fields."))
+                return
+            if propertyLayer is not classifyLayer:
+                QMessageBox.warning(
+                    self,
+                    self.tr("Layer mismatch"),
+                    self.tr("Property and classification fields must come from the same layer."),
+                )
+                return
+            if classifyLayer.fields().indexFromName(classifyField) < 0:
+                QMessageBox.warning(self, self.tr("Field missing"), self.tr("Classification field '{0}' was not found on the layer.").format(classifyField))
+                return
 
         if propertyLayer.fields().indexFromName(propertyField) < 0:
             QMessageBox.warning(self, self.tr("Field missing"), self.tr("Property field '{0}' was not found on the layer.").format(propertyField))
-            return
-        if classifyLayer.fields().indexFromName(classifyField) < 0:
-            QMessageBox.warning(self, self.tr("Field missing"), self.tr("Classification field '{0}' was not found on the layer.").format(classifyField))
             return
 
         featureRequest = self.buildFeatureRequest(propertyLayer)
         if featureRequest is False:
             return
 
-        breaks = self.resolveBreaks(
-            propertyLayer,
-            classifyField,
-            self.cbRanged.currentData(Qt.ItemDataRole.UserRole) or "EqualInterval",
-            self.cbClasses.value() or DEFAULT_NUM_CLASSES,
-            self.spinIntervalRange.value(),
-            self.manualBreaks,
-        )
-        if breaks is None:
-            return
+        breaks = None
+        if classifyField:
+            breaks = self.resolveBreaks(
+                propertyLayer,
+                classifyField,
+                self.cbRanged.currentData(Qt.ItemDataRole.UserRole) or "EqualInterval",
+                self.cbClasses.value() or DEFAULT_NUM_CLASSES,
+                self.spinIntervalRange.value(),
+                self.manualBreaks,
+            )
+            if breaks is None:
+                return
 
-        secondField = self.cbSecondClassifiedBy.currentData(Qt.ItemDataRole.UserRole)
+        secondField = self.cbSecondClassifiedBy.currentData(Qt.ItemDataRole.UserRole) if classifyField else ""
         secondBreaks = None
         if secondField:
             secondLayer = self.resolveLayerForClassifyField(secondField)
@@ -1504,6 +1523,11 @@ class QGISRedStatisticsDock(QDockWidget, formClass):
         featureRequest = context["featureRequest"]
         elementIdentifier = context["elementIdentifier"]
 
+        if not classifyField:
+            self.renderUnclassifiedAnalysis(context)
+            return
+
+        self.mStatisticsGroupBox.show()
         selectedSecondIndex = None
         if secondField and secondBreaks is not None and self.cbSecondClassValue.currentIndex() > 0:
             selectedSecondIndex = self.cbSecondClassValue.currentIndex() - 1
@@ -1578,6 +1602,45 @@ class QGISRedStatisticsDock(QDockWidget, formClass):
             self.labelTableStatistic.hide()
             self.cbTableStatistic.hide()
             self.populateTable(bins, prettyClassify, prettyProperty, propertyUnit, elementIdentifier, propertyField)
+
+    def renderUnclassifiedAnalysis(self, context):
+        # No classification: aggregate everything into a single bin and show the table only
+        propertyLayer = context["propertyLayer"]
+        propertyField = context["propertyField"]
+        featureRequest = context["featureRequest"]
+        elementIdentifier = context["elementIdentifier"]
+        self.isEnumeratedTarget = not self.isNumericField(propertyLayer, propertyField)
+        overallBin = self.makeBin(label=self.tr("All"), lo=None, hi=None, category=None)
+        self.lastNullCount = 0
+        self.lastOutOfRangeCount = 0
+        featureIterator = propertyLayer.getFeatures(featureRequest) if featureRequest is not None else propertyLayer.getFeatures()
+        for feature in featureIterator:
+            propertyValue = feature[propertyField]
+            if propertyValue is None:
+                self.lastNullCount += 1
+                continue
+            self.accumulateValue(overallBin, propertyValue, propertyValue)
+        self.finalizeBins([overallBin])
+
+        popout = getattr(self, "_histogramPopout", None)
+        if popout is not None and popout.isVisible():
+            self._closeHistogramPopout()
+        self.histogram.clear()
+        self._chartBins = []
+        self.cbStatistic.blockSignals(True)
+        self.cbStatistic.clear()
+        self.cbStatistic.blockSignals(False)
+        self.mStatisticsGroupBox.hide()
+
+        prettyProperty = self.fieldUtils.getProperty(normalize_element(elementIdentifier), propertyField) or propertyField
+        propertyUnit = self.fieldUtils.getUnitAbbreviation(normalize_element(elementIdentifier), propertyField) or ""
+        self._tableMatrix = None
+        self.labelTableStatistic.hide()
+        self.cbTableStatistic.hide()
+        self.populateTable(
+            [overallBin], self.cbElementType.currentText(), prettyProperty, propertyUnit,
+            elementIdentifier, propertyField, includeTotal=False,
+        )
 
     def buildChartTitle(self, context, prettyProperty, prettyClassify, selectedSecondIndex):
         secondField = context["secondField"]
@@ -1997,11 +2060,11 @@ class QGISRedStatisticsDock(QDockWidget, formClass):
         decimals = len(avgText.split(".")[1]) if "." in avgText else 0
         return "{:.{}f}".format(float(value), decimals)
 
-    def populateTable(self, bins, prettyClassify, prettyProperty, propertyUnit, elementIdentifier, propertyField, groupHeader=None, groupLabel=None):
+    def populateTable(self, bins, prettyClassify, prettyProperty, propertyUnit, elementIdentifier, propertyField, groupHeader=None, groupLabel=None, includeTotal=True):
         if self.isEnumeratedTarget:
-            self.populateEnumeratedTable(bins, prettyClassify, prettyProperty)
+            self.populateEnumeratedTable(bins, prettyClassify, prettyProperty, includeTotal=includeTotal)
         else:
-            self.populateNumericTable(bins, prettyClassify, prettyProperty, propertyField, elementIdentifier)
+            self.populateNumericTable(bins, prettyClassify, prettyProperty, propertyField, elementIdentifier, includeTotal=includeTotal)
         if groupHeader is not None and groupLabel is not None:
             self.insertSelectedGroupColumn(groupHeader, groupLabel)
 
@@ -2099,7 +2162,7 @@ class QGISRedStatisticsDock(QDockWidget, formClass):
             self.tbExcel.setColumnWidth(column, max(self.tbExcel.sizeHintForColumn(column), minimumWidth))
         self.tbExcel.verticalHeader().setVisible(False)
 
-    def populateNumericTable(self, bins, prettyClassify, prettyProperty, propertyField, elementIdentifier):
+    def populateNumericTable(self, bins, prettyClassify, prettyProperty, propertyField, elementIdentifier, includeTotal=True):
         propertyDecimals = 0
         useSum = self.usesSumColumn(propertyField, elementIdentifier)
         if useSum:
@@ -2108,7 +2171,7 @@ class QGISRedStatisticsDock(QDockWidget, formClass):
             headers = [prettyClassify, self.tr("Count"), self.tr("Avg"), self.tr("Min"), self.tr("Max"), self.tr("StdD")]
         self.tbExcel.setColumnCount(len(headers))
         self.tbExcel.setHorizontalHeaderLabels(headers)
-        self.tbExcel.setRowCount(len(bins) + 1)
+        self.tbExcel.setRowCount(len(bins) + (1 if includeTotal else 0))
 
         totalCount = 0
         totalSum = 0.0
@@ -2146,22 +2209,23 @@ class QGISRedStatisticsDock(QDockWidget, formClass):
             variance = max(0.0, (totalSumOfSquares - totalCount * totalAvg * totalAvg) / (totalCount - 1))
             totalStdDev = math.sqrt(variance)
 
-        totalRow = len(bins)
-        totalAvgText = self.formatNumber(totalAvg, propertyDecimals) if totalCount else ""
-        totalMinText = self.formatNumber(totalMin, propertyDecimals) if totalMin is not None else ""
-        totalMaxText = self.formatNumber(totalMax, propertyDecimals) if totalMax is not None else ""
-        self.setTableItem(totalRow, 0, self.tr("Total"), bold=True)
-        self.setTableItem(totalRow, 1, str(totalCount), bold=True)
-        if useSum:
-            self.setTableItem(totalRow, 2, self.formatNumber(totalSum, propertyDecimals), bold=True)
-            self.setTableItem(totalRow, 3, totalAvgText, bold=True)
-            self.setTableItem(totalRow, 4, totalMinText, bold=True)
-            self.setTableItem(totalRow, 5, totalMaxText, bold=True)
-        else:
-            self.setTableItem(totalRow, 2, totalAvgText, bold=True)
-            self.setTableItem(totalRow, 3, totalMinText, bold=True)
-            self.setTableItem(totalRow, 4, totalMaxText, bold=True)
-            self.setTableItem(totalRow, 5, self.formatLikeAvg(totalStdDev, totalAvgText) if totalCount > 1 else "", bold=True)
+        if includeTotal:
+            totalRow = len(bins)
+            totalAvgText = self.formatNumber(totalAvg, propertyDecimals) if totalCount else ""
+            totalMinText = self.formatNumber(totalMin, propertyDecimals) if totalMin is not None else ""
+            totalMaxText = self.formatNumber(totalMax, propertyDecimals) if totalMax is not None else ""
+            self.setTableItem(totalRow, 0, self.tr("Total"), bold=True)
+            self.setTableItem(totalRow, 1, str(totalCount), bold=True)
+            if useSum:
+                self.setTableItem(totalRow, 2, self.formatNumber(totalSum, propertyDecimals), bold=True)
+                self.setTableItem(totalRow, 3, totalAvgText, bold=True)
+                self.setTableItem(totalRow, 4, totalMinText, bold=True)
+                self.setTableItem(totalRow, 5, totalMaxText, bold=True)
+            else:
+                self.setTableItem(totalRow, 2, totalAvgText, bold=True)
+                self.setTableItem(totalRow, 3, totalMinText, bold=True)
+                self.setTableItem(totalRow, 4, totalMaxText, bold=True)
+                self.setTableItem(totalRow, 5, self.formatLikeAvg(totalStdDev, totalAvgText) if totalCount > 1 else "", bold=True)
 
         header = self.tbExcel.horizontalHeader()
         header.setSectionResizeMode(0, QHeaderView.ResizeMode.Stretch)
@@ -2170,11 +2234,11 @@ class QGISRedStatisticsDock(QDockWidget, formClass):
         header.setStretchLastSection(False)
         self.tbExcel.verticalHeader().setVisible(False)
 
-    def populateEnumeratedTable(self, bins, prettyClassify, prettyProperty):
+    def populateEnumeratedTable(self, bins, prettyClassify, prettyProperty, includeTotal=True):
         headers = [prettyClassify, self.tr("Count"), prettyProperty]
         self.tbExcel.setColumnCount(len(headers))
         self.tbExcel.setHorizontalHeaderLabels(headers)
-        self.tbExcel.setRowCount(len(bins) + 1)
+        self.tbExcel.setRowCount(len(bins) + (1 if includeTotal else 0))
 
         totalCount = 0
         totalValues = set()
@@ -2190,19 +2254,20 @@ class QGISRedStatisticsDock(QDockWidget, formClass):
             totalCount += binData["count"]
             totalValues.update(binData["values"])
 
-        totalSorted = sorted(totalValues, key=lambda item: str(item))
-        totalJoinedFull = ", ".join(totalSorted)
-        totalJoined = self.truncateEnumString(totalJoinedFull)
-        totalRow = len(bins)
-        self.setTableItem(totalRow, 0, self.tr("Total"), bold=True)
-        self.setTableItem(totalRow, 1, str(totalCount), bold=True)
-        totalItem = QTableWidgetItem(totalJoined)
-        totalItem.setToolTip(self.truncateEnumString(totalJoinedFull))
-        font = totalItem.font()
-        font.setBold(True)
-        totalItem.setFont(font)
-        totalItem.setBackground(QBrush(QColor(255, 248, 220)))
-        self.tbExcel.setItem(totalRow, 2, totalItem)
+        if includeTotal:
+            totalSorted = sorted(totalValues, key=lambda item: str(item))
+            totalJoinedFull = ", ".join(totalSorted)
+            totalJoined = self.truncateEnumString(totalJoinedFull)
+            totalRow = len(bins)
+            self.setTableItem(totalRow, 0, self.tr("Total"), bold=True)
+            self.setTableItem(totalRow, 1, str(totalCount), bold=True)
+            totalItem = QTableWidgetItem(totalJoined)
+            totalItem.setToolTip(self.truncateEnumString(totalJoinedFull))
+            font = totalItem.font()
+            font.setBold(True)
+            totalItem.setFont(font)
+            totalItem.setBackground(QBrush(QColor(255, 248, 220)))
+            self.tbExcel.setItem(totalRow, 2, totalItem)
 
         header = self.tbExcel.horizontalHeader()
         header.setSectionResizeMode(0, QHeaderView.ResizeMode.ResizeToContents)
