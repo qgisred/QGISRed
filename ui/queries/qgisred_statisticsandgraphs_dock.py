@@ -10,6 +10,7 @@ from qgis.PyQt.QtCore import Qt, QSize, QTimer
 from qgis.PyQt.QtGui import QBrush, QColor, QIcon
 from qgis.PyQt.QtWidgets import (
     QAbstractItemView,
+    QComboBox,
     QDockWidget,
     QFileDialog,
     QHBoxLayout,
@@ -33,7 +34,7 @@ from qgis.core import (
 from ...tools.utils.qgisred_field_utils import QGISRedFieldUtils, normalize_element
 from ...tools.utils.qgisred_layer_utils import QGISRedLayerUtils
 from ...tools.utils.qgisred_project_utils import QGISRedProjectUtils
-from ...tools.utils.qgisred_ui_utils import QGISRedUIUtils
+from ...tools.utils.qgisred_ui_utils import QGISRED_COMBO_STYLE, QGISRedUIUtils
 from .qgisred_statistics_manual_breaks_dialog import QGISRedStatisticsManualBreaksDialog
 from .statistics_histogram_widget import StatisticsHistogramWidget
 
@@ -47,8 +48,6 @@ DEFAULT_NUM_CLASSES = 5
 CATEGORICAL_FIELD_NAMES = {"Material", "Type", "Status", "InstalDate", "Tag"}
 
 WHITE_STYLE = (
-    "QComboBox { background-color: white; }"
-    "QComboBox QAbstractItemView { background-color: white; selection-background-color: #3399ff; selection-color: white; }"
     "QLineEdit { background-color: white; }"
     "QSpinBox, QDoubleSpinBox { background-color: white; }"
 )
@@ -189,15 +188,13 @@ class QGISRedStatisticsDock(QDockWidget, formClass):
         self.setupHistogram()
         self.setupIcons()
         self.applyWhiteStyle()
+        for combo in self.findChildren(QComboBox):
+            QGISRedUIUtils.applyComboStyle(combo)
         self.setupConnections()
         self.initializeElementTypes()
         self.loadDefaults()
         self.setupProjectSignals()
         QGISRedUIUtils.applyDockStyle(self, "#388E3C")
-
-        from qgis.PyQt.QtWidgets import QComboBox
-        for combo in self.findChildren(QComboBox):
-            QGISRedUIUtils.applyComboStyle(combo)
 
     def closeEvent(self, event):
         self._closeHistogramPopout()
@@ -361,10 +358,8 @@ class QGISRedStatisticsDock(QDockWidget, formClass):
 
     def applyWhiteStyle(self):
         for widget in (
-            self.cbElementType, self.cbProperty, self.cbClassifiedBy, self.cbSecondClassifiedBy,
-            self.cbRanged, self.cbSecondRanged, self.cbAttribute, self.cbCondition, self.cbValue,
-            self.leFrom, self.leTo, self.cbClasses, self.cbSecondClasses, self.spinIntervalRange,
-            self.spinSecondIntervalRange, self.cbStatistic, self.cbSecondClassValue,
+            self.leFrom, self.leTo, self.cbClasses, self.cbSecondClasses,
+            self.spinIntervalRange, self.spinSecondIntervalRange,
         ):
             widget.setStyleSheet(WHITE_STYLE)
 
@@ -560,11 +555,7 @@ class QGISRedStatisticsDock(QDockWidget, formClass):
             color = brush.color().name()
         else:
             color = "white"
-        combo.setStyleSheet(
-            f"QComboBox {{ background-color: {color}; }}"
-            "QComboBox QAbstractItemView { background-color: white; selection-background-color: #3399ff; selection-color: white; }"
-            "QLineEdit { background-color: white; }"
-        )
+        combo.setStyleSheet(QGISRED_COMBO_STYLE + "QComboBox { background-color: %s; }" % color)
 
     def initializeElementTypes(self):
         self.suspendCascade = True
