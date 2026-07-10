@@ -32,7 +32,7 @@ class ProfileCurveStyle:
     width: float = 2.0
     line_style: str = "solid"
     show_markers: bool = True
-    marker_size: float = 4.0
+    marker_size: float = 2.5
 
 
 LINE_STYLES = ("solid", "dashed", "dotted")

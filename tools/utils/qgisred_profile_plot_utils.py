@@ -47,6 +47,12 @@ def cursor_snapshot(series, data_x):
     if nearest is None:
         return None
     idx, distance, _value = nearest
+    node_id = None
+    for s in series:
+        ids = s.get("node_ids")
+        if ids and idx < len(ids):
+            node_id = ids[idx]
+            break
     entries = []
     for s in series:
         points = s["points"]
@@ -56,7 +62,14 @@ def cursor_snapshot(series, data_x):
                 "color": s.get("color"),
                 "value": points[idx][1],
             })
-    return {"index": idx, "distance": distance, "entries": entries}
+    return {"index": idx, "distance": distance, "entries": entries, "node_id": node_id}
+
+
+def truncate_id(value, max_len=10):
+    text = "" if value is None else str(value)
+    if len(text) > max_len:
+        return text[:max_len] + "…"
+    return text
 
 
 def format_profile_value(value):

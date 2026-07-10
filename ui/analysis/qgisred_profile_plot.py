@@ -9,6 +9,7 @@ from ...tools.utils.qgisred_profile_plot_utils import (
     cursor_snapshot,
     format_profile_value,
     resolve_envelope_mode,
+    truncate_id,
 )
 from .profile_chart_settings import ProfileAxisSettings, ProfileGeneralSettings
 
@@ -127,10 +128,12 @@ class ProfilePlotWidget(QWidget):
                 "base_width": base_width,
                 "points": points,
                 "reference": set(s.get("reference_indices", set())),
+                "node_ids": list(s.get("node_ids", [])),
+                "show_ids": bool(s.get("show_ids", False)),
                 "width": base_width,
                 "line_style": "solid",
                 "show_markers": True,
-                "marker_size": 4.0,
+                "marker_size": 2.5,
             }
             self._applyCurveOverride(entry)
             normalized.append(entry)
@@ -156,7 +159,7 @@ class ProfilePlotWidget(QWidget):
             entry["width"] = entry.get("base_width", 2.0)
             entry["line_style"] = "solid"
             entry["show_markers"] = True
-            entry["marker_size"] = 4.0
+            entry["marker_size"] = 2.5
             self._applyCurveOverride(entry)
         self.update()
 
@@ -394,6 +397,9 @@ class ProfilePlotWidget(QWidget):
         if self._show_value_labels and self._series:
             for s in self._series:
                 self._drawValueLabels(painter, s, px, py, plot)
+        for s in self._series:
+            if s.get("show_ids"):
+                self._drawNodeIdLabels(painter, s, px, py, plot)
         self._drawCursor(painter, plot, px, py, x0, x1)
         painter.restore()
 
@@ -466,13 +472,24 @@ class ProfilePlotWidget(QWidget):
 
         if not s.get("show_markers", True):
             return
-        marker_size = s.get("marker_size", 4.0)
-        painter.setPen(QPen(QColor(255, 255, 255), 1.2))
+        marker_size = s.get("marker_size", 2.5)
+        reference = s["reference"]
+        painter.setBrush(QBrush(color))
         for idx, (d, v) in enumerate(points):
-            if v is None or idx not in s["reference"]:
+            if v is None:
                 continue
-            painter.setBrush(QBrush(color))
-            painter.drawEllipse(QPointF(px(d), py(v)), marker_size, marker_size)
+            cx, cy = px(d), py(v)
+            if idx in reference:
+                painter.setPen(QPen(QColor(255, 255, 255), 1.0))
+                m = marker_size + 3.5
+                painter.drawPolygon(QPolygonF([
+                    QPointF(cx, cy - m), QPointF(cx + m, cy),
+                    QPointF(cx, cy + m), QPointF(cx - m, cy),
+                ]))
+            else:
+                painter.setPen(Qt.PenStyle.NoPen)
+                r = max(1.8, marker_size)
+                painter.drawEllipse(QPointF(cx, cy), r, r)
 
     def _drawSymbols(self, painter, s, px, py):
         points = s["points"]
@@ -505,14 +522,16 @@ class ProfilePlotWidget(QWidget):
             self._drawNodeGlyph(painter, px(d), py(v), kind)
 
     def _drawNodeGlyph(self, painter, x, y, kind):
-        if kind not in ("reservoir", "tank"):
-            return
         painter.setPen(QPen(QColor(255, 255, 255), 1.0))
         painter.setBrush(QBrush(QColor(60, 70, 90)))
         if kind == "reservoir":
             painter.drawPolygon(QPolygonF([QPointF(x, y - 6), QPointF(x - 5, y + 4), QPointF(x + 5, y + 4)]))
-        else:
+        elif kind == "tank":
             painter.drawRect(QRectF(x - 5, y - 5, 10, 10))
+        else:
+            painter.drawPolygon(QPolygonF([
+                QPointF(x, y - 5), QPointF(x + 5, y), QPointF(x, y + 5), QPointF(x - 5, y)
+            ]))
 
     def _drawPumpGlyph(self, painter, x, y):
         painter.setPen(QPen(QColor(60, 70, 90), 1.2))
@@ -567,6 +586,31 @@ class ProfilePlotWidget(QWidget):
             painter.setBrush(QBrush(QColor(255, 255, 255, 225)))
             painter.drawRoundedRect(rect, 3, 3)
             painter.setPen(text_color)
+            painter.drawText(rect, Qt.AlignmentFlag.AlignCenter, text)
+
+    def _drawNodeIdLabels(self, painter, s, px, py, plot):
+        node_ids = s.get("node_ids") or []
+        if not node_ids:
+            return
+        painter.setFont(QFont("Arial", 7))
+        fm = QFontMetrics(painter.font())
+        reference = s["reference"]
+        for idx, (d, v) in enumerate(s["points"]):
+            if v is None or idx not in reference or idx >= len(node_ids):
+                continue
+            text = truncate_id(node_ids[idx])
+            if not text:
+                continue
+            width = fm.horizontalAdvance(text) + 8
+            x_left = max(plot.left(), min(px(d) - width / 2.0, plot.right() - width))
+            y_top = py(v) + 9
+            if y_top + 13 > plot.bottom():
+                y_top = py(v) - 22
+            rect = QRectF(x_left, y_top, width, 13)
+            painter.setPen(Qt.PenStyle.NoPen)
+            painter.setBrush(QBrush(QColor(245, 246, 248, 235)))
+            painter.drawRoundedRect(rect, 3, 3)
+            painter.setPen(QColor(70, 70, 70))
             painter.drawText(rect, Qt.AlignmentFlag.AlignCenter, text)
 
     def _drawTitleAndAxisLabels(self, painter, full, plot):
@@ -682,8 +726,12 @@ class ProfilePlotWidget(QWidget):
     def _drawReadout(self, painter, plot, line_x, snapshot):
         painter.setFont(QFont("Arial", 8))
         fm = QFontMetrics(painter.font())
-        rows = [(None, "{}: {}".format(self._x_label or "Distance",
-                                       format_profile_value(snapshot["distance"])))]
+        rows = []
+        node_id = snapshot.get("node_id")
+        if node_id:
+            rows.append((None, "ID: {}".format(truncate_id(node_id))))
+        rows.append((None, "{}: {}".format(self._x_label or "Distance",
+                                           format_profile_value(snapshot["distance"]))))
         for entry in snapshot["entries"]:
             rows.append((entry["color"], "{}: {}".format(entry["label"], format_profile_value(entry["value"]))))
 

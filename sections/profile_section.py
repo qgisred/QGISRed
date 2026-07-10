@@ -448,6 +448,7 @@ class ProfileSection:
         reference_indices = {i for i, r in enumerate(is_reference) if r}
         key = dock.currentVariableKey()
 
+        node_id_strs = [str(n) for n in nodes]
         series = []
         if key == "HeadLoss":
             losses = self._profileLinkLosses()
@@ -457,6 +458,8 @@ class ProfileSection:
                 "label": self.tr("Accumulated head loss"),
                 "points": points,
                 "reference_indices": reference_indices,
+                "node_ids": node_id_strs,
+                "show_ids": True,
             })
             y_label = self.tr("Accumulated head loss")
         else:
@@ -467,6 +470,8 @@ class ProfileSection:
                 "label": self.tr(self._profileVariableLabel(key)),
                 "points": points,
                 "reference_indices": reference_indices,
+                "node_ids": node_id_strs,
+                "show_ids": True,
             })
             if key == "Head":
                 from qgis.PyQt.QtGui import QColor
@@ -479,6 +484,8 @@ class ProfileSection:
                     "label": self.tr("Elevation"),
                     "points": elevation_points,
                     "reference_indices": reference_indices,
+                    "node_ids": node_id_strs,
+                    "show_ids": False,
                     "color": QColor(140, 100, 60),
                 })
             y_label = self.tr(self._profileVariableLabel(key))
@@ -565,6 +572,8 @@ class ProfileSection:
                 "label": self.tr("Branch") + " " + str(i + 1),
                 "points": points,
                 "reference_indices": reference_indices,
+                "node_ids": [str(n) for n in branch_nodes],
+                "show_ids": True,
             })
 
     def _drawProfileHighlight(self):

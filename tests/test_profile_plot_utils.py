@@ -5,6 +5,7 @@ from QGISRed.tools.utils.qgisred_profile_plot_utils import (
     cursor_snapshot,
     format_profile_value,
     resolve_envelope_mode,
+    truncate_id,
 )
 
 
@@ -86,3 +87,33 @@ def test_format_profile_value():
     assert format_profile_value(153.27) == "153.3"
     assert format_profile_value(29.4) == "29.40"
     assert format_profile_value(0.512) == "0.512"
+
+
+def test_truncate_id_short():
+    assert truncate_id("N1") == "N1"
+    assert truncate_id("1234567890") == "1234567890"
+
+
+def test_truncate_id_long():
+    assert truncate_id("VeryLongNodeId12345") == "VeryLongNo…"
+    assert truncate_id(1234567890123) == "1234567890…"
+
+
+def test_truncate_id_empty():
+    assert truncate_id(None) == ""
+
+
+def test_cursor_snapshot_node_id():
+    series = [
+        {"label": "Head", "color": "c1", "points": [(0.0, 80.0), (50.0, 70.0), (100.0, 60.0)],
+         "node_ids": ["A", "B", "C"]},
+        {"label": "Elevation", "color": "c2", "points": [(0.0, 30.0), (50.0, 25.0), (100.0, 20.0)]},
+    ]
+    snap = cursor_snapshot(series, 48.0)
+    assert snap["node_id"] == "B"
+
+
+def test_cursor_snapshot_node_id_absent():
+    series = [{"label": "A", "color": "c1", "points": [(0.0, 1.0), (10.0, 2.0)]}]
+    snap = cursor_snapshot(series, 0.0)
+    assert snap["node_id"] is None
