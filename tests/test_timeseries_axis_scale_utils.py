@@ -59,6 +59,11 @@ class TestComputeNiceScale:
         assert ticks == sorted(ticks)
         assert all(ticks[i + 1] > ticks[i] for i in range(len(ticks) - 1))
 
+    def test_integer_steps_forces_whole_ticks(self):
+        s = compute_nice_scale(0, 3, max_ticks=10, include_zero=True, integer_steps=True)
+        assert s.step >= 1
+        assert all(float(t).is_integer() for t in s.ticks())
+
 
 class TestComputeNiceTimeScaleHours:
     def test_step_is_positive_and_integer_hours(self):

@@ -58,12 +58,14 @@ def compute_nice_scale(
     *,
     nice_fractions: Sequence[float] = (1, 2, 4, 5, 10),
     include_zero: bool = False,
+    integer_steps: bool = False,
 ) -> NiceScale:
     """
     Autoescalado numérico usando 'nice numbers'.
 
     - Cubre completamente [data_min, data_max]
     - Elige un step 'bonito' cercano al step ideal (rango/(max_ticks-1))
+    - Con integer_steps=True fuerza steps enteros (>= 1), p.ej. para ejes de conteo
     - Devuelve axis_min, axis_max ajustados, step y divisiones
     """
     if max_ticks < 2:
@@ -90,6 +92,8 @@ def compute_nice_scale(
     step = _nice_num(raw_step, round_=True, nice_fractions=nice_fractions)
     if step == 0:
         step = raw_step or 1.0
+    if integer_steps and step < 1:
+        step = 1.0
 
     axis_min = math.floor(data_min / step) * step
     axis_max = math.ceil(data_max / step) * step

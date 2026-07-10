@@ -136,7 +136,8 @@ class StatisticsHistogramWidget(QWidget):
             dataMax = dataMin + 1.0
         labelHeight = fontMetrics.height() + 4
         maxTicks = estimate_max_ticks(plotHeightGuess, labelHeight, max_ticks=10)
-        scale = compute_nice_scale(dataMin, dataMax, maxTicks, include_zero=True)
+        integerSteps = self.mode == "plain" and (self.valueKey is not None or self.statKey == "count")
+        scale = compute_nice_scale(dataMin, dataMax, maxTicks, include_zero=True, integer_steps=integerSteps)
         maxTickLabelWidth = 0
         for tickValue in scale.ticks():
             label = format_number_tick(tickValue, scale.step)

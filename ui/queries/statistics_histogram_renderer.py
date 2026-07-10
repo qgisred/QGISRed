@@ -152,7 +152,8 @@ class StatisticsHistogramRenderer:
             dataMax = dataMin + 1.0
         labelHeight = QFontMetrics(qfont(self._tickFontSize(widget))).height() + 4
         maxTicks = estimate_max_ticks(plotRect.height(), labelHeight, max_ticks=10)
-        return compute_nice_scale(dataMin, dataMax, maxTicks, include_zero=True)
+        integerSteps = widget.mode == "plain" and (widget.valueKey is not None or widget.statKey == "count")
+        return compute_nice_scale(dataMin, dataMax, maxTicks, include_zero=True, integer_steps=integerSteps)
 
     def _computeRightScale(self):
         return compute_nice_scale(0.0, 100.0, 6, include_zero=True)
