@@ -789,7 +789,7 @@ class MenuSection:
 
         self.openStatisticsDialog = self._make_action(
             ":/images/iconStatisticsAndPlots.svg",
-            self.tr("Statistics..."),
+            self.tr("Statistics on properties..."),
             self.runStatistics,
             parent=self.iface.mainWindow(),
         )
