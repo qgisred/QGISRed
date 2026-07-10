@@ -89,13 +89,6 @@ class QGISRedProfileDock(QDockWidget):
 
         toolbar.addWidget(self._separator(toolbar_widget))
 
-        self.btnClear = self._makeIconButton(toolbar_widget, ":/images/iconTsClearAll.svg",
-                                             self.tr("Remove the current profile path"))
-        self.btnClear.clicked.connect(self.clearRequested)
-        toolbar.addWidget(self.btnClear)
-
-        toolbar.addWidget(self._separator(toolbar_widget))
-
         self.btnZoomWindow = self._makeIconButton(toolbar_widget, ":/images/iconTsZoomWindow.svg",
                                                   self.tr("Zoom window"), checkable=True)
         self.btnZoomWindow.toggled.connect(self._onZoomWindowToggled)
@@ -172,6 +165,13 @@ class QGISRedProfileDock(QDockWidget):
                                                    self.tr("Save chart as image"))
         self.btnExportImage.clicked.connect(self._onExportImage)
         toolbar.addWidget(self.btnExportImage)
+
+        toolbar.addWidget(self._separator(toolbar_widget))
+
+        self.btnClear = self._makeIconButton(toolbar_widget, ":/images/iconTsClearAll.svg",
+                                             self.tr("Remove the current profile path"))
+        self.btnClear.clicked.connect(self.clearRequested)
+        toolbar.addWidget(self.btnClear)
 
         toolbar.addSpacing(10)
         variable_label = QLabel(self.tr("Variable:"), toolbar_widget)

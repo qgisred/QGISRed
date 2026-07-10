@@ -392,7 +392,8 @@ class ProfilePlotWidget(QWidget):
         if self._symbols is not None and self._series:
             self._drawSymbols(painter, self._series[0], px, py)
         if self._show_value_labels and self._series:
-            self._drawValueLabels(painter, self._series[0], px, py)
+            for s in self._series:
+                self._drawValueLabels(painter, s, px, py, plot)
         self._drawCursor(painter, plot, px, py, x0, x1)
         painter.restore()
 
@@ -548,19 +549,24 @@ class ProfilePlotWidget(QWidget):
         painter.setBrush(QBrush(QColor(40, 40, 40)))
         painter.drawPolygon(QPolygonF([tip, base1, base2]))
 
-    def _drawValueLabels(self, painter, s, px, py):
+    def _drawValueLabels(self, painter, s, px, py, plot):
         painter.setFont(QFont("Arial", 8))
         fm = QFontMetrics(painter.font())
+        text_color = s.get("color") if isinstance(s.get("color"), QColor) else QColor(40, 40, 40)
         for idx, (d, v) in enumerate(s["points"]):
             if v is None or idx not in s["reference"]:
                 continue
             text = format_profile_value(v)
             width = fm.horizontalAdvance(text) + 8
-            rect = QRectF(px(d) - width / 2.0, py(v) - 22, width, 14)
+            x_left = max(plot.left(), min(px(d) - width / 2.0, plot.right() - width))
+            y_top = py(v) - 22
+            if y_top < plot.top():
+                y_top = py(v) + 8
+            rect = QRectF(x_left, y_top, width, 14)
             painter.setPen(Qt.PenStyle.NoPen)
             painter.setBrush(QBrush(QColor(255, 255, 255, 225)))
             painter.drawRoundedRect(rect, 3, 3)
-            painter.setPen(QColor(40, 40, 40))
+            painter.setPen(text_color)
             painter.drawText(rect, Qt.AlignmentFlag.AlignCenter, text)
 
     def _drawTitleAndAxisLabels(self, painter, full, plot):
