@@ -224,7 +224,7 @@ class ToolsSection:
             result = "[LINE]" + ";".join(lines)
         return result
 
-    def _getDemandsBuilderSectorLayersByKind(self, kind):
+    def _getDemandsBuilderSectorLayers(self):
         polygons = []
         demands_builder_id = QGISRedLayerUtils.groupIdentifiers.get("DemandsBuilder")
         root = QgsProject.instance().layerTreeRoot()
@@ -273,12 +273,6 @@ class ToolsSection:
 
         return "[POLYGON]" + ";".join(polygons)
 
-    def _getDemandsBuilderEfficiencySectorLayers(self):
-        return self._getDemandsBuilderSectorLayersByKind("efficiency")
-
-    def _getDemandsBuilderPatternSectorLayers(self):
-        return self._getDemandsBuilderSectorLayersByKind("pattern")
-
     def runDemandsBuilder(self):
         if not self.checkDependencies():
             return
@@ -300,8 +294,7 @@ class ToolsSection:
         externalLayers = self._getExternalLoadedLayers()
         qgisredPointLayers = self._getDemandsBuilderPointLayers()
         qgisredLineLayers = self._getDemandsBuilderLineLayers()
-        qgisredEfficiencySectorLayers = self._getDemandsBuilderEfficiencySectorLayers()
-        qgisredPatternSectorLayers = self._getDemandsBuilderPatternSectorLayers()
+        qgisredSectorLayers = self._getDemandsBuilderSectorLayers()
         selectedAuxiliaryLayerFids = self._getSelectedAuxiliaryLayerFids()
 
         # Process
@@ -315,8 +308,7 @@ class ToolsSection:
             externalLayers,
             qgisredPointLayers,
             qgisredLineLayers,
-            qgisredEfficiencySectorLayers,
-            qgisredPatternSectorLayers,
+            qgisredSectorLayers,
             selectedAuxiliaryLayerFids
         )
         QApplication.restoreOverrideCursor()

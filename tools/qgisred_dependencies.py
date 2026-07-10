@@ -419,8 +419,7 @@ class QGISRedDependencies:
             auxiliarLayers,
             qgisredPointLayers="",
             qgisredLineLayers="",
-            qgisredEfficiencySectorLayers="",
-            qgisredPatternSectorLayers="",
+            qgisredSectorLayers="",
             selectedAuxiliaryLayerFids=""):
 
         projectFolder = QGISRedDependencies.encode(projectFolder)
@@ -430,16 +429,14 @@ class QGISRedDependencies:
         auxiliarLayers = QGISRedDependencies.encode(auxiliarLayers)
         qgisredPointLayers = QGISRedDependencies.encode(qgisredPointLayers)
         qgisredLineLayers = QGISRedDependencies.encode(qgisredLineLayers)
-        qgisredEfficiencySectorLayers = QGISRedDependencies.encode(qgisredEfficiencySectorLayers)
-        qgisredPatternSectorLayers = QGISRedDependencies.encode(qgisredPatternSectorLayers)
+        qgisredSectorLayers = QGISRedDependencies.encode(qgisredSectorLayers)
         selectedAuxiliaryLayerFids = QGISRedDependencies.encode(selectedAuxiliaryLayerFids)
 
         mydll = WinDLL(QGISRedFileSystemUtils().getCurrentDll())
 
         mydll.DemandsBuilder.argtypes = (
             c_char_p, c_char_p, c_char_p, c_char_p,
-            c_char_p, c_char_p, c_char_p, c_char_p,
-            c_char_p, c_char_p
+            c_char_p, c_char_p, c_char_p, c_char_p, c_char_p
         )
 
         mydll.DemandsBuilder.restype = c_char_p
@@ -452,8 +449,7 @@ class QGISRedDependencies:
             auxiliarLayers,
             qgisredPointLayers,
             qgisredLineLayers,
-            qgisredEfficiencySectorLayers,
-            qgisredPatternSectorLayers,
+            qgisredSectorLayers,
             selectedAuxiliaryLayerFids
         )
 

@@ -64,8 +64,7 @@ class QGISRedIdentifierUtils:
             'qgisred_demandsbuilder_demandlinks': 'DemBuil_Demand Links',
             'qgisred_demandsbuilder_consumptionpoints': 'DemBuil_Consumption Points',
             'qgisred_demandsbuilder_isolateddemandsserviceconnections': 'DemBuil_Isolated Demands Connections',
-            'qgisred_demandsbuilder_efficiencysectors': 'DemBuil_Efficiency Sectors',
-            'qgisred_demandsbuilder_patternsectors': 'DemBuil_Pattern Sectors'
+            'qgisred_demandsbuilder_sectors': 'DemBuil_Sectors'
         }
 
     def tr(self, message):
@@ -81,10 +80,8 @@ class QGISRedIdentifierUtils:
             return "demandsbuilder_consumptionpoints"
         if lower.endswith("_demandsbuilder_isolateddemandsserviceconnections"):
             return "demandsbuilder_isolateddemandsserviceconnections"
-        if lower.endswith("_demandsbuilder_efficiencysectors"):
-            return "demandsbuilder_efficiencysectors"
-        if lower.endswith("_demandsbuilder_patternsectors"):
-            return "demandsbuilder_patternsectors"
+        if lower.endswith("_demandsbuilder_sectors"):
+            return "demandsbuilder_sectors"
         return layerType
 
     def _getLayerPath(self, layer):
