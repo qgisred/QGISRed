@@ -155,6 +155,135 @@
              </widget>
             </item>
             <item>
+             <widget class="QgsCollapsibleGroupBox" name="mFiltersGroupBox">
+              <property name="title">
+               <string>Filters</string>
+              </property>
+              <property name="checkable">
+               <bool>false</bool>
+              </property>
+              <property name="collapsed">
+               <bool>true</bool>
+              </property>
+              <layout class="QVBoxLayout" name="verticalLayout_filters">
+               <property name="topMargin">
+                <number>9</number>
+               </property>
+               <item>
+                <layout class="QGridLayout" name="gridLayout_5">
+                 <item row="0" column="0">
+                  <widget class="QLabel" name="labelAttribute">
+                   <property name="text">
+                    <string>Attribute</string>
+                   </property>
+                   <property name="buddy">
+                    <cstring>cbAttribute</cstring>
+                   </property>
+                  </widget>
+                 </item>
+                 <item row="0" column="1">
+                  <widget class="QLabel" name="labelCondition">
+                   <property name="text">
+                    <string>Condition</string>
+                   </property>
+                   <property name="buddy">
+                    <cstring>cbCondition</cstring>
+                   </property>
+                  </widget>
+                 </item>
+                 <item row="0" column="2">
+                  <widget class="QLabel" name="labelValue">
+                   <property name="text">
+                    <string>Value</string>
+                   </property>
+                  </widget>
+                 </item>
+                 <item row="1" column="0">
+                  <widget class="QComboBox" name="cbAttribute"/>
+                 </item>
+                 <item row="1" column="1">
+                  <widget class="QComboBox" name="cbCondition"/>
+                 </item>
+                 <item row="1" column="2">
+                  <widget class="QStackedWidget" name="valueStack">
+                   <property name="currentIndex">
+                    <number>0</number>
+                   </property>
+                   <widget class="QWidget" name="pageValue">
+                    <layout class="QVBoxLayout" name="layoutPageValue">
+                     <property name="leftMargin">
+                      <number>0</number>
+                     </property>
+                     <property name="topMargin">
+                      <number>0</number>
+                     </property>
+                     <property name="rightMargin">
+                      <number>0</number>
+                     </property>
+                     <property name="bottomMargin">
+                      <number>0</number>
+                     </property>
+                     <item>
+                      <widget class="QComboBox" name="cbValue">
+                       <property name="editable">
+                        <bool>true</bool>
+                       </property>
+                      </widget>
+                     </item>
+                    </layout>
+                   </widget>
+                   <widget class="QWidget" name="pageRange">
+                    <layout class="QHBoxLayout" name="layoutPageRange">
+                     <property name="spacing">
+                      <number>2</number>
+                     </property>
+                     <property name="leftMargin">
+                      <number>0</number>
+                     </property>
+                     <property name="topMargin">
+                      <number>0</number>
+                     </property>
+                     <property name="rightMargin">
+                      <number>0</number>
+                     </property>
+                     <property name="bottomMargin">
+                      <number>0</number>
+                     </property>
+                     <item>
+                      <widget class="QLineEdit" name="leFrom">
+                       <property name="placeholderText">
+                        <string>From</string>
+                       </property>
+                      </widget>
+                     </item>
+                     <item>
+                      <widget class="QLineEdit" name="leTo">
+                       <property name="placeholderText">
+                        <string>To</string>
+                       </property>
+                      </widget>
+                     </item>
+                    </layout>
+                   </widget>
+                  </widget>
+                 </item>
+                </layout>
+               </item>
+               <item>
+                <layout class="QHBoxLayout" name="horizontalLayout_4">
+                 <item>
+                  <widget class="QCheckBox" name="cbSelectedElements">
+                   <property name="text">
+                    <string>Only selected elements</string>
+                   </property>
+                  </widget>
+                 </item>
+                </layout>
+               </item>
+              </layout>
+             </widget>
+            </item>
+            <item>
              <widget class="QGroupBox" name="mClassificationGroupBox">
               <property name="title">
                <string>Classification property</string>
@@ -405,135 +534,6 @@
                    </property>
                    <property name="value">
                     <double>1.000000000000000</double>
-                   </property>
-                  </widget>
-                 </item>
-                </layout>
-               </item>
-              </layout>
-             </widget>
-            </item>
-            <item>
-             <widget class="QgsCollapsibleGroupBox" name="mFiltersGroupBox">
-              <property name="title">
-               <string>Filters</string>
-              </property>
-              <property name="checkable">
-               <bool>false</bool>
-              </property>
-              <property name="collapsed">
-               <bool>true</bool>
-              </property>
-              <layout class="QVBoxLayout" name="verticalLayout_filters">
-               <property name="topMargin">
-                <number>9</number>
-               </property>
-               <item>
-                <layout class="QGridLayout" name="gridLayout_5">
-                 <item row="0" column="0">
-                  <widget class="QLabel" name="labelAttribute">
-                   <property name="text">
-                    <string>Attribute</string>
-                   </property>
-                   <property name="buddy">
-                    <cstring>cbAttribute</cstring>
-                   </property>
-                  </widget>
-                 </item>
-                 <item row="0" column="1">
-                  <widget class="QLabel" name="labelCondition">
-                   <property name="text">
-                    <string>Condition</string>
-                   </property>
-                   <property name="buddy">
-                    <cstring>cbCondition</cstring>
-                   </property>
-                  </widget>
-                 </item>
-                 <item row="0" column="2">
-                  <widget class="QLabel" name="labelValue">
-                   <property name="text">
-                    <string>Value</string>
-                   </property>
-                  </widget>
-                 </item>
-                 <item row="1" column="0">
-                  <widget class="QComboBox" name="cbAttribute"/>
-                 </item>
-                 <item row="1" column="1">
-                  <widget class="QComboBox" name="cbCondition"/>
-                 </item>
-                 <item row="1" column="2">
-                  <widget class="QStackedWidget" name="valueStack">
-                   <property name="currentIndex">
-                    <number>0</number>
-                   </property>
-                   <widget class="QWidget" name="pageValue">
-                    <layout class="QVBoxLayout" name="layoutPageValue">
-                     <property name="leftMargin">
-                      <number>0</number>
-                     </property>
-                     <property name="topMargin">
-                      <number>0</number>
-                     </property>
-                     <property name="rightMargin">
-                      <number>0</number>
-                     </property>
-                     <property name="bottomMargin">
-                      <number>0</number>
-                     </property>
-                     <item>
-                      <widget class="QComboBox" name="cbValue">
-                       <property name="editable">
-                        <bool>true</bool>
-                       </property>
-                      </widget>
-                     </item>
-                    </layout>
-                   </widget>
-                   <widget class="QWidget" name="pageRange">
-                    <layout class="QHBoxLayout" name="layoutPageRange">
-                     <property name="spacing">
-                      <number>2</number>
-                     </property>
-                     <property name="leftMargin">
-                      <number>0</number>
-                     </property>
-                     <property name="topMargin">
-                      <number>0</number>
-                     </property>
-                     <property name="rightMargin">
-                      <number>0</number>
-                     </property>
-                     <property name="bottomMargin">
-                      <number>0</number>
-                     </property>
-                     <item>
-                      <widget class="QLineEdit" name="leFrom">
-                       <property name="placeholderText">
-                        <string>From</string>
-                       </property>
-                      </widget>
-                     </item>
-                     <item>
-                      <widget class="QLineEdit" name="leTo">
-                       <property name="placeholderText">
-                        <string>To</string>
-                       </property>
-                      </widget>
-                     </item>
-                    </layout>
-                   </widget>
-                  </widget>
-                 </item>
-                </layout>
-               </item>
-               <item>
-                <layout class="QHBoxLayout" name="horizontalLayout_4">
-                 <item>
-                  <widget class="QCheckBox" name="cbSelectedElements">
-                   <property name="text">
-                    <string>Only selected elements</string>
                    </property>
                   </widget>
                  </item>
