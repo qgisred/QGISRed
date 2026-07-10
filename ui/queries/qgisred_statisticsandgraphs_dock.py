@@ -1542,9 +1542,7 @@ class QGISRedStatisticsDock(QDockWidget, formClass):
         propertyUnit = self.fieldUtils.getUnitAbbreviation(normalize_element(elementIdentifier), propertyField) or ""
         classifyUnit = self.fieldUtils.getUnitAbbreviation(normalize_element(elementIdentifier), classifyField) or ""
 
-        chartTitle = self.buildChartTitle(
-            elementIdentifier, prettyProperty, prettyClassify, secondField, secondBreaks, selectedSecondIndex
-        )
+        chartTitle = self.buildChartTitle(context, prettyProperty, prettyClassify, selectedSecondIndex)
         subtitle = self.buildSubtitle(elementIdentifier)
         xLabel = "{} ({})".format(prettyClassify, classifyUnit) if classifyUnit else prettyClassify
         useSum = self.usesSumColumn(propertyField, elementIdentifier)
@@ -1581,12 +1579,18 @@ class QGISRedStatisticsDock(QDockWidget, formClass):
             self.cbTableStatistic.hide()
             self.populateTable(bins, prettyClassify, prettyProperty, propertyUnit, elementIdentifier, propertyField)
 
-    def buildChartTitle(self, elementIdentifier, prettyProperty, prettyClassify, secondField, secondBreaks, selectedSecondIndex):
-        base = "{} {} {}".format(prettyProperty, self.tr("by"), prettyClassify)
+    def buildChartTitle(self, context, prettyProperty, prettyClassify, selectedSecondIndex):
+        secondField = context["secondField"]
+        secondBreaks = context["secondBreaks"]
+        if context["propertyField"] == context["classifyField"]:
+            rangeKind = self.tr("by Categories") if context["breaks"]["type"] == "categorical" else self.tr("by Ranges")
+            base = "{} {}".format(prettyProperty, rangeKind)
+        else:
+            base = "{} {} {}".format(prettyProperty, self.tr("by"), prettyClassify)
         if not (secondField and selectedSecondIndex is not None):
             return base
         groupLabel = self.cbSecondClassValue.currentText()
-        prettySecond = self.fieldUtils.getProperty(normalize_element(elementIdentifier), secondField) or secondField
+        prettySecond = self.fieldUtils.getProperty(normalize_element(context["elementIdentifier"]), secondField) or secondField
         if secondBreaks is not None and secondBreaks["type"] != "categorical":
             return "{} {} {} {} {}".format(base, self.tr("for"), prettySecond, self.tr("on Range"), groupLabel)
         return "{} {} {} {}".format(base, self.tr("for"), prettySecond, groupLabel)
