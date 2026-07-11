@@ -31,6 +31,8 @@ from qgis.core import (
     QgsProject,
 )
 
+from ..analysis.qgisred_results_dock import QGISRedResultsDock
+from ...compat import sip
 from ...tools.utils.qgisred_field_utils import QGISRedFieldUtils, normalize_element
 from ...tools.utils.qgisred_layer_utils import QGISRedLayerUtils
 from ...tools.utils.qgisred_project_utils import QGISRedProjectUtils
@@ -184,20 +186,43 @@ class QGISRedStatisticsDock(QDockWidget, formClass):
         self.layerTreeChangeTimer.setSingleShot(True)
         self.layerTreeChangeTimer.setInterval(100)
         self.layerTreeChangeTimer.timeout.connect(self.doLayerTreeChanged)
+        self.resultsDock = None
+        self.resultsCurrentTimeText = ""
+        self.resultsCurrentStat = ""
+        self.resultsDockVisibilityTimer = QTimer()
+        self.resultsDockVisibilityTimer.setSingleShot(True)
+        self.resultsDockVisibilityTimer.setInterval(150)
+        self.resultsDockVisibilityTimer.timeout.connect(self.checkResultsDockClosed)
+        self.resultsDockPollTimer = QTimer()
+        self.resultsDockPollTimer.setInterval(1500)
+        self.resultsDockPollTimer.timeout.connect(self.pollForResultsDock)
 
         self.setupHistogram()
         self.setupIcons()
         self.applyWhiteStyle()
         for combo in self.findChildren(QComboBox):
             QGISRedUIUtils.applyComboStyle(combo)
+            combo.setSizeAdjustPolicy(QComboBox.SizeAdjustPolicy.AdjustToMinimumContentsLengthWithIcon)
+            combo.setMinimumContentsLength(8)
         self.setupConnections()
         self.initializeElementTypes()
         self.loadDefaults()
         self.setupProjectSignals()
         QGISRedUIUtils.applyDockStyle(self, "#388E3C")
+        self.tabWidget.setStyleSheet(
+            "QWidget#tabConfiguration, QWidget#tabResults { background-color: palette(window); }"
+        )
+        self.connectResultsDock()
+        if self.resultsDock is None:
+            self.resultsDockPollTimer.start()
 
     def closeEvent(self, event):
         self._closeHistogramPopout()
+        self.resultsDockVisibilityTimer.stop()
+        self.disconnectResultsDock()
+        self.resultsDockPollTimer.stop()
+        self.safeDisconnect(self.mFiltersGroupBox.collapsedStateChanged, self.onCollapsibleGroupToggled)
+        self.safeDisconnect(self.mSecondClassGroupBox.collapsedStateChanged, self.onCollapsibleGroupToggled)
         project = QgsProject.instance()
         self.safeDisconnect(project.layersAdded, self.onLayerTreeChanged)
         self.safeDisconnect(project.layersRemoved, self.onLayerTreeChanged)
@@ -347,6 +372,7 @@ class QGISRedStatisticsDock(QDockWidget, formClass):
         self.cbTableStatistic.blockSignals(False)
         self.labelTableStatistic.hide()
         self.cbTableStatistic.hide()
+        self.labelResultsTime.hide()
 
     def setupIcons(self):
         self.btImport.setIcon(QIcon(":/images/iconStatisticsImport.svg"))
@@ -388,6 +414,24 @@ class QGISRedStatisticsDock(QDockWidget, formClass):
         self.btExcel.clicked.connect(self.exportTableCsv)
         self.btManualBreaks.clicked.connect(self.openManualBreaksDialog)
         self.btSecondManualBreaks.clicked.connect(self.openSecondManualBreaksDialog)
+        self.mFiltersGroupBox.collapsedStateChanged.connect(self.onCollapsibleGroupToggled)
+        self.mSecondClassGroupBox.collapsedStateChanged.connect(self.onCollapsibleGroupToggled)
+
+    def onCollapsibleGroupToggled(self, collapsed):
+        if not collapsed:
+            QTimer.singleShot(0, self.growDockForExpandedGroups)
+
+    def growDockForExpandedGroups(self):
+        # Grow the panel instead of showing a scrollbar when a section expands
+        needed = self.scrollAreaWidgetContents.sizeHint().height() - self.scrollArea.viewport().height()
+        if needed <= 0:
+            return
+        if self.isFloating():
+            available = self.screen().availableGeometry().height() - self.height()
+            if available > 0:
+                self.resize(self.width(), self.height() + min(needed, available))
+        else:
+            self.iface.mainWindow().resizeDocks([self], [self.height() + needed], Qt.Orientation.Vertical)
 
     def setupProjectSignals(self):
         project = QgsProject.instance()
@@ -462,11 +506,12 @@ class QGISRedStatisticsDock(QDockWidget, formClass):
         finally:
             for combo in combos:
                 combo.blockSignals(False)
-        self.clearChart()
-        self._feedHistogramPopout()
-        self.tbExcel.setRowCount(0)
-        self.tbExcel.setColumnCount(0)
-        self.labelOnlySelectedElements.hide()
+        if not self.renderFromContext():
+            self.clearChart()
+            self._feedHistogramPopout()
+            self.tbExcel.setRowCount(0)
+            self.tbExcel.setColumnCount(0)
+            self.labelOnlySelectedElements.hide()
 
     def onProjectChanged(self, *args):
         self.manualBreaks = []
@@ -479,6 +524,114 @@ class QGISRedStatisticsDock(QDockWidget, formClass):
         self.tbExcel.setColumnCount(0)
         self.labelOnlySelectedElements.hide()
         self.onLayerTreeChanged()
+
+    def isResultsDockAlive(self):
+        return self.resultsDock is not None and not sip.isdeleted(self.resultsDock)
+
+    def findResultsDock(self):
+        for widget in self.iface.mainWindow().findChildren(QDockWidget):
+            if isinstance(widget, QGISRedResultsDock) and not sip.isdeleted(widget) and widget.isVisible():
+                return widget
+        return None
+
+    def pollForResultsDock(self):
+        if self.resultsDock is not None:
+            return
+        dock = self.findResultsDock()
+        if dock is not None:
+            self.connectResultsDock(dock)
+
+    def connectResultsDock(self, resultsDock=None):
+        if resultsDock is None:
+            resultsDock = self.findResultsDock()
+        if resultsDock is None:
+            return
+        if self.isResultsDockAlive() and self.resultsDock is resultsDock:
+            return
+        if self.resultsDock is not None:
+            self.disconnectResultsDock()
+        self.resultsDock = resultsDock
+        self.resultsDockPollTimer.stop()
+        resultsDock.timeTextChanged.connect(self.onResultsTimeChanged)
+        resultsDock.statisticsModeChanged.connect(self.onResultsStatisticsChanged)
+        resultsDock.resultPropertyChanged.connect(self.onResultsDataChanged)
+        resultsDock.simulationFinished.connect(self.onResultsDataChanged)
+        resultsDock.visibilityChanged.connect(self.onResultsDockVisibilityChanged)
+        if resultsDock._statsMode:
+            self.onResultsStatisticsChanged(resultsDock._currentStat)
+        else:
+            timeText = resultsDock.lbTime.text()
+            if timeText:
+                self.onResultsTimeChanged(timeText)
+
+    def disconnectResultsDock(self):
+        if self.resultsDock is not None:
+            if not sip.isdeleted(self.resultsDock):
+                self.safeDisconnect(self.resultsDock.timeTextChanged, self.onResultsTimeChanged)
+                self.safeDisconnect(self.resultsDock.statisticsModeChanged, self.onResultsStatisticsChanged)
+                self.safeDisconnect(self.resultsDock.resultPropertyChanged, self.onResultsDataChanged)
+                self.safeDisconnect(self.resultsDock.simulationFinished, self.onResultsDataChanged)
+                self.safeDisconnect(self.resultsDock.visibilityChanged, self.onResultsDockVisibilityChanged)
+            self.resultsDock = None
+        self.resultsCurrentStat = ""
+        self.resultsCurrentTimeText = QGISRedLayerUtils.getResultsCurrentTimeText() or self.resultsCurrentTimeText
+        self.updateResultsTimeLabel()
+        self.resultsDockPollTimer.start()
+
+    def onResultsDockVisibilityChanged(self, visible):
+        if not visible:
+            self.resultsDockVisibilityTimer.start()
+            return
+        self.resultsDockVisibilityTimer.stop()
+        if self.isResultsDockAlive():
+            timeText = self.resultsDock.lbTime.text()
+            if timeText:
+                self.onResultsTimeChanged(timeText)
+
+    def checkResultsDockClosed(self):
+        if self.resultsDock is not None and (sip.isdeleted(self.resultsDock) or not self.resultsDock.isVisible()):
+            self.disconnectResultsDock()
+
+    def onResultsTimeChanged(self, timeText):
+        if timeText == "NULL":
+            timeText = "N/A"
+        self.resultsCurrentTimeText = timeText
+        self.updateResultsTimeLabel()
+        self.refreshAnalysisForResults()
+
+    def onResultsStatisticsChanged(self, statName):
+        self.resultsCurrentStat = statName
+        self.updateResultsTimeLabel()
+        self.refreshAnalysisForResults()
+
+    def onResultsDataChanged(self):
+        self.updateResultsTimeLabel()
+        self.refreshAnalysisForResults()
+
+    def refreshAnalysisForResults(self):
+        if self._analysisContext and self.analysisInvolvesResultProperty():
+            self.onLayerTreeChanged()
+
+    def analysisInvolvesResultProperty(self):
+        context = self._analysisContext
+        if not context:
+            return False
+        involvedFields = (
+            context["propertyField"], context["classifyField"],
+            context["secondField"], context.get("attributeField", ""),
+        )
+        return any(fieldName and self.isResultProperty(fieldName) for fieldName in involvedFields)
+
+    def updateResultsTimeLabel(self):
+        if not self.analysisInvolvesResultProperty():
+            self.labelResultsTime.hide()
+            return
+        if self.resultsCurrentStat:
+            text = "{} {}".format(self.resultsCurrentStat, self.tr("values for report times"))
+        else:
+            text = QGISRedLayerUtils.getResultsCurrentTimeText() or self.resultsCurrentTimeText
+        self.labelResultsTime.setText(text or "")
+        self.labelResultsTime.setVisible(bool(text))
 
     def saveCurrentQueryState(self):
         return {
@@ -764,13 +917,13 @@ class QGISRedStatisticsDock(QDockWidget, formClass):
         resultsBrush = QBrush(QColor(RESULTS_BRUSH_COLOR))
         darkBrush = QBrush(QColor(DARK_BRUSH_COLOR))
 
-        resultsMetaLower = {"time", "statistics", "time_h", "time_d", "time_q"}
+        resultsMetaLower = {"time", "statistics", "time_h", "time_d", "time_q", "type"}
         resultsFieldsLower = {
             "flow", "flow_unsig", "flow_sig", "velocity", "headloss",
             "unithdloss", "fricfactor", "reactrate", "quality",
             "pressure", "head", "demand", "status",
         }
-        skipLower = {"id", "descrip", "description"}
+        skipLower = {"id"} if elementIdentifier == "qgisred_demands" else {"id", "descrip", "description"}
 
         qualityModel = QGISRedProjectUtils.getQualityModel().upper()
         nonChemicalFields = set()
@@ -797,7 +950,7 @@ class QGISRedStatisticsDock(QDockWidget, formClass):
                 continue
             cat = FIELD_TYPE_MAPPING.get(field.typeName().lower(), "text")
             isEnum = fieldName in CATEGORICAL_FIELD_NAMES
-            if not (cat == "numeric" or isEnum):
+            if not (cat in ("numeric", "text", "listed") or isEnum):
                 continue
             if lower == "tag":
                 tagField = field
@@ -851,13 +1004,13 @@ class QGISRedStatisticsDock(QDockWidget, formClass):
         resultsBrush = QBrush(QColor(RESULTS_BRUSH_COLOR))
         darkBrush = QBrush(QColor(DARK_BRUSH_COLOR))
 
-        resultsMetaLower = {"time", "statistics", "time_h", "time_d", "time_q"}
+        resultsMetaLower = {"time", "statistics", "time_h", "time_d", "time_q", "type"}
         resultsFieldsLower = {
             "flow", "flow_unsig", "flow_sig", "velocity", "headloss",
             "unithdloss", "fricfactor", "reactrate", "quality",
             "pressure", "head", "demand", "status",
         }
-        skipLower = {"id", "descrip", "description"}
+        skipLower = {"id"} if elementIdentifier == "qgisred_demands" else {"id", "descrip", "description"}
 
         qualityModel = QGISRedProjectUtils.getQualityModel().upper()
         nonChemicalFields = set()
@@ -884,7 +1037,7 @@ class QGISRedStatisticsDock(QDockWidget, formClass):
                 continue
             cat = FIELD_TYPE_MAPPING.get(field.typeName().lower(), "text")
             isEnum = fieldName in CATEGORICAL_FIELD_NAMES
-            if not (cat == "numeric" or isEnum):
+            if not (cat in ("numeric", "text", "listed") or isEnum):
                 continue
             if lower == "tag":
                 tagField = field
@@ -930,13 +1083,13 @@ class QGISRedStatisticsDock(QDockWidget, formClass):
         resultsBrush = QBrush(QColor(RESULTS_BRUSH_COLOR))
         darkBrush = QBrush(QColor(DARK_BRUSH_COLOR))
 
-        resultsMetaLower = {"time", "statistics", "time_h", "time_d", "time_q"}
+        resultsMetaLower = {"time", "statistics", "time_h", "time_d", "time_q", "type"}
         resultsFieldsLower = {
             "flow", "flow_unsig", "flow_sig", "velocity", "headloss",
             "unithdloss", "fricfactor", "reactrate", "quality",
             "pressure", "head", "demand", "status",
         }
-        skipLower = {"id", "descrip", "description"}
+        skipLower = {"id"} if elementIdentifier == "qgisred_demands" else {"id", "descrip", "description"}
 
         qualityModel = QGISRedProjectUtils.getQualityModel().upper()
         nonChemicalFields = set()
@@ -963,7 +1116,7 @@ class QGISRedStatisticsDock(QDockWidget, formClass):
                 continue
             cat = FIELD_TYPE_MAPPING.get(field.typeName().lower(), "text")
             isEnum = fieldName in CATEGORICAL_FIELD_NAMES
-            if not (cat == "numeric" or isEnum):
+            if not (cat in ("numeric", "text", "listed") or isEnum):
                 continue
             if lower == "tag":
                 tagField = field
@@ -1018,7 +1171,7 @@ class QGISRedStatisticsDock(QDockWidget, formClass):
                 ("Manual", self.tr("Manual")),
             ):
                 self.cbSecondRanged.addItem(label, identifier)
-            defaultIndex = self.cbSecondRanged.findData("EqualInterval")
+            defaultIndex = self.cbSecondRanged.findData("Quantile")
             if defaultIndex >= 0:
                 self.cbSecondRanged.setCurrentIndex(defaultIndex)
         self.cbSecondClasses.blockSignals(True)
@@ -1061,7 +1214,7 @@ class QGISRedStatisticsDock(QDockWidget, formClass):
                 ("Manual", self.tr("Manual")),
             ):
                 self.cbRanged.addItem(label, identifier)
-            defaultIndex = self.cbRanged.findData("EqualInterval")
+            defaultIndex = self.cbRanged.findData("Quantile")
             if defaultIndex >= 0:
                 self.cbRanged.setCurrentIndex(defaultIndex)
         self.cbClasses.blockSignals(True)
@@ -1088,7 +1241,7 @@ class QGISRedStatisticsDock(QDockWidget, formClass):
         resultsBrush = QBrush(QColor(RESULTS_BRUSH_COLOR))
         darkBrush = QBrush(QColor(DARK_BRUSH_COLOR))
 
-        resultsMetaLower = {"time", "statistics", "time_h", "time_d", "time_q"}
+        resultsMetaLower = {"time", "statistics", "time_h", "time_d", "time_q", "type"}
         resultsFieldsLower = {
             "flow", "flow_unsig", "flow_sig", "velocity", "headloss",
             "unithdloss", "fricfactor", "reactrate", "quality",
@@ -1279,7 +1432,7 @@ class QGISRedStatisticsDock(QDockWidget, formClass):
         if fieldIdx < 0:
             return False
         cat = FIELD_TYPE_MAPPING.get(layer.fields().field(fieldIdx).typeName().lower(), "text")
-        return cat == "text"
+        return cat in ("text", "listed")
 
     def resolveLayerForClassifyField(self, fieldName):
         layer = self.resolveLayer()
@@ -1299,12 +1452,13 @@ class QGISRedStatisticsDock(QDockWidget, formClass):
     def resolveAttributeLayer(self, fieldName):
         return self.resolveLayerForClassifyField(fieldName)
 
-    def collectUniqueValues(self, layer, fieldName, limit=200):
+    def collectUniqueValues(self, layer, fieldName, limit=200, request=None):
         if layer.fields().indexFromName(fieldName) < 0:
             return []
         values = set()
-        for feature in layer.getFeatures():
-            value = feature[fieldName]
+        featureIterator = layer.getFeatures(request) if request is not None else layer.getFeatures()
+        for feature in featureIterator:
+            value = self.fieldValue(feature, fieldName)
             if value is None:
                 continue
             values.add(value)
@@ -1315,12 +1469,13 @@ class QGISRedStatisticsDock(QDockWidget, formClass):
         except TypeError:
             return sorted(values, key=lambda item: str(item))
 
-    def collectNumericValues(self, layer, fieldName):
+    def collectNumericValues(self, layer, fieldName, request=None):
         values = []
         if layer.fields().indexFromName(fieldName) < 0:
             return values
-        for feature in layer.getFeatures():
-            raw = feature[fieldName]
+        featureIterator = layer.getFeatures(request) if request is not None else layer.getFeatures()
+        for feature in featureIterator:
+            raw = self.fieldValue(feature, fieldName)
             if raw is None:
                 continue
             try:
@@ -1337,7 +1492,7 @@ class QGISRedStatisticsDock(QDockWidget, formClass):
         layer = self.resolveLayerForClassifyField(classifyField)
         if layer is None:
             return
-        values = self.collectNumericValues(layer, classifyField)
+        values = self.collectNumericValues(layer, classifyField, request=self.breaksFeatureRequest(layer))
         if not values:
             QMessageBox.information(
                 self,
@@ -1367,7 +1522,7 @@ class QGISRedStatisticsDock(QDockWidget, formClass):
         layer = self.resolveLayerForClassifyField(classifyField)
         if layer is None:
             return
-        values = self.collectNumericValues(layer, classifyField)
+        values = self.collectNumericValues(layer, classifyField, request=self.breaksFeatureRequest(layer))
         if not values:
             QMessageBox.information(
                 self,
@@ -1434,20 +1589,21 @@ class QGISRedStatisticsDock(QDockWidget, formClass):
             return
 
         breaks = None
+        breaksParams = None
         if classifyField:
-            breaks = self.resolveBreaks(
-                propertyLayer,
-                classifyField,
+            breaksParams = (
                 self.cbRanged.currentData(Qt.ItemDataRole.UserRole) or "EqualInterval",
                 self.cbClasses.value() or DEFAULT_NUM_CLASSES,
                 self.spinIntervalRange.value(),
-                self.manualBreaks,
+                list(self.manualBreaks),
             )
+            breaks = self.resolveBreaks(propertyLayer, classifyField, *breaksParams)
             if breaks is None:
                 return
 
         secondField = self.cbSecondClassifiedBy.currentData(Qt.ItemDataRole.UserRole) if classifyField else ""
         secondBreaks = None
+        secondBreaksParams = None
         if secondField:
             secondLayer = self.resolveLayerForClassifyField(secondField)
             if secondLayer is not propertyLayer or propertyLayer.fields().indexFromName(secondField) < 0:
@@ -1457,14 +1613,13 @@ class QGISRedStatisticsDock(QDockWidget, formClass):
                     self.tr("The second classification field must come from the same layer."),
                 )
                 return
-            secondBreaks = self.resolveBreaks(
-                propertyLayer,
-                secondField,
+            secondBreaksParams = (
                 self.cbSecondRanged.currentData(Qt.ItemDataRole.UserRole) or "EqualInterval",
                 self.cbSecondClasses.value() or DEFAULT_NUM_CLASSES,
                 self.spinSecondIntervalRange.value(),
-                self.secondManualBreaks,
+                list(self.secondManualBreaks),
             )
+            secondBreaks = self.resolveBreaks(propertyLayer, secondField, *secondBreaksParams)
             if secondBreaks is None:
                 return
 
@@ -1473,17 +1628,23 @@ class QGISRedStatisticsDock(QDockWidget, formClass):
         else:
             self._secondClassBins = []
         self.populateSecondClassValues(elementIdentifier, secondField)
+        condition = self.cbCondition.currentData(Qt.ItemDataRole.UserRole) or ""
+        attributeField = self.cbAttribute.currentData(Qt.ItemDataRole.UserRole) if condition not in ("", "All") else ""
         self._analysisContext = {
             "propertyLayer": propertyLayer,
             "propertyField": propertyField,
             "classifyField": classifyField,
             "breaks": breaks,
+            "breaksParams": breaksParams,
             "secondField": secondField,
             "secondBreaks": secondBreaks,
+            "secondBreaksParams": secondBreaksParams,
             "featureRequest": featureRequest,
             "elementIdentifier": elementIdentifier,
+            "attributeField": attributeField,
         }
         self.renderAnalysis()
+        self.updateResultsTimeLabel()
         self.tabWidget.setCurrentIndex(1)
 
     def populateSecondClassValues(self, elementIdentifier, secondField):
@@ -1509,6 +1670,61 @@ class QGISRedStatisticsDock(QDockWidget, formClass):
         if not self._analysisContext:
             return
         self.renderAnalysis(preserveStatistic=True)
+
+    def renderFromContext(self):
+        # Passive refresh of the last analysis; False tells the caller to clear instead
+        context = self._analysisContext
+        if not context:
+            return False
+        if self.cbElementType.currentData(Qt.ItemDataRole.UserRole) != context["elementIdentifier"]:
+            return False
+        propertyField = context["propertyField"]
+        classifyField = context["classifyField"]
+        secondField = context["secondField"]
+        if self.cbProperty.currentData(Qt.ItemDataRole.UserRole) != propertyField:
+            return False
+        if (self.cbClassifiedBy.currentData(Qt.ItemDataRole.UserRole) or "") != (classifyField or ""):
+            return False
+        if classifyField and (self.cbSecondClassifiedBy.currentData(Qt.ItemDataRole.UserRole) or "") != (secondField or ""):
+            return False
+        layer = context["propertyLayer"]
+        if layer is None or sip.isdeleted(layer) or QgsProject.instance().mapLayer(layer.id()) is None:
+            layer = self.resolveLayerForClassifyField(propertyField)
+        if layer is None or sip.isdeleted(layer):
+            return False
+        fields = layer.fields()
+        for fieldName in (propertyField, classifyField, secondField):
+            if fieldName and fields.indexFromName(fieldName) < 0:
+                return False
+        if layer.featureCount() == 0:
+            return False
+        if self.cbSelectedElements.isChecked() and not layer.selectedFeatureIds():
+            return False
+        featureRequest = self.buildFeatureRequest(layer)
+        if featureRequest is False:
+            return False
+        if classifyField and self.isResultProperty(classifyField):
+            breaks = self.resolveBreaks(layer, classifyField, *context["breaksParams"], quiet=True)
+            if breaks is None:
+                return False
+            context["breaks"] = breaks
+        if secondField and self.isResultProperty(secondField):
+            secondBreaks = self.resolveBreaks(layer, secondField, *context["secondBreaksParams"], quiet=True)
+            if secondBreaks is None:
+                return False
+            context["secondBreaks"] = secondBreaks
+            selectedSecondIndex = self.cbSecondClassValue.currentIndex()
+            self._secondClassBins = self.initBins(secondBreaks, 0)
+            self.populateSecondClassValues(context["elementIdentifier"], secondField)
+            if 0 <= selectedSecondIndex < self.cbSecondClassValue.count():
+                self.cbSecondClassValue.blockSignals(True)
+                self.cbSecondClassValue.setCurrentIndex(selectedSecondIndex)
+                self.cbSecondClassValue.blockSignals(False)
+        context["propertyLayer"] = layer
+        context["featureRequest"] = featureRequest
+        self.renderAnalysis(preserveStatistic=True)
+        self.updateResultsTimeLabel()
+        return True
 
     def renderAnalysis(self, preserveStatistic=False):
         context = self._analysisContext
@@ -1540,12 +1756,12 @@ class QGISRedStatisticsDock(QDockWidget, formClass):
         featureIterator = propertyLayer.getFeatures(featureRequest) if featureRequest is not None else propertyLayer.getFeatures()
         for feature in featureIterator:
             if selectedSecondIndex is not None:
-                secondValue = feature[secondField]
+                secondValue = self.fieldValue(feature, secondField)
                 if secondValue is None:
                     continue
                 if self.findBinIndex(self._secondClassBins, secondValue, secondBreaks["type"]) != selectedSecondIndex:
                     continue
-            classValue = feature[classifyField]
+            classValue = self.fieldValue(feature, classifyField)
             if classValue is None:
                 self.lastNullCount += 1
                 continue
@@ -1553,7 +1769,7 @@ class QGISRedStatisticsDock(QDockWidget, formClass):
             if binIndex is None:
                 self.lastOutOfRangeCount += 1
                 continue
-            propertyValue = feature[propertyField]
+            propertyValue = self.fieldValue(feature, propertyField)
             if propertyValue is None:
                 self.lastNullCount += 1
                 continue
@@ -1588,7 +1804,7 @@ class QGISRedStatisticsDock(QDockWidget, formClass):
             self.buildSecondClassMatrix(
                 bins, propertyLayer, propertyField, classifyField, breaks, secondField, secondBreaks,
                 featureRequest, prettyClassify, prettySecond, prettyProperty,
-                useSum,
+                useSum, self.propertyDecimalsFor(elementIdentifier, propertyField),
             )
             previousTableStatistic = self.cbTableStatistic.currentData(Qt.ItemDataRole.UserRole) if preserveStatistic else None
             self._fillStatisticCombo(self.cbTableStatistic, self._tableMatrix["allColumn"], useSum)
@@ -1615,7 +1831,7 @@ class QGISRedStatisticsDock(QDockWidget, formClass):
         self.lastOutOfRangeCount = 0
         featureIterator = propertyLayer.getFeatures(featureRequest) if featureRequest is not None else propertyLayer.getFeatures()
         for feature in featureIterator:
-            propertyValue = feature[propertyField]
+            propertyValue = self.fieldValue(feature, propertyField)
             if propertyValue is None:
                 self.lastNullCount += 1
                 continue
@@ -1645,11 +1861,14 @@ class QGISRedStatisticsDock(QDockWidget, formClass):
     def buildChartTitle(self, context, prettyProperty, prettyClassify, selectedSecondIndex):
         secondField = context["secondField"]
         secondBreaks = context["secondBreaks"]
+        element = normalize_element(context["elementIdentifier"])
+        pluralProperty = self.fieldUtils.getPluralProperty(element, context["propertyField"]) or prettyProperty
         if context["propertyField"] == context["classifyField"]:
             rangeKind = self.tr("by Categories") if context["breaks"]["type"] == "categorical" else self.tr("by Ranges")
-            base = "{} {}".format(prettyProperty, rangeKind)
+            base = "{} {}".format(pluralProperty, rangeKind)
         else:
-            base = "{} {} {}".format(prettyProperty, self.tr("by"), prettyClassify)
+            pluralClassify = self.fieldUtils.getPluralProperty(element, context["classifyField"]) or prettyClassify
+            base = "{} {} {}".format(pluralProperty, self.tr("by"), pluralClassify)
         if not (secondField and selectedSecondIndex is not None):
             return base
         groupLabel = self.cbSecondClassValue.currentText()
@@ -1765,6 +1984,11 @@ class QGISRedStatisticsDock(QDockWidget, formClass):
         if expression:
             request.combineFilterExpression(expression)
             applied = True
+
+        exclusion = self.headLossExclusionExpression(layer)
+        if exclusion:
+            request.combineFilterExpression(exclusion)
+            applied = True
         return request if applied else None
 
     def buildAttributeExpression(self, layer):
@@ -1777,6 +2001,8 @@ class QGISRedStatisticsDock(QDockWidget, formClass):
         if condition in ("", "All"):
             return ""
         quotedColumn = QgsExpression.quotedColumnRef(attributeField)
+        if attributeField == "Flow":
+            quotedColumn = "abs({})".format(quotedColumn)
         if condition == "Range":
             fromText = self.leFrom.text().strip()
             toText = self.leTo.text().strip()
@@ -1818,38 +2044,59 @@ class QGISRedStatisticsDock(QDockWidget, formClass):
             quoted = QgsExpression.quotedString(textValue)
         return "{0}{1}{2}".format(quotedColumn, op, quoted)
 
-    def resolveBreaks(self, layer, classifyField, rangedId, numClasses, intervalValue, manualBreaks):
+    def headLossExclusionExpression(self, layer):
+        # HeadLoss only applies to pipes, so pumps and valves are left out
+        fields = layer.fields()
+        if fields.indexFromName("Type") < 0 or fields.indexFromName("HeadLoss") < 0:
+            return ""
+        classifyField = self.cbClassifiedBy.currentData(Qt.ItemDataRole.UserRole)
+        secondField = self.cbSecondClassifiedBy.currentData(Qt.ItemDataRole.UserRole) if classifyField else ""
+        condition = self.cbCondition.currentData(Qt.ItemDataRole.UserRole) or ""
+        attributeField = self.cbAttribute.currentData(Qt.ItemDataRole.UserRole) if condition not in ("", "All") else ""
+        involvedFields = (self.cbProperty.currentData(Qt.ItemDataRole.UserRole), classifyField, secondField, attributeField)
+        if "HeadLoss" not in involvedFields:
+            return ""
+        return "{} NOT IN ('PUMP', 'VALVE')".format(QgsExpression.quotedColumnRef("Type"))
+
+    def breaksFeatureRequest(self, layer):
+        exclusion = self.headLossExclusionExpression(layer)
+        return QgsFeatureRequest().setFilterExpression(exclusion) if exclusion else None
+
+    def resolveBreaks(self, layer, classifyField, rangedId, numClasses, intervalValue, manualBreaks, quiet=False):
+        breaksRequest = self.breaksFeatureRequest(layer)
         if self.isCategoricalClassifier(classifyField):
-            distinctValues = self.collectUniqueValues(layer, classifyField, limit=10000)
+            distinctValues = self.collectUniqueValues(layer, classifyField, limit=10000, request=breaksRequest)
             return {"type": "categorical", "values": [str(value) for value in distinctValues]}
         if rangedId == "Categorized":
-            distinctValues = self.collectUniqueValues(layer, classifyField, limit=10000)
+            distinctValues = self.collectUniqueValues(layer, classifyField, limit=10000, request=breaksRequest)
             return {"type": "categorical", "values": [str(value) for value in distinctValues]}
-        numericValues = self.collectNumericValues(layer, classifyField)
+        numericValues = self.collectNumericValues(layer, classifyField, request=breaksRequest)
         if not numericValues:
-            QMessageBox.warning(self, self.tr("No data"), self.tr("No numeric values available for classification."))
+            if not quiet:
+                QMessageBox.warning(self, self.tr("No data"), self.tr("No numeric values available for classification."))
             return None
         dataMin = numericValues[0]
         dataMax = numericValues[-1]
         if dataMin == dataMax:
             dataMax = dataMin + 1.0
-        edges = self.calculateBreaks(rangedId, layer, classifyField, numericValues, numClasses, dataMin, dataMax, intervalValue, manualBreaks)
+        edges = self.calculateBreaks(rangedId, numericValues, numClasses, dataMin, dataMax, intervalValue, manualBreaks)
         if edges is None or len(edges) < 2:
-            QMessageBox.warning(self, self.tr("Breaks failed"), self.tr("Unable to compute breaks for the chosen method."))
+            if not quiet:
+                QMessageBox.warning(self, self.tr("Breaks failed"), self.tr("Unable to compute breaks for the chosen method."))
             return None
         return {"type": "breaks", "edges": edges}
 
-    def calculateBreaks(self, rangedId, layer, classifyField, values, numClasses, dataMin, dataMax, intervalValue, manualBreaks):
+    def calculateBreaks(self, rangedId, values, numClasses, dataMin, dataMax, intervalValue, manualBreaks):
         if rangedId == "EqualInterval":
             return self.calculateEqualIntervalBreaks(numClasses, dataMin, dataMax)
         if rangedId == "FixedInterval":
             return self.calculateFixedIntervalBreaks(dataMin, dataMax, intervalValue)
         if rangedId == "Quantile":
-            return self.calculateQuantileBreaks(layer, classifyField, numClasses, dataMin)
+            return self.calculateQuantileBreaks(values, numClasses, dataMin)
         if rangedId == "Jenks":
-            return self.calculateJenksBreaks(layer, classifyField, numClasses, dataMin)
+            return self.calculateJenksBreaks(values, numClasses, dataMin)
         if rangedId == "Pretty":
-            return self.calculatePrettyBreaks(layer, classifyField, numClasses, dataMin)
+            return self.calculatePrettyBreaks(values, numClasses, dataMin)
         if rangedId == "Manual":
             if not manualBreaks or len(manualBreaks) < 2:
                 return self.calculateEqualIntervalBreaks(numClasses, dataMin, dataMax)
@@ -1873,23 +2120,23 @@ class QGISRedStatisticsDock(QDockWidget, formClass):
             edges.append(current)
         return edges
 
-    def calculateQuantileBreaks(self, layer, fieldName, numClasses, dataMin):
+    def calculateQuantileBreaks(self, values, numClasses, dataMin):
         classifier = QgsClassificationQuantile()
-        classes = classifier.classes(layer, fieldName, numClasses)
+        classes = classifier.classes(values, numClasses)
         if not classes:
             return None
         return [dataMin] + [cls.upperBound() for cls in classes]
 
-    def calculateJenksBreaks(self, layer, fieldName, numClasses, dataMin):
+    def calculateJenksBreaks(self, values, numClasses, dataMin):
         classifier = QgsClassificationJenks()
-        classes = classifier.classes(layer, fieldName, numClasses)
+        classes = classifier.classes(values, numClasses)
         if not classes:
             return None
         return [dataMin] + [cls.upperBound() for cls in classes]
 
-    def calculatePrettyBreaks(self, layer, fieldName, numClasses, dataMin):
+    def calculatePrettyBreaks(self, values, numClasses, dataMin):
         classifier = QgsClassificationPrettyBreaks()
-        classes = classifier.classes(layer, fieldName, numClasses)
+        classes = classifier.classes(values, numClasses)
         if not classes:
             return None
         return [dataMin] + [cls.upperBound() for cls in classes]
@@ -1924,6 +2171,16 @@ class QGISRedStatisticsDock(QDockWidget, formClass):
             "stddev": 0.0,
             "values": {},
         }
+
+    def fieldValue(self, feature, fieldName):
+        # Flow is always analyzed as a magnitude, so the sign is dropped
+        value = feature[fieldName]
+        if fieldName == "Flow" and value is not None:
+            try:
+                return abs(float(value))
+            except (TypeError, ValueError):
+                return value
+        return value
 
     def findBinIndex(self, bins, value, breakType):
         if breakType == "categorical":
@@ -2078,25 +2335,25 @@ class QGISRedStatisticsDock(QDockWidget, formClass):
 
     def buildSecondClassMatrix(self, bins, propertyLayer, propertyField, classifyField, breaks, secondField,
                                secondBreaks, featureRequest, prettyClassify, prettySecond,
-                               prettyProperty, useSum):
+                               prettyProperty, useSum, propertyDecimals=0):
         rowCount = len(bins)
         colCount = len(self._secondClassBins)
         cells = [[self.makeBin(label="", lo=None, hi=None, category=None) for _ in range(colCount)] for _ in range(rowCount)]
         allColumn = [self.makeBin(label="", lo=None, hi=None, category=None) for _ in range(rowCount)]
         featureIterator = propertyLayer.getFeatures(featureRequest) if featureRequest is not None else propertyLayer.getFeatures()
         for feature in featureIterator:
-            classValue = feature[classifyField]
+            classValue = self.fieldValue(feature, classifyField)
             if classValue is None:
                 continue
             primaryIndex = self.findBinIndex(bins, classValue, breaks["type"])
             if primaryIndex is None:
                 continue
-            propertyValue = feature[propertyField]
+            propertyValue = self.fieldValue(feature, propertyField)
             if propertyValue is None:
                 continue
             enumeratedValue = propertyValue
             self.accumulateValue(allColumn[primaryIndex], propertyValue, enumeratedValue)
-            secondValue = feature[secondField]
+            secondValue = self.fieldValue(feature, secondField)
             if secondValue is None:
                 continue
             secondIndex = self.findBinIndex(self._secondClassBins, secondValue, secondBreaks["type"])
@@ -2116,6 +2373,7 @@ class QGISRedStatisticsDock(QDockWidget, formClass):
             "prettyClassify": prettyClassify,
             "prettySecond": prettySecond,
             "prettyProperty": prettyProperty,
+            "decimals": propertyDecimals,
         }
 
     def populateMatrixTable(self):
@@ -2129,7 +2387,10 @@ class QGISRedStatisticsDock(QDockWidget, formClass):
         secondLabels = matrix["secondLabels"]
         cells = matrix["cells"]
         allColumn = matrix["allColumn"]
-        cornerHeader = "{} / {}".format(matrix["prettyClassify"], matrix["prettySecond"])
+        decimals = matrix.get("decimals", 0)
+        cornerHeader = "{} / {}".format(
+            self.shortPropertyName(matrix["prettyClassify"]), self.shortPropertyName(matrix["prettySecond"])
+        )
         headers = [cornerHeader, self.tr("All")] + list(secondLabels)
         self.tbExcel.setColumnCount(len(headers))
         self.tbExcel.setHorizontalHeaderLabels(headers)
@@ -2138,32 +2399,35 @@ class QGISRedStatisticsDock(QDockWidget, formClass):
         for rowIndex, label in enumerate(rowLabels):
             self.setTableItem(rowIndex, 0, label)
             allValue = self.binStatValue(allColumn[rowIndex], statKey, valueKey)
-            self.setTableItem(rowIndex, 1, self.formatStatCell(allValue, statKey, valueKey, 0))
+            self.setTableItem(rowIndex, 1, self.formatStatCell(allValue, statKey, valueKey, decimals))
             for colIndex, cellBin in enumerate(cells[rowIndex]):
                 value = self.binStatValue(cellBin, statKey, valueKey)
-                self.setTableItem(rowIndex, colIndex + 2, self.formatStatCell(value, statKey, valueKey, 0))
+                self.setTableItem(rowIndex, colIndex + 2, self.formatStatCell(value, statKey, valueKey, decimals))
 
         totalRow = len(rowLabels)
         self.setTableItem(totalRow, 0, self.tr("Total"), bold=True)
         allTotal = self.binStatValue(self.combineBins(allColumn), statKey, valueKey)
-        self.setTableItem(totalRow, 1, self.formatStatCell(allTotal, statKey, valueKey, 0), bold=True)
+        self.setTableItem(totalRow, 1, self.formatStatCell(allTotal, statKey, valueKey, decimals), bold=True)
         for colIndex in range(len(secondLabels)):
             columnBins = [cells[rowIndex][colIndex] for rowIndex in range(len(rowLabels))]
             columnTotal = self.binStatValue(self.combineBins(columnBins), statKey, valueKey)
-            self.setTableItem(totalRow, colIndex + 2, self.formatStatCell(columnTotal, statKey, valueKey, 0), bold=True)
+            self.setTableItem(totalRow, colIndex + 2, self.formatStatCell(columnTotal, statKey, valueKey, decimals), bold=True)
 
         header = self.tbExcel.horizontalHeader()
         header.setMinimumSectionSize(50)
         for column in range(self.tbExcel.columnCount()):
             header.setSectionResizeMode(column, QHeaderView.ResizeMode.ResizeToContents)
         header.setStretchLastSection(False)
-        for column, minimumWidth in ((0, 200), (1, 80)):
+        for column, minimumWidth in ((0, 80), (1, 80)):
             header.setSectionResizeMode(column, QHeaderView.ResizeMode.Interactive)
-            self.tbExcel.setColumnWidth(column, max(self.tbExcel.sizeHintForColumn(column), minimumWidth))
+            self.tbExcel.setColumnWidth(column, max(self.tbExcel.sizeHintForColumn(column) + 12, minimumWidth))
         self.tbExcel.verticalHeader().setVisible(False)
 
+    def shortPropertyName(self, name):
+        return name if len(name) <= 5 else name[:4] + "."
+
     def populateNumericTable(self, bins, prettyClassify, prettyProperty, propertyField, elementIdentifier, includeTotal=True):
-        propertyDecimals = 0
+        propertyDecimals = self.propertyDecimalsFor(elementIdentifier, propertyField)
         useSum = self.usesSumColumn(propertyField, elementIdentifier)
         if useSum:
             headers = [prettyClassify, self.tr("Count"), self.tr("Sum"), self.tr("Avg"), self.tr("Min"), self.tr("Max")]
@@ -2228,9 +2492,10 @@ class QGISRedStatisticsDock(QDockWidget, formClass):
                 self.setTableItem(totalRow, 5, self.formatLikeAvg(totalStdDev, totalAvgText) if totalCount > 1 else "", bold=True)
 
         header = self.tbExcel.horizontalHeader()
-        header.setSectionResizeMode(0, QHeaderView.ResizeMode.Stretch)
+        header.setSectionResizeMode(0, QHeaderView.ResizeMode.ResizeToContents)
         for column in range(1, self.tbExcel.columnCount()):
-            header.setSectionResizeMode(column, QHeaderView.ResizeMode.ResizeToContents)
+            header.setSectionResizeMode(column, QHeaderView.ResizeMode.Interactive)
+            self.tbExcel.setColumnWidth(column, max(self.tbExcel.sizeHintForColumn(column) + 12, 60))
         header.setStretchLastSection(False)
         self.tbExcel.verticalHeader().setVisible(False)
 
@@ -2282,6 +2547,16 @@ class QGISRedStatisticsDock(QDockWidget, formClass):
         if len(text) <= ENUM_TEXT_LIMIT:
             return text
         return text[: ENUM_TEXT_LIMIT - 1] + "…"
+
+    def propertyDecimalsFor(self, elementIdentifier, propertyField):
+        if self.isResultProperty(propertyField):
+            category = ELEMENT_RESULT_CATEGORY.get(elementIdentifier)
+            if category is None:
+                category = "Link" if (elementIdentifier or "").startswith("qgisred_link") else "Node"
+            element = "Links" if category == "Link" else "Nodes"
+        else:
+            element = normalize_element(elementIdentifier)
+        return self.fieldUtils.getDecimals(element, propertyField, default=2)
 
     def usesSumColumn(self, prop, elementIdentifier):
         if prop == "Length" and elementIdentifier == "qgisred_pipes":
@@ -2430,14 +2705,21 @@ class QGISRedStatisticsDock(QDockWidget, formClass):
             return
         try:
             elementIdentifier = self.cbElementType.currentData(Qt.ItemDataRole.UserRole) or ""
-            propertyField = self.cbProperty.currentData(Qt.ItemDataRole.UserRole) or ""
             classifyField = self.cbClassifiedBy.currentData(Qt.ItemDataRole.UserRole) or ""
+            secondField = self.cbSecondClassifiedBy.currentData(Qt.ItemDataRole.UserRole) or ""
+            element = normalize_element(elementIdentifier)
+            classifiedByText = self.tr("None")
+            if classifyField:
+                classifiedByText = self.fieldUtils.getPluralProperty(element, classifyField) or classifyField
+                if secondField and self._tableMatrix:
+                    prettySecond = self.fieldUtils.getPluralProperty(element, secondField) or secondField
+                    classifiedByText = "{} {} {}".format(classifiedByText, self.tr("and"), prettySecond)
             with open(fileName, "w", newline="", encoding="utf-8") as fileHandle:
                 writer = csv.writer(fileHandle)
                 fileHandle.write("Project: {}\n".format(projectName))
-                fileHandle.write("Element Type: {}\n".format(elementIdentifier))
-                fileHandle.write("Property: {}\n".format(propertyField))
-                fileHandle.write("Classified by: {}\n".format(classifyField))
+                fileHandle.write("Element Type: {}\n".format(self.cbElementType.currentText()))
+                fileHandle.write("Property: {}\n".format(self.cbProperty.currentText()))
+                fileHandle.write("Classified by: {}\n".format(classifiedByText))
                 subtitle = self.buildSubtitle(elementIdentifier)
                 if subtitle:
                     fileHandle.write("Filter: {}\n".format(subtitle))
