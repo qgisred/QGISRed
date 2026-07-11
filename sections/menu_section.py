@@ -38,7 +38,7 @@ class MenuSection:
         isolatedSegmentsButton
 
     QueriesSection:
-        openFindElementsDialog, openElementsPropertyDialog, openThematicMapsDialog,
+        openThematicMapsDialog, openFindElementsDialog, openElementsPropertyDialog,
         openLiveQueriesDialog, openStatisticsDialog
 
     ProjectManagementSection / LayerManagementSection:
@@ -749,6 +749,15 @@ class MenuSection:
         self.queriesDropButton = queriesDropButton
         self.queriesToolbar.visibilityChanged.connect(self.changeQueriesToolbarVisibility)
 
+        self.openThematicMapsDialog = self._make_action(
+            ":/images/iconThematicMaps.svg",
+            self.tr("Thematic maps..."),
+            self.runThematicMaps,
+            parent=self.iface.mainWindow(),
+        )
+        self.add_to_group(self.openThematicMapsDialog, self.queriesMenu, self.queriesToolbar)
+        self.add_to_dropdown(self.openThematicMapsDialog, queriesDropButton)
+
         self.openFindElementsDialog = self._make_action(
             ":/images/iconFindElements.svg",
             self.tr("Find elements by ID..."),
@@ -768,15 +777,6 @@ class MenuSection:
         )
         self.add_to_group(self.openElementsPropertyDialog, self.queriesMenu, self.queriesToolbar)
         self.add_to_dropdown(self.openElementsPropertyDialog, queriesDropButton)
-
-        self.openThematicMapsDialog = self._make_action(
-            ":/images/iconThematicMaps.svg",
-            self.tr("Thematic maps..."),
-            self.runThematicMaps,
-            parent=self.iface.mainWindow(),
-        )
-        self.add_to_group(self.openThematicMapsDialog, self.queriesMenu, self.queriesToolbar)
-        self.add_to_dropdown(self.openThematicMapsDialog, queriesDropButton)
 
         self.openLiveQueriesDialog = self._make_action(
             ":/images/iconQueryByProperties.svg",
