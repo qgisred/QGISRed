@@ -17,7 +17,7 @@ from ..analysis.qgisred_results_dock import QGISRedResultsDock
 from ...tools.utils.qgisred_field_utils import QGISRedFieldUtils, normalize_element
 from ...tools.utils.qgisred_layer_utils import QGISRedLayerUtils
 from ...tools.utils.qgisred_project_utils import QGISRedProjectUtils
-from ...tools.utils.qgisred_ui_utils import QGISRedUIUtils
+from ...tools.utils.qgisred_ui_utils import QGISRED_COMBO_STYLE, QGISRedUIUtils
 
 # load UI
 FORM_CLASS, _ = uic.loadUiType(os.path.join(os.path.dirname(__file__), "qgisred_queriesbyproperties_dock.ui"))
@@ -225,13 +225,7 @@ class QGISRedQueriesByPropertiesDock(QDockWidget, FORM_CLASS):
         self.gridLayout.setColumnStretch(2, 2)
         self.cbCondition.setMaximumWidth(100)
 
-        for widget in (self.cbElementType, self.cbProperty, self.cbCondition,
-                       self.cbValue, self.cbStatisticsFor):
-            widget.setStyleSheet(
-                "QComboBox { background-color: white; }"
-                "QComboBox QAbstractItemView { background-color: white; selection-background-color: #3399ff; selection-color: white; }"
-                "QLineEdit { background-color: white; }"
-            )
+        self.cbValue.setStyleSheet("QLineEdit { background-color: white; }")
 
         self.setupValueStack()
 
@@ -976,10 +970,6 @@ class QGISRedQueriesByPropertiesDock(QDockWidget, FORM_CLASS):
         self.cbValueList = QComboBox(self)
         self.cbValueList.setEditable(False)
         self.cbValueList.setSizePolicy(sizePolicy)
-        self.cbValueList.setStyleSheet(
-            "QComboBox { background-color: white; }"
-            "QComboBox QAbstractItemView { background-color: white; selection-background-color: #3399ff; selection-color: white; }"
-        )
 
         self.valueStack = QStackedWidget(self)
         self.valueStack.setSizePolicy(sizePolicy)
@@ -998,11 +988,7 @@ class QGISRedQueriesByPropertiesDock(QDockWidget, FORM_CLASS):
             color = brush.color().name()
         else:
             color = "white"
-        combo.setStyleSheet(
-            f"QComboBox {{ background-color: {color}; }}"
-            "QComboBox QAbstractItemView { background-color: white; selection-background-color: #3399ff; selection-color: white; }"
-            "QLineEdit { background-color: white; }"
-        )
+        combo.setStyleSheet(QGISRED_COMBO_STYLE + "QComboBox { background-color: %s; }" % color)
 
     def isValueListActive(self):
         return self.valueStack.currentWidget() is self.cbValueList
