@@ -6,7 +6,7 @@ import math
 import os
 from datetime import datetime
 
-from qgis.PyQt.QtCore import Qt, QSize, QTimer
+from qgis.PyQt.QtCore import QEvent, Qt, QSize, QTimer
 from qgis.PyQt.QtGui import QBrush, QColor, QIcon
 from qgis.PyQt.QtWidgets import (
     QAbstractItemView,
@@ -180,6 +180,7 @@ class QGISRedStatisticsDock(QDockWidget, formClass):
         self._analysisContext = None
         self._secondClassBins = []
         self._tableMatrix = None
+        self._tableBaseWidths = []
         self.connectedLayerNodes = []
         self.connectedGroups = []
         self.layerTreeChangeTimer = QTimer()
@@ -242,8 +243,18 @@ class QGISRedStatisticsDock(QDockWidget, formClass):
         with suppress(TypeError, RuntimeError):
             signal.disconnect(slot)
 
+    def eventFilter(self, obj, event):
+        if obj is self.tbExcel.viewport() and event.type() == QEvent.Type.Resize:
+            self.stretchTableColumns()
+        return super().eventFilter(obj, event)
+
+    def resizeEvent(self, event):
+        super().resizeEvent(event)
+        QTimer.singleShot(0, self.stretchTableColumns)
+
     def setupHistogram(self):
         self.tbExcel.setEditTriggers(QAbstractItemView.EditTrigger.NoEditTriggers)
+        self.tbExcel.viewport().installEventFilter(self)
         self.histogram = StatisticsHistogramWidget(self.graphWidget)
         self.histogram.setToolTip(self.tr("Mouse wheel: zoom · Drag: pan · Double-click: reset view"))
         layout = QVBoxLayout(self.graphWidget)
@@ -2415,16 +2426,42 @@ class QGISRedStatisticsDock(QDockWidget, formClass):
 
         header = self.tbExcel.horizontalHeader()
         header.setMinimumSectionSize(50)
-        for column in range(self.tbExcel.columnCount()):
-            header.setSectionResizeMode(column, QHeaderView.ResizeMode.ResizeToContents)
         header.setStretchLastSection(False)
-        for column, minimumWidth in ((0, 80), (1, 80)):
+        for column in range(self.tbExcel.columnCount()):
             header.setSectionResizeMode(column, QHeaderView.ResizeMode.Interactive)
-            self.tbExcel.setColumnWidth(column, max(self.tbExcel.sizeHintForColumn(column) + 12, minimumWidth))
+            minimumWidth = 80 if column <= 1 else 50
+            columnWidth = max(self.tbExcel.sizeHintForColumn(column) + 12, header.sectionSizeHint(column), minimumWidth)
+            self.tbExcel.setColumnWidth(column, columnWidth)
+        self.captureTableBaseWidths()
         self.tbExcel.verticalHeader().setVisible(False)
 
     def shortPropertyName(self, name):
         return name if len(name) <= 5 else name[:4] + "."
+
+    def captureTableBaseWidths(self):
+        # Content widths are the floor; extra dialog width is shared out on resize
+        self._tableBaseWidths = [self.tbExcel.columnWidth(column) for column in range(self.tbExcel.columnCount())]
+        self.stretchTableColumns()
+
+    def stretchTableColumns(self):
+        baseWidths = self._tableBaseWidths
+        if not baseWidths or self.tbExcel.columnCount() != len(baseWidths):
+            return
+        totalBase = sum(baseWidths)
+        if totalBase <= 0:
+            return
+        extra = self.tbExcel.viewport().width() - totalBase
+        if extra <= 0:
+            for column, baseWidth in enumerate(baseWidths):
+                self.tbExcel.setColumnWidth(column, baseWidth)
+            return
+        assigned = 0
+        for column, baseWidth in enumerate(baseWidths):
+            add = extra * baseWidth // totalBase
+            if column == len(baseWidths) - 1:
+                add = extra - assigned
+            assigned += add
+            self.tbExcel.setColumnWidth(column, baseWidth + add)
 
     def populateNumericTable(self, bins, prettyClassify, prettyProperty, propertyField, elementIdentifier, includeTotal=True):
         propertyDecimals = self.propertyDecimalsFor(elementIdentifier, propertyField)
@@ -2492,11 +2529,12 @@ class QGISRedStatisticsDock(QDockWidget, formClass):
                 self.setTableItem(totalRow, 5, self.formatLikeAvg(totalStdDev, totalAvgText) if totalCount > 1 else "", bold=True)
 
         header = self.tbExcel.horizontalHeader()
-        header.setSectionResizeMode(0, QHeaderView.ResizeMode.ResizeToContents)
-        for column in range(1, self.tbExcel.columnCount()):
-            header.setSectionResizeMode(column, QHeaderView.ResizeMode.Interactive)
-            self.tbExcel.setColumnWidth(column, max(self.tbExcel.sizeHintForColumn(column) + 12, 60))
         header.setStretchLastSection(False)
+        for column in range(self.tbExcel.columnCount()):
+            header.setSectionResizeMode(column, QHeaderView.ResizeMode.Interactive)
+            columnWidth = max(self.tbExcel.sizeHintForColumn(column) + 12, header.sectionSizeHint(column), 60)
+            self.tbExcel.setColumnWidth(column, columnWidth)
+        self.captureTableBaseWidths()
         self.tbExcel.verticalHeader().setVisible(False)
 
     def populateEnumeratedTable(self, bins, prettyClassify, prettyProperty, includeTotal=True):
@@ -2539,6 +2577,7 @@ class QGISRedStatisticsDock(QDockWidget, formClass):
         header.setSectionResizeMode(1, QHeaderView.ResizeMode.ResizeToContents)
         header.setSectionResizeMode(2, QHeaderView.ResizeMode.Stretch)
         header.setStretchLastSection(True)
+        self._tableBaseWidths = []
         self.tbExcel.verticalHeader().setVisible(False)
 
     def truncateEnumString(self, text):
