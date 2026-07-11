@@ -144,6 +144,70 @@ _NON_CHEMICAL_MODELS = frozenset({"none", "trace", "age"})
 _CHEMICAL_ONLY_FIELDS = frozenset({"IniQuality", "ReactRate"})
 _SUPERSCRIPT_TRANSLATION = str.maketrans("0123456789/", "⁰¹²³⁴⁵⁶⁷⁸⁹ᐟ")
 
+# Plural display names (English) keyed by the singular pretty name from the CSV.
+# Names without a natural plural (e.g. quality chemicals, Energy) are left out
+# and fall back to the singular form.
+PLURAL_PROPERTY_NAMES = {
+    "Age": "Ages",
+    "Base Demand": "Base Demands",
+    "Bulk Coefficient": "Bulk Coefficients",
+    "Demand": "Demands",
+    "Demand Charge": "Demand Charges",
+    "Demand Deficit": "Demand Deficits",
+    "Demand Multiplier": "Demand Multipliers",
+    "Description": "Descriptions",
+    "Diameter": "Diameters",
+    "Efficiency Curve": "Efficiency Curves",
+    "Element Type": "Element Types",
+    "Elevation": "Elevations",
+    "Emitter Coefficient": "Emitter Coefficients",
+    "Emitter Exponent": "Emitter Exponents",
+    "Emitter Flow": "Emitter Flows",
+    "Energy Price": "Energy Prices",
+    "Flow": "Flows",
+    "Friction factor": "Friction factors",
+    "Full demand": "Full demands",
+    "Head": "Heads",
+    "Head Curve": "Head Curves",
+    "Head Pattern": "Head Patterns",
+    "HeadLoss": "HeadLosses",
+    "HeadLoss Curve": "HeadLoss Curves",
+    "Initial Level": "Initial Levels",
+    "Initial Status": "Initial Statuses",
+    "Installation Date": "Installation Dates",
+    "Leak Area": "Leak Areas",
+    "Leak Expansion Rate": "Leak Expansion Rates",
+    "Leakage Flow": "Leakage Flows",
+    "Length": "Lengths",
+    "Loss Coefficient": "Loss Coefficients",
+    "Material": "Materials",
+    "Maximum Level": "Maximum Levels",
+    "Minimum Pressure": "Minimum Pressures",
+    "Mixing Fraction": "Mixing Fractions",
+    "Mixing Model": "Mixing Models",
+    "Overflow Condition": "Overflow Conditions",
+    "Pattern Demand": "Pattern Demands",
+    "Pressure": "Pressures",
+    "Pressure Exponent": "Pressure Exponents",
+    "Price Pattern": "Price Patterns",
+    "Reaction Rate": "Reaction Rates",
+    "Required Pressure": "Required Pressures",
+    "Roughness Coeff": "Roughness Coeffs",
+    "Setting": "Settings",
+    "Source Pattern": "Source Patterns",
+    "Speed": "Speeds",
+    "Speed Pattern": "Speed Patterns",
+    "Status": "Statuses",
+    "Tag": "Tags",
+    "Total Head": "Total Heads",
+    "Type": "Types",
+    "Unit HeadLoss": "Unit HeadLosses",
+    "Velocity": "Velocities",
+    "Volume": "Volumes",
+    "Volume Curve": "Volume Curves",
+    "Wall Coefficient": "Wall Coefficients",
+}
+
 
 def normalize_element(element: str) -> str:
     """Return the canonical element name used in the CSV for any identifier form.
@@ -243,6 +307,21 @@ class QGISRedFieldUtils:
 
         prop = prettyNames.get("Common", {}).get(fieldName, fieldName)
         return QCoreApplication.translate("FieldPrettyNames", prop) if translate else prop
+
+    def getPluralProperty(self, element: str, fieldName: str) -> str:
+        """Return the plural display name for a field, used in chart titles.
+
+        Falls back to the singular display name when no plural form is known
+        (e.g. uncountable names like the quality chemical).
+
+        getPluralProperty('Pipes', 'Length')  -> 'Lengths'  (or translated)
+        getPluralProperty('Nodes', 'Quality') -> 'Chlorine' (unchanged)
+        """
+        singular = self.getProperty(element, fieldName, translate=False)
+        plural = PLURAL_PROPERTY_NAMES.get(singular)
+        if plural is None:
+            return self.getProperty(element, fieldName)
+        return QCoreApplication.translate("FieldPrettyNames", plural)
 
     def getUnitAbbreviation(self, element: str, fieldName: str, conditionFeature: str = "") -> str:
         """Return the unit abbreviation for a field, respecting SI/US project setting.

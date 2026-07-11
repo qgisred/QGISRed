@@ -307,6 +307,25 @@ class TestCsvLoading:
             assert defs1 is defs2
 
 
+class TestGetPluralProperty:
+    def test_mapped_names_pluralize(self, fu):
+        with patch("QGISRed.tools.utils.qgisred_project_utils.QgsProject") as MockProj, \
+                patch("QGISRed.tools.utils.qgisred_field_utils.QCoreApplication") as MockCore:
+            MockProj.instance.return_value = _make_project()
+            MockCore.translate.side_effect = lambda context, text: text
+            assert fu.getPluralProperty("Pipes", "Length") == "Lengths"
+            assert fu.getPluralProperty("Pipes", "Diameter") == "Diameters"
+            assert fu.getPluralProperty("Links", "Velocity") == "Velocities"
+            assert fu.getPluralProperty("Pumps", "IdHFCurve") == "Head Curves"
+
+    def test_unmapped_name_falls_back_to_singular(self, fu):
+        with patch("QGISRed.tools.utils.qgisred_project_utils.QgsProject") as MockProj, \
+                patch("QGISRed.tools.utils.qgisred_field_utils.QCoreApplication") as MockCore:
+            MockProj.instance.return_value = _make_project()
+            MockCore.translate.side_effect = lambda context, text: text
+            assert fu.getPluralProperty("Pipes", "NoSuchField") == "NoSuchField"
+
+
 # ---------------------------------------------------------------------------
 # Main public API: getUnitAbbreviation
 # ---------------------------------------------------------------------------
