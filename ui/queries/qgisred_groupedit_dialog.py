@@ -212,6 +212,7 @@ class QGISRedGroupEditDialog(QDialog, FORM_CLASS):
         self.fieldUtils = QGISRedFieldUtils()
         self.layersByIdentifier = {}
         self.previewHighlights = []
+        self._previewNeedsRefresh = False
         self.editedLayers = []
         self.openedAttributeTables = {}
         self._countSignalLayers = []
@@ -245,25 +246,38 @@ class QGISRedGroupEditDialog(QDialog, FORM_CLASS):
         self._populateElementTypes()
 
     def closeEvent(self, event):
-        self._removePreviewHighlights()
-        self._disconnectCountSignals()
         super(QGISRedGroupEditDialog, self).closeEvent(event)
+        if event.isAccepted():
+            self._removePreviewHighlights()
+            self._disconnectCountSignals()
 
     def reject(self):
+        if self._hasPendingChanges():
+            reply = QMessageBox.question(
+                self,
+                self.tr("Edit properties by group"),
+                self.tr("All changes made will be discarded. Continue?"),
+                QMessageBox.StandardButton.Yes | QMessageBox.StandardButton.No,
+                QMessageBox.StandardButton.No,
+            )
+            if reply != QMessageBox.StandardButton.Yes:
+                return
         self._rollbackEdits()
         self._closeAttributeTables()
+        self._removePreviewHighlights()
+        self._disconnectCountSignals()
         super(QGISRedGroupEditDialog, self).reject()
 
     def hideEvent(self, event):
-        self._removePreviewHighlights()
+        self._hidePreviewHighlights()
         super(QGISRedGroupEditDialog, self).hideEvent(event)
 
     def changeEvent(self, event):
         if event.type() == QEvent.Type.ActivationChange:
             if self.isActiveWindow():
-                self._scheduleCount()
+                self._restorePreviewHighlights()
             else:
-                self._removePreviewHighlights()
+                self._hidePreviewHighlights()
         super(QGISRedGroupEditDialog, self).changeEvent(event)
 
     """Setup"""
@@ -608,21 +622,28 @@ class QGISRedGroupEditDialog(QDialog, FORM_CLASS):
             return []
         idField = next((name for name in fieldNames if name.lower().endswith("id")), fieldNames[0])
         typeField = next((name for name in fieldNames if name.lower().endswith("type")), None)
-        values = []
-        seen = set()
+        # The declared type is the first non-empty Type value among an id's rows; continuation
+        # rows carry an empty Type. Ids never typed count as undefined.
+        typeById = {}
+        orderedIds = []
         for feature in layer.getFeatures():
-            if typeField is not None and expectedTypes is not None:
-                typeValue = feature[typeField]
-                if typeValue is None or str(typeValue).strip().lower() not in expectedTypes:
-                    continue
             idValue = feature[idField]
             if idValue is None:
                 continue
             text = str(idValue).strip()
-            if text and text not in seen:
-                seen.add(text)
-                values.append(text)
-        return values
+            if not text:
+                continue
+            if text not in typeById:
+                typeById[text] = ""
+                orderedIds.append(text)
+            if typeField is not None and not typeById[text]:
+                typeValue = feature[typeField]
+                if typeValue is not None:
+                    typeById[text] = str(typeValue).strip().lower()
+        if typeField is None or expectedTypes is None:
+            return orderedIds
+        return [idText for idText in orderedIds
+                if typeById[idText] in expectedTypes or typeById[idText] in ("", "undefined")]
 
     def _onActionChanged(self):
         data = self.cbAction.currentData()
@@ -924,9 +945,14 @@ class QGISRedGroupEditDialog(QDialog, FORM_CLASS):
             self._removePreviewHighlights()
 
     def _refreshPreview(self, features=None):
-        self._removePreviewHighlights()
-        if not self.chkPreview.isChecked() or not self.isActiveWindow():
+        if not self.chkPreview.isChecked():
+            self._removePreviewHighlights()
             return
+        if not self.isActiveWindow():
+            self._previewNeedsRefresh = True
+            return
+        self._removePreviewHighlights()
+        self._previewNeedsRefresh = False
         layer = self._currentLayer()
         if layer is None:
             return
@@ -944,6 +970,19 @@ class QGISRedGroupEditDialog(QDialog, FORM_CLASS):
             highlight.setWidth(3)
             highlight.show()
             self.previewHighlights.append(highlight)
+
+    def _hidePreviewHighlights(self):
+        for highlight in self.previewHighlights:
+            with suppress(Exception):
+                highlight.hide()
+
+    def _restorePreviewHighlights(self):
+        if self._previewNeedsRefresh:
+            self._refreshPreview()
+            return
+        for highlight in self.previewHighlights:
+            with suppress(Exception):
+                highlight.show()
 
     def _removePreviewHighlights(self):
         if not self.previewHighlights:
@@ -1126,11 +1165,16 @@ class QGISRedGroupEditDialog(QDialog, FORM_CLASS):
 
     def _openAttributeTable(self, layer, fids):
         layer.selectByIds(fids)
-        dialog = self.openedAttributeTables.get(layer.id())
-        if dialog is not None:
+        existingDialogs = self._existingAttributeTables(layer)
+        if existingDialogs:
+            dialog = next((d for d in existingDialogs if self._enclosingDock(d) is not None), existingDialogs[0])
+            for duplicate in existingDialogs:
+                if duplicate is not dialog:
+                    self._closeAttributeTable(duplicate)
+            self.openedAttributeTables[layer.id()] = dialog
             with suppress(RuntimeError):
                 self._raiseAttributeTable(dialog)
-                return
+            return
         settings = QgsSettings()
         previousDocked = settings.value("qgis/dockAttributeTable", False, type=bool)
         settings.setValue("qgis/dockAttributeTable", True)
@@ -1198,8 +1242,11 @@ class QGISRedGroupEditDialog(QDialog, FORM_CLASS):
         return None
 
     def _onAccept(self):
-        summaryLines = self._pendingChangesSummary()
-        if summaryLines and not self._confirmAccept(summaryLines):
+        if self._hasPendingChanges():
+            summaryLines = self._pendingChangesSummary()
+            if summaryLines and not self._confirmAccept(summaryLines):
+                return
+        elif not self._applyBeforeAccept():
             return
         for layer in self.editedLayers:
             if layer.isEditable() and not layer.commitChanges():
@@ -1208,8 +1255,48 @@ class QGISRedGroupEditDialog(QDialog, FORM_CLASS):
                                         level=2, duration=8)
                 return
         self.editedLayers = []
-        self._closeAttributeTables()
+        self._removePreviewHighlights()
+        self._disconnectCountSignals()
         self.accept()
+
+    def _hasPendingChanges(self):
+        for layer in self.editedLayers:
+            if layer.isEditable() and layer.editBuffer() and layer.editBuffer().changedAttributeValues():
+                return True
+        return False
+
+    def _applyBeforeAccept(self):
+        layer = self._currentLayer()
+        if layer is None:
+            return True
+        fieldName = self.cbProperty.currentData()
+        actionData = self.cbAction.currentData()
+        if not fieldName or not actionData:
+            return True
+        actionKey, actionKind = actionData
+        try:
+            features = self._matchingFeatures(layer)
+        except Exception as e:
+            self.banner.pushMessage(self.tr("Accept"), str(e), level=2, duration=6)
+            return False
+        if not features:
+            return True
+        try:
+            edits = self._computeEdits(features, fieldName, actionKey, actionKind, layer)
+        except _GroupEditError as e:
+            self.banner.pushMessage(self.tr("Accept"), str(e), level=2, duration=6)
+            return False
+        identifier = layer.customProperty("qgisred_identifier")
+        prettyField = self.fieldUtils.getProperty(normalize_element(identifier), fieldName)
+        summaryLine = "- %s: %s (%d %s)" % (self._elementDisplayName(identifier), prettyField,
+                                            len(edits), self.tr("elements"))
+        if not self._confirmAccept([summaryLine]):
+            return False
+        if not self._applyEdits(layer, fieldName, edits):
+            return False
+        self._warnSoftBounds(identifier, fieldName, edits)
+        self._openAttributeTable(layer, [fid for fid, _oldVal, _newVal in edits])
+        return True
 
     def _pendingChangesSummary(self):
         lines = []
@@ -1255,17 +1342,43 @@ class QGISRedGroupEditDialog(QDialog, FORM_CLASS):
     """Helpers"""
 
     def _closeAttributeTables(self):
+        for widget in self._attributeTableWidgets():
+            layer = self._attributeTableLayer(widget)
+            if layer is not None:
+                layer.removeSelection()
+            self._closeAttributeTable(widget)
+        self.openedAttributeTables = {}
+
+    def _attributeTableWidgets(self):
         widgets = list(QApplication.topLevelWidgets())
         if self.iface is not None:
             widgets += self.iface.mainWindow().findChildren(QDialog)
+        tables = []
         for widget in widgets:
-            if widget.metaObject().className() == "QgsAttributeTableDialog":
-                dock = self._enclosingDock(widget)
-                widget.close()
-                if dock is not None:
-                    with suppress(RuntimeError):
-                        dock.close()
-        self.openedAttributeTables = {}
+            with suppress(RuntimeError):
+                if widget.metaObject().className() == "QgsAttributeTableDialog":
+                    tables.append(widget)
+        return tables
+
+    def _existingAttributeTables(self, layer):
+        # QGIS names every attribute table "QgsAttributeTableDialog/<layerId>", so this also
+        # finds tables the user opened from the layers panel.
+        objectName = "QgsAttributeTableDialog/%s" % layer.id()
+        return [widget for widget in self._attributeTableWidgets() if widget.objectName() == objectName]
+
+    def _attributeTableLayer(self, widget):
+        prefix = "QgsAttributeTableDialog/"
+        objectName = widget.objectName()
+        if objectName.startswith(prefix):
+            return QgsProject.instance().mapLayer(objectName[len(prefix):])
+        return None
+
+    def _closeAttributeTable(self, widget):
+        with suppress(RuntimeError):
+            dock = self._enclosingDock(widget)
+            widget.close()
+            if dock is not None:
+                dock.close()
 
     def _currentLayer(self):
         identifier = self.cbElementType.currentData()
