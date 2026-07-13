@@ -335,9 +335,14 @@ class _ResultsRenderingMixin:
             from qgis.core import QgsUnitTypes
             text_format.setSizeUnit(QgsUnitTypes.RenderPoints)
 
-        text_format.setColor(QColor("black"))
+        color_expr = None
         if color_by_range:
             color_expr = self._buildRangeColorExpression(layer, fieldName)
+
+        if show_id:
+            text_format.setAllowHtmlFormatting(True)
+        else:
+            text_format.setColor(QColor("black"))
             if color_expr:
                 from qgis.core import QgsPropertyCollection
                 prop = QgsProperty.fromExpression(color_expr)
@@ -361,17 +366,31 @@ class _ResultsRenderingMixin:
             unit = QGISRedFieldUtils().getUnitAbbreviation(element, unit_field)
             unit_suffix = f' || \' {unit}\'' if unit else ''
 
-            line1 = '"Id"'
-
             if time_field:
                 raw_val = f'format_number(round("{fieldName}", {decimals}), {decimals})'
-                line2 = f'{raw_val}{unit_suffix} || \' - \' || "{time_field}"'
+                line2_inner = f'{raw_val}{unit_suffix} || \' - \' || "{time_field}"'
             elif fieldName == "Flow":
-                line2 = f'format_number(abs("Flow"), {decimals}){unit_suffix}'
+                line2_inner = f'format_number(abs("Flow"), {decimals}){unit_suffix}'
             else:
-                line2 = f'format_number("{fieldName}", {decimals}){unit_suffix}'
+                line2_inner = f'format_number("{fieldName}", {decimals}){unit_suffix}'
 
-            full_expr = f'({line1}) || \'\\n\' || ({line2})'
+            line1 = '\'<span style="color:black;">\' || "Id" || \'</span>\''
+
+            if color_expr:
+                # Wrap value in a span whose color is the range color expression
+                line2 = (
+                    f"\'<span style=\"color:\' || ({color_expr}) || \';\">\' "
+                    f"|| ({line2_inner}) || \'</span>\'"
+                )
+            else:
+                # Fall back to primary symbol color
+                sym_color = "black"
+                with suppress(Exception):
+                    sym_color = layer.renderer().symbol().color().name()
+                line2 = f"\'<span style=\"color:{sym_color};\">\' || ({line2_inner}) || \'</span>\'"
+
+            # Wrap line1 and line2 in <div> blocks to force a line break in HTML rendering
+            full_expr = f"'<div>' || ({line1}) || '</div><div>' || ({line2}) || '</div>'"
         else:
             full_expr = value_expr
 
