@@ -4951,11 +4951,6 @@ Clique esquerdo: Adicionar um novo item abaixo da seleção atual</translation>
         <translation>Mostrar ID junto ao valor</translation>
     </message>
     <message>
-        <location filename="../ui/analysis/qgisred_results_dock.ui" line="1168"/>
-        <source>Symbology (factor ×)</source>
-        <translation type="obsolete">Simbologia (fator ×)</translation>
-    </message>
-    <message>
         <location filename="../ui/analysis/qgisred_results_dock.ui" line="1359"/>
         <source>Arrows:</source>
         <translation>Setas:</translation>
@@ -5032,8 +5027,8 @@ Clique esquerdo: Adicionar um novo item abaixo da seleção atual</translation>
     </message>
     <message>
         <location filename="../ui/analysis/qgisred_results_dock.ui" line="1297"/>
-        <source>Factor</source>
-        <translation>Fator</translation>
+        <source>Size factor</source>
+        <translation>ator de dimensão</translation>
     </message>
 </context>
 <context>

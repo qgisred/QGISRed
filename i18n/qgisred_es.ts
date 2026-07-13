@@ -4985,8 +4985,8 @@ Click izquierdo: Añadir un nuevo item debajo de la selección actual</translati
     </message>
     <message>
         <location filename="../ui/analysis/qgisred_results_dock.ui" line="1297"/>
-        <source>Factor</source>
-        <translation>Factor</translation>
+        <source>Size factor</source>
+        <translation>Factor de tamaño</translation>
     </message>
 </context>
 <context>

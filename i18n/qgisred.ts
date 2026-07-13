@@ -5336,7 +5336,7 @@ Left-click: Add a new item below the current selection</source>
     </message>
     <message>
         <location filename="../ui/analysis/qgisred_results_dock.ui" line="1297"/>
-        <source>Factor</source>
+        <source>Size factor</source>
         <translation type="unfinished"></translation>
     </message>
 </context>
