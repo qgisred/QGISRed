@@ -1,12 +1,11 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" width="24" height="24">
-  <g stroke="#333333" stroke-width="1.8" fill="none" stroke-linecap="round" stroke-linejoin="round">
-    <line x1="12" y1="3" x2="12" y2="21"/>
-    <line x1="3" y1="12" x2="21" y2="12"/>
-    <polyline points="9,6 12,3 15,6"/>
-    <polyline points="9,18 12,21 15,18"/>
-    <polyline points="6,9 3,12 6,15"/>
-    <polyline points="18,9 21,12 18,15"/>
-  </g>
-  <circle cx="12" cy="12" r="2.6" fill="#2b6cb0"/>
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 48 48" width="48" height="48">
+  <polyline points="5,11 17,28 29,19 43,34" fill="none" stroke="#60bcd3" stroke-width="5" stroke-linecap="round" stroke-linejoin="round"/>
+  <circle cx="5" cy="11" r="4" fill="#60bcd3"/>
+  <circle cx="17" cy="28" r="5.5" fill="#e15554"/>
+  <circle cx="29" cy="19" r="5.5" fill="#7fa828"/>
+  <circle cx="39" cy="40" r="8" fill="#7fa828"/>
+  <polygon points="44,35 43,41 38,36" fill="white"/>
+  <polygon points="34,45 40,44 35,39" fill="white"/>
+  <line x1="41" y1="38" x2="38" y2="42" stroke="white" stroke-width="2" stroke-linecap="round"/>
 </svg>
