@@ -1,8 +1,8 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 48 48" width="48" height="48">
-  <polyline points="9,15 18,27 27,21 39,33" fill="none" stroke="#60bcd3" stroke-width="2.5" stroke-linejoin="round" stroke-linecap="round"/>
-  <polyline points="9,33 18,33 27,33 39,33" fill="none" stroke="#9aa5b1" stroke-width="1.5" stroke-dasharray="3,2"/>
-  <circle cx="9" cy="15" r="2.4" fill="#7fa828"/>
-  <circle cx="27" cy="21" r="2.4" fill="#7fa828"/>
-  <circle cx="39" cy="33" r="2.4" fill="#7fa828"/>
+  <polyline points="9,15 18,27 27,21 39,33" fill="none" stroke="#60bcd3" stroke-width="3.5" stroke-linejoin="round" stroke-linecap="round"/>
+  <polyline points="9,33 18,33 27,33 39,33" fill="none" stroke="#9aa5b1" stroke-width="2.0" stroke-dasharray="3,2"/>
+  <circle cx="9" cy="15" r="3.0" fill="#7fa828"/>
+  <circle cx="27" cy="21" r="3.0" fill="#7fa828"/>
+  <circle cx="39" cy="33" r="3.0" fill="#7fa828"/>
 </svg>
