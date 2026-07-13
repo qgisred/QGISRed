@@ -168,7 +168,7 @@ class _ResultsAppearanceMixin:
     # ------------------------------------------------------------------
 
     def _onResetAppearance(self):
-        self._labelFontSize = 10
+        self._labelFontSize = 8
         self._varDecimals = {}
         self._labelColorByRange = False
         self._labelShowId = False
@@ -180,7 +180,7 @@ class _ResultsAppearanceMixin:
         self._bgColor = None
 
         self.spFontSize.blockSignals(True)
-        self.spFontSize.setValue(10)
+        self.spFontSize.setValue(8)
         self.spFontSize.blockSignals(False)
         node_field = self._node_field_map.get(self.cbNodes.currentText(), "")
         self._resetDecimalsForVariable(node_field, "Nodes", "Node")

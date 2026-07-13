@@ -175,7 +175,7 @@ class QGISRedResultsDock(
         self._flowDirectionsUserState = False
 
         # Appearance tab state
-        self._labelFontSize = 10
+        self._labelFontSize = 8
         self._varDecimals = {}
         self._labelColorByRange = False
         self._labelShowId = False
