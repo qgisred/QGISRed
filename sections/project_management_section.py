@@ -915,9 +915,18 @@ class ProjectManagementSection:
         self._writePluginVersionToProject()
         self._migrateLayersToSubfolders()
 
+        # Reopen any DemandsBuilder auxiliary layers that belong to the project
+        # but were not restored automatically from the QGIS project.
+        self.openDemandsBuilderLayers()
+
         from ..tools.utils.qgisred_styling_utils import QGISRedStylingUtils
 
-        styling = QGISRedStylingUtils(self.ProjectDirectory, self.NetworkName, self.iface)
+        styling = QGISRedStylingUtils(
+            self.ProjectDirectory,
+            self.NetworkName,
+            self.iface
+        )
+
         project = QgsProject.instance()
 
         for layer_id, style_name in snapshot["inputs_to_restyle"]:

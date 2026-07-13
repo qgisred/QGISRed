@@ -180,32 +180,139 @@ class LayerManagementSection:
         return utils.getOrCreateNestedGroup([self.NetworkName] + LAYER_TYPE_CONFIG["DemandsBuilder"]["tree_path"])
 
     def openDemandsBuilderLayers(self):
-        demandsBuilderGroup = self.getDemandsBuilderGroup()
-        isoFolder = os.path.join(self.ProjectDirectory, LAYER_TYPE_CONFIG["DemandsBuilder"]["subdir"])
-        utils = QGISRedLayerUtils(isoFolder, self.NetworkName, self.iface)
-        identifiers = QGISRedIdentifierUtils(self.ProjectDirectory, self.NetworkName, self.iface)
-        if self._demandsBuilderExtraPaths:
-            for path in self._demandsBuilderExtraPaths:
-                if not os.path.exists(path):
-                    continue
-                reloaded_layer = utils._tryReloadExistingLayer(path)
-                displayName = os.path.splitext(os.path.basename(path))[0]
-                if reloaded_layer:
-                    self._applyDemandsBuilderStyle(reloaded_layer)
-                    if not reloaded_layer.customProperty("qgisred_identifier"):
-                        identifiers.setLayerIdentifier(reloaded_layer, displayName)
-                    continue
-                vlayer = QgsVectorLayer(path, displayName, "ogr")
-                if not vlayer.isValid():
-                    continue
-                self._applyDemandsBuilderStyle(vlayer)
-                identifiers.setLayerIdentifier(vlayer, displayName)
-                translatedName = identifiers.getTranslatedNameForIdentifier(vlayer.customProperty("qgisred_identifier"))
-                if translatedName:
-                    vlayer.setName(translatedName)
-                QgsProject.instance().addMapLayer(vlayer, False)
-                demandsBuilderGroup.insertChildNode(0, QgsLayerTreeLayer(vlayer))
+        cfg = LAYER_TYPE_CONFIG["DemandsBuilder"]
+
+        demands_builder_folder = os.path.join(
+            self.ProjectDirectory,
+            cfg["subdir"]
+        )
+
+        if not os.path.isdir(demands_builder_folder):
             self._demandsBuilderExtraPaths = []
+            return
+
+        demands_builder_group = self.getDemandsBuilderGroup()
+
+        identifiers = QGISRedIdentifierUtils(
+            self.ProjectDirectory,
+            self.NetworkName,
+            self.iface
+        )
+
+        paths_to_open = []
+
+        extra_paths = getattr(
+            self,
+            "_demandsBuilderExtraPaths",
+            []
+        )
+
+        for path in extra_paths:
+            if not path:
+                continue
+
+            normalized_path = os.path.normpath(path)
+
+            if (
+                os.path.isfile(normalized_path)
+                and normalized_path.lower().endswith(".shp")
+            ):
+                paths_to_open.append(normalized_path)
+
+        for filename in os.listdir(demands_builder_folder):
+            if not filename.lower().endswith(".shp"):
+                continue
+
+            paths_to_open.append(
+                os.path.normpath(
+                    os.path.join(
+                        demands_builder_folder,
+                        filename
+                    )
+                )
+            )
+
+        unique_paths = []
+        seen_paths = set()
+
+        for path in paths_to_open:
+            normalized_key = os.path.normcase(
+                os.path.realpath(path)
+            )
+
+            if normalized_key in seen_paths:
+                continue
+
+            seen_paths.add(normalized_key)
+            unique_paths.append(path)
+
+        for path in unique_paths:
+            if not os.path.exists(path):
+                continue
+
+            utils = QGISRedLayerUtils(
+                os.path.dirname(path),
+                self.NetworkName,
+                self.iface
+            )
+
+            display_name = os.path.splitext(
+                os.path.basename(path)
+            )[0]
+
+            existing_layer = utils._tryReloadExistingLayer(path)
+
+            if existing_layer is not None:
+                self._applyDemandsBuilderStyle(existing_layer)
+
+                if not existing_layer.customProperty(
+                    "qgisred_identifier"
+                ):
+                    identifiers.setLayerIdentifier(
+                        existing_layer,
+                        display_name
+                    )
+
+                continue
+
+            vector_layer = QgsVectorLayer(
+                path,
+                display_name,
+                "ogr"
+            )
+
+            if not vector_layer.isValid():
+                continue
+
+            self._applyDemandsBuilderStyle(vector_layer)
+
+            identifiers.setLayerIdentifier(
+                vector_layer,
+                display_name
+            )
+
+            translated_name = (
+                identifiers.getTranslatedNameForIdentifier(
+                    vector_layer.customProperty(
+                        "qgisred_identifier"
+                    )
+                )
+            )
+
+            if translated_name:
+                vector_layer.setName(translated_name)
+
+            QgsProject.instance().addMapLayer(
+                vector_layer,
+                False
+            )
+
+            demands_builder_group.insertChildNode(
+                0,
+                QgsLayerTreeLayer(vector_layer)
+            )
+
+        self._demandsBuilderExtraPaths = []
 
     def getDemandSectorsGroup(self):
         utils = QGISRedLayerUtils(self.ProjectDirectory, self.NetworkName, self.iface)
