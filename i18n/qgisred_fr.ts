@@ -7214,6 +7214,14 @@ Left-click: Add a new item below the current selection</source>
         <source>New profile panel</source>
         <translation>Nouveau panneau de profil</translation>
     </message>
+    <message>
+        <source>2nd axis:</source>
+        <translation>2e axe :</translation>
+    </message>
+    <message>
+        <source>None</source>
+        <translation>Aucune</translation>
+    </message>
 </context>
 <context>
     <name>QGISRedProfileChartOptionsDialog</name>
@@ -7240,6 +7248,14 @@ Left-click: Add a new item below the current selection</source>
     <message>
         <source>Y axis (variable)</source>
         <translation>Axe Y (variable)</translation>
+    </message>
+    <message>
+        <source>Y axis (left)</source>
+        <translation>Axe Y (gauche)</translation>
+    </message>
+    <message>
+        <source>Y axis (right)</source>
+        <translation>Axe Y (droite)</translation>
     </message>
     <message>
         <source>Title:</source>

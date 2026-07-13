@@ -87,6 +87,24 @@ def test_comment_only_reader():
     assert (root.find("Comment").text or "") == "Hello"
 
 
+def test_roundtrip_secondary_and_right_axis():
+    profile, axis_x, axis_y, general, overrides = _sample()
+    profile["secondary_variable"] = "Quality"
+    axis_y_right = ProfileAxisSettings(title="Quality", auto_scale=True, show_grid=False)
+    blob = serialize_profile_config(profile, axis_x, axis_y, general, overrides, axis_y_right=axis_y_right)
+    parsed = parse_profile_config_string(blob)
+    assert parsed["secondary_variable"] == "Quality"
+    assert parsed["axis_y_right"].title == "Quality"
+    assert parsed["axis_y_right"].show_grid is False
+
+
+def test_secondary_defaults_empty():
+    profile, axis_x, axis_y, general, overrides = _sample()
+    blob = serialize_profile_config(profile, axis_x, axis_y, general, overrides)
+    parsed = parse_profile_config_string(blob)
+    assert parsed["secondary_variable"] == ""
+
+
 def test_empty_config():
     profile = {"variable": "", "reference_nodes": [], "branches": [], "options": {}}
     blob = serialize_profile_config(profile, ProfileAxisSettings(), ProfileAxisSettings(),

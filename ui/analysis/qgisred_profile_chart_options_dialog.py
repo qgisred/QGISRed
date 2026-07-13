@@ -21,8 +21,10 @@ class QGISRedProfileChartOptionsDialog(QDialog):
 
         self._cfg_x = clone_axis(plot_widget._axis_cfg_x)
         self._cfg_y = clone_axis(plot_widget._axis_cfg_y)
+        self._cfg_y_right = clone_axis(plot_widget._axis_cfg_y_right)
         self._cfg_gen = clone_general(plot_widget._general_cfg)
         self._overrides = clone_curve_overrides(plot_widget._curve_overrides)
+        self._has_right_axis = plot_widget._hasRightAxis()
 
         layout = QVBoxLayout(self)
         tabs = QTabWidget(self)
@@ -47,7 +49,10 @@ class QGISRedProfileChartOptionsDialog(QDialog):
         tab = QWidget(self)
         layout = QVBoxLayout(tab)
         self._x_widgets = self._buildAxisGroup(layout, self.tr("X axis (distance)"), self._cfg_x)
-        self._y_widgets = self._buildAxisGroup(layout, self.tr("Y axis (variable)"), self._cfg_y)
+        self._y_widgets = self._buildAxisGroup(layout, self.tr("Y axis (left)"), self._cfg_y)
+        self._y_right_widgets = None
+        if self._has_right_axis:
+            self._y_right_widgets = self._buildAxisGroup(layout, self.tr("Y axis (right)"), self._cfg_y_right)
         layout.addStretch(1)
         return tab
 
@@ -228,6 +233,13 @@ class QGISRedProfileChartOptionsDialog(QDialog):
         self._cfg_y.fixed_max = self._y_widgets["max"].value()
         self._cfg_y.show_grid = self._y_widgets["grid"].isChecked()
 
+        if self._y_right_widgets is not None:
+            self._cfg_y_right.title = self._y_right_widgets["title"].text()
+            self._cfg_y_right.auto_scale = self._y_right_widgets["auto"].isChecked()
+            self._cfg_y_right.fixed_min = self._y_right_widgets["min"].value()
+            self._cfg_y_right.fixed_max = self._y_right_widgets["max"].value()
+            self._cfg_y_right.show_grid = self._y_right_widgets["grid"].isChecked()
+
         self._cfg_gen.show_legend = self._chk_legend.isChecked()
         self._cfg_gen.plot_bg_hex = getattr(self._bg_btn, "_hex", "") or self._cfg_gen.plot_bg_hex
         self._cfg_gen.legend_position = self._legend_pos_keys[self._legend_pos.currentIndex()]
@@ -248,6 +260,7 @@ class QGISRedProfileChartOptionsDialog(QDialog):
 
         self._plot._axis_cfg_x = clone_axis(self._cfg_x)
         self._plot._axis_cfg_y = clone_axis(self._cfg_y)
+        self._plot._axis_cfg_y_right = clone_axis(self._cfg_y_right)
         self._plot._general_cfg = clone_general(self._cfg_gen)
         self._plot._curve_overrides = overrides
         self._plot.applyChartSettings()

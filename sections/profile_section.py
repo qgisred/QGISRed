@@ -168,6 +168,7 @@ class ProfileSection:
         dock.profileModeChanged.connect(lambda mode, d=dock: self._onProfileModeChanged(d, mode))
         dock.clearRequested.connect(lambda d=dock: self._onProfileClearRequested(d))
         dock.variableChanged.connect(lambda key, d=dock: self._onProfileVariableChanged(d, key))
+        dock.secondaryVariableChanged.connect(lambda key, d=dock: self._onProfileVariableChanged(d, key))
         dock.symbolsToggled.connect(lambda checked, d=dock: self._onProfileSymbolsToggled(d, checked))
         dock.envelopeModeChanged.connect(lambda mode, d=dock: self._onProfileEnvelopeModeChanged(d, mode))
         dock.exportConfigRequested.connect(lambda path, d=dock: self._onProfileExportConfig(d, path))
@@ -419,6 +420,7 @@ class ProfileSection:
         plot = dock.plot
         profile = {
             "variable": dock.currentVariableKey(),
+            "secondary_variable": dock.currentSecondaryVariableKey(),
             "reference_nodes": list(getattr(self, "_profileReferenceNodes", []) or []),
             "branches": [
                 {"reference_nodes": list(b.get("reference_nodes", []) or []), "offset": b.get("offset", 0.0)}
@@ -433,7 +435,8 @@ class ProfileSection:
         try:
             write_profile_config(
                 path, profile, plot._axis_cfg_x, plot._axis_cfg_y,
-                plot._general_cfg, plot._curve_overrides, comment=dock.comment())
+                plot._general_cfg, plot._curve_overrides, comment=dock.comment(),
+                axis_y_right=plot._axis_cfg_y_right)
         except Exception:
             self.pushMessage(self.tr("The profile configuration could not be exported."), level=2)
             return
@@ -453,6 +456,7 @@ class ProfileSection:
             return
 
         dock.setVariableKey(config.get("variable") or "Head")
+        dock.setSecondaryVariableKey(config.get("secondary_variable") or "")
         self._profileReferenceNodes = list(config.get("reference_nodes", []) or [])
         self._profileBranches = []
         self._profileCurrentBranch = None
@@ -479,6 +483,8 @@ class ProfileSection:
         plot = dock.plot
         plot._axis_cfg_x = clone_axis(config["axis_x"])
         plot._axis_cfg_y = clone_axis(config["axis_y"])
+        with suppress(Exception):
+            plot._axis_cfg_y_right = clone_axis(config["axis_y_right"])
         plot._general_cfg = clone_general(config["general"])
         plot._curve_overrides = config.get("curve_overrides", {}) or {}
 
@@ -796,6 +802,22 @@ class ProfileSection:
                 })
             y_label = self.tr(self._profileVariableLabel(key))
 
+        secondary_key = dock.currentSecondaryVariableKey()
+        y_right_label = ""
+        if secondary_key and secondary_key != key and not (key == "Head" and secondary_key == "Elevation"):
+            with suppress(Exception):
+                sec_points = self._profileVariablePoints(secondary_key, nodes, links, distances, is_reference)
+                series.append({
+                    "label": self.tr(self._profileVariableLabel(secondary_key)),
+                    "points": sec_points,
+                    "reference_indices": reference_indices,
+                    "node_ids": node_id_strs,
+                    "show_ids": False,
+                    "y_axis": "right",
+                    "fill": False,
+                })
+                y_right_label = self.tr(self._profileVariableLabel(secondary_key))
+
         with suppress(Exception):
             self._pushProfileTable(dock, series, nodes, distances, key)
         with suppress(Exception):
@@ -805,12 +827,21 @@ class ProfileSection:
             title = self.tr("Longitudinal profiles at {0}").format(time_text)
         else:
             title = self.tr("Longitudinal profiles")
-        dock.setSeries(series, title, self.tr("Distance"), y_label)
+        dock.setSeries(series, title, self.tr("Distance"), y_label, y_right_label)
         self._drawProfileHighlight()
         with suppress(Exception):
             self._applyProfileEnvelope(dock, key, nodes, distances)
         with suppress(Exception):
             self._applyProfileSymbols(dock, nodes, links)
+
+    def _profileVariablePoints(self, key, nodes, links, distances, is_reference):
+        if key == "HeadLoss":
+            losses = self._profileLinkLosses()
+            values = cumulative_link_losses(links, losses)
+            return [(distances[i], values[i]) for i in range(len(nodes))]
+        node_values = self._profileNodeValues(key)
+        samples = sample_node_variable(nodes, distances, node_values, is_reference)
+        return [(s["distance"], s["value"]) for s in samples]
 
     def _profileVariableLabel(self, key):
         return {

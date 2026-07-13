@@ -74,7 +74,7 @@ def _apply_attribs_to_dataclass(attribs: dict, obj):
     return obj
 
 
-def build_config_tree(profile, axis_x, axis_y, general, curve_overrides, comment="") -> ET.Element:
+def build_config_tree(profile, axis_x, axis_y, general, curve_overrides, comment="", axis_y_right=None) -> ET.Element:
     root = ET.Element("ProfileConfig", version=CONFIG_VERSION)
 
     if comment:
@@ -83,6 +83,7 @@ def build_config_tree(profile, axis_x, axis_y, general, curve_overrides, comment
     options = profile.get("options", {}) or {}
     profile_el = ET.SubElement(root, "Profile", {
         "variable": str(profile.get("variable", "")),
+        "secondary_variable": str(profile.get("secondary_variable", "") or ""),
         "show_symbols": _bool_to_str(options.get("show_symbols")),
         "show_labels": _bool_to_str(options.get("show_labels")),
         "envelope_mode": str(options.get("envelope_mode", "off") or "off"),
@@ -101,7 +102,10 @@ def build_config_tree(profile, axis_x, axis_y, general, curve_overrides, comment
             ET.SubElement(branch_el, "Node").text = str(node)
 
     axes_el = ET.SubElement(root, "Axes")
-    for role, cfg in (("x", axis_x), ("y", axis_y)):
+    axes = [("x", axis_x), ("y", axis_y)]
+    if axis_y_right is not None:
+        axes.append(("yRight", axis_y_right))
+    for role, cfg in axes:
         attribs = {"role": role}
         attribs.update(_dataclass_to_attribs(cfg))
         ET.SubElement(axes_el, "Axis", attribs)
@@ -123,15 +127,15 @@ def build_config_tree(profile, axis_x, axis_y, general, curve_overrides, comment
     return root
 
 
-def write_profile_config(path, profile, axis_x, axis_y, general, curve_overrides, comment="") -> None:
-    root = build_config_tree(profile, axis_x, axis_y, general, curve_overrides, comment)
+def write_profile_config(path, profile, axis_x, axis_y, general, curve_overrides, comment="", axis_y_right=None) -> None:
+    root = build_config_tree(profile, axis_x, axis_y, general, curve_overrides, comment, axis_y_right)
     with suppress(AttributeError):
         ET.indent(root)
     ET.ElementTree(root).write(path, encoding="utf-8", xml_declaration=True)
 
 
-def serialize_profile_config(profile, axis_x, axis_y, general, curve_overrides, comment="") -> bytes:
-    root = build_config_tree(profile, axis_x, axis_y, general, curve_overrides, comment)
+def serialize_profile_config(profile, axis_x, axis_y, general, curve_overrides, comment="", axis_y_right=None) -> bytes:
+    root = build_config_tree(profile, axis_x, axis_y, general, curve_overrides, comment, axis_y_right)
     with suppress(AttributeError):
         ET.indent(root)
     return ET.tostring(root, encoding="utf-8", xml_declaration=True)
@@ -149,11 +153,13 @@ def parse_config_root(root) -> dict:
 
     profile_el = root.find("Profile")
     variable = ""
+    secondary_variable = ""
     reference_nodes: List[str] = []
     branches: List[dict] = []
     options = {"show_symbols": False, "show_labels": False, "envelope_mode": "off"}
     if profile_el is not None:
         variable = profile_el.get("variable", "")
+        secondary_variable = profile_el.get("secondary_variable", "") or ""
         options = {
             "show_symbols": _str_to_bool(profile_el.get("show_symbols", "false")),
             "show_labels": _str_to_bool(profile_el.get("show_labels", "false")),
@@ -170,6 +176,7 @@ def parse_config_root(root) -> dict:
 
     axis_x = ProfileAxisSettings()
     axis_y = ProfileAxisSettings()
+    axis_y_right = ProfileAxisSettings()
     axes_el = root.find("Axes")
     if axes_el is not None:
         by_role = {axis_el.get("role", ""): axis_el for axis_el in axes_el.findall("Axis")}
@@ -177,6 +184,8 @@ def parse_config_root(root) -> dict:
             _apply_attribs_to_dataclass(by_role["x"].attrib, axis_x)
         if "y" in by_role:
             _apply_attribs_to_dataclass(by_role["y"].attrib, axis_y)
+        if "yRight" in by_role:
+            _apply_attribs_to_dataclass(by_role["yRight"].attrib, axis_y_right)
 
     general = ProfileGeneralSettings()
     general_el = root.find("General")
@@ -202,11 +211,13 @@ def parse_config_root(root) -> dict:
         "version": root.get("version", ""),
         "comment": comment,
         "variable": variable,
+        "secondary_variable": secondary_variable,
         "reference_nodes": reference_nodes,
         "branches": branches,
         "options": options,
         "axis_x": axis_x,
         "axis_y": axis_y,
+        "axis_y_right": axis_y_right,
         "general": general,
         "curve_overrides": curve_overrides,
     }

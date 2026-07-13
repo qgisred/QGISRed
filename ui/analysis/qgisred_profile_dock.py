@@ -42,6 +42,7 @@ class QGISRedProfileDock(QDockWidget):
     profileModeChanged = pyqtSignal(str)
     clearRequested = pyqtSignal()
     variableChanged = pyqtSignal(str)
+    secondaryVariableChanged = pyqtSignal(str)
     symbolsToggled = pyqtSignal(bool)
     envelopeModeChanged = pyqtSignal(str)
     exportConfigRequested = pyqtSignal(str)
@@ -215,6 +216,18 @@ class QGISRedProfileDock(QDockWidget):
         self.cbVariable.currentIndexChanged.connect(self._onVariableChanged)
         toolbar.addWidget(self.cbVariable)
 
+        secondary_label = QLabel(self.tr("2nd axis:"), toolbar_widget)
+        secondary_label.setStyleSheet("QLabel { background: transparent; border: none; }")
+        toolbar.addWidget(secondary_label)
+
+        self.cbSecondary = QComboBox(toolbar_widget)
+        self.cbSecondary.addItem(self.tr("None"))
+        for display, _key in PROFILE_VARIABLES:
+            self.cbSecondary.addItem(self.tr(display))
+        self.cbSecondary.setCurrentIndex(0)
+        self.cbSecondary.currentIndexChanged.connect(self._onSecondaryChanged)
+        toolbar.addWidget(self.cbSecondary)
+
         toolbar.addStretch(1)
         layout.addWidget(toolbar_widget)
 
@@ -333,6 +346,22 @@ class QGISRedProfileDock(QDockWidget):
             return PROFILE_VARIABLES[index][1]
         return "Elevation"
 
+    def currentSecondaryVariableKey(self):
+        index = self.cbSecondary.currentIndex()
+        if index <= 0:
+            return ""
+        return PROFILE_VARIABLES[index - 1][1]
+
+    def setSecondaryVariableKey(self, key):
+        self.cbSecondary.blockSignals(True)
+        target = 0
+        for i, (_d, k) in enumerate(PROFILE_VARIABLES):
+            if k == key:
+                target = i + 1
+                break
+        self.cbSecondary.setCurrentIndex(target)
+        self.cbSecondary.blockSignals(False)
+
     def setActiveMode(self, mode):
         self._suppress_mode_signal = True
         for m, button in self._modeButtons.items():
@@ -345,8 +374,8 @@ class QGISRedProfileDock(QDockWidget):
                 return mode
         return ""
 
-    def setSeries(self, series, title, x_label, y_label):
-        self.plot.setLabels(title, x_label, y_label)
+    def setSeries(self, series, title, x_label, y_label, y_right_label=""):
+        self.plot.setLabels(title, x_label, y_label, y_right_label)
         self.plot.setSeries(series)
         self._updateChartActionsEnabled()
 
@@ -560,6 +589,9 @@ class QGISRedProfileDock(QDockWidget):
 
     def _onVariableChanged(self, _index):
         self.variableChanged.emit(self.currentVariableKey())
+
+    def _onSecondaryChanged(self, _index):
+        self.secondaryVariableChanged.emit(self.currentSecondaryVariableKey())
 
     def _configDefaultPath(self, for_export):
         import os

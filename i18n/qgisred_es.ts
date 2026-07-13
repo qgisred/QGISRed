@@ -7356,6 +7356,14 @@ Click izquierdo: Añadir un nuevo item debajo de la selección actual</translati
         <source>New profile panel</source>
         <translation>Nuevo panel de perfil</translation>
     </message>
+    <message>
+        <source>2nd axis:</source>
+        <translation>2º eje:</translation>
+    </message>
+    <message>
+        <source>None</source>
+        <translation>Ninguna</translation>
+    </message>
 </context>
 <context>
     <name>QGISRedProfileChartOptionsDialog</name>
@@ -7382,6 +7390,14 @@ Click izquierdo: Añadir un nuevo item debajo de la selección actual</translati
     <message>
         <source>Y axis (variable)</source>
         <translation>Eje Y (variable)</translation>
+    </message>
+    <message>
+        <source>Y axis (left)</source>
+        <translation>Eje Y (izquierda)</translation>
+    </message>
+    <message>
+        <source>Y axis (right)</source>
+        <translation>Eje Y (derecha)</translation>
     </message>
     <message>
         <source>Title:</source>

@@ -45,6 +45,7 @@ class ProfilePlotWidget(QWidget):
         self._title = ""
         self._x_label = ""
         self._y_label = ""
+        self._y_right_label = ""
         self._empty_text = ""
         self._hover_x = None
         self._hover_node_index = -1
@@ -62,6 +63,7 @@ class ProfilePlotWidget(QWidget):
         self._zoom_rect = None
         self._axis_cfg_x = ProfileAxisSettings()
         self._axis_cfg_y = ProfileAxisSettings()
+        self._axis_cfg_y_right = ProfileAxisSettings()
         self._general_cfg = ProfileGeneralSettings()
         self._curve_overrides = {}
 
@@ -106,10 +108,11 @@ class ProfilePlotWidget(QWidget):
             self._cursor_node_index = new_index
             self.update()
 
-    def setLabels(self, title, x_label, y_label):
+    def setLabels(self, title, x_label, y_label, y_right_label=""):
         self._title = title or ""
         self._x_label = x_label or ""
         self._y_label = y_label or ""
+        self._y_right_label = y_right_label or ""
         self.update()
 
     def setSeries(self, series):
@@ -130,6 +133,8 @@ class ProfilePlotWidget(QWidget):
                 "reference": set(s.get("reference_indices", set())),
                 "node_ids": list(s.get("node_ids", [])),
                 "show_ids": bool(s.get("show_ids", False)),
+                "y_axis": "right" if s.get("y_axis") == "right" else "left",
+                "fill": bool(s.get("fill", True)),
                 "width": base_width,
                 "line_style": "solid",
                 "show_markers": True,
@@ -207,8 +212,11 @@ class ProfilePlotWidget(QWidget):
             x0, x1 = xs.axis_min, xs.axis_max
         if x1 == x0:
             x1 = x0 + 1.0
-        y0, y1 = self._autoYForXRange(x0, x1)
+        y0, y1 = self._autoYForAxis(x0, x1, "left")
         return (x0, x1, y0, y1)
+
+    def _hasRightAxis(self):
+        return any(s.get("y_axis", "left") == "right" for s in self._series)
 
     def _fullXRange(self):
         bounds = self._dataBounds()
@@ -220,26 +228,35 @@ class ProfilePlotWidget(QWidget):
             hi = lo + 1.0
         return lo, hi
 
-    def _autoYForXRange(self, x0, x1):
-        if not self._axis_cfg_y.auto_scale:
-            y0, y1 = self._axis_cfg_y.fixed_min, self._axis_cfg_y.fixed_max
+    def _autoYForAxis(self, x0, x1, which):
+        cfg = self._axis_cfg_y_right if which == "right" else self._axis_cfg_y
+        if not cfg.auto_scale:
+            y0, y1 = cfg.fixed_min, cfg.fixed_max
             if y1 == y0:
                 y1 = y0 + 1.0
             return y0, y1
         values = []
         for s in self._series:
+            if s.get("y_axis", "left") != which:
+                continue
             for d, v in s["points"]:
                 if v is not None and x0 - 1e-9 <= d <= x1 + 1e-9:
                     values.append(v)
-        if self._envelope is not None:
+        if which == "left" and self._envelope is not None:
             for boundary in ("max", "min"):
                 for d, v in self._envelope[boundary]:
                     if v is not None and x0 - 1e-9 <= d <= x1 + 1e-9:
                         values.append(v)
+        if not values:
+            for s in self._series:
+                if s.get("y_axis", "left") == which:
+                    values.extend(v for _d, v in s["points"] if v is not None)
         if values:
             ymin, ymax = min(values), max(values)
         else:
             bounds = self._dataBounds()
+            if bounds is None:
+                return (0.0, 1.0)
             ymin, ymax = bounds[2], bounds[3]
         ys = compute_nice_scale(ymin, ymax, 6)
         y0, y1 = ys.axis_min, ys.axis_max
@@ -330,7 +347,8 @@ class ProfilePlotWidget(QWidget):
         full = QRectF(self.rect())
         painter.fillRect(full, QColor(255, 255, 255))
 
-        left, right, top, bottom = 64.0, 18.0, 54.0, 48.0
+        has_right = self._hasRightAxis()
+        left, right, top, bottom = 64.0, (58.0 if has_right else 18.0), 54.0, 48.0
         plot = QRectF(left, top, max(1.0, full.width() - left - right), max(1.0, full.height() - top - bottom))
 
         view = self._currentView()
@@ -346,11 +364,23 @@ class ProfilePlotWidget(QWidget):
         x_scale = compute_nice_scale(x0, x1, 8)
         y_scale = compute_nice_scale(y0, y1, 6)
 
+        yr0 = yr1 = None
+        yr_scale = None
+        if has_right:
+            yr0, yr1 = self._autoYForAxis(x0, x1, "right")
+            yr_scale = compute_nice_scale(yr0, yr1, 6)
+
         def px(d):
             return plot.left() + (d - x0) / (x1 - x0) * plot.width()
 
         def py(v):
             return plot.bottom() - (v - y0) / (y1 - y0) * plot.height()
+
+        def py_r(v):
+            return plot.bottom() - (v - yr0) / (yr1 - yr0) * plot.height()
+
+        def py_of(s):
+            return py_r if (has_right and s.get("y_axis", "left") == "right") else py
 
         painter.fillRect(plot, self._plotBgColor())
 
@@ -370,6 +400,16 @@ class ProfilePlotWidget(QWidget):
             painter.drawText(QRectF(0, y - 8, left - 6, 16),
                              Qt.AlignmentFlag.AlignRight | Qt.AlignmentFlag.AlignVCenter,
                              format_number_tick(t, y_scale.step))
+
+        if has_right and yr_scale is not None:
+            for t in yr_scale.ticks():
+                if t < yr0 - 1e-9 or t > yr1 + 1e-9:
+                    continue
+                y = py_r(t)
+                painter.setPen(tick_pen)
+                painter.drawText(QRectF(plot.right() + 6, y - 8, right - 8, 16),
+                                 Qt.AlignmentFlag.AlignLeft | Qt.AlignmentFlag.AlignVCenter,
+                                 format_number_tick(t, yr_scale.step))
 
         for t in x_scale.ticks():
             if t < x0 - 1e-9 or t > x1 + 1e-9:
@@ -391,16 +431,16 @@ class ProfilePlotWidget(QWidget):
         if self._envelope is not None:
             self._drawEnvelope(painter, px, py)
         for s in self._series:
-            self._drawSeries(painter, s, px, py, plot.bottom())
+            self._drawSeries(painter, s, px, py_of(s), plot.bottom())
         if self._symbols is not None and self._series:
-            self._drawSymbols(painter, self._series[0], px, py)
+            self._drawSymbols(painter, self._series[0], px, py_of(self._series[0]))
         if self._show_value_labels and self._series:
             for s in self._series:
-                self._drawValueLabels(painter, s, px, py, plot)
+                self._drawValueLabels(painter, s, px, py_of(s), plot)
         for s in self._series:
             if s.get("show_ids"):
-                self._drawNodeIdLabels(painter, s, px, py, plot)
-        self._drawCursor(painter, plot, px, py, x0, x1)
+                self._drawNodeIdLabels(painter, s, px, py_of(s), plot)
+        self._drawCursor(painter, plot, px, py_of, x0, x1)
         painter.restore()
 
         self._drawTitleAndAxisLabels(painter, full, plot)
@@ -453,14 +493,15 @@ class ProfilePlotWidget(QWidget):
         points = s["points"]
         segments = profile_line_segments(points)
 
-        fill = QColor(color)
-        fill.setAlpha(45)
-        painter.setPen(Qt.PenStyle.NoPen)
-        painter.setBrush(QBrush(fill))
-        for segment in segments:
-            top = [QPointF(px(d), py(v)) for d, v in segment]
-            polygon = QPolygonF(top + [QPointF(top[-1].x(), baseline_y), QPointF(top[0].x(), baseline_y)])
-            painter.drawPolygon(polygon)
+        if s.get("fill", True):
+            fill = QColor(color)
+            fill.setAlpha(45)
+            painter.setPen(Qt.PenStyle.NoPen)
+            painter.setBrush(QBrush(fill))
+            for segment in segments:
+                top = [QPointF(px(d), py(v)) for d, v in segment]
+                polygon = QPolygonF(top + [QPointF(top[-1].x(), baseline_y), QPointF(top[0].x(), baseline_y)])
+                painter.drawPolygon(polygon)
 
         pen = QPen(color)
         pen.setWidthF(s["width"])
@@ -634,6 +675,14 @@ class ProfilePlotWidget(QWidget):
             painter.drawText(QRectF(-plot.height() / 2, -10, plot.height(), 14),
                              Qt.AlignmentFlag.AlignHCenter | Qt.AlignmentFlag.AlignVCenter, y_title)
             painter.restore()
+        y_right_title = self._axis_cfg_y_right.title or self._y_right_label
+        if y_right_title and self._hasRightAxis():
+            painter.save()
+            painter.translate(full.width() - 12, plot.center().y())
+            painter.rotate(-90)
+            painter.drawText(QRectF(-plot.height() / 2, -10, plot.height(), 14),
+                             Qt.AlignmentFlag.AlignHCenter | Qt.AlignmentFlag.AlignVCenter, y_right_title)
+            painter.restore()
 
     def _legendEntries(self):
         entries = []
@@ -698,7 +747,7 @@ class ProfilePlotWidget(QWidget):
             painter.drawText(QPointF(x + box + 4, baseline), e["label"])
             x += widths[i] + gap
 
-    def _drawCursor(self, painter, plot, px, py, x0, x1):
+    def _drawCursor(self, painter, plot, px, py_of, x0, x1):
         if not self._series:
             return
         data_x = None
@@ -725,7 +774,7 @@ class ProfilePlotWidget(QWidget):
                 d, v = points[index]
                 painter.setPen(QPen(QColor(255, 255, 255), 1.5))
                 painter.setBrush(QBrush(s["color"]))
-                painter.drawEllipse(QPointF(px(d), py(v)), 4.5, 4.5)
+                painter.drawEllipse(QPointF(px(d), py_of(s)(v)), 4.5, 4.5)
 
         self._drawReadout(painter, plot, line_x, snapshot)
 
