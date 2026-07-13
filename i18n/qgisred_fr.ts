@@ -7210,6 +7210,10 @@ Left-click: Add a new item below the current selection</source>
         <source>Band and lines</source>
         <translation>Bande et lignes</translation>
     </message>
+    <message>
+        <source>New profile panel</source>
+        <translation>Nouveau panneau de profil</translation>
+    </message>
 </context>
 <context>
     <name>QGISRedProfileChartOptionsDialog</name>

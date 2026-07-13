@@ -26,6 +26,66 @@ _NODE_LAYER_IDENTIFIERS = ("qgisred_junctions", "qgisred_tanks", "qgisred_reserv
 _LINK_LAYER_IDENTIFIERS = ("qgisred_pipes", "qgisred_pumps", "qgisred_valves")
 
 
+class ProfileState:
+    def __init__(self):
+        self.reference_nodes = []
+        self.path = None
+        self.branches = []
+        self.current_branch = None
+        self.distances = []
+        self.adjacency = None
+        self.link_lengths = {}
+        self.node_elev = {}
+        self.node_types = {}
+        self.link_types = {}
+        self.link_endpoints = {}
+        self.report_start = 0
+        self.report_step = 3600
+        self.stat_cache = None
+        self.show_symbols = False
+        self.envelope_mode = "off"
+        self.highlights = []
+        self.markers = []
+        self.dock = None
+
+
+_PROFILE_STATE_FIELDS = {
+    "_profileReferenceNodes": "reference_nodes",
+    "_profilePath": "path",
+    "_profileBranches": "branches",
+    "_profileCurrentBranch": "current_branch",
+    "_profileDistances": "distances",
+    "_profileAdjacency": "adjacency",
+    "_profileLinkLengths": "link_lengths",
+    "_profileNodeElev": "node_elev",
+    "_profileNodeTypes": "node_types",
+    "_profileLinkTypes": "link_types",
+    "_profileLinkEndpoints": "link_endpoints",
+    "_profileReportStart": "report_start",
+    "_profileReportStep": "report_step",
+    "_profileStatCache": "stat_cache",
+    "_profileShowSymbols": "show_symbols",
+    "_profileEnvelopeMode": "envelope_mode",
+    "_profileHighlights": "highlights",
+    "_profileMarkers": "markers",
+}
+
+
+def _profile_state_property(field):
+    def getter(self):
+        state = getattr(self, "_activeProfile", None)
+        if state is None:
+            return getattr(ProfileState(), field)
+        return getattr(state, field)
+
+    def setter(self, value):
+        state = getattr(self, "_activeProfile", None)
+        if state is not None:
+            setattr(state, field, value)
+
+    return property(getter, setter)
+
+
 class ProfileSection:
     def runProfile(self):
         if not self.checkDependencies():
@@ -39,49 +99,174 @@ class ProfileSection:
             self.pushMessage(self.tr("Run a simulation first to build a longitudinal profile."), level=1)
             return
 
-        first_time = getattr(self, "profileDock", None) is None
-        self._initProfileDock()
-        with suppress(Exception):
-            base = os.path.splitext(os.path.basename(out_path))[0]
-            self.profileDock._defaultConfigPath = os.path.join(
-                os.path.dirname(out_path), base + "_Profile_Config.cfg")
-        if first_time:
-            self._profileReferenceNodes = []
-            self._profilePath = None
-            self._profileBranches = []
-            self._profileCurrentBranch = None
-            self._profileStatCache = None
-            self._clearProfileHighlight()
-            self.profileDock.clearPlot()
-        self.profileDock.show()
-        self.profileDock.raise_()
-        self.profileDock.setActiveMode("pick")
-        self.runProfilePickTool()
-        if not first_time:
+        if not getattr(self, "_profiles", None):
+            self._createProfilePanel(out_path)
+        else:
+            dock = self._activeDock() or self._profiles[0].dock
+            self._activateProfile(dock)
+            dock.show()
+            dock.raise_()
+            dock.setActiveMode("pick")
+            self.runProfilePickTool()
             self._drawProfileHighlight()
 
-    def _initProfileDock(self):
-        if getattr(self, "profileDock", None) is not None:
+    def newProfilePanel(self):
+        if not self.checkDependencies():
             return
+        self.defineCurrentProject()
+        if not self.isValidProject():
+            return
+        out_path = self._outFilePath()
+        if not os.path.exists(out_path):
+            self.pushMessage(self.tr("Run a simulation first to build a longitudinal profile."), level=1)
+            return
+        self._createProfilePanel(out_path)
+
+    def _createProfilePanel(self, out_path):
         from ..ui.analysis.qgisred_profile_dock import QGISRedProfileDock
         from qgis.PyQt.QtCore import Qt
+        from qgis.PyQt.QtWidgets import QApplication
 
-        self.profileDock = QGISRedProfileDock(self.iface)
-        self.iface.addDockWidget(Qt.DockWidgetArea.BottomDockWidgetArea, self.profileDock)
-        self.profileDock.profileModeChanged.connect(self._onProfileModeChanged)
-        self.profileDock.clearRequested.connect(self._onProfileClearRequested)
-        self.profileDock.variableChanged.connect(self._onProfileVariableChanged)
-        self.profileDock.symbolsToggled.connect(self._onProfileSymbolsToggled)
-        self.profileDock.envelopeModeChanged.connect(self._onProfileEnvelopeModeChanged)
-        self.profileDock.exportConfigRequested.connect(self._onProfileExportConfig)
-        self.profileDock.importConfigRequested.connect(self._onProfileImportConfig)
-        self.profileDock.visibilityChanged.connect(self._onProfileDockVisibility)
+        if not isinstance(getattr(self, "_profiles", None), list):
+            self._profiles = []
+        state = ProfileState()
+        dock = QGISRedProfileDock(self.iface)
+        self._profileDockCounter = int(getattr(self, "_profileDockCounter", 0)) + 1
+        counter = self._profileDockCounter
+        base_title = dock.windowTitle() or self.tr("QGISRed: Longitudinal profile")
+        dock.setWindowTitle("%s %d" % (base_title, counter))
+        dock.setObjectName("QGISRedProfileDock%d" % counter)
+        dock._state = state
+        state.dock = dock
+        self._profiles.append(state)
+
+        self._wireProfileDock(dock)
+        dock.destroyed.connect(self._onProfileDockDestroyed)
+        with suppress(Exception):
+            base = os.path.splitext(os.path.basename(out_path))[0]
+            dock._defaultConfigPath = os.path.join(
+                os.path.dirname(out_path), base + "_Profile_Config.cfg")
         with suppress(Exception):
             self._initResultsDock()
-            self.ResultDockwidget.timeTextChanged.connect(self._onProfileTimeChanged)
-        self._profileReferenceNodes = getattr(self, "_profileReferenceNodes", [])
-        self._profileHighlights = []
-        self._profileMarkers = []
+            if not getattr(self, "_profileTimeConnected", False):
+                self.ResultDockwidget.timeTextChanged.connect(self._onProfileTimeChanged)
+                self._profileTimeConnected = True
+        if not getattr(self, "_profileFocusConnected", False):
+            with suppress(Exception):
+                QApplication.instance().focusChanged.connect(self._onProfilePanelFocusChanged)
+                self._profileFocusConnected = True
+
+        self._setActiveProfileDock(dock)
+        self.iface.addDockWidget(Qt.DockWidgetArea.BottomDockWidgetArea, dock)
+        dock.clearPlot()
+        dock.show()
+        dock.raise_()
+        dock.setActiveMode("pick")
+        self.runProfilePickTool()
+
+    def _wireProfileDock(self, dock):
+        dock.profileModeChanged.connect(lambda mode, d=dock: self._onProfileModeChanged(d, mode))
+        dock.clearRequested.connect(lambda d=dock: self._onProfileClearRequested(d))
+        dock.variableChanged.connect(lambda key, d=dock: self._onProfileVariableChanged(d, key))
+        dock.symbolsToggled.connect(lambda checked, d=dock: self._onProfileSymbolsToggled(d, checked))
+        dock.envelopeModeChanged.connect(lambda mode, d=dock: self._onProfileEnvelopeModeChanged(d, mode))
+        dock.exportConfigRequested.connect(lambda path, d=dock: self._onProfileExportConfig(d, path))
+        dock.importConfigRequested.connect(lambda path, d=dock: self._onProfileImportConfig(d, path))
+        dock.newPanelRequested.connect(self.newProfilePanel)
+        dock.activated.connect(lambda d=dock: self._onProfileDockActivated(d))
+        dock.visibilityChanged.connect(lambda vis, d=dock: self._onProfileDockVisibility(d, vis))
+
+    def _setActiveProfileDock(self, dock):
+        state = getattr(dock, "_state", None)
+        if state is None or getattr(self, "_activeProfile", None) is state:
+            return
+        self._activeProfile = state
+        self._restyleProfileDocks()
+
+    def _activateProfile(self, dock):
+        self._setActiveProfileDock(dock)
+
+    def _activeDock(self):
+        state = getattr(self, "_activeProfile", None)
+        return state.dock if state is not None else None
+
+    def _syncActiveProfileToVisible(self):
+        active = getattr(self, "_activeProfile", None)
+        if active is not None and active.dock is not None:
+            with suppress(Exception):
+                if active.dock.isVisible() and not active.dock.visibleRegion().isEmpty():
+                    return
+        for state in getattr(self, "_profiles", []) or []:
+            dock = state.dock
+            if dock is None:
+                continue
+            with suppress(Exception):
+                if dock.isVisible() and not dock.visibleRegion().isEmpty():
+                    self._setActiveProfileDock(dock)
+                    return
+
+    def _restyleProfileDocks(self):
+        from ..tools.utils.qgisred_ui_utils import QGISRedUIUtils
+
+        active_dock = self._activeDock()
+        docks = [s.dock for s in (getattr(self, "_profiles", []) or []) if s.dock is not None]
+        multiple = len(docks) > 1
+        for dock in docks:
+            is_active = dock is active_dock or not multiple
+            with suppress(Exception):
+                accent = "#00838F" if is_active else "#B0BEC5"
+                QGISRedUIUtils.applyDockStyle(dock, accent, backgroundColor="white")
+
+    def _onProfileDockActivated(self, dock):
+        if dock is None or self._activeDock() is dock:
+            return
+        self._setActiveProfileDock(dock)
+        self._rearmProfileMapTool(dock)
+
+    def _widgetBelongsToProfileDock(self, widget, dock):
+        if widget is None or dock is None:
+            return False
+        try:
+            return widget is dock or dock.isAncestorOf(widget)
+        except Exception:
+            return False
+
+    def _onProfilePanelFocusChanged(self, old, now):
+        if now is None:
+            return
+        for state in getattr(self, "_profiles", None) or []:
+            dock = state.dock
+            if dock is not None and self._widgetBelongsToProfileDock(now, dock):
+                self._onProfileDockActivated(dock)
+                return
+
+    def _rearmProfileMapTool(self, dock):
+        with suppress(Exception):
+            self._onProfileModeChanged(dock, dock.currentMode())
+
+    def _clearHighlightForState(self, state):
+        if state is None:
+            return
+        for band in state.highlights or []:
+            with suppress(Exception):
+                band.reset()
+                self.iface.mapCanvas().scene().removeItem(band)
+        for marker in state.markers or []:
+            with suppress(Exception):
+                self.iface.mapCanvas().scene().removeItem(marker)
+        state.highlights = []
+        state.markers = []
+
+    def _onProfileDockDestroyed(self, obj=None):
+        states = list(getattr(self, "_profiles", []) or [])
+        gone = next((s for s in states if s.dock is obj), None)
+        self._clearHighlightForState(gone)
+        remaining = [s for s in states if s.dock is not obj]
+        self._profiles = remaining
+        active = getattr(self, "_activeProfile", None)
+        if active is None or active is gone or active not in remaining:
+            self._activeProfile = remaining[-1] if remaining else None
+        self._restyleProfileDocks()
 
     def _setProfileMapTool(self, kind, callback):
         from ..tools.map_tools.qgisred_selectPoint import QGISRedSelectPointTool, SelectPointType
@@ -101,8 +286,11 @@ class ProfileSection:
     def runProfilePickTool(self):
         self._setProfileMapTool("one", self.profilePickCallback)
 
-    def _onProfileModeChanged(self, mode):
+    def _onProfileModeChanged(self, dock, mode):
+        self._activateProfile(dock)
         self._deactivateProfileMapTool()
+        if not mode:
+            return
         if mode == "pick":
             self._setProfileMapTool("one", self.profilePickCallback)
         elif mode == "add":
@@ -115,19 +303,21 @@ class ProfileSection:
             self._profileCurrentBranch = None
             self._setProfileMapTool("one", self.profileBranchCallback)
 
-    def _onProfileClearRequested(self):
+    def _onProfileClearRequested(self, dock):
+        self._activateProfile(dock)
         self._profileReferenceNodes = []
         self._profilePath = None
         self._profileBranches = []
         self._profileCurrentBranch = None
         self._clearProfileHighlight()
-        if getattr(self, "profileDock", None) is not None:
-            self.profileDock.clearPlot()
+        dock.clearPlot()
 
-    def _onProfileVariableChanged(self, _key):
+    def _onProfileVariableChanged(self, dock, _key):
+        self._activateProfile(dock)
         self._redrawProfile()
 
-    def _onProfileEnvelopeModeChanged(self, mode):
+    def _onProfileEnvelopeModeChanged(self, dock, mode):
+        self._activateProfile(dock)
         self._profileEnvelopeMode = mode or "off"
         self._redrawProfile()
 
@@ -162,7 +352,8 @@ class ProfileSection:
         }
         dock.setEnvelope(max_points, min_points, self._profileEnvelopeMode, labels)
 
-    def _onProfileSymbolsToggled(self, checked):
+    def _onProfileSymbolsToggled(self, dock, checked):
+        self._activateProfile(dock)
         self._profileShowSymbols = bool(checked)
         self._redrawProfile()
 
@@ -200,20 +391,29 @@ class ProfileSection:
         dock.setSymbols(node_kinds, link_info)
 
     def _onProfileTimeChanged(self, _text):
-        self._redrawProfile()
+        saved = getattr(self, "_activeProfile", None)
+        for state in list(getattr(self, "_profiles", []) or []):
+            self._activeProfile = state
+            self._redrawProfile()
+        self._activeProfile = saved
 
-    def _onProfileDockVisibility(self, visible):
+    def _onProfileDockVisibility(self, dock, visible):
+        state = getattr(dock, "_state", None)
+        if state is None:
+            return
         if not visible:
-            self._deactivateProfileMapTool()
-            self._clearProfileHighlight()
+            if self._activeDock() is dock:
+                self._deactivateProfileMapTool()
+            self._clearHighlightForState(state)
         else:
+            self._setActiveProfileDock(dock)
             with suppress(Exception):
                 self._drawProfileHighlight()
 
-    def _onProfileExportConfig(self, path):
+    def _onProfileExportConfig(self, dock, path):
         from ..ui.analysis.profile_config_io import write_profile_config
 
-        dock = getattr(self, "profileDock", None)
+        self._activateProfile(dock)
         if dock is None or not path:
             return
         plot = dock.plot
@@ -239,11 +439,11 @@ class ProfileSection:
             return
         self.pushMessage(self.tr("Profile configuration exported."), level=3)
 
-    def _onProfileImportConfig(self, path):
+    def _onProfileImportConfig(self, dock, path):
         from ..ui.analysis.profile_config_io import read_profile_config
         from ..ui.analysis.profile_chart_settings import clone_axis, clone_general
 
-        dock = getattr(self, "profileDock", None)
+        self._activateProfile(dock)
         if dock is None or not path:
             return
         try:
@@ -294,6 +494,7 @@ class ProfileSection:
         self.pushMessage(self.tr("Profile configuration imported."), level=3)
 
     def profilePickCallback(self, point):
+        self._syncActiveProfileToVisible()
         node_id = self._resolveProfileNode(point)
         if node_id is None:
             self.pushMessage(self.tr("No network node found at this location."), level=1)
@@ -316,6 +517,7 @@ class ProfileSection:
         self._redrawProfile()
 
     def profileAddCallback(self, point):
+        self._syncActiveProfileToVisible()
         node_id = self._resolveProfileNode(point)
         if node_id is None:
             self.pushMessage(self.tr("No network node found at this location."), level=1)
@@ -323,6 +525,7 @@ class ProfileSection:
         self._applyProfileAdd(node_id)
 
     def profileRemoveCallback(self, point):
+        self._syncActiveProfileToVisible()
         node_id = self._resolveProfileNode(point)
         if node_id is None:
             self.pushMessage(self.tr("No network node found at this location."), level=1)
@@ -330,6 +533,7 @@ class ProfileSection:
         self._applyProfileRemove(node_id)
 
     def profileMoveCallback(self, point, new_point):
+        self._syncActiveProfileToVisible()
         node_id = self._resolveProfileNode(point)
         new_node_id = self._resolveProfileNode(new_point)
         if node_id is None or new_node_id is None:
@@ -338,6 +542,7 @@ class ProfileSection:
         self._applyProfileMove(node_id, new_node_id)
 
     def profileBranchCallback(self, point):
+        self._syncActiveProfileToVisible()
         node_id = self._resolveProfileNode(point)
         if node_id is None:
             self.pushMessage(self.tr("No network node found at this location."), level=1)
@@ -533,7 +738,7 @@ class ProfileSection:
         return {lid: (props.get("HeadLoss") or 0.0) for lid, props in data.items()}
 
     def _redrawProfile(self):
-        dock = getattr(self, "profileDock", None)
+        dock = self._activeDock()
         path = getattr(self, "_profilePath", None)
         if dock is None:
             return
@@ -688,6 +893,9 @@ class ProfileSection:
         from qgis.PyQt.QtGui import QColor
 
         self._clearProfileHighlight()
+        dock = self._activeDock()
+        if dock is not None and not dock.isVisible():
+            return
         path = getattr(self, "_profilePath", None)
         if not path or not path["nodes"]:
             return
@@ -758,3 +966,7 @@ class ProfileSection:
                 self.iface.mapCanvas().scene().removeItem(marker)
         self._profileHighlights = []
         self._profileMarkers = []
+
+
+for _attr, _field in _PROFILE_STATE_FIELDS.items():
+    setattr(ProfileSection, _attr, _profile_state_property(_field))

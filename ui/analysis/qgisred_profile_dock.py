@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 from contextlib import suppress
 
-from qgis.PyQt.QtCore import Qt, QSize, QRect, pyqtSignal
+from qgis.PyQt.QtCore import Qt, QSize, QRect, QEvent, pyqtSignal
 from qgis.PyQt.QtGui import QIcon, QPixmap, QPainter
 from qgis.PyQt.QtWidgets import (
     QDockWidget, QWidget, QVBoxLayout, QHBoxLayout, QToolButton, QComboBox, QLabel, QFrame,
@@ -46,6 +46,8 @@ class QGISRedProfileDock(QDockWidget):
     envelopeModeChanged = pyqtSignal(str)
     exportConfigRequested = pyqtSignal(str)
     importConfigRequested = pyqtSignal(str)
+    newPanelRequested = pyqtSignal()
+    activated = pyqtSignal()
 
     def __init__(self, iface, parent=None):
         super(QGISRedProfileDock, self).__init__(parent or iface.mainWindow())
@@ -68,6 +70,7 @@ class QGISRedProfileDock(QDockWidget):
         layout.setSpacing(4)
 
         toolbar_widget = QWidget(container)
+        self._toolbarBox = toolbar_widget
         toolbar_widget.setObjectName("profileToolbar")
         toolbar_widget.setMinimumHeight(34)
         toolbar_widget.setStyleSheet(
@@ -80,6 +83,12 @@ class QGISRedProfileDock(QDockWidget):
         toolbar = QHBoxLayout(toolbar_widget)
         toolbar.setContentsMargins(6, 3, 6, 3)
         toolbar.setSpacing(3)
+
+        self.btnNewPanel = self._makeIconButton(toolbar_widget, ":/images/iconProfile.svg",
+                                                self.tr("New profile panel"))
+        self.btnNewPanel.clicked.connect(self.newPanelRequested)
+        toolbar.addWidget(self.btnNewPanel)
+        toolbar.addWidget(self._separator(toolbar_widget))
 
         self.btnPick = self._addModeButton(toolbar_widget, toolbar, "pick", ":/images/iconProfilePick.svg",
                                            self.tr("Click network nodes on the map to build the profile path"))
@@ -254,6 +263,32 @@ class QGISRedProfileDock(QDockWidget):
         self.setWidget(container)
         self._updateChartActionsEnabled()
 
+        with suppress(Exception):
+            self.plot.installEventFilter(self)
+            self.table.installEventFilter(self)
+            self._toolbarBox.installEventFilter(self)
+
+    def eventFilter(self, obj, event):
+        with suppress(Exception):
+            if event is not None and event.type() == QEvent.Type.MouseButtonPress:
+                self.activated.emit()
+        return super(QGISRedProfileDock, self).eventFilter(obj, event)
+
+    def mousePressEvent(self, event):
+        with suppress(Exception):
+            self.activated.emit()
+        super(QGISRedProfileDock, self).mousePressEvent(event)
+
+    def focusInEvent(self, event):
+        with suppress(Exception):
+            self.activated.emit()
+        super(QGISRedProfileDock, self).focusInEvent(event)
+
+    def showEvent(self, event):
+        super(QGISRedProfileDock, self).showEvent(event)
+        with suppress(Exception):
+            self.activated.emit()
+
     def _makeIconButton(self, parent, icon_path, tooltip, checkable=False):
         button = QToolButton(parent)
         button.setIcon(QIcon(icon_path))
@@ -303,6 +338,12 @@ class QGISRedProfileDock(QDockWidget):
         for m, button in self._modeButtons.items():
             button.setChecked(m == mode)
         self._suppress_mode_signal = False
+
+    def currentMode(self):
+        for mode, button in self._modeButtons.items():
+            if button.isChecked():
+                return mode
+        return ""
 
     def setSeries(self, series, title, x_label, y_label):
         self.plot.setLabels(title, x_label, y_label)

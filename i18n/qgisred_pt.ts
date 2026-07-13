@@ -7292,6 +7292,10 @@ Clique esquerdo: Adicionar um novo item abaixo da seleção atual</translation>
         <source>Band and lines</source>
         <translation>Banda e linhas</translation>
     </message>
+    <message>
+        <source>New profile panel</source>
+        <translation>Novo painel de perfil</translation>
+    </message>
 </context>
 <context>
     <name>QGISRedProfileChartOptionsDialog</name>

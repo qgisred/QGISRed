@@ -1113,20 +1113,24 @@ class AnalysisSection:
                     return True
         return False
 
+    def _isDockShowingContent(self, dock):
+        try:
+            return dock is not None and dock.isVisible() and not dock.visibleRegion().isEmpty()
+        except Exception:
+            return False
+
     def _firstVisibleTimeSeriesDock(self, exclude=None):
         for dock in (getattr(self, "timeSeriesDocks", None) or []):
             if dock is exclude:
                 continue
-            with suppress(Exception):
-                if dock.isVisible():
-                    return dock
+            if self._isDockShowingContent(dock):
+                return dock
         return None
 
     def _currentVisibleTimeSeriesDock(self):
         active = self.activeTimeSeriesDock
-        with suppress(Exception):
-            if active is not None and active.isVisible():
-                return active
+        if self._isDockShowingContent(active):
+            return active
         return self._firstVisibleTimeSeriesDock() or active
 
     def _onTimeSeriesDockDestroyed(self, obj=None):
