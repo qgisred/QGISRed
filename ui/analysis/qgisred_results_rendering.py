@@ -361,12 +361,7 @@ class _ResultsRenderingMixin:
             unit = QGISRedFieldUtils().getUnitAbbreviation(element, unit_field)
             unit_suffix = f' || \' {unit}\'' if unit else ''
 
-            _TYPE_KEYS = ["JUNCTION", "RESERVOIR", "TANK", "PIPE", "PUMP", "VALVE"]
-            cases = " ".join(
-                f"WHEN \"Type\" = '{k}' THEN '{self.tr(k.title())}'"
-                for k in _TYPE_KEYS
-            )
-            line1 = f'(CASE {cases} ELSE "Type" END) || \' \' || "Id"'
+            line1 = '"Id"'
 
             if time_field:
                 raw_val = f'format_number(round("{fieldName}", {decimals}), {decimals})'
