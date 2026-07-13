@@ -7006,6 +7006,14 @@ Click izquierdo: Añadir un nuevo item debajo de la selección actual</translati
         <translation>Perfil longitudinal...</translation>
     </message>
     <message>
+        <source>Longitudinal profiles at {0}</source>
+        <translation>Perfiles longitudinales a las {0}</translation>
+    </message>
+    <message>
+        <source>Longitudinal profiles</source>
+        <translation>Perfiles longitudinales</translation>
+    </message>
+    <message>
         <source>Run a simulation first to build a longitudinal profile.</source>
         <translation>Ejecute primero una simulación para construir un perfil longitudinal.</translation>
     </message>

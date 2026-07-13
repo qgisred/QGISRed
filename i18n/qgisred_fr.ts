@@ -6864,6 +6864,14 @@ Left-click: Add a new item below the current selection</source>
         <translation>Profil en long...</translation>
     </message>
     <message>
+        <source>Longitudinal profiles at {0}</source>
+        <translation>Profils en long à {0}</translation>
+    </message>
+    <message>
+        <source>Longitudinal profiles</source>
+        <translation>Profils en long</translation>
+    </message>
+    <message>
         <source>Run a simulation first to build a longitudinal profile.</source>
         <translation>Lancez d'abord une simulation pour construire un profil en long.</translation>
     </message>

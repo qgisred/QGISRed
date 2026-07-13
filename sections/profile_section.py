@@ -506,6 +506,18 @@ class ProfileSection:
         report_step = getattr(self, "_profileReportStep", 3600)
         return report_start + index * report_step
 
+    def _profileTimeText(self):
+        dock = getattr(self, "ResultDockwidget", None)
+        if dock is not None:
+            with suppress(Exception):
+                text = dock.cbTimes.currentText()
+                if text and text.strip():
+                    return text.strip()
+        with suppress(Exception):
+            from ..ui.analysis.qgisred_results_data import seconds_to_time_str_no_seconds
+            return seconds_to_time_str_no_seconds(int(self._profileCurrentTimeSeconds()))
+        return ""
+
     def _profileNodeValues(self, key):
         if key == "Elevation":
             return dict(getattr(self, "_profileNodeElev", {}))
@@ -583,7 +595,12 @@ class ProfileSection:
             self._pushProfileTable(dock, series, nodes, distances, key)
         with suppress(Exception):
             self._appendProfileBranchSeries(series, key)
-        dock.setSeries(series, self.tr("Longitudinal profile"), self.tr("Distance"), y_label)
+        time_text = self._profileTimeText()
+        if time_text:
+            title = self.tr("Longitudinal profiles at {0}").format(time_text)
+        else:
+            title = self.tr("Longitudinal profiles")
+        dock.setSeries(series, title, self.tr("Distance"), y_label)
         self._drawProfileHighlight()
         with suppress(Exception):
             self._applyProfileEnvelope(dock, key, nodes, distances)

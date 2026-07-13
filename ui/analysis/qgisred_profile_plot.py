@@ -330,7 +330,7 @@ class ProfilePlotWidget(QWidget):
         full = QRectF(self.rect())
         painter.fillRect(full, QColor(255, 255, 255))
 
-        left, right, top, bottom = 64.0, 18.0, 42.0, 48.0
+        left, right, top, bottom = 64.0, 18.0, 54.0, 48.0
         plot = QRectF(left, top, max(1.0, full.width() - left - right), max(1.0, full.height() - top - bottom))
 
         view = self._currentView()
@@ -615,6 +615,12 @@ class ProfilePlotWidget(QWidget):
 
     def _drawTitleAndAxisLabels(self, painter, full, plot):
         painter.setPen(QColor(30, 30, 30))
+        if self._title:
+            tfont = QFont("Arial", 9)
+            tfont.setBold(True)
+            painter.setFont(tfont)
+            painter.drawText(QRectF(plot.left(), 4, plot.width(), 16),
+                             Qt.AlignmentFlag.AlignHCenter | Qt.AlignmentFlag.AlignTop, self._title)
         painter.setFont(QFont("Arial", 8))
         x_title = self._axis_cfg_x.title or self._x_label
         y_title = self._axis_cfg_y.title or self._y_label
