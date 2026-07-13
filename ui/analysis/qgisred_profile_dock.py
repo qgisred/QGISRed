@@ -5,7 +5,8 @@ from qgis.PyQt.QtCore import Qt, QSize, QRect, pyqtSignal
 from qgis.PyQt.QtGui import QIcon, QPixmap, QPainter
 from qgis.PyQt.QtWidgets import (
     QDockWidget, QWidget, QVBoxLayout, QHBoxLayout, QToolButton, QComboBox, QLabel, QFrame,
-    QSplitter, QTableWidget, QTableWidgetItem, QAbstractItemView, QFileDialog, QHeaderView, QMenu
+    QSplitter, QTableWidget, QTableWidgetItem, QAbstractItemView, QFileDialog, QHeaderView, QMenu,
+    QDialog, QDialogButtonBox, QPlainTextEdit
 )
 
 from .qgisred_profile_plot import ProfilePlotWidget
@@ -43,6 +44,8 @@ class QGISRedProfileDock(QDockWidget):
     variableChanged = pyqtSignal(str)
     symbolsToggled = pyqtSignal(bool)
     envelopeModeChanged = pyqtSignal(str)
+    exportConfigRequested = pyqtSignal(str)
+    importConfigRequested = pyqtSignal(str)
 
     def __init__(self, iface, parent=None):
         super(QGISRedProfileDock, self).__init__(parent or iface.mainWindow())
@@ -51,6 +54,8 @@ class QGISRedProfileDock(QDockWidget):
         self.setObjectName("QGISRedProfileDock")
         self._suppress_mode_signal = False
         self._modeButtons = {}
+        self._chartComment = ""
+        self._defaultConfigPath = ""
         self._buildUi()
         with suppress(Exception):
             from ...tools.utils.qgisred_ui_utils import QGISRedUIUtils
@@ -165,6 +170,21 @@ class QGISRedProfileDock(QDockWidget):
                                                    self.tr("Save chart as image"))
         self.btnExportImage.clicked.connect(self._onExportImage)
         toolbar.addWidget(self.btnExportImage)
+
+        self.btnExportConfig = self._makeIconButton(toolbar_widget, ":/images/iconStatisticsExport.svg",
+                                                    self.tr("Export profile configuration"))
+        self.btnExportConfig.clicked.connect(self._onExportConfigClicked)
+        toolbar.addWidget(self.btnExportConfig)
+
+        self.btnImportConfig = self._makeIconButton(toolbar_widget, ":/images/iconStatisticsImport.svg",
+                                                    self.tr("Import profile configuration"))
+        self.btnImportConfig.clicked.connect(self._onImportConfigClicked)
+        toolbar.addWidget(self.btnImportConfig)
+
+        self.btnEditComment = self._makeIconButton(toolbar_widget, ":/images/iconComment.svg",
+                                                   self.tr("Edit chart description"))
+        self.btnEditComment.clicked.connect(self._onEditCommentClicked)
+        toolbar.addWidget(self.btnEditComment)
 
         toolbar.addWidget(self._separator(toolbar_widget))
 
@@ -324,7 +344,8 @@ class QGISRedProfileDock(QDockWidget):
         for button in (self.btnAdd, self.btnRemove, self.btnMove, self.btnBranch, self.btnClear,
                        self.btnZoomWindow, self.btnPan, self.btnZoomIn, self.btnZoomOut, self.btnFit,
                        self.btnLabels, self.btnSymbols, self.btnEnvelope, self.btnChartOptions,
-                       self.btnTable, self.btnExportCsv, self.btnExportImage):
+                       self.btnTable, self.btnExportCsv, self.btnExportImage,
+                       self.btnExportConfig, self.btnEditComment):
             button.setEnabled(has_data)
         self.table.setVisible(has_data and self.btnTable.isChecked())
 
@@ -498,3 +519,108 @@ class QGISRedProfileDock(QDockWidget):
 
     def _onVariableChanged(self, _index):
         self.variableChanged.emit(self.currentVariableKey())
+
+    def _configDefaultPath(self, for_export):
+        import os
+        base = self._defaultConfigPath or os.path.join(
+            os.path.expanduser("~"), "LongitudinalProfile_Config.cfg")
+        if not for_export:
+            return base
+        with suppress(Exception):
+            from .profile_config_io import next_available_config_name
+            directory = os.path.dirname(base)
+            existing = os.listdir(directory) if directory and os.path.isdir(directory) else []
+            return os.path.join(directory, next_available_config_name(os.path.basename(base), existing))
+        return base
+
+    def _onExportConfigClicked(self):
+        path, _selected = QFileDialog.getSaveFileName(
+            self, self.tr("Export profile configuration"),
+            self._configDefaultPath(True), self.tr("Configuration file (*.cfg)"))
+        if not path:
+            return
+        if not path.lower().endswith(".cfg"):
+            path += ".cfg"
+        self.exportConfigRequested.emit(path)
+
+    def _onImportConfigClicked(self):
+        import os
+        start = self._configDefaultPath(False)
+        start_dir = os.path.dirname(start) if start else os.path.expanduser("~")
+        path, _selected = QFileDialog.getOpenFileName(
+            self, self.tr("Import profile configuration"),
+            start_dir, self.tr("Configuration file (*.cfg)"))
+        if not path:
+            return
+        self.importConfigRequested.emit(path)
+
+    def _onEditCommentClicked(self):
+        MAX = 256
+        dlg = QDialog(self)
+        dlg.setWindowTitle(self.tr("Chart description"))
+        layout = QVBoxLayout(dlg)
+        info = QLabel(self.tr("Describe the chart content (up to 256 characters):"), dlg)
+        info.setWordWrap(True)
+        layout.addWidget(info)
+        editor = QPlainTextEdit(dlg)
+        editor.setPlainText(self._chartComment or "")
+        editor.setTabChangesFocus(True)
+        layout.addWidget(editor)
+        counter = QLabel(dlg)
+        counter.setAlignment(Qt.AlignmentFlag.AlignRight)
+        layout.addWidget(counter)
+
+        def _enforce():
+            text = editor.toPlainText()
+            if len(text) > MAX:
+                pos = editor.textCursor().position()
+                editor.blockSignals(True)
+                editor.setPlainText(text[:MAX])
+                editor.blockSignals(False)
+                cursor = editor.textCursor()
+                cursor.setPosition(min(pos, MAX))
+                editor.setTextCursor(cursor)
+            counter.setText("{}/{}".format(len(editor.toPlainText()), MAX))
+
+        editor.textChanged.connect(_enforce)
+        _enforce()
+
+        buttons = QDialogButtonBox(
+            QDialogButtonBox.StandardButton.Ok | QDialogButtonBox.StandardButton.Cancel, dlg)
+        buttons.accepted.connect(dlg.accept)
+        buttons.rejected.connect(dlg.reject)
+        layout.addWidget(buttons)
+        dlg.resize(420, 220)
+        if dlg.exec():
+            self._chartComment = editor.toPlainText().strip()[:MAX]
+
+    def comment(self):
+        return self._chartComment or ""
+
+    def setComment(self, text):
+        self._chartComment = (text or "")[:256]
+
+    def setVariableKey(self, key):
+        for i, (_display, k) in enumerate(PROFILE_VARIABLES):
+            if k == key:
+                self.cbVariable.blockSignals(True)
+                self.cbVariable.setCurrentIndex(i)
+                self.cbVariable.blockSignals(False)
+                return
+
+    def setSymbolsChecked(self, on):
+        self.btnSymbols.blockSignals(True)
+        self.btnSymbols.setChecked(bool(on))
+        self.btnSymbols.blockSignals(False)
+
+    def setLabelsChecked(self, on):
+        self.btnLabels.blockSignals(True)
+        self.btnLabels.setChecked(bool(on))
+        self.btnLabels.blockSignals(False)
+        self.plot.setShowValueLabels(bool(on))
+
+    def setEnvelopeModeState(self, mode):
+        mode = mode or "off"
+        for m, action in self._envelopeActions.items():
+            action.setChecked(m == mode)
+        self.btnEnvelope.setChecked(mode != "off")

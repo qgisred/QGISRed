@@ -15,6 +15,7 @@ SOURCES = qgisred.py \
           ui/analysis/qgisred_profile_dock.py \
           ui/analysis/qgisred_profile_plot.py \
           ui/analysis/qgisred_profile_chart_options_dialog.py \
+          ui/analysis/profile_config_io.py \
           tools/qgisred_dependencies.py \
           ui/analysis/qgisred_results_binary.py \
           tools/qgisred_translatable_strings.py \

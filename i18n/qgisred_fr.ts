@@ -2047,139 +2047,6 @@
     </message>
 </context>
 <context>
-    <name>ProfileSection</name>
-    <message>
-        <location filename="../sections/analysis_section.py" line="968"/>
-        <source>Longitudinal profile...</source>
-        <translation type="obsolete">Profil en long...</translation>
-    </message>
-    <message>
-        <location filename="../sections/profile_section.py" line="39"/>
-        <source>Run a simulation first to build a longitudinal profile.</source>
-        <translation>Lancez d'abord une simulation pour construire un profil en long.</translation>
-    </message>
-    <message>
-        <location filename="../sections/profile_section.py" line="254"/>
-        <source>No network node found at this location.</source>
-        <translation>Aucun nœud du réseau n'a été trouvé à cet endroit.</translation>
-    </message>
-    <message>
-        <location filename="../sections/profile_section.py" line="222"/>
-        <source>Selected node is not connected to the previous one along the network.</source>
-        <translation>Le nœud sélectionné n'est pas connecté au précédent le long du réseau.</translation>
-    </message>
-    <message>
-        <location filename="../sections/profile_section.py" line="464"/>
-        <source>Accumulated head loss</source>
-        <translation>Pertes de charge cumulées</translation>
-    </message>
-    <message>
-        <location filename="../sections/profile_section.py" line="497"/>
-        <source>Longitudinal profile</source>
-        <translation>Profil en long</translation>
-    </message>
-    <message>
-        <location filename="../sections/profile_section.py" line="514"/>
-        <source>Distance</source>
-        <translation>Distance</translation>
-    </message>
-    <message>
-        <location filename="../sections/profile_section.py" line="483"/>
-        <source>Elevation</source>
-        <translation>Cotes</translation>
-    </message>
-    <message>
-        <location filename="../sections/analysis_section.py" line="968"/>
-        <source>Head</source>
-        <translation type="obsolete">Charge hydraulique</translation>
-    </message>
-    <message>
-        <location filename="../sections/analysis_section.py" line="968"/>
-        <source>Pressure</source>
-        <translation type="obsolete">Pression</translation>
-    </message>
-    <message>
-        <location filename="../sections/analysis_section.py" line="968"/>
-        <source>Quality</source>
-        <translation type="obsolete">Qualité</translation>
-    </message>
-    <message>
-        <location filename="../sections/profile_section.py" line="309"/>
-        <source>Pick an intermediate node of the current profile path.</source>
-        <translation>Sélectionnez un nœud intermédiaire du tracé actuel du profil.</translation>
-    </message>
-    <message>
-        <location filename="../sections/profile_section.py" line="319"/>
-        <source>Pick a declared profile point to remove.</source>
-        <translation>Sélectionnez un point de passage déclaré à supprimer.</translation>
-    </message>
-    <message>
-        <location filename="../sections/profile_section.py" line="331"/>
-        <source>Only declared profile points can be moved.</source>
-        <translation>Seuls les points de passage déclarés peuvent être déplacés.</translation>
-    </message>
-    <message>
-        <location filename="../sections/profile_section.py" line="341"/>
-        <source>The moved node cannot be connected along the network.</source>
-        <translation>Le nœud déplacé ne peut pas être connecté le long du réseau.</translation>
-    </message>
-    <message>
-        <location filename="../sections/profile_section.py" line="571"/>
-        <source>Branch</source>
-        <translation>Branche</translation>
-    </message>
-    <message>
-        <location filename="../sections/profile_section.py" line="268"/>
-        <source>Click a node of the current profile to start a branch.</source>
-        <translation>Cliquez sur un nœud du profil actuel pour démarrer une branche.</translation>
-    </message>
-    <message>
-        <location filename="../sections/profile_section.py" line="275"/>
-        <source>Selected node is not connected to the branch along the network.</source>
-        <translation>Le nœud sélectionné n'est pas connecté à la branche le long du réseau.</translation>
-    </message>
-    <message>
-        <location filename="../sections/profile_section.py" line="514"/>
-        <source>Id</source>
-        <translation>Id</translation>
-    </message>
-    <message>
-        <location filename="../sections/profile_section.py" line="153"/>
-        <source>Maxima</source>
-        <translation type="unfinished"></translation>
-    </message>
-    <message>
-        <location filename="../sections/profile_section.py" line="154"/>
-        <source>Minima</source>
-        <translation type="unfinished"></translation>
-    </message>
-    <message>
-        <location filename="../sections/profile_section.py" line="155"/>
-        <source>Envelope</source>
-        <translation type="unfinished">Enveloppe</translation>
-    </message>
-    <message>
-        <location filename="../sections/profile_section.py" line="518"/>
-        <source>Maximum</source>
-        <translation type="unfinished"></translation>
-    </message>
-    <message>
-        <location filename="../sections/profile_section.py" line="518"/>
-        <source>Max. time</source>
-        <translation type="unfinished"></translation>
-    </message>
-    <message>
-        <location filename="../sections/profile_section.py" line="518"/>
-        <source>Minimum</source>
-        <translation type="unfinished"></translation>
-    </message>
-    <message>
-        <location filename="../sections/profile_section.py" line="518"/>
-        <source>Min. time</source>
-        <translation type="unfinished"></translation>
-    </message>
-</context>
-<context>
     <name>ProjectManagementSection</name>
     <message>
         <location filename="../sections/project_management_section.py" line="114"/>
@@ -4082,417 +3949,6 @@ Left-click: Add a new item below the current selection</source>
     <message>
         <location filename="../ui/general/qgisred_news_dialog.py" line="33"/>
         <source>Close</source>
-        <translation type="unfinished"></translation>
-    </message>
-</context>
-<context>
-    <name>QGISRedProfileChartOptionsDialog</name>
-    <message>
-        <location filename="../ui/analysis/qgisred_profile_chart_options_dialog.py" line="19"/>
-        <source>QGISRed: Chart options</source>
-        <translation>QGISRed : Options du graphique</translation>
-    </message>
-    <message>
-        <location filename="../ui/analysis/qgisred_profile_chart_options_dialog.py" line="29"/>
-        <source>Axes</source>
-        <translation>Axes</translation>
-    </message>
-    <message>
-        <location filename="../ui/analysis/qgisred_profile_chart_options_dialog.py" line="30"/>
-        <source>Curves</source>
-        <translation>Courbes</translation>
-    </message>
-    <message>
-        <location filename="../ui/analysis/qgisred_profile_chart_options_dialog.py" line="32"/>
-        <source>General</source>
-        <translation>Général</translation>
-    </message>
-    <message>
-        <location filename="../ui/analysis/qgisred_profile_chart_options_dialog.py" line="49"/>
-        <source>X axis (distance)</source>
-        <translation>Axe X (distance)</translation>
-    </message>
-    <message>
-        <location filename="../ui/analysis/qgisred_profile_chart_options_dialog.py" line="50"/>
-        <source>Y axis (variable)</source>
-        <translation>Axe Y (variable)</translation>
-    </message>
-    <message>
-        <location filename="../ui/analysis/qgisred_profile_chart_options_dialog.py" line="60"/>
-        <source>Title:</source>
-        <translation>Titre :</translation>
-    </message>
-    <message>
-        <location filename="../ui/analysis/qgisred_profile_chart_options_dialog.py" line="62"/>
-        <source>Auto scale</source>
-        <translation>Échelle automatique</translation>
-    </message>
-    <message>
-        <location filename="../ui/analysis/qgisred_profile_chart_options_dialog.py" line="67"/>
-        <source>Minimum:</source>
-        <translation>Minimum :</translation>
-    </message>
-    <message>
-        <location filename="../ui/analysis/qgisred_profile_chart_options_dialog.py" line="69"/>
-        <source>Maximum:</source>
-        <translation>Maximum :</translation>
-    </message>
-    <message>
-        <location filename="../ui/analysis/qgisred_profile_chart_options_dialog.py" line="71"/>
-        <source>Show grid</source>
-        <translation>Afficher la grille</translation>
-    </message>
-    <message>
-        <location filename="../sections/analysis_section.py" line="968"/>
-        <source>Curve</source>
-        <translation type="obsolete">Courbe</translation>
-    </message>
-    <message>
-        <location filename="../ui/analysis/qgisred_profile_chart_options_dialog.py" line="111"/>
-        <source>Color</source>
-        <translation>Couleur</translation>
-    </message>
-    <message>
-        <location filename="../ui/analysis/qgisred_profile_chart_options_dialog.py" line="123"/>
-        <source>Line style</source>
-        <translation>Style de ligne</translation>
-    </message>
-    <message>
-        <location filename="../ui/analysis/qgisred_profile_chart_options_dialog.py" line="115"/>
-        <source>Solid</source>
-        <translation>Continue</translation>
-    </message>
-    <message>
-        <location filename="../ui/analysis/qgisred_profile_chart_options_dialog.py" line="116"/>
-        <source>Dashed</source>
-        <translation>Tirets</translation>
-    </message>
-    <message>
-        <location filename="../ui/analysis/qgisred_profile_chart_options_dialog.py" line="117"/>
-        <source>Dotted</source>
-        <translation>Pointillés</translation>
-    </message>
-    <message>
-        <location filename="../ui/analysis/qgisred_profile_chart_options_dialog.py" line="129"/>
-        <source>Width</source>
-        <translation>Épaisseur</translation>
-    </message>
-    <message>
-        <location filename="../ui/analysis/qgisred_profile_chart_options_dialog.py" line="133"/>
-        <source>Markers</source>
-        <translation>Marqueurs</translation>
-    </message>
-    <message>
-        <location filename="../ui/analysis/qgisred_profile_chart_options_dialog.py" line="139"/>
-        <source>Marker size</source>
-        <translation>Taille du marqueur</translation>
-    </message>
-    <message>
-        <location filename="../ui/analysis/qgisred_profile_chart_options_dialog.py" line="110"/>
-        <source>Curve color</source>
-        <translation>Couleur de la courbe</translation>
-    </message>
-    <message>
-        <location filename="../ui/analysis/qgisred_profile_chart_options_dialog.py" line="156"/>
-        <source>Show legend</source>
-        <translation>Afficher la légende</translation>
-    </message>
-    <message>
-        <location filename="../ui/analysis/qgisred_profile_chart_options_dialog.py" line="191"/>
-        <source>Background color</source>
-        <translation>Couleur de fond</translation>
-    </message>
-    <message>
-        <location filename="../ui/analysis/qgisred_profile_chart_options_dialog.py" line="192"/>
-        <source>Plot background:</source>
-        <translation>Fond du graphique :</translation>
-    </message>
-    <message>
-        <location filename="../ui/analysis/qgisred_profile_chart_options_dialog.py" line="31"/>
-        <source>Legend</source>
-        <translation>Légende</translation>
-    </message>
-    <message>
-        <location filename="../ui/analysis/qgisred_profile_chart_options_dialog.py" line="167"/>
-        <source>Position:</source>
-        <translation>Position :</translation>
-    </message>
-    <message>
-        <location filename="../ui/analysis/qgisred_profile_chart_options_dialog.py" line="162"/>
-        <source>Left</source>
-        <translation>Gauche</translation>
-    </message>
-    <message>
-        <location filename="../ui/analysis/qgisred_profile_chart_options_dialog.py" line="162"/>
-        <source>Center</source>
-        <translation>Centre</translation>
-    </message>
-    <message>
-        <location filename="../ui/analysis/qgisred_profile_chart_options_dialog.py" line="162"/>
-        <source>Right</source>
-        <translation>Droite</translation>
-    </message>
-    <message>
-        <location filename="../ui/analysis/qgisred_profile_chart_options_dialog.py" line="172"/>
-        <source>Font size:</source>
-        <translation>Taille de police :</translation>
-    </message>
-    <message>
-        <location filename="../ui/analysis/qgisred_profile_chart_options_dialog.py" line="177"/>
-        <source>Symbol size:</source>
-        <translation>Taille du symbole :</translation>
-    </message>
-    <message>
-        <location filename="../ui/analysis/qgisred_profile_chart_options_dialog.py" line="179"/>
-        <source>Show frame</source>
-        <translation>Afficher le cadre</translation>
-    </message>
-    <message>
-        <location filename="../ui/analysis/qgisred_profile_chart_options_dialog.py" line="184"/>
-        <source>Background:</source>
-        <translation>Fond :</translation>
-    </message>
-</context>
-<context>
-    <name>QGISRedProfileDock</name>
-    <message>
-        <location filename="../sections/analysis_section.py" line="968"/>
-        <source>Longitudinal profile</source>
-        <translation type="obsolete">Profil en long</translation>
-    </message>
-    <message>
-        <location filename="../ui/analysis/qgisred_profile_dock.py" line="50"/>
-        <source>QGISRed: Longitudinal profile</source>
-        <translation>QGISRed : Profil en long</translation>
-    </message>
-    <message>
-        <location filename="../sections/analysis_section.py" line="968"/>
-        <source>Pick path</source>
-        <translation type="obsolete">Tracer le parcours</translation>
-    </message>
-    <message>
-        <location filename="../ui/analysis/qgisred_profile_dock.py" line="79"/>
-        <source>Click network nodes on the map to build the profile path</source>
-        <translation>Cliquez sur les nœuds du réseau sur la carte pour construire le parcours du profil</translation>
-    </message>
-    <message>
-        <location filename="../sections/analysis_section.py" line="968"/>
-        <source>Add point</source>
-        <translation type="obsolete">Ajouter un point</translation>
-    </message>
-    <message>
-        <location filename="../sections/analysis_section.py" line="968"/>
-        <source>Remove point</source>
-        <translation type="obsolete">Supprimer un point</translation>
-    </message>
-    <message>
-        <location filename="../sections/analysis_section.py" line="968"/>
-        <source>Move point</source>
-        <translation type="obsolete">Déplacer un point</translation>
-    </message>
-    <message>
-        <location filename="../ui/analysis/qgisred_profile_dock.py" line="81"/>
-        <source>Convert an intermediate node of the path into a profile point</source>
-        <translation>Convertir un nœud intermédiaire du tracé en point de passage</translation>
-    </message>
-    <message>
-        <location filename="../ui/analysis/qgisred_profile_dock.py" line="83"/>
-        <source>Remove a declared profile point</source>
-        <translation>Supprimer un point de passage déclaré</translation>
-    </message>
-    <message>
-        <location filename="../ui/analysis/qgisred_profile_dock.py" line="85"/>
-        <source>Move a profile point: click it, then its new position</source>
-        <translation>Déplacer un point de passage : cliquez dessus, puis sa nouvelle position</translation>
-    </message>
-    <message>
-        <location filename="../ui/analysis/qgisred_profile_dock.py" line="87"/>
-        <source>Add a branch: click a node of the profile, then the branch endpoints</source>
-        <translation>Ajouter une branche : cliquez sur un nœud du profil, puis les extrémités de la branche</translation>
-    </message>
-    <message>
-        <location filename="../ui/analysis/qgisred_profile_dock.py" line="92"/>
-        <source>Zoom window</source>
-        <translation>Zoom fenêtre</translation>
-    </message>
-    <message>
-        <location filename="../ui/analysis/qgisred_profile_dock.py" line="97"/>
-        <source>Pan</source>
-        <translation>Déplacer</translation>
-    </message>
-    <message>
-        <location filename="../ui/analysis/qgisred_profile_dock.py" line="101"/>
-        <source>Zoom in</source>
-        <translation>Zoom avant</translation>
-    </message>
-    <message>
-        <location filename="../ui/analysis/qgisred_profile_dock.py" line="105"/>
-        <source>Zoom out</source>
-        <translation>Zoom arrière</translation>
-    </message>
-    <message>
-        <location filename="../ui/analysis/qgisred_profile_dock.py" line="109"/>
-        <source>Zoom to full extent</source>
-        <translation>Ajuster à l'étendue</translation>
-    </message>
-    <message>
-        <location filename="../sections/analysis_section.py" line="968"/>
-        <source>Clear</source>
-        <translation type="obsolete">Effacer</translation>
-    </message>
-    <message>
-        <location filename="../ui/analysis/qgisred_profile_dock.py" line="171"/>
-        <source>Remove the current profile path</source>
-        <translation>Supprimer le parcours du profil actuel</translation>
-    </message>
-    <message>
-        <location filename="../ui/analysis/qgisred_profile_dock.py" line="177"/>
-        <source>Variable:</source>
-        <translation>Variable :</translation>
-    </message>
-    <message>
-        <location filename="../sections/analysis_section.py" line="968"/>
-        <source>Elevation</source>
-        <translation type="obsolete">Cotes</translation>
-    </message>
-    <message>
-        <location filename="../sections/analysis_section.py" line="968"/>
-        <source>Head</source>
-        <translation type="obsolete">Charge hydraulique</translation>
-    </message>
-    <message>
-        <location filename="../sections/analysis_section.py" line="968"/>
-        <source>Pressure</source>
-        <translation type="obsolete">Pression</translation>
-    </message>
-    <message>
-        <location filename="../sections/analysis_section.py" line="968"/>
-        <source>Quality</source>
-        <translation type="obsolete">Qualité</translation>
-    </message>
-    <message>
-        <location filename="../sections/analysis_section.py" line="968"/>
-        <source>Accumulated head loss</source>
-        <translation type="obsolete">Pertes de charge cumulées</translation>
-    </message>
-    <message>
-        <location filename="../ui/analysis/qgisred_profile_dock.py" line="225"/>
-        <source>Enable &apos;Pick path&apos; and click nodes on the map</source>
-        <translation>Activez « Tracer le parcours » et cliquez sur les nœuds de la carte</translation>
-    </message>
-    <message>
-        <location filename="../sections/analysis_section.py" line="968"/>
-        <source>Show values</source>
-        <translation type="obsolete">Afficher les valeurs</translation>
-    </message>
-    <message>
-        <location filename="../ui/analysis/qgisred_profile_dock.py" line="115"/>
-        <source>Show the variable value at each declared profile point</source>
-        <translation>Afficher la valeur de la variable à chaque point de passage déclaré</translation>
-    </message>
-    <message>
-        <location filename="../sections/analysis_section.py" line="968"/>
-        <source>Symbols</source>
-        <translation type="obsolete">Symboles</translation>
-    </message>
-    <message>
-        <location filename="../ui/analysis/qgisred_profile_dock.py" line="121"/>
-        <source>Show element symbols and flow direction along the profile</source>
-        <translation>Afficher les symboles des éléments et le sens de l'écoulement le long du profil</translation>
-    </message>
-    <message>
-        <location filename="../sections/analysis_section.py" line="968"/>
-        <source>Envelope</source>
-        <translation type="obsolete">Enveloppe</translation>
-    </message>
-    <message>
-        <location filename="../ui/analysis/qgisred_profile_dock.py" line="127"/>
-        <source>Show the maximum and minimum at each node over the whole simulation</source>
-        <translation>Afficher le maximum et le minimum à chaque nœud sur toute la simulation</translation>
-    </message>
-    <message>
-        <location filename="../ui/analysis/qgisred_profile_dock.py" line="154"/>
-        <source>Show/Hide values table</source>
-        <translation>Afficher/Masquer le tableau de valeurs</translation>
-    </message>
-    <message>
-        <location filename="../ui/analysis/qgisred_profile_dock.py" line="382"/>
-        <source>Export values to CSV</source>
-        <translation>Exporter les valeurs en CSV</translation>
-    </message>
-    <message>
-        <location filename="../ui/analysis/qgisred_profile_dock.py" line="419"/>
-        <source>Save chart as image</source>
-        <translation>Enregistrer le graphique comme image</translation>
-    </message>
-    <message>
-        <location filename="../ui/analysis/qgisred_profile_dock.py" line="147"/>
-        <source>Chart options</source>
-        <translation>Options du graphique</translation>
-    </message>
-    <message>
-        <location filename="../ui/analysis/qgisred_profile_dock.py" line="382"/>
-        <source>CSV file (*.csv)</source>
-        <translation>Fichier CSV (*.csv)</translation>
-    </message>
-    <message>
-        <location filename="../ui/analysis/qgisred_profile_dock.py" line="417"/>
-        <source>PNG image (*.png)</source>
-        <translation>Image PNG (*.png)</translation>
-    </message>
-    <message>
-        <location filename="../ui/analysis/qgisred_profile_dock.py" line="417"/>
-        <source>SVG image (*.svg)</source>
-        <translation>Image SVG (*.svg)</translation>
-    </message>
-    <message>
-        <location filename="../ui/analysis/qgisred_profile_dock.py" line="379"/>
-        <source>There are no values to export</source>
-        <translation>Aucune valeur à exporter</translation>
-    </message>
-    <message>
-        <location filename="../ui/analysis/qgisred_profile_dock.py" line="408"/>
-        <source>The values could not be exported</source>
-        <translation>Les valeurs n'ont pas pu être exportées</translation>
-    </message>
-    <message>
-        <location filename="../ui/analysis/qgisred_profile_dock.py" line="410"/>
-        <source>Values exported to CSV</source>
-        <translation>Valeurs exportées en CSV</translation>
-    </message>
-    <message>
-        <location filename="../ui/analysis/qgisred_profile_dock.py" line="415"/>
-        <source>There is no chart to export</source>
-        <translation>Aucun graphique à exporter</translation>
-    </message>
-    <message>
-        <location filename="../ui/analysis/qgisred_profile_dock.py" line="431"/>
-        <source>The chart image could not be saved</source>
-        <translation>L'image du graphique n'a pas pu être enregistrée</translation>
-    </message>
-    <message>
-        <location filename="../ui/analysis/qgisred_profile_dock.py" line="433"/>
-        <source>Chart image saved</source>
-        <translation>Image du graphique enregistrée</translation>
-    </message>
-    <message>
-        <location filename="../ui/analysis/qgisred_profile_dock.py" line="133"/>
-        <source>Off</source>
-        <translation type="unfinished"></translation>
-    </message>
-    <message>
-        <location filename="../ui/analysis/qgisred_profile_dock.py" line="134"/>
-        <source>Shaded band only</source>
-        <translation type="unfinished"></translation>
-    </message>
-    <message>
-        <location filename="../ui/analysis/qgisred_profile_dock.py" line="135"/>
-        <source>Boundary lines only</source>
-        <translation type="unfinished"></translation>
-    </message>
-    <message>
-        <location filename="../ui/analysis/qgisred_profile_dock.py" line="136"/>
-        <source>Band and lines</source>
         <translation type="unfinished"></translation>
     </message>
 </context>
@@ -7399,6 +6855,487 @@ Left-click: Add a new item below the current selection</source>
         <location filename="../sections/analysis_section.py" line="936"/>
         <source>Show overflow flow instead</source>
         <translation type="unfinished">Afficher plutôt le débit de débordement</translation>
+    </message>
+</context>
+<context>
+    <name>ProfileSection</name>
+    <message>
+        <source>Longitudinal profile...</source>
+        <translation>Profil en long...</translation>
+    </message>
+    <message>
+        <source>Run a simulation first to build a longitudinal profile.</source>
+        <translation>Lancez d'abord une simulation pour construire un profil en long.</translation>
+    </message>
+    <message>
+        <source>No network node found at this location.</source>
+        <translation>Aucun nœud du réseau n'a été trouvé à cet endroit.</translation>
+    </message>
+    <message>
+        <source>Selected node is not connected to the previous one along the network.</source>
+        <translation>Le nœud sélectionné n'est pas connecté au précédent le long du réseau.</translation>
+    </message>
+    <message>
+        <source>Accumulated head loss</source>
+        <translation>Pertes de charge cumulées</translation>
+    </message>
+    <message>
+        <source>Longitudinal profile</source>
+        <translation>Profil en long</translation>
+    </message>
+    <message>
+        <source>Distance</source>
+        <translation>Distance</translation>
+    </message>
+    <message>
+        <source>Elevation</source>
+        <translation>Cotes</translation>
+    </message>
+    <message>
+        <source>Head</source>
+        <translation>Charge hydraulique</translation>
+    </message>
+    <message>
+        <source>Pressure</source>
+        <translation>Pression</translation>
+    </message>
+    <message>
+        <source>Quality</source>
+        <translation>Qualité</translation>
+    </message>
+    <message>
+        <source>Pick an intermediate node of the current profile path.</source>
+        <translation>Sélectionnez un nœud intermédiaire du tracé actuel du profil.</translation>
+    </message>
+    <message>
+        <source>Pick a declared profile point to remove.</source>
+        <translation>Sélectionnez un point de passage déclaré à supprimer.</translation>
+    </message>
+    <message>
+        <source>Only declared profile points can be moved.</source>
+        <translation>Seuls les points de passage déclarés peuvent être déplacés.</translation>
+    </message>
+    <message>
+        <source>The moved node cannot be connected along the network.</source>
+        <translation>Le nœud déplacé ne peut pas être connecté le long du réseau.</translation>
+    </message>
+    <message>
+        <source>Branch</source>
+        <translation>Branche</translation>
+    </message>
+    <message>
+        <source>Click a node of the current profile to start a branch.</source>
+        <translation>Cliquez sur un nœud du profil actuel pour démarrer une branche.</translation>
+    </message>
+    <message>
+        <source>Selected node is not connected to the branch along the network.</source>
+        <translation>Le nœud sélectionné n'est pas connecté à la branche le long du réseau.</translation>
+    </message>
+    <message>
+        <source>Id</source>
+        <translation>Id</translation>
+    </message>
+    <message>
+        <source>The profile configuration could not be exported.</source>
+        <translation>La configuration du profil n'a pas pu être exportée.</translation>
+    </message>
+    <message>
+        <source>Profile configuration exported.</source>
+        <translation>Configuration du profil exportée.</translation>
+    </message>
+    <message>
+        <source>The profile configuration could not be imported.</source>
+        <translation>La configuration du profil n'a pas pu être importée.</translation>
+    </message>
+    <message>
+        <source>The saved profile does not match the current network.</source>
+        <translation>Le profil enregistré ne correspond pas au réseau actuel.</translation>
+    </message>
+    <message>
+        <source>Profile configuration imported.</source>
+        <translation>Configuration du profil importée.</translation>
+    </message>
+    <message>
+        <source>Maxima</source>
+        <translation>Maxima</translation>
+    </message>
+    <message>
+        <source>Minima</source>
+        <translation>Minima</translation>
+    </message>
+    <message>
+        <source>Envelope</source>
+        <translation>Enveloppe</translation>
+    </message>
+    <message>
+        <source>Maximum</source>
+        <translation>Maximum</translation>
+    </message>
+    <message>
+        <source>Max. time</source>
+        <translation>Heure max.</translation>
+    </message>
+    <message>
+        <source>Minimum</source>
+        <translation>Minimum</translation>
+    </message>
+    <message>
+        <source>Min. time</source>
+        <translation>Heure min.</translation>
+    </message>
+</context>
+<context>
+    <name>QGISRedProfileDock</name>
+    <message>
+        <source>Longitudinal profile</source>
+        <translation>Profil en long</translation>
+    </message>
+    <message>
+        <source>QGISRed: Longitudinal profile</source>
+        <translation>QGISRed : Profil en long</translation>
+    </message>
+    <message>
+        <source>Pick path</source>
+        <translation>Tracer le parcours</translation>
+    </message>
+    <message>
+        <source>Click network nodes on the map to build the profile path</source>
+        <translation>Cliquez sur les nœuds du réseau sur la carte pour construire le parcours du profil</translation>
+    </message>
+    <message>
+        <source>Add point</source>
+        <translation>Ajouter un point</translation>
+    </message>
+    <message>
+        <source>Remove point</source>
+        <translation>Supprimer un point</translation>
+    </message>
+    <message>
+        <source>Move point</source>
+        <translation>Déplacer un point</translation>
+    </message>
+    <message>
+        <source>Convert an intermediate node of the path into a profile point</source>
+        <translation>Convertir un nœud intermédiaire du tracé en point de passage</translation>
+    </message>
+    <message>
+        <source>Remove a declared profile point</source>
+        <translation>Supprimer un point de passage déclaré</translation>
+    </message>
+    <message>
+        <source>Move a profile point: click it, then its new position</source>
+        <translation>Déplacer un point de passage : cliquez dessus, puis sa nouvelle position</translation>
+    </message>
+    <message>
+        <source>Add a branch: click a node of the profile, then the branch endpoints</source>
+        <translation>Ajouter une branche : cliquez sur un nœud du profil, puis les extrémités de la branche</translation>
+    </message>
+    <message>
+        <source>Zoom window</source>
+        <translation>Zoom fenêtre</translation>
+    </message>
+    <message>
+        <source>Pan</source>
+        <translation>Déplacer</translation>
+    </message>
+    <message>
+        <source>Zoom in</source>
+        <translation>Zoom avant</translation>
+    </message>
+    <message>
+        <source>Zoom out</source>
+        <translation>Zoom arrière</translation>
+    </message>
+    <message>
+        <source>Zoom to full extent</source>
+        <translation>Ajuster à l'étendue</translation>
+    </message>
+    <message>
+        <source>Clear</source>
+        <translation>Effacer</translation>
+    </message>
+    <message>
+        <source>Remove the current profile path</source>
+        <translation>Supprimer le parcours du profil actuel</translation>
+    </message>
+    <message>
+        <source>Variable:</source>
+        <translation>Variable :</translation>
+    </message>
+    <message>
+        <source>Elevation</source>
+        <translation>Cotes</translation>
+    </message>
+    <message>
+        <source>Head</source>
+        <translation>Charge hydraulique</translation>
+    </message>
+    <message>
+        <source>Pressure</source>
+        <translation>Pression</translation>
+    </message>
+    <message>
+        <source>Quality</source>
+        <translation>Qualité</translation>
+    </message>
+    <message>
+        <source>Accumulated head loss</source>
+        <translation>Pertes de charge cumulées</translation>
+    </message>
+    <message>
+        <source>Enable 'Pick path' and click nodes on the map</source>
+        <translation>Activez « Tracer le parcours » et cliquez sur les nœuds de la carte</translation>
+    </message>
+    <message>
+        <source>Show values</source>
+        <translation>Afficher les valeurs</translation>
+    </message>
+    <message>
+        <source>Show the variable value at each declared profile point</source>
+        <translation>Afficher la valeur de la variable à chaque point de passage déclaré</translation>
+    </message>
+    <message>
+        <source>Symbols</source>
+        <translation>Symboles</translation>
+    </message>
+    <message>
+        <source>Show element symbols and flow direction along the profile</source>
+        <translation>Afficher les symboles des éléments et le sens de l'écoulement le long du profil</translation>
+    </message>
+    <message>
+        <source>Envelope</source>
+        <translation>Enveloppe</translation>
+    </message>
+    <message>
+        <source>Show the maximum and minimum at each node over the whole simulation</source>
+        <translation>Afficher le maximum et le minimum à chaque nœud sur toute la simulation</translation>
+    </message>
+    <message>
+        <source>Show/Hide values table</source>
+        <translation>Afficher/Masquer le tableau de valeurs</translation>
+    </message>
+    <message>
+        <source>Export values to CSV</source>
+        <translation>Exporter les valeurs en CSV</translation>
+    </message>
+    <message>
+        <source>Save chart as image</source>
+        <translation>Enregistrer le graphique comme image</translation>
+    </message>
+    <message>
+        <source>Chart options</source>
+        <translation>Options du graphique</translation>
+    </message>
+    <message>
+        <source>CSV file (*.csv)</source>
+        <translation>Fichier CSV (*.csv)</translation>
+    </message>
+    <message>
+        <source>PNG image (*.png)</source>
+        <translation>Image PNG (*.png)</translation>
+    </message>
+    <message>
+        <source>SVG image (*.svg)</source>
+        <translation>Image SVG (*.svg)</translation>
+    </message>
+    <message>
+        <source>There are no values to export</source>
+        <translation>Aucune valeur à exporter</translation>
+    </message>
+    <message>
+        <source>The values could not be exported</source>
+        <translation>Les valeurs n'ont pas pu être exportées</translation>
+    </message>
+    <message>
+        <source>Values exported to CSV</source>
+        <translation>Valeurs exportées en CSV</translation>
+    </message>
+    <message>
+        <source>There is no chart to export</source>
+        <translation>Aucun graphique à exporter</translation>
+    </message>
+    <message>
+        <source>The chart image could not be saved</source>
+        <translation>L'image du graphique n'a pas pu être enregistrée</translation>
+    </message>
+    <message>
+        <source>Chart image saved</source>
+        <translation>Image du graphique enregistrée</translation>
+    </message>
+    <message>
+        <source>Export profile configuration</source>
+        <translation>Exporter la configuration du profil</translation>
+    </message>
+    <message>
+        <source>Import profile configuration</source>
+        <translation>Importer la configuration du profil</translation>
+    </message>
+    <message>
+        <source>Edit chart description</source>
+        <translation>Modifier la description du graphique</translation>
+    </message>
+    <message>
+        <source>Configuration file (*.cfg)</source>
+        <translation>Fichier de configuration (*.cfg)</translation>
+    </message>
+    <message>
+        <source>Chart description</source>
+        <translation>Description du graphique</translation>
+    </message>
+    <message>
+        <source>Describe the chart content (up to 256 characters):</source>
+        <translation>Décrivez le contenu du graphique (jusqu'à 256 caractères) :</translation>
+    </message>
+    <message>
+        <source>Off</source>
+        <translation>Désactivée</translation>
+    </message>
+    <message>
+        <source>Shaded band only</source>
+        <translation>Bande ombrée uniquement</translation>
+    </message>
+    <message>
+        <source>Boundary lines only</source>
+        <translation>Lignes de contour uniquement</translation>
+    </message>
+    <message>
+        <source>Band and lines</source>
+        <translation>Bande et lignes</translation>
+    </message>
+</context>
+<context>
+    <name>QGISRedProfileChartOptionsDialog</name>
+    <message>
+        <source>QGISRed: Chart options</source>
+        <translation>QGISRed : Options du graphique</translation>
+    </message>
+    <message>
+        <source>Axes</source>
+        <translation>Axes</translation>
+    </message>
+    <message>
+        <source>Curves</source>
+        <translation>Courbes</translation>
+    </message>
+    <message>
+        <source>General</source>
+        <translation>Général</translation>
+    </message>
+    <message>
+        <source>X axis (distance)</source>
+        <translation>Axe X (distance)</translation>
+    </message>
+    <message>
+        <source>Y axis (variable)</source>
+        <translation>Axe Y (variable)</translation>
+    </message>
+    <message>
+        <source>Title:</source>
+        <translation>Titre :</translation>
+    </message>
+    <message>
+        <source>Auto scale</source>
+        <translation>Échelle automatique</translation>
+    </message>
+    <message>
+        <source>Minimum:</source>
+        <translation>Minimum :</translation>
+    </message>
+    <message>
+        <source>Maximum:</source>
+        <translation>Maximum :</translation>
+    </message>
+    <message>
+        <source>Show grid</source>
+        <translation>Afficher la grille</translation>
+    </message>
+    <message>
+        <source>Curve</source>
+        <translation>Courbe</translation>
+    </message>
+    <message>
+        <source>Color</source>
+        <translation>Couleur</translation>
+    </message>
+    <message>
+        <source>Line style</source>
+        <translation>Style de ligne</translation>
+    </message>
+    <message>
+        <source>Solid</source>
+        <translation>Continue</translation>
+    </message>
+    <message>
+        <source>Dashed</source>
+        <translation>Tirets</translation>
+    </message>
+    <message>
+        <source>Dotted</source>
+        <translation>Pointillés</translation>
+    </message>
+    <message>
+        <source>Width</source>
+        <translation>Épaisseur</translation>
+    </message>
+    <message>
+        <source>Markers</source>
+        <translation>Marqueurs</translation>
+    </message>
+    <message>
+        <source>Marker size</source>
+        <translation>Taille du marqueur</translation>
+    </message>
+    <message>
+        <source>Curve color</source>
+        <translation>Couleur de la courbe</translation>
+    </message>
+    <message>
+        <source>Show legend</source>
+        <translation>Afficher la légende</translation>
+    </message>
+    <message>
+        <source>Background color</source>
+        <translation>Couleur de fond</translation>
+    </message>
+    <message>
+        <source>Plot background:</source>
+        <translation>Fond du graphique :</translation>
+    </message>
+    <message>
+        <source>Legend</source>
+        <translation>Légende</translation>
+    </message>
+    <message>
+        <source>Position:</source>
+        <translation>Position :</translation>
+    </message>
+    <message>
+        <source>Left</source>
+        <translation>Gauche</translation>
+    </message>
+    <message>
+        <source>Center</source>
+        <translation>Centre</translation>
+    </message>
+    <message>
+        <source>Right</source>
+        <translation>Droite</translation>
+    </message>
+    <message>
+        <source>Font size:</source>
+        <translation>Taille de police :</translation>
+    </message>
+    <message>
+        <source>Symbol size:</source>
+        <translation>Taille du symbole :</translation>
+    </message>
+    <message>
+        <source>Show frame</source>
+        <translation>Afficher le cadre</translation>
+    </message>
+    <message>
+        <source>Background:</source>
+        <translation>Fond :</translation>
     </message>
 </context>
 </TS>

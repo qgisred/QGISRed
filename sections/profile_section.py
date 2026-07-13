@@ -41,6 +41,10 @@ class ProfileSection:
 
         first_time = getattr(self, "profileDock", None) is None
         self._initProfileDock()
+        with suppress(Exception):
+            base = os.path.splitext(os.path.basename(out_path))[0]
+            self.profileDock._defaultConfigPath = os.path.join(
+                os.path.dirname(out_path), base + "_Profile_Config.cfg")
         if first_time:
             self._profileReferenceNodes = []
             self._profilePath = None
@@ -69,6 +73,8 @@ class ProfileSection:
         self.profileDock.variableChanged.connect(self._onProfileVariableChanged)
         self.profileDock.symbolsToggled.connect(self._onProfileSymbolsToggled)
         self.profileDock.envelopeModeChanged.connect(self._onProfileEnvelopeModeChanged)
+        self.profileDock.exportConfigRequested.connect(self._onProfileExportConfig)
+        self.profileDock.importConfigRequested.connect(self._onProfileImportConfig)
         self.profileDock.visibilityChanged.connect(self._onProfileDockVisibility)
         with suppress(Exception):
             self._initResultsDock()
@@ -203,6 +209,89 @@ class ProfileSection:
         else:
             with suppress(Exception):
                 self._drawProfileHighlight()
+
+    def _onProfileExportConfig(self, path):
+        from ..ui.analysis.profile_config_io import write_profile_config
+
+        dock = getattr(self, "profileDock", None)
+        if dock is None or not path:
+            return
+        plot = dock.plot
+        profile = {
+            "variable": dock.currentVariableKey(),
+            "reference_nodes": list(getattr(self, "_profileReferenceNodes", []) or []),
+            "branches": [
+                {"reference_nodes": list(b.get("reference_nodes", []) or []), "offset": b.get("offset", 0.0)}
+                for b in (getattr(self, "_profileBranches", []) or [])
+            ],
+            "options": {
+                "show_symbols": bool(getattr(self, "_profileShowSymbols", False)),
+                "show_labels": bool(dock.btnLabels.isChecked()),
+                "envelope_mode": getattr(self, "_profileEnvelopeMode", "off"),
+            },
+        }
+        try:
+            write_profile_config(
+                path, profile, plot._axis_cfg_x, plot._axis_cfg_y,
+                plot._general_cfg, plot._curve_overrides, comment=dock.comment())
+        except Exception:
+            self.pushMessage(self.tr("The profile configuration could not be exported."), level=2)
+            return
+        self.pushMessage(self.tr("Profile configuration exported."), level=3)
+
+    def _onProfileImportConfig(self, path):
+        from ..ui.analysis.profile_config_io import read_profile_config
+        from ..ui.analysis.profile_chart_settings import clone_axis, clone_general
+
+        dock = getattr(self, "profileDock", None)
+        if dock is None or not path:
+            return
+        try:
+            config = read_profile_config(path)
+        except Exception:
+            self.pushMessage(self.tr("The profile configuration could not be imported."), level=2)
+            return
+
+        dock.setVariableKey(config.get("variable") or "Head")
+        self._profileReferenceNodes = list(config.get("reference_nodes", []) or [])
+        self._profileBranches = []
+        self._profileCurrentBranch = None
+        self._profileStatCache = None
+
+        try:
+            self._recomputeProfileStructure()
+        except ProfilePathError:
+            self.pushMessage(self.tr("The saved profile does not match the current network."), level=2)
+            return
+
+        for branch_cfg in config.get("branches", []) or []:
+            refs = list(branch_cfg.get("reference_nodes", []) or [])
+            if len(refs) < 2:
+                continue
+            offset = self._profileNodeTreeDistance(refs[0])
+            if offset is None:
+                offset = branch_cfg.get("offset", 0.0)
+            branch = {"reference_nodes": refs, "offset": offset, "path": None, "distances": None}
+            with suppress(ProfilePathError):
+                self._recomputeBranch(branch)
+                self._profileBranches.append(branch)
+
+        plot = dock.plot
+        plot._axis_cfg_x = clone_axis(config["axis_x"])
+        plot._axis_cfg_y = clone_axis(config["axis_y"])
+        plot._general_cfg = clone_general(config["general"])
+        plot._curve_overrides = config.get("curve_overrides", {}) or {}
+
+        options = config.get("options", {}) or {}
+        self._profileShowSymbols = bool(options.get("show_symbols"))
+        self._profileEnvelopeMode = options.get("envelope_mode", "off") or "off"
+        dock.setComment(config.get("comment", ""))
+        dock.setSymbolsChecked(self._profileShowSymbols)
+        dock.setLabelsChecked(bool(options.get("show_labels")))
+        dock.setEnvelopeModeState(self._profileEnvelopeMode)
+
+        self._redrawProfile()
+        self.pushMessage(self.tr("Profile configuration imported."), level=3)
 
     def profilePickCallback(self, point):
         node_id = self._resolveProfileNode(point)
