@@ -963,7 +963,7 @@ class ProfileSection:
         node_geoms = self._profileNodeGeometries(reference_ids)
         for geom in node_geoms:
             marker = QgsVertexMarker(canvas)
-            marker.setColor(QColor(31, 119, 180))
+            marker.setColor(QColor(255, 127, 0))
             marker.setIconSize(12)
             marker.setIconType(QgsVertexMarker.ICON_BOX)
             marker.setPenWidth(3)

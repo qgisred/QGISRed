@@ -274,6 +274,8 @@ class LifecycleSection:
                         self.ResultDockwidget.resultPropertyChanged.disconnect(self.updateMetadata)
                     with suppress(Exception):
                         self.ResultDockwidget.statisticsModeChanged.disconnect(self._onStatisticsModeChanged)
+            with suppress(Exception):
+                self.ResultDockwidget.timeTextChanged.disconnect(self._onProfileTimeChanged)
             docks_to_clean.append(('ResultDockwidget', self.ResultDockwidget))
             self.ResultDockwidget = None
 
@@ -286,13 +288,22 @@ class LifecycleSection:
         self.timeSeriesDocks = []
         self._activeTimeSeriesDock = None
 
-        if getattr(self, 'profileDock', None) is not None:
+        for state in list(getattr(self, '_profiles', None) or []):
             with suppress(Exception):
-                self._clearProfileHighlight()
+                self._clearHighlightForState(state)
+            dock = getattr(state, 'dock', None)
+            if dock is None:
+                continue
             with suppress(Exception):
-                self.ResultDockwidget.timeTextChanged.disconnect(self._onProfileTimeChanged)
-            docks_to_clean.append(('profileDock', self.profileDock))
-            self.profileDock = None
+                dock.destroyed.disconnect(self._onProfileDockDestroyed)
+            docks_to_clean.append(('profileDock', dock))
+        self._profiles = []
+        self._activeProfile = None
+        self._profileTimeConnected = False
+        with suppress(Exception):
+            from qgis.PyQt.QtWidgets import QApplication
+            QApplication.instance().focusChanged.disconnect(self._onProfilePanelFocusChanged)
+        self._profileFocusConnected = False
 
         if hasattr(self, 'statisticsDock') and self.statisticsDock is not None:
             docks_to_clean.append(('statisticsDock', self.statisticsDock))
