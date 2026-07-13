@@ -1,8 +1,8 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 48 48" width="48" height="48">
-  <polygon points="5,4 17,21 29,12 43,27 43,41 29,26 17,35 5,18" fill="#7fa828" fill-opacity="0.18"/>
-  <polyline points="5,4 17,21 29,12 43,27" fill="none" stroke="#7fa828" stroke-width="2.5" stroke-dasharray="4,3" stroke-linecap="round" stroke-linejoin="round"/>
-  <polyline points="5,18 17,35 29,26 43,41" fill="none" stroke="#7fa828" stroke-width="2.5" stroke-dasharray="4,3" stroke-linecap="round" stroke-linejoin="round"/>
+  <polygon points="5,2 17,19 29,10 43,25 43,43 29,28 17,37 5,20" fill="#7fa828" fill-opacity="0.18"/>
+  <polyline points="5,2 17,19 29,10 43,25" fill="none" stroke="#7fa828" stroke-width="2.5" stroke-dasharray="10,6" stroke-linecap="round" stroke-linejoin="round"/>
+  <polyline points="5,20 17,37 29,28 43,43" fill="none" stroke="#7fa828" stroke-width="2.5" stroke-dasharray="10,6" stroke-linecap="round" stroke-linejoin="round"/>
   <polyline points="5,11 17,28 29,19 43,34" fill="none" stroke="#60bcd3" stroke-width="5" stroke-linecap="round" stroke-linejoin="round"/>
   <circle cx="5" cy="11" r="4" fill="#60bcd3"/>
   <circle cx="17" cy="28" r="4" fill="#60bcd3"/>
