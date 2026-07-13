@@ -915,10 +915,6 @@ class ProjectManagementSection:
         self._writePluginVersionToProject()
         self._migrateLayersToSubfolders()
 
-        # Reopen any DemandsBuilder auxiliary layers that belong to the project
-        # but were not restored automatically from the QGIS project.
-        self.openDemandsBuilderLayers()
-
         from ..tools.utils.qgisred_styling_utils import QGISRedStylingUtils
 
         styling = QGISRedStylingUtils(
@@ -931,6 +927,7 @@ class ProjectManagementSection:
 
         for layer_id, style_name in snapshot["inputs_to_restyle"]:
             layer = project.mapLayer(layer_id)
+
             if layer:
                 styling.setStyle(layer, style_name)
                 layer.triggerRepaint()
@@ -940,9 +937,34 @@ class ProjectManagementSection:
         else:
             for layer_id in snapshot["results_with_id"]:
                 layer = project.mapLayer(layer_id)
+
                 if layer:
                     styling.applyNullStyle(layer)
                     layer.triggerRepaint()
+
+        # DemandsBuilder layers need the QGIS project tree and providers
+        # to be fully restored before they are reconciled.
+        QTimer.singleShot(
+            500,
+            self._open_demands_builder_layers_after_project_load
+        )
+
+    def _open_demands_builder_layers_after_project_load(self):
+        """Reopen missing DemandsBuilder layers after QGIS finishes restoring the project."""
+        if self.isUnloading:
+            return
+
+        if (
+            not self.ProjectDirectory
+            or self.ProjectDirectory == self.TemporalFolder
+        ):
+            return
+
+        self.openDemandsBuilderLayers()
+
+        if self.iface:
+            self.iface.layerTreeCanvasBridge().setCanvasLayers()
+            self.iface.mapCanvas().refresh()
 
     def runCloseProject(self):
         self.iface.newProject(True)
