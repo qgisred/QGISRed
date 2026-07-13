@@ -284,13 +284,6 @@ class _ResultsRenderingMixin:
 
                     value_expr = 'abs("Flow")' if field == "Flow" else '"' + field + '"'
 
-                    if self._statsMode and time_field:
-                        time_expr = '"' + time_field + '"'
-                    elif not self._statsMode:
-                        time_expr = '"Time"'
-                    else:
-                        time_expr = None
-
                     _TYPE_KEYS = ["JUNCTION", "RESERVOIR", "TANK", "PIPE", "PUMP", "VALVE"]
                     cases = " ".join(
                         "WHEN \"Type\" = '" + k + "' THEN '" + self.tr(k.title()) + "'"
@@ -299,8 +292,6 @@ class _ResultsRenderingMixin:
                     type_id_expr = '[% (CASE ' + cases + ' ELSE "Type" END) || \' \' || "Id" %]'
 
                     tip_lines = ['<b>' + selected_variable_text + '</b>', type_id_expr]
-                    if time_expr:
-                        tip_lines.append('[% ' + time_expr + ' %]')
                     tip_lines.append('[% ' + value_expr + ' %]' + unit_suffix)
                     layer_to_paint.setMapTipTemplate('<br>'.join(tip_lines))
 
