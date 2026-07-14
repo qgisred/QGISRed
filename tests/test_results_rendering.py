@@ -88,10 +88,69 @@ class TestResultsLabels:
             layer_settings = MockLabeling.call_args[0][0]
 
             expr = layer_settings.fieldName
-            
+
             # When show_id is False, it should only show the value expression
             assert '"Id"' not in expr
             assert 'format_number("Pressure", 2)' in expr
+
+
+# Regression tests: Flow labels must never show the sign, in normal results (no
+# time_field) or in statistics mode (Maximum/Minimum stats set time_field, which used
+# to skip the abs() wrapping entirely).
+class TestFlowLabelsNeverShowSign:
+    def _get_expr(self, dock, layer, fieldName, time_field=None):
+        with patch("QGISRed.tools.utils.qgisred_project_utils.QgsProject") as MockProj, \
+             patch("QGISRed.ui.analysis.qgisred_results_rendering.QgsVectorLayerSimpleLabeling") as MockLabeling:
+            MockProj.instance.return_value = _make_project("LPS")
+            dock.setLayerLabels(layer, fieldName, time_field=time_field)
+            assert MockLabeling.call_args is not None
+            return MockLabeling.call_args[0][0].fieldName
+
+    def _make_link_dock(self, show_id=False):
+        dock = MockDock()
+        dock._labelShowId = show_id
+        dock.cbLinkLabels.isChecked.return_value = True
+        dock.spLinkDecimals.value.return_value = 2
+        return dock
+
+    def _make_link_layer(self):
+        layer = MagicMock()
+        layer.geometryType.return_value = 1  # Link
+        return layer
+
+    def test_flow_label_without_time_field_is_absolute(self):
+        dock = self._make_link_dock()
+        expr = self._get_expr(dock, self._make_link_layer(), "Flow")
+        assert 'abs("Flow")' in expr
+
+    def test_flow_sig_label_without_time_field_is_absolute(self):
+        dock = self._make_link_dock()
+        expr = self._get_expr(dock, self._make_link_layer(), "Flow_Sig")
+        assert 'abs("Flow_Sig")' in expr
+
+    def test_flow_label_with_time_field_is_absolute(self):
+        # Reproduces the Maximum/Minimum statistics case: paintIntervalTimeResults
+        # passes a non-None time_field, which used to bypass abs() entirely.
+        dock = self._make_link_dock()
+        expr = self._get_expr(dock, self._make_link_layer(), "Flow", time_field="Time_Max")
+        assert 'abs("Flow")' in expr
+        assert '"Time_Max"' in expr
+
+    def test_flow_sig_label_with_time_field_is_absolute(self):
+        dock = self._make_link_dock()
+        expr = self._get_expr(dock, self._make_link_layer(), "Flow_Sig", time_field="Time_Max")
+        assert 'abs("Flow_Sig")' in expr
+
+    def test_non_flow_label_with_time_field_is_not_wrapped_in_abs(self):
+        dock = self._make_link_dock()
+        expr = self._get_expr(dock, self._make_link_layer(), "Velocity", time_field="Time_Max")
+        assert 'abs(' not in expr
+        assert '"Velocity"' in expr
+
+    def test_flow_label_with_time_field_and_show_id_is_absolute(self):
+        dock = self._make_link_dock(show_id=True)
+        expr = self._get_expr(dock, self._make_link_layer(), "Flow", time_field="Time_Max")
+        assert 'abs("Flow")' in expr
 
 
 # Regression test for a bug where switching a result variable to/from a rule-based

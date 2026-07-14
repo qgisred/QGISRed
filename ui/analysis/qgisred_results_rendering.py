@@ -375,10 +375,12 @@ class _ResultsRenderingMixin:
         layer_settings.setFormat(text_format)
 
         # Build value expression — format_number ensures fixed decimal places (respects locale)
+        is_flow_field = fieldName in ("Flow", "Flow_Sig")
         if time_field:
-            value_expr = f'format_number(round("{fieldName}", {decimals}), {decimals}) || \' - \' || "{time_field}"'
-        elif fieldName == "Flow":
-            value_expr = f'format_number(abs("Flow"), {decimals})'
+            raw_field_expr = f'abs("{fieldName}")' if is_flow_field else f'"{fieldName}"'
+            value_expr = f'format_number(round({raw_field_expr}, {decimals}), {decimals}) || \' - \' || "{time_field}"'
+        elif is_flow_field:
+            value_expr = f'format_number(abs("{fieldName}"), {decimals})'
         else:
             value_expr = f'format_number("{fieldName}", {decimals})'
 
@@ -389,10 +391,11 @@ class _ResultsRenderingMixin:
             unit_suffix = f' || \' {unit}\'' if unit else ''
 
             if time_field:
-                raw_val = f'format_number(round("{fieldName}", {decimals}), {decimals})'
+                raw_field_expr2 = f'abs("{fieldName}")' if is_flow_field else f'"{fieldName}"'
+                raw_val = f'format_number(round({raw_field_expr2}, {decimals}), {decimals})'
                 line2_inner = f'{raw_val}{unit_suffix} || \' - \' || "{time_field}"'
-            elif fieldName == "Flow":
-                line2_inner = f'format_number(abs("Flow"), {decimals}){unit_suffix}'
+            elif is_flow_field:
+                line2_inner = f'format_number(abs("{fieldName}"), {decimals}){unit_suffix}'
             else:
                 line2_inner = f'format_number("{fieldName}", {decimals}){unit_suffix}'
 
@@ -444,7 +447,7 @@ class _ResultsRenderingMixin:
         return self._buildRangeColorExpressionFromGraduated(renderer, fieldName)
 
     def _buildRangeColorExpressionFromGraduated(self, renderer, fieldName):
-        actual_field = 'abs("Flow")' if fieldName == "Flow" else f'"{fieldName}"'
+        actual_field = f'abs("{fieldName}")' if fieldName in ("Flow", "Flow_Sig") else f'"{fieldName}"'
         parts = []
         for r in renderer.ranges():
             hex_color = r.symbol().color().name()
@@ -458,7 +461,7 @@ class _ResultsRenderingMixin:
 
     def _buildRangeColorExpressionFromRules(self, renderer, fieldName):
         """Build color expression from QgsRuleBasedRenderer child rules (post applyNullStyle)."""
-        actual_field = 'abs("Flow")' if fieldName == "Flow" else f'"{fieldName}"'
+        actual_field = f'abs("{fieldName}")' if fieldName in ("Flow", "Flow_Sig") else f'"{fieldName}"'
         parts = []
         for rule in renderer.rootRule().children():
             if rule.label() == _NULL_RULE_LABEL:
