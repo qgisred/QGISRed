@@ -32,6 +32,20 @@ PALETTE = [
 ENVELOPE_FILL = QColor(230, 159, 0)
 ENVELOPE_LINE = QColor(184, 111, 0)
 
+_ELEMENT_SVG_FILES = {
+    "pump": "pumps.svg",
+    "valve": "valves.svg",
+    "tank": "tanks.svg",
+    "reservoir": "reservoirs.svg",
+}
+
+_ELEMENT_SVG_COLORS = {
+    "pump": (QColor(60, 70, 90), QColor(255, 255, 255)),
+    "valve": (QColor(60, 70, 90), QColor(255, 255, 255)),
+    "tank": (QColor(120, 179, 220), QColor(40, 48, 60)),
+    "reservoir": (QColor(120, 179, 220), QColor(40, 48, 60)),
+}
+
 
 class ProfilePlotWidget(QWidget):
     cursorNodeChanged = pyqtSignal(int)
@@ -550,11 +564,12 @@ class ProfilePlotWidget(QWidget):
             kind = info.get("kind", "pipe")
             if kind in ("pump", "valve"):
                 mx = (x0 + x1) / 2.0
-                my = (y0 + y1) / 2.0 - 11.0
-                if kind == "pump":
-                    self._drawPumpGlyph(painter, mx, my)
-                else:
-                    self._drawValveGlyph(painter, mx, my)
+                my = (y0 + y1) / 2.0 - 12.0
+                if not self._drawElementIcon(painter, mx, my, kind, 18.0):
+                    if kind == "pump":
+                        self._drawPumpGlyph(painter, mx, my)
+                    else:
+                        self._drawValveGlyph(painter, mx, my)
 
         for idx, (d, v) in enumerate(points):
             if v is None:
@@ -562,28 +577,83 @@ class ProfilePlotWidget(QWidget):
             kind = node_kinds[idx] if idx < len(node_kinds) else "junction"
             self._drawNodeGlyph(painter, px(d), py(v), kind)
 
+    def _elementSvgImage(self, kind, size):
+        if not hasattr(self, "_svg_images"):
+            self._svg_images = {}
+        cache_key = (kind, int(size))
+        if cache_key in self._svg_images:
+            return self._svg_images[cache_key]
+        image = None
+        filename = _ELEMENT_SVG_FILES.get(kind)
+        if filename:
+            try:
+                import os
+                from qgis.core import QgsApplication
+
+                fill, stroke = _ELEMENT_SVG_COLORS.get(kind, (QColor(60, 70, 90), QColor(255, 255, 255)))
+                path = os.path.join(os.path.dirname(__file__), "..", "..",
+                                    "defaults", "layerStyles", "icons", filename)
+                result = QgsApplication.svgCache().svgAsImage(
+                    path, float(size), fill, stroke, 0.4, 1.0)
+                img = result[0] if isinstance(result, tuple) else result
+                if img is not None and not img.isNull():
+                    image = img
+            except Exception:
+                image = None
+        self._svg_images[cache_key] = image
+        return image
+
+    def _drawElementIcon(self, painter, x, y, kind, size):
+        image = self._elementSvgImage(kind, size)
+        if image is None:
+            return False
+        half = size / 2.0
+        painter.drawImage(QRectF(x - half, y - half, size, size), image)
+        return True
+
     def _drawNodeGlyph(self, painter, x, y, kind):
-        painter.setPen(QPen(QColor(255, 255, 255), 1.0))
-        painter.setBrush(QBrush(QColor(60, 70, 90)))
+        if kind in ("reservoir", "tank") and self._drawElementIcon(painter, x, y, kind, 18.0):
+            return
+        outline = QPen(QColor(40, 48, 60), 1.2)
         if kind == "reservoir":
-            painter.drawPolygon(QPolygonF([QPointF(x, y - 6), QPointF(x - 5, y + 4), QPointF(x + 5, y + 4)]))
+            painter.setPen(outline)
+            painter.setBrush(QBrush(QColor(120, 179, 220)))
+            painter.drawPolygon(QPolygonF([
+                QPointF(x - 7, y - 6), QPointF(x + 7, y - 6),
+                QPointF(x + 4, y + 6), QPointF(x - 4, y + 6),
+            ]))
         elif kind == "tank":
-            painter.drawRect(QRectF(x - 5, y - 5, 10, 10))
+            painter.setPen(outline)
+            painter.setBrush(QBrush(QColor(120, 179, 220)))
+            painter.drawRect(QRectF(x - 6, y - 6, 12, 12))
+            painter.drawLine(QPointF(x - 6, y - 2), QPointF(x + 6, y - 2))
         else:
+            painter.setPen(QPen(QColor(255, 255, 255), 1.0))
+            painter.setBrush(QBrush(QColor(60, 70, 90)))
             painter.drawPolygon(QPolygonF([
                 QPointF(x, y - 5), QPointF(x + 5, y), QPointF(x, y + 5), QPointF(x - 5, y)
             ]))
 
     def _drawPumpGlyph(self, painter, x, y):
-        painter.setPen(QPen(QColor(60, 70, 90), 1.2))
+        r = 7.0
+        painter.setPen(QPen(QColor(40, 48, 60), 1.3))
+        painter.setBrush(QBrush(QColor(46, 160, 44)))
+        painter.drawEllipse(QPointF(x, y), r, r)
+        painter.setPen(Qt.PenStyle.NoPen)
         painter.setBrush(QBrush(QColor(255, 255, 255)))
-        painter.drawEllipse(QPointF(x, y), 4.5, 4.5)
+        painter.drawPolygon(QPolygonF([
+            QPointF(x - 3.0, y - 3.5), QPointF(x - 3.0, y + 3.5), QPointF(x + 4.0, y),
+        ]))
 
     def _drawValveGlyph(self, painter, x, y):
-        painter.setPen(QPen(QColor(60, 70, 90), 1.0))
-        painter.setBrush(QBrush(QColor(255, 255, 255)))
-        painter.drawPolygon(QPolygonF([QPointF(x - 5, y - 4), QPointF(x - 5, y + 4), QPointF(x, y)]))
-        painter.drawPolygon(QPolygonF([QPointF(x + 5, y - 4), QPointF(x + 5, y + 4), QPointF(x, y)]))
+        painter.setPen(QPen(QColor(40, 48, 60), 1.2))
+        painter.setBrush(QBrush(QColor(214, 90, 40)))
+        painter.drawPolygon(QPolygonF([
+            QPointF(x - 7, y - 6), QPointF(x - 7, y + 6), QPointF(x, y),
+        ]))
+        painter.drawPolygon(QPolygonF([
+            QPointF(x + 7, y - 6), QPointF(x + 7, y + 6), QPointF(x, y),
+        ]))
 
     def _drawFlowArrow(self, painter, x0, y0, x1, y1, direction):
         if direction == 0:
