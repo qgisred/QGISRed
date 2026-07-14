@@ -305,6 +305,8 @@ class _ResultsRenderingMixin:
 
                     tip_lines = ['<b>' + selected_variable_text + '</b>', type_id_expr]
                     tip_lines.append('[% ' + value_expr + ' %]' + unit_suffix)
+                    if time_field:
+                        tip_lines.append('@ [% "' + time_field + '" %]')
                     layer_to_paint.setMapTipTemplate('<br>'.join(tip_lines))
 
                     # Configure layer labels

@@ -189,6 +189,68 @@ class TestStatisticsTimeLabelFormat:
         assert " - " not in expr
 
 
+# Regression tests: the map tooltip must show the occurrence time as a final "@ time"
+# line when displaying a Maximum/Minimum statistic, and must not show any time line
+# for regular (non-statistics) results.
+class TestMapTipOccurrenceTime:
+    def _make_dock(self, stats_mode, stat_label="Maximum"):
+        dock = MockDock()
+        dock._statsMode = stats_mode
+        dock.lbl_maximum = "Maximum"
+        dock.lbl_minimum = "Minimum"
+        dock.TimeLabels = ["0:00"]
+        dock.cbTimes = MagicMock()
+        dock.cbTimes.currentIndex.return_value = 0
+        dock._updateCivilDisplay = MagicMock()
+        dock.timeTextChanged = MagicMock()
+
+        dock.cbStatistics = MagicMock()
+        dock.cbStatistics.currentText.return_value = stat_label
+
+        dock.cbNodes = MagicMock()
+        dock.cbNodes.currentIndex.return_value = 0  # None selected — Node side is skipped
+
+        dock.cbLinks = MagicMock()
+        dock.cbLinks.currentIndex.return_value = 1
+        dock.cbLinks.currentText.return_value = "Flow"
+        dock._link_field_map = {"Flow": "Flow"}
+
+        dock.Scenario = "Base"
+        dock.displayingLinkField = ""
+        dock.setGraduatedPalette = MagicMock()
+        dock.setLayerLabels = MagicMock()
+
+        return dock
+
+    def _paint_and_get_tip(self, dock):
+        link_layer = MagicMock()
+        dock._findResultLayer = MagicMock(side_effect=lambda name: link_layer if name == "Link" else None)
+
+        with patch("QGISRed.ui.analysis.qgisred_results_rendering.QGISRedFieldUtils") as MockFieldUtils:
+            MockFieldUtils.return_value.getUnitAbbreviation.return_value = ""
+            dock.paintIntervalTimeResults(setRender=True)
+
+        assert link_layer.setMapTipTemplate.call_args is not None
+        return link_layer.setMapTipTemplate.call_args[0][0]
+
+    def test_max_stat_tooltip_shows_time_as_last_line(self):
+        dock = self._make_dock(stats_mode=True, stat_label="Maximum")
+        tip = self._paint_and_get_tip(dock)
+        lines = tip.split("<br>")
+        assert lines[-1] == '@ [% "Time_H" %]'
+
+    def test_min_stat_tooltip_shows_time_as_last_line(self):
+        dock = self._make_dock(stats_mode=True, stat_label="Minimum")
+        tip = self._paint_and_get_tip(dock)
+        lines = tip.split("<br>")
+        assert lines[-1] == '@ [% "Time_H" %]'
+
+    def test_regular_result_tooltip_has_no_time_line(self):
+        dock = self._make_dock(stats_mode=False)
+        tip = self._paint_and_get_tip(dock)
+        assert "@ [%" not in tip
+
+
 # Regression test for a bug where switching a result variable to/from a rule-based
 # renderer (Status) silently kept the previous style. Root cause: paintIntervalTimeResults
 # used to overwrite self.displayingLinkField/NodeField with the NEW field *before* calling
