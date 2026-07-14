@@ -266,7 +266,6 @@ class QGISRedGroupEditDialog(QDialog, FORM_CLASS):
             if reply != QMessageBox.StandardButton.Yes:
                 return
         self._rollbackEdits()
-        self._closeAttributeTables()
         self._removePreviewHighlights()
         self._disconnectCountSignals()
         super(QGISRedGroupEditDialog, self).reject()
@@ -1353,14 +1352,6 @@ class QGISRedGroupEditDialog(QDialog, FORM_CLASS):
 
     """Helpers"""
 
-    def _closeAttributeTables(self):
-        for widget in self._attributeTableWidgets():
-            layer = self._attributeTableLayer(widget)
-            if layer is not None:
-                layer.removeSelection()
-            self._closeAttributeTable(widget)
-        self.openedAttributeTables = {}
-
     def _attributeTableWidgets(self):
         widgets = list(QApplication.topLevelWidgets())
         if self.iface is not None:
@@ -1377,13 +1368,6 @@ class QGISRedGroupEditDialog(QDialog, FORM_CLASS):
         # finds tables the user opened from the layers panel.
         objectName = "QgsAttributeTableDialog/%s" % layer.id()
         return [widget for widget in self._attributeTableWidgets() if widget.objectName() == objectName]
-
-    def _attributeTableLayer(self, widget):
-        prefix = "QgsAttributeTableDialog/"
-        objectName = widget.objectName()
-        if objectName.startswith(prefix):
-            return QgsProject.instance().mapLayer(objectName[len(prefix):])
-        return None
 
     def _closeAttributeTable(self, widget):
         with suppress(RuntimeError):
