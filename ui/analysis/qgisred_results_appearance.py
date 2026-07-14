@@ -111,6 +111,32 @@ class _ResultsAppearanceMixin:
             self.lbLinkDecimals.setText(QCoreApplication.translate("QGISRedResultsDock", "%1 decimals").replace("%1", var_name) + ":")
 
     # ------------------------------------------------------------------
+    # Enablement (grey out controls tied to a variable combobox on None)
+    # ------------------------------------------------------------------
+
+    def _updateAppearanceEnablement(self):
+        """Sync the Appearance tab (enabled state + decimals label/value) to whichever
+        variable is currently selected in cbNodes/cbLinks — including the "None" case,
+        where the field maps resolve to "" and _resetDecimalsForVariable falls back to
+        the generic "Nodes"/"Links" label."""
+        nodes_active = self.cbNodes.currentIndex() > 0
+        links_active = self.cbLinks.currentIndex() > 0
+        for widget in (self.lbNodeDecimals, self.spNodeDecimals,
+                       self.lbSymbolFactor, self.dspSymbolFactor,
+                       self.cbNodeBorder):
+            widget.setEnabled(nodes_active)
+        for widget in (self.lbLinkDecimals, self.spLinkDecimals,
+                       self.lbPipeFactor, self.dspPipeFactor,
+                       self.lbArrowFactor, self.dspArrowFactor):
+            widget.setEnabled(links_active)
+        self.cbProportional.setEnabled(nodes_active or links_active)
+
+        self._resetDecimalsForVariable(
+            self._node_field_map.get(self.cbNodes.currentText(), ""), "Nodes", "Node")
+        self._resetDecimalsForVariable(
+            self._link_field_map.get(self.cbLinks.currentText(), ""), "Links", "Link")
+
+    # ------------------------------------------------------------------
     # Symbol factors
     # ------------------------------------------------------------------
 
@@ -328,3 +354,5 @@ class _ResultsAppearanceMixin:
         if link_layer:
             self.applySymbolScaleFactors(link_layer)
             self.updateLabels("Link")
+
+        self._updateAppearanceEnablement()

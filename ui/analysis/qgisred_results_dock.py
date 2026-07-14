@@ -242,6 +242,7 @@ class QGISRedResultsDock(
 
         # Maps combobox display text → layer field name (keys use self.tr to support translations)
         self._rebuildFieldMaps()
+        self._updateAppearanceEnablement()
 
         # Stale results warning
         self._resultsStale = False
@@ -1313,6 +1314,8 @@ class QGISRedResultsDock(
         if self.Computing:
             return
 
+        self._updateAppearanceEnablement()
+
         if self.cbLinks.currentIndex() == 0:
             self.displayingLinkField = ""
             self.removeResultLayer("Link")
@@ -1341,9 +1344,6 @@ class QGISRedResultsDock(
             if link_layer:
                 self.updateFieldsVisibility(link_layer, "Link", self._statsMode, self._currentStat)
 
-            self._resetDecimalsForVariable(
-                self._link_field_map.get(self.cbLinks.currentText(), ""), "Links", "Link"
-            )
             self.paintIntervalTimeResults(True)
             QTimer.singleShot(300, self.forceFinalFieldsVisibility)
         finally:
@@ -1355,6 +1355,8 @@ class QGISRedResultsDock(
     def nodesChanged(self):
         if self.Computing:
             return
+
+        self._updateAppearanceEnablement()
 
         if self.cbNodes.currentIndex() == 0:
             self.displayingNodeField = ""
@@ -1377,9 +1379,6 @@ class QGISRedResultsDock(
             if node_layer:
                 self.updateFieldsVisibility(node_layer, "Node", self._statsMode, self._currentStat)
 
-            self._resetDecimalsForVariable(
-                self._node_field_map.get(self.cbNodes.currentText(), ""), "Nodes", "Node"
-            )
             self.paintIntervalTimeResults(True)
             QTimer.singleShot(300, self.forceFinalFieldsVisibility)
         finally:
