@@ -119,22 +119,25 @@ class _ResultsAppearanceMixin:
         variable is currently selected in cbNodes/cbLinks — including the "None" case,
         where the field maps resolve to "" and _resetDecimalsForVariable falls back to
         the generic "Nodes"/"Links" label."""
+        node_field = self._node_field_map.get(self.cbNodes.currentText(), "")
+        link_field = self._link_field_map.get(self.cbLinks.currentText(), "")
         nodes_active = self.cbNodes.currentIndex() > 0
         links_active = self.cbLinks.currentIndex() > 0
+        # Status is categorical (OPEN/CLOSED/...) — decimals don't apply to it.
+        link_decimals_active = links_active and link_field != "Status"
         for widget in (self.lbNodeDecimals, self.spNodeDecimals,
                        self.lbSymbolFactor, self.dspSymbolFactor,
                        self.cbNodeBorder):
             widget.setEnabled(nodes_active)
-        for widget in (self.lbLinkDecimals, self.spLinkDecimals,
-                       self.lbPipeFactor, self.dspPipeFactor,
+        for widget in (self.lbPipeFactor, self.dspPipeFactor,
                        self.lbArrowFactor, self.dspArrowFactor):
             widget.setEnabled(links_active)
+        for widget in (self.lbLinkDecimals, self.spLinkDecimals):
+            widget.setEnabled(link_decimals_active)
         self.cbProportional.setEnabled(nodes_active or links_active)
 
-        self._resetDecimalsForVariable(
-            self._node_field_map.get(self.cbNodes.currentText(), ""), "Nodes", "Node")
-        self._resetDecimalsForVariable(
-            self._link_field_map.get(self.cbLinks.currentText(), ""), "Links", "Link")
+        self._resetDecimalsForVariable(node_field, "Nodes", "Node")
+        self._resetDecimalsForVariable(link_field, "Links", "Link")
 
     # ------------------------------------------------------------------
     # Symbol factors
