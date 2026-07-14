@@ -46,6 +46,12 @@ except AttributeError:
     except AttributeError:
         _SL_PROP_STROKE_COLOR = 4  # historical fallback
 
+# Default label text colors (used unless the user picks "By range" or overrides them in
+# Appearance). Dark tones close to black so labels stay legible, but distinguishable
+# between element types: nodes in dark gray, links in dark navy blue.
+_DEFAULT_NODE_LABEL_COLOR = QColor(51, 51, 51)
+_DEFAULT_LINK_LABEL_COLOR = QColor(10, 20, 60)
+
 # Base sizes from the node and link result QML files. These are the values when factor = 1.0.
 _BASE_PIPE_WIDTH       = 0.26  # mm — SimpleLine width in LinkFlow.qml (and other link styles)
 _BASE_ARROW_SIZE       = 3.0   # mm — arrow sub-symbol in setArrowsVisibility
@@ -363,10 +369,12 @@ class _ResultsRenderingMixin:
         if color_by_range:
             color_expr = self._buildRangeColorExpression(layer, fieldName)
 
+        default_color = _DEFAULT_NODE_LABEL_COLOR if is_node else _DEFAULT_LINK_LABEL_COLOR
+
         if show_id:
             text_format.setAllowHtmlFormatting(True)
         else:
-            text_format.setColor(QColor("black"))
+            text_format.setColor(default_color)
             if color_expr:
                 from qgis.core import QgsPropertyCollection
                 prop = QgsProperty.fromExpression(color_expr)
@@ -401,7 +409,7 @@ class _ResultsRenderingMixin:
             else:
                 line2_inner = f'format_number("{fieldName}", {decimals}){unit_suffix}'
 
-            line1 = '\'<span style="color:black;">\' || "Id" || \'</span>\''
+            line1 = f'\'<span style="color:{default_color.name()};">\' || "Id" || \'</span>\''
 
             if color_expr:
                 # Wrap value in a span whose color is the range color expression
@@ -411,7 +419,7 @@ class _ResultsRenderingMixin:
                 )
             else:
                 # Fall back to primary symbol color
-                sym_color = "black"
+                sym_color = default_color.name()
                 with suppress(Exception):
                     sym_color = layer.renderer().symbol().color().name()
                 line2 = f"\'<span style=\"color:{sym_color};\">\' || ({line2_inner}) || \'</span>\'"

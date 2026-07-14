@@ -1339,7 +1339,7 @@
                  <item>
                   <widget class="QRadioButton" name="rbColorBlack">
                    <property name="text">
-                    <string>Black</string>
+                    <string>Default</string>
                    </property>
                    <property name="checked">
                     <bool>true</bool>

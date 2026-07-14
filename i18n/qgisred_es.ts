@@ -5188,17 +5188,17 @@ Click izquierdo: Añadir un nuevo item debajo de la selección actual</translati
         <translation>Estadísticas</translation>
     </message>
     <message>
-        <location filename="../ui/analysis/qgisred_results_dock.ui" line="725"/>
+        <location filename="../ui/analysis/qgisred_results_dock.ui" line="732"/>
         <source>Show Node Labels</source>
         <translation>Mostrar Etiquetas de Nudos</translation>
     </message>
     <message>
-        <location filename="../ui/analysis/qgisred_results_dock.ui" line="812"/>
+        <location filename="../ui/analysis/qgisred_results_dock.ui" line="846"/>
         <source>Show Link Labels</source>
         <translation>Mostrar Etiquetas de Líneas</translation>
     </message>
     <message>
-        <location filename="../ui/analysis/qgisred_results_dock.ui" line="831"/>
+        <location filename="../ui/analysis/qgisred_results_dock.ui" line="865"/>
         <source>Show Flow Directions</source>
         <translation>Mostrar Direcciones de Flujo</translation>
     </message>
@@ -5208,12 +5208,12 @@ Click izquierdo: Añadir un nuevo item debajo de la selección actual</translati
         <translation type="obsolete">Mostrar la distribución de %1</translation>
     </message>
     <message>
-        <location filename="../ui/analysis/qgisred_results_dock.ui" line="919"/>
+        <location filename="../ui/analysis/qgisred_results_dock.ui" line="953"/>
         <source>Frequency</source>
         <translation>Frecuencia</translation>
     </message>
     <message>
-        <location filename="../ui/analysis/qgisred_results_dock.ui" line="964"/>
+        <location filename="../ui/analysis/qgisred_results_dock.ui" line="998"/>
         <source>Cumulative</source>
         <translation>Acumulada</translation>
     </message>
@@ -5278,7 +5278,7 @@ Click izquierdo: Añadir un nuevo item debajo de la selección actual</translati
         <translation>Mapa</translation>
     </message>
     <message>
-        <location filename="../ui/analysis/qgisred_results_dock.ui" line="1110"/>
+        <location filename="../ui/analysis/qgisred_results_dock.ui" line="1144"/>
         <source>Report</source>
         <translation>Informe</translation>
     </message>
@@ -5413,7 +5413,7 @@ Click izquierdo: Añadir un nuevo item debajo de la selección actual</translati
         <translation>Se ha hecho algún cambio en el proyecto actual. Por favor, inténtelo de nuevo.</translation>
     </message>
     <message>
-        <location filename="../ui/analysis/qgisred_results_dock.py" line="1666"/>
+        <location filename="../ui/analysis/qgisred_results_dock.py" line="1668"/>
         <source>Some issues occurred in the process</source>
         <translation>Ha habido algún error en el proceso</translation>
     </message>
@@ -5463,7 +5463,7 @@ Click izquierdo: Añadir un nuevo item debajo de la selección actual</translati
         <translation>para %1</translation>
     </message>
     <message>
-        <location filename="../ui/analysis/qgisred_results_dock.py" line="1606"/>
+        <location filename="../ui/analysis/qgisred_results_dock.py" line="1608"/>
         <source>No %1 results are available</source>
         <translation>Ningún resultado %1 está disponible</translation>
     </message>
@@ -5508,72 +5508,72 @@ Click izquierdo: Añadir un nuevo item debajo de la selección actual</translati
         <translation>Bucle</translation>
     </message>
     <message>
-        <location filename="../ui/analysis/qgisred_results_dock.ui" line="682"/>
+        <location filename="../ui/analysis/qgisred_results_dock.ui" line="689"/>
         <source>Appearance options</source>
         <translation>Opciones de apariencia</translation>
     </message>
     <message>
-        <location filename="../ui/analysis/qgisred_results_dock.ui" line="744"/>
+        <location filename="../ui/analysis/qgisred_results_dock.ui" line="751"/>
         <source>Show Node Histogram</source>
         <translation>Mostrar histograma de nudos</translation>
     </message>
     <message>
-        <location filename="../ui/analysis/qgisred_results_dock.ui" line="850"/>
+        <location filename="../ui/analysis/qgisred_results_dock.ui" line="884"/>
         <source>Show Link Histogram</source>
         <translation>Mostrar histograma de líneas</translation>
     </message>
     <message>
-        <location filename="../ui/analysis/qgisred_results_dock.ui" line="1142"/>
+        <location filename="../ui/analysis/qgisred_results_dock.ui" line="1176"/>
         <source>Appearance</source>
         <translation>Apariencia</translation>
     </message>
     <message>
-        <location filename="../ui/analysis/qgisred_results_dock.ui" line="1173"/>
+        <location filename="../ui/analysis/qgisred_results_dock.ui" line="1207"/>
         <source>Map Labels</source>
         <translation>Etiquetas de Mapa</translation>
     </message>
     <message>
-        <location filename="../ui/analysis/qgisred_results_dock.ui" line="1179"/>
+        <location filename="../ui/analysis/qgisred_results_dock.ui" line="1213"/>
         <source>Font size (pt):</source>
         <translation>Tamaño de fuente (pt):</translation>
     </message>
     <message>
-        <location filename="../ui/analysis/qgisred_results_dock.ui" line="1401"/>
+        <location filename="../ui/analysis/qgisred_results_dock.ui" line="1435"/>
         <source>Nodes:</source>
         <translation>Nudos:</translation>
     </message>
     <message>
-        <location filename="../ui/analysis/qgisred_results_dock.ui" line="1447"/>
+        <location filename="../ui/analysis/qgisred_results_dock.ui" line="1481"/>
         <source>Links:</source>
         <translation>Enlaces:</translation>
     </message>
     <message>
-        <location filename="../ui/analysis/qgisred_results_dock.ui" line="1299"/>
+        <location filename="../ui/analysis/qgisred_results_dock.ui" line="1333"/>
         <source>Text color:</source>
         <translation>Color de texto:</translation>
     </message>
     <message>
-        <location filename="../ui/analysis/qgisred_results_dock.ui" line="1308"/>
-        <source>Black</source>
-        <translation>Negro</translation>
+        <location filename="../ui/analysis/qgisred_results_dock.ui" line="1342"/>
+        <source>Default</source>
+        <translation>Predeterminado</translation>
     </message>
     <message>
-        <location filename="../ui/analysis/qgisred_results_dock.ui" line="1318"/>
+        <location filename="../ui/analysis/qgisred_results_dock.ui" line="1352"/>
         <source>By range</source>
         <translation>Por rango</translation>
     </message>
     <message>
-        <location filename="../ui/analysis/qgisred_results_dock.ui" line="1327"/>
+        <location filename="../ui/analysis/qgisred_results_dock.ui" line="1361"/>
         <source>Show ID alongside value</source>
         <translation>Mostrar ID junto con el valor</translation>
     </message>
     <message>
-        <location filename="../ui/analysis/qgisred_results_dock.ui" line="1493"/>
+        <location filename="../ui/analysis/qgisred_results_dock.ui" line="1527"/>
         <source>Arrows:</source>
         <translation>Flechas:</translation>
     </message>
     <message>
-        <location filename="../ui/analysis/qgisred_results_dock.ui" line="1542"/>
+        <location filename="../ui/analysis/qgisred_results_dock.ui" line="1576"/>
         <source>Map Background</source>
         <translation>Fondo del mapa</translation>
     </message>
@@ -5588,12 +5588,12 @@ Click izquierdo: Añadir un nuevo item debajo de la selección actual</translati
         <translation type="obsolete">×</translation>
     </message>
     <message>
-        <location filename="../ui/analysis/qgisred_results_dock.ui" line="1560"/>
+        <location filename="../ui/analysis/qgisred_results_dock.ui" line="1594"/>
         <source>Clear background color</source>
         <translation>Limpiar color del fondo</translation>
     </message>
     <message>
-        <location filename="../ui/analysis/qgisred_results_dock.ui" line="1591"/>
+        <location filename="../ui/analysis/qgisred_results_dock.ui" line="1625"/>
         <source>Reset all</source>
         <translation>Resetar todo</translation>
     </message>
@@ -5628,42 +5628,42 @@ Click izquierdo: Añadir un nuevo item debajo de la selección actual</translati
         <translation>Histograma</translation>
     </message>
     <message>
-        <location filename="../ui/analysis/qgisred_results_dock.ui" line="1384"/>
+        <location filename="../ui/analysis/qgisred_results_dock.ui" line="1418"/>
         <source>Proportional to value</source>
         <translation>Proporcional al valor</translation>
     </message>
     <message>
-        <location filename="../ui/analysis/qgisred_results_dock.ui" line="1371"/>
+        <location filename="../ui/analysis/qgisred_results_dock.ui" line="1405"/>
         <source>Symbology</source>
         <translation>Simbología</translation>
     </message>
     <message>
-        <location filename="../ui/analysis/qgisred_results_dock.ui" line="1377"/>
+        <location filename="../ui/analysis/qgisred_results_dock.ui" line="1411"/>
         <source>Hide border on junctions</source>
         <translation>Ocultar borde en uniones</translation>
     </message>
     <message>
-        <location filename="../ui/analysis/qgisred_results_dock.ui" line="1391"/>
+        <location filename="../ui/analysis/qgisred_results_dock.ui" line="1425"/>
         <source>Size factor</source>
         <translation>Factor de tamaño</translation>
     </message>
     <message>
-        <location filename="../ui/analysis/qgisred_results_dock.ui" line="1524"/>
+        <location filename="../ui/analysis/qgisred_results_dock.ui" line="1558"/>
         <source>↺</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../ui/analysis/qgisred_results_dock.ui" line="1527"/>
+        <location filename="../ui/analysis/qgisred_results_dock.ui" line="1561"/>
         <source>Restore value</source>
         <translation>Restaurar valor</translation>
     </message>
     <message>
-        <location filename="../ui/analysis/qgisred_results_dock.ui" line="1334"/>
+        <location filename="../ui/analysis/qgisred_results_dock.ui" line="1368"/>
         <source>Background:</source>
         <translation>Fondo:</translation>
     </message>
     <message>
-        <location filename="../ui/analysis/qgisred_results_dock.ui" line="1353"/>
+        <location filename="../ui/analysis/qgisred_results_dock.ui" line="1387"/>
         <source>Clear label background color</source>
         <translation>Borrar color de fondo de las etiquetas</translation>
     </message>
@@ -7672,22 +7672,22 @@ Click izquierdo: Añadir un nuevo item debajo de la selección actual</translati
 <context>
     <name>_ResultsRenderingMixin</name>
     <message>
-        <location filename="../ui/analysis/qgisred_results_rendering.py" line="224"/>
+        <location filename="../ui/analysis/qgisred_results_rendering.py" line="230"/>
         <source>Some issue occurred in the process of saving the style of the layer %1</source>
         <translation>Ha habido algún error en el proceso de guardar el estilo de la capa %1</translation>
     </message>
     <message>
-        <location filename="../ui/analysis/qgisred_results_rendering.py" line="251"/>
+        <location filename="../ui/analysis/qgisred_results_rendering.py" line="257"/>
         <source>Link %1</source>
         <translation>%1 en Línea</translation>
     </message>
     <message>
-        <location filename="../ui/analysis/qgisred_results_rendering.py" line="256"/>
+        <location filename="../ui/analysis/qgisred_results_rendering.py" line="262"/>
         <source>Node %1</source>
         <translation>%1 en Nudo</translation>
     </message>
     <message>
-        <location filename="../ui/analysis/qgisred_results_rendering.py" line="677"/>
+        <location filename="../ui/analysis/qgisred_results_rendering.py" line="704"/>
         <source>Some issue occurred in the process of applying the style to the layer %1</source>
         <translation>Ha habido algún error en el proceso de aplicar el estilo a la capa %1</translation>
     </message>
