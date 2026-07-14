@@ -1186,7 +1186,7 @@ class QGISRedElementExplorerDock(QDockWidget, FORM_CLASS):
         hasMultipleDemands = isJunction and hasTotalDemandsRow
         hasSource = isJunction and nodeSource is not None
         if hasMultipleDemands:
-            skipFields = skipFields | {"BaseDem", "IdPattDem"}
+            skipFields = skipFields | {"BaseDem", "IdPattDem", "DemPattID"}
         preDemandFieldNames = {"Elevation"} if hasMultipleDemands else set()
         preSourceFieldNames = {"EmittCoef", "IniQuality"} if hasSource else set()
         middleExcludeFieldNames = preDemandFieldNames | preSourceFieldNames
@@ -1251,7 +1251,7 @@ class QGISRedElementExplorerDock(QDockWidget, FORM_CLASS):
     def emitNodeFields(self, startRow, fields, attributes, skipFields, layerIdentifier, utils,
                        onlyFieldNames=None, excludeFieldNames=None):
         qualityFieldNames = {"MixingMod", "MixingFrac", "ReactCoef", "IniQuality", "BulkCoeff", "WallCoeff"}
-        demandFieldNames = {"BaseDem", "IdPattDem"} if layerIdentifier == "qgisred_junctions" else set()
+        demandFieldNames = {"BaseDem", "IdPattDem", "DemPattID"} if layerIdentifier == "qgisred_junctions" else set()
         row = startRow
         for fieldIdx, field in enumerate(fields):
             fieldName = field.name()
@@ -2498,7 +2498,7 @@ class QGISRedElementExplorerDock(QDockWidget, FORM_CLASS):
             self.resultsDock = None
         self.resultsCurrentTimeText = ""
         self.resultsCurrentStat = ""
-        self.labelResultsTime.setText("00:00:00")
+        self.labelResultsTime.setText(self.formatTimeLabelText("00:00:00"))
         self.populateResultsTable()
         self.updateResultsTabVisibility()
 
@@ -2527,7 +2527,7 @@ class QGISRedElementExplorerDock(QDockWidget, FORM_CLASS):
         self.resultsCurrentTimeText = timeText
         self.labelResultsTime.show()
         self.labelResultsTime.setText(
-            QGISRedLayerUtils.getResultsCurrentTimeText() or timeText
+            self.formatTimeLabelText(QGISRedLayerUtils.getResultsCurrentTimeText() or timeText)
         )
         self.updateResultsTabVisibility()
         self.populateResultsTable()
@@ -2539,7 +2539,7 @@ class QGISRedElementExplorerDock(QDockWidget, FORM_CLASS):
         if statName:
             self.labelResultsTime.setText(self.formatStatsLabelText(statName))
         else:
-            self.labelResultsTime.setText(self.resultsCurrentTimeText)
+            self.labelResultsTime.setText(self.formatTimeLabelText(self.resultsCurrentTimeText))
         self.updateResultsTabVisibility()
         self.populateResultsTable()
 
@@ -2549,7 +2549,10 @@ class QGISRedElementExplorerDock(QDockWidget, FORM_CLASS):
 
     def formatStatsLabelText(self, statName):
         """Format statistics label as 'StatName for report times'."""
-        return f"{statName} {self.tr('values for report times')}"
+        return f"<b>{statName} {self.tr('values for report times')}</b>"
+
+    def formatTimeLabelText(self, timeText):
+        return "{}: <b>{}</b>".format(self.tr("Time"), timeText)
 
     def clearResultsTable(self):
         """Clear the results table contents."""
@@ -2660,7 +2663,7 @@ class QGISRedElementExplorerDock(QDockWidget, FORM_CLASS):
                         break
                     if not timeText:
                         timeText = "00:00:00"
-                labelText = timeText
+                labelText = self.formatTimeLabelText(timeText)
 
             # Show the time/statistics label
             self.labelResultsTime.show()

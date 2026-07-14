@@ -382,15 +382,10 @@
                      <property name="font">
                       <font>
                        <pointsize>9</pointsize>
-                       <weight>75</weight>
-                       <bold>true</bold>
                       </font>
                      </property>
                      <property name="text">
                       <string/>
-                     </property>
-                     <property name="textFormat">
-                      <enum>Qt::PlainText</enum>
                      </property>
                      <property name="alignment">
                       <set>Qt::AlignCenter</set>
