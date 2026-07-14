@@ -288,6 +288,7 @@ class QGISRedGroupEditDialog(QDialog, FORM_CLASS):
     def _applyStyle(self):
         self.setStyleSheet(
             "QDialog { background-color: #f8f9fb; }"
+            "QGroupBox { font-weight: bold; }"
             "QLineEdit, QSpinBox, QDoubleSpinBox {"
             " background-color: white;"
             " color: #202020;"
