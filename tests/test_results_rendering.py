@@ -153,6 +153,42 @@ class TestFlowLabelsNeverShowSign:
         assert 'abs("Flow")' in expr
 
 
+# Regression tests: for Max/Min statistics, the occurrence time must be appended as
+# " (@ <time>)" — '@' inside the parentheses — not separated by a hyphen.
+class TestStatisticsTimeLabelFormat:
+    def _get_expr(self, dock, layer, fieldName, time_field=None):
+        with patch("QGISRed.tools.utils.qgisred_project_utils.QgsProject") as MockProj, \
+             patch("QGISRed.ui.analysis.qgisred_results_rendering.QgsVectorLayerSimpleLabeling") as MockLabeling:
+            MockProj.instance.return_value = _make_project("LPS")
+            dock.setLayerLabels(layer, fieldName, time_field=time_field)
+            assert MockLabeling.call_args is not None
+            return MockLabeling.call_args[0][0].fieldName
+
+    def _make_link_dock(self, show_id=False):
+        dock = MockDock()
+        dock._labelShowId = show_id
+        dock.cbLinkLabels.isChecked.return_value = True
+        dock.spLinkDecimals.value.return_value = 2
+        return dock
+
+    def _make_link_layer(self):
+        layer = MagicMock()
+        layer.geometryType.return_value = 1  # Link
+        return layer
+
+    def test_time_field_uses_at_sign_inside_parentheses(self):
+        dock = self._make_link_dock()
+        expr = self._get_expr(dock, self._make_link_layer(), "Velocity", time_field="Time_Max")
+        assert "' (@ '" in expr
+        assert " - " not in expr
+
+    def test_time_field_with_show_id_uses_at_sign_inside_parentheses(self):
+        dock = self._make_link_dock(show_id=True)
+        expr = self._get_expr(dock, self._make_link_layer(), "Velocity", time_field="Time_Max")
+        assert "' (@ '" in expr
+        assert " - " not in expr
+
+
 # Regression test for a bug where switching a result variable to/from a rule-based
 # renderer (Status) silently kept the previous style. Root cause: paintIntervalTimeResults
 # used to overwrite self.displayingLinkField/NodeField with the NEW field *before* calling

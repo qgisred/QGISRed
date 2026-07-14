@@ -378,7 +378,7 @@ class _ResultsRenderingMixin:
         is_flow_field = fieldName in ("Flow", "Flow_Sig")
         if time_field:
             raw_field_expr = f'abs("{fieldName}")' if is_flow_field else f'"{fieldName}"'
-            value_expr = f'format_number(round({raw_field_expr}, {decimals}), {decimals}) || \' - \' || "{time_field}"'
+            value_expr = f'format_number(round({raw_field_expr}, {decimals}), {decimals}) || \' (@ \' || "{time_field}" || \')\''
         elif is_flow_field:
             value_expr = f'format_number(abs("{fieldName}"), {decimals})'
         else:
@@ -393,7 +393,7 @@ class _ResultsRenderingMixin:
             if time_field:
                 raw_field_expr2 = f'abs("{fieldName}")' if is_flow_field else f'"{fieldName}"'
                 raw_val = f'format_number(round({raw_field_expr2}, {decimals}), {decimals})'
-                line2_inner = f'{raw_val}{unit_suffix} || \' - \' || "{time_field}"'
+                line2_inner = f'{raw_val}{unit_suffix} || \' (@ \' || "{time_field}" || \')\''
             elif is_flow_field:
                 line2_inner = f'format_number(abs("{fieldName}"), {decimals}){unit_suffix}'
             else:
