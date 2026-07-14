@@ -20,6 +20,8 @@ class MockDock(_ResultsRenderingMixin):
         self.cbLinkLabels = MagicMock()
         self.spNodeDecimals = MagicMock()
         self.spLinkDecimals = MagicMock()
+        self.lbNodesMagnitude = MagicMock()
+        self.lbLinksMagnitude = MagicMock()
         self._labelFontSize = 10
         self._labelColorByRange = False
         self._labelShowId = False

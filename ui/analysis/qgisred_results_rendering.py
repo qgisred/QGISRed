@@ -292,6 +292,8 @@ class _ResultsRenderingMixin:
                     unit = QGISRedFieldUtils().getUnitAbbreviation(element, unit_field)
                     unit_suffix = " " + unit if unit else ""
 
+                    self._setMagnitudeLabel(nameLayer, selected_variable_text, unit)
+
                     value_expr = 'abs("Flow")' if field == "Flow" else '"' + field + '"'
 
                     _TYPE_KEYS = ["JUNCTION", "RESERVOIR", "TANK", "PIPE", "PUMP", "VALVE"]
@@ -312,6 +314,18 @@ class _ResultsRenderingMixin:
             self._refreshDistributionChartsIfNeeded()
         if hasattr(self, "_updateEvolutionCheckboxLabels"):
             self._updateEvolutionCheckboxLabels()
+
+    def _setMagnitudeLabel(self, nameLayer, magnitudeText, unit):
+        """Show the currently displayed magnitude (bold, black) and its unit
+        (smaller, not bold, in parentheses) next to the Nodes/Links header."""
+        label = self.lbNodesMagnitude if "Node" in nameLayer else self.lbLinksMagnitude
+        if not magnitudeText:
+            label.setText("")
+            return
+        text = f'<span style="font-size:12pt; font-weight:bold; color:#000000;">{magnitudeText}</span>'
+        if unit:
+            text += f' <span style="font-size:9pt; font-weight:normal; color:#000000;">({unit})</span>'
+        label.setText(text)
 
     def setLayerLabels(self, layer, fieldName, time_field=None):
         node_labels_enabled = layer.geometryType() == 0 and self.cbNodeLabels.isChecked()

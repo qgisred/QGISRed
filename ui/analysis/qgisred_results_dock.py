@@ -1334,6 +1334,7 @@ class QGISRedResultsDock(
         if self.cbLinks.currentIndex() == 0:
             self.displayingLinkField = ""
             self.removeResultLayer("Link")
+            self._setMagnitudeLabel("Link", "", "")
             self._updateDistributionCheckboxLabels()
             self._updateEvolutionCheckboxLabels()
             self.evolutionVariableChanged.emit("Link")
@@ -1376,6 +1377,7 @@ class QGISRedResultsDock(
         if self.cbNodes.currentIndex() == 0:
             self.displayingNodeField = ""
             self.removeResultLayer("Node")
+            self._setMagnitudeLabel("Node", "", "")
             self._updateDistributionCheckboxLabels()
             self._updateEvolutionCheckboxLabels()
             self.evolutionVariableChanged.emit("Node")

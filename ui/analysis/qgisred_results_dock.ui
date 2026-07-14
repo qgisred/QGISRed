@@ -664,6 +664,13 @@
                         </widget>
                        </item>
                        <item>
+                        <widget class="QLabel" name="lbNodesMagnitude">
+                         <property name="text">
+                          <string/>
+                         </property>
+                        </widget>
+                       </item>
+                       <item>
                         <spacer name="horizontalSpacer_btAppearance">
                          <property name="orientation">
                           <enum>Qt::Horizontal</enum>
@@ -768,21 +775,48 @@
                    </item>
                    <item>
                     <layout class="QVBoxLayout" name="verticalLayout_3">
+                     <property name="topMargin">
+                      <number>10</number>
+                     </property>
                      <item>
-                      <widget class="QLabel" name="lbLinksHeader">
-                       <property name="font">
-                        <font>
-                         <weight>75</weight>
-                         <bold>true</bold>
-                        </font>
-                       </property>
-                       <property name="styleSheet">
-                        <string notr="true">font-weight: bold;</string>
-                       </property>
-                       <property name="text">
-                        <string>Links</string>
-                       </property>
-                      </widget>
+                      <layout class="QHBoxLayout" name="horizontalLayout_LinksHeader">
+                       <item>
+                        <widget class="QLabel" name="lbLinksHeader">
+                         <property name="font">
+                          <font>
+                           <weight>75</weight>
+                           <bold>true</bold>
+                          </font>
+                         </property>
+                         <property name="styleSheet">
+                          <string notr="true">font-weight: bold;</string>
+                         </property>
+                         <property name="text">
+                          <string>Links</string>
+                         </property>
+                        </widget>
+                       </item>
+                       <item>
+                        <widget class="QLabel" name="lbLinksMagnitude">
+                         <property name="text">
+                          <string/>
+                         </property>
+                        </widget>
+                       </item>
+                       <item>
+                        <spacer name="horizontalSpacer_LinksMagnitude">
+                         <property name="orientation">
+                          <enum>Qt::Horizontal</enum>
+                         </property>
+                         <property name="sizeHint" stdset="0">
+                          <size>
+                           <width>40</width>
+                           <height>20</height>
+                          </size>
+                         </property>
+                        </spacer>
+                       </item>
+                      </layout>
                      </item>
                      <item>
                       <widget class="QComboBox" name="cbLinks">
