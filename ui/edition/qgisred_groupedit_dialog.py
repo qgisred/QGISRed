@@ -124,6 +124,9 @@ _conditionsByType = {
     "text":    ["All", "=", "≠", "ILIKE", "NOT ILIKE", "LIKE", "NOT LIKE"],
 }
 
+# Item data marking the NULL entry in the filter value list.
+_nullFilterData = "__qgisred_null__"
+
 # Free-text fields keep a typed value (no unique-value combobox) and default to ILIKE.
 _freeTextFields = {"Descrip", "InstalDate", "InstDate", "Time", "Time_H", "Time_Q", "Time_D"}
 
@@ -794,6 +797,7 @@ class QGISRedGroupEditDialog(QDialog, FORM_CLASS):
         layer = self._currentLayer()
         useList = False
         isDate = False
+        hasNull = False
         strValues = []
         if layer is not None and fieldName and condition in ("=", "≠"):
             identifier = layer.customProperty("qgisred_identifier")
@@ -801,13 +805,16 @@ class QGISRedGroupEditDialog(QDialog, FORM_CLASS):
             isDate = self._isDateField(identifier, fieldName)
             if isDate or (not field.isNumeric() and not self._isFreeTextField(identifier, fieldName)):
                 uniqueValues = self._getUniqueFieldValues(layer, fieldName)
-                strValues = sorted({str(v) for v in uniqueValues if v is not None and str(v).strip()})
-                useList = bool(strValues)
+                hasNull = any(self._isNullValue(v) for v in uniqueValues)
+                strValues = sorted({str(v) for v in uniqueValues if not self._isNullValue(v) and str(v).strip()})
+                useList = bool(strValues) or hasNull
         if useList:
             previous = self._currentFilterValueText()
             self.cbFilterValueList.blockSignals(True)
             self.cbFilterValueList.clear()
             self.cbFilterValueList.addItem("")
+            if hasNull:
+                self.cbFilterValueList.addItem("NULL", _nullFilterData)
             for value in strValues:
                 self.cbFilterValueList.addItem(self._formatDateDisplay(value) if isDate else value, value)
             i = self.cbFilterValueList.findData(previous)
@@ -913,6 +920,10 @@ class QGISRedGroupEditDialog(QDialog, FORM_CLASS):
             return None
         field = layer.fields().field(fieldName)
         column = QgsExpression.quotedColumnRef(fieldName)
+        if self._isFilterValueListActive() and self.cbFilterValueList.currentData() == _nullFilterData:
+            if condition == "≠":
+                return QgsExpression("%s IS NOT NULL" % column)
+            return QgsExpression("%s IS NULL" % column)
         if field.isNumeric():
             try:
                 literal = repr(float(rawValue))
@@ -1422,6 +1433,9 @@ class QGISRedGroupEditDialog(QDialog, FORM_CLASS):
             i = self.cbFilterValueList.findText(text)
             self.cbFilterValueList.setCurrentIndex(i if i >= 0 else 0)
         self.leFilterValue.setText(text)
+
+    def _isNullValue(self, value):
+        return value is None or (hasattr(value, "isNull") and value.isNull())
 
     def _getUniqueFieldValues(self, layer, fieldName):
         values = set()
