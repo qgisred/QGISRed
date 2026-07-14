@@ -166,13 +166,13 @@ class QGISRedQueriesByPropertiesDock(QDockWidget, FORM_CLASS):
             'Links': ['Flow'],
             'qgisred_pipes': ['Flow', 'Diameter'],
             'qgisred_valves': ['Flow', 'Diameter'],
-            'qgisred_pumps': ['Flow', 'IdHFCurve'],
+            'qgisred_pumps': ['Flow', 'PumpCurvID', 'IdHFCurve'],
             'qgisred_junctions': ['Pressure', 'BaseDem'],
             'qgisred_tanks': ['Pressure', 'Elevation'],
             'qgisred_reservoirs': ['Pressure', 'TotalHead'],
-            'qgisred_demands': ['BaseValue', 'Pressure'],
-            'qgisred_sources': ['Quality', 'Pressure', 'BaseValue'],
-            'qgisred_serviceconnections': ['BaseDemand'],
+            'qgisred_demands': ['BaseDem', 'BaseValue', 'Pressure'],
+            'qgisred_sources': ['Quality', 'Pressure', 'SourceQual', 'BaseValue'],
+            'qgisred_serviceconnections': ['BaseDem', 'BaseDemand'],
             'qgisred_isolationvalves': ['Status'],
             'qgisred_meters': ['Type'],
         }
@@ -952,7 +952,7 @@ class QGISRedQueriesByPropertiesDock(QDockWidget, FORM_CLASS):
             cat = self.elementResultCategory.get(qrIdent)
             if cat == 'Link' or qrIdent.startswith('qgisred_link'):
                 return True
-        if prop == 'BaseDem' and qrIdent == 'qgisred_junctions':
+        if prop == 'BaseDem' and qrIdent in ('qgisred_junctions', 'qgisred_demands', 'qgisred_serviceconnections'):
             return True
         if prop == 'BaseValue' and qrIdent == 'qgisred_demands':
             return True
@@ -1877,10 +1877,16 @@ class QGISRedQueriesByPropertiesDock(QDockWidget, FORM_CLASS):
             self.currentResultsTimeText = ""
             self.labelResults.setText("")
 
+    def formatStatsLabelText(self, statName):
+        return f"<b>{statName} {self.tr('values for report times')}</b>"
+
+    def formatTimeLabelText(self, timeText):
+        return f"{self.tr('Time')}: <b>{timeText}</b>"
+
     def onResultsTimeChanged(self, timeText):
         self.currentResultsTimeText = timeText
         self.labelResults.setText(
-            QGISRedLayerUtils.getResultsCurrentTimeText() or timeText
+            self.formatTimeLabelText(QGISRedLayerUtils.getResultsCurrentTimeText() or timeText)
         )
         if self.queryHasBeenSubmitted and self.effectiveCriteria():
             self.runQuery()
@@ -1888,10 +1894,10 @@ class QGISRedQueriesByPropertiesDock(QDockWidget, FORM_CLASS):
     def onResultsStatisticsChanged(self, statName):
         self.currentResultsStatText = statName
         if statName:
-            self.labelResults.setText(f"{statName} {self.tr('values for report times')}")
+            self.labelResults.setText(self.formatStatsLabelText(statName))
         else:
             self.labelResults.setText(
-                QGISRedLayerUtils.getResultsCurrentTimeText() or self.currentResultsTimeText
+                self.formatTimeLabelText(QGISRedLayerUtils.getResultsCurrentTimeText() or self.currentResultsTimeText)
             )
         previousProp = self.getComboInternalName(self.cbProperty)
         self.updateProperties()
@@ -1960,12 +1966,12 @@ class QGISRedQueriesByPropertiesDock(QDockWidget, FORM_CLASS):
             time_val = feat.attribute(time_idx) if time_idx >= 0 else None
             if stat_val and str(stat_val).strip():
                 self.currentResultsStatText = str(stat_val)
-                self.labelResults.setText(f"{stat_val} {self.tr('values for report times')}")
+                self.labelResults.setText(self.formatStatsLabelText(stat_val))
                 return
             if time_val and str(time_val).strip():
                 self.currentResultsTimeText = str(time_val)
                 self.currentResultsStatText = ""
-                self.labelResults.setText(self.currentResultsTimeText)
+                self.labelResults.setText(self.formatTimeLabelText(self.currentResultsTimeText))
                 return
 
     def fetchTimeFromResultsLayer(self):
