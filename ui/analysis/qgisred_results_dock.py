@@ -164,6 +164,17 @@ class QGISRedResultsDock(
         self.btBgColor.clicked.connect(self._onBgColorClicked)
         self.btClearBgColor.clicked.connect(self._onClearBgColor)
         self.btResetAppearance.clicked.connect(self._onResetAppearance)
+        self.btResetFontSize.clicked.connect(lambda: self.spFontSize.setValue(8))
+        self.btResetNodeDecimals.clicked.connect(lambda: self._onResetSingleDecimals("Node"))
+        self.btResetLinkDecimals.clicked.connect(lambda: self._onResetSingleDecimals("Link"))
+        self.btResetSymbolFactor.clicked.connect(lambda: self.dspSymbolFactor.setValue(1.0))
+        self.btResetPipeFactor.clicked.connect(lambda: self.dspPipeFactor.setValue(1.0))
+        self.btResetArrowFactor.clicked.connect(lambda: self.dspArrowFactor.setValue(1.0))
+
+        # Icon set here (not in .ui text) so the glyph never gets bundled into a translatable string
+        resetIcon = self._makeGlyphIcon("↺")
+        self.btClearBgColor.setIcon(resetIcon)
+        self.btResetAppearance.setIcon(resetIcon)
 
         self._setupDistributionCharts()
         self._setupEvolutionCharts()

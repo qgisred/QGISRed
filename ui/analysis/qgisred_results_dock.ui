@@ -1181,17 +1181,37 @@
                 </widget>
                </item>
                <item row="0" column="1">
-                <widget class="QSpinBox" name="spFontSize">
-                 <property name="minimum">
-                  <number>6</number>
+                <layout class="QHBoxLayout" name="horizontalLayout_fontSize">
+                 <property name="spacing">
+                  <number>2</number>
                  </property>
-                 <property name="maximum">
-                  <number>24</number>
-                 </property>
-                 <property name="value">
-                  <number>8</number>
-                 </property>
-                </widget>
+                 <item>
+                  <widget class="QSpinBox" name="spFontSize">
+                   <property name="minimum">
+                    <number>6</number>
+                   </property>
+                   <property name="maximum">
+                    <number>24</number>
+                   </property>
+                   <property name="value">
+                    <number>8</number>
+                   </property>
+                  </widget>
+                 </item>
+                 <item>
+                  <widget class="QPushButton" name="btResetFontSize">
+                   <property name="text">
+                    <string>↺</string>
+                   </property>
+                   <property name="toolTip">
+                    <string>Restore value</string>
+                   </property>
+                   <property name="maximumWidth">
+                    <number>24</number>
+                   </property>
+                  </widget>
+                 </item>
+                </layout>
                </item>
                <item row="1" column="0">
                 <widget class="QLabel" name="lbNodeDecimals">
@@ -1201,17 +1221,37 @@
                 </widget>
                </item>
                <item row="1" column="1">
-                <widget class="QSpinBox" name="spNodeDecimals">
-                 <property name="minimum">
-                  <number>0</number>
-                 </property>
-                 <property name="maximum">
-                  <number>6</number>
-                 </property>
-                 <property name="value">
+                <layout class="QHBoxLayout" name="horizontalLayout_nodeDecimals">
+                 <property name="spacing">
                   <number>2</number>
                  </property>
-                </widget>
+                 <item>
+                  <widget class="QSpinBox" name="spNodeDecimals">
+                   <property name="minimum">
+                    <number>0</number>
+                   </property>
+                   <property name="maximum">
+                    <number>6</number>
+                   </property>
+                   <property name="value">
+                    <number>2</number>
+                   </property>
+                  </widget>
+                 </item>
+                 <item>
+                  <widget class="QPushButton" name="btResetNodeDecimals">
+                   <property name="text">
+                    <string>↺</string>
+                   </property>
+                   <property name="toolTip">
+                    <string>Restore value</string>
+                   </property>
+                   <property name="maximumWidth">
+                    <number>24</number>
+                   </property>
+                  </widget>
+                 </item>
+                </layout>
                </item>
                <item row="2" column="0">
                 <widget class="QLabel" name="lbLinkDecimals">
@@ -1221,17 +1261,37 @@
                 </widget>
                </item>
                <item row="2" column="1">
-                <widget class="QSpinBox" name="spLinkDecimals">
-                 <property name="minimum">
-                  <number>0</number>
-                 </property>
-                 <property name="maximum">
-                  <number>6</number>
-                 </property>
-                 <property name="value">
+                <layout class="QHBoxLayout" name="horizontalLayout_linkDecimals">
+                 <property name="spacing">
                   <number>2</number>
                  </property>
-                </widget>
+                 <item>
+                  <widget class="QSpinBox" name="spLinkDecimals">
+                   <property name="minimum">
+                    <number>0</number>
+                   </property>
+                   <property name="maximum">
+                    <number>6</number>
+                   </property>
+                   <property name="value">
+                    <number>2</number>
+                   </property>
+                  </widget>
+                 </item>
+                 <item>
+                  <widget class="QPushButton" name="btResetLinkDecimals">
+                   <property name="text">
+                    <string>↺</string>
+                   </property>
+                   <property name="toolTip">
+                    <string>Restore value</string>
+                   </property>
+                   <property name="maximumWidth">
+                    <number>24</number>
+                   </property>
+                  </widget>
+                 </item>
+                </layout>
                </item>
                <item row="3" column="0" colspan="2">
                 <widget class="QLabel" name="lbColorText">
@@ -1309,23 +1369,43 @@
                 </widget>
                </item>
                <item row="3" column="1">
-                <widget class="QDoubleSpinBox" name="dspSymbolFactor">
-                 <property name="minimum">
-                  <double>0.250000000000000</double>
-                 </property>
-                 <property name="maximum">
-                  <double>4.000000000000000</double>
-                 </property>
-                 <property name="singleStep">
-                  <double>0.050000000000000</double>
-                 </property>
-                 <property name="decimals">
+                <layout class="QHBoxLayout" name="horizontalLayout_symbolFactor">
+                 <property name="spacing">
                   <number>2</number>
                  </property>
-                 <property name="value">
-                  <double>1.000000000000000</double>
-                 </property>
-                </widget>
+                 <item>
+                  <widget class="QDoubleSpinBox" name="dspSymbolFactor">
+                   <property name="minimum">
+                    <double>0.250000000000000</double>
+                   </property>
+                   <property name="maximum">
+                    <double>4.000000000000000</double>
+                   </property>
+                   <property name="singleStep">
+                    <double>0.050000000000000</double>
+                   </property>
+                   <property name="decimals">
+                    <number>2</number>
+                   </property>
+                   <property name="value">
+                    <double>1.000000000000000</double>
+                   </property>
+                  </widget>
+                 </item>
+                 <item>
+                  <widget class="QPushButton" name="btResetSymbolFactor">
+                   <property name="text">
+                    <string>↺</string>
+                   </property>
+                   <property name="toolTip">
+                    <string>Restore value</string>
+                   </property>
+                   <property name="maximumWidth">
+                    <number>24</number>
+                   </property>
+                  </widget>
+                 </item>
+                </layout>
                </item>
                <item row="4" column="0">
                 <widget class="QLabel" name="lbPipeFactor">
@@ -1335,23 +1415,43 @@
                 </widget>
                </item>
                <item row="4" column="1">
-                <widget class="QDoubleSpinBox" name="dspPipeFactor">
-                 <property name="minimum">
-                  <double>0.250000000000000</double>
-                 </property>
-                 <property name="maximum">
-                  <double>4.000000000000000</double>
-                 </property>
-                 <property name="singleStep">
-                  <double>0.050000000000000</double>
-                 </property>
-                 <property name="decimals">
+                <layout class="QHBoxLayout" name="horizontalLayout_pipeFactor">
+                 <property name="spacing">
                   <number>2</number>
                  </property>
-                 <property name="value">
-                  <double>1.000000000000000</double>
-                 </property>
-                </widget>
+                 <item>
+                  <widget class="QDoubleSpinBox" name="dspPipeFactor">
+                   <property name="minimum">
+                    <double>0.250000000000000</double>
+                   </property>
+                   <property name="maximum">
+                    <double>4.000000000000000</double>
+                   </property>
+                   <property name="singleStep">
+                    <double>0.050000000000000</double>
+                   </property>
+                   <property name="decimals">
+                    <number>2</number>
+                   </property>
+                   <property name="value">
+                    <double>1.000000000000000</double>
+                   </property>
+                  </widget>
+                 </item>
+                 <item>
+                  <widget class="QPushButton" name="btResetPipeFactor">
+                   <property name="text">
+                    <string>↺</string>
+                   </property>
+                   <property name="toolTip">
+                    <string>Restore value</string>
+                   </property>
+                   <property name="maximumWidth">
+                    <number>24</number>
+                   </property>
+                  </widget>
+                 </item>
+                </layout>
                </item>
                <item row="5" column="0">
                 <widget class="QLabel" name="lbArrowFactor">
@@ -1361,23 +1461,43 @@
                 </widget>
                </item>
                <item row="5" column="1">
-                <widget class="QDoubleSpinBox" name="dspArrowFactor">
-                 <property name="minimum">
-                  <double>0.250000000000000</double>
-                 </property>
-                 <property name="maximum">
-                  <double>4.000000000000000</double>
-                 </property>
-                 <property name="singleStep">
-                  <double>0.050000000000000</double>
-                 </property>
-                 <property name="decimals">
+                <layout class="QHBoxLayout" name="horizontalLayout_arrowFactor">
+                 <property name="spacing">
                   <number>2</number>
                  </property>
-                 <property name="value">
-                  <double>1.000000000000000</double>
-                 </property>
-                </widget>
+                 <item>
+                  <widget class="QDoubleSpinBox" name="dspArrowFactor">
+                   <property name="minimum">
+                    <double>0.250000000000000</double>
+                   </property>
+                   <property name="maximum">
+                    <double>4.000000000000000</double>
+                   </property>
+                   <property name="singleStep">
+                    <double>0.050000000000000</double>
+                   </property>
+                   <property name="decimals">
+                    <number>2</number>
+                   </property>
+                   <property name="value">
+                    <double>1.000000000000000</double>
+                   </property>
+                  </widget>
+                 </item>
+                 <item>
+                  <widget class="QPushButton" name="btResetArrowFactor">
+                   <property name="text">
+                    <string>↺</string>
+                   </property>
+                   <property name="toolTip">
+                    <string>Restore value</string>
+                   </property>
+                   <property name="maximumWidth">
+                    <number>24</number>
+                   </property>
+                  </widget>
+                 </item>
+                </layout>
                </item>
               </layout>
              </widget>
@@ -1400,7 +1520,7 @@
                  <item>
                   <widget class="QPushButton" name="btClearBgColor">
                    <property name="text">
-                    <string>×</string>
+                    <string/>
                    </property>
                    <property name="toolTip">
                     <string>Clear background color</string>

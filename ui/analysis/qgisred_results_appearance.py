@@ -5,8 +5,9 @@ import xml.etree.ElementTree as ET  # nosec B405 — parses a local appearance s
 
 from qgis.PyQt.QtWidgets import QApplication, QColorDialog
 from qgis.PyQt.QtCore import Qt, QCoreApplication
-from qgis.PyQt.QtGui import QColor
+from qgis.PyQt.QtGui import QColor, QPixmap, QIcon, QPainter
 
+from ...compat import PAINTER_ANTIALIASING
 from ...tools.utils.qgisred_field_utils import QGISRedFieldUtils
 from .qgisred_results_data import NODE_RESULT_FIELDS, LINK_RESULT_FIELDS
 from .qgisred_results_rendering import time_field_name
@@ -57,6 +58,19 @@ class _ResultsAppearanceMixin:
             self._varDecimals[node_field] = self.spNodeDecimals.value()
         if link_field:
             self._varDecimals[link_field] = self.spLinkDecimals.value()
+        self._saveAppearanceSettings()
+        self._reloadResultsWithNewDecimals()
+        self._refreshLabelsIfShowing("Node")
+        self._refreshLabelsIfShowing("Link")
+
+    def _onResetSingleDecimals(self, layer_type):
+        """Clear the stored decimals override for the variable currently selected
+        in cbNodes/cbLinks, falling back to the CSV default."""
+        field_map = self._node_field_map if layer_type == "Node" else self._link_field_map
+        combobox = self.cbNodes if layer_type == "Node" else self.cbLinks
+        field = field_map.get(combobox.currentText(), "")
+        self._varDecimals.pop(field, None)
+        self._resetDecimalsForVariable(field, "Nodes" if layer_type == "Node" else "Links", layer_type)
         self._saveAppearanceSettings()
         self._reloadResultsWithNewDecimals()
         self._refreshLabelsIfShowing("Node")
@@ -191,6 +205,22 @@ class _ResultsAppearanceMixin:
                 canvas.setCanvasColor(self._savedBgColor)
                 self._savedBgColor = None
         canvas.refresh()
+
+    # ------------------------------------------------------------------
+    # Icons (drawn from a glyph so translators never see them in button text)
+    # ------------------------------------------------------------------
+
+    def _makeGlyphIcon(self, glyph, size=16):
+        pixmap = QPixmap(size, size)
+        pixmap.fill(Qt.GlobalColor.transparent)
+        painter = QPainter(pixmap)
+        painter.setRenderHint(PAINTER_ANTIALIASING)
+        font = painter.font()
+        font.setPointSize(int(size * 0.65))
+        painter.setFont(font)
+        painter.drawText(pixmap.rect(), Qt.AlignmentFlag.AlignCenter, glyph)
+        painter.end()
+        return QIcon(pixmap)
 
     # ------------------------------------------------------------------
     # Reset all

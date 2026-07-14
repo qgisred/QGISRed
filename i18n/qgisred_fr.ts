@@ -87,62 +87,62 @@
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../sections/analysis_section.py" line="1493"/>
+        <location filename="../sections/analysis_section.py" line="1497"/>
         <source>No network element found at this location.</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../sections/analysis_section.py" line="1954"/>
+        <location filename="../sections/analysis_section.py" line="1958"/>
         <source>Results file not found. Please run the model.</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../sections/analysis_section.py" line="1970"/>
+        <location filename="../sections/analysis_section.py" line="1974"/>
         <source>Junction</source>
         <translation type="unfinished">Jonction</translation>
     </message>
     <message>
-        <location filename="../sections/analysis_section.py" line="1971"/>
+        <location filename="../sections/analysis_section.py" line="1975"/>
         <source>Tank</source>
         <translation type="unfinished">Château d’eau</translation>
     </message>
     <message>
-        <location filename="../sections/analysis_section.py" line="1972"/>
+        <location filename="../sections/analysis_section.py" line="1976"/>
         <source>Reservoir</source>
         <translation type="unfinished">Réservoir</translation>
     </message>
     <message>
-        <location filename="../sections/analysis_section.py" line="1973"/>
+        <location filename="../sections/analysis_section.py" line="1977"/>
         <source>Pipe</source>
         <translation type="unfinished">Conduite</translation>
     </message>
     <message>
-        <location filename="../sections/analysis_section.py" line="1974"/>
+        <location filename="../sections/analysis_section.py" line="1978"/>
         <source>Valve</source>
         <translation type="unfinished">Vanne</translation>
     </message>
     <message>
-        <location filename="../sections/analysis_section.py" line="1975"/>
+        <location filename="../sections/analysis_section.py" line="1979"/>
         <source>Pump</source>
         <translation type="unfinished">Pomp e</translation>
     </message>
     <message>
-        <location filename="../sections/analysis_section.py" line="1997"/>
+        <location filename="../sections/analysis_section.py" line="2001"/>
         <source>Closed</source>
         <translation type="unfinished">Fermé</translation>
     </message>
     <message>
-        <location filename="../sections/analysis_section.py" line="1997"/>
+        <location filename="../sections/analysis_section.py" line="2001"/>
         <source>Active</source>
         <translation type="unfinished">Actif</translation>
     </message>
     <message>
-        <location filename="../sections/analysis_section.py" line="1997"/>
+        <location filename="../sections/analysis_section.py" line="2001"/>
         <source>Open</source>
         <translation type="unfinished">Ouvrir</translation>
     </message>
     <message>
-        <location filename="../sections/analysis_section.py" line="2003"/>
+        <location filename="../sections/analysis_section.py" line="2007"/>
         <source>Time</source>
         <translation type="unfinished">Temps</translation>
     </message>
@@ -152,27 +152,27 @@
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../sections/analysis_section.py" line="1169"/>
+        <location filename="../sections/analysis_section.py" line="1173"/>
         <source>All selected curves will be lost. Continue?</source>
         <translation>Toutes les courbes sélectionnées seront perdues. Continuer ?</translation>
     </message>
     <message>
-        <location filename="../sections/analysis_section.py" line="1533"/>
+        <location filename="../sections/analysis_section.py" line="1537"/>
         <source>Pressure</source>
         <translation type="unfinished">Pression</translation>
     </message>
     <message>
-        <location filename="../sections/analysis_section.py" line="1544"/>
+        <location filename="../sections/analysis_section.py" line="1548"/>
         <source>Flow</source>
         <translation type="unfinished">Débit</translation>
     </message>
     <message>
-        <location filename="../sections/analysis_section.py" line="1775"/>
+        <location filename="../sections/analysis_section.py" line="1779"/>
         <source>Value</source>
         <translation type="unfinished">Valeur</translation>
     </message>
     <message>
-        <location filename="../sections/analysis_section.py" line="1434"/>
+        <location filename="../sections/analysis_section.py" line="1438"/>
         <source>Magnitude</source>
         <translation type="unfinished">Grandeur</translation>
     </message>
@@ -182,7 +182,7 @@
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../sections/analysis_section.py" line="1169"/>
+        <location filename="../sections/analysis_section.py" line="1173"/>
         <source>Clear selection</source>
         <translation type="unfinished"></translation>
     </message>
@@ -202,27 +202,27 @@
         <translation type="obsolete">Aucune courbe à exporter</translation>
     </message>
     <message>
-        <location filename="../sections/analysis_section.py" line="2104"/>
+        <location filename="../sections/analysis_section.py" line="2108"/>
         <source>The chart configuration could not be exported.</source>
         <translation>Impossible d'exporter la configuration du graphique.</translation>
     </message>
     <message>
-        <location filename="../sections/analysis_section.py" line="2106"/>
+        <location filename="../sections/analysis_section.py" line="2110"/>
         <source>Chart configuration exported.</source>
         <translation>Configuration du graphique exportée.</translation>
     </message>
     <message>
-        <location filename="../sections/analysis_section.py" line="2220"/>
+        <location filename="../sections/analysis_section.py" line="2224"/>
         <source>Configuration file not found.</source>
         <translation>Fichier de configuration introuvable.</translation>
     </message>
     <message>
-        <location filename="../sections/analysis_section.py" line="2225"/>
+        <location filename="../sections/analysis_section.py" line="2229"/>
         <source>The chart configuration could not be read.</source>
         <translation>Impossible de lire la configuration du graphique.</translation>
     </message>
     <message>
-        <location filename="../sections/analysis_section.py" line="2274"/>
+        <location filename="../sections/analysis_section.py" line="2278"/>
         <source>Chart configuration imported.</source>
         <translation>Configuration du graphique importée.</translation>
     </message>
@@ -689,22 +689,22 @@
         <translation>Résultats</translation>
     </message>
     <message>
-        <location filename="../ui/queries/qgisred_element_explorer_dock.ui" line="409"/>
+        <location filename="../ui/queries/qgisred_element_explorer_dock.ui" line="404"/>
         <source>Curves</source>
         <translation>Courbes</translation>
     </message>
     <message>
-        <location filename="../ui/queries/qgisred_element_explorer_dock.ui" line="431"/>
+        <location filename="../ui/queries/qgisred_element_explorer_dock.ui" line="426"/>
         <source>Patterns</source>
         <translation>Profils</translation>
     </message>
     <message>
-        <location filename="../ui/queries/qgisred_element_explorer_dock.ui" line="453"/>
+        <location filename="../ui/queries/qgisred_element_explorer_dock.ui" line="448"/>
         <source>Controls</source>
         <translation>Contrôles</translation>
     </message>
     <message>
-        <location filename="../ui/queries/qgisred_statisticsandgraphs_dock.ui" line="437"/>
+        <location filename="../ui/queries/qgisred_statisticsandgraphs_dock.ui" line="190"/>
         <source>Condition</source>
         <translation type="unfinished">Condition</translation>
     </message>
@@ -714,7 +714,7 @@
         <translation>Propriété</translation>
     </message>
     <message>
-        <location filename="../ui/queries/qgisred_statisticsandgraphs_dock.ui" line="447"/>
+        <location filename="../ui/queries/qgisred_statisticsandgraphs_dock.ui" line="200"/>
         <source>Value</source>
         <translation type="unfinished">Valeur</translation>
     </message>
@@ -744,47 +744,47 @@
         <translation type="unfinished">Exécuter</translation>
     </message>
     <message>
-        <location filename="../ui/queries/qgisred_statisticsandgraphs_dock.ui" line="755"/>
+        <location filename="../ui/queries/qgisred_statisticsandgraphs_dock.ui" line="835"/>
         <source>Statistics</source>
         <translation>Statistiques</translation>
     </message>
     <message>
-        <location filename="../ui/queries/qgisred_statisticsandgraphs_dock.ui" line="311"/>
+        <location filename="../ui/queries/qgisred_statisticsandgraphs_dock.ui" line="452"/>
         <source>Ranged</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../ui/queries/qgisred_statisticsandgraphs_dock.ui" line="321"/>
+        <location filename="../ui/queries/qgisred_statisticsandgraphs_dock.ui" line="462"/>
         <source># Classes</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../ui/queries/qgisred_statisticsandgraphs_dock.ui" line="301"/>
+        <location filename="../ui/queries/qgisred_statisticsandgraphs_dock.ui" line="442"/>
         <source>Classified by</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../ui/queries/qgisred_statisticsandgraphs_dock.ui" line="505"/>
+        <location filename="../ui/queries/qgisred_statisticsandgraphs_dock.ui" line="258"/>
         <source>From</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../ui/queries/qgisred_statisticsandgraphs_dock.ui" line="427"/>
+        <location filename="../ui/queries/qgisred_statisticsandgraphs_dock.ui" line="180"/>
         <source>Attribute</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../ui/queries/qgisred_statisticsandgraphs_dock.ui" line="512"/>
+        <location filename="../ui/queries/qgisred_statisticsandgraphs_dock.ui" line="265"/>
         <source>To</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../ui/queries/qgisred_statisticsandgraphs_dock.ui" line="617"/>
+        <location filename="../ui/queries/qgisred_statisticsandgraphs_dock.ui" line="650"/>
         <source>Only selected elements</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../ui/queries/qgisred_statisticsandgraphs_dock.ui" line="554"/>
+        <location filename="../ui/queries/qgisred_statisticsandgraphs_dock.ui" line="566"/>
         <source>Analyze</source>
         <translation type="unfinished"></translation>
     </message>
@@ -804,22 +804,17 @@
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../ui/queries/qgisred_statisticsandgraphs_dock.ui" line="26"/>
-        <source>QGISRed: Statistics</source>
-        <translation type="unfinished"></translation>
-    </message>
-    <message>
-        <location filename="../ui/queries/qgisred_statisticsandgraphs_dock.ui" line="331"/>
+        <location filename="../ui/queries/qgisred_statisticsandgraphs_dock.ui" line="472"/>
         <source>Interval</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../ui/queries/qgisred_statisticsandgraphs_dock.ui" line="358"/>
+        <location filename="../ui/queries/qgisred_statisticsandgraphs_dock.ui" line="499"/>
         <source>Edit manual breaks</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../ui/queries/qgisred_statisticsandgraphs_dock.ui" line="361"/>
+        <location filename="../ui/queries/qgisred_statisticsandgraphs_dock.ui" line="502"/>
         <source>...</source>
         <translation type="unfinished">...</translation>
     </message>
@@ -829,33 +824,48 @@
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../ui/queries/qgisred_statisticsandgraphs_dock.ui" line="61"/>
+        <location filename="../ui/queries/qgisred_statisticsandgraphs_dock.ui" line="64"/>
         <source>Setup</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../ui/queries/qgisred_statisticsandgraphs_dock.ui" line="284"/>
-        <source>Second Classification</source>
-        <translation type="unfinished"></translation>
-    </message>
-    <message>
-        <location filename="../ui/queries/qgisred_statisticsandgraphs_dock.ui" line="410"/>
+        <location filename="../ui/queries/qgisred_statisticsandgraphs_dock.ui" line="163"/>
         <source>Filters</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../ui/queries/qgisred_statisticsandgraphs_dock.ui" line="580"/>
+        <location filename="../ui/queries/qgisred_statisticsandgraphs_dock.ui" line="589"/>
         <source>Report</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../ui/queries/qgisred_statisticsandgraphs_dock.ui" line="604"/>
+        <location filename="../ui/queries/qgisred_statisticsandgraphs_dock.ui" line="637"/>
         <source>Histogram</source>
         <translation type="unfinished">Histogramme</translation>
     </message>
     <message>
-        <location filename="../ui/queries/qgisred_statisticsandgraphs_dock.ui" line="744"/>
+        <location filename="../ui/queries/qgisred_statisticsandgraphs_dock.ui" line="777"/>
         <source>Table</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="../ui/queries/qgisred_statisticsandgraphs_dock.ui" line="26"/>
+        <source>QGISRed: Statistics on properties</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="../ui/queries/qgisred_statisticsandgraphs_dock.ui" line="82"/>
+        <source>Property to be analyzed</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="../ui/queries/qgisred_statisticsandgraphs_dock.ui" line="292"/>
+        <source>Classification property</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="../ui/queries/qgisred_statisticsandgraphs_dock.ui" line="425"/>
+        <source>Second classification property</source>
         <translation type="unfinished"></translation>
     </message>
 </context>
@@ -1458,12 +1468,12 @@
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../sections/lifecycle_section.py" line="463"/>
+        <location filename="../sections/lifecycle_section.py" line="474"/>
         <source>QGISRed Dependencies</source>
         <translation type="unfinished">Dépendances de QGISRed</translation>
     </message>
     <message>
-        <location filename="../sections/lifecycle_section.py" line="429"/>
+        <location filename="../sections/lifecycle_section.py" line="440"/>
         <source>QGISRed plugin only runs in Windows OS and requires some dependencies (v{}). Do you want to install them now?</source>
         <translation type="unfinished"></translation>
     </message>
@@ -1473,12 +1483,12 @@
         <translation type="obsolete">Mises à jour de QGISRed</translation>
     </message>
     <message>
-        <location filename="../sections/lifecycle_section.py" line="518"/>
+        <location filename="../sections/lifecycle_section.py" line="529"/>
         <source>QGISRed News</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../sections/lifecycle_section.py" line="463"/>
+        <location filename="../sections/lifecycle_section.py" line="474"/>
         <source>The installation may have failed. Please try again or report the issue in GitHub</source>
         <translation type="unfinished"></translation>
     </message>
@@ -1941,12 +1951,12 @@
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../sections/menu_section.py" line="752"/>
+        <location filename="../sections/menu_section.py" line="761"/>
         <source>Find elements by ID...</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../sections/menu_section.py" line="772"/>
+        <location filename="../sections/menu_section.py" line="752"/>
         <source>Thematic maps...</source>
         <translation type="unfinished"></translation>
     </message>
@@ -1971,7 +1981,7 @@
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../sections/menu_section.py" line="762"/>
+        <location filename="../sections/menu_section.py" line="771"/>
         <source>Element properties...</source>
         <translation type="unfinished"></translation>
     </message>
@@ -2026,11 +2036,6 @@
         <translation type="unfinished">À propos...</translation>
     </message>
     <message>
-        <location filename="../sections/menu_section.py" line="790"/>
-        <source>Statistics...</source>
-        <translation type="unfinished"></translation>
-    </message>
-    <message>
         <location filename="../sections/menu_section.py" line="452"/>
         <source>Edit properties by group...</source>
         <translation type="unfinished"></translation>
@@ -2044,6 +2049,184 @@
         <location filename="../sections/menu_section.py" line="876"/>
         <source>Longitudinal profile...</source>
         <translation type="unfinished">Profil en long...</translation>
+    </message>
+    <message>
+        <location filename="../sections/menu_section.py" line="790"/>
+        <source>Statistics on properties...</source>
+        <translation type="unfinished"></translation>
+    </message>
+</context>
+<context>
+    <name>ProfileSection</name>
+    <message>
+        <location filename="../sections/analysis_section.py" line="936"/>
+        <source>Longitudinal profile...</source>
+        <translation type="obsolete">Profil en long...</translation>
+    </message>
+    <message>
+        <location filename="../sections/profile_section.py" line="827"/>
+        <source>Longitudinal profiles at {0}</source>
+        <translation>Profils en long à {0}</translation>
+    </message>
+    <message>
+        <location filename="../sections/profile_section.py" line="829"/>
+        <source>Longitudinal profiles</source>
+        <translation>Profils en long</translation>
+    </message>
+    <message>
+        <location filename="../sections/profile_section.py" line="121"/>
+        <source>Run a simulation first to build a longitudinal profile.</source>
+        <translation>Lancez d'abord une simulation pour construire un profil en long.</translation>
+    </message>
+    <message>
+        <location filename="../sections/profile_section.py" line="554"/>
+        <source>No network node found at this location.</source>
+        <translation>Aucun nœud du réseau n'a été trouvé à cet endroit.</translation>
+    </message>
+    <message>
+        <location filename="../sections/profile_section.py" line="518"/>
+        <source>Selected node is not connected to the previous one along the network.</source>
+        <translation>Le nœud sélectionné n'est pas connecté au précédent le long du réseau.</translation>
+    </message>
+    <message>
+        <location filename="../sections/profile_section.py" line="776"/>
+        <source>Accumulated head loss</source>
+        <translation>Pertes de charge cumulées</translation>
+    </message>
+    <message>
+        <location filename="../sections/analysis_section.py" line="936"/>
+        <source>Longitudinal profile</source>
+        <translation type="obsolete">Profil en long</translation>
+    </message>
+    <message>
+        <location filename="../sections/profile_section.py" line="856"/>
+        <source>Distance</source>
+        <translation>Distance</translation>
+    </message>
+    <message>
+        <location filename="../sections/profile_section.py" line="795"/>
+        <source>Elevation</source>
+        <translation>Cotes</translation>
+    </message>
+    <message>
+        <location filename="../sections/analysis_section.py" line="936"/>
+        <source>Head</source>
+        <translation type="obsolete">Charge hydraulique</translation>
+    </message>
+    <message>
+        <location filename="../sections/analysis_section.py" line="936"/>
+        <source>Pressure</source>
+        <translation type="obsolete">Pression</translation>
+    </message>
+    <message>
+        <location filename="../sections/analysis_section.py" line="936"/>
+        <source>Quality</source>
+        <translation type="obsolete">Qualité</translation>
+    </message>
+    <message>
+        <location filename="../sections/profile_section.py" line="609"/>
+        <source>Pick an intermediate node of the current profile path.</source>
+        <translation>Sélectionnez un nœud intermédiaire du tracé actuel du profil.</translation>
+    </message>
+    <message>
+        <location filename="../sections/profile_section.py" line="619"/>
+        <source>Pick a declared profile point to remove.</source>
+        <translation>Sélectionnez un point de passage déclaré à supprimer.</translation>
+    </message>
+    <message>
+        <location filename="../sections/profile_section.py" line="631"/>
+        <source>Only declared profile points can be moved.</source>
+        <translation>Seuls les points de passage déclarés peuvent être déplacés.</translation>
+    </message>
+    <message>
+        <location filename="../sections/profile_section.py" line="641"/>
+        <source>The moved node cannot be connected along the network.</source>
+        <translation>Le nœud déplacé ne peut pas être connecté le long du réseau.</translation>
+    </message>
+    <message>
+        <location filename="../sections/profile_section.py" line="913"/>
+        <source>Branch</source>
+        <translation>Branche</translation>
+    </message>
+    <message>
+        <location filename="../sections/profile_section.py" line="568"/>
+        <source>Click a node of the current profile to start a branch.</source>
+        <translation>Cliquez sur un nœud du profil actuel pour démarrer une branche.</translation>
+    </message>
+    <message>
+        <location filename="../sections/profile_section.py" line="575"/>
+        <source>Selected node is not connected to the branch along the network.</source>
+        <translation>Le nœud sélectionné n'est pas connecté à la branche le long du réseau.</translation>
+    </message>
+    <message>
+        <location filename="../sections/profile_section.py" line="856"/>
+        <source>Id</source>
+        <translation>Id</translation>
+    </message>
+    <message>
+        <location filename="../sections/profile_section.py" line="441"/>
+        <source>The profile configuration could not be exported.</source>
+        <translation>La configuration du profil n'a pas pu être exportée.</translation>
+    </message>
+    <message>
+        <location filename="../sections/profile_section.py" line="443"/>
+        <source>Profile configuration exported.</source>
+        <translation>Configuration du profil exportée.</translation>
+    </message>
+    <message>
+        <location filename="../sections/profile_section.py" line="455"/>
+        <source>The profile configuration could not be imported.</source>
+        <translation>La configuration du profil n'a pas pu être importée.</translation>
+    </message>
+    <message>
+        <location filename="../sections/profile_section.py" line="468"/>
+        <source>The saved profile does not match the current network.</source>
+        <translation>Le profil enregistré ne correspond pas au réseau actuel.</translation>
+    </message>
+    <message>
+        <location filename="../sections/profile_section.py" line="500"/>
+        <source>Profile configuration imported.</source>
+        <translation>Configuration du profil importée.</translation>
+    </message>
+    <message>
+        <location filename="../sections/profile_section.py" line="350"/>
+        <source>Maxima</source>
+        <translation>Maxima</translation>
+    </message>
+    <message>
+        <location filename="../sections/profile_section.py" line="351"/>
+        <source>Minima</source>
+        <translation>Minima</translation>
+    </message>
+    <message>
+        <location filename="../sections/profile_section.py" line="352"/>
+        <source>Envelope</source>
+        <translation>Enveloppe</translation>
+    </message>
+    <message>
+        <location filename="../sections/profile_section.py" line="860"/>
+        <source>Maximum</source>
+        <translation>Maximum</translation>
+    </message>
+    <message>
+        <location filename="../sections/profile_section.py" line="860"/>
+        <source>Max. time</source>
+        <translation>Heure max.</translation>
+    </message>
+    <message>
+        <location filename="../sections/profile_section.py" line="860"/>
+        <source>Minimum</source>
+        <translation>Minimum</translation>
+    </message>
+    <message>
+        <location filename="../sections/profile_section.py" line="860"/>
+        <source>Min. time</source>
+        <translation>Heure min.</translation>
+    </message>
+    <message>
+        <location filename="../sections/profile_section.py" line="136"/>
+        <source>QGISRed: Longitudinal profile</source>
+        <translation type="unfinished">QGISRed : Profil en long</translation>
     </message>
 </context>
 <context>
@@ -2555,17 +2738,17 @@ Do you also want to delete the result files from disk?</source>
         <translation>Élément introuvable</translation>
     </message>
     <message>
-        <location filename="../ui/queries/qgisred_element_explorer_dock.py" line="2564"/>
+        <location filename="../ui/queries/qgisred_element_explorer_dock.py" line="2567"/>
         <source>Property</source>
         <translation type="unfinished">Propriété</translation>
     </message>
     <message>
-        <location filename="../ui/queries/qgisred_element_explorer_dock.py" line="2564"/>
+        <location filename="../ui/queries/qgisred_element_explorer_dock.py" line="2567"/>
         <source>Value</source>
         <translation type="unfinished">Valeur</translation>
     </message>
     <message>
-        <location filename="../ui/queries/qgisred_element_explorer_dock.py" line="2564"/>
+        <location filename="../ui/queries/qgisred_element_explorer_dock.py" line="2567"/>
         <source>Units</source>
         <translation type="unfinished"></translation>
     </message>
@@ -2607,6 +2790,11 @@ Do you also want to delete the result files from disk?</source>
     <message>
         <location filename="../ui/queries/qgisred_element_explorer_dock.py" line="1978"/>
         <source>(Mult.Dem)</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="../ui/queries/qgisred_element_explorer_dock.py" line="2555"/>
+        <source>Time</source>
         <translation type="unfinished"></translation>
     </message>
 </context>
@@ -3953,6 +4141,472 @@ Left-click: Add a new item below the current selection</source>
     </message>
 </context>
 <context>
+    <name>QGISRedProfileChartOptionsDialog</name>
+    <message>
+        <location filename="../ui/analysis/qgisred_profile_chart_options_dialog.py" line="19"/>
+        <source>QGISRed: Chart options</source>
+        <translation>QGISRed : Options du graphique</translation>
+    </message>
+    <message>
+        <location filename="../ui/analysis/qgisred_profile_chart_options_dialog.py" line="31"/>
+        <source>Axes</source>
+        <translation>Axes</translation>
+    </message>
+    <message>
+        <location filename="../ui/analysis/qgisred_profile_chart_options_dialog.py" line="32"/>
+        <source>Curves</source>
+        <translation>Courbes</translation>
+    </message>
+    <message>
+        <location filename="../ui/analysis/qgisred_profile_chart_options_dialog.py" line="34"/>
+        <source>General</source>
+        <translation>Général</translation>
+    </message>
+    <message>
+        <location filename="../ui/analysis/qgisred_profile_chart_options_dialog.py" line="51"/>
+        <source>X axis (distance)</source>
+        <translation>Axe X (distance)</translation>
+    </message>
+    <message>
+        <location filename="../sections/analysis_section.py" line="936"/>
+        <source>Y axis (variable)</source>
+        <translation type="obsolete">Axe Y (variable)</translation>
+    </message>
+    <message>
+        <location filename="../ui/analysis/qgisred_profile_chart_options_dialog.py" line="52"/>
+        <source>Y axis (left)</source>
+        <translation>Axe Y (gauche)</translation>
+    </message>
+    <message>
+        <location filename="../ui/analysis/qgisred_profile_chart_options_dialog.py" line="55"/>
+        <source>Y axis (right)</source>
+        <translation>Axe Y (droite)</translation>
+    </message>
+    <message>
+        <location filename="../ui/analysis/qgisred_profile_chart_options_dialog.py" line="65"/>
+        <source>Title:</source>
+        <translation>Titre :</translation>
+    </message>
+    <message>
+        <location filename="../ui/analysis/qgisred_profile_chart_options_dialog.py" line="67"/>
+        <source>Auto scale</source>
+        <translation>Échelle automatique</translation>
+    </message>
+    <message>
+        <location filename="../ui/analysis/qgisred_profile_chart_options_dialog.py" line="72"/>
+        <source>Minimum:</source>
+        <translation>Minimum :</translation>
+    </message>
+    <message>
+        <location filename="../ui/analysis/qgisred_profile_chart_options_dialog.py" line="74"/>
+        <source>Maximum:</source>
+        <translation>Maximum :</translation>
+    </message>
+    <message>
+        <location filename="../ui/analysis/qgisred_profile_chart_options_dialog.py" line="76"/>
+        <source>Show grid</source>
+        <translation>Afficher la grille</translation>
+    </message>
+    <message>
+        <location filename="../sections/analysis_section.py" line="936"/>
+        <source>Curve</source>
+        <translation type="obsolete">Courbe</translation>
+    </message>
+    <message>
+        <location filename="../ui/analysis/qgisred_profile_chart_options_dialog.py" line="116"/>
+        <source>Color</source>
+        <translation>Couleur</translation>
+    </message>
+    <message>
+        <location filename="../ui/analysis/qgisred_profile_chart_options_dialog.py" line="128"/>
+        <source>Line style</source>
+        <translation>Style de ligne</translation>
+    </message>
+    <message>
+        <location filename="../ui/analysis/qgisred_profile_chart_options_dialog.py" line="120"/>
+        <source>Solid</source>
+        <translation>Continue</translation>
+    </message>
+    <message>
+        <location filename="../ui/analysis/qgisred_profile_chart_options_dialog.py" line="121"/>
+        <source>Dashed</source>
+        <translation>Tirets</translation>
+    </message>
+    <message>
+        <location filename="../ui/analysis/qgisred_profile_chart_options_dialog.py" line="122"/>
+        <source>Dotted</source>
+        <translation>Pointillés</translation>
+    </message>
+    <message>
+        <location filename="../ui/analysis/qgisred_profile_chart_options_dialog.py" line="134"/>
+        <source>Width</source>
+        <translation>Épaisseur</translation>
+    </message>
+    <message>
+        <location filename="../ui/analysis/qgisred_profile_chart_options_dialog.py" line="138"/>
+        <source>Markers</source>
+        <translation>Marqueurs</translation>
+    </message>
+    <message>
+        <location filename="../ui/analysis/qgisred_profile_chart_options_dialog.py" line="144"/>
+        <source>Marker size</source>
+        <translation>Taille du marqueur</translation>
+    </message>
+    <message>
+        <location filename="../ui/analysis/qgisred_profile_chart_options_dialog.py" line="115"/>
+        <source>Curve color</source>
+        <translation>Couleur de la courbe</translation>
+    </message>
+    <message>
+        <location filename="../ui/analysis/qgisred_profile_chart_options_dialog.py" line="161"/>
+        <source>Show legend</source>
+        <translation>Afficher la légende</translation>
+    </message>
+    <message>
+        <location filename="../ui/analysis/qgisred_profile_chart_options_dialog.py" line="196"/>
+        <source>Background color</source>
+        <translation>Couleur de fond</translation>
+    </message>
+    <message>
+        <location filename="../ui/analysis/qgisred_profile_chart_options_dialog.py" line="197"/>
+        <source>Plot background:</source>
+        <translation>Fond du graphique :</translation>
+    </message>
+    <message>
+        <location filename="../ui/analysis/qgisred_profile_chart_options_dialog.py" line="33"/>
+        <source>Legend</source>
+        <translation>Légende</translation>
+    </message>
+    <message>
+        <location filename="../ui/analysis/qgisred_profile_chart_options_dialog.py" line="172"/>
+        <source>Position:</source>
+        <translation>Position :</translation>
+    </message>
+    <message>
+        <location filename="../ui/analysis/qgisred_profile_chart_options_dialog.py" line="167"/>
+        <source>Left</source>
+        <translation>Gauche</translation>
+    </message>
+    <message>
+        <location filename="../ui/analysis/qgisred_profile_chart_options_dialog.py" line="167"/>
+        <source>Center</source>
+        <translation>Centre</translation>
+    </message>
+    <message>
+        <location filename="../ui/analysis/qgisred_profile_chart_options_dialog.py" line="167"/>
+        <source>Right</source>
+        <translation>Droite</translation>
+    </message>
+    <message>
+        <location filename="../ui/analysis/qgisred_profile_chart_options_dialog.py" line="177"/>
+        <source>Font size:</source>
+        <translation>Taille de police :</translation>
+    </message>
+    <message>
+        <location filename="../ui/analysis/qgisred_profile_chart_options_dialog.py" line="182"/>
+        <source>Symbol size:</source>
+        <translation>Taille du symbole :</translation>
+    </message>
+    <message>
+        <location filename="../ui/analysis/qgisred_profile_chart_options_dialog.py" line="184"/>
+        <source>Show frame</source>
+        <translation>Afficher le cadre</translation>
+    </message>
+    <message>
+        <location filename="../ui/analysis/qgisred_profile_chart_options_dialog.py" line="189"/>
+        <source>Background:</source>
+        <translation>Fond :</translation>
+    </message>
+</context>
+<context>
+    <name>QGISRedProfileDock</name>
+    <message>
+        <location filename="../sections/analysis_section.py" line="936"/>
+        <source>Longitudinal profile</source>
+        <translation type="obsolete">Profil en long</translation>
+    </message>
+    <message>
+        <location filename="../ui/analysis/qgisred_profile_dock.py" line="56"/>
+        <source>QGISRed: Longitudinal profile</source>
+        <translation>QGISRed : Profil en long</translation>
+    </message>
+    <message>
+        <location filename="../sections/analysis_section.py" line="936"/>
+        <source>Pick path</source>
+        <translation type="obsolete">Tracer le parcours</translation>
+    </message>
+    <message>
+        <location filename="../ui/analysis/qgisred_profile_dock.py" line="94"/>
+        <source>Click network nodes on the map to build the profile path</source>
+        <translation>Cliquez sur les nœuds du réseau sur la carte pour construire le parcours du profil</translation>
+    </message>
+    <message>
+        <location filename="../sections/analysis_section.py" line="936"/>
+        <source>Add point</source>
+        <translation type="obsolete">Ajouter un point</translation>
+    </message>
+    <message>
+        <location filename="../sections/analysis_section.py" line="936"/>
+        <source>Remove point</source>
+        <translation type="obsolete">Supprimer un point</translation>
+    </message>
+    <message>
+        <location filename="../sections/analysis_section.py" line="936"/>
+        <source>Move point</source>
+        <translation type="obsolete">Déplacer un point</translation>
+    </message>
+    <message>
+        <location filename="../ui/analysis/qgisred_profile_dock.py" line="96"/>
+        <source>Convert an intermediate node of the path into a profile point</source>
+        <translation>Convertir un nœud intermédiaire du tracé en point de passage</translation>
+    </message>
+    <message>
+        <location filename="../ui/analysis/qgisred_profile_dock.py" line="98"/>
+        <source>Remove a declared profile point</source>
+        <translation>Supprimer un point de passage déclaré</translation>
+    </message>
+    <message>
+        <location filename="../ui/analysis/qgisred_profile_dock.py" line="100"/>
+        <source>Move a profile point: click it, then its new position</source>
+        <translation>Déplacer un point de passage : cliquez dessus, puis sa nouvelle position</translation>
+    </message>
+    <message>
+        <location filename="../ui/analysis/qgisred_profile_dock.py" line="102"/>
+        <source>Add a branch: click a node of the profile, then the branch endpoints</source>
+        <translation>Ajouter une branche : cliquez sur un nœud du profil, puis les extrémités de la branche</translation>
+    </message>
+    <message>
+        <location filename="../ui/analysis/qgisred_profile_dock.py" line="107"/>
+        <source>Zoom window</source>
+        <translation>Zoom fenêtre</translation>
+    </message>
+    <message>
+        <location filename="../ui/analysis/qgisred_profile_dock.py" line="112"/>
+        <source>Pan</source>
+        <translation>Déplacer</translation>
+    </message>
+    <message>
+        <location filename="../ui/analysis/qgisred_profile_dock.py" line="116"/>
+        <source>Zoom in</source>
+        <translation>Zoom avant</translation>
+    </message>
+    <message>
+        <location filename="../ui/analysis/qgisred_profile_dock.py" line="120"/>
+        <source>Zoom out</source>
+        <translation>Zoom arrière</translation>
+    </message>
+    <message>
+        <location filename="../ui/analysis/qgisred_profile_dock.py" line="124"/>
+        <source>Zoom to full extent</source>
+        <translation>Ajuster à l'étendue</translation>
+    </message>
+    <message>
+        <location filename="../sections/analysis_section.py" line="936"/>
+        <source>Clear</source>
+        <translation type="obsolete">Effacer</translation>
+    </message>
+    <message>
+        <location filename="../ui/analysis/qgisred_profile_dock.py" line="201"/>
+        <source>Remove the current profile path</source>
+        <translation>Supprimer le parcours du profil actuel</translation>
+    </message>
+    <message>
+        <location filename="../ui/analysis/qgisred_profile_dock.py" line="207"/>
+        <source>Variable:</source>
+        <translation>Variable :</translation>
+    </message>
+    <message>
+        <location filename="../sections/analysis_section.py" line="936"/>
+        <source>Elevation</source>
+        <translation type="obsolete">Cotes</translation>
+    </message>
+    <message>
+        <location filename="../sections/analysis_section.py" line="936"/>
+        <source>Head</source>
+        <translation type="obsolete">Charge hydraulique</translation>
+    </message>
+    <message>
+        <location filename="../sections/analysis_section.py" line="936"/>
+        <source>Pressure</source>
+        <translation type="obsolete">Pression</translation>
+    </message>
+    <message>
+        <location filename="../sections/analysis_section.py" line="936"/>
+        <source>Quality</source>
+        <translation type="obsolete">Qualité</translation>
+    </message>
+    <message>
+        <location filename="../sections/analysis_section.py" line="936"/>
+        <source>Accumulated head loss</source>
+        <translation type="obsolete">Pertes de charge cumulées</translation>
+    </message>
+    <message>
+        <location filename="../ui/analysis/qgisred_profile_dock.py" line="267"/>
+        <source>Enable &apos;Pick path&apos; and click nodes on the map</source>
+        <translation>Activez « Tracer le parcours » et cliquez sur les nœuds de la carte</translation>
+    </message>
+    <message>
+        <location filename="../sections/analysis_section.py" line="936"/>
+        <source>Show values</source>
+        <translation type="obsolete">Afficher les valeurs</translation>
+    </message>
+    <message>
+        <location filename="../ui/analysis/qgisred_profile_dock.py" line="130"/>
+        <source>Show the variable value at each declared profile point</source>
+        <translation>Afficher la valeur de la variable à chaque point de passage déclaré</translation>
+    </message>
+    <message>
+        <location filename="../sections/analysis_section.py" line="936"/>
+        <source>Symbols</source>
+        <translation type="obsolete">Symboles</translation>
+    </message>
+    <message>
+        <location filename="../ui/analysis/qgisred_profile_dock.py" line="136"/>
+        <source>Show element symbols and flow direction along the profile</source>
+        <translation>Afficher les symboles des éléments et le sens de l'écoulement le long du profil</translation>
+    </message>
+    <message>
+        <location filename="../sections/analysis_section.py" line="936"/>
+        <source>Envelope</source>
+        <translation type="obsolete">Enveloppe</translation>
+    </message>
+    <message>
+        <location filename="../ui/analysis/qgisred_profile_dock.py" line="142"/>
+        <source>Show the maximum and minimum at each node over the whole simulation</source>
+        <translation>Afficher le maximum et le minimum à chaque nœud sur toute la simulation</translation>
+    </message>
+    <message>
+        <location filename="../ui/analysis/qgisred_profile_dock.py" line="169"/>
+        <source>Show/Hide values table</source>
+        <translation>Afficher/Masquer le tableau de valeurs</translation>
+    </message>
+    <message>
+        <location filename="../ui/analysis/qgisred_profile_dock.py" line="473"/>
+        <source>Export values to CSV</source>
+        <translation>Exporter les valeurs en CSV</translation>
+    </message>
+    <message>
+        <location filename="../ui/analysis/qgisred_profile_dock.py" line="510"/>
+        <source>Save chart as image</source>
+        <translation>Enregistrer le graphique comme image</translation>
+    </message>
+    <message>
+        <location filename="../ui/analysis/qgisred_profile_dock.py" line="162"/>
+        <source>Chart options</source>
+        <translation>Options du graphique</translation>
+    </message>
+    <message>
+        <location filename="../ui/analysis/qgisred_profile_dock.py" line="473"/>
+        <source>CSV file (*.csv)</source>
+        <translation>Fichier CSV (*.csv)</translation>
+    </message>
+    <message>
+        <location filename="../ui/analysis/qgisred_profile_dock.py" line="508"/>
+        <source>PNG image (*.png)</source>
+        <translation>Image PNG (*.png)</translation>
+    </message>
+    <message>
+        <location filename="../ui/analysis/qgisred_profile_dock.py" line="508"/>
+        <source>SVG image (*.svg)</source>
+        <translation>Image SVG (*.svg)</translation>
+    </message>
+    <message>
+        <location filename="../ui/analysis/qgisred_profile_dock.py" line="470"/>
+        <source>There are no values to export</source>
+        <translation>Aucune valeur à exporter</translation>
+    </message>
+    <message>
+        <location filename="../ui/analysis/qgisred_profile_dock.py" line="499"/>
+        <source>The values could not be exported</source>
+        <translation>Les valeurs n'ont pas pu être exportées</translation>
+    </message>
+    <message>
+        <location filename="../ui/analysis/qgisred_profile_dock.py" line="501"/>
+        <source>Values exported to CSV</source>
+        <translation>Valeurs exportées en CSV</translation>
+    </message>
+    <message>
+        <location filename="../ui/analysis/qgisred_profile_dock.py" line="506"/>
+        <source>There is no chart to export</source>
+        <translation>Aucun graphique à exporter</translation>
+    </message>
+    <message>
+        <location filename="../ui/analysis/qgisred_profile_dock.py" line="522"/>
+        <source>The chart image could not be saved</source>
+        <translation>L'image du graphique n'a pas pu être enregistrée</translation>
+    </message>
+    <message>
+        <location filename="../ui/analysis/qgisred_profile_dock.py" line="524"/>
+        <source>Chart image saved</source>
+        <translation>Image du graphique enregistrée</translation>
+    </message>
+    <message>
+        <location filename="../ui/analysis/qgisred_profile_dock.py" line="610"/>
+        <source>Export profile configuration</source>
+        <translation>Exporter la configuration du profil</translation>
+    </message>
+    <message>
+        <location filename="../ui/analysis/qgisred_profile_dock.py" line="623"/>
+        <source>Import profile configuration</source>
+        <translation>Importer la configuration du profil</translation>
+    </message>
+    <message>
+        <location filename="../ui/analysis/qgisred_profile_dock.py" line="194"/>
+        <source>Edit chart description</source>
+        <translation>Modifier la description du graphique</translation>
+    </message>
+    <message>
+        <location filename="../ui/analysis/qgisred_profile_dock.py" line="623"/>
+        <source>Configuration file (*.cfg)</source>
+        <translation>Fichier de configuration (*.cfg)</translation>
+    </message>
+    <message>
+        <location filename="../ui/analysis/qgisred_profile_dock.py" line="633"/>
+        <source>Chart description</source>
+        <translation>Description du graphique</translation>
+    </message>
+    <message>
+        <location filename="../ui/analysis/qgisred_profile_dock.py" line="635"/>
+        <source>Describe the chart content (up to 256 characters):</source>
+        <translation>Décrivez le contenu du graphique (jusqu'à 256 caractères) :</translation>
+    </message>
+    <message>
+        <location filename="../ui/analysis/qgisred_profile_dock.py" line="148"/>
+        <source>Off</source>
+        <translation>Désactivée</translation>
+    </message>
+    <message>
+        <location filename="../ui/analysis/qgisred_profile_dock.py" line="149"/>
+        <source>Shaded band only</source>
+        <translation>Bande ombrée uniquement</translation>
+    </message>
+    <message>
+        <location filename="../ui/analysis/qgisred_profile_dock.py" line="150"/>
+        <source>Boundary lines only</source>
+        <translation>Lignes de contour uniquement</translation>
+    </message>
+    <message>
+        <location filename="../ui/analysis/qgisred_profile_dock.py" line="151"/>
+        <source>Band and lines</source>
+        <translation>Bande et lignes</translation>
+    </message>
+    <message>
+        <location filename="../ui/analysis/qgisred_profile_dock.py" line="88"/>
+        <source>New profile panel</source>
+        <translation>Nouveau panneau de profil</translation>
+    </message>
+    <message>
+        <location filename="../ui/analysis/qgisred_profile_dock.py" line="219"/>
+        <source>2nd axis:</source>
+        <translation>2e axe :</translation>
+    </message>
+    <message>
+        <location filename="../ui/analysis/qgisred_profile_dock.py" line="224"/>
+        <source>None</source>
+        <translation>Aucune</translation>
+    </message>
+</context>
+<context>
     <name>QGISRedProjectIO</name>
     <message>
         <location filename="../tools/utils/qgisred_project_io.py" line="596"/>
@@ -4194,108 +4848,108 @@ Left-click: Add a new item below the current selection</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../ui/queries/qgisred_queriesbyproperties_dock.py" line="253"/>
+        <location filename="../ui/queries/qgisred_queriesbyproperties_dock.py" line="247"/>
         <source>Import criteria from file</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../ui/queries/qgisred_queriesbyproperties_dock.py" line="255"/>
+        <location filename="../ui/queries/qgisred_queriesbyproperties_dock.py" line="249"/>
         <source>Export criteria to file</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../ui/queries/qgisred_queriesbyproperties_dock.py" line="277"/>
+        <location filename="../ui/queries/qgisred_queriesbyproperties_dock.py" line="271"/>
         <source>Export statistics to file</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../ui/queries/qgisred_queriesbyproperties_dock.py" line="489"/>
+        <location filename="../ui/queries/qgisred_queriesbyproperties_dock.py" line="483"/>
         <source>Switch to Single Criteria</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../ui/queries/qgisred_queriesbyproperties_dock.py" line="489"/>
+        <location filename="../ui/queries/qgisred_queriesbyproperties_dock.py" line="483"/>
         <source>Switching to single criteria will discard all criteria except the first one. Proceed?</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../ui/queries/qgisred_queriesbyproperties_dock.py" line="559"/>
+        <location filename="../ui/queries/qgisred_queriesbyproperties_dock.py" line="553"/>
         <source>Nodes</source>
         <translation type="unfinished">Nœuds</translation>
     </message>
     <message>
-        <location filename="../ui/queries/qgisred_queriesbyproperties_dock.py" line="562"/>
+        <location filename="../ui/queries/qgisred_queriesbyproperties_dock.py" line="556"/>
         <source>Links</source>
         <translation type="unfinished">Liens</translation>
     </message>
     <message>
-        <location filename="../ui/queries/qgisred_queriesbyproperties_dock.py" line="1625"/>
+        <location filename="../ui/queries/qgisred_queriesbyproperties_dock.py" line="1611"/>
         <source>Sum</source>
         <translation type="unfinished">Somme</translation>
     </message>
     <message>
-        <location filename="../ui/queries/qgisred_queriesbyproperties_dock.py" line="1625"/>
+        <location filename="../ui/queries/qgisred_queriesbyproperties_dock.py" line="1611"/>
         <source>StdD</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../ui/queries/qgisred_queriesbyproperties_dock.py" line="1631"/>
+        <location filename="../ui/queries/qgisred_queriesbyproperties_dock.py" line="1617"/>
         <source>Count</source>
         <translation type="unfinished">Nombre</translation>
     </message>
     <message>
-        <location filename="../ui/queries/qgisred_queriesbyproperties_dock.py" line="1627"/>
+        <location filename="../ui/queries/qgisred_queriesbyproperties_dock.py" line="1613"/>
         <source>Avg</source>
         <translation type="unfinished">Moyenne</translation>
     </message>
     <message>
-        <location filename="../ui/queries/qgisred_queriesbyproperties_dock.py" line="1627"/>
+        <location filename="../ui/queries/qgisred_queriesbyproperties_dock.py" line="1613"/>
         <source>Min</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../ui/queries/qgisred_queriesbyproperties_dock.py" line="1627"/>
+        <location filename="../ui/queries/qgisred_queriesbyproperties_dock.py" line="1613"/>
         <source>Max</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../ui/queries/qgisred_queriesbyproperties_dock.py" line="1658"/>
+        <location filename="../ui/queries/qgisred_queriesbyproperties_dock.py" line="1644"/>
         <source>All</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../ui/queries/qgisred_queriesbyproperties_dock.py" line="2031"/>
+        <location filename="../ui/queries/qgisred_queriesbyproperties_dock.py" line="2023"/>
         <source>Save criteria file</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../ui/queries/qgisred_queriesbyproperties_dock.py" line="2220"/>
+        <location filename="../ui/queries/qgisred_queriesbyproperties_dock.py" line="2212"/>
         <source>Export successful</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../ui/queries/qgisred_queriesbyproperties_dock.py" line="2220"/>
+        <location filename="../ui/queries/qgisred_queriesbyproperties_dock.py" line="2212"/>
         <source>Saved to:
 </source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../ui/queries/qgisred_queriesbyproperties_dock.py" line="2222"/>
+        <location filename="../ui/queries/qgisred_queriesbyproperties_dock.py" line="2214"/>
         <source>Export failed</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../ui/queries/qgisred_queriesbyproperties_dock.py" line="2065"/>
+        <location filename="../ui/queries/qgisred_queriesbyproperties_dock.py" line="2057"/>
         <source>Open criteria file</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../ui/queries/qgisred_queriesbyproperties_dock.py" line="2144"/>
+        <location filename="../ui/queries/qgisred_queriesbyproperties_dock.py" line="2136"/>
         <source>Import failed</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../ui/queries/qgisred_queriesbyproperties_dock.py" line="2149"/>
+        <location filename="../ui/queries/qgisred_queriesbyproperties_dock.py" line="2141"/>
         <source>Save statistics file</source>
         <translation type="unfinished"></translation>
     </message>
@@ -4305,42 +4959,42 @@ Left-click: Add a new item below the current selection</source>
         <translation type="obsolete">Requêtes</translation>
     </message>
     <message>
-        <location filename="../ui/queries/qgisred_queriesbyproperties_dock.py" line="258"/>
+        <location filename="../ui/queries/qgisred_queriesbyproperties_dock.py" line="252"/>
         <source>Move selected criterion up</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../ui/queries/qgisred_queriesbyproperties_dock.py" line="260"/>
+        <location filename="../ui/queries/qgisred_queriesbyproperties_dock.py" line="254"/>
         <source>Move selected criterion down</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../ui/queries/qgisred_queriesbyproperties_dock.py" line="262"/>
+        <location filename="../ui/queries/qgisred_queriesbyproperties_dock.py" line="256"/>
         <source>Delete selected criterion</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../ui/queries/qgisred_queriesbyproperties_dock.py" line="263"/>
+        <location filename="../ui/queries/qgisred_queriesbyproperties_dock.py" line="257"/>
         <source>Enable/disable selected criterion</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../ui/queries/qgisred_queriesbyproperties_dock.py" line="265"/>
+        <location filename="../ui/queries/qgisred_queriesbyproperties_dock.py" line="259"/>
         <source>Edit selected criterion</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../ui/queries/qgisred_queriesbyproperties_dock.py" line="267"/>
+        <location filename="../ui/queries/qgisred_queriesbyproperties_dock.py" line="261"/>
         <source>Show/hide comment for this set of criteria</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../ui/queries/qgisred_queriesbyproperties_dock.py" line="891"/>
+        <location filename="../ui/queries/qgisred_queriesbyproperties_dock.py" line="885"/>
         <source>None</source>
         <translation type="unfinished">Aucun</translation>
     </message>
     <message>
-        <location filename="../ui/queries/qgisred_queriesbyproperties_dock.py" line="1436"/>
+        <location filename="../ui/queries/qgisred_queriesbyproperties_dock.py" line="1422"/>
         <source>Statistics of %1 for selected Elements</source>
         <translation type="unfinished"></translation>
     </message>
@@ -4499,7 +5153,7 @@ Left-click: Add a new item below the current selection</source>
         <translation type="obsolete">&gt;|</translation>
     </message>
     <message>
-        <location filename="../ui/analysis/qgisred_results_appearance.py" line="104"/>
+        <location filename="../ui/analysis/qgisred_results_appearance.py" line="118"/>
         <source>Nodes</source>
         <translation>Nœuds</translation>
     </message>
@@ -4524,12 +5178,12 @@ Left-click: Add a new item below the current selection</source>
         <translation>Demande</translation>
     </message>
     <message>
-        <location filename="../ui/analysis/qgisred_results_dock.py" line="1009"/>
+        <location filename="../ui/analysis/qgisred_results_dock.py" line="1021"/>
         <source>Quality</source>
         <translation>Qualité</translation>
     </message>
     <message>
-        <location filename="../ui/analysis/qgisred_results_appearance.py" line="110"/>
+        <location filename="../ui/analysis/qgisred_results_appearance.py" line="124"/>
         <source>Links</source>
         <translation>Liens</translation>
     </message>
@@ -4559,7 +5213,7 @@ Left-click: Add a new item below the current selection</source>
         <translation>État</translation>
     </message>
     <message>
-        <location filename="../ui/analysis/qgisred_results_dock.py" line="1652"/>
+        <location filename="../ui/analysis/qgisred_results_dock.py" line="1662"/>
         <source>Some issues occurred in the process</source>
         <translation>Des problèmes sont survenus durant le processus</translation>
     </message>
@@ -4646,12 +5300,12 @@ Left-click: Add a new item below the current selection</source>
     <message>
         <location filename="../ui/analysis/qgisred_results_dock.py" line="83"/>
         <source>Maximum</source>
-        <translation type="unfinished"></translation>
+        <translation type="unfinished">Maximum</translation>
     </message>
     <message>
         <location filename="../ui/analysis/qgisred_results_dock.py" line="84"/>
         <source>Minimum</source>
-        <translation type="unfinished"></translation>
+        <translation type="unfinished">Minimum</translation>
     </message>
     <message>
         <location filename="../ui/analysis/qgisred_results_dock.py" line="85"/>
@@ -4674,7 +5328,7 @@ Left-click: Add a new item below the current selection</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../ui/analysis/qgisred_results_dock.py" line="389"/>
+        <location filename="../ui/analysis/qgisred_results_dock.py" line="401"/>
         <source>The current project has been changed. Please, try again.</source>
         <translation type="unfinished"></translation>
     </message>
@@ -4779,17 +5433,17 @@ Left-click: Add a new item below the current selection</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../ui/analysis/qgisred_results_dock.py" line="518"/>
+        <location filename="../ui/analysis/qgisred_results_dock.py" line="530"/>
         <source>%1 results not found</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../ui/analysis/qgisred_results_dock.py" line="1304"/>
+        <location filename="../ui/analysis/qgisred_results_dock.py" line="1316"/>
         <source>for %1</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../ui/analysis/qgisred_results_dock.py" line="1592"/>
+        <location filename="../ui/analysis/qgisred_results_dock.py" line="1602"/>
         <source>No %1 results are available</source>
         <translation type="unfinished"></translation>
     </message>
@@ -4804,32 +5458,32 @@ Left-click: Add a new item below the current selection</source>
         <translation type="obsolete">hh</translation>
     </message>
     <message>
-        <location filename="../ui/analysis/qgisred_results_dock.py" line="1052"/>
+        <location filename="../ui/analysis/qgisred_results_dock.py" line="1064"/>
         <source>24h format</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../ui/analysis/qgisred_results_dock.py" line="1053"/>
+        <location filename="../ui/analysis/qgisred_results_dock.py" line="1065"/>
         <source>dd hh:mm:ss format</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../ui/analysis/qgisred_results_dock.py" line="1053"/>
+        <location filename="../ui/analysis/qgisred_results_dock.py" line="1065"/>
         <source>HH:mm:ss format</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../ui/analysis/qgisred_results_dock.py" line="1051"/>
+        <location filename="../ui/analysis/qgisred_results_dock.py" line="1063"/>
         <source>Elapsed time</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../ui/analysis/qgisred_results_dock.py" line="1051"/>
+        <location filename="../ui/analysis/qgisred_results_dock.py" line="1063"/>
         <source>Civil hour</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../ui/analysis/qgisred_results_dock.py" line="1052"/>
+        <location filename="../ui/analysis/qgisred_results_dock.py" line="1064"/>
         <source>am/pm format</source>
         <translation type="unfinished"></translation>
     </message>
@@ -4869,62 +5523,57 @@ Left-click: Add a new item below the current selection</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../ui/analysis/qgisred_results_dock.ui" line="1307"/>
+        <location filename="../ui/analysis/qgisred_results_dock.ui" line="1367"/>
         <source>Nodes:</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../ui/analysis/qgisred_results_dock.ui" line="1333"/>
+        <location filename="../ui/analysis/qgisred_results_dock.ui" line="1413"/>
         <source>Links:</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../ui/analysis/qgisred_results_dock.ui" line="1239"/>
+        <location filename="../ui/analysis/qgisred_results_dock.ui" line="1299"/>
         <source>Text color:</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../ui/analysis/qgisred_results_dock.ui" line="1248"/>
+        <location filename="../ui/analysis/qgisred_results_dock.ui" line="1308"/>
         <source>Black</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../ui/analysis/qgisred_results_dock.ui" line="1258"/>
+        <location filename="../ui/analysis/qgisred_results_dock.ui" line="1318"/>
         <source>By range</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../ui/analysis/qgisred_results_dock.ui" line="1267"/>
+        <location filename="../ui/analysis/qgisred_results_dock.ui" line="1327"/>
         <source>Show ID alongside value</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../ui/analysis/qgisred_results_dock.ui" line="1359"/>
+        <location filename="../ui/analysis/qgisred_results_dock.ui" line="1459"/>
         <source>Arrows:</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../ui/analysis/qgisred_results_dock.ui" line="1388"/>
+        <location filename="../ui/analysis/qgisred_results_dock.ui" line="1508"/>
         <source>Map Background</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../ui/analysis/qgisred_results_appearance.py" line="207"/>
+        <location filename="../ui/analysis/qgisred_results_appearance.py" line="266"/>
         <source>No color</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../ui/analysis/qgisred_results_dock.ui" line="1403"/>
-        <source>×</source>
-        <translation type="unfinished"></translation>
-    </message>
-    <message>
-        <location filename="../ui/analysis/qgisred_results_dock.ui" line="1406"/>
+        <location filename="../ui/analysis/qgisred_results_dock.ui" line="1526"/>
         <source>Clear background color</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../ui/analysis/qgisred_results_dock.ui" line="1437"/>
+        <location filename="../ui/analysis/qgisred_results_dock.ui" line="1557"/>
         <source>Reset all</source>
         <translation type="unfinished"></translation>
     </message>
@@ -4934,12 +5583,12 @@ Left-click: Add a new item below the current selection</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../ui/analysis/qgisred_results_appearance.py" line="111"/>
+        <location filename="../ui/analysis/qgisred_results_appearance.py" line="125"/>
         <source>%1 decimals</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../ui/analysis/qgisred_results_appearance.py" line="137"/>
+        <location filename="../ui/analysis/qgisred_results_appearance.py" line="180"/>
         <source>Map background color</source>
         <translation type="unfinished"></translation>
     </message>
@@ -4959,23 +5608,33 @@ Left-click: Add a new item below the current selection</source>
         <translation>Histogramme</translation>
     </message>
     <message>
-        <location filename="../ui/analysis/qgisred_results_dock.ui" line="1290"/>
+        <location filename="../ui/analysis/qgisred_results_dock.ui" line="1350"/>
         <source>Proportional to value</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../ui/analysis/qgisred_results_dock.ui" line="1277"/>
+        <location filename="../ui/analysis/qgisred_results_dock.ui" line="1337"/>
         <source>Symbology</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../ui/analysis/qgisred_results_dock.ui" line="1283"/>
+        <location filename="../ui/analysis/qgisred_results_dock.ui" line="1343"/>
         <source>Hide border on junctions</source>
         <translation>Masquer la bordure des jonctions</translation>
     </message>
     <message>
-        <location filename="../ui/analysis/qgisred_results_dock.ui" line="1297"/>
+        <location filename="../ui/analysis/qgisred_results_dock.ui" line="1357"/>
         <source>Size factor</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="../ui/analysis/qgisred_results_dock.ui" line="1490"/>
+        <source>↺</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="../ui/analysis/qgisred_results_dock.ui" line="1493"/>
+        <source>Restore value</source>
         <translation type="unfinished"></translation>
     </message>
 </context>
@@ -5081,313 +5740,338 @@ Left-click: Add a new item below the current selection</source>
 <context>
     <name>QGISRedStatisticsDock</name>
     <message>
-        <location filename="../ui/queries/qgisred_statisticsandgraphs_dock.py" line="226"/>
+        <location filename="../ui/queries/qgisred_statisticsandgraphs_dock.py" line="264"/>
         <source>Mouse wheel: zoom · Drag: pan · Double-click: reset view</source>
         <translation>Molette : zoom · Glisser : déplacer · Double-clic : réinitialiser la vue</translation>
     </message>
     <message>
-        <location filename="../ui/queries/qgisred_statisticsandgraphs_dock.py" line="356"/>
+        <location filename="../ui/queries/qgisred_statisticsandgraphs_dock.py" line="396"/>
         <source>Import query configuration (.json)</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../ui/queries/qgisred_statisticsandgraphs_dock.py" line="358"/>
+        <location filename="../ui/queries/qgisred_statisticsandgraphs_dock.py" line="398"/>
         <source>Export query configuration (.json)</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../ui/queries/qgisred_statisticsandgraphs_dock.py" line="2363"/>
+        <location filename="../ui/queries/qgisred_statisticsandgraphs_dock.py" line="3007"/>
         <source>Export table to CSV</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../ui/queries/qgisred_statisticsandgraphs_dock.py" line="597"/>
+        <location filename="../ui/queries/qgisred_statisticsandgraphs_dock.py" line="761"/>
         <source>Nodes</source>
         <translation type="unfinished">Nœuds</translation>
     </message>
     <message>
-        <location filename="../ui/queries/qgisred_statisticsandgraphs_dock.py" line="600"/>
+        <location filename="../ui/queries/qgisred_statisticsandgraphs_dock.py" line="764"/>
         <source>Links</source>
         <translation type="unfinished">Liens</translation>
     </message>
     <message>
-        <location filename="../ui/queries/qgisred_statisticsandgraphs_dock.py" line="1050"/>
+        <location filename="../ui/queries/qgisred_statisticsandgraphs_dock.py" line="1226"/>
         <source>Categories</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../ui/queries/qgisred_statisticsandgraphs_dock.py" line="1050"/>
+        <location filename="../ui/queries/qgisred_statisticsandgraphs_dock.py" line="1226"/>
         <source>Equal Interval</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../ui/queries/qgisred_statisticsandgraphs_dock.py" line="1050"/>
+        <location filename="../ui/queries/qgisred_statisticsandgraphs_dock.py" line="1226"/>
         <source>Fixed Interval</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../ui/queries/qgisred_statisticsandgraphs_dock.py" line="1050"/>
+        <location filename="../ui/queries/qgisred_statisticsandgraphs_dock.py" line="1226"/>
         <source>Equal Count</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../ui/queries/qgisred_statisticsandgraphs_dock.py" line="1050"/>
+        <location filename="../ui/queries/qgisred_statisticsandgraphs_dock.py" line="1226"/>
         <source>Natural Breaks</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../ui/queries/qgisred_statisticsandgraphs_dock.py" line="1050"/>
+        <location filename="../ui/queries/qgisred_statisticsandgraphs_dock.py" line="1226"/>
         <source>Pretty Breaks</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../ui/queries/qgisred_statisticsandgraphs_dock.py" line="1050"/>
+        <location filename="../ui/queries/qgisred_statisticsandgraphs_dock.py" line="1226"/>
         <source>Manual</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../ui/queries/qgisred_statisticsandgraphs_dock.py" line="2355"/>
+        <location filename="../ui/queries/qgisred_statisticsandgraphs_dock.py" line="2999"/>
         <source>No data</source>
         <translation type="unfinished">Pas de données</translation>
     </message>
     <message>
-        <location filename="../ui/queries/qgisred_statisticsandgraphs_dock.py" line="1368"/>
+        <location filename="../ui/queries/qgisred_statisticsandgraphs_dock.py" line="1568"/>
         <source>No numeric values available for the selected classification field.</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../ui/queries/qgisred_statisticsandgraphs_dock.py" line="1407"/>
+        <location filename="../ui/queries/qgisred_statisticsandgraphs_dock.py" line="1594"/>
         <source>No layer</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../ui/queries/qgisred_statisticsandgraphs_dock.py" line="1392"/>
+        <location filename="../ui/queries/qgisred_statisticsandgraphs_dock.py" line="1594"/>
         <source>The selected element type has no matching layer in the current project.</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../ui/queries/qgisred_statisticsandgraphs_dock.py" line="1407"/>
-        <source>Cannot resolve the data layer for the selected fields.</source>
-        <translation type="unfinished"></translation>
-    </message>
-    <message>
-        <location filename="../ui/queries/qgisred_statisticsandgraphs_dock.py" line="1444"/>
+        <location filename="../ui/queries/qgisred_statisticsandgraphs_dock.py" line="1615"/>
         <source>Layer mismatch</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../ui/queries/qgisred_statisticsandgraphs_dock.py" line="1410"/>
-        <source>Property and classification fields must come from the same layer.</source>
-        <translation type="unfinished"></translation>
-    </message>
-    <message>
-        <location filename="../ui/queries/qgisred_statisticsandgraphs_dock.py" line="1421"/>
+        <location filename="../ui/queries/qgisred_statisticsandgraphs_dock.py" line="1629"/>
         <source>Field missing</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../ui/queries/qgisred_statisticsandgraphs_dock.py" line="1418"/>
-        <source>Property field &apos;{0}&apos; was not found on the layer.</source>
-        <translation type="unfinished"></translation>
-    </message>
-    <message>
-        <location filename="../ui/queries/qgisred_statisticsandgraphs_dock.py" line="1421"/>
-        <source>Classification field &apos;{0}&apos; was not found on the layer.</source>
-        <translation type="unfinished"></translation>
-    </message>
-    <message>
-        <location filename="../ui/queries/qgisred_statisticsandgraphs_dock.py" line="1594"/>
+        <location filename="../ui/queries/qgisred_statisticsandgraphs_dock.py" line="2086"/>
         <source>by</source>
         <translation>par</translation>
     </message>
     <message>
-        <location filename="../ui/queries/qgisred_statisticsandgraphs_dock.py" line="2179"/>
+        <location filename="../ui/queries/qgisred_statisticsandgraphs_dock.py" line="2797"/>
         <source>Count</source>
         <translation>Nombre</translation>
     </message>
     <message>
-        <location filename="../ui/queries/qgisred_statisticsandgraphs_dock.py" line="1692"/>
+        <location filename="../ui/queries/qgisred_statisticsandgraphs_dock.py" line="2196"/>
         <source>No selection</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../ui/queries/qgisred_statisticsandgraphs_dock.py" line="1692"/>
+        <location filename="../ui/queries/qgisred_statisticsandgraphs_dock.py" line="2196"/>
         <source>&apos;Only selected elements&apos; is checked but no features are selected on the active layer.</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../ui/queries/qgisred_statisticsandgraphs_dock.py" line="1735"/>
+        <location filename="../ui/queries/qgisred_statisticsandgraphs_dock.py" line="2246"/>
         <source>Range filter</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../ui/queries/qgisred_statisticsandgraphs_dock.py" line="1726"/>
+        <location filename="../ui/queries/qgisred_statisticsandgraphs_dock.py" line="2237"/>
         <source>Both &apos;From&apos; and &apos;To&apos; values are required for a Range filter.</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../ui/queries/qgisred_statisticsandgraphs_dock.py" line="1732"/>
+        <location filename="../ui/queries/qgisred_statisticsandgraphs_dock.py" line="2243"/>
         <source>&apos;From&apos; and &apos;To&apos; must be numeric.</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../ui/queries/qgisred_statisticsandgraphs_dock.py" line="1735"/>
+        <location filename="../ui/queries/qgisred_statisticsandgraphs_dock.py" line="2246"/>
         <source>&apos;From&apos; must be less than or equal to &apos;To&apos;.</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../ui/queries/qgisred_statisticsandgraphs_dock.py" line="1753"/>
+        <location filename="../ui/queries/qgisred_statisticsandgraphs_dock.py" line="2264"/>
         <source>Filter value</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../ui/queries/qgisred_statisticsandgraphs_dock.py" line="1753"/>
+        <location filename="../ui/queries/qgisred_statisticsandgraphs_dock.py" line="2264"/>
         <source>Numeric value required for this condition.</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../ui/queries/qgisred_statisticsandgraphs_dock.py" line="1772"/>
+        <location filename="../ui/queries/qgisred_statisticsandgraphs_dock.py" line="2325"/>
         <source>No numeric values available for classification.</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../ui/queries/qgisred_statisticsandgraphs_dock.py" line="1780"/>
+        <location filename="../ui/queries/qgisred_statisticsandgraphs_dock.py" line="2334"/>
         <source>Breaks failed</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../ui/queries/qgisred_statisticsandgraphs_dock.py" line="1780"/>
+        <location filename="../ui/queries/qgisred_statisticsandgraphs_dock.py" line="2334"/>
         <source>Unable to compute breaks for the chosen method.</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../ui/queries/qgisred_statisticsandgraphs_dock.py" line="1843"/>
+        <location filename="../ui/queries/qgisred_statisticsandgraphs_dock.py" line="2397"/>
         <source>(empty)</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../ui/queries/qgisred_statisticsandgraphs_dock.py" line="1969"/>
+        <location filename="../ui/queries/qgisred_statisticsandgraphs_dock.py" line="2548"/>
         <source>Range</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../ui/queries/qgisred_statisticsandgraphs_dock.py" line="1975"/>
+        <location filename="../ui/queries/qgisred_statisticsandgraphs_dock.py" line="2554"/>
         <source>Only selected elements</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../ui/queries/qgisred_statisticsandgraphs_dock.py" line="1978"/>
+        <location filename="../ui/queries/qgisred_statisticsandgraphs_dock.py" line="2557"/>
         <source>{0} nulls excluded</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../ui/queries/qgisred_statisticsandgraphs_dock.py" line="1980"/>
+        <location filename="../ui/queries/qgisred_statisticsandgraphs_dock.py" line="2559"/>
         <source>{0} out-of-range excluded</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../ui/queries/qgisred_statisticsandgraphs_dock.py" line="2111"/>
+        <location filename="../ui/queries/qgisred_statisticsandgraphs_dock.py" line="2726"/>
         <source>Sum</source>
         <translation type="unfinished">Somme</translation>
     </message>
     <message>
-        <location filename="../ui/queries/qgisred_statisticsandgraphs_dock.py" line="2113"/>
+        <location filename="../ui/queries/qgisred_statisticsandgraphs_dock.py" line="2728"/>
         <source>StdD</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../ui/queries/qgisred_statisticsandgraphs_dock.py" line="2113"/>
+        <location filename="../ui/queries/qgisred_statisticsandgraphs_dock.py" line="2728"/>
         <source>Avg</source>
         <translation type="unfinished">Moyenne</translation>
     </message>
     <message>
-        <location filename="../ui/queries/qgisred_statisticsandgraphs_dock.py" line="2113"/>
+        <location filename="../ui/queries/qgisred_statisticsandgraphs_dock.py" line="2728"/>
         <source>Min</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../ui/queries/qgisred_statisticsandgraphs_dock.py" line="2113"/>
+        <location filename="../ui/queries/qgisred_statisticsandgraphs_dock.py" line="2728"/>
         <source>Max</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../ui/queries/qgisred_statisticsandgraphs_dock.py" line="2202"/>
+        <location filename="../ui/queries/qgisred_statisticsandgraphs_dock.py" line="2821"/>
         <source>Total</source>
         <translation type="unfinished">Total</translation>
     </message>
     <message>
-        <location filename="../ui/queries/qgisred_statisticsandgraphs_dock.py" line="2255"/>
+        <location filename="../ui/queries/qgisred_statisticsandgraphs_dock.py" line="2878"/>
         <source>Import query configuration</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../ui/queries/qgisred_statisticsandgraphs_dock.py" line="2267"/>
+        <location filename="../ui/queries/qgisred_statisticsandgraphs_dock.py" line="2890"/>
         <source>Unrecognized configuration schema.</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../ui/queries/qgisred_statisticsandgraphs_dock.py" line="2270"/>
+        <location filename="../ui/queries/qgisred_statisticsandgraphs_dock.py" line="2893"/>
         <source>Import failed</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../ui/queries/qgisred_statisticsandgraphs_dock.py" line="2322"/>
+        <location filename="../ui/queries/qgisred_statisticsandgraphs_dock.py" line="2962"/>
         <source>Export query configuration</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../ui/queries/qgisred_statisticsandgraphs_dock.py" line="2397"/>
+        <location filename="../ui/queries/qgisred_statisticsandgraphs_dock.py" line="3049"/>
         <source>Export failed</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../ui/queries/qgisred_statisticsandgraphs_dock.py" line="2355"/>
+        <location filename="../ui/queries/qgisred_statisticsandgraphs_dock.py" line="2999"/>
         <source>Run Analyze before exporting the table.</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../ui/queries/qgisred_statisticsandgraphs_dock.py" line="314"/>
+        <location filename="../ui/queries/qgisred_statisticsandgraphs_dock.py" line="352"/>
         <source>Expand histogram to a floating window</source>
         <translation type="unfinished">Agrandir l'histogramme dans une fenêtre flottante</translation>
     </message>
     <message>
-        <location filename="../ui/queries/qgisred_statisticsandgraphs_dock.py" line="314"/>
+        <location filename="../ui/queries/qgisred_statisticsandgraphs_dock.py" line="352"/>
         <source>Collapse histogram back to the panel</source>
         <translation type="unfinished">Réduire l'histogramme dans le panneau</translation>
     </message>
     <message>
-        <location filename="../ui/queries/qgisred_statisticsandgraphs_dock.py" line="927"/>
+        <location filename="../ui/queries/qgisred_statisticsandgraphs_dock.py" line="3019"/>
         <source>None</source>
         <translation type="unfinished">Aucun</translation>
     </message>
     <message>
-        <location filename="../ui/queries/qgisred_statisticsandgraphs_dock.py" line="1075"/>
+        <location filename="../ui/queries/qgisred_statisticsandgraphs_dock.py" line="1251"/>
         <source>No Filter</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../ui/queries/qgisred_statisticsandgraphs_dock.py" line="1444"/>
-        <source>The second classification field must come from the same layer.</source>
-        <translation type="unfinished"></translation>
-    </message>
-    <message>
-        <location filename="../ui/queries/qgisred_statisticsandgraphs_dock.py" line="1487"/>
+        <location filename="../ui/queries/qgisred_statisticsandgraphs_dock.py" line="1841"/>
         <source>All groups</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../ui/queries/qgisred_statisticsandgraphs_dock.py" line="1601"/>
+        <location filename="../ui/queries/qgisred_statisticsandgraphs_dock.py" line="2097"/>
         <source>for</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../ui/queries/qgisred_statisticsandgraphs_dock.py" line="1600"/>
+        <location filename="../ui/queries/qgisred_statisticsandgraphs_dock.py" line="2096"/>
         <source>on Range</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../ui/queries/qgisred_statisticsandgraphs_dock.py" line="2075"/>
+        <location filename="../ui/queries/qgisred_statisticsandgraphs_dock.py" line="2661"/>
         <source>All</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="../ui/queries/qgisred_statisticsandgraphs_dock.py" line="648"/>
+        <source>values for report times</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="../ui/queries/qgisred_statisticsandgraphs_dock.py" line="651"/>
+        <source>Time</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="../ui/queries/qgisred_statisticsandgraphs_dock.py" line="1615"/>
+        <source>The selected properties must belong to the same element type.</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="../ui/queries/qgisred_statisticsandgraphs_dock.py" line="1624"/>
+        <source>No results</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="../ui/queries/qgisred_statisticsandgraphs_dock.py" line="1624"/>
+        <source>Results are not available for this element type.</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="../ui/queries/qgisred_statisticsandgraphs_dock.py" line="1629"/>
+        <source>Result field &apos;{0}&apos; was not found on the results layer.</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="../ui/queries/qgisred_statisticsandgraphs_dock.py" line="2105"/>
+        <source>Stats for</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="../ui/queries/qgisred_statisticsandgraphs_dock.py" line="2081"/>
+        <source>by Categories</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="../ui/queries/qgisred_statisticsandgraphs_dock.py" line="2081"/>
+        <source>by Ranges</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="../ui/queries/qgisred_statisticsandgraphs_dock.py" line="3026"/>
+        <source>and</source>
         <translation type="unfinished"></translation>
     </message>
 </context>
@@ -6826,7 +7510,7 @@ Left-click: Add a new item below the current selection</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../ui/analysis/qgisred_results_rendering.py" line="654"/>
+        <location filename="../ui/analysis/qgisred_results_rendering.py" line="657"/>
         <source>Some issue occurred in the process of applying the style to the layer %1</source>
         <translation type="unfinished"></translation>
     </message>
@@ -6834,8 +7518,8 @@ Left-click: Add a new item below the current selection</source>
 <context>
     <name>_StatisticsHistogramPopoutWindow</name>
     <message>
-        <location filename="../ui/queries/qgisred_statisticsandgraphs_dock.py" line="119"/>
-        <source>QGISRed: Statistics Histogram</source>
+        <location filename="../ui/queries/qgisred_statisticsandgraphs_dock.py" line="124"/>
+        <source>QGISRed: Statistics on properties Histogram</source>
         <translation type="unfinished"></translation>
     </message>
 </context>
@@ -6855,515 +7539,6 @@ Left-click: Add a new item below the current selection</source>
         <location filename="../sections/analysis_section.py" line="936"/>
         <source>Show overflow flow instead</source>
         <translation type="unfinished">Afficher plutôt le débit de débordement</translation>
-    </message>
-</context>
-<context>
-    <name>ProfileSection</name>
-    <message>
-        <source>Longitudinal profile...</source>
-        <translation>Profil en long...</translation>
-    </message>
-    <message>
-        <source>Longitudinal profiles at {0}</source>
-        <translation>Profils en long à {0}</translation>
-    </message>
-    <message>
-        <source>Longitudinal profiles</source>
-        <translation>Profils en long</translation>
-    </message>
-    <message>
-        <source>Run a simulation first to build a longitudinal profile.</source>
-        <translation>Lancez d'abord une simulation pour construire un profil en long.</translation>
-    </message>
-    <message>
-        <source>No network node found at this location.</source>
-        <translation>Aucun nœud du réseau n'a été trouvé à cet endroit.</translation>
-    </message>
-    <message>
-        <source>Selected node is not connected to the previous one along the network.</source>
-        <translation>Le nœud sélectionné n'est pas connecté au précédent le long du réseau.</translation>
-    </message>
-    <message>
-        <source>Accumulated head loss</source>
-        <translation>Pertes de charge cumulées</translation>
-    </message>
-    <message>
-        <source>Longitudinal profile</source>
-        <translation>Profil en long</translation>
-    </message>
-    <message>
-        <source>Distance</source>
-        <translation>Distance</translation>
-    </message>
-    <message>
-        <source>Elevation</source>
-        <translation>Cotes</translation>
-    </message>
-    <message>
-        <source>Head</source>
-        <translation>Charge hydraulique</translation>
-    </message>
-    <message>
-        <source>Pressure</source>
-        <translation>Pression</translation>
-    </message>
-    <message>
-        <source>Quality</source>
-        <translation>Qualité</translation>
-    </message>
-    <message>
-        <source>Pick an intermediate node of the current profile path.</source>
-        <translation>Sélectionnez un nœud intermédiaire du tracé actuel du profil.</translation>
-    </message>
-    <message>
-        <source>Pick a declared profile point to remove.</source>
-        <translation>Sélectionnez un point de passage déclaré à supprimer.</translation>
-    </message>
-    <message>
-        <source>Only declared profile points can be moved.</source>
-        <translation>Seuls les points de passage déclarés peuvent être déplacés.</translation>
-    </message>
-    <message>
-        <source>The moved node cannot be connected along the network.</source>
-        <translation>Le nœud déplacé ne peut pas être connecté le long du réseau.</translation>
-    </message>
-    <message>
-        <source>Branch</source>
-        <translation>Branche</translation>
-    </message>
-    <message>
-        <source>Click a node of the current profile to start a branch.</source>
-        <translation>Cliquez sur un nœud du profil actuel pour démarrer une branche.</translation>
-    </message>
-    <message>
-        <source>Selected node is not connected to the branch along the network.</source>
-        <translation>Le nœud sélectionné n'est pas connecté à la branche le long du réseau.</translation>
-    </message>
-    <message>
-        <source>Id</source>
-        <translation>Id</translation>
-    </message>
-    <message>
-        <source>The profile configuration could not be exported.</source>
-        <translation>La configuration du profil n'a pas pu être exportée.</translation>
-    </message>
-    <message>
-        <source>Profile configuration exported.</source>
-        <translation>Configuration du profil exportée.</translation>
-    </message>
-    <message>
-        <source>The profile configuration could not be imported.</source>
-        <translation>La configuration du profil n'a pas pu être importée.</translation>
-    </message>
-    <message>
-        <source>The saved profile does not match the current network.</source>
-        <translation>Le profil enregistré ne correspond pas au réseau actuel.</translation>
-    </message>
-    <message>
-        <source>Profile configuration imported.</source>
-        <translation>Configuration du profil importée.</translation>
-    </message>
-    <message>
-        <source>Maxima</source>
-        <translation>Maxima</translation>
-    </message>
-    <message>
-        <source>Minima</source>
-        <translation>Minima</translation>
-    </message>
-    <message>
-        <source>Envelope</source>
-        <translation>Enveloppe</translation>
-    </message>
-    <message>
-        <source>Maximum</source>
-        <translation>Maximum</translation>
-    </message>
-    <message>
-        <source>Max. time</source>
-        <translation>Heure max.</translation>
-    </message>
-    <message>
-        <source>Minimum</source>
-        <translation>Minimum</translation>
-    </message>
-    <message>
-        <source>Min. time</source>
-        <translation>Heure min.</translation>
-    </message>
-</context>
-<context>
-    <name>QGISRedProfileDock</name>
-    <message>
-        <source>Longitudinal profile</source>
-        <translation>Profil en long</translation>
-    </message>
-    <message>
-        <source>QGISRed: Longitudinal profile</source>
-        <translation>QGISRed : Profil en long</translation>
-    </message>
-    <message>
-        <source>Pick path</source>
-        <translation>Tracer le parcours</translation>
-    </message>
-    <message>
-        <source>Click network nodes on the map to build the profile path</source>
-        <translation>Cliquez sur les nœuds du réseau sur la carte pour construire le parcours du profil</translation>
-    </message>
-    <message>
-        <source>Add point</source>
-        <translation>Ajouter un point</translation>
-    </message>
-    <message>
-        <source>Remove point</source>
-        <translation>Supprimer un point</translation>
-    </message>
-    <message>
-        <source>Move point</source>
-        <translation>Déplacer un point</translation>
-    </message>
-    <message>
-        <source>Convert an intermediate node of the path into a profile point</source>
-        <translation>Convertir un nœud intermédiaire du tracé en point de passage</translation>
-    </message>
-    <message>
-        <source>Remove a declared profile point</source>
-        <translation>Supprimer un point de passage déclaré</translation>
-    </message>
-    <message>
-        <source>Move a profile point: click it, then its new position</source>
-        <translation>Déplacer un point de passage : cliquez dessus, puis sa nouvelle position</translation>
-    </message>
-    <message>
-        <source>Add a branch: click a node of the profile, then the branch endpoints</source>
-        <translation>Ajouter une branche : cliquez sur un nœud du profil, puis les extrémités de la branche</translation>
-    </message>
-    <message>
-        <source>Zoom window</source>
-        <translation>Zoom fenêtre</translation>
-    </message>
-    <message>
-        <source>Pan</source>
-        <translation>Déplacer</translation>
-    </message>
-    <message>
-        <source>Zoom in</source>
-        <translation>Zoom avant</translation>
-    </message>
-    <message>
-        <source>Zoom out</source>
-        <translation>Zoom arrière</translation>
-    </message>
-    <message>
-        <source>Zoom to full extent</source>
-        <translation>Ajuster à l'étendue</translation>
-    </message>
-    <message>
-        <source>Clear</source>
-        <translation>Effacer</translation>
-    </message>
-    <message>
-        <source>Remove the current profile path</source>
-        <translation>Supprimer le parcours du profil actuel</translation>
-    </message>
-    <message>
-        <source>Variable:</source>
-        <translation>Variable :</translation>
-    </message>
-    <message>
-        <source>Elevation</source>
-        <translation>Cotes</translation>
-    </message>
-    <message>
-        <source>Head</source>
-        <translation>Charge hydraulique</translation>
-    </message>
-    <message>
-        <source>Pressure</source>
-        <translation>Pression</translation>
-    </message>
-    <message>
-        <source>Quality</source>
-        <translation>Qualité</translation>
-    </message>
-    <message>
-        <source>Accumulated head loss</source>
-        <translation>Pertes de charge cumulées</translation>
-    </message>
-    <message>
-        <source>Enable 'Pick path' and click nodes on the map</source>
-        <translation>Activez « Tracer le parcours » et cliquez sur les nœuds de la carte</translation>
-    </message>
-    <message>
-        <source>Show values</source>
-        <translation>Afficher les valeurs</translation>
-    </message>
-    <message>
-        <source>Show the variable value at each declared profile point</source>
-        <translation>Afficher la valeur de la variable à chaque point de passage déclaré</translation>
-    </message>
-    <message>
-        <source>Symbols</source>
-        <translation>Symboles</translation>
-    </message>
-    <message>
-        <source>Show element symbols and flow direction along the profile</source>
-        <translation>Afficher les symboles des éléments et le sens de l'écoulement le long du profil</translation>
-    </message>
-    <message>
-        <source>Envelope</source>
-        <translation>Enveloppe</translation>
-    </message>
-    <message>
-        <source>Show the maximum and minimum at each node over the whole simulation</source>
-        <translation>Afficher le maximum et le minimum à chaque nœud sur toute la simulation</translation>
-    </message>
-    <message>
-        <source>Show/Hide values table</source>
-        <translation>Afficher/Masquer le tableau de valeurs</translation>
-    </message>
-    <message>
-        <source>Export values to CSV</source>
-        <translation>Exporter les valeurs en CSV</translation>
-    </message>
-    <message>
-        <source>Save chart as image</source>
-        <translation>Enregistrer le graphique comme image</translation>
-    </message>
-    <message>
-        <source>Chart options</source>
-        <translation>Options du graphique</translation>
-    </message>
-    <message>
-        <source>CSV file (*.csv)</source>
-        <translation>Fichier CSV (*.csv)</translation>
-    </message>
-    <message>
-        <source>PNG image (*.png)</source>
-        <translation>Image PNG (*.png)</translation>
-    </message>
-    <message>
-        <source>SVG image (*.svg)</source>
-        <translation>Image SVG (*.svg)</translation>
-    </message>
-    <message>
-        <source>There are no values to export</source>
-        <translation>Aucune valeur à exporter</translation>
-    </message>
-    <message>
-        <source>The values could not be exported</source>
-        <translation>Les valeurs n'ont pas pu être exportées</translation>
-    </message>
-    <message>
-        <source>Values exported to CSV</source>
-        <translation>Valeurs exportées en CSV</translation>
-    </message>
-    <message>
-        <source>There is no chart to export</source>
-        <translation>Aucun graphique à exporter</translation>
-    </message>
-    <message>
-        <source>The chart image could not be saved</source>
-        <translation>L'image du graphique n'a pas pu être enregistrée</translation>
-    </message>
-    <message>
-        <source>Chart image saved</source>
-        <translation>Image du graphique enregistrée</translation>
-    </message>
-    <message>
-        <source>Export profile configuration</source>
-        <translation>Exporter la configuration du profil</translation>
-    </message>
-    <message>
-        <source>Import profile configuration</source>
-        <translation>Importer la configuration du profil</translation>
-    </message>
-    <message>
-        <source>Edit chart description</source>
-        <translation>Modifier la description du graphique</translation>
-    </message>
-    <message>
-        <source>Configuration file (*.cfg)</source>
-        <translation>Fichier de configuration (*.cfg)</translation>
-    </message>
-    <message>
-        <source>Chart description</source>
-        <translation>Description du graphique</translation>
-    </message>
-    <message>
-        <source>Describe the chart content (up to 256 characters):</source>
-        <translation>Décrivez le contenu du graphique (jusqu'à 256 caractères) :</translation>
-    </message>
-    <message>
-        <source>Off</source>
-        <translation>Désactivée</translation>
-    </message>
-    <message>
-        <source>Shaded band only</source>
-        <translation>Bande ombrée uniquement</translation>
-    </message>
-    <message>
-        <source>Boundary lines only</source>
-        <translation>Lignes de contour uniquement</translation>
-    </message>
-    <message>
-        <source>Band and lines</source>
-        <translation>Bande et lignes</translation>
-    </message>
-    <message>
-        <source>New profile panel</source>
-        <translation>Nouveau panneau de profil</translation>
-    </message>
-    <message>
-        <source>2nd axis:</source>
-        <translation>2e axe :</translation>
-    </message>
-    <message>
-        <source>None</source>
-        <translation>Aucune</translation>
-    </message>
-</context>
-<context>
-    <name>QGISRedProfileChartOptionsDialog</name>
-    <message>
-        <source>QGISRed: Chart options</source>
-        <translation>QGISRed : Options du graphique</translation>
-    </message>
-    <message>
-        <source>Axes</source>
-        <translation>Axes</translation>
-    </message>
-    <message>
-        <source>Curves</source>
-        <translation>Courbes</translation>
-    </message>
-    <message>
-        <source>General</source>
-        <translation>Général</translation>
-    </message>
-    <message>
-        <source>X axis (distance)</source>
-        <translation>Axe X (distance)</translation>
-    </message>
-    <message>
-        <source>Y axis (variable)</source>
-        <translation>Axe Y (variable)</translation>
-    </message>
-    <message>
-        <source>Y axis (left)</source>
-        <translation>Axe Y (gauche)</translation>
-    </message>
-    <message>
-        <source>Y axis (right)</source>
-        <translation>Axe Y (droite)</translation>
-    </message>
-    <message>
-        <source>Title:</source>
-        <translation>Titre :</translation>
-    </message>
-    <message>
-        <source>Auto scale</source>
-        <translation>Échelle automatique</translation>
-    </message>
-    <message>
-        <source>Minimum:</source>
-        <translation>Minimum :</translation>
-    </message>
-    <message>
-        <source>Maximum:</source>
-        <translation>Maximum :</translation>
-    </message>
-    <message>
-        <source>Show grid</source>
-        <translation>Afficher la grille</translation>
-    </message>
-    <message>
-        <source>Curve</source>
-        <translation>Courbe</translation>
-    </message>
-    <message>
-        <source>Color</source>
-        <translation>Couleur</translation>
-    </message>
-    <message>
-        <source>Line style</source>
-        <translation>Style de ligne</translation>
-    </message>
-    <message>
-        <source>Solid</source>
-        <translation>Continue</translation>
-    </message>
-    <message>
-        <source>Dashed</source>
-        <translation>Tirets</translation>
-    </message>
-    <message>
-        <source>Dotted</source>
-        <translation>Pointillés</translation>
-    </message>
-    <message>
-        <source>Width</source>
-        <translation>Épaisseur</translation>
-    </message>
-    <message>
-        <source>Markers</source>
-        <translation>Marqueurs</translation>
-    </message>
-    <message>
-        <source>Marker size</source>
-        <translation>Taille du marqueur</translation>
-    </message>
-    <message>
-        <source>Curve color</source>
-        <translation>Couleur de la courbe</translation>
-    </message>
-    <message>
-        <source>Show legend</source>
-        <translation>Afficher la légende</translation>
-    </message>
-    <message>
-        <source>Background color</source>
-        <translation>Couleur de fond</translation>
-    </message>
-    <message>
-        <source>Plot background:</source>
-        <translation>Fond du graphique :</translation>
-    </message>
-    <message>
-        <source>Legend</source>
-        <translation>Légende</translation>
-    </message>
-    <message>
-        <source>Position:</source>
-        <translation>Position :</translation>
-    </message>
-    <message>
-        <source>Left</source>
-        <translation>Gauche</translation>
-    </message>
-    <message>
-        <source>Center</source>
-        <translation>Centre</translation>
-    </message>
-    <message>
-        <source>Right</source>
-        <translation>Droite</translation>
-    </message>
-    <message>
-        <source>Font size:</source>
-        <translation>Taille de police :</translation>
-    </message>
-    <message>
-        <source>Symbol size:</source>
-        <translation>Taille du symbole :</translation>
-    </message>
-    <message>
-        <source>Show frame</source>
-        <translation>Afficher le cadre</translation>
-    </message>
-    <message>
-        <source>Background:</source>
-        <translation>Fond :</translation>
     </message>
 </context>
 </TS>
