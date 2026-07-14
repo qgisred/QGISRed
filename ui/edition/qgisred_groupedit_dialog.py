@@ -1241,8 +1241,9 @@ class QGISRedGroupEditDialog(QDialog, FORM_CLASS):
             dock.show()
             dock.raise_()
         else:
-            dialog.show()
-            dialog.raise_()
+            window = dialog.window()
+            window.show()
+            window.raise_()
 
     def _enclosingDock(self, widget):
         parent = widget.parent()
@@ -1353,9 +1354,12 @@ class QGISRedGroupEditDialog(QDialog, FORM_CLASS):
     """Helpers"""
 
     def _attributeTableWidgets(self):
-        widgets = list(QApplication.topLevelWidgets())
-        if self.iface is not None:
-            widgets += self.iface.mainWindow().findChildren(QDialog)
+        # An undocked table lives inside a parentless wrapper QDialog, so the children
+        # of every top-level widget must be searched as well.
+        widgets = []
+        for topLevel in QApplication.topLevelWidgets():
+            widgets.append(topLevel)
+            widgets += topLevel.findChildren(QDialog)
         tables = []
         for widget in widgets:
             with suppress(RuntimeError):
@@ -1375,6 +1379,8 @@ class QGISRedGroupEditDialog(QDialog, FORM_CLASS):
             widget.close()
             if dock is not None:
                 dock.close()
+            elif widget.window() is not widget:
+                widget.window().close()
 
     def _currentLayer(self):
         identifier = self.cbElementType.currentData()
