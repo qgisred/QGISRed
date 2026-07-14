@@ -90,3 +90,157 @@ class TestResultsLabels:
             # When show_id is False, it should only show the value expression
             assert '"Id"' not in expr
             assert 'format_number("Pressure", 2)' in expr
+
+
+# Regression test for a bug where switching a result variable to/from a rule-based
+# renderer (Status) silently kept the previous style. Root cause: paintIntervalTimeResults
+# used to overwrite self.displayingLinkField/NodeField with the NEW field *before* calling
+# setGraduatedPalette, which used that same attribute to detect the OLD field. The check
+# always compared the new field against itself, so the style reload was skipped.
+class _FakeGraduatedRenderer:
+    def __init__(self, field, ranges=None):
+        self._field = field
+        self._ranges = ranges or []
+
+    def classAttribute(self):
+        return self._field
+
+    def setClassAttribute(self, field):
+        self._field = field
+
+    def ranges(self):
+        return self._ranges
+
+    def symbols(self, ctx):
+        return []
+
+
+class _FakeRule:
+    def __init__(self, label="rule"):
+        self._label = label
+
+    def label(self):
+        return self._label
+
+    def children(self):
+        return []
+
+    def clone(self):
+        return self
+
+
+class _FakeRuleBasedRenderer:
+    Rule = _FakeRule
+
+    def __init__(self, root=None):
+        self._root = root or _FakeRule()
+
+    def rootRule(self):
+        return self._root
+
+    def symbols(self, ctx):
+        return []
+
+
+class TestPaintIntervalTimeResultsVariableOrdering:
+    """Verifies the contract between paintIntervalTimeResults and setGraduatedPalette:
+    the OLD field must be captured before self.displayingLinkField is overwritten."""
+
+    def test_previous_field_is_captured_before_overwrite(self):
+        dock = MockDock()
+        dock._statsMode = False
+        dock.TimeLabels = ["0:00"]
+        dock.cbTimes = MagicMock()
+        dock.cbTimes.currentIndex.return_value = 0
+        dock._updateCivilDisplay = MagicMock()
+        dock.timeTextChanged = MagicMock()
+
+        dock.cbNodes = MagicMock()
+        dock.cbNodes.currentIndex.return_value = 0  # None selected — Node side is skipped
+
+        dock.cbLinks = MagicMock()
+        dock.cbLinks.currentIndex.return_value = 1
+        dock._link_field_map = {"Flow": "Flow", "Status": "Status"}
+
+        link_layer = MagicMock()
+        dock._findResultLayer = MagicMock(side_effect=lambda name: link_layer if name == "Link" else None)
+
+        dock.Scenario = "Base"
+        dock.setGraduatedPalette = MagicMock()
+
+        with patch("QGISRed.ui.analysis.qgisred_results_rendering.QGISRedFieldUtils") as MockFieldUtils:
+            MockFieldUtils.return_value.getUnitAbbreviation.return_value = ""
+
+            # First paint: nothing displayed yet, variable is Flow
+            dock.displayingLinkField = ""
+            dock.cbLinks.currentText.return_value = "Flow"
+            dock.paintIntervalTimeResults(setRender=True)
+
+            args, _ = dock.setGraduatedPalette.call_args
+            assert args[1] == "Flow"
+            assert args[4] == ""  # previously_displayed: nothing shown before
+            assert dock.displayingLinkField == "Flow"
+
+            # Switch to Status: previously_displayed must still be "Flow" (the OLD value),
+            # not "Status" (the bug compared the new field against itself).
+            dock.cbLinks.currentText.return_value = "Status"
+            dock.paintIntervalTimeResults(setRender=True)
+
+            args, _ = dock.setGraduatedPalette.call_args
+            assert args[1] == "Status"
+            assert args[4] == "Flow"
+            assert dock.displayingLinkField == "Status"
+
+
+class TestSetGraduatedPaletteVariableSwitch:
+    """End-to-end check that setGraduatedPalette actually swaps the renderer type
+    when switching to/from Status, given a correctly-captured previously_displayed."""
+
+    def test_switch_to_status_and_back_reloads_style(self):
+        class _FakeNullHiddenLegend:
+            pass
+
+        with patch("QGISRed.ui.analysis.qgisred_results_rendering.QgsGraduatedSymbolRenderer", _FakeGraduatedRenderer), \
+             patch("QGISRed.ui.analysis.qgisred_results_rendering.QgsRuleBasedRenderer", _FakeRuleBasedRenderer), \
+             patch("QGISRed.ui.analysis.qgisred_results_rendering._NullHiddenLegend", _FakeNullHiddenLegend), \
+             patch("QGISRed.ui.analysis.qgisred_results_rendering.QGISRedStylingUtils") as MockStylingUtils:
+
+            dock = MockDock()
+            dock.ProjectDirectory = "C:/proj"
+            dock.NetworkName = "Net"
+            dock.iface = MagicMock()
+            dock.Scenario = "Base"
+            dock.Renders = {}
+            dock._statsMode = False
+            dock._currentStat = None
+            dock._flowDirectionField = MagicMock(return_value=None)
+            dock.getLayerPath = MagicMock(return_value="C:/proj/Results/Net_Base_Link.shp")
+            dock.applySymbolScaleFactors = MagicMock()
+
+            layer = MagicMock()
+            layer.geometryType.return_value = 1  # Link
+
+            state = {"renderer": _FakeGraduatedRenderer("Flow")}
+            layer.renderer.side_effect = lambda: state["renderer"]
+            layer.setRenderer.side_effect = lambda r: state.update(renderer=r)
+
+            def fake_set_style(lyr, qml_name):
+                if qml_name.endswith("_Status"):
+                    state["renderer"] = _FakeRuleBasedRenderer()
+                else:
+                    state["renderer"] = _FakeGraduatedRenderer(qml_name.split("_", 1)[1])
+
+            MockStylingUtils.return_value.setStyle.side_effect = fake_set_style
+
+            # Displaying Flow, switch to Status
+            dock.setGraduatedPalette(layer, "Status", True, "Link", previously_displayed="Flow")
+            assert isinstance(state["renderer"], _FakeRuleBasedRenderer), (
+                "Switching to Status must reload the Status style instead of keeping "
+                "the previous numeric renderer"
+            )
+
+            # Switch back to Flow
+            dock.setGraduatedPalette(layer, "Flow", True, "Link", previously_displayed="Status")
+            assert isinstance(state["renderer"], _FakeGraduatedRenderer), (
+                "Switching away from Status must reload a graduated style"
+            )

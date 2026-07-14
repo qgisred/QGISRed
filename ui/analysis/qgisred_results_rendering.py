@@ -255,6 +255,10 @@ class _ResultsRenderingMixin:
                         layer_to_paint.triggerRepaint()
                         continue
 
+                    # Captured BEFORE overwriting displaying*Field below, so setGraduatedPalette
+                    # can tell whether the variable actually changed (it needs the OLD value).
+                    previously_displayed = self.displayingLinkField if "Link" in nameLayer else self.displayingNodeField
+
                     # Store BEFORE setGraduatedPalette so applySymbolScaleFactors
                     # picks up the correct field name when in proportional mode.
                     if "Link" in nameLayer:
@@ -262,7 +266,7 @@ class _ResultsRenderingMixin:
                     else:
                         self.displayingNodeField = field
 
-                    self.setGraduatedPalette(layer_to_paint, field, setRender, nameLayer)
+                    self.setGraduatedPalette(layer_to_paint, field, setRender, nameLayer, previously_displayed)
 
                     # Persist variable in the QGIS project so updateMetadata can read it.
                     # Storing on the layer itself is unreliable because orderResultLayers
@@ -625,7 +629,7 @@ class _ResultsRenderingMixin:
             self.cbFlowDirections.setChecked(False)
             self.cbFlowDirections.setEnabled(False)
 
-    def setGraduatedPalette(self, layer, field, setRender, nameLayer):
+    def setGraduatedPalette(self, layer, field, setRender, nameLayer, previously_displayed=None):
         renderer = layer.renderer()
         db_field_name = field  # column name as stored in the DBF
         qml_field_name = "Flow" if db_field_name in ("Flow_Sig", "Flow_Unsig") else db_field_name
@@ -640,9 +644,8 @@ class _ResultsRenderingMixin:
         # Ensure correct renderer type
         if is_status:
             # Load QML when we have no cached render and the current renderer does not already
-            # belong to Status.
-            displaying = self.displayingLinkField if "Link" in nameLayer else self.displayingNodeField
-            if not hasRender and displaying != db_field_name:
+            # belong to Status (i.e. we were displaying something else before this call).
+            if not hasRender and previously_displayed != db_field_name:
                 qmlName = nameLayer.split("_")[0] + "_" + db_field_name
                 utils.setStyle(layer, qmlName)
                 renderer = layer.renderer()
@@ -658,8 +661,7 @@ class _ResultsRenderingMixin:
             if isinstance(renderer, QgsGraduatedSymbolRenderer):
                 renderer_correct = renderer.classAttribute() == field and len(renderer.ranges()) > 0
             elif isinstance(renderer, QgsRuleBasedRenderer):
-                displaying = self.displayingLinkField if "Link" in nameLayer else self.displayingNodeField
-                renderer_correct = (displaying == db_field_name)
+                renderer_correct = (previously_displayed == db_field_name)
             else:
                 renderer_correct = False
 
