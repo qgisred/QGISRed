@@ -47,6 +47,27 @@ class _ResultsAppearanceMixin:
         self._refreshLabelsIfShowing("Node")
         self._refreshLabelsIfShowing("Link")
 
+    def _onLabelBgColorClicked(self):
+        initial = self._labelBgColor if self._labelBgColor else QColor("white")
+        color = QColorDialog.getColor(initial, self, QCoreApplication.translate("QGISRedResultsDock", "Label background color"))
+        if color.isValid():
+            self._labelBgColor = color
+            self.btLabelBgColor.setStyleSheet(f"background-color: {color.name()};")
+            self.btLabelBgColor.setText(color.name())
+            self.btClearLabelBgColor.setEnabled(True)
+            self._saveAppearanceSettings()
+            self._refreshLabelsIfShowing("Node")
+            self._refreshLabelsIfShowing("Link")
+
+    def _onClearLabelBgColor(self):
+        self._labelBgColor = None
+        self.btLabelBgColor.setStyleSheet("")
+        self.btLabelBgColor.setText(QCoreApplication.translate("QGISRedResultsDock", "No color"))
+        self.btClearLabelBgColor.setEnabled(False)
+        self._saveAppearanceSettings()
+        self._refreshLabelsIfShowing("Node")
+        self._refreshLabelsIfShowing("Link")
+
     # ------------------------------------------------------------------
     # Decimals
     # ------------------------------------------------------------------
@@ -231,6 +252,7 @@ class _ResultsAppearanceMixin:
         self._varDecimals = {}
         self._labelColorByRange = False
         self._labelShowId = False
+        self._labelBgColor = None
         self._pipeFactor = 1.0
         self._symbolFactor = 1.0
         self._arrowFactor = 1.0
@@ -247,6 +269,9 @@ class _ResultsAppearanceMixin:
         self._resetDecimalsForVariable(link_field, "Links", "Link")
         self.rbColorBlack.setChecked(True)
         self.cbShowId.setChecked(False)
+        self.btLabelBgColor.setStyleSheet("")
+        self.btLabelBgColor.setText(QCoreApplication.translate("QGISRedResultsDock", "No color"))
+        self.btClearLabelBgColor.setEnabled(False)
         self.dspPipeFactor.blockSignals(True)
         self.dspPipeFactor.setValue(1.0)
         self.dspPipeFactor.blockSignals(False)
@@ -292,7 +317,8 @@ class _ResultsAppearanceMixin:
         ET.SubElement(root, "Labels",
                       fontSize=str(self._labelFontSize),
                       colorByRange="true" if self._labelColorByRange else "false",
-                      showId="true" if self._labelShowId else "false")
+                      showId="true" if self._labelShowId else "false",
+                      bgColor=self._labelBgColor.name() if self._labelBgColor else "")
         dec_elem = ET.SubElement(root, "Decimals")
         for var_name, val in self._varDecimals.items():
             ET.SubElement(dec_elem, "Var", name=var_name, value=str(val))
@@ -321,6 +347,8 @@ class _ResultsAppearanceMixin:
                     self._labelFontSize = int(labels.get("fontSize", 10))
                     self._labelColorByRange = labels.get("colorByRange", "false") == "true"
                     self._labelShowId = labels.get("showId", "false") == "true"
+                    bg_hex = labels.get("bgColor", "")
+                    self._labelBgColor = QColor(bg_hex) if bg_hex else None
 
                 dec_elem = root.find("Decimals")
                 if dec_elem is not None:
@@ -353,6 +381,10 @@ class _ResultsAppearanceMixin:
         self.rbColorBlack.setChecked(not self._labelColorByRange)
         self.rbColorByRange.blockSignals(False)
         self.cbShowId.setChecked(self._labelShowId)
+        self.btClearLabelBgColor.setEnabled(self._labelBgColor is not None)
+        if self._labelBgColor:
+            self.btLabelBgColor.setStyleSheet(f"background-color: {self._labelBgColor.name()};")
+            self.btLabelBgColor.setText(self._labelBgColor.name())
         node_field = self._node_field_map.get(self.cbNodes.currentText(), "")
         self._resetDecimalsForVariable(node_field, "Nodes", "Node")
         link_field = self._link_field_map.get(self.cbLinks.currentText(), "")

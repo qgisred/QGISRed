@@ -156,6 +156,8 @@ class QGISRedResultsDock(
         self.spLinkDecimals.valueChanged.connect(self._onDecimalsChanged)
         self.rbColorByRange.toggled.connect(self._onLabelStyleChanged)
         self.cbShowId.clicked.connect(self._onLabelStyleChanged)
+        self.btLabelBgColor.clicked.connect(self._onLabelBgColorClicked)
+        self.btClearLabelBgColor.clicked.connect(self._onClearLabelBgColor)
         self.dspPipeFactor.valueChanged.connect(self._onSymbolFactorChanged)
         self.dspSymbolFactor.valueChanged.connect(self._onSymbolFactorChanged)
         self.dspArrowFactor.valueChanged.connect(self._onSymbolFactorChanged)
@@ -174,6 +176,7 @@ class QGISRedResultsDock(
         # Icon set here (not in .ui text) so the glyph never gets bundled into a translatable string
         resetIcon = self._makeGlyphIcon("↺")
         self.btClearBgColor.setIcon(resetIcon)
+        self.btClearLabelBgColor.setIcon(resetIcon)
         self.btResetAppearance.setIcon(resetIcon)
 
         self._setupDistributionCharts()
@@ -190,6 +193,7 @@ class QGISRedResultsDock(
         self._varDecimals = {}
         self._labelColorByRange = False
         self._labelShowId = False
+        self._labelBgColor = None
         self._pipeFactor = 1.0
         self._symbolFactor = 1.0
         self._arrowFactor = 1.0

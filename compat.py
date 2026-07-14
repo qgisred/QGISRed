@@ -221,3 +221,18 @@ except AttributeError:
     from qgis.core import QgsUnitTypes as _QgsUnitTypes
     RENDER_UNIT_POINTS       = _QgsUnitTypes.RenderPoints
     RENDER_UNIT_MILLIMETERS  = _QgsUnitTypes.RenderMillimeters
+
+# ---------------------------------------------------------------------------
+# QgsTextBackgroundSettings enum constants (label background shape/size).
+# QGIS 3: QgsTextBackgroundSettings.ShapeRectangle / SizeBuffer (flat)
+# QGIS 4: QgsTextBackgroundSettings.ShapeType.ShapeRectangle /
+#         QgsTextBackgroundSettings.SizeType.SizeBuffer (scoped)
+# ---------------------------------------------------------------------------
+from qgis.core import QgsTextBackgroundSettings as _QgsTextBackgroundSettings
+
+try:
+    TEXT_BG_SHAPE_RECTANGLE = _QgsTextBackgroundSettings.ShapeRectangle
+    TEXT_BG_SIZE_BUFFER     = _QgsTextBackgroundSettings.SizeBuffer
+except AttributeError:
+    TEXT_BG_SHAPE_RECTANGLE = _QgsTextBackgroundSettings.ShapeType.ShapeRectangle
+    TEXT_BG_SIZE_BUFFER     = _QgsTextBackgroundSettings.SizeType.SizeBuffer

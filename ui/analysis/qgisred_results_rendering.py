@@ -4,14 +4,19 @@ import re
 
 from qgis.core import (
     QgsPalLayerSettings, QgsVectorLayerSimpleLabeling, QgsTextFormat,
+    QgsTextBackgroundSettings,
     QgsProperty, QgsRenderContext,
     QgsGraduatedSymbolRenderer,
     QgsRuleBasedRenderer, QgsRendererRange,
     QgsProject, QgsSymbolLayer,
 )
+from qgis.PyQt.QtCore import QSizeF
 from qgis.PyQt.QtGui import QColor, QFont
 
-from ...compat import RENDER_UNIT_POINTS, RENDER_UNIT_MILLIMETERS
+from ...compat import (
+    RENDER_UNIT_POINTS, RENDER_UNIT_MILLIMETERS,
+    TEXT_BG_SHAPE_RECTANGLE, TEXT_BG_SIZE_BUFFER,
+)
 from ...tools.utils.qgisred_styling_utils import QGISRedStylingUtils, _NULL_RULE_LABEL, _NullHiddenLegend
 from ...tools.utils.qgisred_ui_utils import QGISRedUIUtils
 from ...tools.utils.qgisred_field_utils import QGISRedFieldUtils
@@ -326,6 +331,17 @@ class _ResultsRenderingMixin:
         text_format.setFont(QFont("Arial"))
         text_format.setSize(font_size)
         text_format.setSizeUnit(RENDER_UNIT_POINTS)
+
+        label_bg_color = getattr(self, '_labelBgColor', None)
+        if label_bg_color:
+            bg_settings = QgsTextBackgroundSettings()
+            bg_settings.setEnabled(True)
+            bg_settings.setType(TEXT_BG_SHAPE_RECTANGLE)
+            bg_settings.setSizeType(TEXT_BG_SIZE_BUFFER)
+            bg_settings.setSize(QSizeF(1.0, 1.0))
+            bg_settings.setSizeUnit(RENDER_UNIT_MILLIMETERS)
+            bg_settings.setFillColor(label_bg_color)
+            text_format.setBackground(bg_settings)
 
         color_expr = None
         if color_by_range:
