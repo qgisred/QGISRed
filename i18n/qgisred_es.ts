@@ -4980,8 +4980,8 @@ Click izquierdo: Añadir un nuevo item debajo de la selección actual</translati
     </message>
     <message>
         <location filename="../ui/analysis/qgisred_results_dock.ui" line="1283"/>
-        <source>Black border on nodes</source>
-        <translation>Borde negro en nudos</translation>
+        <source>Hide border on junctions</source>
+        <translation>Ocultar borde en uniones</translation>
     </message>
     <message>
         <location filename="../ui/analysis/qgisred_results_dock.ui" line="1297"/>

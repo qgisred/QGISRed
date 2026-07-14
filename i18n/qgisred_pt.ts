@@ -5022,8 +5022,8 @@ Clique esquerdo: Adicionar um novo item abaixo da seleção atual</translation>
     </message>
     <message>
         <location filename="../ui/analysis/qgisred_results_dock.ui" line="1283"/>
-        <source>Black border on nodes</source>
-        <translation>Borda preta nos nós</translation>
+        <source>Hide border on junctions</source>
+        <translation>Ocultar borda nas junções</translation>
     </message>
     <message>
         <location filename="../ui/analysis/qgisred_results_dock.ui" line="1297"/>

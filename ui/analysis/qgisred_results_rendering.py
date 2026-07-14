@@ -564,7 +564,7 @@ class _ResultsRenderingMixin:
             elif is_point:
                 # Node sizes are set via data-defined expressions on each symbol layer.
                 # sym.setSize() has no effect because those expressions override it.
-                node_border = getattr(self, '_nodeBorder', False)
+                hide_junction_border = getattr(self, '_nodeBorder', False)
                 for sl_idx in range(sym.symbolLayerCount()):
                     with suppress(Exception):
                         sl = sym.symbolLayer(sl_idx)
@@ -585,23 +585,18 @@ class _ResultsRenderingMixin:
                             if new_expr != old_expr:
                                 ddp.setProperty(_SL_PROP_SIZE, QgsProperty.fromExpression(new_expr))
                                 sl.setDataDefinedProperties(ddp)
-                        # Border: use data-defined properties (works for both SvgMarker and
-                        # SimpleMarker without relying on hasattr, same mechanism as pipe width).
-                        # Tank QML has white outline_color so we must also force the color.
-                        # SVG markers (7 mm symbols) use a thicker border than SimpleMarker (2 mm).
+                        # Junction border: SimpleMarker junctions render a thin black outline
+                        # by default (outline_width=0 is still a visible cosmetic hairline in
+                        # Qt, not "no line"). Reservoirs/tanks use SvgMarker and already have
+                        # no border by default, so this option only ever touches junctions.
                         with suppress(Exception):
-                            if node_border:
-                                is_svg = 'Svg' in type(sl).__name__
-                                width_expr = "1.0" if is_svg else "0.6"
-                                sl.setDataDefinedProperty(
-                                    _SL_PROP_STROKE_WIDTH,
-                                    QgsProperty.fromExpression(width_expr))
+                            if 'Svg' in type(sl).__name__:
+                                continue
+                            if hide_junction_border:
                                 sl.setDataDefinedProperty(
                                     _SL_PROP_STROKE_COLOR,
-                                    QgsProperty.fromExpression("'#000000'"))
+                                    QgsProperty.fromExpression("color_rgba(0,0,0,0)"))
                             else:
-                                sl.setDataDefinedProperty(
-                                    _SL_PROP_STROKE_WIDTH, QgsProperty())
                                 sl.setDataDefinedProperty(
                                     _SL_PROP_STROKE_COLOR, QgsProperty())
 

@@ -1280,7 +1280,7 @@
                <item row="0" column="0" colspan="2">
                 <widget class="QCheckBox" name="cbNodeBorder">
                  <property name="text">
-                  <string>Black border on nodes</string>
+                  <string>Hide border on junctions</string>
                  </property>
                 </widget>
                </item>

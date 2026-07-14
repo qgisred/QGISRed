@@ -4970,8 +4970,8 @@ Left-click: Add a new item below the current selection</source>
     </message>
     <message>
         <location filename="../ui/analysis/qgisred_results_dock.ui" line="1283"/>
-        <source>Black border on nodes</source>
-        <translation type="unfinished"></translation>
+        <source>Hide border on junctions</source>
+        <translation>Masquer la bordure des jonctions</translation>
     </message>
     <message>
         <location filename="../ui/analysis/qgisred_results_dock.ui" line="1297"/>
