@@ -208,3 +208,16 @@ try:
 except AttributeError:
     NODE_TYPE_LAYER = _QgsLTN.NodeType.NodeLayer
     NODE_TYPE_GROUP = _QgsLTN.NodeType.NodeGroup
+
+# ---------------------------------------------------------------------------
+# Render-unit constants (label/symbol size and distance units).
+# QGIS 3: QgsUnitTypes.RenderPoints / RenderMillimeters
+# QGIS 4: Qgis.RenderUnit.RenderPoints / RenderMillimeters
+# ---------------------------------------------------------------------------
+try:
+    RENDER_UNIT_POINTS       = _Qgis.RenderUnit.RenderPoints
+    RENDER_UNIT_MILLIMETERS  = _Qgis.RenderUnit.RenderMillimeters
+except AttributeError:
+    from qgis.core import QgsUnitTypes as _QgsUnitTypes
+    RENDER_UNIT_POINTS       = _QgsUnitTypes.RenderPoints
+    RENDER_UNIT_MILLIMETERS  = _QgsUnitTypes.RenderMillimeters

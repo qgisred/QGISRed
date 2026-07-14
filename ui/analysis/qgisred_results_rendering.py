@@ -7,10 +7,11 @@ from qgis.core import (
     QgsProperty, QgsRenderContext,
     QgsGraduatedSymbolRenderer,
     QgsRuleBasedRenderer, QgsRendererRange,
-    QgsProject, Qgis, QgsSymbolLayer,
+    QgsProject, QgsSymbolLayer,
 )
 from qgis.PyQt.QtGui import QColor, QFont
 
+from ...compat import RENDER_UNIT_POINTS, RENDER_UNIT_MILLIMETERS
 from ...tools.utils.qgisred_styling_utils import QGISRedStylingUtils, _NULL_RULE_LABEL, _NullHiddenLegend
 from ...tools.utils.qgisred_ui_utils import QGISRedUIUtils
 from ...tools.utils.qgisred_field_utils import QGISRedFieldUtils
@@ -324,11 +325,7 @@ class _ResultsRenderingMixin:
         text_format = QgsTextFormat()
         text_format.setFont(QFont("Arial"))
         text_format.setSize(font_size)
-        try:
-            text_format.setSizeUnit(Qgis.RenderUnit.RenderPoints)
-        except AttributeError:
-            from qgis.core import QgsUnitTypes
-            text_format.setSizeUnit(QgsUnitTypes.RenderPoints)
+        text_format.setSizeUnit(RENDER_UNIT_POINTS)
 
         color_expr = None
         if color_by_range:
@@ -391,8 +388,15 @@ class _ResultsRenderingMixin:
 
         layer_settings.fieldName = full_expr
         layer_settings.isExpression = True
-        layer_settings.placement = QgsPalLayerSettings.Line
         layer_settings.enabled = True
+
+        if is_node:
+            layer_settings.placement = QgsPalLayerSettings.AroundPoint
+            layer_settings.dist = 2.0
+        else:
+            layer_settings.placement = QgsPalLayerSettings.Line
+            layer_settings.dist = 1.0
+        layer_settings.distUnits = RENDER_UNIT_MILLIMETERS
         labels = QgsVectorLayerSimpleLabeling(layer_settings)
         layer.setLabeling(labels)
         layer.setLabelsEnabled(True)
