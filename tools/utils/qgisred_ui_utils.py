@@ -108,12 +108,14 @@ class QGISRedUIUtils:
     def arrangeDockOrder(mainWindow, resultsDock, explorerDock, queriesDock, statisticsDock):
         """Enforce dock vertical order: Results > Element Explorer > Queries by Properties > Statistics.
 
-        Skips floating docks — only repositions docks anchored to the main window.
+        Skips floating and tabified docks — only repositions docks anchored to the main window.
         """
         def _docked(dock):
             if dock is None or sip.isdeleted(dock):
                 return False
-            return dock.isVisible() and not dock.isFloating()
+            if not dock.isVisible() or dock.isFloating():
+                return False
+            return not mainWindow.tabifiedDockWidgets(dock)
 
         results = resultsDock if _docked(resultsDock) else None
         explorer = explorerDock if _docked(explorerDock) else None

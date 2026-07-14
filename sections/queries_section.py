@@ -2,7 +2,7 @@
 """Queries and exploration section for QGISRed."""
 
 from contextlib import suppress
-from qgis.PyQt.QtCore import Qt, QTimer
+from qgis.PyQt.QtCore import Qt
 
 from ..ui.queries.qgisred_thematicmaps_dialog import QGISRedThematicMapsDialog
 from ..ui.queries.qgisred_element_explorer_dock import QGISRedElementExplorerDock
@@ -265,4 +265,3 @@ class QueriesSection:
             getattr(self, 'queriesByPropertiesDock', None),
             getattr(self, 'statisticsDock', None)
         )
-        QTimer.singleShot(0, lambda: self.statisticsDock.setFloating(True))
