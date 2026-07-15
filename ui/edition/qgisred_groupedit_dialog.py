@@ -258,8 +258,8 @@ class QGISRedGroupEditDialog(QDialog, FORM_CLASS):
         if self._hasPendingChanges():
             reply = QMessageBox.question(
                 self,
-                self.tr("Edit properties by group"),
-                self.tr("All changes made will be discarded. Continue?"),
+                self.tr("Edit Properties by Group"),
+                self.tr("All temporary changes will be ignored. Continue?"),
                 QMessageBox.StandardButton.Yes | QMessageBox.StandardButton.No,
                 QMessageBox.StandardButton.No,
             )
@@ -1041,9 +1041,14 @@ class QGISRedGroupEditDialog(QDialog, FORM_CLASS):
             self.banner.pushMessage(self.tr("Apply"), str(e), level=2, duration=6)
             return
 
+        identifier = layer.customProperty("qgisred_identifier")
+        summaryLine = self._changeSummaryLine(identifier, fieldName, len(edits))
+        if not self._confirmChanges(
+            self.tr("The following changes will be applied temporarily until Accept is pressed:"), [summaryLine]
+        ):
+            return
         if not self._applyEdits(layer, fieldName, edits):
             return
-        identifier = layer.customProperty("qgisred_identifier")
         self._warnSoftBounds(identifier, fieldName, edits)
         self._openAttributeTable(layer, [fid for fid, _oldVal, _newVal in edits])
 
@@ -1255,8 +1260,14 @@ class QGISRedGroupEditDialog(QDialog, FORM_CLASS):
 
     def _onAccept(self):
         if self._hasPendingChanges():
-            summaryLines = self._pendingChangesSummary()
-            if summaryLines and not self._confirmAccept(summaryLines):
+            reply = QMessageBox.question(
+                self,
+                self.tr("Edit Properties by Group"),
+                self.tr("All provisional changes will be applied permanently. Continue?"),
+                QMessageBox.StandardButton.Yes | QMessageBox.StandardButton.No,
+                QMessageBox.StandardButton.Yes,
+            )
+            if reply != QMessageBox.StandardButton.Yes:
                 return
         elif not self._applyBeforeAccept():
             return
@@ -1299,10 +1310,8 @@ class QGISRedGroupEditDialog(QDialog, FORM_CLASS):
             self.banner.pushMessage(self.tr("Accept"), str(e), level=2, duration=6)
             return False
         identifier = layer.customProperty("qgisred_identifier")
-        prettyField = self.fieldUtils.getProperty(normalize_element(identifier), fieldName)
-        summaryLine = "- %s: %s (%d %s)" % (self._elementDisplayName(identifier), prettyField,
-                                            len(edits), self.tr("elements"))
-        if not self._confirmAccept([summaryLine]):
+        summaryLine = self._changeSummaryLine(identifier, fieldName, len(edits))
+        if not self._confirmChanges(self.tr("The following changes will be applied permanently:"), [summaryLine]):
             return False
         if not self._applyEdits(layer, fieldName, edits):
             return False
@@ -1310,34 +1319,19 @@ class QGISRedGroupEditDialog(QDialog, FORM_CLASS):
         self._openAttributeTable(layer, [fid for fid, _oldVal, _newVal in edits])
         return True
 
-    def _pendingChangesSummary(self):
-        lines = []
-        for layer in self.editedLayers:
-            if not layer.isEditable():
-                continue
-            changed = layer.editBuffer().changedAttributeValues()
-            if not changed:
-                continue
-            identifier = layer.customProperty("qgisred_identifier")
-            fieldIndexes = set()
-            for attributes in changed.values():
-                fieldIndexes.update(attributes.keys())
-            prettyFields = [
-                self.fieldUtils.getProperty(normalize_element(identifier), layer.fields().at(index).name())
-                for index in sorted(fieldIndexes)
-            ]
-            lines.append("- %s: %s (%d %s)" % (self._elementDisplayName(identifier), ", ".join(prettyFields),
-                                               len(changed), self.tr("elements")))
-        return lines
+    def _changeSummaryLine(self, identifier, fieldName, count):
+        prettyField = self.fieldUtils.getProperty(normalize_element(identifier), fieldName)
+        return "- %s: %s (%d %s)" % (self._elementDisplayName(identifier), prettyField,
+                                     count, self.tr("elements"))
 
-    def _confirmAccept(self, summaryLines):
-        bodyLines = [self.tr("The following changes will be saved:"), ""]
+    def _confirmChanges(self, intro, summaryLines):
+        bodyLines = [intro, ""]
         bodyLines.extend(summaryLines)
         bodyLines.append("")
         bodyLines.append(self.tr("Continue?"))
         reply = QMessageBox.question(
             self,
-            self.tr("Edit properties by group"),
+            self.tr("Edit Properties by Group"),
             "\n".join(bodyLines),
             QMessageBox.StandardButton.Yes | QMessageBox.StandardButton.No,
             QMessageBox.StandardButton.Yes,
