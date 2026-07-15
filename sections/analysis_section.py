@@ -100,9 +100,11 @@ class AnalysisSection:
         active = getattr(self, "_activeTimeSeriesDock", None)
         docks = list(getattr(self, "timeSeriesDocks", []) or [])
         multiple = len(docks) > 1
+        ceded = getattr(self, "_timeSeriesFocusCeded", False)
         for dock in docks:
             with suppress(Exception):
-                accent = "#0097A7" if (dock is active or not multiple) else "#B0BEC5"
+                is_active = (not ceded) and (dock is active or not multiple)
+                accent = "#0097A7" if is_active else "#B0BEC5"
                 QGISRedUIUtils.applyDockStyle(dock, accent, backgroundColor="white")
 
     def _applyTimeSeriesMapStateForDock(self, dock):
@@ -321,17 +323,33 @@ class AnalysisSection:
         if self._widgetBelongsToDock(now, getattr(self, "ResultDockwidget", None)):
             self._reclaimMapToolForResultsEvolution()
 
+    def _cedeTimeSeriesFocus(self):
+        self._timeSeriesFocusCeded = True
+        for dock in (getattr(self, "timeSeriesDocks", None) or []):
+            with suppress(Exception):
+                self._clearTimeSeriesHighlight(dock)
+        with suppress(Exception):
+            self._clearResultsEvolutionHighlight()
+        with suppress(Exception):
+            self._restyleTimeSeriesDocks()
+
     def _reclaimMapToolForTimeSeries(self, dock):
+        with suppress(Exception):
+            self._cedeProfileFocus()
+        self._timeSeriesFocusCeded = False
         self._clearResultsEvolutionHighlight()
         already_active = getattr(self, "_activeTimeSeriesDock", None) is dock
         self._setActiveTimeSeriesDock(dock)
         if already_active and not (getattr(dock, "highlights", None) or {}):
             with suppress(Exception):
                 self._applyTimeSeriesMapStateForDock(dock)
+        self._restyleTimeSeriesDocks()
         tools = getattr(self, "myMapTools", {})
         ts_tool = tools.get("TimeSeries")
         evo_tool = tools.get("ResultsEvolution")
-        if ts_tool is not None and self.iface.mapCanvas().mapTool() is evo_tool:
+        profile_tool = tools.get("Profile")
+        current = self.iface.mapCanvas().mapTool()
+        if ts_tool is not None and current is not ts_tool and (current is None or current is evo_tool or current is profile_tool):
             self.iface.mapCanvas().setMapTool(ts_tool)
 
     def _reclaimMapToolForResultsEvolution(self):
@@ -616,7 +634,7 @@ class AnalysisSection:
         if dock is None:
             dock = self._resolveTimeSeriesDock()
         if dock is not None:
-            self._setActiveTimeSeriesDock(dock)
+            self._reclaimMapToolForTimeSeries(dock)
 
     def _onTimeSeriesDockTopLevelChanged(self, floating, dock):
         if not floating or dock is None:

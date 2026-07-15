@@ -226,18 +226,28 @@ class ProfileSection:
         from ..tools.utils.qgisred_ui_utils import QGISRedUIUtils
 
         active_dock = self._activeDock()
+        ceded = getattr(self, "_profileFocusCeded", False)
         docks = [s.dock for s in (getattr(self, "_profiles", []) or []) if s.dock is not None]
         multiple = len(docks) > 1
         for dock in docks:
-            is_active = dock is active_dock or not multiple
+            is_active = (not ceded) and (dock is active_dock or not multiple)
             with suppress(Exception):
                 accent = "#00838F" if is_active else "#B0BEC5"
                 QGISRedUIUtils.applyDockStyle(dock, accent, backgroundColor="white")
 
     def _onProfileDockActivated(self, dock):
-        if dock is None or self._activeDock() is dock:
+        if dock is None:
             return
+        ceded = getattr(self, "_profileFocusCeded", False)
+        if self._activeDock() is dock and not ceded:
+            return
+        with suppress(Exception):
+            self._cedeTimeSeriesFocus()
         self._setActiveProfileDock(dock)
+        if ceded:
+            self._profileFocusCeded = False
+            self._restyleProfileDocks()
+            self._redrawAllProfileHighlights()
         self._rearmProfileMapTool(dock)
 
     def _widgetBelongsToProfileDock(self, widget, dock):
@@ -256,6 +266,32 @@ class ProfileSection:
             if dock is not None and self._widgetBelongsToProfileDock(now, dock):
                 self._onProfileDockActivated(dock)
                 return
+        if self._focusInTimeSeries(now):
+            self._cedeProfileFocus()
+
+    def _focusInTimeSeries(self, widget):
+        for dock in (getattr(self, "timeSeriesDocks", None) or []):
+            if dock is not None and self._widgetBelongsToProfileDock(widget, dock):
+                return True
+        return False
+
+    def _cedeProfileFocus(self):
+        if getattr(self, "_profileFocusCeded", False) or not getattr(self, "_profiles", None):
+            return
+        self._profileFocusCeded = True
+        self._deactivateProfileMapTool()
+        self._clearProfileMapHover()
+        for state in list(self._profiles):
+            self._clearHighlightForState(state)
+        self._restyleProfileDocks()
+
+    def _redrawAllProfileHighlights(self):
+        saved = getattr(self, "_activeProfile", None)
+        for state in list(getattr(self, "_profiles", []) or []):
+            self._activeProfile = state
+            with suppress(Exception):
+                self._drawProfileHighlight()
+        self._activeProfile = saved
 
     def _rearmProfileMapTool(self, dock):
         with suppress(Exception):
@@ -1120,6 +1156,8 @@ class ProfileSection:
         from qgis.PyQt.QtGui import QColor
 
         self._clearProfileHighlight()
+        if getattr(self, "_profileFocusCeded", False):
+            return
         dock = self._activeDock()
         if dock is not None and not dock.isVisible():
             return

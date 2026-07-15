@@ -6,7 +6,7 @@ from qgis.PyQt.QtGui import QIcon, QPixmap, QPainter
 from qgis.PyQt.QtWidgets import (
     QDockWidget, QWidget, QVBoxLayout, QHBoxLayout, QToolButton, QComboBox, QLabel, QFrame,
     QSplitter, QTableWidget, QTableWidgetItem, QAbstractItemView, QFileDialog, QHeaderView, QMenu,
-    QDialog, QDialogButtonBox, QPlainTextEdit
+    QDialog, QDialogButtonBox, QPlainTextEdit, QScrollArea
 )
 
 from .qgisred_profile_plot import ProfilePlotWidget
@@ -230,7 +230,20 @@ class QGISRedProfileDock(QDockWidget):
         toolbar.addWidget(self.cbSecondary)
 
         toolbar.addStretch(1)
-        layout.addWidget(toolbar_widget)
+
+        toolbar_scroll = QScrollArea(container)
+        toolbar_scroll.setObjectName("profileToolbarScroll")
+        toolbar_scroll.setWidgetResizable(True)
+        toolbar_scroll.setFrameShape(QFrame.Shape.NoFrame)
+        toolbar_scroll.setHorizontalScrollBarPolicy(Qt.ScrollBarPolicy.ScrollBarAsNeeded)
+        toolbar_scroll.setVerticalScrollBarPolicy(Qt.ScrollBarPolicy.ScrollBarAlwaysOff)
+        toolbar_scroll.setStyleSheet(
+            "QScrollArea#profileToolbarScroll { background: transparent; border: none; }"
+            "QScrollBar:horizontal { height: 8px; }"
+        )
+        toolbar_scroll.setWidget(toolbar_widget)
+        toolbar_scroll.setFixedHeight(44)
+        layout.addWidget(toolbar_scroll)
 
         self._splitter = QSplitter(Qt.Orientation.Horizontal, container)
         self._splitter.setChildrenCollapsible(False)
