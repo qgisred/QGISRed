@@ -38,31 +38,41 @@ def nearest_visible_point(points, data_x):
 
 
 def cursor_snapshot(series, data_x):
-    nearest = None
+    snap_distance = None
+    best_gap = None
     for s in series:
         candidate = nearest_visible_point(s["points"], data_x)
-        if candidate is not None:
-            nearest = candidate
-            break
-    if nearest is None:
+        if candidate is None:
+            continue
+        _s_idx, s_distance, _s_value = candidate
+        gap = abs(s_distance - data_x)
+        if best_gap is None or gap < best_gap:
+            best_gap = gap
+            snap_distance = s_distance
+    if snap_distance is None:
         return None
-    idx, distance, _value = nearest
+    entries = []
+    index = 0
     node_id = None
     for s in series:
-        ids = s.get("node_ids")
-        if ids and idx < len(ids):
-            node_id = ids[idx]
-            break
-    entries = []
-    for s in series:
-        points = s["points"]
-        if idx < len(points) and points[idx][1] is not None:
-            entries.append({
-                "label": s.get("label", ""),
-                "color": s.get("color"),
-                "value": points[idx][1],
-            })
-    return {"index": idx, "distance": distance, "entries": entries, "node_id": node_id}
+        candidate = nearest_visible_point(s["points"], snap_distance)
+        if candidate is None:
+            continue
+        s_idx, s_distance, s_value = candidate
+        if not entries:
+            index = s_idx
+        if node_id is None:
+            ids = s.get("node_ids")
+            if ids and s_idx < len(ids):
+                node_id = ids[s_idx]
+        entries.append({
+            "label": s.get("label", ""),
+            "color": s.get("color"),
+            "value": s_value,
+            "distance": s_distance,
+            "point_index": s_idx,
+        })
+    return {"index": index, "distance": snap_distance, "entries": entries, "node_id": node_id}
 
 
 def truncate_id(value, max_len=10):

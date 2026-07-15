@@ -54,7 +54,7 @@ def test_nearest_visible_point_all_none():
     assert nearest_visible_point([(0.0, None), (1.0, None)], 0.5) is None
 
 
-def test_cursor_snapshot_aligns_series_by_index():
+def test_cursor_snapshot_per_series_nearest():
     series = [
         {"label": "Head", "color": "c1", "points": [(0.0, 80.0), (50.0, 70.0), (100.0, 60.0)]},
         {"label": "Elevation", "color": "c2", "points": [(0.0, 30.0), (50.0, 25.0), (100.0, 20.0)]},
@@ -62,20 +62,35 @@ def test_cursor_snapshot_aligns_series_by_index():
     snap = cursor_snapshot(series, 48.0)
     assert snap["index"] == 1
     assert snap["distance"] == 50.0
-    assert snap["entries"] == [
-        {"label": "Head", "color": "c1", "value": 70.0},
-        {"label": "Elevation", "color": "c2", "value": 25.0},
-    ]
+    vals = [(e["label"], e["value"]) for e in snap["entries"]]
+    assert vals == [("Head", 70.0), ("Elevation", 25.0)]
 
 
-def test_cursor_snapshot_skips_none_entry():
+def test_cursor_snapshot_uses_nearest_visible_per_series():
     series = [
         {"label": "A", "color": "c1", "points": [(0.0, 1.0), (10.0, 2.0)]},
         {"label": "B", "color": "c2", "points": [(0.0, None), (10.0, 9.0)]},
     ]
     snap = cursor_snapshot(series, 0.0)
     assert snap["index"] == 0
-    assert snap["entries"] == [{"label": "A", "color": "c1", "value": 1.0}]
+    vals = {e["label"]: e["value"] for e in snap["entries"]}
+    assert vals == {"A": 1.0, "B": 9.0}
+
+
+def test_cursor_snapshot_branch_offset_uses_own_point():
+    # A branch is offset along X and has a different length; each series must
+    # report the value at ITS own nearest point, not the main series' index.
+    series = [
+        {"label": "Main", "color": "c1", "points": [(0.0, 10.0), (100.0, 20.0), (200.0, 30.0)]},
+        {"label": "Branch", "color": "c2",
+         "points": [(100.0, 15.0), (150.0, 25.0), (180.0, 28.0), (250.0, 40.0)]},
+    ]
+    snap = cursor_snapshot(series, 250.0)
+    assert snap["index"] == 2
+    assert snap["distance"] == 250.0
+    vals = {e["label"]: e["value"] for e in snap["entries"]}
+    assert vals["Main"] == 30.0
+    assert vals["Branch"] == 40.0
 
 
 def test_cursor_snapshot_empty():

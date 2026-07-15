@@ -7,6 +7,7 @@ from ...tools.utils.qgisred_axis_scale_utils import compute_nice_scale, format_n
 from ...tools.utils.qgisred_profile_plot_utils import (
     profile_line_segments,
     cursor_snapshot,
+    nearest_visible_point,
     format_profile_value,
     resolve_envelope_mode,
     truncate_id,
@@ -833,18 +834,19 @@ class ProfilePlotWidget(QWidget):
         if snapshot is None:
             return
 
-        line_x = px(snapshot["distance"])
+        snap_x = snapshot["distance"]
+        line_x = px(snap_x)
         painter.setPen(QPen(QColor(120, 120, 120), 1.0, Qt.PenStyle.DashLine))
         painter.drawLine(QPointF(line_x, plot.top()), QPointF(line_x, plot.bottom()))
 
-        index = snapshot["index"]
         for s in self._series:
-            points = s["points"]
-            if index < len(points) and points[index][1] is not None:
-                d, v = points[index]
-                painter.setPen(QPen(QColor(255, 255, 255), 1.5))
-                painter.setBrush(QBrush(s["color"]))
-                painter.drawEllipse(QPointF(px(d), py_of(s)(v)), 4.5, 4.5)
+            candidate = nearest_visible_point(s["points"], snap_x)
+            if candidate is None:
+                continue
+            _si, d, v = candidate
+            painter.setPen(QPen(QColor(255, 255, 255), 1.5))
+            painter.setBrush(QBrush(s["color"]))
+            painter.drawEllipse(QPointF(px(d), py_of(s)(v)), 4.5, 4.5)
 
         self._drawReadout(painter, plot, line_x, snapshot)
 
