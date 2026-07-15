@@ -49,6 +49,7 @@ class QGISRedProfileDock(QDockWidget):
     importConfigRequested = pyqtSignal(str)
     newPanelRequested = pyqtSignal()
     activated = pyqtSignal()
+    curveDeleteRequested = pyqtSignal(str)
 
     def __init__(self, iface, parent=None):
         super(QGISRedProfileDock, self).__init__(parent or iface.mainWindow())
@@ -266,6 +267,7 @@ class QGISRedProfileDock(QDockWidget):
         self.plot = ProfilePlotWidget(self._splitter)
         self.plot.setEmptyText(self.tr("Enable 'Pick path' and click nodes on the map"))
         self.plot.cursorNodeChanged.connect(self._onCursorNode)
+        self.plot.curveDeleteRequested.connect(self.curveDeleteRequested)
         self.table.currentCellChanged.connect(self._onTableRowChanged)
         self._splitter.addWidget(self.plot)
 

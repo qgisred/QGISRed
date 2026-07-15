@@ -50,6 +50,7 @@ _ELEMENT_SVG_COLORS = {
 
 class ProfilePlotWidget(QWidget):
     cursorNodeChanged = pyqtSignal(int)
+    curveDeleteRequested = pyqtSignal(str)
 
     def __init__(self, parent=None):
         super(ProfilePlotWidget, self).__init__(parent)
@@ -150,6 +151,7 @@ class ProfilePlotWidget(QWidget):
                 "show_ids": bool(s.get("show_ids", False)),
                 "y_axis": "right" if s.get("y_axis") == "right" else "left",
                 "fill": bool(s.get("fill", True)),
+                "deletable": bool(s.get("deletable", False)),
                 "width": base_width,
                 "line_style": "solid",
                 "show_markers": True,
@@ -366,6 +368,7 @@ class ProfilePlotWidget(QWidget):
         left, right, top, bottom = 64.0, (58.0 if has_right else 18.0), 54.0, 48.0
         plot = QRectF(left, top, max(1.0, full.width() - left - right), max(1.0, full.height() - top - bottom))
 
+        self._legend_delete_hitboxes = []
         view = self._currentView()
         if view is None:
             painter.setPen(QColor(130, 130, 130))
@@ -764,7 +767,8 @@ class ProfilePlotWidget(QWidget):
                 continue
             seen_labels.add(label)
             entries.append({"label": label, "kind": "line",
-                            "color": s["color"], "width": s["width"], "dashed": False})
+                            "color": s["color"], "width": s["width"], "dashed": False,
+                            "deletable": s.get("deletable", False)})
         if self._envelope is not None:
             show_band, show_lines = resolve_envelope_mode(self._envelope.get("mode", "both"))
             if show_lines:
@@ -780,14 +784,17 @@ class ProfilePlotWidget(QWidget):
 
     def _drawLegend(self, painter, plot):
         entries = self._legendEntries()
+        self._legend_delete_hitboxes = []
         if not entries:
             return
         cfg = self._general_cfg
         box = max(6, int(cfg.legend_symbol_size))
         gap = 14
+        del_w = 16
         painter.setFont(QFont("Arial", max(6, int(cfg.legend_font_size))))
         fm = QFontMetrics(painter.font())
-        widths = [box + 4 + fm.horizontalAdvance(e["label"]) for e in entries]
+        widths = [box + 4 + fm.horizontalAdvance(e["label"]) + (del_w if e.get("deletable") else 0)
+                  for e in entries]
         total = sum(widths) + gap * max(0, len(entries) - 1)
         if cfg.legend_position == "left":
             x = plot.left() + 4
@@ -821,6 +828,13 @@ class ProfilePlotWidget(QWidget):
             painter.setPen(QColor(40, 40, 40))
             painter.setBrush(Qt.BrushStyle.NoBrush)
             painter.drawText(QPointF(x + box + 4, baseline), e["label"])
+            if e.get("deletable"):
+                cxd = x + box + 4 + fm.horizontalAdvance(e["label"]) + 7
+                painter.setPen(QPen(QColor(20, 20, 20), 1.1))
+                painter.drawLine(QPointF(cxd - 2.3, cy - 2.3), QPointF(cxd + 2.3, cy + 2.3))
+                painter.drawLine(QPointF(cxd - 2.3, cy + 2.3), QPointF(cxd + 2.3, cy - 2.3))
+                self._legend_delete_hitboxes.append(
+                    (QRectF(cxd - 6, cy - 6, 12, 12), e["label"]))
             x += widths[i] + gap
 
     def _drawCursor(self, painter, plot, px, py_of, x0, x1):
@@ -903,6 +917,11 @@ class ProfilePlotWidget(QWidget):
 
     def mousePressEvent(self, event):
         x, y = self._eventPos(event)
+        if event.button() == Qt.MouseButton.LeftButton:
+            for rect, label in getattr(self, "_legend_delete_hitboxes", []) or []:
+                if rect.contains(QPointF(x, y)):
+                    self.curveDeleteRequested.emit(label)
+                    return
         if event.button() == Qt.MouseButton.LeftButton and self._zoom_window_mode:
             self._zoom_rect = (QPointF(x, y), QPointF(x, y))
         elif event.button() == Qt.MouseButton.LeftButton and self._pan_mode:

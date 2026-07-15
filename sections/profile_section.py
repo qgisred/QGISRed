@@ -184,6 +184,7 @@ class ProfileSection:
         dock.exportConfigRequested.connect(lambda path, d=dock: self._onProfileExportConfig(d, path))
         dock.importConfigRequested.connect(lambda path, d=dock: self._onProfileImportConfig(d, path))
         dock.newPanelRequested.connect(self.newProfilePanel)
+        dock.curveDeleteRequested.connect(lambda label, d=dock: self._onProfileCurveDelete(d, label))
         dock.activated.connect(lambda d=dock: self._onProfileDockActivated(d))
         dock.visibilityChanged.connect(lambda vis, d=dock: self._onProfileDockVisibility(d, vis))
 
@@ -609,48 +610,112 @@ class ProfileSection:
         local = cumulative_distances(path["links"], getattr(self, "_profileLinkLengths", {}))
         branch["distances"] = [branch["offset"] + d for d in local]
 
+    def _profileTargetForNode(self, node_id, mode):
+        if mode == "declared":
+            if node_id in (getattr(self, "_profileReferenceNodes", []) or []):
+                return ("main", None)
+            for branch in getattr(self, "_profileBranches", []) or []:
+                if node_id in (branch.get("reference_nodes") or []):
+                    return ("branch", branch)
+        else:
+            main_path = getattr(self, "_profilePath", None)
+            if main_path and node_id in main_path["nodes"]:
+                return ("main", None)
+            for branch in getattr(self, "_profileBranches", []) or []:
+                branch_path = branch.get("path")
+                if branch_path and node_id in branch_path["nodes"]:
+                    return ("branch", branch)
+        return (None, None)
+
     def _applyProfileAdd(self, node_id):
-        path = getattr(self, "_profilePath", None)
-        if not path or not path["nodes"]:
-            return
-        try:
-            new_path = add_pass_node(path, node_id)
-        except ProfilePathError:
+        target, branch = self._profileTargetForNode(node_id, "path")
+        if target == "main":
+            path = getattr(self, "_profilePath", None)
+            if not path or not path["nodes"]:
+                return
+            try:
+                new_path = add_pass_node(path, node_id)
+            except ProfilePathError:
+                self.pushMessage(self.tr("Pick an intermediate node of the current profile path."), level=1)
+                return
+            self._profilePath = new_path
+            self._profileReferenceNodes = reference_nodes_from_path(new_path)
+            self._profileDistances = cumulative_distances(new_path["links"], getattr(self, "_profileLinkLengths", {}))
+            self._redrawProfile()
+        elif target == "branch":
+            with suppress(ProfilePathError):
+                new_bp = add_pass_node(branch["path"], node_id)
+                branch["path"] = new_bp
+                branch["reference_nodes"] = reference_nodes_from_path(new_bp)
+                local = cumulative_distances(new_bp["links"], getattr(self, "_profileLinkLengths", {}))
+                branch["distances"] = [branch["offset"] + d for d in local]
+                self._redrawProfile()
+        else:
             self.pushMessage(self.tr("Pick an intermediate node of the current profile path."), level=1)
-            return
-        self._profilePath = new_path
-        self._profileReferenceNodes = reference_nodes_from_path(new_path)
-        self._profileDistances = cumulative_distances(new_path["links"], getattr(self, "_profileLinkLengths", {}))
-        self._redrawProfile()
 
     def _applyProfileRemove(self, node_id):
-        refs = getattr(self, "_profileReferenceNodes", [])
-        if node_id not in refs:
+        target, branch = self._profileTargetForNode(node_id, "declared")
+        if target == "main":
+            self._profileReferenceNodes = remove_pass_node(getattr(self, "_profileReferenceNodes", []), node_id)
+            try:
+                self._recomputeProfileStructure()
+            except ProfilePathError:
+                return
+            self._redrawProfile()
+        elif target == "branch":
+            refs = list(branch.get("reference_nodes") or [])
+            new_refs = remove_pass_node(refs, node_id)
+            if len(new_refs) < 2 or (refs and node_id == refs[0]):
+                self._profileBranches = [b for b in (getattr(self, "_profileBranches", []) or []) if b is not branch]
+            else:
+                branch["reference_nodes"] = new_refs
+                with suppress(ProfilePathError):
+                    self._recomputeBranch(branch)
+            self._redrawProfile()
+        else:
             self.pushMessage(self.tr("Pick a declared profile point to remove."), level=1)
-            return
-        self._profileReferenceNodes = remove_pass_node(refs, node_id)
-        try:
-            self._recomputeProfileStructure()
-        except ProfilePathError:
-            return
-        self._redrawProfile()
 
     def _applyProfileMove(self, node_id, new_node_id):
-        refs = getattr(self, "_profileReferenceNodes", [])
-        if node_id not in refs:
-            self.pushMessage(self.tr("Only declared profile points can be moved."), level=1)
-            return
-        previous = list(refs)
-        self._profileReferenceNodes = move_pass_node(refs, node_id, new_node_id)
-        try:
-            self._recomputeProfileStructure()
-        except ProfilePathError:
-            self._profileReferenceNodes = previous
-            with suppress(ProfilePathError):
+        target, branch = self._profileTargetForNode(node_id, "declared")
+        if target == "main":
+            previous = list(getattr(self, "_profileReferenceNodes", []))
+            self._profileReferenceNodes = move_pass_node(previous, node_id, new_node_id)
+            try:
                 self._recomputeProfileStructure()
-            self.pushMessage(self.tr("The moved node cannot be connected along the network."), level=1)
-            return
-        self._redrawProfile()
+            except ProfilePathError:
+                self._profileReferenceNodes = previous
+                with suppress(ProfilePathError):
+                    self._recomputeProfileStructure()
+                self.pushMessage(self.tr("The moved node cannot be connected along the network."), level=1)
+                return
+            self._redrawProfile()
+        elif target == "branch":
+            previous = list(branch.get("reference_nodes") or [])
+            branch["reference_nodes"] = move_pass_node(previous, node_id, new_node_id)
+            try:
+                self._recomputeBranch(branch)
+            except ProfilePathError:
+                branch["reference_nodes"] = previous
+                with suppress(ProfilePathError):
+                    self._recomputeBranch(branch)
+                self.pushMessage(self.tr("The moved node cannot be connected along the network."), level=1)
+                return
+            self._redrawProfile()
+        else:
+            self.pushMessage(self.tr("Only declared profile points can be moved."), level=1)
+
+    def _onProfileCurveDelete(self, dock, label):
+        self._activateProfile(dock)
+        branches = getattr(self, "_profileBranches", []) or []
+        for i in range(len(branches)):
+            if label == (self.tr("Branch") + " " + str(i + 1)):
+                self._profileBranches = [b for j, b in enumerate(branches) if j != i]
+                self._redrawProfile()
+                return
+        sec_key = dock.currentSecondaryVariableKey()
+        if sec_key and label == self.tr(self._profileVariableLabel(sec_key)):
+            dock.setSecondaryVariableKey("")
+            self._redrawProfile()
 
     def _resolveProfileNode(self, point):
         from qgis.core import QgsRectangle
@@ -782,6 +847,7 @@ class ProfileSection:
                 "reference_indices": reference_indices,
                 "node_ids": node_id_strs,
                 "show_ids": True,
+                "fill": False,
             })
             y_label = self.tr("Accumulated head loss")
         else:
@@ -794,6 +860,7 @@ class ProfileSection:
                 "reference_indices": reference_indices,
                 "node_ids": node_id_strs,
                 "show_ids": True,
+                "fill": key == "Elevation",
             })
             if key == "Head":
                 from qgis.PyQt.QtGui import QColor
@@ -825,6 +892,7 @@ class ProfileSection:
                     "show_ids": False,
                     "y_axis": "right",
                     "fill": False,
+                    "deletable": True,
                 })
                 y_right_label = self.tr(self._profileVariableLabel(secondary_key))
 
@@ -933,6 +1001,8 @@ class ProfileSection:
                 "node_ids": [str(n) for n in branch_nodes],
                 "show_ids": True,
                 "color": self._branchColor(i),
+                "fill": key == "Elevation",
+                "deletable": True,
             })
             if key == "Head":
                 from qgis.PyQt.QtGui import QColor
