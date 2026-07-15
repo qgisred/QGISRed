@@ -55,16 +55,6 @@
           </property>
          </widget>
         </item>
-        <item row="2" column="0" colspan="3">
-         <widget class="QLabel" name="lblAffectedCount">
-          <property name="styleSheet">
-           <string>color: #155724; font-weight: bold;</string>
-          </property>
-          <property name="text">
-           <string>0 elements match</string>
-          </property>
-         </widget>
-        </item>
        </layout>
       </widget>
      </item>
@@ -129,6 +119,16 @@
         <widget class="QCheckBox" name="chkPreview">
          <property name="text">
           <string>Preview on map</string>
+         </property>
+        </widget>
+       </item>
+       <item>
+        <widget class="QLabel" name="lblAffectedCount">
+         <property name="styleSheet">
+          <string>color: #155724; font-weight: bold;</string>
+         </property>
+         <property name="text">
+          <string>0 elements match</string>
          </property>
         </widget>
        </item>
