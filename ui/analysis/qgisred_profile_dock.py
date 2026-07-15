@@ -86,7 +86,7 @@ class QGISRedProfileDock(QDockWidget):
         toolbar.setContentsMargins(6, 3, 6, 3)
         toolbar.setSpacing(3)
 
-        self.btnNewPanel = self._makeIconButton(toolbar_widget, ":/images/iconProfile.svg",
+        self.btnNewPanel = self._makeIconButton(toolbar_widget, ":/images/iconAddData.svg",
                                                 self.tr("New profile panel"))
         self.btnNewPanel.clicked.connect(self.newPanelRequested)
         toolbar.addWidget(self.btnNewPanel)
@@ -363,6 +363,15 @@ class QGISRedProfileDock(QDockWidget):
                 break
         self.cbSecondary.setCurrentIndex(target)
         self.cbSecondary.blockSignals(False)
+
+    def setQualityDisplayName(self, name):
+        text = name or self.tr("Quality")
+        q_index = next((i for i, (_d, k) in enumerate(PROFILE_VARIABLES) if k == "Quality"), None)
+        if q_index is None:
+            return
+        with suppress(Exception):
+            self.cbVariable.setItemText(q_index, text)
+            self.cbSecondary.setItemText(q_index + 1, text)
 
     def setActiveMode(self, mode):
         self._suppress_mode_signal = True

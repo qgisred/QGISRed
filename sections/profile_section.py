@@ -160,6 +160,8 @@ class ProfileSection:
             self._initResultsDock()
             if not getattr(self, "_profileTimeConnected", False):
                 self.ResultDockwidget.timeTextChanged.connect(self._onProfileTimeChanged)
+                with suppress(Exception):
+                    self.ResultDockwidget.resultPropertyChanged.connect(self._onProfileTimeChanged)
                 self._profileTimeConnected = True
         if not getattr(self, "_profileFocusConnected", False):
             with suppress(Exception):
@@ -167,6 +169,8 @@ class ProfileSection:
                 self._profileFocusConnected = True
 
         self._setActiveProfileDock(dock)
+        with suppress(Exception):
+            dock.setQualityDisplayName(self._profileQualityLabel())
         self.iface.addDockWidget(Qt.DockWidgetArea.BottomDockWidgetArea, dock)
         dock.clearPlot()
         dock.show()
@@ -471,7 +475,7 @@ class ProfileSection:
             link_info.append({"kind": kind, "direction": directions[i] if i < len(directions) else 0})
         dock.setSymbols(node_kinds, link_info)
 
-    def _onProfileTimeChanged(self, _text):
+    def _onProfileTimeChanged(self, _text=None):
         saved = getattr(self, "_activeProfile", None)
         for state in list(getattr(self, "_profiles", []) or []):
             self._activeProfile = state
@@ -783,7 +787,7 @@ class ProfileSection:
                 self._redrawProfile()
                 return
         sec_key = dock.currentSecondaryVariableKey()
-        if sec_key and label == self.tr(self._profileVariableLabel(sec_key)):
+        if sec_key and label == self._profileVariableDisplay(sec_key):
             dock.setSecondaryVariableKey("")
             self._redrawProfile()
 
@@ -893,6 +897,8 @@ class ProfileSection:
         path = getattr(self, "_profilePath", None)
         if dock is None:
             return
+        with suppress(Exception):
+            dock.setQualityDisplayName(self._profileQualityLabel())
         if not path or not path["nodes"]:
             dock.clearPlot()
             self._drawProfileHighlight()
@@ -925,7 +931,7 @@ class ProfileSection:
             samples = sample_node_variable(nodes, distances, node_values, is_reference)
             points = [(s["distance"], s["value"]) for s in samples]
             series.append({
-                "label": self.tr(self._profileVariableLabel(key)),
+                "label": self._profileVariableDisplay(key),
                 "points": points,
                 "reference_indices": reference_indices,
                 "node_ids": node_id_strs,
@@ -947,7 +953,7 @@ class ProfileSection:
                     "show_ids": False,
                     "color": QColor(140, 100, 60),
                 })
-            y_label = self.tr(self._profileVariableLabel(key))
+            y_label = self._profileVariableDisplay(key)
 
         secondary_key = dock.currentSecondaryVariableKey()
         y_right_label = ""
@@ -955,7 +961,7 @@ class ProfileSection:
             with suppress(Exception):
                 sec_points = self._profileVariablePoints(secondary_key, nodes, links, distances, is_reference)
                 series.append({
-                    "label": self.tr(self._profileVariableLabel(secondary_key)),
+                    "label": self._profileVariableDisplay(secondary_key),
                     "points": sec_points,
                     "reference_indices": reference_indices,
                     "node_ids": node_id_strs,
@@ -964,7 +970,7 @@ class ProfileSection:
                     "fill": False,
                     "deletable": True,
                 })
-                y_right_label = self.tr(self._profileVariableLabel(secondary_key))
+                y_right_label = self._profileVariableDisplay(secondary_key)
 
         with suppress(Exception):
             self._pushProfileTable(dock, series, nodes, distances, key)
@@ -999,6 +1005,24 @@ class ProfileSection:
             "Quality": "Quality",
             "HeadLoss": "Accumulated head loss",
         }.get(key, key)
+
+    def _profileQualityLabel(self):
+        dock = getattr(self, "ResultDockwidget", None)
+        with suppress(Exception):
+            name = getattr(dock, "lbl_quality", "") if dock is not None else ""
+            if name:
+                return name
+        with suppress(Exception):
+            from ..tools.utils.qgisred_project_utils import QGISRedProjectUtils
+            name = QGISRedProjectUtils.getQualityDisplayName()
+            if name:
+                return name
+        return self.tr("Quality")
+
+    def _profileVariableDisplay(self, key):
+        if key == "Quality":
+            return self._profileQualityLabel()
+        return self.tr(self._profileVariableLabel(key))
 
     def _pushProfileTable(self, dock, series, nodes, distances, key):
         headers = [self.tr("Id"), self.tr("Distance")] + [s["label"] for s in series]

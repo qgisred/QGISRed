@@ -277,6 +277,8 @@ class LifecycleSection:
                         self.ResultDockwidget.statisticsModeChanged.disconnect(self._onStatisticsModeChanged)
             with suppress(Exception):
                 self.ResultDockwidget.timeTextChanged.disconnect(self._onProfileTimeChanged)
+            with suppress(Exception):
+                self.ResultDockwidget.resultPropertyChanged.disconnect(self._onProfileTimeChanged)
             docks_to_clean.append(('ResultDockwidget', self.ResultDockwidget))
             self.ResultDockwidget = None
 
