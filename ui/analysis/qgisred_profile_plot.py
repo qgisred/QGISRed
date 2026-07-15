@@ -148,7 +148,6 @@ class ProfilePlotWidget(QWidget):
                 "points": points,
                 "reference": set(s.get("reference_indices", set())),
                 "node_ids": list(s.get("node_ids", [])),
-                "show_ids": bool(s.get("show_ids", False)),
                 "y_axis": "right" if s.get("y_axis") == "right" else "left",
                 "fill": bool(s.get("fill", True)),
                 "deletable": bool(s.get("deletable", False)),
@@ -456,9 +455,6 @@ class ProfilePlotWidget(QWidget):
         if self._show_value_labels and self._series:
             for s in self._series:
                 self._drawValueLabels(painter, s, px, py_of(s), plot)
-        for s in self._series:
-            if s.get("show_ids"):
-                self._drawNodeIdLabels(painter, s, px, py_of(s), plot)
         self._drawCursor(painter, plot, px, py_of, x0, x1)
         painter.restore()
 
@@ -714,31 +710,6 @@ class ProfilePlotWidget(QWidget):
             painter.setBrush(QBrush(QColor(255, 255, 255, 225)))
             painter.drawRoundedRect(rect, 3, 3)
             painter.setPen(text_color)
-            painter.drawText(rect, Qt.AlignmentFlag.AlignCenter, text)
-
-    def _drawNodeIdLabels(self, painter, s, px, py, plot):
-        node_ids = s.get("node_ids") or []
-        if not node_ids:
-            return
-        painter.setFont(QFont("Arial", 7))
-        fm = QFontMetrics(painter.font())
-        reference = s["reference"]
-        for idx, (d, v) in enumerate(s["points"]):
-            if v is None or idx not in reference or idx >= len(node_ids):
-                continue
-            text = truncate_id(node_ids[idx])
-            if not text:
-                continue
-            width = fm.horizontalAdvance(text) + 8
-            x_left = max(plot.left(), min(px(d) - width / 2.0, plot.right() - width))
-            y_top = py(v) + 9
-            if y_top + 13 > plot.bottom():
-                y_top = py(v) - 22
-            rect = QRectF(x_left, y_top, width, 13)
-            painter.setPen(Qt.PenStyle.NoPen)
-            painter.setBrush(QBrush(QColor(245, 246, 248, 235)))
-            painter.drawRoundedRect(rect, 3, 3)
-            painter.setPen(QColor(70, 70, 70))
             painter.drawText(rect, Qt.AlignmentFlag.AlignCenter, text)
 
     def _drawTitleAndAxisLabels(self, painter, full, plot):

@@ -958,7 +958,6 @@ class ProfileSection:
                 "points": points,
                 "reference_indices": reference_indices,
                 "node_ids": node_id_strs,
-                "show_ids": True,
                 "fill": False,
             })
             y_label = self.tr("Accumulated head loss")
@@ -971,7 +970,6 @@ class ProfileSection:
                 "points": points,
                 "reference_indices": reference_indices,
                 "node_ids": node_id_strs,
-                "show_ids": True,
                 "fill": key == "Elevation",
             })
             if key == "Head":
@@ -986,8 +984,7 @@ class ProfileSection:
                     "points": elevation_points,
                     "reference_indices": reference_indices,
                     "node_ids": node_id_strs,
-                    "show_ids": False,
-                    "color": QColor(140, 100, 60),
+                        "color": QColor(140, 100, 60),
                 })
             y_label = self._profileVariableDisplay(key)
 
@@ -1001,8 +998,7 @@ class ProfileSection:
                     "points": sec_points,
                     "reference_indices": reference_indices,
                     "node_ids": node_id_strs,
-                    "show_ids": False,
-                    "y_axis": "right",
+                        "y_axis": "right",
                     "fill": False,
                     "deletable": True,
                 })
@@ -1129,7 +1125,6 @@ class ProfileSection:
                 "points": points,
                 "reference_indices": reference_indices,
                 "node_ids": [str(n) for n in branch_nodes],
-                "show_ids": True,
                 "color": self._branchColor(i),
                 "fill": key == "Elevation",
                 "deletable": True,
@@ -1146,8 +1141,7 @@ class ProfileSection:
                     "points": elev_points,
                     "reference_indices": reference_indices,
                     "node_ids": [str(n) for n in branch_nodes],
-                    "show_ids": False,
-                    "color": QColor(140, 100, 60),
+                        "color": QColor(140, 100, 60),
                 })
 
     def _drawProfileHighlight(self):
