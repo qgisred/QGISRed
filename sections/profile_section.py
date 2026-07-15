@@ -934,6 +934,21 @@ class ProfileSection:
                 "show_ids": True,
                 "color": self._branchColor(i),
             })
+            if key == "Head":
+                from qgis.PyQt.QtGui import QColor
+
+                elev_samples = sample_node_variable(
+                    branch_nodes, branch_distances, getattr(self, "_profileNodeElev", {}), branch_is_reference
+                )
+                elev_points = [(s["distance"], s["value"]) for s in elev_samples]
+                series.append({
+                    "label": self.tr("Elevation"),
+                    "points": elev_points,
+                    "reference_indices": reference_indices,
+                    "node_ids": [str(n) for n in branch_nodes],
+                    "show_ids": False,
+                    "color": QColor(140, 100, 60),
+                })
 
     def _drawProfileHighlight(self):
         from qgis.gui import QgsRubberBand, QgsVertexMarker

@@ -757,8 +757,13 @@ class ProfilePlotWidget(QWidget):
 
     def _legendEntries(self):
         entries = []
+        seen_labels = set()
         for s in self._series:
-            entries.append({"label": s["label"] or "", "kind": "line",
+            label = s["label"] or ""
+            if label in seen_labels:
+                continue
+            seen_labels.add(label)
+            entries.append({"label": label, "kind": "line",
                             "color": s["color"], "width": s["width"], "dashed": False})
         if self._envelope is not None:
             show_band, show_lines = resolve_envelope_mode(self._envelope.get("mode", "both"))
