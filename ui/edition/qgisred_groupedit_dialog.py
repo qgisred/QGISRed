@@ -34,6 +34,7 @@ from qgis.gui import QgsHighlight
 from ...compat import QAction
 from ...tools.utils.qgisred_field_utils import QGISRedFieldUtils, normalize_element
 from ...tools.utils.qgisred_filesystem_utils import QGISRedFileSystemUtils
+from ...tools.utils.qgisred_project_utils import QGISRedProjectUtils
 from ...tools.utils.qgisred_ui_utils import QGISRedBanner, QGISRED_COMBO_STYLE
 
 
@@ -55,6 +56,15 @@ _elementLayerOrder = [
 ]
 
 _readonlyFields = {}
+
+# Chemical-only fields, hidden from both property combos when the project's
+# quality model is None, Age or Trace (mirrors Queries by Properties / Element Explorer).
+_chemicalOnlyFields = {
+    "qgisred_pipes":      {"bulkcoeff", "wallcoeff"},
+    "qgisred_tanks":      {"reactcoef", "iniquality"},
+    "qgisred_reservoirs": {"iniquality"},
+    "qgisred_junctions":  {"iniquality"},
+}
 
 _enumFields = {
     "qgisred_pipes":           {"IniStatus": ["OPEN", "CLOSED", "CV"]},
@@ -399,11 +409,16 @@ class QGISRedGroupEditDialog(QDialog, FORM_CLASS):
     def _populatePropertyCombos(self, layer):
         identifier = layer.customProperty("qgisred_identifier")
         readonly = _readonlyFields.get(identifier, set())
+        hiddenQualityFields = set()
+        if QGISRedProjectUtils.getQualityModel().upper() in ("NONE", "AGE", "TRACE"):
+            hiddenQualityFields = _chemicalOnlyFields.get(identifier, set())
         editable = []
         filterable = []
         for field in layer.fields():
             name = field.name()
             if name.lower() == "geometry":
+                continue
+            if name.lower() in hiddenQualityFields:
                 continue
             pretty = self.fieldUtils.getProperty(normalize_element(identifier), name)
             if name not in readonly:

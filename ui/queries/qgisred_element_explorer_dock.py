@@ -2588,8 +2588,9 @@ class QGISRedElementExplorerDock(QDockWidget, FORM_CLASS):
                 fields.append("Quality")
             return fields
         fields = ["Status", "Flow", "Velocity", "HeadLoss", "UnitHdLoss", "FricFactor"]
-        if isQuality:
+        if QGISRedProjectUtils.showReactRate():
             fields.append("ReactRate")
+        if isQuality:
             fields.append("Quality")
         return fields
 

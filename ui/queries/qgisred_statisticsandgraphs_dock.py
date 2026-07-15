@@ -978,7 +978,9 @@ class QGISRedStatisticsDock(QDockWidget, formClass):
 
         resultProps = self.getResultProperties(layer, elementIdentifier)
         if qualityModel == "NONE":
-            resultProps = [prop for prop in resultProps if prop not in ("Quality", "ReactRate")]
+            resultProps = [prop for prop in resultProps if prop != "Quality"]
+        if qualityModel in ("NONE", "AGE", "TRACE"):
+            resultProps = [prop for prop in resultProps if prop != "ReactRate"]
 
         if not isResultsMode:
             for field in staticFields:
@@ -1065,7 +1067,9 @@ class QGISRedStatisticsDock(QDockWidget, formClass):
 
         resultProps = self.getResultProperties(layer, elementIdentifier)
         if qualityModel == "NONE":
-            resultProps = [prop for prop in resultProps if prop not in ("Quality", "ReactRate")]
+            resultProps = [prop for prop in resultProps if prop != "Quality"]
+        if qualityModel in ("NONE", "AGE", "TRACE"):
+            resultProps = [prop for prop in resultProps if prop != "ReactRate"]
 
         for field in staticFields:
             self.addPropertyItem(self.cbClassifiedBy, elementIdentifier, field.name())
@@ -1144,7 +1148,9 @@ class QGISRedStatisticsDock(QDockWidget, formClass):
 
         resultProps = self.getResultProperties(layer, elementIdentifier)
         if qualityModel == "NONE":
-            resultProps = [prop for prop in resultProps if prop not in ("Quality", "ReactRate")]
+            resultProps = [prop for prop in resultProps if prop != "Quality"]
+        if qualityModel in ("NONE", "AGE", "TRACE"):
+            resultProps = [prop for prop in resultProps if prop != "ReactRate"]
 
         for field in staticFields:
             self.addPropertyItem(self.cbSecondClassifiedBy, elementIdentifier, field.name())
@@ -1309,7 +1315,9 @@ class QGISRedStatisticsDock(QDockWidget, formClass):
 
         resultProps = self.getResultProperties(layer, elementIdentifier)
         if qualityModel == "NONE":
-            resultProps = [prop for prop in resultProps if prop not in ("Quality", "ReactRate")]
+            resultProps = [prop for prop in resultProps if prop != "Quality"]
+        if qualityModel in ("NONE", "AGE", "TRACE"):
+            resultProps = [prop for prop in resultProps if prop != "ReactRate"]
         if resultProps:
             self.cbAttribute.insertSeparator(self.cbAttribute.count())
             resultCategory = self.resultCategoryFor(elementIdentifier, isResultsMode, layer)

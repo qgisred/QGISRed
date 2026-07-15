@@ -784,7 +784,9 @@ class QGISRedQueriesByPropertiesDock(QDockWidget, FORM_CLASS):
         resultProps = self.getResultProperties(layer, qrIdent)
         qualityModel = QGISRedProjectUtils.getQualityModel().upper()
         if qualityModel == "NONE":
-            resultProps = [p for p in resultProps if p not in ("Quality", "ReactRate")]
+            resultProps = [p for p in resultProps if p != "Quality"]
+        if qualityModel in ("NONE", "AGE", "TRACE"):
+            resultProps = [p for p in resultProps if p != "ReactRate"]
         if qualityModel in ("NONE", "AGE", "TRACE"):
             nonChemicalStaticFields = {
                 'qgisred_pipes': {'bulkcoeff', 'wallcoeff'},
