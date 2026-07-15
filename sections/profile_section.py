@@ -185,6 +185,7 @@ class ProfileSection:
         dock.importConfigRequested.connect(lambda path, d=dock: self._onProfileImportConfig(d, path))
         dock.newPanelRequested.connect(self.newProfilePanel)
         dock.curveDeleteRequested.connect(lambda label, d=dock: self._onProfileCurveDelete(d, label))
+        dock.plot.cursorNodeChanged.connect(lambda idx, d=dock: self._onProfileHoverNode(d, idx))
         dock.activated.connect(lambda d=dock: self._onProfileDockActivated(d))
         dock.visibilityChanged.connect(lambda vis, d=dock: self._onProfileDockVisibility(d, vis))
 
@@ -287,6 +288,7 @@ class ProfileSection:
         point_type = SelectPointType.TwoPoints if kind == "two" else SelectPointType.Point
         self.myMapTools["Profile"] = QGISRedSelectPointTool(
             None, self, callback, point_type, cursor=":/images/iconProfile.svg",
+            move_callback=self._profileHoverOnMap,
         )
         self.iface.mapCanvas().setMapTool(self.myMapTools["Profile"])
 
@@ -294,6 +296,73 @@ class ProfileSection:
         tool = getattr(self, "myMapTools", {}).get("Profile")
         if tool is not None and self.iface.mapCanvas().mapTool() is tool:
             self.iface.mapCanvas().unsetMapTool(tool)
+
+    def _profileNodeIndexInPath(self, node_id):
+        if node_id is None:
+            return None
+        path = getattr(self, "_profilePath", None)
+        if not path:
+            return None
+        nodes = path["nodes"]
+        for i in range(len(nodes)):
+            if nodes[i] == node_id:
+                return i
+        return None
+
+    def _profileHoverOnMap(self, point):
+        dock = self._activeDock()
+        if dock is None:
+            return
+        node_id = None
+        with suppress(Exception):
+            node_id = self._resolveProfileNode(point)
+        self._showProfileMapHover(node_id)
+        index = self._profileNodeIndexInPath(node_id)
+        with suppress(Exception):
+            dock.plot.setCursorNode(index if index is not None else -1)
+
+    def _onProfileHoverNode(self, dock, index):
+        self._activateProfile(dock)
+        path = getattr(self, "_profilePath", None)
+        node_id = None
+        if index is not None and index >= 0 and path:
+            nodes = path["nodes"]
+            if 0 <= index < len(nodes):
+                node_id = nodes[index]
+        self._showProfileMapHover(node_id)
+
+    def _showProfileMapHover(self, node_id):
+        if node_id == getattr(self, "_profileHoverNodeId", None):
+            return
+        self._clearProfileMapHover()
+        if not node_id:
+            return
+        geoms = self._profileNodeGeometries({node_id})
+        if not geoms:
+            return
+        with suppress(Exception):
+            from qgis.gui import QgsVertexMarker
+            from qgis.core import QgsPointXY
+            from qgis.PyQt.QtGui import QColor
+
+            marker = QgsVertexMarker(self.iface.mapCanvas())
+            marker.setColor(QColor(255, 127, 0))
+            with suppress(Exception):
+                marker.setFillColor(QColor(255, 127, 0, 90))
+            marker.setIconSize(16)
+            marker.setIconType(QgsVertexMarker.ICON_CIRCLE)
+            marker.setPenWidth(3)
+            marker.setCenter(QgsPointXY(geoms[0].asPoint()))
+            self._profileHoverMarker = marker
+            self._profileHoverNodeId = node_id
+
+    def _clearProfileMapHover(self):
+        marker = getattr(self, "_profileHoverMarker", None)
+        if marker is not None:
+            with suppress(Exception):
+                self.iface.mapCanvas().scene().removeItem(marker)
+            self._profileHoverMarker = None
+        self._profileHoverNodeId = None
 
     def runProfilePickTool(self):
         self._setProfileMapTool("one", self.profilePickCallback)
@@ -417,6 +486,7 @@ class ProfileSection:
             if self._activeDock() is dock:
                 self._deactivateProfileMapTool()
             self._clearHighlightForState(state)
+            self._clearProfileMapHover()
         else:
             self._setActiveProfileDock(dock)
             with suppress(Exception):
@@ -1079,7 +1149,7 @@ class ProfileSection:
             marker = QgsVertexMarker(canvas)
             marker.setColor(QColor(255, 127, 0))
             marker.setIconSize(12)
-            marker.setIconType(QgsVertexMarker.ICON_BOX)
+            marker.setIconType(QgsVertexMarker.ICON_CIRCLE)
             marker.setPenWidth(3)
             marker.setCenter(QgsPointXY(geom.asPoint()))
             self._profileMarkers.append(marker)
@@ -1111,6 +1181,7 @@ class ProfileSection:
                 self.iface.mapCanvas().scene().removeItem(marker)
         self._profileHighlights = []
         self._profileMarkers = []
+        self._clearProfileMapHover()
 
 
 for _attr, _field in _PROFILE_STATE_FIELDS.items():

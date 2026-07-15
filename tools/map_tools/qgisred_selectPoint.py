@@ -21,7 +21,7 @@ class SelectPointType(IntEnum):
 
 
 class QGISRedSelectPointTool(QgsMapTool):
-    def __init__(self, button, parent, method, type=SelectPointType.Point, cursor=None, icon_size=24, pass_modifiers=False):
+    def __init__(self, button, parent, method, type=SelectPointType.Point, cursor=None, icon_size=24, pass_modifiers=False, move_callback=None):
         # type 1: points; 2: lines; 3: 2-points; 4: 2-line; 5: point-line
         QgsMapTool.__init__(self, parent.iface.mapCanvas())
         self.canvas = parent.iface.mapCanvas()
@@ -32,6 +32,7 @@ class QGISRedSelectPointTool(QgsMapTool):
         self.type = type
         self.icon_size = icon_size
         self.pass_modifiers = bool(pass_modifiers)
+        self.move_callback = move_callback
 
         # Handle cursor: can be a string path, a QPixmap, or a QCursor
         self.custom_cursor = None
@@ -212,6 +213,11 @@ class QGISRedSelectPointTool(QgsMapTool):
                 return
 
     def canvasMoveEvent(self, event):
+        if self.move_callback is not None:
+            try:
+                self.move_callback(QgsPointXY(self.toMapCoordinates(event.pos())))
+            except Exception:
+                pass
         match = self.snapper.snapToMap(self.toMapCoordinates(event.pos()))
         if match.isValid():
             self.objectSnapped = match
