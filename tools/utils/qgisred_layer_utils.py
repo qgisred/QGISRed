@@ -646,6 +646,29 @@ class QGISRedLayerUtils:
         if self.iface:
             self.iface.mapCanvas().refresh()
 
+    @staticmethod
+    def clearNativeIdentifyResults(iface=None):
+        from contextlib import suppress
+        from qgis.PyQt.QtCore import QMetaObject
+        from qgis.PyQt.QtWidgets import QApplication, QDialog
+
+        windows = []
+        with suppress(Exception):
+            if iface is not None and iface.mainWindow() is not None:
+                windows.append(iface.mainWindow())
+        with suppress(Exception):
+            windows.extend(QApplication.topLevelWidgets())
+
+        seen = set()
+        for window in windows:
+            if window is None or id(window) in seen:
+                continue
+            seen.add(id(window))
+            with suppress(Exception):
+                for dialog in window.findChildren(QDialog):
+                    if dialog.metaObject().className() == "QgsIdentifyResultsDialog":
+                        QMetaObject.invokeMethod(dialog, "clear")
+
     """Order Layers"""
 
     def orderLayers(self, group):

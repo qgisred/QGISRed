@@ -181,16 +181,11 @@ class QGISRedIdentifyFeature(QgsMapToolIdentify):
     def clearHighlights(self):
         if self.currentHighlight is not None:
             self.currentHighlight.hide()
+            with suppress(Exception):
+                self.canvas.scene().removeItem(self.currentHighlight)
             self.currentHighlight = None
 
-        canvas = iface.mapCanvas()
-        scene = canvas.scene()
-        for item in scene.items():
-            if isinstance(item, QgsHighlight):
-                item.hide()
-                scene.removeItem(item)
-                del item
-        canvas.refresh()
+        iface.mapCanvas().refresh()
         self.clearSelections()
 
     # -------------------------------

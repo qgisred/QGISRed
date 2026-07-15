@@ -576,24 +576,16 @@ class QGISRedElementExplorerDock(QDockWidget, FORM_CLASS):
                 lyr.removeSelection()
 
     def clearHighlights(self):
-        if self.mainHighlight:
-            self.mainHighlight.hide()
-            self.mainHighlight = None
-        for h in self.adjacentHighlights:
-            h.hide()
+        scene = iface.mapCanvas().scene()
+        for highlight in [self.mainHighlight, self.currentSelectedHighlight] + list(self.adjacentHighlights):
+            if highlight is not None:
+                highlight.hide()
+                with suppress(Exception):
+                    scene.removeItem(highlight)
+        self.mainHighlight = None
+        self.currentSelectedHighlight = None
         self.adjacentHighlights.clear()
-        if self.currentSelectedHighlight:
-            self.currentSelectedHighlight.hide()
-            self.currentSelectedHighlight = None
-
-        canvas = iface.mapCanvas()
-        scene = canvas.scene()
-        for item in scene.items():
-            if isinstance(item, QgsHighlight):
-                item.hide()
-                scene.removeItem(item)
-                del item
-        canvas.refresh()
+        iface.mapCanvas().refresh()
 
     def closeEvent(self, event):
         try:

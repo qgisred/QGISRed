@@ -188,6 +188,7 @@ class LifecycleSection:
         QgsProject.instance().cleared.connect(self.runClearedProject)
         QgsProject.instance().layersRemoved.connect(self.runLegendChanged)
         QgsProject.instance().layersAdded.connect(self.runLegendChanged)
+        QgsProject.instance().layersWillBeRemoved.connect(self._onLayersWillBeRemoved)
         QgsProject.instance().readProject.connect(self.runOpenedQgisProject)
 
         # MapTools
@@ -329,6 +330,16 @@ class LifecycleSection:
         if eeDock is not None:
             QGISRedElementExplorerDock._instance = None
 
+    def _onLayersWillBeRemoved(self, layers):
+        from ..tools.utils.qgisred_layer_utils import QGISRedLayerUtils
+
+        project = QgsProject.instance()
+        for item in layers or []:
+            layer = project.mapLayer(item) if isinstance(item, str) else item
+            if layer is not None and layer.customProperty("qgisred_identifier"):
+                QGISRedLayerUtils.clearNativeIdentifyResults(self.iface)
+                return
+
     def unload(self):
         """Removes the plugin menu item and icon from QGIS GUI."""
         with suppress(Exception):
@@ -363,6 +374,8 @@ class LifecycleSection:
             QgsProject.instance().layersRemoved.disconnect(self.runLegendChanged)
         with suppress(Exception):
             QgsProject.instance().layersAdded.disconnect(self.runLegendChanged)
+        with suppress(Exception):
+            QgsProject.instance().layersWillBeRemoved.disconnect(self._onLayersWillBeRemoved)
         with suppress(Exception):
             QgsProject.instance().readProject.disconnect(self.runOpenedQgisProject)
 
