@@ -265,10 +265,22 @@ class QGISRedGroupEditDialog(QDialog, FORM_CLASS):
             )
             if reply != QMessageBox.StandardButton.Yes:
                 return
+        self._clearAppliedSelections()
         self._rollbackEdits()
         self._removePreviewHighlights()
         self._disconnectCountSignals()
         super(QGISRedGroupEditDialog, self).reject()
+
+    def _clearAppliedSelections(self):
+        """Clear the selections made by Apply, leaving any attribute tables open."""
+        layers = list(self.editedLayers)
+        for layerId in self.openedAttributeTables:
+            layer = QgsProject.instance().mapLayer(layerId)
+            if layer is not None and layer not in layers:
+                layers.append(layer)
+        for layer in layers:
+            with suppress(RuntimeError):
+                layer.removeSelection()
 
     def hideEvent(self, event):
         self._hidePreviewHighlights()
