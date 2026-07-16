@@ -214,6 +214,7 @@ class QGISRedGroupEditDialog(QDialog, FORM_CLASS):
         self.setWindowFlags(Qt.WindowType.Window | Qt.WindowType.WindowStaysOnTopHint | Qt.WindowType.WindowCloseButtonHint)
         self._applyStyle()
         self._setupFilterValueStack()
+        self._setFilterDetailsVisible(False)
         self._setupTextValueStack()
         self._setupDateCalendarButton()
         for button in (self.btAccept, self.btCancel, self.btApply):
@@ -435,10 +436,11 @@ class QGISRedGroupEditDialog(QDialog, FORM_CLASS):
 
         self.cbFilterProperty.blockSignals(True)
         self.cbFilterProperty.clear()
+        self.cbFilterProperty.addItem(self.tr("No Filter"), "")
         for name, pretty, field in filterable:
             self.cbFilterProperty.addItem(pretty, name)
         self._setPropertyItemBackgrounds(self.cbFilterProperty, identifier)
-        self._selectDefaultProperty(self.cbFilterProperty, identifier)
+        self.cbFilterProperty.setCurrentIndex(0)
         self.cbFilterProperty.blockSignals(False)
 
         self._updateComboBackground(self.cbProperty)
@@ -764,6 +766,11 @@ class QGISRedGroupEditDialog(QDialog, FORM_CLASS):
         self.filterValueStack.addWidget(self.cbFilterValueList)
         self.filterGrid.addWidget(self.filterValueStack, row, col, rowSpan, colSpan)
 
+    def _setFilterDetailsVisible(self, visible):
+        for widget in (self.lblFilterAttribute, self.lblFilterCondition, self.cbFilterOperator,
+                       self.lblFilterValue, self.filterValueStack):
+            widget.setVisible(visible)
+
     def _setupTextValueStack(self):
         sizePolicy = self.leText.sizePolicy()
         self.cbTextValueList = QComboBox(self)
@@ -783,8 +790,12 @@ class QGISRedGroupEditDialog(QDialog, FORM_CLASS):
         if layer is None or self.cbFilterProperty.currentData() is None:
             return
         self._updateComboBackground(self.cbFilterProperty)
-        identifier = layer.customProperty("qgisred_identifier")
         fieldName = self.cbFilterProperty.currentData()
+        self._setFilterDetailsVisible(bool(fieldName))
+        if not fieldName:
+            self._scheduleCount()
+            return
+        identifier = layer.customProperty("qgisred_identifier")
         field = layer.fields().field(fieldName)
         if field.isNumeric():
             category = "numeric"
@@ -897,14 +908,14 @@ class QGISRedGroupEditDialog(QDialog, FORM_CLASS):
     def _refreshAffectedCount(self):
         layer = self._currentLayer()
         if layer is None:
-            self.lblAffectedCount.setText(self.tr("0 elements match"))
+            self.lblAffectedCount.setText(self.tr("0 selected elements"))
             self._refreshPreview([])
             return
         try:
             features = self._matchingFeatures(layer)
         except Exception:
             features = []
-        self.lblAffectedCount.setText(self.tr("%d elements match") % len(features))
+        self.lblAffectedCount.setText(self.tr("%d selected elements") % len(features))
         self._refreshPreview(features)
 
     def _candidateFids(self, layer):
