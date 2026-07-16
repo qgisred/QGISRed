@@ -20,7 +20,7 @@ from ..tools.utils.qgisred_profile_path import (
     envelope_points,
     node_distance,
 )
-from ..tools.utils.qgisred_profile_plot_utils import format_profile_value
+from ..tools.utils.qgisred_profile_plot_utils import format_profile_value, profile_variable_color_hex
 
 _NODE_LAYER_IDENTIFIERS = ("qgisred_junctions", "qgisred_tanks", "qgisred_reservoirs")
 _LINK_LAYER_IDENTIFIERS = ("qgisred_pipes", "qgisred_pumps", "qgisred_valves")
@@ -947,6 +947,7 @@ class ProfileSection:
                 "points": points,
                 "reference_indices": reference_indices,
                 "node_ids": node_id_strs,
+                "color": self._profileVariableColor("HeadLoss"),
                 "fill": False,
             })
             y_label = self.tr("Accumulated head loss")
@@ -959,11 +960,10 @@ class ProfileSection:
                 "points": points,
                 "reference_indices": reference_indices,
                 "node_ids": node_id_strs,
+                "color": self._profileVariableColor(key),
                 "fill": key == "Elevation",
             })
             if key == "Head":
-                from qgis.PyQt.QtGui import QColor
-
                 elevation_samples = sample_node_variable(
                     nodes, distances, getattr(self, "_profileNodeElev", {}), is_reference
                 )
@@ -973,7 +973,7 @@ class ProfileSection:
                     "points": elevation_points,
                     "reference_indices": reference_indices,
                     "node_ids": node_id_strs,
-                        "color": QColor(140, 100, 60),
+                    "color": self._profileVariableColor("Elevation"),
                 })
             y_label = self._profileVariableDisplay(key)
 
@@ -987,7 +987,8 @@ class ProfileSection:
                     "points": sec_points,
                     "reference_indices": reference_indices,
                     "node_ids": node_id_strs,
-                        "y_axis": "right",
+                    "color": self._profileVariableColor(secondary_key),
+                    "y_axis": "right",
                     "fill": False,
                     "deletable": True,
                 })
@@ -1079,6 +1080,12 @@ class ProfileSection:
             return seconds_to_time_str_no_seconds(int(seconds))
         return "-"
 
+    def _profileVariableColor(self, key):
+        from qgis.PyQt.QtGui import QColor
+
+        hex_color = profile_variable_color_hex(key)
+        return QColor(hex_color) if hex_color else None
+
     def _branchColor(self, index, alpha=255):
         from qgis.PyQt.QtGui import QColor
 
@@ -1119,8 +1126,6 @@ class ProfileSection:
                 "deletable": True,
             })
             if key == "Head":
-                from qgis.PyQt.QtGui import QColor
-
                 elev_samples = sample_node_variable(
                     branch_nodes, branch_distances, getattr(self, "_profileNodeElev", {}), branch_is_reference
                 )
@@ -1130,7 +1135,7 @@ class ProfileSection:
                     "points": elev_points,
                     "reference_indices": reference_indices,
                     "node_ids": [str(n) for n in branch_nodes],
-                        "color": QColor(140, 100, 60),
+                    "color": self._profileVariableColor("Elevation"),
                 })
 
     def _drawProfileHighlight(self):

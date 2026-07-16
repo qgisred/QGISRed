@@ -2,6 +2,18 @@
 
 ENVELOPE_MODES = ("off", "band", "lines", "both")
 
+PROFILE_VARIABLE_COLORS = {
+    "Elevation": "#8c643c",
+    "Head": "#1f78b4",
+    "Pressure": "#729b6f",
+    "Quality": "#8d5a99",
+    "HeadLoss": "#becf50",
+}
+
+
+def profile_variable_color_hex(key):
+    return PROFILE_VARIABLE_COLORS.get(key, "")
+
 
 def resolve_envelope_mode(mode):
     show_band = mode in ("band", "both")

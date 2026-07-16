@@ -6,7 +6,27 @@ from QGISRed.tools.utils.qgisred_profile_plot_utils import (
     format_profile_value,
     resolve_envelope_mode,
     truncate_id,
+    profile_variable_color_hex,
 )
+
+
+def test_profile_variable_color_hex_known_keys():
+    assert profile_variable_color_hex("Pressure") == "#729b6f"
+    assert profile_variable_color_hex("Head") == "#1f78b4"
+    assert profile_variable_color_hex("Quality") == "#8d5a99"
+    assert profile_variable_color_hex("Elevation") == "#8c643c"
+    assert profile_variable_color_hex("HeadLoss") == "#becf50"
+
+
+def test_profile_variable_color_hex_unknown_key():
+    assert profile_variable_color_hex("Demand") == ""
+
+
+def test_profile_variable_colors_are_distinct():
+    from QGISRed.tools.utils.qgisred_profile_plot_utils import PROFILE_VARIABLE_COLORS
+
+    values = list(PROFILE_VARIABLE_COLORS.values())
+    assert len(values) == len(set(values))
 
 
 def test_resolve_envelope_mode_off():
