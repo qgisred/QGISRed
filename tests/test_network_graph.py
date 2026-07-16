@@ -77,6 +77,30 @@ def test_min_path_unknown_node_returns_none():
     assert min_path(adjacency, "A", "Z") is None
 
 
+def test_min_path_excluded_links_forces_detour():
+    node_ids = ["A", "B", "C", "D"]
+    link_ids = ["direct", "long1", "long2"]
+    link_from = [0, 0, 2]
+    link_to = [3, 2, 3]
+    adjacency = build_adjacency(node_ids, link_ids, link_from, link_to)
+    nodes, links = min_path(adjacency, "A", "D", excluded_links={"direct"})
+    assert nodes == ["A", "C", "D"]
+    assert links == ["long1", "long2"]
+
+
+def test_min_path_excluded_links_can_disconnect():
+    adjacency = _linear_network()
+    assert min_path(adjacency, "A", "D", excluded_links={"L2"}) is None
+
+
+def test_min_path_excluded_links_none_is_default():
+    adjacency = _linear_network()
+    assert min_path(adjacency, "A", "D", excluded_links=None) == (
+        ["A", "B", "C", "D"],
+        ["L1", "L2", "L3"],
+    )
+
+
 def _reference_hop_distance(adjacency, start, end):
     if start == end:
         return 0

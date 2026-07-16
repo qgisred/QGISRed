@@ -50,6 +50,7 @@ _ELEMENT_SVG_COLORS = {
 
 class ProfilePlotWidget(QWidget):
     cursorNodeChanged = pyqtSignal(int)
+    cursorNodeIdChanged = pyqtSignal(str)
     curveDeleteRequested = pyqtSignal(str)
 
     def __init__(self, parent=None):
@@ -65,7 +66,9 @@ class ProfilePlotWidget(QWidget):
         self._empty_text = ""
         self._hover_x = None
         self._hover_node_index = -1
+        self._hover_node_id = ""
         self._cursor_node_index = None
+        self._cursor_data_x = None
         self._show_value_labels = False
         self._symbols = None
         self._envelope = None
@@ -120,8 +123,15 @@ class ProfilePlotWidget(QWidget):
 
     def setCursorNode(self, index):
         new_index = index if (index is not None and index >= 0) else None
-        if new_index != self._cursor_node_index:
+        if new_index != self._cursor_node_index or self._cursor_data_x is not None:
             self._cursor_node_index = new_index
+            self._cursor_data_x = None
+            self.update()
+
+    def setCursorDistance(self, distance):
+        if distance != self._cursor_data_x or self._cursor_node_index is not None:
+            self._cursor_data_x = distance
+            self._cursor_node_index = None
             self.update()
 
     def setLabels(self, title, x_label, y_label, y_right_label=""):
@@ -189,6 +199,7 @@ class ProfilePlotWidget(QWidget):
         self._hover_x = None
         self._hover_node_index = -1
         self._cursor_node_index = None
+        self._cursor_data_x = None
         self._symbols = None
         self._envelope = None
         self._view_x = None
@@ -827,6 +838,8 @@ class ProfilePlotWidget(QWidget):
         data_x = None
         if self._hover_x is not None and plot.left() <= self._hover_x <= plot.right():
             data_x = x0 + (self._hover_x - plot.left()) / plot.width() * (x1 - x0)
+        elif self._cursor_data_x is not None:
+            data_x = self._cursor_data_x
         elif self._cursor_node_index is not None:
             base = self._series[0]["points"]
             if 0 <= self._cursor_node_index < len(base):
@@ -916,6 +929,7 @@ class ProfilePlotWidget(QWidget):
 
     def _emitCursorNode(self):
         index = -1
+        node_id = ""
         if (self._hover_x is not None and self._last_plot is not None
                 and self._last_view is not None and self._series):
             plot = self._last_plot
@@ -925,12 +939,14 @@ class ProfilePlotWidget(QWidget):
                 snapshot = cursor_snapshot(self._series, data_x)
                 if snapshot is not None:
                     index = snapshot["index"]
-        if index < 0:
-            self._hover_node_index = -1
-            return
+                    node_id = snapshot.get("node_id") or ""
         if index != self._hover_node_index:
             self._hover_node_index = index
-            self.cursorNodeChanged.emit(index)
+            if index >= 0:
+                self.cursorNodeChanged.emit(index)
+        if node_id != self._hover_node_id:
+            self._hover_node_id = node_id
+            self.cursorNodeIdChanged.emit(node_id)
 
     def mouseMoveEvent(self, event):
         x, y = self._eventPos(event)

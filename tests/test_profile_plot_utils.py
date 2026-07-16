@@ -132,3 +132,17 @@ def test_cursor_snapshot_node_id_absent():
     series = [{"label": "A", "color": "c1", "points": [(0.0, 1.0), (10.0, 2.0)]}]
     snap = cursor_snapshot(series, 0.0)
     assert snap["node_id"] is None
+
+
+def test_cursor_snapshot_node_id_from_snap_owner():
+    series = [
+        {"label": "Main", "color": "c1",
+         "points": [(0.0, 10.0), (100.0, 20.0), (200.0, 30.0)],
+         "node_ids": ["A", "B", "C"]},
+        {"label": "Branch", "color": "c2",
+         "points": [(100.0, 15.0), (150.0, 25.0), (250.0, 40.0)],
+         "node_ids": ["B", "X", "Y"]},
+    ]
+    snap = cursor_snapshot(series, 150.0)
+    assert snap["distance"] == 150.0
+    assert snap["node_id"] == "X"

@@ -27,10 +27,12 @@ def build_adjacency_from_meta(meta):
     )
 
 
-def _expand_level(adjacency, level, parent_own, parent_other):
+def _expand_level(adjacency, level, parent_own, parent_other, excluded):
     next_level = []
     for node in level:
         for link, neighbor in adjacency.get(node, []):
+            if link in excluded:
+                continue
             if neighbor in parent_own:
                 continue
             parent_own[neighbor] = (node, link)
@@ -67,12 +69,13 @@ def _reconstruct(meet, parent_forward, parent_backward):
     return nodes_forward + nodes_backward, links_forward + links_backward
 
 
-def min_path(adjacency, start, end):
+def min_path(adjacency, start, end, excluded_links=None):
     if start not in adjacency or end not in adjacency:
         return None
     if start == end:
         return [start], []
 
+    excluded = excluded_links or set()
     parent_forward = {start: (None, None)}
     parent_backward = {end: (None, None)}
     level_forward = [start]
@@ -82,11 +85,11 @@ def min_path(adjacency, start, end):
     while level_forward and level_backward:
         if expand_forward:
             level_forward, meet = _expand_level(
-                adjacency, level_forward, parent_forward, parent_backward
+                adjacency, level_forward, parent_forward, parent_backward, excluded
             )
         else:
             level_backward, meet = _expand_level(
-                adjacency, level_backward, parent_backward, parent_forward
+                adjacency, level_backward, parent_backward, parent_forward, excluded
             )
         if meet is not None:
             return _reconstruct(meet, parent_forward, parent_backward)

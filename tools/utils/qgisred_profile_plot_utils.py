@@ -40,6 +40,8 @@ def nearest_visible_point(points, data_x):
 def cursor_snapshot(series, data_x):
     snap_distance = None
     best_gap = None
+    owner = None
+    owner_idx = None
     for s in series:
         candidate = nearest_visible_point(s["points"], data_x)
         if candidate is None:
@@ -49,11 +51,17 @@ def cursor_snapshot(series, data_x):
         if best_gap is None or gap < best_gap:
             best_gap = gap
             snap_distance = s_distance
+            owner = s
+            owner_idx = _s_idx
     if snap_distance is None:
         return None
+    node_id = None
+    if owner is not None:
+        ids = owner.get("node_ids")
+        if ids and owner_idx < len(ids):
+            node_id = ids[owner_idx]
     entries = []
     index = 0
-    node_id = None
     for s in series:
         candidate = nearest_visible_point(s["points"], snap_distance)
         if candidate is None:
@@ -61,10 +69,6 @@ def cursor_snapshot(series, data_x):
         s_idx, s_distance, s_value = candidate
         if not entries:
             index = s_idx
-        if node_id is None:
-            ids = s.get("node_ids")
-            if ids and s_idx < len(ids):
-                node_id = ids[s_idx]
         entries.append({
             "label": s.get("label", ""),
             "color": s.get("color"),

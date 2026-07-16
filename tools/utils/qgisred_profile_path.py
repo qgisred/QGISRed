@@ -6,7 +6,7 @@ class ProfilePathError(Exception):
     pass
 
 
-def build_profile_path(adjacency, reference_nodes):
+def build_profile_path(adjacency, reference_nodes, excluded_links=None):
     reference_nodes = list(reference_nodes)
     if not reference_nodes:
         return {"nodes": [], "links": [], "is_reference": []}
@@ -20,7 +20,7 @@ def build_profile_path(adjacency, reference_nodes):
     for i in range(len(reference_nodes) - 1):
         a = reference_nodes[i]
         b = reference_nodes[i + 1]
-        result = min_path(adjacency, a, b)
+        result = min_path(adjacency, a, b, excluded_links=excluded_links)
         if result is None:
             raise ProfilePathError(
                 "No path connects reference nodes '{}' and '{}'".format(a, b)

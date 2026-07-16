@@ -189,7 +189,7 @@ class ProfileSection:
         dock.importConfigRequested.connect(lambda path, d=dock: self._onProfileImportConfig(d, path))
         dock.newPanelRequested.connect(self.newProfilePanel)
         dock.curveDeleteRequested.connect(lambda label, d=dock: self._onProfileCurveDelete(d, label))
-        dock.plot.cursorNodeChanged.connect(lambda idx, d=dock: self._onProfileHoverNode(d, idx))
+        dock.plot.cursorNodeIdChanged.connect(lambda nid, d=dock: self._onProfileHoverNodeId(d, nid))
         dock.activated.connect(lambda d=dock: self._onProfileDockActivated(d))
         dock.visibilityChanged.connect(lambda vis, d=dock: self._onProfileDockVisibility(d, vis))
 
@@ -337,18 +337,6 @@ class ProfileSection:
         if tool is not None and self.iface.mapCanvas().mapTool() is tool:
             self.iface.mapCanvas().unsetMapTool(tool)
 
-    def _profileNodeIndexInPath(self, node_id):
-        if node_id is None:
-            return None
-        path = getattr(self, "_profilePath", None)
-        if not path:
-            return None
-        nodes = path["nodes"]
-        for i in range(len(nodes)):
-            if nodes[i] == node_id:
-                return i
-        return None
-
     def _profileHoverOnMap(self, point):
         dock = self._activeDock()
         if dock is None:
@@ -357,19 +345,13 @@ class ProfileSection:
         with suppress(Exception):
             node_id = self._resolveProfileNode(point)
         self._showProfileMapHover(node_id)
-        index = self._profileNodeIndexInPath(node_id)
+        distance = self._profileNodeTreeDistance(node_id) if node_id else None
         with suppress(Exception):
-            dock.plot.setCursorNode(index if index is not None else -1)
+            dock.plot.setCursorDistance(distance)
 
-    def _onProfileHoverNode(self, dock, index):
+    def _onProfileHoverNodeId(self, dock, node_id):
         self._activateProfile(dock)
-        path = getattr(self, "_profilePath", None)
-        node_id = None
-        if index is not None and index >= 0 and path:
-            nodes = path["nodes"]
-            if 0 <= index < len(nodes):
-                node_id = nodes[index]
-        self._showProfileMapHover(node_id)
+        self._showProfileMapHover(node_id if node_id else None)
 
     def _showProfileMapHover(self, node_id):
         if node_id == getattr(self, "_profileHoverNodeId", None):
@@ -711,11 +693,18 @@ class ProfileSection:
                     return distance
         return None
 
+    def _mainProfileLinkSet(self):
+        path = getattr(self, "_profilePath", None)
+        if not path:
+            return set()
+        return set(path.get("links") or [])
+
     def _recomputeBranch(self, branch):
         adjacency = getattr(self, "_profileAdjacency", None)
         if adjacency is None:
             raise ProfilePathError("No network topology available")
-        path = build_profile_path(adjacency, branch["reference_nodes"])
+        excluded = self._mainProfileLinkSet()
+        path = build_profile_path(adjacency, branch["reference_nodes"], excluded_links=excluded)
         branch["path"] = path
         local = cumulative_distances(path["links"], getattr(self, "_profileLinkLengths", {}))
         branch["distances"] = [branch["offset"] + d for d in local]
