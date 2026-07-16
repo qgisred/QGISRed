@@ -32,6 +32,14 @@ def label_with_unit(label, unit_abbr):
     return "{} ({})".format(label, unit_abbr) if unit_abbr else label
 
 
+def profile_x_range(data_min, data_max):
+    x0 = float(data_min)
+    x1 = float(data_max)
+    if x1 <= x0:
+        x1 = x0 + 1.0
+    return x0, x1
+
+
 def resolve_envelope_mode(mode):
     show_band = mode in ("band", "both")
     show_lines = mode in ("lines", "both")

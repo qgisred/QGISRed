@@ -8,7 +8,37 @@ from QGISRed.tools.utils.qgisred_profile_plot_utils import (
     truncate_id,
     profile_variable_color_hex,
     label_with_unit,
+    profile_x_range,
 )
+
+
+def test_profile_x_range_ends_exactly_at_last_node():
+    assert profile_x_range(0.0, 1234.0) == (0.0, 1234.0)
+
+
+def test_profile_x_range_keeps_offset_start():
+    assert profile_x_range(150.0, 980.5) == (150.0, 980.5)
+
+
+def test_profile_x_range_degenerate_gets_unit_width():
+    assert profile_x_range(50.0, 50.0) == (50.0, 51.0)
+
+
+def test_profile_x_range_no_dead_zone_versus_nice_scale():
+    from QGISRed.tools.utils.qgisred_axis_scale_utils import compute_nice_scale
+
+    nice = compute_nice_scale(0.0, 1234.0, 8)
+    _x0, x1 = profile_x_range(0.0, 1234.0)
+    assert nice.axis_max > 1234.0
+    assert x1 == 1234.0
+
+
+def test_profile_x_range_visible_ticks_stay_on_nice_values():
+    from QGISRed.tools.utils.qgisred_axis_scale_utils import compute_nice_scale
+
+    x0, x1 = profile_x_range(0.0, 1234.0)
+    ticks = [t for t in compute_nice_scale(x0, x1, 8).ticks() if x0 - 1e-9 <= t <= x1 + 1e-9]
+    assert ticks == [0.0, 200.0, 400.0, 600.0, 800.0, 1000.0, 1200.0]
 
 
 def test_label_with_unit_appends_unit():

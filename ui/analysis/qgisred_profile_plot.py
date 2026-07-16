@@ -11,6 +11,7 @@ from ...tools.utils.qgisred_profile_plot_utils import (
     format_profile_value,
     resolve_envelope_mode,
     truncate_id,
+    profile_x_range,
 )
 from .profile_chart_settings import ProfileAxisSettings, ProfileGeneralSettings
 
@@ -236,8 +237,7 @@ class ProfilePlotWidget(QWidget):
         elif not self._axis_cfg_x.auto_scale:
             x0, x1 = self._axis_cfg_x.fixed_min, self._axis_cfg_x.fixed_max
         else:
-            xs = compute_nice_scale(bounds[0], bounds[1], 8)
-            x0, x1 = xs.axis_min, xs.axis_max
+            x0, x1 = profile_x_range(bounds[0], bounds[1])
         if x1 == x0:
             x1 = x0 + 1.0
         y0, y1 = self._autoYForAxis(x0, x1, "left")
@@ -250,11 +250,7 @@ class ProfilePlotWidget(QWidget):
         bounds = self._dataBounds()
         if bounds is None:
             return None
-        xs = compute_nice_scale(bounds[0], bounds[1], 8)
-        lo, hi = xs.axis_min, xs.axis_max
-        if hi == lo:
-            hi = lo + 1.0
-        return lo, hi
+        return profile_x_range(bounds[0], bounds[1])
 
     def _autoYForAxis(self, x0, x1, which):
         cfg = self._axis_cfg_y_right if which == "right" else self._axis_cfg_y
