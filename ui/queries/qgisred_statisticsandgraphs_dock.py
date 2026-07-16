@@ -121,7 +121,7 @@ class _StatisticsHistogramPopoutWindow(QWidget):
     def __init__(self, parent, onClose):
         super().__init__(parent)
         self.setWindowFlags(Qt.WindowType.Window)
-        self.setWindowTitle(self.tr("QGISRed: Statistics on properties Histogram"))
+        self.setWindowTitle(self.tr("QGISRed: Statistics on Properties Histogram"))
         self._onClose = onClose
         self._defaultGeometry = None
         self.setMinimumSize(360, 260)
