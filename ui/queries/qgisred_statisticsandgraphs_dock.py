@@ -30,7 +30,7 @@ from qgis.core import (
     QgsFeatureRequest,
     QgsProject,
 )
-from qgis.gui import QgsHighlight
+from qgis.gui import QgsFilterLineEdit, QgsHighlight
 
 from ..analysis.qgisred_results_dock import QGISRedResultsDock
 from ...compat import sip
@@ -212,6 +212,9 @@ class QGISRedStatisticsDock(QDockWidget, formClass):
         self.setupHistogram()
         self.setupIcons()
         self.applyWhiteStyle()
+        valueLineEdit = QgsFilterLineEdit(self.cbValue)
+        self.cbValue.setLineEdit(valueLineEdit)
+        valueLineEdit.cleared.connect(self.onValueCleared)
         for combo in self.findChildren(QComboBox):
             QGISRedUIUtils.applyComboStyle(combo)
             combo.setSizeAdjustPolicy(QComboBox.SizeAdjustPolicy.AdjustToMinimumContentsLengthWithIcon)
@@ -1402,6 +1405,14 @@ class QGISRedStatisticsDock(QDockWidget, formClass):
             self.cbValue.addItem("", "")
             for value in uniqueValues:
                 self.cbValue.addItem(str(value), value)
+
+    def onValueCleared(self):
+        # The X button empties the text; the selection must go too or currentData keeps filtering
+        self.cbValue.blockSignals(True)
+        self.cbValue.setCurrentIndex(-1)
+        self.cbValue.clearEditText()
+        self.cbValue.blockSignals(False)
+        self.scheduleFilterPreview()
 
     def scheduleFilterPreview(self):
         self.filterPreviewTimer.start()
