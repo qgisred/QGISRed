@@ -30,6 +30,7 @@ from qgis.core import (
     QgsFeatureRequest,
     QgsProject,
 )
+from qgis.gui import QgsHighlight
 
 from ..analysis.qgisred_results_dock import QGISRedResultsDock
 from ...compat import sip
@@ -202,6 +203,11 @@ class QGISRedStatisticsDock(QDockWidget, formClass):
         self.resultsDockPollTimer = QTimer()
         self.resultsDockPollTimer.setInterval(1500)
         self.resultsDockPollTimer.timeout.connect(self.pollForResultsDock)
+        self.previewHighlights = []
+        self.filterPreviewTimer = QTimer()
+        self.filterPreviewTimer.setSingleShot(True)
+        self.filterPreviewTimer.setInterval(150)
+        self.filterPreviewTimer.timeout.connect(self.refreshFilterPreview)
 
         self.setupHistogram()
         self.setupIcons()
@@ -224,6 +230,8 @@ class QGISRedStatisticsDock(QDockWidget, formClass):
 
     def closeEvent(self, event):
         self._closeHistogramPopout()
+        self.filterPreviewTimer.stop()
+        self.removeFilterPreviewHighlights()
         self.resultsDockVisibilityTimer.stop()
         self.disconnectResultsDock()
         self.resultsDockPollTimer.stop()
@@ -433,6 +441,16 @@ class QGISRedStatisticsDock(QDockWidget, formClass):
         self.btSecondManualBreaks.clicked.connect(self.openSecondManualBreaksDialog)
         self.mFiltersGroupBox.collapsedStateChanged.connect(self.onCollapsibleGroupToggled)
         self.mSecondClassGroupBox.collapsedStateChanged.connect(self.onCollapsibleGroupToggled)
+        self.chkPreview.toggled.connect(self.onFilterPreviewToggled)
+        self.mFiltersGroupBox.collapsedStateChanged.connect(self.scheduleFilterPreview)
+        self.cbElementType.currentIndexChanged.connect(self.scheduleFilterPreview)
+        self.cbAttribute.currentIndexChanged.connect(self.scheduleFilterPreview)
+        self.cbCondition.currentIndexChanged.connect(self.scheduleFilterPreview)
+        self.cbValue.editTextChanged.connect(self.scheduleFilterPreview)
+        self.cbValue.currentIndexChanged.connect(self.scheduleFilterPreview)
+        self.leFrom.textChanged.connect(self.scheduleFilterPreview)
+        self.leTo.textChanged.connect(self.scheduleFilterPreview)
+        self.cbSelectedElements.toggled.connect(self.scheduleFilterPreview)
 
     def onCollapsibleGroupToggled(self, collapsed):
         if not collapsed:
@@ -492,6 +510,7 @@ class QGISRedStatisticsDock(QDockWidget, formClass):
                 layer.featureDeleted.connect(self.onLayerTreeChanged)
                 layer.attributeValueChanged.connect(self.onLayerTreeChanged)
                 layer.committedAttributeValuesChanges.connect(self.onLayerTreeChanged)
+                layer.selectionChanged.connect(self.scheduleFilterPreview)
             self.connectedLayerNodes.append(layerNode)
 
     def disconnectLayerNode(self, layerNode):
@@ -504,6 +523,7 @@ class QGISRedStatisticsDock(QDockWidget, formClass):
                 self.safeDisconnect(layer.featureDeleted, self.onLayerTreeChanged)
                 self.safeDisconnect(layer.attributeValueChanged, self.onLayerTreeChanged)
                 self.safeDisconnect(layer.committedAttributeValuesChanges, self.onLayerTreeChanged)
+                self.safeDisconnect(layer.selectionChanged, self.scheduleFilterPreview)
 
     def onLayerTreeChanged(self, *args):
         self.layerTreeChangeTimer.start()
@@ -529,12 +549,14 @@ class QGISRedStatisticsDock(QDockWidget, formClass):
             self.tbExcel.setRowCount(0)
             self.tbExcel.setColumnCount(0)
             self.labelOnlySelectedElements.hide()
+        self.scheduleFilterPreview()
 
     def onProjectChanged(self, *args):
         self.manualBreaks = []
         self.secondManualBreaks = []
         self.lastNullCount = 0
         self.lastOutOfRangeCount = 0
+        self.removeFilterPreviewHighlights()
         self.clearChart()
         self._feedHistogramPopout()
         self.tbExcel.setRowCount(0)
@@ -1381,6 +1403,86 @@ class QGISRedStatisticsDock(QDockWidget, formClass):
             for value in uniqueValues:
                 self.cbValue.addItem(str(value), value)
 
+    def scheduleFilterPreview(self):
+        self.filterPreviewTimer.start()
+
+    def onFilterPreviewToggled(self, checked):
+        if checked:
+            self.refreshFilterPreview()
+        else:
+            self.removeFilterPreviewHighlights()
+
+    def refreshFilterPreview(self):
+        if self.mFiltersGroupBox.isCollapsed():
+            self.removeFilterPreviewHighlights()
+            return
+        features = self.computeFilterMatchFeatures()
+        if features is None:
+            features = []
+        self.lblMatchCount.setText(self.tr("%d elements match") % len(features))
+        self.removeFilterPreviewHighlights()
+        if not self.chkPreview.isChecked() or not features:
+            return
+        layer = self.resolveLayer()
+        if layer is None:
+            return
+        for feature in features:
+            geom = feature.geometry()
+            if geom is None or geom.isEmpty():
+                continue
+            highlight = QgsHighlight(self.canvas, geom, layer)
+            highlight.setColor(QColor(255, 140, 0))
+            highlight.setWidth(3)
+            highlight.show()
+            self.previewHighlights.append(highlight)
+
+    def computeFilterMatchFeatures(self):
+        # Features passing the Filters section (attribute condition + only selected); None = not evaluable
+        layer = self.resolveLayer()
+        if layer is None:
+            return None
+        condition = self.cbCondition.currentData(Qt.ItemDataRole.UserRole) or ""
+        attributeField = self.cbAttribute.currentData(Qt.ItemDataRole.UserRole) if condition not in ("", "All") else ""
+        layers = self.resolveAnalysisLayers("", "", "", attributeField, quiet=True)
+        if layers is None:
+            return None
+        request = QgsFeatureRequest()
+        if self.cbSelectedElements.isChecked():
+            selectedIds = layer.selectedFeatureIds()
+            if not selectedIds:
+                return []
+            request.setFilterFids(list(selectedIds))
+        expression = self.buildAttributeExpression(layer, quiet=True)
+        if expression is False:
+            return None
+        if expression:
+            request.combineFilterExpression(expression)
+        filterIds = self.computeJoinFilterIds(layers, attributeField, quiet=True)
+        if filterIds is False:
+            return None
+        baseIdField = layers["baseIdField"]
+        features = []
+        for feature in layer.getFeatures(request):
+            if filterIds is not None and str(feature[baseIdField]) not in filterIds:
+                continue
+            features.append(feature)
+        return features
+
+    def removeFilterPreviewHighlights(self):
+        if not self.previewHighlights:
+            return
+        scene = self.canvas.scene() if self.canvas is not None else None
+        for highlight in self.previewHighlights:
+            with suppress(Exception):
+                highlight.hide()
+            if scene is not None:
+                with suppress(Exception):
+                    scene.removeItem(highlight)
+        self.previewHighlights = []
+        if self.canvas is not None:
+            with suppress(Exception):
+                self.canvas.refresh()
+
     def addPropertyItem(self, combo, elementIdentifier, fieldName, brush=None):
         prettyName = self.fieldUtils.getProperty(normalize_element(elementIdentifier), fieldName) or fieldName
         unit = self.fieldUtils.getUnitAbbreviation(normalize_element(elementIdentifier), fieldName) or ""
@@ -1659,14 +1761,14 @@ class QGISRedStatisticsDock(QDockWidget, formClass):
             lookup[str(feature[idFieldName])] = {fieldName: feature[fieldName] for fieldName in joinFields}
         return lookup
 
-    def computeJoinFilterIds(self, layers, attributeField):
+    def computeJoinFilterIds(self, layers, attributeField, quiet=False):
         # Ids passing the filters that can only run on the results layer (joined fields)
         resultsLayer = layers["resultsLayer"]
         if resultsLayer is None:
             return None
         expressions = []
         if attributeField and attributeField in layers["joinFields"]:
-            expression = self.buildAttributeExpression(resultsLayer)
+            expression = self.buildAttributeExpression(resultsLayer, quiet=quiet)
             if expression is False:
                 return False
             if expression:
@@ -2226,7 +2328,7 @@ class QGISRedStatisticsDock(QDockWidget, formClass):
                 applied = True
         return request if applied else None
 
-    def buildAttributeExpression(self, layer):
+    def buildAttributeExpression(self, layer, quiet=False):
         attributeField = self.cbAttribute.currentData(Qt.ItemDataRole.UserRole)
         if not attributeField:
             return ""
@@ -2242,18 +2344,21 @@ class QGISRedStatisticsDock(QDockWidget, formClass):
             fromText = self.leFrom.text().strip()
             toText = self.leTo.text().strip()
             if not fromText or not toText:
-                QMessageBox.warning(self, self.tr("Range filter"), self.tr("Both 'From' and 'To' values are required for a Range filter."))
+                if not quiet:
+                    QMessageBox.warning(self, self.tr("Range filter"), self.tr("Both 'From' and 'To' values are required for a Range filter."))
                 return False
             try:
                 fromValue = float(fromText)
                 toValue = float(toText)
             except ValueError:
-                QMessageBox.warning(self, self.tr("Range filter"), self.tr("'From' and 'To' must be numeric."))
+                if not quiet:
+                    QMessageBox.warning(self, self.tr("Range filter"), self.tr("'From' and 'To' must be numeric."))
                 return False
             if attributeField == "Flow":
                 fromValue, toValue = sorted((abs(fromValue), abs(toValue)))
             if fromValue > toValue:
-                QMessageBox.warning(self, self.tr("Range filter"), self.tr("'From' must be less than or equal to 'To'."))
+                if not quiet:
+                    QMessageBox.warning(self, self.tr("Range filter"), self.tr("'From' must be less than or equal to 'To'."))
                 return False
             return "{0} >= {1} AND {0} <= {2}".format(quotedColumn, fromValue, toValue)
 
@@ -2271,7 +2376,8 @@ class QGISRedStatisticsDock(QDockWidget, formClass):
             try:
                 numericValue = float(rawValue)
             except (TypeError, ValueError):
-                QMessageBox.warning(self, self.tr("Filter value"), self.tr("Numeric value required for this condition."))
+                if not quiet:
+                    QMessageBox.warning(self, self.tr("Filter value"), self.tr("Numeric value required for this condition."))
                 return False
             if attributeField == "Flow":
                 numericValue = abs(numericValue)

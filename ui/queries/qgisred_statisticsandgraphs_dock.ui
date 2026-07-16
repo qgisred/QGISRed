@@ -283,6 +283,40 @@
                  </item>
                 </layout>
                </item>
+               <item>
+                <layout class="QHBoxLayout" name="previewLayout">
+                 <item>
+                  <widget class="QCheckBox" name="chkPreview">
+                   <property name="text">
+                    <string>Preview on map</string>
+                   </property>
+                  </widget>
+                 </item>
+                 <item>
+                  <widget class="QLabel" name="lblMatchCount">
+                   <property name="styleSheet">
+                    <string>color: #155724; font-weight: bold;</string>
+                   </property>
+                   <property name="text">
+                    <string>0 elements match</string>
+                   </property>
+                  </widget>
+                 </item>
+                 <item>
+                  <spacer name="previewSpacer">
+                   <property name="orientation">
+                    <enum>Qt::Horizontal</enum>
+                   </property>
+                   <property name="sizeHint" stdset="0">
+                    <size>
+                     <width>40</width>
+                     <height>20</height>
+                    </size>
+                   </property>
+                  </spacer>
+                 </item>
+                </layout>
+               </item>
               </layout>
              </widget>
             </item>
