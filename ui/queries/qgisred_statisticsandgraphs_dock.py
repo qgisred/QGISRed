@@ -2250,6 +2250,8 @@ class QGISRedStatisticsDock(QDockWidget, formClass):
             except ValueError:
                 QMessageBox.warning(self, self.tr("Range filter"), self.tr("'From' and 'To' must be numeric."))
                 return False
+            if attributeField == "Flow":
+                fromValue, toValue = sorted((abs(fromValue), abs(toValue)))
             if fromValue > toValue:
                 QMessageBox.warning(self, self.tr("Range filter"), self.tr("'From' must be less than or equal to 'To'."))
                 return False
@@ -2271,6 +2273,8 @@ class QGISRedStatisticsDock(QDockWidget, formClass):
             except (TypeError, ValueError):
                 QMessageBox.warning(self, self.tr("Filter value"), self.tr("Numeric value required for this condition."))
                 return False
+            if attributeField == "Flow":
+                numericValue = abs(numericValue)
             return "{0} {1} {2}".format(quotedColumn, op, numericValue)
         textValue = str(rawValue)
         if condition in ("LIKE", "NOT LIKE", "ILIKE", "NOT ILIKE"):
