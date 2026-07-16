@@ -32,6 +32,14 @@ def label_with_unit(label, unit_abbr):
     return "{} ({})".format(label, unit_abbr) if unit_abbr else label
 
 
+def joined_labels(labels):
+    unique = []
+    for label in labels or []:
+        if label and label not in unique:
+            unique.append(label)
+    return ", ".join(unique)
+
+
 def profile_x_range(data_min, data_max):
     x0 = float(data_min)
     x1 = float(data_max)

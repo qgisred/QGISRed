@@ -4657,6 +4657,11 @@ Clique esquerdo: Adicionar um novo item abaixo da seleção atual</translation>
         <translation>Novo painel de perfil</translation>
     </message>
     <message>
+        <location filename="../ui/analysis/qgisred_profile_dock.py" line="218"/>
+        <source>Head + Elevation</source>
+        <translation>Altura piezométrica + Cotas</translation>
+    </message>
+    <message>
         <location filename="../ui/analysis/qgisred_profile_dock.py" line="219"/>
         <source>2nd axis:</source>
         <translation>2º eixo:</translation>

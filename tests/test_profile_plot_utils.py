@@ -8,8 +8,31 @@ from QGISRed.tools.utils.qgisred_profile_plot_utils import (
     truncate_id,
     profile_variable_color_hex,
     label_with_unit,
+    joined_labels,
     profile_x_range,
 )
+
+
+def test_joined_labels_head_axis_title():
+    title = label_with_unit(joined_labels(["Elevation", "Head"]), "m")
+    assert title == "Elevation, Head (m)"
+
+
+def test_joined_labels_dedups_preserving_order():
+    assert joined_labels(["Elevation", "Head", "Elevation"]) == "Elevation, Head"
+
+
+def test_joined_labels_skips_blanks():
+    assert joined_labels(["Elevation", "", None, "Head"]) == "Elevation, Head"
+
+
+def test_joined_labels_empty():
+    assert joined_labels([]) == ""
+    assert joined_labels(None) == ""
+
+
+def test_joined_labels_single_label_has_no_comma():
+    assert label_with_unit(joined_labels(["Pressure"]), "m") == "Pressure (m)"
 
 
 def test_profile_x_range_ends_exactly_at_last_node():

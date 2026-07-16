@@ -4596,6 +4596,11 @@ Left-click: Add a new item below the current selection</source>
         <translation>Nouveau panneau de profil</translation>
     </message>
     <message>
+        <location filename="../ui/analysis/qgisred_profile_dock.py" line="218"/>
+        <source>Head + Elevation</source>
+        <translation>Charge hydraulique + Altitudes</translation>
+    </message>
+    <message>
         <location filename="../ui/analysis/qgisred_profile_dock.py" line="219"/>
         <source>2nd axis:</source>
         <translation>2e axe :</translation>

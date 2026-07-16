@@ -24,6 +24,7 @@ from ..tools.utils.qgisred_profile_plot_utils import (
     format_profile_value,
     profile_variable_color_hex,
     label_with_unit,
+    joined_labels,
     PROFILE_VARIABLE_UNIT_FIELDS,
     PROFILE_DISTANCE_UNIT_FIELD,
 )
@@ -984,7 +985,15 @@ class ProfileSection:
                     "node_ids": node_id_strs,
                     "color": self._profileVariableColor("Elevation"),
                 })
-            y_label = self._profileVariableDisplayWithUnit(key)
+                y_label = label_with_unit(
+                    joined_labels([
+                        self._profileVariableDisplay("Elevation"),
+                        self._profileVariableDisplay("Head"),
+                    ]),
+                    self._profileVariableUnit("Head"),
+                )
+            else:
+                y_label = self._profileVariableDisplayWithUnit(key)
 
         secondary_key = dock.currentSecondaryVariableKey()
         y_right_label = ""

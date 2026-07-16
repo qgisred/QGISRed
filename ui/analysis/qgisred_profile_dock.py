@@ -16,11 +16,23 @@ _ACCENT = "#00838F"
 
 PROFILE_VARIABLES = [
     ("Elevation", "Elevation"),
-    ("Head", "Head"),
+    ("Head + Elevation", "Head"),
     ("Pressure", "Pressure"),
-    ("Quality", "Quality"),
     ("Accumulated head loss", "HeadLoss"),
+    ("Quality", "Quality"),
 ]
+
+PROFILE_SECONDARY_VARIABLE_KEYS = ("Pressure", "HeadLoss", "Quality")
+
+_PROFILE_VARIABLE_DISPLAYS = {key: display for display, key in PROFILE_VARIABLES}
+
+
+def secondary_variable_keys(primary_key):
+    return [
+        key
+        for _display, key in PROFILE_VARIABLES
+        if key in PROFILE_SECONDARY_VARIABLE_KEYS and key != primary_key
+    ]
 
 _BTN_STYLE = (
     "QToolButton {"
@@ -210,8 +222,8 @@ class QGISRedProfileDock(QDockWidget):
         toolbar.addWidget(variable_label)
 
         self.cbVariable = QComboBox(toolbar_widget)
-        for display, _key in PROFILE_VARIABLES:
-            self.cbVariable.addItem(self.tr(display))
+        for _display, key in PROFILE_VARIABLES:
+            self.cbVariable.addItem(self._variableDisplayText(key), key)
         default_index = next((i for i, (_d, key) in enumerate(PROFILE_VARIABLES) if key == "Head"), 0)
         self.cbVariable.setCurrentIndex(default_index)
         self.cbVariable.currentIndexChanged.connect(self._onVariableChanged)
@@ -222,10 +234,7 @@ class QGISRedProfileDock(QDockWidget):
         toolbar.addWidget(secondary_label)
 
         self.cbSecondary = QComboBox(toolbar_widget)
-        self.cbSecondary.addItem(self.tr("None"))
-        for display, _key in PROFILE_VARIABLES:
-            self.cbSecondary.addItem(self.tr(display))
-        self.cbSecondary.setCurrentIndex(0)
+        self._rebuildSecondaryVariables()
         self.cbSecondary.currentIndexChanged.connect(self._onSecondaryChanged)
         toolbar.addWidget(self.cbSecondary)
 
@@ -355,36 +364,43 @@ class QGISRedProfileDock(QDockWidget):
         line.setFrameShadow(QFrame.Shadow.Sunken)
         return line
 
+    def _variableDisplayText(self, key):
+        if key == "Quality" and getattr(self, "_qualityDisplayName", ""):
+            return self._qualityDisplayName
+        return self.tr(_PROFILE_VARIABLE_DISPLAYS.get(key, key))
+
+    def _rebuildSecondaryVariables(self):
+        previous = self.currentSecondaryVariableKey() if self.cbSecondary.count() else ""
+        primary = self.currentVariableKey()
+        self.cbSecondary.blockSignals(True)
+        self.cbSecondary.clear()
+        self.cbSecondary.addItem(self.tr("None"), "")
+        for key in secondary_variable_keys(primary):
+            self.cbSecondary.addItem(self._variableDisplayText(key), key)
+        target = self.cbSecondary.findData(previous) if previous else 0
+        self.cbSecondary.setCurrentIndex(target if target >= 0 else 0)
+        self.cbSecondary.blockSignals(False)
+
     def currentVariableKey(self):
-        index = self.cbVariable.currentIndex()
-        if 0 <= index < len(PROFILE_VARIABLES):
-            return PROFILE_VARIABLES[index][1]
-        return "Elevation"
+        key = self.cbVariable.currentData()
+        return key if key else "Elevation"
 
     def currentSecondaryVariableKey(self):
-        index = self.cbSecondary.currentIndex()
-        if index <= 0:
-            return ""
-        return PROFILE_VARIABLES[index - 1][1]
+        return self.cbSecondary.currentData() or ""
 
     def setSecondaryVariableKey(self, key):
         self.cbSecondary.blockSignals(True)
-        target = 0
-        for i, (_d, k) in enumerate(PROFILE_VARIABLES):
-            if k == key:
-                target = i + 1
-                break
-        self.cbSecondary.setCurrentIndex(target)
+        target = self.cbSecondary.findData(key or "")
+        self.cbSecondary.setCurrentIndex(target if target >= 0 else 0)
         self.cbSecondary.blockSignals(False)
 
     def setQualityDisplayName(self, name):
-        text = name or self.tr("Quality")
-        q_index = next((i for i, (_d, k) in enumerate(PROFILE_VARIABLES) if k == "Quality"), None)
-        if q_index is None:
-            return
+        self._qualityDisplayName = name or ""
         with suppress(Exception):
-            self.cbVariable.setItemText(q_index, text)
-            self.cbSecondary.setItemText(q_index + 1, text)
+            index = self.cbVariable.findData("Quality")
+            if index >= 0:
+                self.cbVariable.setItemText(index, self._variableDisplayText("Quality"))
+            self._rebuildSecondaryVariables()
 
     def setActiveMode(self, mode):
         self._suppress_mode_signal = True
@@ -612,6 +628,7 @@ class QGISRedProfileDock(QDockWidget):
         self.plot.fitView()
 
     def _onVariableChanged(self, _index):
+        self._rebuildSecondaryVariables()
         self.variableChanged.emit(self.currentVariableKey())
 
     def _onSecondaryChanged(self, _index):
@@ -698,12 +715,13 @@ class QGISRedProfileDock(QDockWidget):
         self._chartComment = (text or "")[:256]
 
     def setVariableKey(self, key):
-        for i, (_display, k) in enumerate(PROFILE_VARIABLES):
-            if k == key:
-                self.cbVariable.blockSignals(True)
-                self.cbVariable.setCurrentIndex(i)
-                self.cbVariable.blockSignals(False)
-                return
+        index = self.cbVariable.findData(key)
+        if index < 0:
+            return
+        self.cbVariable.blockSignals(True)
+        self.cbVariable.setCurrentIndex(index)
+        self.cbVariable.blockSignals(False)
+        self._rebuildSecondaryVariables()
 
     def setSymbolsChecked(self, on):
         self.btnSymbols.blockSignals(True)
