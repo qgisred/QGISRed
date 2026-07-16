@@ -468,10 +468,7 @@ class ProfileSection:
         self._redrawProfile()
 
     def _profileLinkFlows(self):
-        from ..ui.analysis.qgisred_results_binary import getOut_TimeLinksProperties
-
-        data = getOut_TimeLinksProperties(self._outFilePath(), self._profileCurrentTimeSeconds())
-        return {lid: props.get("Flow") for lid, props in data.items()}
+        return {lid: props.get("Flow") for lid, props in self._profileLinkProperties().items()}
 
     def _applyProfileSymbols(self, dock, nodes, links):
         if not getattr(self, "_profileShowSymbols", False):
@@ -888,12 +885,25 @@ class ProfileSection:
         self._profilePath = path
         self._profileDistances = cumulative_distances(path["links"], self._profileLinkLengths)
 
+    def _profileTimeSource(self):
+        source = getattr(self, "_profileSourceCache", None)
+        if source is None:
+            with suppress(Exception):
+                source = self._getTimeSeriesSource()
+            self._profileSourceCache = source
+        return source
+
     def _profileCurrentTimeSeconds(self):
         dock = getattr(self, "ResultDockwidget", None)
         index = 0
         if dock is not None:
             with suppress(Exception):
                 index = max(0, dock.cbTimes.currentIndex())
+        source = self._profileTimeSource()
+        if source:
+            times = source.get("times") or []
+            if 0 <= index < len(times):
+                return times[index]
         report_start = getattr(self, "_profileReportStart", 0)
         report_step = getattr(self, "_profileReportStep", 3600)
         return report_start + index * report_step
@@ -913,20 +923,36 @@ class ProfileSection:
     def _profileNodeValues(self, key):
         if key == "Elevation":
             return dict(getattr(self, "_profileNodeElev", {}))
-        from ..ui.analysis.qgisred_results_binary import getOut_TimeNodesProperties
+        source = self._profileTimeSource()
+        seconds = self._profileCurrentTimeSeconds()
+        if source and source.get("kind") == "hyd":
+            from ..ui.analysis.qgisred_results_hyd import getHyd_TimeNodesProperties
 
-        data = getOut_TimeNodesProperties(self._outFilePath(), self._profileCurrentTimeSeconds())
+            data = getHyd_TimeNodesProperties(source["hyd_path"], source["out_path"], seconds)
+        else:
+            from ..ui.analysis.qgisred_results_binary import getOut_TimeNodesProperties
+
+            data = getOut_TimeNodesProperties(self._outFilePath(), seconds)
         return {nid: props.get(key) for nid, props in data.items()}
 
-    def _profileLinkLosses(self):
+    def _profileLinkProperties(self):
+        source = self._profileTimeSource()
+        seconds = self._profileCurrentTimeSeconds()
+        if source and source.get("kind") == "hyd":
+            from ..ui.analysis.qgisred_results_hyd import getHyd_TimeLinksProperties
+
+            return getHyd_TimeLinksProperties(source["hyd_path"], source["out_path"], seconds)
         from ..ui.analysis.qgisred_results_binary import getOut_TimeLinksProperties
 
-        data = getOut_TimeLinksProperties(self._outFilePath(), self._profileCurrentTimeSeconds())
-        return {lid: (props.get("HeadLoss") or 0.0) for lid, props in data.items()}
+        return getOut_TimeLinksProperties(self._outFilePath(), seconds)
+
+    def _profileLinkLosses(self):
+        return {lid: (props.get("HeadLoss") or 0.0) for lid, props in self._profileLinkProperties().items()}
 
     def _redrawProfile(self):
         dock = self._activeDock()
         path = getattr(self, "_profilePath", None)
+        self._profileSourceCache = None
         if dock is None:
             return
         with suppress(Exception):
