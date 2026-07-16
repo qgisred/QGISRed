@@ -20,7 +20,13 @@ from ..tools.utils.qgisred_profile_path import (
     envelope_points,
     node_distance,
 )
-from ..tools.utils.qgisred_profile_plot_utils import format_profile_value, profile_variable_color_hex
+from ..tools.utils.qgisred_profile_plot_utils import (
+    format_profile_value,
+    profile_variable_color_hex,
+    label_with_unit,
+    PROFILE_VARIABLE_UNIT_FIELDS,
+    PROFILE_DISTANCE_UNIT_FIELD,
+)
 
 _NODE_LAYER_IDENTIFIERS = ("qgisred_junctions", "qgisred_tanks", "qgisred_reservoirs")
 _LINK_LAYER_IDENTIFIERS = ("qgisred_pipes", "qgisred_pumps", "qgisred_valves")
@@ -944,19 +950,21 @@ class ProfileSection:
             points = [(distances[i], values[i]) for i in range(len(nodes))]
             series.append({
                 "label": self.tr("Accumulated head loss"),
+                "display_label": self._profileVariableDisplayWithUnit("HeadLoss"),
                 "points": points,
                 "reference_indices": reference_indices,
                 "node_ids": node_id_strs,
                 "color": self._profileVariableColor("HeadLoss"),
                 "fill": False,
             })
-            y_label = self.tr("Accumulated head loss")
+            y_label = self._profileVariableDisplayWithUnit("HeadLoss")
         else:
             node_values = self._profileNodeValues(key)
             samples = sample_node_variable(nodes, distances, node_values, is_reference)
             points = [(s["distance"], s["value"]) for s in samples]
             series.append({
                 "label": self._profileVariableDisplay(key),
+                "display_label": self._profileVariableDisplayWithUnit(key),
                 "points": points,
                 "reference_indices": reference_indices,
                 "node_ids": node_id_strs,
@@ -970,12 +978,13 @@ class ProfileSection:
                 elevation_points = [(s["distance"], s["value"]) for s in elevation_samples]
                 series.append({
                     "label": self.tr("Elevation"),
+                    "display_label": self._profileVariableDisplayWithUnit("Elevation"),
                     "points": elevation_points,
                     "reference_indices": reference_indices,
                     "node_ids": node_id_strs,
                     "color": self._profileVariableColor("Elevation"),
                 })
-            y_label = self._profileVariableDisplay(key)
+            y_label = self._profileVariableDisplayWithUnit(key)
 
         secondary_key = dock.currentSecondaryVariableKey()
         y_right_label = ""
@@ -984,6 +993,7 @@ class ProfileSection:
                 sec_points = self._profileVariablePoints(secondary_key, nodes, links, distances, is_reference)
                 series.append({
                     "label": self._profileVariableDisplay(secondary_key),
+                    "display_label": self._profileVariableDisplayWithUnit(secondary_key),
                     "points": sec_points,
                     "reference_indices": reference_indices,
                     "node_ids": node_id_strs,
@@ -992,7 +1002,7 @@ class ProfileSection:
                     "fill": False,
                     "deletable": True,
                 })
-                y_right_label = self._profileVariableDisplay(secondary_key)
+                y_right_label = self._profileVariableDisplayWithUnit(secondary_key)
 
         with suppress(Exception):
             self._pushProfileTable(dock, series, nodes, distances, key)
@@ -1003,7 +1013,7 @@ class ProfileSection:
             title = self.tr("Longitudinal profiles at {0}").format(time_text)
         else:
             title = self.tr("Longitudinal profiles")
-        dock.setSeries(series, title, self.tr("Distance"), y_label, y_right_label)
+        dock.setSeries(series, title, self._profileDistanceDisplay(), y_label, y_right_label)
         self._drawProfileHighlight()
         with suppress(Exception):
             self._applyProfileEnvelope(dock, key, nodes, distances)
@@ -1046,8 +1056,31 @@ class ProfileSection:
             return self._profileQualityLabel()
         return self.tr(self._profileVariableLabel(key))
 
+    def _profileVariableUnit(self, key):
+        field = PROFILE_VARIABLE_UNIT_FIELDS.get(key)
+        if not field:
+            return ""
+        with suppress(Exception):
+            return QGISRedFieldUtils().getUnitAbbreviation(field[0], field[1]) or ""
+        return ""
+
+    def _profileDistanceUnit(self):
+        with suppress(Exception):
+            return QGISRedFieldUtils().getUnitAbbreviation(
+                PROFILE_DISTANCE_UNIT_FIELD[0], PROFILE_DISTANCE_UNIT_FIELD[1]
+            ) or ""
+        return ""
+
+    def _profileDistanceDisplay(self):
+        return label_with_unit(self.tr("Distance"), self._profileDistanceUnit())
+
+    def _profileVariableDisplayWithUnit(self, key):
+        return label_with_unit(self._profileVariableDisplay(key), self._profileVariableUnit(key))
+
     def _pushProfileTable(self, dock, series, nodes, distances, key):
-        headers = [self.tr("Id"), self.tr("Distance")] + [s["label"] for s in series]
+        headers = [self.tr("Id"), self._profileDistanceDisplay()] + [
+            s.get("display_label") or s["label"] for s in series
+        ]
         add_envelope = self._profileEnvelopeActive(key)
         stat_max, stat_min = ({}, {})
         if add_envelope:
@@ -1132,6 +1165,7 @@ class ProfileSection:
                 elev_points = [(s["distance"], s["value"]) for s in elev_samples]
                 series.append({
                     "label": self.tr("Elevation"),
+                    "display_label": self._profileVariableDisplayWithUnit("Elevation"),
                     "points": elev_points,
                     "reference_indices": reference_indices,
                     "node_ids": [str(n) for n in branch_nodes],

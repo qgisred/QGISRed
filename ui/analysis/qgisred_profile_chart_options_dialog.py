@@ -108,7 +108,7 @@ class QGISRedProfileChartOptionsDialog(QDialog):
                 color_hex=series["color"].name() if isinstance(series["color"], QColor) else "",
                 width=series.get("base_width", series.get("width", 2.0)),
             )
-            group = QGroupBox(label)
+            group = QGroupBox(series.get("display_label") or label)
             form = QFormLayout(group)
 
             base = series["color"] if isinstance(series["color"], QColor) else QColor("#1f77b4")

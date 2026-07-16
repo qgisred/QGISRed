@@ -152,6 +152,7 @@ class ProfilePlotWidget(QWidget):
             base_width = float(s.get("width", 2.0))
             entry = {
                 "label": s.get("label", ""),
+                "display_label": s.get("display_label") or s.get("label", ""),
                 "color": base_color,
                 "base_color": base_color,
                 "base_width": base_width,
@@ -761,7 +762,7 @@ class ProfilePlotWidget(QWidget):
             if label in seen_labels:
                 continue
             seen_labels.add(label)
-            entries.append({"label": label, "kind": "line",
+            entries.append({"label": s.get("display_label") or label, "curve_key": label, "kind": "line",
                             "color": s["color"], "width": s["width"], "dashed": False,
                             "deletable": s.get("deletable", False)})
         if self._envelope is not None:
@@ -829,7 +830,7 @@ class ProfilePlotWidget(QWidget):
                 painter.drawLine(QPointF(cxd - 2.3, cy - 2.3), QPointF(cxd + 2.3, cy + 2.3))
                 painter.drawLine(QPointF(cxd - 2.3, cy + 2.3), QPointF(cxd + 2.3, cy - 2.3))
                 self._legend_delete_hitboxes.append(
-                    (QRectF(cxd - 6, cy - 6, 12, 12), e["label"]))
+                    (QRectF(cxd - 6, cy - 6, 12, 12), e.get("curve_key") or e["label"]))
             x += widths[i] + gap
 
     def _drawCursor(self, painter, plot, px, py_of, x0, x1):

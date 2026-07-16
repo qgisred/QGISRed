@@ -7,7 +7,36 @@ from QGISRed.tools.utils.qgisred_profile_plot_utils import (
     resolve_envelope_mode,
     truncate_id,
     profile_variable_color_hex,
+    label_with_unit,
 )
+
+
+def test_label_with_unit_appends_unit():
+    assert label_with_unit("Pressure", "m") == "Pressure (m)"
+
+
+def test_label_with_unit_without_unit_is_plain_label():
+    assert label_with_unit("Pressure", "") == "Pressure"
+    assert label_with_unit("Pressure", None) == "Pressure"
+
+
+def test_label_with_unit_ignores_blank_unit():
+    assert label_with_unit("Distance", "   ") == "Distance"
+
+
+def test_cursor_snapshot_prefers_display_label():
+    series = [
+        {"label": "Pressure", "display_label": "Pressure (m)", "color": "c1",
+         "points": [(0.0, 40.0), (50.0, 35.0)]},
+    ]
+    snap = cursor_snapshot(series, 0.0)
+    assert [e["label"] for e in snap["entries"]] == ["Pressure (m)"]
+
+
+def test_cursor_snapshot_falls_back_to_label():
+    series = [{"label": "Branch 1", "color": "c1", "points": [(0.0, 40.0)]}]
+    snap = cursor_snapshot(series, 0.0)
+    assert [e["label"] for e in snap["entries"]] == ["Branch 1"]
 
 
 def test_profile_variable_color_hex_known_keys():

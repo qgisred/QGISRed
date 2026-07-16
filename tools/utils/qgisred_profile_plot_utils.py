@@ -15,6 +15,23 @@ def profile_variable_color_hex(key):
     return PROFILE_VARIABLE_COLORS.get(key, "")
 
 
+PROFILE_VARIABLE_UNIT_FIELDS = {
+    "Elevation": ("Junctions", "Elevation"),
+    "Head": ("Nodes", "Head"),
+    "Pressure": ("Nodes", "Pressure"),
+    "Quality": ("Nodes", "Quality"),
+    "HeadLoss": ("Nodes", "Head"),
+}
+
+PROFILE_DISTANCE_UNIT_FIELD = ("Pipes", "Length")
+
+
+def label_with_unit(label, unit_abbr):
+    label = label or ""
+    unit_abbr = (unit_abbr or "").strip()
+    return "{} ({})".format(label, unit_abbr) if unit_abbr else label
+
+
 def resolve_envelope_mode(mode):
     show_band = mode in ("band", "both")
     show_lines = mode in ("lines", "both")
@@ -82,7 +99,7 @@ def cursor_snapshot(series, data_x):
         if not entries:
             index = s_idx
         entries.append({
-            "label": s.get("label", ""),
+            "label": s.get("display_label") or s.get("label", ""),
             "color": s.get("color"),
             "value": s_value,
             "distance": s_distance,
