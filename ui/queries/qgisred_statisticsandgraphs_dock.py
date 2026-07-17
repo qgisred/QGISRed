@@ -82,6 +82,8 @@ CONDITIONS_BY_TYPE = {
 
 NODE_RESULT_PROPERTIES = ["Pressure", "Head", "Demand", "Quality"]
 LINK_RESULT_PROPERTIES = ["Status", "Flow", "Velocity", "HeadLoss", "UnitHdLoss", "FricFactor", "ReactRate", "Quality"]
+# Link results that only make sense for pipes, not pumps or valves
+PIPE_ONLY_RESULT_PROPERTIES = {"Velocity", "UnitHdLoss", "FricFactor", "ReactRate"}
 
 ELEMENT_RESULT_CATEGORY = {
     "qgisred_junctions": "Node",
@@ -1250,7 +1252,7 @@ class QGISRedStatisticsDock(QDockWidget, formClass):
                 ("Manual", self.tr("Manual")),
             ):
                 self.cbSecondRanged.addItem(label, identifier)
-            defaultIndex = self.cbSecondRanged.findData("Jenks")
+            defaultIndex = self.cbSecondRanged.findData("Pretty")
             if defaultIndex >= 0:
                 self.cbSecondRanged.setCurrentIndex(defaultIndex)
         self.cbSecondClasses.blockSignals(True)
@@ -1293,7 +1295,7 @@ class QGISRedStatisticsDock(QDockWidget, formClass):
                 ("Manual", self.tr("Manual")),
             ):
                 self.cbRanged.addItem(label, identifier)
-            defaultIndex = self.cbRanged.findData("Jenks")
+            defaultIndex = self.cbRanged.findData("Pretty")
             if defaultIndex >= 0:
                 self.cbRanged.setCurrentIndex(defaultIndex)
         self.cbClasses.blockSignals(True)
@@ -1557,6 +1559,8 @@ class QGISRedStatisticsDock(QDockWidget, formClass):
             return []
         category = ELEMENT_RESULT_CATEGORY.get(elementIdentifier)
         if category == "Link":
+            if elementIdentifier in ("qgisred_pumps", "qgisred_valves"):
+                return [prop for prop in LINK_RESULT_PROPERTIES if prop not in PIPE_ONLY_RESULT_PROPERTIES]
             return list(LINK_RESULT_PROPERTIES)
         if category == "Node":
             return list(NODE_RESULT_PROPERTIES)
@@ -1911,6 +1915,13 @@ class QGISRedStatisticsDock(QDockWidget, formClass):
         secondField = self.cbSecondClassifiedBy.currentData(Qt.ItemDataRole.UserRole) if classifyField else ""
         condition = self.cbCondition.currentData(Qt.ItemDataRole.UserRole) or ""
         attributeField = self.cbAttribute.currentData(Qt.ItemDataRole.UserRole) if condition not in ("", "All") else ""
+        if attributeField and condition != "Range":
+            # An empty value means no filter is applied, so the attribute must
+            # not count as part of the analysis (e.g. for the results time label)
+            valueData = self.cbValue.currentData(Qt.ItemDataRole.UserRole)
+            rawValue = valueData if valueData not in (None, "") else self.cbValue.currentText().strip()
+            if rawValue in (None, ""):
+                attributeField = ""
 
         layers = self.resolveAnalysisLayers(propertyField, classifyField, secondField, attributeField)
         if layers is None:
@@ -3261,9 +3272,15 @@ class QGISRedStatisticsDock(QDockWidget, formClass):
             if classifyField:
                 classifyElement = self.elementForField(elementIdentifier, classifyField)
                 classifiedByText = self.fieldUtils.getPluralProperty(classifyElement, classifyField) or classifyField
+                classifyUnit = self.fieldUtils.getUnitAbbreviation(classifyElement, classifyField) or ""
+                if classifyUnit:
+                    classifiedByText = "{} ({})".format(classifiedByText, classifyUnit)
                 if secondField and self._tableMatrix:
                     secondElement = self.elementForField(elementIdentifier, secondField)
                     prettySecond = self.fieldUtils.getPluralProperty(secondElement, secondField) or secondField
+                    secondUnit = self.fieldUtils.getUnitAbbreviation(secondElement, secondField) or ""
+                    if secondUnit:
+                        prettySecond = "{} ({})".format(prettySecond, secondUnit)
                     classifiedByText = "{} {} {}".format(classifiedByText, self.tr("and"), prettySecond)
             with open(fileName, "w", newline="", encoding="utf-8") as fileHandle:
                 writer = csv.writer(fileHandle)

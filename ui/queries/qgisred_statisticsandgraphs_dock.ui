@@ -684,7 +684,7 @@
                     <string>Only selected elements</string>
                    </property>
                    <property name="alignment">
-                    <set>Qt::AlignCenter</set>
+                    <set>Qt::AlignRight|Qt::AlignVCenter</set>
                    </property>
                   </widget>
                  </item>
@@ -823,7 +823,7 @@
                    </property>
                    <property name="font">
                     <font>
-                     <pointsize>8</pointsize>
+                     <pointsize>10</pointsize>
                      <weight>75</weight>
                      <bold>true</bold>
                     </font>
