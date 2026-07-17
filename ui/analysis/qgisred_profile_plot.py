@@ -13,6 +13,12 @@ from ...tools.utils.qgisred_profile_plot_utils import (
     resolve_envelope_mode,
     truncate_id,
     profile_x_range,
+    MAIN_PATH_KEY,
+    nearest_path_key,
+    path_key_for_node_id,
+    series_for_path,
+    series_path_key,
+    series_path_keys,
 )
 from .profile_chart_settings import ProfileAxisSettings, ProfileGeneralSettings
 
@@ -67,10 +73,12 @@ class ProfilePlotWidget(QWidget):
         self._y_right_label = ""
         self._empty_text = ""
         self._hover_x = None
+        self._hover_y = None
         self._hover_node_index = -1
         self._hover_node_id = ""
         self._cursor_node_index = None
         self._cursor_data_x = None
+        self._cursor_path_key = None
         self._show_value_labels = False
         self._symbols = None
         self._envelope = None
@@ -80,6 +88,8 @@ class ProfilePlotWidget(QWidget):
         self._last_plot = None
         self._last_area = None
         self._last_view = None
+        self._last_px = None
+        self._last_py_of = None
         self._drag_start = None
         self._drag_start_view = None
         self._zoom_rect = None
@@ -132,12 +142,16 @@ class ProfilePlotWidget(QWidget):
         if new_index != self._cursor_node_index or self._cursor_data_x is not None:
             self._cursor_node_index = new_index
             self._cursor_data_x = None
+            self._cursor_path_key = MAIN_PATH_KEY if new_index is not None else None
             self.update()
 
-    def setCursorDistance(self, distance):
-        if distance != self._cursor_data_x or self._cursor_node_index is not None:
+    def setCursorDistance(self, distance, node_id=None):
+        path_key = path_key_for_node_id(self._series, node_id)
+        if (distance != self._cursor_data_x or self._cursor_node_index is not None
+                or path_key != self._cursor_path_key):
             self._cursor_data_x = distance
             self._cursor_node_index = None
+            self._cursor_path_key = path_key
             self.update()
 
     def setLabels(self, title, x_label, y_label, y_right_label=""):
@@ -159,6 +173,9 @@ class ProfilePlotWidget(QWidget):
             entry = {
                 "label": s.get("label", ""),
                 "display_label": s.get("display_label") or s.get("label", ""),
+                "readout_label": s.get("readout_label") or "",
+                "path_key": series_path_key(s),
+                "path_label": s.get("path_label") or "",
                 "color": base_color,
                 "base_color": base_color,
                 "base_width": base_width,
@@ -204,9 +221,11 @@ class ProfilePlotWidget(QWidget):
     def clear(self):
         self._series = []
         self._hover_x = None
+        self._hover_y = None
         self._hover_node_index = -1
         self._cursor_node_index = None
         self._cursor_data_x = None
+        self._cursor_path_key = None
         self._symbols = None
         self._envelope = None
         self._view_x = None
@@ -423,6 +442,9 @@ class ProfilePlotWidget(QWidget):
 
         def py_of(s):
             return py_r if (has_right and s.get("y_axis", "left") == "right") else py
+
+        self._last_px = px
+        self._last_py_of = py_of
 
         painter.fillRect(plot, self._plotBgColor())
 
@@ -850,9 +872,28 @@ class ProfilePlotWidget(QWidget):
                     (QRectF(cxd - 6, cy - 6, 12, 12), e.get("curve_key") or e["label"]))
             x += widths[i] + gap
 
-    def _drawCursor(self, painter, plot, px, py_of):
+    def _nearestPathKeyAt(self, x, y):
+        if x is None or y is None or self._last_px is None or self._last_py_of is None:
+            return None
+        if len(series_path_keys(self._series)) < 2:
+            return None
+        entries = []
+        for s in self._series:
+            py = self._last_py_of(s)
+            entries.append({
+                "path_key": series_path_key(s),
+                "pixels": [None if v is None else (self._last_px(d), py(v)) for d, v in s["points"]],
+            })
+        return nearest_path_key(entries, x, y)
+
+    def _activePathKey(self):
+        if self._hover_x is not None and self._dataXAt(self._hover_x) is not None:
+            return self._nearestPathKeyAt(self._hover_x, self._hover_y)
+        return self._cursor_path_key
+
+    def _cursorSnapshot(self):
         if not self._series:
-            return
+            return None
         data_x = self._dataXAt(self._hover_x)
         if data_x is None and self._cursor_data_x is not None:
             data_x = self._cursor_data_x
@@ -861,17 +902,25 @@ class ProfilePlotWidget(QWidget):
             if 0 <= self._cursor_node_index < len(base):
                 data_x = base[self._cursor_node_index][0]
         if data_x is None:
-            return
-        snapshot = cursor_snapshot(self._series, data_x)
+            return None
+        active = series_for_path(self._series, self._activePathKey())
+        snapshot = cursor_snapshot(active, data_x)
         if snapshot is None:
+            return None
+        return snapshot, active
+
+    def _drawCursor(self, painter, plot, px, py_of):
+        result = self._cursorSnapshot()
+        if result is None:
             return
+        snapshot, active = result
 
         snap_x = snapshot["distance"]
         line_x = px(snap_x)
         painter.setPen(QPen(QColor(120, 120, 120), 1.0, Qt.PenStyle.DashLine))
         painter.drawLine(QPointF(line_x, plot.top()), QPointF(line_x, plot.bottom()))
 
-        for s in self._series:
+        for s in active:
             candidate = nearest_visible_point(s["points"], snap_x)
             if candidate is None:
                 continue
@@ -882,9 +931,18 @@ class ProfilePlotWidget(QWidget):
 
         self._drawReadout(painter, plot, line_x, snapshot)
 
+    def _readoutTitle(self, snapshot):
+        if len(series_path_keys(self._series)) < 2:
+            return ""
+        return snapshot.get("path_label") or ""
+
     def _drawReadout(self, painter, plot, line_x, snapshot):
         painter.setFont(QFont("Arial", 8))
         fm = QFontMetrics(painter.font())
+        title = self._readoutTitle(snapshot)
+        title_font = QFont("Arial", 8)
+        title_font.setBold(True)
+        title_h = QFontMetrics(title_font).height() + 4 if title else 0
         rows = []
         node_id = snapshot.get("node_id")
         if node_id:
@@ -895,8 +953,10 @@ class ProfilePlotWidget(QWidget):
             rows.append((entry["color"], "{}: {}".format(entry["label"], format_profile_value(entry["value"]))))
 
         text_width = max(fm.horizontalAdvance(text) for _color, text in rows)
+        if title:
+            text_width = max(text_width, QFontMetrics(title_font).horizontalAdvance(title))
         width = text_width + 26
-        height = len(rows) * 15 + 8
+        height = len(rows) * 15 + 8 + title_h
 
         bx = line_x + 12
         if bx + width > plot.right():
@@ -909,6 +969,13 @@ class ProfilePlotWidget(QWidget):
         painter.drawRoundedRect(QRectF(bx, by, width, height), 4, 4)
 
         ty = by + 6
+        if title:
+            painter.setFont(title_font)
+            painter.setPen(QColor(40, 40, 40))
+            painter.drawText(QRectF(bx + 6, ty, width - 12, title_h),
+                             Qt.AlignmentFlag.AlignLeft | Qt.AlignmentFlag.AlignVCenter, title)
+            painter.setFont(QFont("Arial", 8))
+            ty += title_h
         for color, text in rows:
             if color is not None:
                 painter.setPen(Qt.PenStyle.NoPen)
@@ -946,11 +1013,12 @@ class ProfilePlotWidget(QWidget):
     def _emitCursorNode(self):
         index = -1
         node_id = ""
-        data_x = self._dataXAt(self._hover_x) if self._series else None
-        if data_x is not None:
-            snapshot = cursor_snapshot(self._series, data_x)
-            if snapshot is not None:
-                index = snapshot["index"]
+        if self._series and self._dataXAt(self._hover_x) is not None:
+            result = self._cursorSnapshot()
+            if result is not None:
+                snapshot = result[0]
+                if snapshot.get("path_key") == MAIN_PATH_KEY:
+                    index = snapshot["index"]
                 node_id = snapshot.get("node_id") or ""
         if index != self._hover_node_index:
             self._hover_node_index = index
@@ -965,14 +1033,17 @@ class ProfilePlotWidget(QWidget):
         if self._zoom_rect is not None:
             self._zoom_rect = (self._zoom_rect[0], QPointF(x, y))
             self._hover_x = None
+            self._hover_y = None
             self.update()
         elif self._drag_start is not None and self._drag_start_view is not None:
             self._panTo(x, y)
         elif self._pan_mode or self._zoom_window_mode:
             self._hover_x = None
+            self._hover_y = None
             self.update()
         else:
             self._hover_x = x
+            self._hover_y = y
             self.update()
         self._emitCursorNode()
         super(ProfilePlotWidget, self).mouseMoveEvent(event)
@@ -1028,6 +1099,7 @@ class ProfilePlotWidget(QWidget):
 
     def leaveEvent(self, event):
         self._hover_x = None
+        self._hover_y = None
         self.update()
         self._emitCursorNode()
         super(ProfilePlotWidget, self).leaveEvent(event)

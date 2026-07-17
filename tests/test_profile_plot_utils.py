@@ -11,7 +11,23 @@ from QGISRed.tools.utils.qgisred_profile_plot_utils import (
     joined_labels,
     profile_x_range,
     profile_data_area,
+    series_path_key,
+    series_path_keys,
+    series_for_path,
+    path_key_for_node_id,
+    point_segment_distance,
+    polyline_pixel_distance,
+    nearest_path_key,
 )
+
+
+def _paths_series():
+    return [
+        {"label": "Head", "display_label": "Head (m)", "points": [(0.0, 50.0), (100.0, 48.0)],
+         "node_ids": ["N1", "N2"], "path_key": "main", "path_label": "Main path"},
+        {"label": "Branch 1", "readout_label": "Head (m)", "points": [(100.0, 46.0), (200.0, 44.0)],
+         "node_ids": ["N2", "N3"], "path_key": "branch_0", "path_label": "Branch 1"},
+    ]
 
 
 def test_profile_data_area_leaves_margin_on_sides_and_top():
@@ -267,3 +283,102 @@ def test_cursor_snapshot_node_id_from_snap_owner():
     snap = cursor_snapshot(series, 150.0)
     assert snap["distance"] == 150.0
     assert snap["node_id"] == "X"
+
+
+def test_series_path_key_defaults_to_main():
+    assert series_path_key({"label": "Head"}) == "main"
+    assert series_path_key({"label": "B1", "path_key": "branch_0"}) == "branch_0"
+
+
+def test_series_path_keys_are_unique_and_ordered():
+    assert series_path_keys(_paths_series()) == ["main", "branch_0"]
+
+
+def test_series_for_path_filters_by_key():
+    filtered = series_for_path(_paths_series(), "branch_0")
+    assert [s["label"] for s in filtered] == ["Branch 1"]
+
+
+def test_series_for_path_returns_all_when_key_is_none():
+    assert len(series_for_path(_paths_series(), None)) == 2
+
+
+def test_series_for_path_falls_back_when_key_is_unknown():
+    assert len(series_for_path(_paths_series(), "branch_9")) == 2
+
+
+def test_path_key_for_node_id_prefers_first_matching_series():
+    assert path_key_for_node_id(_paths_series(), "N2") == "main"
+    assert path_key_for_node_id(_paths_series(), "N3") == "branch_0"
+
+
+def test_path_key_for_node_id_without_match():
+    assert path_key_for_node_id(_paths_series(), "ZZ") is None
+    assert path_key_for_node_id(_paths_series(), None) is None
+
+
+def test_point_segment_distance_projects_inside_the_segment():
+    assert point_segment_distance(5.0, 3.0, 0.0, 0.0, 10.0, 0.0) == 3.0
+
+
+def test_point_segment_distance_clamps_beyond_the_ends():
+    assert point_segment_distance(-4.0, 3.0, 0.0, 0.0, 10.0, 0.0) == 5.0
+
+
+def test_point_segment_distance_on_degenerate_segment():
+    assert point_segment_distance(3.0, 4.0, 0.0, 0.0, 0.0, 0.0) == 5.0
+
+
+def test_polyline_pixel_distance_uses_closest_segment():
+    pixels = [(0.0, 0.0), (10.0, 0.0), (20.0, 20.0)]
+    assert polyline_pixel_distance(pixels, 5.0, 4.0) == 4.0
+
+
+def test_polyline_pixel_distance_ignores_gaps():
+    pixels = [(0.0, 0.0), None, (100.0, 100.0)]
+    assert polyline_pixel_distance(pixels, 0.0, 6.0) == 6.0
+
+
+def test_polyline_pixel_distance_without_points():
+    assert polyline_pixel_distance([], 0.0, 0.0) is None
+
+
+def test_nearest_path_key_picks_the_curve_under_the_cursor():
+    entries = [
+        {"path_key": "main", "pixels": [(0.0, 0.0), (100.0, 0.0)]},
+        {"path_key": "branch_0", "pixels": [(0.0, 50.0), (100.0, 50.0)]},
+    ]
+    assert nearest_path_key(entries, 50.0, 40.0) == "branch_0"
+    assert nearest_path_key(entries, 50.0, 10.0) == "main"
+
+
+def test_nearest_path_key_keeps_first_entry_on_ties():
+    entries = [
+        {"path_key": "main", "pixels": [(0.0, 0.0), (100.0, 0.0)]},
+        {"path_key": "branch_0", "pixels": [(0.0, 0.0), (100.0, 0.0)]},
+    ]
+    assert nearest_path_key(entries, 50.0, 10.0) == "main"
+
+
+def test_nearest_path_key_without_drawable_entries():
+    assert nearest_path_key([{"path_key": "main", "pixels": []}], 0.0, 0.0) is None
+
+
+def test_cursor_snapshot_reports_owner_path():
+    snap = cursor_snapshot(series_for_path(_paths_series(), "branch_0"), 190.0)
+    assert snap["path_key"] == "branch_0"
+    assert snap["path_label"] == "Branch 1"
+    assert [e["label"] for e in snap["entries"]] == ["Head (m)"]
+    assert snap["node_id"] == "N3"
+
+
+def test_cursor_snapshot_readout_label_wins_over_label():
+    series = [{"label": "Branch 1", "readout_label": "Head (m)", "display_label": "ignored",
+               "points": [(0.0, 1.0)]}]
+    assert cursor_snapshot(series, 0.0)["entries"][0]["label"] == "Head (m)"
+
+
+def test_cursor_snapshot_defaults_to_main_path():
+    snap = cursor_snapshot([{"label": "Head", "points": [(0.0, 1.0)]}], 0.0)
+    assert snap["path_key"] == "main"
+    assert snap["path_label"] == ""

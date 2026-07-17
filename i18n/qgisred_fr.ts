@@ -2149,6 +2149,11 @@
         <translation>Branche</translation>
     </message>
     <message>
+        <location filename="../sections/profile_section.py" line="1051"/>
+        <source>Main path</source>
+        <translation>Trajet principal</translation>
+    </message>
+    <message>
         <location filename="../sections/profile_section.py" line="568"/>
         <source>Click a node of the current profile to start a branch.</source>
         <translation>Cliquez sur un nœud du profil actuel pour démarrer une branche.</translation>

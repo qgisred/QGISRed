@@ -27,6 +27,7 @@ from ..tools.utils.qgisred_profile_plot_utils import (
     joined_labels,
     PROFILE_VARIABLE_UNIT_FIELDS,
     PROFILE_DISTANCE_UNIT_FIELD,
+    MAIN_PATH_KEY,
 )
 
 _NODE_LAYER_IDENTIFIERS = ("qgisred_junctions", "qgisred_tanks", "qgisred_reservoirs")
@@ -354,7 +355,7 @@ class ProfileSection:
         self._showProfileMapHover(node_id)
         distance = self._profileNodeTreeDistance(node_id) if node_id else None
         with suppress(Exception):
-            dock.plot.setCursorDistance(distance)
+            dock.plot.setCursorDistance(distance, node_id)
 
     def _onProfileHoverNodeId(self, dock, node_id):
         self._activateProfile(dock)
@@ -1045,6 +1046,9 @@ class ProfileSection:
 
         with suppress(Exception):
             self._pushProfileTable(dock, series, nodes, distances, key)
+        for s in series:
+            s["path_key"] = MAIN_PATH_KEY
+            s["path_label"] = self.tr("Main path")
         with suppress(Exception):
             self._appendProfileBranchSeries(series, key)
         time_text = self._profileTimeText()
@@ -1188,14 +1192,19 @@ class ProfileSection:
             else:
                 samples = sample_node_variable(branch_nodes, branch_distances, node_values, branch_is_reference)
                 points = [(s["distance"], s["value"]) for s in samples]
+            branch_label = self.tr("Branch") + " " + str(i + 1)
+            branch_key = "branch_{}".format(i)
             series.append({
-                "label": self.tr("Branch") + " " + str(i + 1),
+                "label": branch_label,
+                "readout_label": self._profileVariableDisplayWithUnit(key),
                 "points": points,
                 "reference_indices": reference_indices,
                 "node_ids": [str(n) for n in branch_nodes],
                 "color": self._branchColor(i),
                 "fill": key == "Elevation",
                 "deletable": True,
+                "path_key": branch_key,
+                "path_label": branch_label,
             })
             if key == "Head":
                 elev_samples = sample_node_variable(
@@ -1209,6 +1218,8 @@ class ProfileSection:
                     "reference_indices": reference_indices,
                     "node_ids": [str(n) for n in branch_nodes],
                     "color": self._profileVariableColor("Elevation"),
+                    "path_key": branch_key,
+                    "path_label": branch_label,
                 })
 
     def _drawProfileHighlight(self):

@@ -2129,6 +2129,11 @@
         <translation type="unfinished"></translation>
     </message>
     <message>
+        <location filename="../sections/profile_section.py" line="1051"/>
+        <source>Main path</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
         <location filename="../sections/profile_section.py" line="136"/>
         <source>QGISRed: Longitudinal profile</source>
         <translation type="unfinished"></translation>

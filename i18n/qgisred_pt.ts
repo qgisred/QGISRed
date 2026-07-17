@@ -2189,6 +2189,11 @@
         <translation>Ramo</translation>
     </message>
     <message>
+        <location filename="../sections/profile_section.py" line="1051"/>
+        <source>Main path</source>
+        <translation>Trajeto principal</translation>
+    </message>
+    <message>
         <location filename="../sections/profile_section.py" line="568"/>
         <source>Click a node of the current profile to start a branch.</source>
         <translation>Clique num nó do perfil atual para iniciar um ramo.</translation>

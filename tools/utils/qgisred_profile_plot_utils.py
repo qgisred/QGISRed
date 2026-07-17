@@ -98,6 +98,83 @@ def nearest_visible_point(points, data_x):
     return best
 
 
+MAIN_PATH_KEY = "main"
+
+
+def series_path_key(s):
+    return s.get("path_key") or MAIN_PATH_KEY
+
+
+def series_path_keys(series):
+    keys = []
+    for s in series or []:
+        key = series_path_key(s)
+        if key not in keys:
+            keys.append(key)
+    return keys
+
+
+def series_for_path(series, path_key):
+    if path_key is None:
+        return list(series or [])
+    filtered = [s for s in series or [] if series_path_key(s) == path_key]
+    return filtered or list(series or [])
+
+
+def path_key_for_node_id(series, node_id):
+    if node_id is None or node_id == "":
+        return None
+    target = str(node_id)
+    for s in series or []:
+        for nid in s.get("node_ids") or []:
+            if str(nid) == target:
+                return series_path_key(s)
+    return None
+
+
+def point_segment_distance(x, y, x1, y1, x2, y2):
+    dx = x2 - x1
+    dy = y2 - y1
+    length_sq = dx * dx + dy * dy
+    if length_sq <= 1e-12:
+        return ((x - x1) ** 2 + (y - y1) ** 2) ** 0.5
+    t = ((x - x1) * dx + (y - y1) * dy) / length_sq
+    t = max(0.0, min(1.0, t))
+    nx = x1 + t * dx
+    ny = y1 + t * dy
+    return ((x - nx) ** 2 + (y - ny) ** 2) ** 0.5
+
+
+def polyline_pixel_distance(pixels, x, y):
+    best = None
+    previous = None
+    for pixel in pixels or []:
+        if pixel is None:
+            previous = None
+            continue
+        if previous is None:
+            dist = ((x - pixel[0]) ** 2 + (y - pixel[1]) ** 2) ** 0.5
+        else:
+            dist = point_segment_distance(x, y, previous[0], previous[1], pixel[0], pixel[1])
+        if best is None or dist < best:
+            best = dist
+        previous = pixel
+    return best
+
+
+def nearest_path_key(entries, x, y):
+    best_key = None
+    best_dist = None
+    for entry in entries or []:
+        dist = polyline_pixel_distance(entry.get("pixels"), x, y)
+        if dist is None:
+            continue
+        if best_dist is None or dist < best_dist - 1e-9:
+            best_dist = dist
+            best_key = entry.get("path_key")
+    return best_key
+
+
 def cursor_snapshot(series, data_x):
     snap_distance = None
     best_gap = None
@@ -117,10 +194,14 @@ def cursor_snapshot(series, data_x):
     if snap_distance is None:
         return None
     node_id = None
+    path_key = MAIN_PATH_KEY
+    path_label = ""
     if owner is not None:
         ids = owner.get("node_ids")
         if ids and owner_idx < len(ids):
             node_id = ids[owner_idx]
+        path_key = series_path_key(owner)
+        path_label = owner.get("path_label") or ""
     entries = []
     index = 0
     for s in series:
@@ -131,13 +212,14 @@ def cursor_snapshot(series, data_x):
         if not entries:
             index = s_idx
         entries.append({
-            "label": s.get("display_label") or s.get("label", ""),
+            "label": s.get("readout_label") or s.get("display_label") or s.get("label", ""),
             "color": s.get("color"),
             "value": s_value,
             "distance": s_distance,
             "point_index": s_idx,
         })
-    return {"index": index, "distance": snap_distance, "entries": entries, "node_id": node_id}
+    return {"index": index, "distance": snap_distance, "entries": entries, "node_id": node_id,
+            "path_key": path_key, "path_label": path_label}
 
 
 def truncate_id(value, max_len=10):
