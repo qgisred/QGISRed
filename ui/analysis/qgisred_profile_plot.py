@@ -1,5 +1,5 @@
 # -*- coding: utf-8 -*-
-from qgis.PyQt.QtCore import Qt, QPointF, QRectF, pyqtSignal
+from qgis.PyQt.QtCore import Qt, QPointF, QRectF, QSize, pyqtSignal
 from qgis.PyQt.QtGui import QPainter, QColor, QPen, QBrush, QFont, QFontMetrics, QPolygonF
 from qgis.PyQt.QtWidgets import QWidget, QSizePolicy
 
@@ -9,6 +9,7 @@ from ...tools.utils.qgisred_profile_plot_utils import (
     cursor_snapshot,
     nearest_visible_point,
     format_profile_value,
+    profile_data_area,
     resolve_envelope_mode,
     truncate_id,
     profile_x_range,
@@ -57,7 +58,7 @@ class ProfilePlotWidget(QWidget):
     def __init__(self, parent=None):
         super(ProfilePlotWidget, self).__init__(parent)
         self.setSizePolicy(QSizePolicy.Policy.Expanding, QSizePolicy.Policy.Expanding)
-        self.setMinimumHeight(240)
+        self.setMinimumHeight(160)
         self.setMouseTracking(True)
         self._series = []
         self._title = ""
@@ -77,6 +78,7 @@ class ProfilePlotWidget(QWidget):
         self._pan_mode = False
         self._zoom_window_mode = False
         self._last_plot = None
+        self._last_area = None
         self._last_view = None
         self._drag_start = None
         self._drag_start_view = None
@@ -86,6 +88,9 @@ class ProfilePlotWidget(QWidget):
         self._axis_cfg_y_right = ProfileAxisSettings()
         self._general_cfg = ProfileGeneralSettings()
         self._curve_overrides = {}
+
+    def sizeHint(self):
+        return QSize(640, 320)
 
     def setEmptyText(self, text):
         self._empty_text = text
@@ -344,15 +349,25 @@ class ProfilePlotWidget(QWidget):
         self.update()
 
     def _pixelToData(self, pixel_x, pixel_y):
-        if self._last_plot is None or self._last_view is None:
+        area = self._last_area
+        if area is None or self._last_view is None:
             return None
-        plot = self._last_plot
-        if plot.width() <= 0 or plot.height() <= 0:
+        if area.width() <= 0 or area.height() <= 0:
             return None
         x0, x1, y0, y1 = self._last_view
-        data_x = x0 + (pixel_x - plot.left()) / plot.width() * (x1 - x0)
-        data_y = y0 + (plot.bottom() - pixel_y) / plot.height() * (y1 - y0)
+        data_x = x0 + (pixel_x - area.left()) / area.width() * (x1 - x0)
+        data_y = y0 + (area.bottom() - pixel_y) / area.height() * (y1 - y0)
         return data_x, data_y
+
+    def _dataXAt(self, pixel_x):
+        area = self._last_area
+        plot = self._last_plot
+        if pixel_x is None or area is None or plot is None or self._last_view is None:
+            return None
+        if area.width() <= 0 or not (plot.left() <= pixel_x <= plot.right()):
+            return None
+        x0, x1 = self._last_view[0], self._last_view[1]
+        return x0 + (pixel_x - area.left()) / area.width() * (x1 - x0)
 
     def _drawZoomRect(self, painter, plot):
         if self._zoom_rect is None:
@@ -384,7 +399,9 @@ class ProfilePlotWidget(QWidget):
             return
 
         x0, x1, y0, y1 = view
+        area = self._dataArea(plot)
         self._last_plot = plot
+        self._last_area = area
         self._last_view = view
         x_scale = compute_nice_scale(x0, x1, 8)
         y_scale = compute_nice_scale(y0, y1, 6)
@@ -396,13 +413,13 @@ class ProfilePlotWidget(QWidget):
             yr_scale = compute_nice_scale(yr0, yr1, 6)
 
         def px(d):
-            return plot.left() + (d - x0) / (x1 - x0) * plot.width()
+            return area.left() + (d - x0) / (x1 - x0) * area.width()
 
         def py(v):
-            return plot.bottom() - (v - y0) / (y1 - y0) * plot.height()
+            return area.bottom() - (v - y0) / (y1 - y0) * area.height()
 
         def py_r(v):
-            return plot.bottom() - (v - yr0) / (yr1 - yr0) * plot.height()
+            return area.bottom() - (v - yr0) / (yr1 - yr0) * area.height()
 
         def py_of(s):
             return py_r if (has_right and s.get("y_axis", "left") == "right") else py
@@ -463,7 +480,7 @@ class ProfilePlotWidget(QWidget):
         if self._show_value_labels and self._series:
             for s in self._series:
                 self._drawValueLabels(painter, s, px, py_of(s), plot)
-        self._drawCursor(painter, plot, px, py_of, x0, x1)
+        self._drawCursor(painter, plot, px, py_of)
         painter.restore()
 
         self._drawTitleAndAxisLabels(painter, full, plot)
@@ -471,6 +488,10 @@ class ProfilePlotWidget(QWidget):
             self._drawLegend(painter, plot)
         self._drawZoomRect(painter, plot)
         painter.end()
+
+    def _dataArea(self, plot):
+        left, top, right, bottom = profile_data_area(plot.left(), plot.top(), plot.right(), plot.bottom())
+        return QRectF(left, top, right - left, bottom - top)
 
     def _plotBgColor(self):
         color = QColor(self._general_cfg.plot_bg_hex)
@@ -829,15 +850,13 @@ class ProfilePlotWidget(QWidget):
                     (QRectF(cxd - 6, cy - 6, 12, 12), e.get("curve_key") or e["label"]))
             x += widths[i] + gap
 
-    def _drawCursor(self, painter, plot, px, py_of, x0, x1):
+    def _drawCursor(self, painter, plot, px, py_of):
         if not self._series:
             return
-        data_x = None
-        if self._hover_x is not None and plot.left() <= self._hover_x <= plot.right():
-            data_x = x0 + (self._hover_x - plot.left()) / plot.width() * (x1 - x0)
-        elif self._cursor_data_x is not None:
+        data_x = self._dataXAt(self._hover_x)
+        if data_x is None and self._cursor_data_x is not None:
             data_x = self._cursor_data_x
-        elif self._cursor_node_index is not None:
+        elif data_x is None and self._cursor_node_index is not None:
             base = self._series[0]["points"]
             if 0 <= self._cursor_node_index < len(base):
                 data_x = base[self._cursor_node_index][0]
@@ -927,16 +946,12 @@ class ProfilePlotWidget(QWidget):
     def _emitCursorNode(self):
         index = -1
         node_id = ""
-        if (self._hover_x is not None and self._last_plot is not None
-                and self._last_view is not None and self._series):
-            plot = self._last_plot
-            if plot.left() <= self._hover_x <= plot.right() and plot.width() > 0:
-                x0, x1 = self._last_view[0], self._last_view[1]
-                data_x = x0 + (self._hover_x - plot.left()) / plot.width() * (x1 - x0)
-                snapshot = cursor_snapshot(self._series, data_x)
-                if snapshot is not None:
-                    index = snapshot["index"]
-                    node_id = snapshot.get("node_id") or ""
+        data_x = self._dataXAt(self._hover_x) if self._series else None
+        if data_x is not None:
+            snapshot = cursor_snapshot(self._series, data_x)
+            if snapshot is not None:
+                index = snapshot["index"]
+                node_id = snapshot.get("node_id") or ""
         if index != self._hover_node_index:
             self._hover_node_index = index
             if index >= 0:
@@ -963,12 +978,12 @@ class ProfilePlotWidget(QWidget):
         super(ProfilePlotWidget, self).mouseMoveEvent(event)
 
     def _panTo(self, x, y):
-        plot = self._last_plot
-        if plot is None or plot.width() <= 0 or self._drag_start_view is None:
+        area = self._last_area
+        if area is None or area.width() <= 0 or self._drag_start_view is None:
             return
         x0, x1 = self._drag_start_view[0], self._drag_start_view[1]
         start_x = self._drag_start[0]
-        delta_x = (x - start_x) / plot.width() * (x1 - x0)
+        delta_x = (x - start_x) / area.width() * (x1 - x0)
         self._view_x = self._clampX(x0 - delta_x, x1 - delta_x)
         self.update()
 

@@ -48,6 +48,22 @@ def profile_x_range(data_min, data_max):
     return x0, x1
 
 
+PROFILE_AREA_SIDE_PAD = 12.0
+PROFILE_AREA_TOP_PAD = 14.0
+
+
+def profile_data_area(left, top, right, bottom,
+                      side_pad=PROFILE_AREA_SIDE_PAD, top_pad=PROFILE_AREA_TOP_PAD):
+    inner_left = float(left) + side_pad
+    inner_right = float(right) - side_pad
+    if inner_right - inner_left < 8.0:
+        inner_left, inner_right = float(left), float(right)
+    inner_top = float(top) + top_pad
+    if float(bottom) - inner_top < 8.0:
+        inner_top = float(top)
+    return inner_left, inner_top, inner_right, float(bottom)
+
+
 def resolve_envelope_mode(mode):
     show_band = mode in ("band", "both")
     show_lines = mode in ("lines", "both")

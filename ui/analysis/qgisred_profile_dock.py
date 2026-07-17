@@ -449,6 +449,25 @@ class QGISRedProfileDock(QDockWidget):
         self.table.setRowCount(0)
         self._updateChartActionsEnabled()
 
+    def resetControls(self):
+        self._setCheckedSilently(self.btnZoomWindow, False)
+        self.plot.setZoomWindowMode(False)
+        self._setCheckedSilently(self.btnPan, False)
+        self.plot.setPanMode(False)
+        self.setLabelsChecked(False)
+        self.setSymbolsChecked(False)
+        self.setEnvelopeModeState("off")
+        self._setCheckedSilently(self.btnTable, False)
+        self.table.setVisible(False)
+        self.setActiveMode("pick")
+        self._updateChartActionsEnabled()
+
+    @staticmethod
+    def _setCheckedSilently(button, checked):
+        button.blockSignals(True)
+        button.setChecked(checked)
+        button.blockSignals(False)
+
     def _updateChartActionsEnabled(self):
         has_data = bool(getattr(self.plot, "_series", []))
         for button in (self.btnAdd, self.btnRemove, self.btnMove, self.btnBranch, self.btnClear,
@@ -724,14 +743,10 @@ class QGISRedProfileDock(QDockWidget):
         self._rebuildSecondaryVariables()
 
     def setSymbolsChecked(self, on):
-        self.btnSymbols.blockSignals(True)
-        self.btnSymbols.setChecked(bool(on))
-        self.btnSymbols.blockSignals(False)
+        self._setCheckedSilently(self.btnSymbols, bool(on))
 
     def setLabelsChecked(self, on):
-        self.btnLabels.blockSignals(True)
-        self.btnLabels.setChecked(bool(on))
-        self.btnLabels.blockSignals(False)
+        self._setCheckedSilently(self.btnLabels, bool(on))
         self.plot.setShowValueLabels(bool(on))
 
     def setEnvelopeModeState(self, mode):

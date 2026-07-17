@@ -419,8 +419,12 @@ class ProfileSection:
         self._profilePath = None
         self._profileBranches = []
         self._profileCurrentBranch = None
+        self._profileShowSymbols = False
+        self._profileEnvelopeMode = "off"
         self._clearProfileHighlight()
         dock.clearPlot()
+        dock.resetControls()
+        self.runProfilePickTool()
 
     def _onProfileVariableChanged(self, dock, _key):
         self._activateProfile(dock)

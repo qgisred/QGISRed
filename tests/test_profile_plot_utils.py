@@ -10,7 +10,26 @@ from QGISRed.tools.utils.qgisred_profile_plot_utils import (
     label_with_unit,
     joined_labels,
     profile_x_range,
+    profile_data_area,
 )
+
+
+def test_profile_data_area_leaves_margin_on_sides_and_top():
+    assert profile_data_area(64.0, 54.0, 700.0, 400.0, side_pad=12.0, top_pad=14.0) == (76.0, 68.0, 688.0, 400.0)
+
+
+def test_profile_data_area_keeps_baseline_at_the_bottom_axis():
+    assert profile_data_area(64.0, 54.0, 700.0, 400.0)[3] == 400.0
+
+
+def test_profile_data_area_drops_side_pad_when_plot_is_too_narrow():
+    left, _top, right, _bottom = profile_data_area(64.0, 54.0, 74.0, 400.0)
+    assert (left, right) == (64.0, 74.0)
+
+
+def test_profile_data_area_drops_top_pad_when_plot_is_too_short():
+    _left, top, _right, bottom = profile_data_area(64.0, 54.0, 700.0, 58.0)
+    assert (top, bottom) == (54.0, 58.0)
 
 
 def test_joined_labels_head_axis_title():
