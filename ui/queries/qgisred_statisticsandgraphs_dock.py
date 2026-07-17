@@ -1846,9 +1846,8 @@ class QGISRedStatisticsDock(QDockWidget, formClass):
             return None
         dataMin = values[0]
         dataMax = values[-1]
-        if dataMin == dataMax:
-            dataMax = dataMin + 1.0
         edges = self.calculateBreaks(rangedId, values, numClasses, dataMin, dataMax, intervalValue, manualBreaks)
+        edges = self.normalizeBreakEdges(edges, dataMin, dataMax)
         if edges is None or len(edges) < 2:
             if not quiet:
                 QMessageBox.warning(self, self.tr("Breaks failed"), self.tr("Unable to compute breaks for the chosen method."))
@@ -2455,9 +2454,8 @@ class QGISRedStatisticsDock(QDockWidget, formClass):
             return None
         dataMin = numericValues[0]
         dataMax = numericValues[-1]
-        if dataMin == dataMax:
-            dataMax = dataMin + 1.0
         edges = self.calculateBreaks(rangedId, numericValues, numClasses, dataMin, dataMax, intervalValue, manualBreaks)
+        edges = self.normalizeBreakEdges(edges, dataMin, dataMax)
         if edges is None or len(edges) < 2:
             if not quiet:
                 QMessageBox.warning(self, self.tr("Breaks failed"), self.tr("Unable to compute breaks for the chosen method."))
@@ -2480,6 +2478,20 @@ class QGISRedStatisticsDock(QDockWidget, formClass):
                 return self.calculateEqualIntervalBreaks(numClasses, dataMin, dataMax)
             return list(manualBreaks)
         return self.calculateEqualIntervalBreaks(numClasses, dataMin, dataMax)
+
+    def normalizeBreakEdges(self, edges, dataMin, dataMax):
+        # Classifiers return duplicate bounds when there are not enough
+        # distinct values (e.g. all values identical), which would render
+        # as repeated empty ranges
+        if not edges:
+            return None
+        normalized = [edges[0]]
+        for edge in edges[1:]:
+            if edge != normalized[-1]:
+                normalized.append(edge)
+        if len(normalized) < 2:
+            return [dataMin, dataMax]
+        return normalized
 
     def calculateEqualIntervalBreaks(self, numClasses, dataMin, dataMax):
         step = (dataMax - dataMin) / float(numClasses)
@@ -2530,7 +2542,10 @@ class QGISRedStatisticsDock(QDockWidget, formClass):
         for i in range(len(edges) - 1):
             lowerEdge = edges[i]
             upperEdge = edges[i + 1]
-            label = "{} - {}".format(self.formatNumber(lowerEdge, decimals), self.formatNumber(upperEdge, decimals))
+            if lowerEdge == upperEdge:
+                label = self.formatNumber(lowerEdge, decimals)
+            else:
+                label = "{} - {}".format(self.formatNumber(lowerEdge, decimals), self.formatNumber(upperEdge, decimals))
             bins.append(self.makeBin(label=label, lo=lowerEdge, hi=upperEdge, category=None))
         return bins
 
