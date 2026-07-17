@@ -5,7 +5,7 @@ from qgis.PyQt.QtWidgets import QApplication, QFileDialog, QMessageBox
 from qgis.PyQt.QtCore import Qt
 from qgis.PyQt.QtGui import QColor
 from qgis.core import QgsProject, QgsLayerTreeGroup, QgsSingleSymbolRenderer, QgsSymbol, QgsCategorizedSymbolRenderer, QgsRendererCategory
-from qgis.core import QgsPalLayerSettings, QgsVectorLayerSimpleLabeling, QgsTextFormat, QgsProperty
+from qgis.core import QgsPalLayerSettings, QgsVectorLayerSimpleLabeling, QgsTextFormat, QgsProperty, Qgis
 import hashlib
 import os
 
@@ -644,6 +644,10 @@ class ToolsSection:
             self._applyDemandSectorLinksStyle(vlayer)
             return
 
+        if normalized_theme == "frontiers":
+            self._applyDemandSectorFrontiersStyle(vlayer)
+            return
+
         layer_name = os.path.splitext(
             os.path.basename(
                 vlayer.source().split("|")[0]
@@ -654,6 +658,8 @@ class ToolsSection:
             self._applyDemandSectorNodesStyle(vlayer)
         elif layer_name.endswith("_links"):
             self._applyDemandSectorLinksStyle(vlayer)
+        elif layer_name.endswith("_frontiers"):
+            self._applyDemandSectorFrontiersStyle(vlayer)
         
     def _applyDemandSectorNodesStyle(self, vlayer):
         sector_field_index = vlayer.fields().indexFromName("SectorID")
@@ -862,6 +868,55 @@ class ToolsSection:
 
         renderer = QgsCategorizedSymbolRenderer(
             renderer_expression,
+            categories
+        )
+
+        vlayer.setRenderer(renderer)
+
+        QGISRedStylingUtils(
+            self.ProjectDirectory,
+            self.NetworkName,
+            self.iface
+        ).translateRendererLabels(vlayer)
+
+        vlayer.triggerRepaint()
+
+    def _applyDemandSectorFrontiersStyle(self, vlayer):
+        status_field = vlayer.fields().indexFromName("Status")
+
+        if status_field == -1:
+            return
+
+        categories = []
+
+        styles = {
+            "OPEN": QColor("green"),
+            "CLOSED": QColor("red"),
+            "IGNORE": QColor("gray")
+        }
+
+        for status, color in styles.items():
+            symbol = QgsSymbol.defaultSymbol(
+                vlayer.geometryType()
+            )
+
+            symbol.symbolLayer(0).setShape(
+                Qgis.MarkerShape.Star
+            )
+
+            symbol.setColor(color)
+            symbol.setSize(6)
+
+            categories.append(
+                QgsRendererCategory(
+                    status,
+                    symbol,
+                    status
+                )
+            )
+
+        renderer = QgsCategorizedSymbolRenderer(
+            'upper(trim("Status"))',
             categories
         )
 
