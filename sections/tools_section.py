@@ -7,8 +7,10 @@ from qgis.PyQt.QtGui import QColor
 from qgis.core import QgsProject, QgsLayerTreeGroup, QgsSingleSymbolRenderer, QgsSymbol, QgsCategorizedSymbolRenderer, QgsRendererCategory
 from qgis.core import QgsPalLayerSettings, QgsVectorLayerSimpleLabeling, QgsTextFormat, QgsProperty
 import hashlib
+import os
 
 from ..tools.utils.qgisred_layer_utils import QGISRedLayerUtils
+from ..tools.utils.qgisred_styling_utils import QGISRedStylingUtils
 from ..tools.qgisred_dependencies import QGISRedDependencies as GISRed
 from ..tools.map_tools.qgisred_selectPoint import QGISRedSelectPointTool, SelectPointType
 from ..compat import LAYER_TYPE_VECTOR
@@ -598,6 +600,278 @@ class ToolsSection:
                 vlayer.setLabeling(
                     QgsVectorLayerSimpleLabeling(label_settings)
                 )
+
+        vlayer.triggerRepaint()
+
+    """Demand Sectors"""
+
+    def _colorForSectorId(self, sector_id):
+        text = "" if sector_id is None else str(sector_id).strip()
+
+        if text == "" or text.lower() in ("null", "undefined"):
+            return QColor("orange")
+
+        normalized = text.lower()
+
+        digest = hashlib.md5(
+            normalized.encode("utf-8"),
+            usedforsecurity=False
+        ).hexdigest()
+
+        hue = int(digest[:8], 16) % 360
+
+        color = QColor()
+        color.setHsv(hue, 180, 220)
+
+        return color
+
+    def _applyDemandSectorBuilderStyle(
+        self,
+        vlayer,
+        themeName=None
+    ):
+        normalized_theme = (
+            ""
+            if themeName is None
+            else str(themeName).strip().lower()
+        )
+
+        if normalized_theme == "nodes":
+            self._applyDemandSectorNodesStyle(vlayer)
+            return
+
+        if normalized_theme == "links":
+            self._applyDemandSectorLinksStyle(vlayer)
+            return
+
+        layer_name = os.path.splitext(
+            os.path.basename(
+                vlayer.source().split("|")[0]
+            )
+        )[0].lower()
+
+        if layer_name.endswith("_nodes"):
+            self._applyDemandSectorNodesStyle(vlayer)
+        elif layer_name.endswith("_links"):
+            self._applyDemandSectorLinksStyle(vlayer)
+        
+    def _applyDemandSectorNodesStyle(self, vlayer):
+        sector_field_index = vlayer.fields().indexFromName("SectorID")
+
+        if sector_field_index == -1:
+            return
+
+        sector_ids = set()
+        has_undeclared = False
+
+        for feature in vlayer.getFeatures():
+            raw_sector_id = feature[sector_field_index]
+
+            sector_id = (
+                ""
+                if raw_sector_id is None
+                else str(raw_sector_id).strip()
+            )
+
+            if (
+                sector_id == ""
+                or sector_id.lower() in ("null", "undefined")
+            ):
+                has_undeclared = True
+            else:
+                sector_ids.add(sector_id)
+
+        categories = []
+
+        if has_undeclared:
+            symbol = QgsSymbol.defaultSymbol(
+                vlayer.geometryType()
+            )
+
+            symbol.setColor(QColor("orange"))
+
+            categories.append(
+                QgsRendererCategory(
+                    "__UNDECLARED__",
+                    symbol,
+                    "Undeclared"
+                )
+            )
+
+        for sector_id in sorted(
+            sector_ids,
+            key=str.casefold
+        ):
+            symbol = QgsSymbol.defaultSymbol(
+                vlayer.geometryType()
+            )
+
+            symbol.setColor(
+                self._colorForSectorId(sector_id)
+            )
+
+            categories.append(
+                QgsRendererCategory(
+                    sector_id,
+                    symbol,
+                    sector_id
+                )
+            )
+
+        sector_expression = (
+            "CASE "
+            "WHEN \"SectorID\" IS NULL "
+            "OR trim(to_string(\"SectorID\")) = '' "
+            "OR lower(trim(to_string(\"SectorID\"))) "
+            "IN ('null', 'undefined') "
+            "THEN '__UNDECLARED__' "
+            "ELSE trim(to_string(\"SectorID\")) "
+            "END"
+        )
+
+        renderer = QgsCategorizedSymbolRenderer(
+            sector_expression,
+            categories
+        )
+
+        vlayer.setRenderer(renderer)
+
+        QGISRedStylingUtils(
+            self.ProjectDirectory,
+            self.NetworkName,
+            self.iface
+        ).translateRendererLabels(vlayer)
+
+        vlayer.triggerRepaint()
+
+    def _applyDemandSectorLinksStyle(self, vlayer):
+        sector_field_index = vlayer.fields().indexFromName(
+            "SectorID"
+        )
+
+        frontier_field_index = vlayer.fields().indexFromName(
+            "Frontier"
+        )
+
+        if (
+            sector_field_index == -1
+            or frontier_field_index == -1
+        ):
+            return
+
+        non_frontier_sector_ids = set()
+        has_undeclared_non_frontier = False
+
+        for feature in vlayer.getFeatures():
+            raw_frontier = feature[frontier_field_index]
+
+            frontier = (
+                ""
+                if raw_frontier is None
+                else str(raw_frontier).strip()
+            )
+
+            if frontier == "1":
+                continue
+
+            raw_sector_id = feature[sector_field_index]
+
+            sector_id = (
+                ""
+                if raw_sector_id is None
+                else str(raw_sector_id).strip()
+            )
+
+            if (
+                sector_id == ""
+                or sector_id.lower() in ("null", "undefined")
+            ):
+                has_undeclared_non_frontier = True
+            else:
+                non_frontier_sector_ids.add(sector_id)
+
+        categories = []
+
+        frontier_symbol = QgsSymbol.defaultSymbol(
+            vlayer.geometryType()
+        )
+
+        frontier_symbol.setColor(QColor("gray"))
+        frontier_symbol.setWidth(0.7)
+
+        categories.append(
+            QgsRendererCategory(
+                "FRONTIER",
+                frontier_symbol,
+                "Frontier"
+            )
+        )
+
+        if has_undeclared_non_frontier:
+            undeclared_symbol = QgsSymbol.defaultSymbol(
+                vlayer.geometryType()
+            )
+
+            undeclared_symbol.setColor(QColor("orange"))
+
+            categories.append(
+                QgsRendererCategory(
+                    "__UNDECLARED__",
+                    undeclared_symbol,
+                    "Undeclared"
+                )
+            )
+
+        for sector_id in sorted(
+            non_frontier_sector_ids,
+            key=str.casefold
+        ):
+            symbol = QgsSymbol.defaultSymbol(
+                vlayer.geometryType()
+            )
+
+            symbol.setColor(
+                self._colorForSectorId(sector_id)
+            )
+
+            symbol.setWidth(0.7)
+
+            categories.append(
+                QgsRendererCategory(
+                    sector_id,
+                    symbol,
+                    sector_id
+                )
+            )
+
+        renderer_expression = (
+            "CASE "
+            "WHEN coalesce("
+            "trim(to_string(\"Frontier\")), '') = '1' "
+            "THEN 'FRONTIER' "
+
+            "WHEN \"SectorID\" IS NULL "
+            "OR trim(to_string(\"SectorID\")) = '' "
+            "OR lower(trim(to_string(\"SectorID\"))) "
+            "IN ('null', 'undefined') "
+            "THEN '__UNDECLARED__' "
+
+            "ELSE trim(to_string(\"SectorID\")) "
+            "END"
+        )
+
+        renderer = QgsCategorizedSymbolRenderer(
+            renderer_expression,
+            categories
+        )
+
+        vlayer.setRenderer(renderer)
+
+        QGISRedStylingUtils(
+            self.ProjectDirectory,
+            self.NetworkName,
+            self.iface
+        ).translateRendererLabels(vlayer)
 
         vlayer.triggerRepaint()
 

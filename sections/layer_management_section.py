@@ -10,6 +10,7 @@ from qgis.PyQt.QtWidgets import QApplication
 from qgis.PyQt.QtCore import Qt
 
 from ..tools.utils.qgisred_layer_utils import QGISRedLayerUtils
+from ..tools.utils.qgisred_styling_utils import QGISRedStylingUtils
 from ..tools.utils.qgisred_identifier_utils import QGISRedIdentifierUtils
 from ..tools.utils.qgisred_filesystem_utils import (
     DIR_ISSUES, DIR_QUERIES,
@@ -330,15 +331,19 @@ class LayerManagementSection:
         return sectorizationGroup
 
     def openDemandSectorTheme(self, sectorizationName, themeName):
-        sectorizationGroup = self.getDemandSectorizationGroup(sectorizationName)
+        sectorizationGroup = self.getDemandSectorizationGroup(
+            sectorizationName
+        )
 
-        shpPath = os.path.normpath(os.path.join(
-            self.ProjectDirectory,
-            "Auxiliary Layers",
-            "DemandSectors",
-            sectorizationName,
-            f"{sectorizationName}_{themeName}.shp"
-        ))
+        shpPath = os.path.normpath(
+            os.path.join(
+                self.ProjectDirectory,
+                "Auxiliary Layers",
+                "DemandSectors",
+                sectorizationName,
+                f"{sectorizationName}_{themeName}.shp"
+            )
+        )
 
         if not os.path.exists(shpPath):
             return
@@ -355,24 +360,54 @@ class LayerManagementSection:
             self.iface
         )
 
-        reloaded_layer = utils._tryReloadExistingLayer(shpPath)
+        displayName = os.path.splitext(
+            os.path.basename(shpPath)
+        )[0]
 
-        displayName = os.path.splitext(os.path.basename(shpPath))[0]
+        reloaded_layer = utils._tryReloadExistingLayer(
+            shpPath
+        )
 
-        if reloaded_layer:
-            if not reloaded_layer.customProperty("qgisred_identifier"):
-                identifiers.setLayerIdentifier(reloaded_layer, displayName)
+        if reloaded_layer is not None:
+            self._applyDemandSectorBuilderStyle(
+                reloaded_layer,
+                themeName
+            )
+
+            if not reloaded_layer.customProperty(
+                "qgisred_identifier"
+            ):
+                identifiers.setLayerIdentifier(
+                    reloaded_layer,
+                    displayName
+                )
 
             return
 
-        vlayer = QgsVectorLayer(shpPath, displayName, "ogr")
+        vlayer = QgsVectorLayer(
+            shpPath,
+            displayName,
+            "ogr"
+        )
 
         if not vlayer.isValid():
             return
 
-        identifiers.setLayerIdentifier(vlayer, displayName)
+        self._applyDemandSectorBuilderStyle(
+            vlayer,
+            themeName
+        )
 
-        QgsProject.instance().addMapLayer(vlayer, False)
+        identifiers.setLayerIdentifier(
+            vlayer,
+            displayName
+        )
+
+        QgsProject.instance().addMapLayer(
+            vlayer,
+            False
+        )
+
         sectorizationGroup.insertChildNode(
             0,
             QgsLayerTreeLayer(vlayer)
