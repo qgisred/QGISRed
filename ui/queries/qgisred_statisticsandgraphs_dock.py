@@ -181,11 +181,13 @@ class QGISRedStatisticsDock(QDockWidget, formClass):
         self._chartPropertyUnit = ""
         self._chartXLabel = ""
         self._chartSubtitle = ""
+        self._chartTitleBase = ""
         self._chartUseSum = False
         self._analysisContext = None
         self._breaksDirty = False
         self._secondClassBins = []
         self._tableMatrix = None
+        self._tableTitleBase = ""
         self._tableBaseWidths = []
         self.connectedLayerNodes = []
         self.connectedGroups = []
@@ -386,6 +388,7 @@ class QGISRedStatisticsDock(QDockWidget, formClass):
         self.cbStatistic.clear()
         self.cbStatistic.blockSignals(False)
         self._chartBins = []
+        self._chartTitleBase = ""
         self._analysisContext = None
         self._secondClassBins = []
         self._tableMatrix = None
@@ -400,6 +403,7 @@ class QGISRedStatisticsDock(QDockWidget, formClass):
         self.labelTableStatistic.hide()
         self.cbTableStatistic.hide()
         self.labelResultsTime.hide()
+        self._tableTitleBase = ""
         self.labelTableTitle.setText("")
 
     def setupIcons(self):
@@ -1569,6 +1573,24 @@ class QGISRedStatisticsDock(QDockWidget, formClass):
             return "Links" if category == "Link" else "Nodes"
         return normalize_element(elementIdentifier)
 
+    def resultPropertyQualifier(self, elementIdentifier, fieldName):
+        # Singular element name used to qualify a dynamic property in titles
+        # (e.g. Pumps + Flow -> "Pump Flows") when a concrete element type is
+        # selected instead of the generic Nodes/Links results layers.
+        if not self.isResultProperty(fieldName) or self.isResultsIdentifier(elementIdentifier):
+            return ""
+        singulars = {
+            "qgisred_pipes": self.tr("Pipe"),
+            "qgisred_pumps": self.tr("Pump"),
+            "qgisred_valves": self.tr("Valve"),
+            "qgisred_junctions": self.tr("Junction"),
+            "qgisred_reservoirs": self.tr("Reservoir"),
+            "qgisred_tanks": self.tr("Tank"),
+            "qgisred_demands": self.tr("Multiple Demand"),
+            "qgisred_sources": self.tr("Source"),
+        }
+        return singulars.get(elementIdentifier, "")
+
     def isCategoricalClassifier(self, fieldName):
         if not fieldName:
             return False
@@ -2099,7 +2121,7 @@ class QGISRedStatisticsDock(QDockWidget, formClass):
         classifyUnit = self.fieldUtils.getUnitAbbreviation(classifyElement, classifyField) or ""
 
         chartTitle = self.buildChartTitle(context, prettyProperty, prettyClassify, selectedSecondIndex)
-        self.labelTableTitle.setText(self.buildTableTitle(context, prettyProperty, prettyClassify, selectedSecondIndex, propertyUnit))
+        self._tableTitleBase = self.buildTableTitle(context, prettyProperty, prettyClassify, propertyUnit)
         subtitle = self.buildSubtitle(elementIdentifier)
         xLabel = "{} ({})".format(prettyClassify, classifyUnit) if classifyUnit else prettyClassify
         useSum = self.usesSumColumn(propertyField, elementIdentifier)
@@ -2108,6 +2130,7 @@ class QGISRedStatisticsDock(QDockWidget, formClass):
         self._chartPropertyUnit = propertyUnit
         self._chartXLabel = xLabel
         self._chartSubtitle = subtitle
+        self._chartTitleBase = chartTitle
         self._chartUseSum = useSum
         self.histogram.setTitles(chartTitle, subtitle)
         previousStatistic = self.cbStatistic.currentData(Qt.ItemDataRole.UserRole) if preserveStatistic else None
@@ -2135,6 +2158,7 @@ class QGISRedStatisticsDock(QDockWidget, formClass):
             self.labelTableStatistic.hide()
             self.cbTableStatistic.hide()
             self.populateTable(bins, prettyClassify, prettyProperty, propertyUnit, elementIdentifier, propertyField)
+        self.updateTableTitle()
 
     def renderUnclassifiedAnalysis(self, context):
         # No classification: aggregate everything into a single bin and show the table only
@@ -2171,7 +2195,11 @@ class QGISRedStatisticsDock(QDockWidget, formClass):
         prettyProperty = self.fieldUtils.getProperty(propertyElement, propertyField) or propertyField
         propertyUnit = self.fieldUtils.getUnitAbbreviation(propertyElement, propertyField) or ""
         pluralProperty = self.fieldUtils.getPluralProperty(propertyElement, propertyField) or prettyProperty
+        qualifier = self.resultPropertyQualifier(elementIdentifier, propertyField)
+        if qualifier:
+            pluralProperty = "{} {}".format(qualifier, pluralProperty)
         titleProperty = "{} ({})".format(pluralProperty, propertyUnit) if propertyUnit else pluralProperty
+        self._tableTitleBase = titleProperty
         self.labelTableTitle.setText("{} {}".format(self.tr("Stats for"), titleProperty))
         self._tableMatrix = None
         self.labelTableStatistic.hide()
@@ -2198,6 +2226,9 @@ class QGISRedStatisticsDock(QDockWidget, formClass):
         elementIdentifier = context["elementIdentifier"]
         propertyElement = self.elementForField(elementIdentifier, context["propertyField"])
         pluralProperty = self.fieldUtils.getPluralProperty(propertyElement, context["propertyField"]) or prettyProperty
+        qualifier = self.resultPropertyQualifier(elementIdentifier, context["propertyField"])
+        if qualifier:
+            pluralProperty = "{} {}".format(qualifier, pluralProperty)
         if context["propertyField"] == context["classifyField"]:
             rangeKind = self.tr("by Categories") if context["breaks"]["type"] == "categorical" else self.tr("by Ranges")
             base = "{} {}".format(pluralProperty, rangeKind)
@@ -2205,25 +2236,49 @@ class QGISRedStatisticsDock(QDockWidget, formClass):
             classifyElement = self.elementForField(elementIdentifier, context["classifyField"])
             pluralClassify = self.fieldUtils.getPluralProperty(classifyElement, context["classifyField"]) or prettyClassify
             base = "{} {} {}".format(pluralProperty, self.tr("by"), pluralClassify)
-        if not secondField:
+        if not secondField or selectedSecondIndex is None:
             return base
         secondElement = self.elementForField(elementIdentifier, secondField)
-        if selectedSecondIndex is None:
-            pluralSecond = self.fieldUtils.getPluralProperty(secondElement, secondField) or secondField
-            return "{} {} {}".format(base, self.tr("and"), pluralSecond)
         groupLabel = self.cbSecondClassValue.currentText()
         prettySecond = self.fieldUtils.getProperty(secondElement, secondField) or secondField
         if secondBreaks is not None and secondBreaks["type"] != "categorical":
             return "{} {} {} {} {}".format(base, self.tr("for"), prettySecond, self.tr("on Range"), groupLabel)
         return "{} {} {} {}".format(base, self.tr("for"), prettySecond, groupLabel)
 
-    def buildTableTitle(self, context, prettyProperty, prettyClassify, selectedSecondIndex, propertyUnit):
-        title = self.buildChartTitle(context, prettyProperty, prettyClassify, selectedSecondIndex)
+    def buildTableTitle(self, context, prettyProperty, prettyClassify, propertyUnit):
+        # Fixed title: always shows both classification criteria, independent of
+        # the group selected in the histogram (the table shows all groups)
+        title = self.buildChartTitle(context, prettyProperty, prettyClassify, None)
+        if context["propertyField"] != context["classifyField"]:
+            classifyElement = self.elementForField(context["elementIdentifier"], context["classifyField"])
+            classifyUnit = self.fieldUtils.getUnitAbbreviation(classifyElement, context["classifyField"]) or ""
+            if classifyUnit:
+                title = "{} ({})".format(title, classifyUnit)
+        secondField = context["secondField"]
+        if secondField:
+            secondElement = self.elementForField(context["elementIdentifier"], secondField)
+            pluralSecond = self.fieldUtils.getPluralProperty(secondElement, secondField) or secondField
+            secondUnit = self.fieldUtils.getUnitAbbreviation(secondElement, secondField) or ""
+            if secondUnit:
+                pluralSecond = "{} ({})".format(pluralSecond, secondUnit)
+            title = "{} {} {}".format(title, self.tr("and"), pluralSecond)
         element = self.elementForField(context["elementIdentifier"], context["propertyField"])
         pluralProperty = self.fieldUtils.getPluralProperty(element, context["propertyField"]) or prettyProperty
+        qualifier = self.resultPropertyQualifier(context["elementIdentifier"], context["propertyField"])
+        if qualifier:
+            pluralProperty = "{} {}".format(qualifier, pluralProperty)
         if propertyUnit and title.startswith(pluralProperty):
             title = "{} ({}){}".format(pluralProperty, propertyUnit, title[len(pluralProperty):])
-        return "{} {}".format(self.tr("Stats for"), title)
+        return title
+
+    def updateTableTitle(self):
+        if not self._tableTitleBase:
+            return
+        if self._tableMatrix is not None:
+            prefix = self.cbTableStatistic.currentText() or self.tr("Stats for")
+        else:
+            prefix = self.tr("Stats for")
+        self.labelTableTitle.setText("{} {}".format(prefix, self._tableTitleBase))
 
     def restoreStatisticSelection(self, previousData):
         self._restoreComboSelection(self.cbStatistic, previousData)
@@ -2272,6 +2327,7 @@ class QGISRedStatisticsDock(QDockWidget, formClass):
     def onTableStatisticChanged(self):
         if not self._tableMatrix:
             return
+        self.updateTableTitle()
         self.populateMatrixTable()
 
     def renderChart(self):
@@ -2279,6 +2335,11 @@ class QGISRedStatisticsDock(QDockWidget, formClass):
         statKey = key if kind == "stat" else "count"
         valueKey = key if kind == "value" else None
         yLabel = self.statisticYLabel(kind, key)
+        title = self._chartTitleBase
+        if title and kind == "stat" and key != "count":
+            title = "{} {}".format(self.cbStatistic.currentText(), title)
+        if title:
+            self.histogram.setTitles(title, self._chartSubtitle)
         self.histogram.setBins(
             self._chartBins, mode="plain", xLabel=self._chartXLabel,
             yLabelLeft=yLabel, statKey=statKey, valueKey=valueKey,
