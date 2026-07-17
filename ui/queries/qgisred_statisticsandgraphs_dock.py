@@ -1367,6 +1367,7 @@ class QGISRedStatisticsDock(QDockWidget, formClass):
         self.labelCondition.setVisible(hasAttribute)
         self.valueStack.setVisible(hasAttribute)
         self.labelValue.setVisible(hasAttribute)
+        self.labelAttribute.setVisible(hasAttribute)
         if not hasAttribute:
             self.suspendCascade = False
             return
@@ -3015,6 +3016,7 @@ class QGISRedStatisticsDock(QDockWidget, formClass):
             self.setTableItem(rowIndex, 1, str(binData["count"]))
             item = QTableWidgetItem(joinedDisplay)
             item.setToolTip(self.truncateEnumString(joinedFull))
+            item.setTextAlignment(Qt.AlignmentFlag.AlignCenter)
             self.tbExcel.setItem(rowIndex, 2, item)
             totalCount += binData["count"]
             totalValues.update(binData["values"])
@@ -3028,6 +3030,7 @@ class QGISRedStatisticsDock(QDockWidget, formClass):
             self.setTableItem(totalRow, 1, str(totalCount), bold=True)
             totalItem = QTableWidgetItem(totalJoined)
             totalItem.setToolTip(self.truncateEnumString(totalJoinedFull))
+            totalItem.setTextAlignment(Qt.AlignmentFlag.AlignCenter)
             font = totalItem.font()
             font.setBold(True)
             totalItem.setFont(font)
@@ -3073,6 +3076,8 @@ class QGISRedStatisticsDock(QDockWidget, formClass):
 
     def setTableItem(self, row, column, text, bold=False):
         item = QTableWidgetItem(text)
+        if column > 0:
+            item.setTextAlignment(Qt.AlignmentFlag.AlignCenter)
         if bold:
             font = item.font()
             font.setBold(True)
