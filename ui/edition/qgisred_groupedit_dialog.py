@@ -29,9 +29,9 @@ from qgis.core import (
     QgsSettings,
     QgsVectorLayer,
 )
-from qgis.gui import QgsHighlight
+from qgis.gui import QgsFilterLineEdit, QgsHighlight
 
-from ...compat import QAction
+from ...compat import QAction, sip
 from ...tools.utils.qgisred_field_utils import QGISRedFieldUtils, normalize_element
 from ...tools.utils.qgisred_filesystem_utils import QGISRedFileSystemUtils
 from ...tools.utils.qgisred_project_utils import QGISRedProjectUtils
@@ -230,6 +230,7 @@ class QGISRedGroupEditDialog(QDialog, FORM_CLASS):
         self.editedLayers = []
         self.openedAttributeTables = {}
         self._countSignalLayers = []
+        self._pendingUiState = None
 
         self.banner = QGISRedBanner.inject(self, self.rootLayout)
 
@@ -242,6 +243,11 @@ class QGISRedGroupEditDialog(QDialog, FORM_CLASS):
         self._valuesTimer.setSingleShot(True)
         self._valuesTimer.setInterval(300)
         self._valuesTimer.timeout.connect(self._refreshValueLists)
+
+        self._projectChangeTimer = QTimer(self)
+        self._projectChangeTimer.setSingleShot(True)
+        self._projectChangeTimer.setInterval(150)
+        self._projectChangeTimer.timeout.connect(self._doProjectChanged)
 
         self._connectSignals()
         self.layout().setSizeConstraint(QLayout.SizeConstraint.SetMinimumSize)
@@ -258,12 +264,14 @@ class QGISRedGroupEditDialog(QDialog, FORM_CLASS):
         self.NetworkName = networkName
         self.fieldUtils = QGISRedFieldUtils(projectDirectory, networkName, iface)
         self._populateElementTypes()
+        self._connectProjectSignals()
 
     def closeEvent(self, event):
         super(QGISRedGroupEditDialog, self).closeEvent(event)
         if event.isAccepted():
             self._removePreviewHighlights()
             self._disconnectCountSignals()
+            self._disconnectProjectSignals()
 
     def reject(self):
         if self._hasPendingChanges():
@@ -280,6 +288,7 @@ class QGISRedGroupEditDialog(QDialog, FORM_CLASS):
         self._rollbackEdits()
         self._removePreviewHighlights()
         self._disconnectCountSignals()
+        self._disconnectProjectSignals()
         super(QGISRedGroupEditDialog, self).reject()
 
     def _clearAppliedSelections(self):
@@ -754,17 +763,35 @@ class QGISRedGroupEditDialog(QDialog, FORM_CLASS):
         row, col, rowSpan, colSpan = self.filterGrid.getItemPosition(idx)
         sizePolicy = self.leFilterValue.sizePolicy()
 
+        # Swap the .ui line edit for a QgsFilterLineEdit so it offers the clear (X)
+        # button, like the Statistics / Queries by Properties value fields.
+        self.filterGrid.removeWidget(self.leFilterValue)
+        self.leFilterValue.deleteLater()
+        self.leFilterValue = QgsFilterLineEdit(self)
+        self.leFilterValue.setSizePolicy(sizePolicy)
+
         self.cbFilterValueList = QComboBox(self)
-        self.cbFilterValueList.setEditable(False)
+        self.cbFilterValueList.setEditable(True)
+        self.cbFilterValueList.setInsertPolicy(QComboBox.InsertPolicy.NoInsert)
+        filterValueEdit = QgsFilterLineEdit(self.cbFilterValueList)
+        self.cbFilterValueList.setLineEdit(filterValueEdit)
+        filterValueEdit.cleared.connect(self._onFilterValueCleared)
         self.cbFilterValueList.setSizePolicy(sizePolicy)
         self._styleCombo(self.cbFilterValueList)
 
         self.filterValueStack = QStackedWidget(self)
         self.filterValueStack.setSizePolicy(sizePolicy)
-        self.filterGrid.removeWidget(self.leFilterValue)
         self.filterValueStack.addWidget(self.leFilterValue)
         self.filterValueStack.addWidget(self.cbFilterValueList)
         self.filterGrid.addWidget(self.filterValueStack, row, col, rowSpan, colSpan)
+
+    def _onFilterValueCleared(self):
+        # The X button empties the text; the selection must go too or currentData keeps filtering
+        self.cbFilterValueList.blockSignals(True)
+        self.cbFilterValueList.setCurrentIndex(0)
+        self.cbFilterValueList.clearEditText()
+        self.cbFilterValueList.blockSignals(False)
+        self._scheduleCount()
 
     def _setFilterDetailsVisible(self, visible):
         for widget in (self.lblFilterAttribute, self.lblFilterCondition, self.cbFilterOperator,
@@ -879,13 +906,116 @@ class QGISRedGroupEditDialog(QDialog, FORM_CLASS):
 
     def _disconnectCountSignals(self):
         for layer in self._countSignalLayers:
-            self.safeDisconnect(layer.selectionChanged, self._scheduleCount)
-            self.safeDisconnect(layer.layerModified, self._scheduleValuesRefresh)
+            with suppress(RuntimeError):
+                self.safeDisconnect(layer.selectionChanged, self._scheduleCount)
+                self.safeDisconnect(layer.layerModified, self._scheduleValuesRefresh)
         self._countSignalLayers = []
 
     def safeDisconnect(self, signal, slot):
         with suppress(TypeError, RuntimeError):
             signal.disconnect(slot)
+
+    """Project change tracking"""
+
+    def _connectProjectSignals(self):
+        self._disconnectProjectSignals()
+        project = QgsProject.instance()
+        project.layersAdded.connect(self._onProjectLayersChanged)
+        project.layersRemoved.connect(self._onProjectLayersChanged)
+        project.readProject.connect(self._onProjectCleared)
+        project.cleared.connect(self._onProjectCleared)
+
+    def _disconnectProjectSignals(self):
+        project = QgsProject.instance()
+        self.safeDisconnect(project.layersAdded, self._onProjectLayersChanged)
+        self.safeDisconnect(project.layersRemoved, self._onProjectLayersChanged)
+        self.safeDisconnect(project.readProject, self._onProjectCleared)
+        self.safeDisconnect(project.cleared, self._onProjectCleared)
+        self._projectChangeTimer.stop()
+
+    def _onProjectLayersChanged(self, *args):
+        # A reload removes the old layers and loads the new ones in separate event-loop
+        # passes, so the state must be captured at the first signal of the burst, while
+        # the combos still reflect the user's selections.
+        if self._pendingUiState is None:
+            self._pendingUiState = self._saveUiState()
+        self._projectChangeTimer.start()
+
+    def _onProjectCleared(self, *args):
+        # The dialog is bound to the project captured in config(); with another project
+        # loaded (or none) its directory and network name are stale, so close instead
+        # of rebuilding against foreign layers.
+        self._projectChangeTimer.stop()
+        self._pendingUiState = None
+        self.editedLayers = []
+        self._removePreviewHighlights()
+        self._countSignalLayers = []
+        self._disconnectProjectSignals()
+        self.close()
+
+    def _doProjectChanged(self):
+        self._pruneDeadLayerState()
+        state = self._pendingUiState or self._saveUiState()
+        self.btApply.setEnabled(True)
+        self.chkPreview.setEnabled(True)
+        self._populateElementTypes()
+        if self.cbElementType.count() == 0:
+            return  # mid-reload: keep the pending state for the layersAdded that follows
+        if self._restoreUiState(state):
+            self._pendingUiState = None
+        self._scheduleCount()
+
+    def _pruneDeadLayerState(self):
+        self.editedLayers = [layer for layer in self.editedLayers if not sip.isdeleted(layer)]
+        self._countSignalLayers = [layer for layer in self._countSignalLayers if not sip.isdeleted(layer)]
+        self._removePreviewHighlights()
+
+    def _saveUiState(self):
+        actionData = self.cbAction.currentData()
+        return {
+            "elementType": self.cbElementType.currentData(),
+            "property": self.cbProperty.currentData(),
+            "action": actionData[0] if actionData else None,
+            "filterProperty": self.cbFilterProperty.currentData(),
+            "filterCondition": self.cbFilterOperator.currentText(),
+            "filterValue": self._currentFilterValueText(),
+        }
+
+    def _restoreUiState(self, state):
+        """Restore combo selections; returns False while the saved element type is not back yet."""
+        if state["elementType"]:
+            index = self.cbElementType.findData(state["elementType"])
+            if index < 0:
+                return False
+            if index != self.cbElementType.currentIndex():
+                self.cbElementType.setCurrentIndex(index)
+        index = self.cbProperty.findData(state["property"])
+        if index >= 0:
+            self.cbProperty.setCurrentIndex(index)
+        for i in range(self.cbAction.count()):
+            data = self.cbAction.itemData(i)
+            if data and data[0] == state["action"]:
+                self.cbAction.setCurrentIndex(i)
+                break
+        self._restoreFilterState(state)
+        return True
+
+    def _restoreFilterState(self, state):
+        index = self.cbFilterProperty.findData(state["filterProperty"])
+        if index < 0:
+            return
+        self.cbFilterProperty.setCurrentIndex(index)
+        index = self.cbFilterOperator.findText(state["filterCondition"])
+        if index >= 0:
+            self.cbFilterOperator.setCurrentIndex(index)
+        if not state["filterValue"]:
+            return
+        if self._isFilterValueListActive():
+            index = self.cbFilterValueList.findData(state["filterValue"])
+            if index >= 0:
+                self.cbFilterValueList.setCurrentIndex(index)
+        else:
+            self._setCurrentFilterValueText(state["filterValue"])
 
     """Affected count and matching"""
 
@@ -958,7 +1088,7 @@ class QGISRedGroupEditDialog(QDialog, FORM_CLASS):
             return None
         field = layer.fields().field(fieldName)
         column = QgsExpression.quotedColumnRef(fieldName)
-        if self._isFilterValueListActive() and self.cbFilterValueList.currentData() == _nullFilterData:
+        if self._isFilterValueListActive() and rawValue == _nullFilterData:
             if condition == "≠":
                 return QgsExpression("%s IS NOT NULL" % column)
             return QgsExpression("%s IS NULL" % column)
@@ -1318,6 +1448,7 @@ class QGISRedGroupEditDialog(QDialog, FORM_CLASS):
         self.editedLayers = []
         self._removePreviewHighlights()
         self._disconnectCountSignals()
+        self._disconnectProjectSignals()
         self.accept()
 
     def _hasPendingChanges(self):
@@ -1425,8 +1556,14 @@ class QGISRedGroupEditDialog(QDialog, FORM_CLASS):
 
     def _currentFilterValueText(self):
         if self._isFilterValueListActive():
-            data = self.cbFilterValueList.currentData()
-            return str(data) if data is not None else self.cbFilterValueList.currentText()
+            combo = self.cbFilterValueList
+            index = combo.currentIndex()
+            # A typed value in the editable combo may not match the selected item;
+            # only trust the item data while the text still mirrors that item.
+            if index >= 0 and combo.currentText() == combo.itemText(index):
+                data = combo.itemData(index)
+                return str(data) if data is not None else combo.currentText()
+            return combo.currentText()
         return self.leFilterValue.text()
 
     def _isIdentifierField(self, identifier, fieldName):
