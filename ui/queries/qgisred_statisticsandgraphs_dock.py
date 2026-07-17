@@ -690,6 +690,11 @@ class QGISRedStatisticsDock(QDockWidget, formClass):
             "ranged": self.cbRanged.currentData(Qt.ItemDataRole.UserRole),
             "classes": self.cbClasses.value(),
             "interval": self.spinIntervalRange.value(),
+            "secondClassifyBy": self.cbSecondClassifiedBy.currentData(Qt.ItemDataRole.UserRole),
+            "secondRanged": self.cbSecondRanged.currentData(Qt.ItemDataRole.UserRole),
+            "secondClasses": self.cbSecondClasses.value(),
+            "secondInterval": self.spinSecondIntervalRange.value(),
+            "secondManualBreaks": list(self.secondManualBreaks),
             "attribute": self.cbAttribute.currentData(Qt.ItemDataRole.UserRole),
             "condition": self.cbCondition.currentData(Qt.ItemDataRole.UserRole),
             "valueText": self.cbValue.currentText(),
@@ -728,6 +733,22 @@ class QGISRedStatisticsDock(QDockWidget, formClass):
         if interval is not None:
             with suppress(TypeError, ValueError):
                 self.spinIntervalRange.setValue(float(interval))
+        secondValue = state.get("secondClassifyBy")
+        secondIndex = self.cbSecondClassifiedBy.findData(secondValue) if secondValue else -1
+        if secondIndex >= 0:
+            self.cbSecondClassifiedBy.setCurrentIndex(secondIndex)
+            self.updateSecondRanged()
+        secondRangedIndex = self.cbSecondRanged.findData(state.get("secondRanged")) if state.get("secondRanged") else -1
+        if secondRangedIndex >= 0:
+            self.cbSecondRanged.setCurrentIndex(secondRangedIndex)
+        secondClasses = state.get("secondClasses")
+        if secondClasses:
+            self.cbSecondClasses.setValue(int(secondClasses))
+        secondInterval = state.get("secondInterval")
+        if secondInterval is not None:
+            with suppress(TypeError, ValueError):
+                self.spinSecondIntervalRange.setValue(float(secondInterval))
+        self.secondManualBreaks = list(state.get("secondManualBreaks") or [])
         attributeIndex = self.cbAttribute.findData(state.get("attribute") or "")
         if attributeIndex >= 0:
             self.cbAttribute.setCurrentIndex(attributeIndex)
@@ -748,9 +769,12 @@ class QGISRedStatisticsDock(QDockWidget, formClass):
         self.cbSelectedElements.setChecked(bool(state.get("onlySelected")))
         self.manualBreaks = list(state.get("manualBreaks") or [])
         for combo in (self.cbElementType, self.cbProperty, self.cbClassifiedBy, self.cbRanged,
+                      self.cbSecondClassifiedBy, self.cbSecondRanged,
                       self.cbAttribute, self.cbCondition):
             self.updateComboBoxBackground(combo)
         self.onRangedChanged()
+        if self.cbSecondClassifiedBy.currentData(Qt.ItemDataRole.UserRole):
+            self.onSecondRangedChanged()
 
     def updateComboBoxBackground(self, combo):
         brush = combo.currentData(Qt.ItemDataRole.BackgroundRole)
@@ -3149,6 +3173,10 @@ class QGISRedStatisticsDock(QDockWidget, formClass):
             with suppress(TypeError, ValueError):
                 self.spinSecondIntervalRange.setValue(float(secondInterval))
 
+        # After the classify combos: changing them resets the manual breaks
+        self.manualBreaks = list(data.get("manualBreaks") or [])
+        self.secondManualBreaks = list(data.get("secondManualBreaks") or [])
+
         filterData = data.get("filter") or {}
         attributeIndex = self.cbAttribute.findData(filterData.get("attribute", "") or "")
         if attributeIndex >= 0:
@@ -3187,10 +3215,12 @@ class QGISRedStatisticsDock(QDockWidget, formClass):
                 "ranged": self.cbRanged.currentData(Qt.ItemDataRole.UserRole) or "",
                 "classes": self.cbClasses.value(),
                 "interval": self.spinIntervalRange.value(),
+                "manualBreaks": list(self.manualBreaks),
                 "secondClassifyBy": self.cbSecondClassifiedBy.currentData(Qt.ItemDataRole.UserRole) or "",
                 "secondRanged": self.cbSecondRanged.currentData(Qt.ItemDataRole.UserRole) or "",
                 "secondClasses": self.cbSecondClasses.value(),
                 "secondInterval": self.spinSecondIntervalRange.value(),
+                "secondManualBreaks": list(self.secondManualBreaks),
                 "filter": {
                     "attribute": self.cbAttribute.currentData(Qt.ItemDataRole.UserRole) or "",
                     "condition": self.cbCondition.currentData(Qt.ItemDataRole.UserRole) or "",
