@@ -430,6 +430,7 @@ class QGISRedStatisticsDock(QDockWidget, formClass):
         self.cbSecondRanged.currentIndexChanged.connect(lambda: self.updateComboBoxBackground(self.cbSecondRanged))
         self.cbRanged.currentIndexChanged.connect(self.onRangedChanged)
         self.cbAttribute.currentIndexChanged.connect(self.onAttributeChanged)
+        self.cbAttribute.currentIndexChanged.connect(lambda: self.updateComboBoxBackground(self.cbAttribute))
         self.cbCondition.currentIndexChanged.connect(self.onConditionChanged)
         self.cbStatistic.currentIndexChanged.connect(self.onStatisticChanged)
         self.cbStatistic.currentIndexChanged.connect(lambda: self.updateComboBoxBackground(self.cbStatistic))
