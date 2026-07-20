@@ -434,6 +434,9 @@ class LifecycleSection:
             GISRed.SetCulture(ui_language)
 
     def getVersion(self, filename, what):
+        import sys
+        if sys.platform != "win32":
+            return ""
         try:
             import win32api
             pairs = win32api.GetFileVersionInfo(filename, "\\VarFileInfo\\Translation")
@@ -444,8 +447,12 @@ class LifecycleSection:
             return ""
 
     def checkDependencies(self):
-        valid = False
+        import sys
         gisredDir = QGISRedFileSystemUtils().getGISRedDllFolder()
+        if sys.platform != "win32":
+            dll_name = "GISRed.QGISRed.dylib" if sys.platform == "darwin" else "GISRed.QGISRed.so"
+            return os.path.isfile(os.path.join(gisredDir, dll_name))
+        valid = False
         if os.path.isdir(gisredDir):
             currentVersion = self.getVersion(os.path.join(gisredDir, "GISRed.QGISRed.dll"), "FileVersion")
             if currentVersion == self.DependenciesVersion:
@@ -513,7 +520,7 @@ class LifecycleSection:
 
             # Check if this id was already seen (skip when forced from toolbar)
             if not force:
-                seen_file = os.path.join(os.path.join(os.getenv("APPDATA"), "QGISRed"), "seenNews.dat")
+                seen_file = os.path.join(QGISRedFileSystemUtils().getQGISRedFolder(), "seenNews.dat")
                 seen_ids = []
                 if os.path.exists(seen_file):
                     with open(seen_file, "r", encoding="utf-8") as f:
@@ -550,7 +557,7 @@ class LifecycleSection:
         )
         dlg.exec()
         if dlg.dontShowAgain() and self._latestNewsId:
-            seen_file = os.path.join(os.path.join(os.getenv("APPDATA"), "QGISRed"), "seenNews.dat")
+            seen_file = os.path.join(QGISRedFileSystemUtils().getQGISRedFolder(), "seenNews.dat")
             with open(seen_file, "a", encoding="utf-8") as f:
                 f.write(self._latestNewsId + "\n")
 

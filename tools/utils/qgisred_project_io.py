@@ -583,10 +583,7 @@ class QGISRedProjectIO:
                     finfo = QFileInfo(qgs.text)
                     qgisPath = finfo.filePath()
                     if not os.path.isfile(qgisPath):  # Create absolute path
-                        currentDirectory = os.getcwd()
-                        os.chdir(self.ProjectDirectory)
-                        qgisPath = os.path.abspath(qgisPath)
-                        os.chdir(currentDirectory)
+                        qgisPath = os.path.normpath(os.path.join(self.ProjectDirectory, qgisPath))
 
                     if os.path.exists(qgisPath):
                         QgsProject.instance().read(qgisPath)

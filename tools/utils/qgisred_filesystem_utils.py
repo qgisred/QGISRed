@@ -77,7 +77,15 @@ class QGISRedFileSystemUtils:
         return self.getUniformedPath(os.path.join(folder, fileName))
 
     def getQGISRedFolder(self):
-        return os.path.join(os.getenv("APPDATA"), "QGISRed")
+        import sys
+        if sys.platform == "win32":
+            appdata = os.getenv("APPDATA") or os.path.join(os.path.expanduser("~"), "AppData", "Roaming")
+            return os.path.join(appdata, "QGISRed")
+        elif sys.platform == "darwin":
+            return os.path.join(os.path.expanduser("~"), "Library", "Application Support", "QGISRed")
+        else:
+            xdg = os.getenv("XDG_CONFIG_HOME") or os.path.join(os.path.expanduser("~"), ".config")
+            return os.path.join(xdg, "QGISRed")
 
     def getMaterialFiles(self):
         """Returns a list of (name, path) tuples for all .dbf files in global_defaults and materials folders."""
@@ -93,34 +101,41 @@ class QGISRedFileSystemUtils:
         return result
 
     def getGISRedDllFolder(self):
-        plat = "x86"
-        if "64bit" in str(platform.architecture()):
-            plat = "x64"
-        dllFolder = os.path.join(self.getQGISRedFolder(), "dlls")
-        return os.path.join(dllFolder, plat)
+        import sys
+        if sys.platform == "darwin":
+            subdir = "osx"
+        elif sys.platform == "win32":
+            subdir = "x64" if "64bit" in str(platform.architecture()) else "x86"
+        else:
+            machine = platform.machine()
+            subdir = "arm64" if machine in ("aarch64", "arm64") else "x64"
+        return os.path.join(self.getQGISRedFolder(), "dlls", subdir)
 
     def getUserFolder(self):
-        userFolder = os.path.expanduser("~\\QGISRed")
-        try:  # create directory if does not exist
-            os.stat(userFolder)
-        except Exception:
-            os.mkdir(userFolder)
-        userFolder = os.path.expanduser("~\\QGISRed\\Projects")
-        try:  # create directory if does not exist
-            os.stat(userFolder)
-        except Exception:
-            os.mkdir(userFolder)
+        userRoot = os.path.join(os.path.expanduser("~"), "QGISRed")
+        os.makedirs(userRoot, exist_ok=True)
+        userFolder = os.path.join(userRoot, "Projects")
+        os.makedirs(userFolder, exist_ok=True)
         return userFolder
 
     def getCurrentDll(self):
-        os.chdir(QGISRedFileSystemUtils.DllTempoFolder)
-        return os.path.join(QGISRedFileSystemUtils.DllTempoFolder, "GISRed.QGISRed.dll")
+        import sys
+        if sys.platform == "win32":
+            dll_name = "GISRed.QGISRed.dll"
+        elif sys.platform == "darwin":
+            dll_name = "GISRed.QGISRed.dylib"
+        else:
+            dll_name = "GISRed.QGISRed.so"
+        return os.path.join(QGISRedFileSystemUtils.DllTempoFolder, dll_name)
 
     def copyDependencies(self):
-        if not os.path.exists(self.getGISRedDllFolder()):
+        src_folder = self.getGISRedDllFolder()
+        if not os.path.exists(src_folder):
             return
-        QGISRedFileSystemUtils.DllTempoFolder = tempfile._get_default_tempdir() + "\\QGISRed_" + next(tempfile._get_candidate_names())
-        shutil.copytree(self.getGISRedDllFolder(), QGISRedFileSystemUtils.DllTempoFolder)
+        tmp = tempfile.mkdtemp(prefix="QGISRed_")
+        QGISRedFileSystemUtils.DllTempoFolder = tmp
+        for name in os.listdir(src_folder):
+            shutil.copy2(os.path.join(src_folder, name), os.path.join(tmp, name))
 
     def writeFile(self, file, string):
         file.write(string)

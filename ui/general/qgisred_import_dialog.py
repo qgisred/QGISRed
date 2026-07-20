@@ -35,11 +35,8 @@ class QGISRedImportDialog(QDialog, FORM_CLASS):
         """Constructor."""
         super(QGISRedImportDialog, self).__init__(parent)
         self.setupUi(self)
-        gplFolder = os.path.join(os.getenv("APPDATA"), "QGISRed")
-        try:  # create directory if does not exist
-            os.stat(gplFolder)
-        except Exception:
-            os.mkdir(gplFolder)
+        gplFolder = QGISRedFileSystemUtils().getQGISRedFolder()
+        os.makedirs(gplFolder, exist_ok=True)
         self.gplFile = os.path.join(gplFolder, "qgisredprojectlist.gpl")
         # INP
         self.btImportInp.clicked.connect(self.importInpProject)

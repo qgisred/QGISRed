@@ -58,11 +58,8 @@ class QGISRedProjectManagerDialog(QDialog, FORM_CLASS):
         self.btMove.clicked.connect(self.moveProject)
         self.btGo2Folder.clicked.connect(self.openFolder)
         # Variables:
-        gplFolder = os.path.join(os.getenv("APPDATA"), "QGISRed")
-        try:  # create directory if does not exist
-            os.stat(gplFolder)
-        except Exception:
-            os.mkdir(gplFolder)
+        gplFolder = QGISRedFileSystemUtils().getQGISRedFolder()
+        os.makedirs(gplFolder, exist_ok=True)
         self.gplFile = os.path.join(gplFolder, "qgisredprojectlist.gpl")
         # Columns:
         self.twProjectList.setColumnCount(4)
@@ -336,7 +333,15 @@ class QGISRedProjectManagerDialog(QDialog, FORM_CLASS):
             for row in selectionModel.selectedRows():
                 mainFolder = str(self.twProjectList.item(row.row(), 3).text())
                 name = str(self.twProjectList.item(row.row(), 0).text())
-                os.startfile(mainFolder)  # nosec B606 — opens a known local project folder in Explorer, by design
+                import sys
+                if sys.platform == "win32":
+                    os.startfile(mainFolder)  # nosec B606 — opens a known local project folder in Explorer, by design
+                elif sys.platform == "darwin":
+                    import subprocess
+                    subprocess.Popen(["open", mainFolder])
+                else:
+                    import subprocess
+                    subprocess.Popen(["xdg-open", mainFolder])
                 isSameProject = self._getUniformedPath(self.ProjectDirectory) == self._getUniformedPath(mainFolder)
                 isSameNet = self.NetworkName == name
                 if isSameProject and isSameNet:

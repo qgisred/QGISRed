@@ -1,23 +1,31 @@
 from .utils.qgisred_filesystem_utils import QGISRedFileSystemUtils
-from ctypes import c_char_p, WinDLL
 import os
+import sys
+from ctypes import c_char_p, CDLL
+if sys.platform == "win32":
+    from ctypes import WinDLL
+
+
+def _load_dll():
+    dll_path = QGISRedFileSystemUtils().getCurrentDll()
+    if not os.path.exists(dll_path):
+        QGISRedFileSystemUtils().copyDependencies()
+        dll_path = QGISRedFileSystemUtils().getCurrentDll()
+    if sys.platform == "win32":
+        return WinDLL(dll_path)
+    return CDLL(dll_path)
 
 
 class QGISRedDependencies:
     @staticmethod
     def CreateInstance():
-        dll_path = QGISRedFileSystemUtils().getCurrentDll()
-        if not os.path.exists(dll_path):
-            QGISRedFileSystemUtils().copyDependencies()  # Attempt to restore the DLL file
-            dll_path = QGISRedFileSystemUtils().getCurrentDll()
-        mydll = WinDLL(dll_path)
-        return mydll
+        return _load_dll()
 
     @staticmethod
     def SetCulture(culture):
         culture = QGISRedDependencies.encode(culture)
 
-        mydll = WinDLL(QGISRedFileSystemUtils().getCurrentDll())
+        mydll = _load_dll()
         mydll.SetCulture.argtypes = (c_char_p,)
         mydll.SetCulture.restype = c_char_p
         b = mydll.SetCulture(culture)
@@ -30,7 +38,7 @@ class QGISRedDependencies:
         tempFolder = QGISRedDependencies.encode(tempFolder)
         pipePoints = QGISRedDependencies.encode(pipePoints)
 
-        mydll = WinDLL(QGISRedFileSystemUtils().getCurrentDll())
+        mydll = _load_dll()
         mydll.AddConnection.argtypes = (c_char_p, c_char_p, c_char_p, c_char_p)
         mydll.AddConnection.restype = c_char_p
         b = mydll.AddConnection(projectFolder, networkName, tempFolder, pipePoints)
@@ -43,7 +51,7 @@ class QGISRedDependencies:
         asNode = QGISRedDependencies.encode(asNode)
         tempFolder = QGISRedDependencies.encode(tempFolder)
 
-        mydll = WinDLL(QGISRedFileSystemUtils().getCurrentDll())
+        mydll = _load_dll()
         mydll.AddConnections.argtypes = (c_char_p, c_char_p, c_char_p, c_char_p)
         mydll.AddConnections.restype = c_char_p
         b = mydll.AddConnections(projectFolder, networkName, asNode, tempFolder)
@@ -55,7 +63,7 @@ class QGISRedDependencies:
         networkName = QGISRedDependencies.encode(networkName)
         tempFolder = QGISRedDependencies.encode(tempFolder)
 
-        mydll = WinDLL(QGISRedFileSystemUtils().getCurrentDll())
+        mydll = _load_dll()
         mydll.AddHydrants.argtypes = (c_char_p, c_char_p, c_char_p)
         mydll.AddHydrants.restype = c_char_p
         b = mydll.AddHydrants(projectFolder, networkName, tempFolder)
@@ -68,7 +76,7 @@ class QGISRedDependencies:
         tempFolder = QGISRedDependencies.encode(tempFolder)
         point = QGISRedDependencies.encode(point)
 
-        mydll = WinDLL(QGISRedFileSystemUtils().getCurrentDll())
+        mydll = _load_dll()
         mydll.AddIsolationValve.argtypes = (c_char_p, c_char_p, c_char_p, c_char_p)
         mydll.AddIsolationValve.restype = c_char_p
         b = mydll.AddIsolationValve(projectFolder, networkName, tempFolder, point)
@@ -82,7 +90,7 @@ class QGISRedDependencies:
         point = QGISRedDependencies.encode(point)
         metertype = QGISRedDependencies.encode(metertype)
 
-        mydll = WinDLL(QGISRedFileSystemUtils().getCurrentDll())
+        mydll = _load_dll()
         mydll.AddMeter.argtypes = (c_char_p, c_char_p, c_char_p, c_char_p, c_char_p)
         mydll.AddMeter.restype = c_char_p
         b = mydll.AddMeter(projectFolder, networkName, tempFolder, point, metertype)
@@ -95,7 +103,7 @@ class QGISRedDependencies:
         tempFolder = QGISRedDependencies.encode(tempFolder)
         pipePoints = QGISRedDependencies.encode(pipePoints)
 
-        mydll = WinDLL(QGISRedFileSystemUtils().getCurrentDll())
+        mydll = _load_dll()
         mydll.AddPipe.argtypes = (c_char_p, c_char_p, c_char_p, c_char_p)
         mydll.AddPipe.restype = c_char_p
         b = mydll.AddPipe(projectFolder, networkName, tempFolder, pipePoints)
@@ -108,7 +116,7 @@ class QGISRedDependencies:
         tempFolder = QGISRedDependencies.encode(tempFolder)
         point = QGISRedDependencies.encode(point)
 
-        mydll = WinDLL(QGISRedFileSystemUtils().getCurrentDll())
+        mydll = _load_dll()
         mydll.AddReservoir.argtypes = (c_char_p, c_char_p, c_char_p, c_char_p)
         mydll.AddReservoir.restype = c_char_p
         b = mydll.AddReservoir(projectFolder, networkName, tempFolder, point)
@@ -121,7 +129,7 @@ class QGISRedDependencies:
         tempFolder = QGISRedDependencies.encode(tempFolder)
         point = QGISRedDependencies.encode(point)
 
-        mydll = WinDLL(QGISRedFileSystemUtils().getCurrentDll())
+        mydll = _load_dll()
         mydll.AddTank.argtypes = (c_char_p, c_char_p, c_char_p, c_char_p)
         mydll.AddTank.restype = c_char_p
         b = mydll.AddTank(projectFolder, networkName, tempFolder, point)
@@ -133,7 +141,7 @@ class QGISRedDependencies:
         networkName = QGISRedDependencies.encode(networkName)
         tempFolder = QGISRedDependencies.encode(tempFolder)
 
-        mydll = WinDLL(QGISRedFileSystemUtils().getCurrentDll())
+        mydll = _load_dll()
         mydll.AddWashoutValves.argtypes = (c_char_p, c_char_p, c_char_p)
         mydll.AddWashoutValves.restype = c_char_p
         b = mydll.AddWashoutValves(projectFolder, networkName, tempFolder)
@@ -145,7 +153,7 @@ class QGISRedDependencies:
         networkName = QGISRedDependencies.encode(networkName)
         tempFolder = QGISRedDependencies.encode(tempFolder)
 
-        mydll = WinDLL(QGISRedFileSystemUtils().getCurrentDll())
+        mydll = _load_dll()
         mydll.AnalysisOptions.argtypes = (c_char_p, c_char_p, c_char_p)
         mydll.AnalysisOptions.restype = c_char_p
         b = mydll.AnalysisOptions(projectFolder, networkName, tempFolder)
@@ -158,7 +166,7 @@ class QGISRedDependencies:
         tempFolder = QGISRedDependencies.encode(tempFolder)
         linkIds = QGISRedDependencies.encode(linkIds)
 
-        mydll = WinDLL(QGISRedFileSystemUtils().getCurrentDll())
+        mydll = _load_dll()
         mydll.CalculateLengths.argtypes = (c_char_p, c_char_p, c_char_p, c_char_p)
         mydll.CalculateLengths.restype = c_char_p
         b = mydll.CalculateLengths(projectFolder, networkName, tempFolder, linkIds)
@@ -170,7 +178,7 @@ class QGISRedDependencies:
         networkName = QGISRedDependencies.encode(networkName)
         epsg = QGISRedDependencies.encode(epsg)
 
-        mydll = WinDLL(QGISRedFileSystemUtils().getCurrentDll())
+        mydll = _load_dll()
         mydll.ChangeCrs.argtypes = (c_char_p, c_char_p, c_char_p)
         mydll.ChangeCrs.restype = c_char_p
         b = mydll.ChangeCrs(projectFolder, networkName, epsg)
@@ -184,7 +192,7 @@ class QGISRedDependencies:
         point = QGISRedDependencies.encode(point)
         ctrlPressed = QGISRedDependencies.encode(ctrlPressed)
 
-        mydll = WinDLL(QGISRedFileSystemUtils().getCurrentDll())
+        mydll = _load_dll()
         mydll.ChangeStatus.argtypes = (c_char_p, c_char_p, c_char_p, c_char_p, c_char_p)
         mydll.ChangeStatus.restype = c_char_p
         b = mydll.ChangeStatus(projectFolder, networkName, tempFolder, point, ctrlPressed)
@@ -197,7 +205,7 @@ class QGISRedDependencies:
         tempFolder = QGISRedDependencies.encode(tempFolder)
         linkIds = QGISRedDependencies.encode(linkIds)
 
-        mydll = WinDLL(QGISRedFileSystemUtils().getCurrentDll())
+        mydll = _load_dll()
         mydll.CheckAlignedVertices.argtypes = (c_char_p, c_char_p, c_char_p, c_char_p)
         mydll.CheckAlignedVertices.restype = c_char_p
         b = mydll.CheckAlignedVertices(projectFolder, networkName, tempFolder, linkIds)
@@ -211,7 +219,7 @@ class QGISRedDependencies:
         step = QGISRedDependencies.encode(step)
         tempFolder = QGISRedDependencies.encode(tempFolder)
 
-        mydll = WinDLL(QGISRedFileSystemUtils().getCurrentDll())
+        mydll = _load_dll()
         mydll.CheckConnectivity.argtypes = (c_char_p, c_char_p, c_char_p, c_char_p, c_char_p)
         mydll.CheckConnectivity.restype = c_char_p
         b = mydll.CheckConnectivity(projectFolder, networkName, linesToDelete, step, tempFolder)
@@ -223,7 +231,7 @@ class QGISRedDependencies:
         networkName = QGISRedDependencies.encode(networkName)
         linkIds = QGISRedDependencies.encode(linkIds)
 
-        mydll = WinDLL(QGISRedFileSystemUtils().getCurrentDll())
+        mydll = _load_dll()
         mydll.CheckDiameters.argtypes = (c_char_p, c_char_p, c_char_p)
         mydll.CheckDiameters.restype = c_char_p
         b = mydll.CheckDiameters(projectFolder, networkName, linkIds)
@@ -235,7 +243,7 @@ class QGISRedDependencies:
         networkName = QGISRedDependencies.encode(networkName)
         linkIds = QGISRedDependencies.encode(linkIds)
 
-        mydll = WinDLL(QGISRedFileSystemUtils().getCurrentDll())
+        mydll = _load_dll()
         mydll.CheckInstallationDates.argtypes = (c_char_p, c_char_p, c_char_p)
         mydll.CheckInstallationDates.restype = c_char_p
         b = mydll.CheckInstallationDates(projectFolder, networkName, linkIds)
@@ -247,7 +255,7 @@ class QGISRedDependencies:
         networkName = QGISRedDependencies.encode(networkName)
         tempFolder = QGISRedDependencies.encode(tempFolder)
 
-        mydll = WinDLL(QGISRedFileSystemUtils().getCurrentDll())
+        mydll = _load_dll()
         mydll.CheckJoinPipes.argtypes = (c_char_p, c_char_p, c_char_p)
         mydll.CheckJoinPipes.restype = c_char_p
         b = mydll.CheckJoinPipes(projectFolder, networkName, tempFolder)
@@ -261,7 +269,7 @@ class QGISRedDependencies:
         tempFolder = QGISRedDependencies.encode(tempFolder)
         linkIds = QGISRedDependencies.encode(linkIds)
 
-        mydll = WinDLL(QGISRedFileSystemUtils().getCurrentDll())
+        mydll = _load_dll()
         mydll.CheckLengths.argtypes = (c_char_p, c_char_p, c_char_p, c_char_p, c_char_p)
         mydll.CheckLengths.restype = c_char_p
         b = mydll.CheckLengths(projectFolder, networkName, tolerance, tempFolder, linkIds)
@@ -273,7 +281,7 @@ class QGISRedDependencies:
         networkName = QGISRedDependencies.encode(networkName)
         linkIds = QGISRedDependencies.encode(linkIds)
 
-        mydll = WinDLL(QGISRedFileSystemUtils().getCurrentDll())
+        mydll = _load_dll()
         mydll.CheckMaterials.argtypes = (c_char_p, c_char_p, c_char_p)
         mydll.CheckMaterials.restype = c_char_p
         b = mydll.CheckMaterials(projectFolder, networkName, linkIds)
@@ -287,7 +295,7 @@ class QGISRedDependencies:
         nodeIds = QGISRedDependencies.encode(nodeIds)
         linkIds = QGISRedDependencies.encode(linkIds)
 
-        mydll = WinDLL(QGISRedFileSystemUtils().getCurrentDll())
+        mydll = _load_dll()
         mydll.CheckOverlappingElements.argtypes = (c_char_p, c_char_p, c_char_p, c_char_p, c_char_p)
         mydll.CheckOverlappingElements.restype = c_char_p
         b = mydll.CheckOverlappingElements(projectFolder, networkName, tempFolder, nodeIds, linkIds)
@@ -299,7 +307,7 @@ class QGISRedDependencies:
         networkName = QGISRedDependencies.encode(networkName)
         tempFolder = QGISRedDependencies.encode(tempFolder)
 
-        mydll = WinDLL(QGISRedFileSystemUtils().getCurrentDll())
+        mydll = _load_dll()
         mydll.CheckTConnections.argtypes = (c_char_p, c_char_p, c_char_p)
         mydll.CheckTConnections.restype = c_char_p
         b = mydll.CheckTConnections(projectFolder, networkName, tempFolder)
@@ -311,7 +319,7 @@ class QGISRedDependencies:
         networkName = QGISRedDependencies.encode(networkName)
         tempFolder = QGISRedDependencies.encode(tempFolder)
 
-        mydll = WinDLL(QGISRedFileSystemUtils().getCurrentDll())
+        mydll = _load_dll()
         mydll.Commit.argtypes = (c_char_p, c_char_p, c_char_p)
         mydll.Commit.restype = c_char_p
         b = mydll.Commit(projectFolder, networkName, tempFolder)
@@ -323,7 +331,7 @@ class QGISRedDependencies:
         networkName = QGISRedDependencies.encode(networkName)
         tempFolder = QGISRedDependencies.encode(tempFolder)
 
-        mydll = WinDLL(QGISRedFileSystemUtils().getCurrentDll())
+        mydll = _load_dll()
         mydll.Compute.argtypes = (c_char_p, c_char_p, c_char_p)
         mydll.Compute.restype = c_char_p
         b = mydll.Compute(projectFolder, networkName, tempFolder)
@@ -336,7 +344,7 @@ class QGISRedDependencies:
         tempFolder = QGISRedDependencies.encode(tempFolder)
         linkIds = QGISRedDependencies.encode(linkIds)
 
-        mydll = WinDLL(QGISRedFileSystemUtils().getCurrentDll())
+        mydll = _load_dll()
         mydll.ConvertRoughness.argtypes = (c_char_p, c_char_p, c_char_p, c_char_p)
         mydll.ConvertRoughness.restype = c_char_p
         b = mydll.ConvertRoughness(projectFolder, networkName, tempFolder, linkIds)
@@ -349,7 +357,7 @@ class QGISRedDependencies:
         layer = QGISRedDependencies.encode(layer)
         complLayer = QGISRedDependencies.encode(complLayer)
 
-        mydll = WinDLL(QGISRedFileSystemUtils().getCurrentDll())
+        mydll = _load_dll()
         mydll.CreateLayer.argtypes = (c_char_p, c_char_p, c_char_p, c_char_p)
         mydll.CreateLayer.restype = c_char_p
         b = mydll.CreateLayer(projectFolder, networkName, layer, complLayer)
@@ -364,7 +372,7 @@ class QGISRedDependencies:
         headloss = QGISRedDependencies.encode(headloss)
         materialPath = QGISRedDependencies.encode(materialPath)
 
-        mydll = WinDLL(QGISRedFileSystemUtils().getCurrentDll())
+        mydll = _load_dll()
         mydll.CreateProject.argtypes = (c_char_p, c_char_p, c_char_p, c_char_p, c_char_p, c_char_p)
         mydll.CreateProject.restype = c_char_p
         b = mydll.CreateProject(projectFolder, networkName, epsg, units, headloss, materialPath)
@@ -378,7 +386,7 @@ class QGISRedDependencies:
         point1 = QGISRedDependencies.encode(point1)
         tolerance = QGISRedDependencies.encode(tolerance)
 
-        mydll = WinDLL(QGISRedFileSystemUtils().getCurrentDll())
+        mydll = _load_dll()
         mydll.CreateReverseCrossings.argtypes = (c_char_p, c_char_p, c_char_p, c_char_p, c_char_p)
         mydll.CreateReverseCrossings.restype = c_char_p
         b = mydll.CreateReverseCrossings(projectFolder, networkName, tempFolder, point1, tolerance)
@@ -392,7 +400,7 @@ class QGISRedDependencies:
         point1 = QGISRedDependencies.encode(point1)
         point2 = QGISRedDependencies.encode(point2)
 
-        mydll = WinDLL(QGISRedFileSystemUtils().getCurrentDll())
+        mydll = _load_dll()
         mydll.CreateReverseTConnection.argtypes = (c_char_p, c_char_p, c_char_p, c_char_p, c_char_p)
         mydll.CreateReverseTConnection.restype = c_char_p
         b = mydll.CreateReverseTConnection(projectFolder, networkName, tempFolder, point1, point2)
@@ -404,7 +412,7 @@ class QGISRedDependencies:
         networkName = QGISRedDependencies.encode(networkName)
         tempFolder = QGISRedDependencies.encode(tempFolder)
 
-        mydll = WinDLL(QGISRedFileSystemUtils().getCurrentDll())
+        mydll = _load_dll()
         mydll.DefaultValues.argtypes = (c_char_p, c_char_p, c_char_p)
         mydll.DefaultValues.restype = c_char_p
         b = mydll.DefaultValues(projectFolder, networkName, tempFolder)
@@ -432,7 +440,7 @@ class QGISRedDependencies:
         qgisredSectorLayers = QGISRedDependencies.encode(qgisredSectorLayers)
         selectedAuxiliaryLayerFids = QGISRedDependencies.encode(selectedAuxiliaryLayerFids)
 
-        mydll = WinDLL(QGISRedFileSystemUtils().getCurrentDll())
+        mydll = _load_dll()
 
         mydll.DemandsBuilder.argtypes = (
             c_char_p, c_char_p, c_char_p, c_char_p,
@@ -461,7 +469,7 @@ class QGISRedDependencies:
         networkName = QGISRedDependencies.encode(networkName)
         tempFolder = QGISRedDependencies.encode(tempFolder)
 
-        mydll = WinDLL(QGISRedFileSystemUtils().getCurrentDll())
+        mydll = _load_dll()
         mydll.DemandSectorBuilder.argtypes = (c_char_p, c_char_p, c_char_p)
         mydll.DemandSectorBuilder.restype = c_char_p
         b = mydll.DemandSectorBuilder(projectFolder, networkName, tempFolder)
@@ -473,7 +481,7 @@ class QGISRedDependencies:
         networkName = QGISRedDependencies.encode(networkName)
         tempFolder = QGISRedDependencies.encode(tempFolder)
 
-        mydll = WinDLL(QGISRedFileSystemUtils().getCurrentDll())
+        mydll = _load_dll()
         mydll.EditControls.argtypes = (c_char_p, c_char_p, c_char_p)
         mydll.EditControls.restype = c_char_p
         b = mydll.EditControls(projectFolder, networkName, tempFolder)
@@ -497,7 +505,7 @@ class QGISRedDependencies:
         networkName = QGISRedDependencies.encode(networkName)
         tempFolder = QGISRedDependencies.encode(tempFolder)
 
-        mydll = WinDLL(QGISRedFileSystemUtils().getCurrentDll())
+        mydll = _load_dll()
         mydll.EditPatternsCurves.argtypes = (c_char_p, c_char_p, c_char_p)
         mydll.EditPatternsCurves.restype = c_char_p
         b = mydll.EditPatternsCurves(projectFolder, networkName, tempFolder)
@@ -508,7 +516,7 @@ class QGISRedDependencies:
         projectFolder = QGISRedDependencies.encode(projectFolder)
         networkName = QGISRedDependencies.encode(networkName)
 
-        mydll = WinDLL(QGISRedFileSystemUtils().getCurrentDll())
+        mydll = _load_dll()
         mydll.EditSettings.argtypes = (c_char_p, c_char_p)
         mydll.EditSettings.restype = c_char_p
         b = mydll.EditSettings(projectFolder, networkName)
@@ -521,7 +529,7 @@ class QGISRedDependencies:
         tempFolder = QGISRedDependencies.encode(tempFolder)
         elevationFiles = QGISRedDependencies.encode(elevationFiles)
 
-        mydll = WinDLL(QGISRedFileSystemUtils().getCurrentDll())
+        mydll = _load_dll()
         mydll.ElevationInterpolation.argtypes = (c_char_p, c_char_p, c_char_p, c_char_p)
         mydll.ElevationInterpolation.restype = c_char_p
         b = mydll.ElevationInterpolation(projectFolder, networkName, tempFolder, elevationFiles)
@@ -532,7 +540,7 @@ class QGISRedDependencies:
         projectFolder = QGISRedDependencies.encode(projectFolder)
         networkName = QGISRedDependencies.encode(networkName)
 
-        mydll = WinDLL(QGISRedFileSystemUtils().getCurrentDll())
+        mydll = _load_dll()
         mydll.ExportToInp.argtypes = (c_char_p, c_char_p)
         mydll.ExportToInp.restype = c_char_p
         b = mydll.ExportToInp(projectFolder, networkName)
@@ -544,7 +552,7 @@ class QGISRedDependencies:
         networkName = QGISRedDependencies.encode(networkName)
         tempFolder = QGISRedDependencies.encode(tempFolder)
 
-        mydll = WinDLL(QGISRedFileSystemUtils().getCurrentDll())
+        mydll = _load_dll()
         mydll.HydarulicSectors.argtypes = (c_char_p, c_char_p, c_char_p)
         mydll.HydarulicSectors.restype = c_char_p
         b = mydll.HydarulicSectors(projectFolder, networkName, tempFolder)
@@ -570,7 +578,7 @@ class QGISRedDependencies:
         inpFile = QGISRedDependencies.encode(inpFile)
         epsg = QGISRedDependencies.encode(epsg)
 
-        mydll = WinDLL(QGISRedFileSystemUtils().getCurrentDll())
+        mydll = _load_dll()
         mydll.ImportFromInp.argtypes = (c_char_p, c_char_p, c_char_p, c_char_p, c_char_p)
         mydll.ImportFromInp.restype = c_char_p
         b = mydll.ImportFromInp(projectFolder, networkName, tempFolder, inpFile, epsg)
@@ -587,7 +595,7 @@ class QGISRedDependencies:
         tolerance = QGISRedDependencies.encode(tolerance)
         scLength = QGISRedDependencies.encode(scLength)
 
-        mydll = WinDLL(QGISRedFileSystemUtils().getCurrentDll())
+        mydll = _load_dll()
         mydll.ImportFromShps.argtypes = (c_char_p, c_char_p, c_char_p, c_char_p, c_char_p, c_char_p, c_char_p, c_char_p)
         mydll.ImportFromShps.restype = c_char_p
         b = mydll.ImportFromShps(projectFolder, networkName, tempFolder, shapes, fields, epsg, tolerance, scLength)
@@ -600,7 +608,7 @@ class QGISRedDependencies:
         tempFolder = QGISRedDependencies.encode(tempFolder)
         point = QGISRedDependencies.encode(point)
 
-        mydll = WinDLL(QGISRedFileSystemUtils().getCurrentDll())
+        mydll = _load_dll()
         mydll.InsertPump.argtypes = (c_char_p, c_char_p, c_char_p, c_char_p)
         mydll.InsertPump.restype = c_char_p
         b = mydll.InsertPump(projectFolder, networkName, tempFolder, point)
@@ -613,7 +621,7 @@ class QGISRedDependencies:
         tempFolder = QGISRedDependencies.encode(tempFolder)
         point = QGISRedDependencies.encode(point)
 
-        mydll = WinDLL(QGISRedFileSystemUtils().getCurrentDll())
+        mydll = _load_dll()
         mydll.InsertValve.argtypes = (c_char_p, c_char_p, c_char_p, c_char_p)
         mydll.InsertValve.restype = c_char_p
         b = mydll.InsertValve(projectFolder, networkName, tempFolder, point)
@@ -625,7 +633,7 @@ class QGISRedDependencies:
         networkName = QGISRedDependencies.encode(networkName)
         tempFolder = QGISRedDependencies.encode(tempFolder)
 
-        mydll = WinDLL(QGISRedFileSystemUtils().getCurrentDll())
+        mydll = _load_dll()
         mydll.LoadReadings.argtypes = (c_char_p, c_char_p, c_char_p)
         mydll.LoadReadings.restype = c_char_p
         b = mydll.LoadReadings(projectFolder, networkName, tempFolder)
@@ -637,7 +645,7 @@ class QGISRedDependencies:
         networkName = QGISRedDependencies.encode(networkName)
         tempFolder = QGISRedDependencies.encode(tempFolder)
 
-        mydll = WinDLL(QGISRedFileSystemUtils().getCurrentDll())
+        mydll = _load_dll()
         mydll.LoadScada.argtypes = (c_char_p, c_char_p, c_char_p)
         mydll.LoadScada.restype = c_char_p
         b = mydll.LoadScada(projectFolder, networkName, tempFolder)
@@ -649,7 +657,7 @@ class QGISRedDependencies:
         networkName = QGISRedDependencies.encode(networkName)
         tempFolder = QGISRedDependencies.encode(tempFolder)
 
-        mydll = WinDLL(QGISRedFileSystemUtils().getCurrentDll())
+        mydll = _load_dll()
         mydll.Materials.argtypes = (c_char_p, c_char_p, c_char_p)
         mydll.Materials.restype = c_char_p
         b = mydll.Materials(projectFolder, networkName, tempFolder)
@@ -663,7 +671,7 @@ class QGISRedDependencies:
         point1 = QGISRedDependencies.encode(point1)
         point2 = QGISRedDependencies.encode(point2)
 
-        mydll = WinDLL(QGISRedFileSystemUtils().getCurrentDll())
+        mydll = _load_dll()
         mydll.MoveValvePump.argtypes = (c_char_p, c_char_p, c_char_p, c_char_p, c_char_p)
         mydll.MoveValvePump.restype = c_char_p
         b = mydll.MoveValvePump(projectFolder, networkName, tempFolder, point1, point2)
@@ -677,7 +685,7 @@ class QGISRedDependencies:
         point = QGISRedDependencies.encode(point)
         ids = QGISRedDependencies.encode(ids)
 
-        mydll = WinDLL(QGISRedFileSystemUtils().getCurrentDll())
+        mydll = _load_dll()
         mydll.RemoveElements.argtypes = (c_char_p, c_char_p, c_char_p, c_char_p, c_char_p)
         mydll.RemoveElements.restype = c_char_p
         b = mydll.RemoveElements(projectFolder, networkName, tempFolder, point, ids)
@@ -688,7 +696,7 @@ class QGISRedDependencies:
         projectFolder = QGISRedDependencies.encode(projectFolder)
         tempFolder = QGISRedDependencies.encode(tempFolder)
 
-        mydll = WinDLL(QGISRedFileSystemUtils().getCurrentDll())
+        mydll = _load_dll()
         mydll.ReplaceTemporalFiles.argtypes = (c_char_p, c_char_p)
         mydll.ReplaceTemporalFiles.restype = c_char_p
         b = mydll.ReplaceTemporalFiles(projectFolder, tempFolder)
@@ -702,7 +710,7 @@ class QGISRedDependencies:
         point = QGISRedDependencies.encode(point)
         linkIds = QGISRedDependencies.encode(linkIds)
 
-        mydll = WinDLL(QGISRedFileSystemUtils().getCurrentDll())
+        mydll = _load_dll()
         mydll.ReverseLink.argtypes = (c_char_p, c_char_p, c_char_p, c_char_p, c_char_p)
         mydll.ReverseLink.restype = c_char_p
         b = mydll.ReverseLink(projectFolder, networkName, tempFolder, point, linkIds)
@@ -715,7 +723,7 @@ class QGISRedDependencies:
         tempFolder = QGISRedDependencies.encode(tempFolder)
         ids = QGISRedDependencies.encode(ids)
 
-        mydll = WinDLL(QGISRedFileSystemUtils().getCurrentDll())
+        mydll = _load_dll()
         mydll.ScenarioManager.argtypes = (c_char_p, c_char_p, c_char_p, c_char_p)
         mydll.ScenarioManager.restype = c_char_p
         b = mydll.ScenarioManager(projectFolder, networkName, tempFolder, ids)
@@ -727,7 +735,7 @@ class QGISRedDependencies:
         networkName = QGISRedDependencies.encode(networkName)
         tempFolder = QGISRedDependencies.encode(tempFolder)
 
-        mydll = WinDLL(QGISRedFileSystemUtils().getCurrentDll())
+        mydll = _load_dll()
         mydll.SetInitialStatusPipes.argtypes = (c_char_p, c_char_p, c_char_p)
         mydll.SetInitialStatusPipes.restype = c_char_p
         b = mydll.SetInitialStatusPipes(projectFolder, networkName, tempFolder)
@@ -740,7 +748,7 @@ class QGISRedDependencies:
         tempFolder = QGISRedDependencies.encode(tempFolder)
         linkIds = QGISRedDependencies.encode(linkIds)
 
-        mydll = WinDLL(QGISRedFileSystemUtils().getCurrentDll())
+        mydll = _load_dll()
         mydll.SetRoughness.argtypes = (c_char_p, c_char_p, c_char_p, c_char_p)
         mydll.SetRoughness.restype = c_char_p
         b = mydll.SetRoughness(projectFolder, networkName, tempFolder, linkIds)
@@ -754,7 +762,7 @@ class QGISRedDependencies:
         point1 = QGISRedDependencies.encode(point1)
         point2 = QGISRedDependencies.encode(point2)
 
-        mydll = WinDLL(QGISRedFileSystemUtils().getCurrentDll())
+        mydll = _load_dll()
         mydll.SplitMergeJunction.argtypes = (c_char_p, c_char_p, c_char_p, c_char_p, c_char_p)
         mydll.SplitMergeJunction.restype = c_char_p
         b = mydll.SplitMergeJunction(projectFolder, networkName, tempFolder, point1, point2)
@@ -767,7 +775,7 @@ class QGISRedDependencies:
         tempFolder = QGISRedDependencies.encode(tempFolder)
         point = QGISRedDependencies.encode(point)
 
-        mydll = WinDLL(QGISRedFileSystemUtils().getCurrentDll())
+        mydll = _load_dll()
         mydll.SplitPipe.argtypes = (c_char_p, c_char_p, c_char_p, c_char_p)
         mydll.SplitPipe.restype = c_char_p
         b = mydll.SplitPipe(projectFolder, networkName, tempFolder, point)
@@ -778,7 +786,7 @@ class QGISRedDependencies:
         projectFolder = QGISRedDependencies.encode(projectFolder)
         networkName = QGISRedDependencies.encode(networkName)
 
-        mydll = WinDLL(QGISRedFileSystemUtils().getCurrentDll())
+        mydll = _load_dll()
         mydll.AbstractReport.argtypes = (c_char_p, c_char_p)
         mydll.AbstractReport.restype = c_char_p
         b = mydll.AbstractReport(projectFolder, networkName)
@@ -791,7 +799,7 @@ class QGISRedDependencies:
         tempFolder = QGISRedDependencies.encode(tempFolder)
         point = QGISRedDependencies.encode(point)
 
-        mydll = WinDLL(QGISRedFileSystemUtils().getCurrentDll())
+        mydll = _load_dll()
         mydll.Tree.argtypes = (c_char_p, c_char_p, c_char_p, c_char_p)
         mydll.Tree.restype = c_char_p
         b = mydll.Tree(projectFolder, networkName, tempFolder, point)
@@ -803,7 +811,7 @@ class QGISRedDependencies:
         networkName = QGISRedDependencies.encode(networkName)
         layersNames = QGISRedDependencies.encode(layersNames)
 
-        mydll = WinDLL(QGISRedFileSystemUtils().getCurrentDll())
+        mydll = _load_dll()
         mydll.UpdateMetadata.argtypes = (c_char_p, c_char_p, c_char_p)
         mydll.UpdateMetadata.restype = c_char_p
         b = mydll.UpdateMetadata(projectFolder, networkName, layersNames)
