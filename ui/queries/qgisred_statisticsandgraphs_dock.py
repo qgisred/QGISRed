@@ -222,7 +222,7 @@ class QGISRedStatisticsDock(QDockWidget, formClass):
         for combo in self.findChildren(QComboBox):
             QGISRedUIUtils.applyComboStyle(combo)
             combo.setSizeAdjustPolicy(QComboBox.SizeAdjustPolicy.AdjustToMinimumContentsLengthWithIcon)
-            combo.setMinimumContentsLength(8)
+            combo.setMinimumContentsLength(6)
         self.setupConnections()
         self.initializeElementTypes()
         self.loadDefaults()

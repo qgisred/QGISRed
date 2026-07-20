@@ -33,7 +33,7 @@
        <enum>QFrame::NoFrame</enum>
       </property>
       <property name="horizontalScrollBarPolicy">
-       <enum>Qt::ScrollBarAlwaysOff</enum>
+       <enum>Qt::ScrollBarAsNeeded</enum>
       </property>
       <property name="widgetResizable">
        <bool>true</bool>
@@ -418,6 +418,12 @@
                  </item>
                  <item row="1" column="3">
                   <widget class="QDoubleSpinBox" name="spinIntervalRange">
+                   <property name="maximumSize">
+                    <size>
+                     <width>85</width>
+                     <height>16777215</height>
+                    </size>
+                   </property>
                    <property name="decimals">
                     <number>4</number>
                    </property>
@@ -560,6 +566,12 @@
                  </item>
                  <item row="1" column="3">
                   <widget class="QDoubleSpinBox" name="spinSecondIntervalRange">
+                   <property name="maximumSize">
+                    <size>
+                     <width>85</width>
+                     <height>16777215</height>
+                    </size>
+                   </property>
                    <property name="decimals">
                     <number>4</number>
                    </property>
