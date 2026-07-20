@@ -79,6 +79,14 @@ class QGISRedLegendsDialog(QDialog, formClass):
         from qgis.PyQt.QtWidgets import QComboBox
         for combo in self.findChildren(QComboBox):
             QGISRedUIUtils.applyComboStyle(combo)
+        self.resizeToFitContents()
+
+    def resizeToFitContents(self):
+        content = self.scrollAreaWidgetContents_4.sizeHint()
+        margin = 2 * self.scrollArea_4.frameWidth() + 4
+        neededWidth = content.width() + margin
+        neededHeight = content.height() + margin
+        self.resize(max(self.width(), neededWidth), max(self.height(), neededHeight))
 
     def initializeProperties(self):
         self.currentFieldType = self.FIELD_TYPE_UNKNOWN

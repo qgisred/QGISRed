@@ -137,7 +137,7 @@
              </property>
              <property name="minimumSize">
               <size>
-               <width>250</width>
+               <width>150</width>
                <height>0</height>
               </size>
              </property>
@@ -178,12 +178,6 @@
          </item>
          <item>
           <widget class="QLabel" name="labelLegendsType">
-           <property name="maximumSize">
-            <size>
-             <width>75</width>
-             <height>16777215</height>
-            </size>
-           </property>
            <property name="text">
             <string>Legend Type:</string>
            </property>
