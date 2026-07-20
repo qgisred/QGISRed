@@ -293,16 +293,6 @@
                   </widget>
                  </item>
                  <item>
-                  <widget class="QLabel" name="lblMatchCount">
-                   <property name="styleSheet">
-                    <string>color: #155724; font-weight: bold;</string>
-                   </property>
-                   <property name="text">
-                    <string>0 elements match</string>
-                   </property>
-                  </widget>
-                 </item>
-                 <item>
                   <spacer name="previewSpacer">
                    <property name="orientation">
                     <enum>Qt::Horizontal</enum>
@@ -314,6 +304,16 @@
                     </size>
                    </property>
                   </spacer>
+                 </item>
+                 <item>
+                  <widget class="QLabel" name="lblMatchCount">
+                   <property name="styleSheet">
+                    <string>color: #155724; font-weight: bold;</string>
+                   </property>
+                   <property name="text">
+                    <string>0 elements match</string>
+                   </property>
+                  </widget>
                  </item>
                 </layout>
                </item>

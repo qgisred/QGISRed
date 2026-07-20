@@ -15,6 +15,7 @@ from qgis.PyQt.QtWidgets import (
     QFileDialog,
     QHBoxLayout,
     QHeaderView,
+    QLabel,
     QMessageBox,
     QTableWidgetItem,
     QToolButton,
@@ -187,6 +188,7 @@ class QGISRedStatisticsDock(QDockWidget, formClass):
         self._chartUseSum = False
         self._analysisContext = None
         self._breaksDirty = False
+        self._lastBreaksIssue = None
         self._secondClassBins = []
         self._tableMatrix = None
         self._tableTitleBase = ""
@@ -303,6 +305,9 @@ class QGISRedStatisticsDock(QDockWidget, formClass):
         barLayout.addWidget(self.cbStatistic)
         barLayout.addWidget(self.labelSecondClassValue)
         barLayout.addWidget(self.cbSecondClassValue)
+        self.labelSecondClassUnit = QLabel("")
+        self.labelSecondClassUnit.hide()
+        barLayout.addWidget(self.labelSecondClassUnit)
         barLayout.addStretch(1)
         barLayout.addWidget(self.btHistogramExpand)
         self.verticalLayout_2.insertWidget(statisticIndex, self._statisticControlsBar)
@@ -399,6 +404,7 @@ class QGISRedStatisticsDock(QDockWidget, formClass):
         self.cbSecondClassValue.blockSignals(False)
         self.labelSecondClassValue.hide()
         self.cbSecondClassValue.hide()
+        self.labelSecondClassUnit.hide()
         self.cbTableStatistic.blockSignals(True)
         self.cbTableStatistic.clear()
         self.cbTableStatistic.blockSignals(False)
@@ -779,6 +785,7 @@ class QGISRedStatisticsDock(QDockWidget, formClass):
             self.onSecondRangedChanged()
 
     def updateComboBoxBackground(self, combo):
+        # Do not apply to cbValue: its stylesheet is owned by setValueComboPlain
         brush = combo.currentData(Qt.ItemDataRole.BackgroundRole)
         if brush and isinstance(brush, QBrush) and brush.color() != QColor(0, 0, 0, 255):
             color = brush.color().name()
@@ -1409,10 +1416,22 @@ class QGISRedStatisticsDock(QDockWidget, formClass):
         self.suspendCascade = False
         self.updateValueWidget()
 
+    def setValueComboPlain(self, plain):
+        # Numeric fields take free-typed values, so the empty dropdown is just noise
+        if getattr(self, "_valueComboPlain", None) == plain:
+            return
+        self._valueComboPlain = plain
+        style = QGISRED_COMBO_STYLE
+        if plain:
+            style += "QComboBox::drop-down { width: 0px; border: none; } QComboBox::down-arrow { image: none; width: 0px; }"
+        self.cbValue.setStyleSheet(style)
+
     def updateValueWidget(self):
         attributeField = self.cbAttribute.currentData(Qt.ItemDataRole.UserRole)
         if not attributeField:
             return
+        cat = self.classifyAttributeType(attributeField)
+        self.setValueComboPlain(cat == "numeric")
         condition = self.cbCondition.currentData(Qt.ItemDataRole.UserRole) or ""
         if condition == "All":
             self.valueStack.setCurrentIndex(0)
@@ -1426,7 +1445,6 @@ class QGISRedStatisticsDock(QDockWidget, formClass):
         self.cbValue.clear()
         if layer is None:
             return
-        cat = self.classifyAttributeType(attributeField)
         if condition in ("=", "≠") and cat in ("listed", "text"):
             uniqueValues = self.collectUniqueValues(layer, attributeField, limit=500)
             self.cbValue.addItem("", "")
@@ -1691,6 +1709,33 @@ class QGISRedStatisticsDock(QDockWidget, formClass):
         values.sort()
         return values
 
+    def numericValuesIssue(self, values):
+        # Sorted numeric list used for breaks; None | "empty" | "equal".
+        # All-zero counts as empty: zeroed result fields mean no usable data.
+        if not values:
+            return "empty"
+        if values[0] == values[-1]:
+            return "empty" if values[0] == 0 else "equal"
+        return None
+
+    def breaksIssueSentence(self, elementIdentifier, field, issue):
+        pretty = self.fieldUtils.getProperty(self.elementForField(elementIdentifier, field), field) or field
+        if issue == "empty":
+            return self.tr("Field %s has no values.") % pretty
+        return self.tr("Field %s has only equal values.") % pretty
+
+    def showBreaksIssues(self, elementIdentifier, classifyField, firstIssue, secondField, secondIssue):
+        sentences = []
+        if firstIssue:
+            sentences.append(self.breaksIssueSentence(elementIdentifier, classifyField, firstIssue))
+        if secondIssue:
+            sentences.append(self.breaksIssueSentence(elementIdentifier, secondField, secondIssue))
+        if firstIssue:
+            sentences.append(self.tr("Cannot classify."))
+        else:
+            sentences.append(self.tr("Classification will be ignored."))
+        QMessageBox.warning(self, self.tr("Classification"), "\n".join(sentences))
+
     def openManualBreaksDialog(self):
         classifyField = self.cbClassifiedBy.currentData(Qt.ItemDataRole.UserRole)
         if not classifyField:
@@ -1875,6 +1920,7 @@ class QGISRedStatisticsDock(QDockWidget, formClass):
         )
 
     def resolveBreaksForField(self, layers, fieldName, rangedId, numClasses, intervalValue, manualBreaks, quiet=False):
+        self._lastBreaksIssue = None
         baseLayer = layers["baseLayer"]
         if not self.isResultProperty(fieldName):
             return self.resolveBreaks(baseLayer, fieldName, rangedId, numClasses, intervalValue, manualBreaks, quiet=quiet)
@@ -1892,9 +1938,10 @@ class QGISRedStatisticsDock(QDockWidget, formClass):
                 values = self.collectNumericValues(resultsLayer, fieldName, request=self.breaksFeatureRequest(resultsLayer), idSet=baseIdSet)
         if isCategorical:
             return {"type": "categorical", "values": [str(value) for value in values]}
-        if not values:
-            if not quiet:
-                QMessageBox.warning(self, self.tr("No data"), self.tr("No numeric values available for classification."))
+        issue = self.numericValuesIssue(values)
+        if issue:
+            # No dialog here: the caller composes one message covering both classifications
+            self._lastBreaksIssue = issue
             return None
         dataMin = values[0]
         dataMax = values[-1]
@@ -1937,6 +1984,7 @@ class QGISRedStatisticsDock(QDockWidget, formClass):
 
         breaks = None
         breaksParams = None
+        firstIssue = None
         if classifyField:
             breaksParams = (
                 self.cbRanged.currentData(Qt.ItemDataRole.UserRole) or "EqualInterval",
@@ -1946,10 +1994,15 @@ class QGISRedStatisticsDock(QDockWidget, formClass):
             )
             breaks = self.resolveBreaksForField(layers, classifyField, *breaksParams)
             if breaks is None:
-                return
+                firstIssue = self._lastBreaksIssue
+                if firstIssue is None:
+                    # Genuine "Breaks failed": dialog already shown inline
+                    return
+                # Keep going so a both-fields failure yields a single dialog
 
         secondBreaks = None
         secondBreaksParams = None
+        secondIssue = None
         if secondField:
             secondBreaksParams = (
                 self.cbSecondRanged.currentData(Qt.ItemDataRole.UserRole) or "EqualInterval",
@@ -1959,7 +2012,20 @@ class QGISRedStatisticsDock(QDockWidget, formClass):
             )
             secondBreaks = self.resolveBreaksForField(layers, secondField, *secondBreaksParams)
             if secondBreaks is None:
+                secondIssue = self._lastBreaksIssue
+                if secondIssue is None:
+                    if firstIssue is not None:
+                        self.showBreaksIssues(elementIdentifier, classifyField, firstIssue, secondField, None)
+                    return
+
+        requestedSecondField = secondField
+        if firstIssue or secondIssue:
+            self.showBreaksIssues(elementIdentifier, classifyField, firstIssue, secondField, secondIssue)
+            if firstIssue:
                 return
+            # Degrade gracefully: continue as if no second classification was set
+            secondField = ""
+            secondBreaks = None
 
         if secondBreaks is not None:
             self._secondClassBins = self.initBins(secondBreaks, self.propertyDecimalsFor(elementIdentifier, secondField))
@@ -1973,6 +2039,7 @@ class QGISRedStatisticsDock(QDockWidget, formClass):
             "breaks": breaks,
             "breaksParams": breaksParams,
             "secondField": secondField,
+            "secondFieldRequested": requestedSecondField,
             "secondBreaks": secondBreaks,
             "secondBreaksParams": secondBreaksParams,
             "featureRequest": featureRequest,
@@ -2016,14 +2083,19 @@ class QGISRedStatisticsDock(QDockWidget, formClass):
             self.cbSecondClassValue.blockSignals(False)
             self.labelSecondClassValue.hide()
             self.cbSecondClassValue.hide()
+            self.labelSecondClassUnit.hide()
             return
         self.cbSecondClassValue.addItem(self.tr("All groups"), None)
         for index, binData in enumerate(self._secondClassBins):
             self.cbSecondClassValue.addItem(binData.get("label", ""), index)
         self.cbSecondClassValue.setCurrentIndex(0)
         self.cbSecondClassValue.blockSignals(False)
-        prettySecond = self.fieldUtils.getProperty(self.elementForField(elementIdentifier, secondField), secondField) or secondField
+        secondElement = self.elementForField(elementIdentifier, secondField)
+        prettySecond = self.fieldUtils.getProperty(secondElement, secondField) or secondField
         self.labelSecondClassValue.setText(prettySecond)
+        unit = self.fieldUtils.getUnitAbbreviation(secondElement, secondField) or ""
+        self.labelSecondClassUnit.setText(unit)
+        self.labelSecondClassUnit.setVisible(bool(unit))
         self.labelSecondClassValue.show()
         self.cbSecondClassValue.show()
         self.updateComboBoxBackground(self.cbSecondClassValue)
@@ -2043,14 +2115,17 @@ class QGISRedStatisticsDock(QDockWidget, formClass):
         propertyField = context["propertyField"]
         classifyField = context["classifyField"]
         secondField = context["secondField"]
+        # The combos keep showing what the user requested, which may differ from the
+        # effective secondField when the classification was degraded to none
+        requestedSecondField = context.get("secondFieldRequested", secondField)
         if self.cbProperty.currentData(Qt.ItemDataRole.UserRole) != propertyField:
             return False
         if (self.cbClassifiedBy.currentData(Qt.ItemDataRole.UserRole) or "") != (classifyField or ""):
             return False
-        if classifyField and (self.cbSecondClassifiedBy.currentData(Qt.ItemDataRole.UserRole) or "") != (secondField or ""):
+        if classifyField and (self.cbSecondClassifiedBy.currentData(Qt.ItemDataRole.UserRole) or "") != (requestedSecondField or ""):
             return False
         attributeField = context.get("attributeField", "")
-        layers = self.resolveAnalysisLayers(propertyField, classifyField, secondField, attributeField, quiet=True)
+        layers = self.resolveAnalysisLayers(propertyField, classifyField, requestedSecondField, attributeField, quiet=True)
         if layers is None:
             return False
         baseLayer = layers["baseLayer"]
@@ -2071,18 +2146,29 @@ class QGISRedStatisticsDock(QDockWidget, formClass):
                 if breaks is None:
                     return False
                 context["breaks"] = breaks
-            if secondField and self.isResultProperty(secondField):
-                secondBreaks = self.resolveBreaksForField(layers, secondField, *context["secondBreaksParams"], quiet=True)
+            if requestedSecondField and self.isResultProperty(requestedSecondField):
+                secondBreaks = self.resolveBreaksForField(layers, requestedSecondField, *context["secondBreaksParams"], quiet=True)
                 if secondBreaks is None:
-                    return False
-                context["secondBreaks"] = secondBreaks
-                selectedSecondIndex = self.cbSecondClassValue.currentIndex()
-                self._secondClassBins = self.initBins(secondBreaks, self.propertyDecimalsFor(context["elementIdentifier"], secondField))
-                self.populateSecondClassValues(context["elementIdentifier"], secondField)
-                if 0 <= selectedSecondIndex < self.cbSecondClassValue.count():
-                    self.cbSecondClassValue.blockSignals(True)
-                    self.cbSecondClassValue.setCurrentIndex(selectedSecondIndex)
-                    self.cbSecondClassValue.blockSignals(False)
+                    if self._lastBreaksIssue is None:
+                        return False
+                    # New data has no usable values: degrade silently to no second classification
+                    secondField = ""
+                    context["secondField"] = ""
+                    context["secondBreaks"] = None
+                    self._secondClassBins = []
+                    self.populateSecondClassValues(context["elementIdentifier"], "")
+                else:
+                    # Usable values again (e.g. new simulation): restore the second classification
+                    secondField = requestedSecondField
+                    context["secondField"] = requestedSecondField
+                    context["secondBreaks"] = secondBreaks
+                    selectedSecondIndex = self.cbSecondClassValue.currentIndex()
+                    self._secondClassBins = self.initBins(secondBreaks, self.propertyDecimalsFor(context["elementIdentifier"], requestedSecondField))
+                    self.populateSecondClassValues(context["elementIdentifier"], requestedSecondField)
+                    if 0 <= selectedSecondIndex < self.cbSecondClassValue.count():
+                        self.cbSecondClassValue.blockSignals(True)
+                        self.cbSecondClassValue.setCurrentIndex(selectedSecondIndex)
+                        self.cbSecondClassValue.blockSignals(False)
             self._breaksDirty = False
         context["propertyLayer"] = baseLayer
         context["featureRequest"] = featureRequest
@@ -2546,9 +2632,10 @@ class QGISRedStatisticsDock(QDockWidget, formClass):
             distinctValues = self.collectUniqueValues(layer, classifyField, limit=10000, request=breaksRequest)
             return {"type": "categorical", "values": [str(value) for value in distinctValues]}
         numericValues = self.collectNumericValues(layer, classifyField, request=breaksRequest)
-        if not numericValues:
-            if not quiet:
-                QMessageBox.warning(self, self.tr("No data"), self.tr("No numeric values available for classification."))
+        issue = self.numericValuesIssue(numericValues)
+        if issue:
+            # No dialog here: the caller composes one message covering both classifications
+            self._lastBreaksIssue = issue
             return None
         dataMin = numericValues[0]
         dataMax = numericValues[-1]
