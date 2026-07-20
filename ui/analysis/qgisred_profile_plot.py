@@ -492,11 +492,11 @@ class ProfilePlotWidget(QWidget):
 
         painter.save()
         painter.setClipRect(plot)
-        self._drawNodeVerticalLines(painter, plot, px, py_of)
         if self._envelope is not None:
             self._drawEnvelope(painter, px, py)
         for s in self._series:
             self._drawSeries(painter, s, px, py_of(s), plot.bottom())
+        self._drawNodeVerticalLines(painter, plot, px, py_of)
         if self._symbols is not None and self._series:
             self._drawSymbols(painter, self._series[0], px, py_of(self._series[0]))
         if self._show_value_labels and self._series:
