@@ -6,8 +6,13 @@ class ProfilePathError(Exception):
     pass
 
 
-def build_profile_path(adjacency, reference_nodes, excluded_links=None):
+def build_profile_path(adjacency, reference_nodes, excluded_links=None, excluded_nodes=None):
     reference_nodes = list(reference_nodes)
+    excluded_links = set(excluded_links or ())
+    if excluded_nodes:
+        for node in excluded_nodes:
+            for lid, _neighbor in adjacency.get(node, []):
+                excluded_links.add(lid)
     if not reference_nodes:
         return {"nodes": [], "links": [], "is_reference": []}
     if len(reference_nodes) == 1:

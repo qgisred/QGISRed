@@ -140,6 +140,30 @@ def test_move_pass_node_rejects_non_reference():
         move_pass_node(["A", "C"], "B", "D")
 
 
+def _diamond():
+    node_ids = ["A", "B", "C", "D"]
+    link_ids = ["L1", "L2", "L3", "L4"]
+    link_from = [0, 0, 1, 2]
+    link_to = [1, 2, 3, 3]
+    return build_adjacency(node_ids, link_ids, link_from, link_to)
+
+
+def test_build_profile_path_excluded_nodes_forces_detour():
+    path = build_profile_path(_diamond(), ["A", "D"], excluded_nodes={"B"})
+    assert path["nodes"] == ["A", "C", "D"]
+    assert path["links"] == ["L2", "L4"]
+
+
+def test_build_profile_path_excluded_nodes_can_block_all_routes():
+    with pytest.raises(ProfilePathError):
+        build_profile_path(_diamond(), ["A", "D"], excluded_nodes={"B", "C"})
+
+
+def test_build_profile_path_excluded_nodes_blocks_used_endpoint():
+    with pytest.raises(ProfilePathError):
+        build_profile_path(_diamond(), ["A", "C"], excluded_nodes={"C"})
+
+
 def test_flow_direction_forward_link_positive_flow():
     nodes = ["A", "B"]
     links = ["L1"]

@@ -2079,6 +2079,21 @@
         <translation type="unfinished"></translation>
     </message>
     <message>
+        <location filename="../sections/profile_section.py" line="799"/>
+        <source>This point starts a branch and cannot be removed. Trim the branch from its far end first.</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="../sections/profile_section.py" line="852"/>
+        <source>The point cannot be moved there without reusing already declared pipes or nodes.</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="../sections/profile_section.py" line="879"/>
+        <source>This branch has derivations. Remove them first from their far ends.</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
         <location filename="../sections/profile_section.py" line="641"/>
         <source>The moved node cannot be connected along the network.</source>
         <translation type="unfinished"></translation>

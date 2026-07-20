@@ -492,7 +492,7 @@ class ProfilePlotWidget(QWidget):
 
         painter.save()
         painter.setClipRect(plot)
-        self._drawNodeVerticalLines(painter, plot, px)
+        self._drawNodeVerticalLines(painter, plot, px, py_of)
         if self._envelope is not None:
             self._drawEnvelope(painter, px, py)
         for s in self._series:
@@ -554,17 +554,30 @@ class ProfilePlotWidget(QWidget):
         bottom = [QPointF(px(d), py(vmin)) for d, _vmax, vmin in reversed(run)]
         painter.drawPolygon(QPolygonF(top + bottom))
 
-    def _drawNodeVerticalLines(self, painter, plot, px):
+    def _drawNodeVerticalLines(self, painter, plot, px, py_of):
         if not self._series:
             return
-        s = self._series[0]
-        reference = s.get("reference", set())
-        thin = QPen(QColor(214, 221, 232), 0.6)
-        thick = QPen(QColor(166, 179, 197), 1.3)
-        for idx, (d, _v) in enumerate(s["points"]):
+        tops = {}
+        for s in self._series:
+            py = py_of(s)
+            for pd, pv in s["points"]:
+                if pv is None:
+                    continue
+                y = py(pv)
+                key = round(pd, 6)
+                if key not in tops or y < tops[key]:
+                    tops[key] = y
+        base = self._series[0]
+        reference = base.get("reference", set())
+        thin = QPen(QColor(178, 168, 192), 0.6)
+        thick = QPen(QColor(126, 110, 150), 1.2)
+        for idx, (d, _v) in enumerate(base["points"]):
+            top_y = tops.get(round(d, 6))
+            if top_y is None:
+                continue
             x = px(d)
             painter.setPen(thick if idx in reference else thin)
-            painter.drawLine(QPointF(x, plot.top()), QPointF(x, plot.bottom()))
+            painter.drawLine(QPointF(x, plot.bottom()), QPointF(x, top_y))
 
     def _drawSeries(self, painter, s, px, py, baseline_y):
         color = s["color"]

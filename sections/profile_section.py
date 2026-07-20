@@ -15,7 +15,6 @@ from ..tools.utils.qgisred_profile_path import (
     reference_nodes_from_path,
     add_pass_node,
     remove_pass_node,
-    move_pass_node,
     flow_direction_along_path,
     envelope_points,
     node_distance,
@@ -694,21 +693,55 @@ class ProfileSection:
                     return distance
         return None
 
-    def _mainProfileLinkSet(self):
-        path = getattr(self, "_profilePath", None)
-        if not path:
-            return set()
-        return set(path.get("links") or [])
-
     def _recomputeBranch(self, branch):
+        self._rebuildProfilePaths()
+
+    @staticmethod
+    def _originOffset(origin, built):
+        for nodes, distances in built:
+            distance = node_distance(nodes, distances, origin)
+            if distance is not None:
+                return distance
+        return None
+
+    def _rebuildProfilePaths(self):
         adjacency = getattr(self, "_profileAdjacency", None)
         if adjacency is None:
             raise ProfilePathError("No network topology available")
-        excluded = self._mainProfileLinkSet()
-        path = build_profile_path(adjacency, branch["reference_nodes"], excluded_links=excluded)
-        branch["path"] = path
-        local = cumulative_distances(path["links"], getattr(self, "_profileLinkLengths", {}))
-        branch["distances"] = [branch["offset"] + d for d in local]
+        link_lengths = getattr(self, "_profileLinkLengths", {})
+        main = build_profile_path(adjacency, getattr(self, "_profileReferenceNodes", []) or [])
+        main_distances = cumulative_distances(main["links"], link_lengths)
+        used_links = set(main["links"])
+        used_nodes = set(main["nodes"])
+        built = [(main["nodes"], main_distances)]
+        results = []
+        for branch in getattr(self, "_profileBranches", []) or []:
+            refs = branch.get("reference_nodes") or []
+            if not refs:
+                raise ProfilePathError("Empty branch")
+            origin = refs[0]
+            offset = self._originOffset(origin, built)
+            if offset is None:
+                raise ProfilePathError("Branch origin is not on the profile")
+            path = build_profile_path(
+                adjacency, refs,
+                excluded_links=used_links,
+                excluded_nodes=used_nodes - {origin},
+            )
+            for node in path["nodes"]:
+                if node != origin and node in used_nodes:
+                    raise ProfilePathError("Branch reuses an already declared node")
+            distances = [offset + d for d in cumulative_distances(path["links"], link_lengths)]
+            results.append((branch, path, offset, distances))
+            used_links |= set(path["links"])
+            used_nodes |= set(path["nodes"])
+            built.append((path["nodes"], distances))
+        self._profilePath = main
+        self._profileDistances = main_distances
+        for branch, path, offset, distances in results:
+            branch["path"] = path
+            branch["offset"] = offset
+            branch["distances"] = distances
 
     def _profileTargetForNode(self, node_id, mode):
         if mode == "declared":
@@ -753,62 +786,109 @@ class ProfileSection:
         else:
             self.pushMessage(self.tr("Pick an intermediate node of the current profile path."), level=1)
 
-    def _applyProfileRemove(self, node_id):
-        target, branch = self._profileTargetForNode(node_id, "declared")
-        if target == "main":
-            self._profileReferenceNodes = remove_pass_node(getattr(self, "_profileReferenceNodes", []), node_id)
-            try:
-                self._recomputeProfileStructure()
-            except ProfilePathError:
-                return
-            self._redrawProfile()
-        elif target == "branch":
-            refs = list(branch.get("reference_nodes") or [])
-            new_refs = remove_pass_node(refs, node_id)
-            if len(new_refs) < 2 or (refs and node_id == refs[0]):
-                self._profileBranches = [b for b in (getattr(self, "_profileBranches", []) or []) if b is not branch]
-            else:
-                branch["reference_nodes"] = new_refs
-                with suppress(ProfilePathError):
-                    self._recomputeBranch(branch)
-            self._redrawProfile()
-        else:
-            self.pushMessage(self.tr("Pick a declared profile point to remove."), level=1)
+    def _isBranchOrigin(self, node_id):
+        for b in getattr(self, "_profileBranches", []) or []:
+            refs = b.get("reference_nodes") or []
+            if refs and refs[0] == node_id:
+                return True
+        return False
 
-    def _applyProfileMove(self, node_id, new_node_id):
+    def _applyProfileRemove(self, node_id):
+        if self._isBranchOrigin(node_id):
+            self.pushMessage(
+                self.tr("This point starts a branch and cannot be removed. Trim the branch from its far end first."),
+                level=1,
+            )
+            return
         target, branch = self._profileTargetForNode(node_id, "declared")
         if target == "main":
-            previous = list(getattr(self, "_profileReferenceNodes", []))
-            self._profileReferenceNodes = move_pass_node(previous, node_id, new_node_id)
+            previous = list(getattr(self, "_profileReferenceNodes", []) or [])
+            self._profileReferenceNodes = remove_pass_node(previous, node_id)
             try:
                 self._recomputeProfileStructure()
             except ProfilePathError:
                 self._profileReferenceNodes = previous
                 with suppress(ProfilePathError):
                     self._recomputeProfileStructure()
-                self.pushMessage(self.tr("The moved node cannot be connected along the network."), level=1)
                 return
             self._redrawProfile()
         elif target == "branch":
-            previous = list(branch.get("reference_nodes") or [])
-            branch["reference_nodes"] = move_pass_node(previous, node_id, new_node_id)
-            try:
-                self._recomputeBranch(branch)
-            except ProfilePathError:
-                branch["reference_nodes"] = previous
-                with suppress(ProfilePathError):
-                    self._recomputeBranch(branch)
-                self.pushMessage(self.tr("The moved node cannot be connected along the network."), level=1)
-                return
+            refs = list(branch.get("reference_nodes") or [])
+            if len(refs) <= 2:
+                self._profileBranches = [b for b in (getattr(self, "_profileBranches", []) or []) if b is not branch]
+            else:
+                branch["reference_nodes"] = [n for n in refs if n != node_id]
+                try:
+                    self._rebuildProfilePaths()
+                except ProfilePathError:
+                    branch["reference_nodes"] = refs
+                    with suppress(ProfilePathError):
+                        self._rebuildProfilePaths()
+                    return
             self._redrawProfile()
         else:
+            self.pushMessage(self.tr("Pick a declared profile point to remove."), level=1)
+
+    def _applyProfileMove(self, node_id, new_node_id):
+        if node_id == new_node_id:
+            return
+        main_refs = list(getattr(self, "_profileReferenceNodes", []) or [])
+        branches = getattr(self, "_profileBranches", []) or []
+        in_main = node_id in main_refs
+        in_branch = any(node_id in (b.get("reference_nodes") or []) for b in branches)
+        if not in_main and not in_branch:
             self.pushMessage(self.tr("Only declared profile points can be moved."), level=1)
+            return
+
+        prev_main = main_refs
+        prev_branch_refs = [list(b.get("reference_nodes") or []) for b in branches]
+
+        self._profileReferenceNodes = [new_node_id if n == node_id else n for n in main_refs]
+        for b in branches:
+            refs = b.get("reference_nodes") or []
+            if node_id in refs:
+                b["reference_nodes"] = [new_node_id if n == node_id else n for n in refs]
+
+        try:
+            self._rebuildProfilePaths()
+        except ProfilePathError:
+            self._profileReferenceNodes = prev_main
+            for b, refs in zip(branches, prev_branch_refs):
+                b["reference_nodes"] = refs
+            with suppress(ProfilePathError):
+                self._rebuildProfilePaths()
+            self.pushMessage(
+                self.tr("The point cannot be moved there without reusing already declared pipes or nodes."),
+                level=1,
+            )
+            return
+        self._redrawProfile()
+
+    def _branchHasDerivations(self, branch):
+        branch_nodes = set((branch.get("path") or {}).get("nodes") or [])
+        if not branch_nodes:
+            branch_nodes = set(branch.get("reference_nodes") or [])
+        origin = (branch.get("reference_nodes") or [None])[0]
+        branch_nodes.discard(origin)
+        for other in getattr(self, "_profileBranches", []) or []:
+            if other is branch:
+                continue
+            other_origin = (other.get("reference_nodes") or [None])[0]
+            if other_origin in branch_nodes:
+                return True
+        return False
 
     def _onProfileCurveDelete(self, dock, label):
         self._activateProfile(dock)
         branches = getattr(self, "_profileBranches", []) or []
         for i in range(len(branches)):
             if label == (self.tr("Branch") + " " + str(i + 1)):
+                if self._branchHasDerivations(branches[i]):
+                    self.pushMessage(
+                        self.tr("This branch has derivations. Remove them first from their far ends."),
+                        level=1,
+                    )
+                    return
                 self._profileBranches = [b for j, b in enumerate(branches) if j != i]
                 self._redrawProfile()
                 return
@@ -878,9 +958,7 @@ class ProfileSection:
         self._profileReportStart = meta["report_start"]
         self._profileReportStep = meta["report_step"]
 
-        path = build_profile_path(adjacency, self._profileReferenceNodes)
-        self._profilePath = path
-        self._profileDistances = cumulative_distances(path["links"], self._profileLinkLengths)
+        self._rebuildProfilePaths()
 
     def _profileTimeSource(self):
         source = getattr(self, "_profileSourceCache", None)

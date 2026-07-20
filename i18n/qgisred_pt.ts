@@ -2179,6 +2179,21 @@
         <translation>Apenas os pontos de passagem declarados podem ser movidos.</translation>
     </message>
     <message>
+        <location filename="../sections/profile_section.py" line="799"/>
+        <source>This point starts a branch and cannot be removed. Trim the branch from its far end first.</source>
+        <translation>Este ponto é a origem de uma ramificação e não pode ser removido. Reduza a ramificação a partir da sua extremidade primeiro.</translation>
+    </message>
+    <message>
+        <location filename="../sections/profile_section.py" line="852"/>
+        <source>The point cannot be moved there without reusing already declared pipes or nodes.</source>
+        <translation>O ponto não pode ser movido para aí sem reutilizar tubagens ou nós já declarados.</translation>
+    </message>
+    <message>
+        <location filename="../sections/profile_section.py" line="879"/>
+        <source>This branch has derivations. Remove them first from their far ends.</source>
+        <translation>Esta ramificação tem derivações. Remova-as primeiro pelas suas extremidades.</translation>
+    </message>
+    <message>
         <location filename="../sections/profile_section.py" line="641"/>
         <source>The moved node cannot be connected along the network.</source>
         <translation>O nó movido não pode ser ligado ao longo da rede.</translation>

@@ -2159,6 +2159,21 @@
         <translation>Solo se pueden mover los nudos de paso declarados.</translation>
     </message>
     <message>
+        <location filename="../sections/profile_section.py" line="799"/>
+        <source>This point starts a branch and cannot be removed. Trim the branch from its far end first.</source>
+        <translation>Este nudo es el origen de una rama y no se puede eliminar. Recorte la rama desde su extremo primero.</translation>
+    </message>
+    <message>
+        <location filename="../sections/profile_section.py" line="852"/>
+        <source>The point cannot be moved there without reusing already declared pipes or nodes.</source>
+        <translation>El nudo no se puede mover ahí sin reutilizar tuberías o nudos ya declarados.</translation>
+    </message>
+    <message>
+        <location filename="../sections/profile_section.py" line="879"/>
+        <source>This branch has derivations. Remove them first from their far ends.</source>
+        <translation>Esta rama tiene derivaciones. Elimínelas primero desde sus extremos.</translation>
+    </message>
+    <message>
         <location filename="../sections/profile_section.py" line="641"/>
         <source>The moved node cannot be connected along the network.</source>
         <translation>El nudo desplazado no puede conectarse a lo largo de la red.</translation>

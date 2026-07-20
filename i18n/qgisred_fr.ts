@@ -2139,6 +2139,21 @@
         <translation>Seuls les points de passage déclarés peuvent être déplacés.</translation>
     </message>
     <message>
+        <location filename="../sections/profile_section.py" line="799"/>
+        <source>This point starts a branch and cannot be removed. Trim the branch from its far end first.</source>
+        <translation>Ce point est l'origine d'une ramification et ne peut pas être supprimé. Réduisez d'abord la ramification par son extrémité.</translation>
+    </message>
+    <message>
+        <location filename="../sections/profile_section.py" line="852"/>
+        <source>The point cannot be moved there without reusing already declared pipes or nodes.</source>
+        <translation>Le point ne peut pas être déplacé là sans réutiliser des conduites ou des nœuds déjà déclarés.</translation>
+    </message>
+    <message>
+        <location filename="../sections/profile_section.py" line="879"/>
+        <source>This branch has derivations. Remove them first from their far ends.</source>
+        <translation>Cette ramification comporte des dérivations. Supprimez-les d'abord par leurs extrémités.</translation>
+    </message>
+    <message>
         <location filename="../sections/profile_section.py" line="641"/>
         <source>The moved node cannot be connected along the network.</source>
         <translation>Le nœud déplacé ne peut pas être connecté le long du réseau.</translation>
