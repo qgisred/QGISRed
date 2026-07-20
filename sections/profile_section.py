@@ -33,15 +33,7 @@ from ..tools.utils.qgisred_profile_plot_utils import (
 _NODE_LAYER_IDENTIFIERS = ("qgisred_junctions", "qgisred_tanks", "qgisred_reservoirs")
 _LINK_LAYER_IDENTIFIERS = ("qgisred_pipes", "qgisred_pumps", "qgisred_valves")
 
-_MAIN_HIGHLIGHT_RGB = (214, 39, 40)
-_BRANCH_COLOR_RGB = [
-    (23, 190, 207),
-    (227, 119, 194),
-    (148, 103, 189),
-    (188, 189, 34),
-    (214, 175, 40),
-    (0, 150, 136),
-]
+_PATH_HIGHLIGHT_RGB = (214, 39, 40)
 
 
 class ProfileState:
@@ -1162,12 +1154,6 @@ class ProfileSection:
         hex_color = profile_variable_color_hex(key)
         return QColor(hex_color) if hex_color else None
 
-    def _branchColor(self, index, alpha=255):
-        from qgis.PyQt.QtGui import QColor
-
-        r, g, b = _BRANCH_COLOR_RGB[index % len(_BRANCH_COLOR_RGB)]
-        return QColor(r, g, b, alpha)
-
     def _appendProfileBranchSeries(self, series, key):
         branches = getattr(self, "_profileBranches", []) or []
         if not branches:
@@ -1200,7 +1186,7 @@ class ProfileSection:
                 "points": points,
                 "reference_indices": reference_indices,
                 "node_ids": [str(n) for n in branch_nodes],
-                "color": self._branchColor(i),
+                "color": self._profileVariableColor(key),
                 "fill": key == "Elevation",
                 "deletable": True,
                 "path_key": branch_key,
@@ -1238,43 +1224,35 @@ class ProfileSection:
             return
 
         canvas = self.iface.mapCanvas()
-        link_color = {}
-        for lid in path["links"]:
-            link_color[str(lid)] = QColor(_MAIN_HIGHLIGHT_RGB[0], _MAIN_HIGHLIGHT_RGB[1],
-                                          _MAIN_HIGHLIGHT_RGB[2], 200)
+        link_ids = {str(lid) for lid in path["links"]}
         reference_ids = {
             path["nodes"][i] for i in range(len(path["nodes"])) if path["is_reference"][i]
         }
-        for i, branch in enumerate(getattr(self, "_profileBranches", []) or []):
+        for branch in getattr(self, "_profileBranches", []) or []:
             branch_path = branch.get("path")
             if branch_path and branch_path["nodes"]:
-                branch_color = self._branchColor(i, alpha=200)
-                for lid in branch_path["links"]:
-                    link_color[str(lid)] = branch_color
+                link_ids |= {str(lid) for lid in branch_path["links"]}
                 reference_ids |= {
                     branch_path["nodes"][j]
                     for j in range(len(branch_path["nodes"]))
                     if branch_path["is_reference"][j]
                 }
 
-        if link_color:
-            bands = {}
+        if link_ids:
+            band = None
             for identifier in _LINK_LAYER_IDENTIFIERS:
                 layer = self._profileLayerByIdentifier(identifier)
                 if layer is None:
                     continue
                 idField = QGISRedFieldUtils().getIdFieldName(layer)
                 for feature in layer.getFeatures():
-                    color = link_color.get(str(feature.attribute(idField)))
-                    if color is None:
+                    if str(feature.attribute(idField)) not in link_ids:
                         continue
-                    key = (color.red(), color.green(), color.blue(), color.alpha())
-                    band = bands.get(key)
                     if band is None:
                         band = QgsRubberBand(canvas, Qgis.GeometryType.Line)
-                        band.setColor(color)
+                        band.setColor(QColor(_PATH_HIGHLIGHT_RGB[0], _PATH_HIGHLIGHT_RGB[1],
+                                             _PATH_HIGHLIGHT_RGB[2], 200))
                         band.setWidth(3)
-                        bands[key] = band
                         self._profileHighlights.append(band)
                     band.addGeometry(feature.geometry(), layer)
 
