@@ -43,10 +43,6 @@ class LifecycleSection:
         self.iface = iface
         self.isUnloading = False  # Flag to prevent DLL calls during shutdown
 
-        if not platform.system() == "Windows":
-            self.pushMessage(self.tr("QGISRed only works on Windows"), level=2, duration=5)
-            return
-
         # initialize plugin directory (sections/ is one level below the plugin root)
         self.plugin_dir = os.path.dirname(os.path.dirname(__file__))
         # initialize locale
@@ -168,9 +164,6 @@ class LifecycleSection:
         return action
 
     def initGui(self):
-        if not platform.system() == "Windows":
-            return
-
         """Create the menu entries and toolbar icons inside the QGIS GUI."""
         self.addGeneralMenu()
         self.addProjectMenu()
