@@ -3009,7 +3009,16 @@ class QGISRedLegendsDialog(QDialog, formClass):
             self.applySingleSymbolLegend()
 
         self.currentLayer.triggerRepaint()
+        self.ensureLayerVisible(self.currentLayer)
         self.originalRenderer = self.currentLayer.renderer().clone() if self.currentLayer.renderer() else None
+
+    def ensureLayerVisible(self, layer):
+        """Make the layer (and any hidden ancestor group) visible so applied changes can be seen."""
+        node = QgsProject.instance().layerTreeRoot().findLayer(layer.id())
+        while node is not None and node.parent() is not None:
+            if not node.itemVisibilityChecked():
+                node.setItemVisibilityChecked(True)
+            node = node.parent()
 
     PIPE_DEFAULT_WIDTH = 1.5
     PIPE_DEFAULT_CV_SIZE = 5
