@@ -6,12 +6,21 @@ if sys.platform == "win32":
     from ctypes import WinDLL
 
 
+_dllDirectories = {}
+
+
 def _load_dll():
-    dll_path = QGISRedFileSystemUtils().getCurrentDll()
+    dll_path = QGISRedFileSystemUtils().getCurrentDll() if QGISRedFileSystemUtils.DllTempoFolder else ""
     if not os.path.exists(dll_path):
-        QGISRedFileSystemUtils().copyDependencies()
+        QGISRedFileSystemUtils().copyDependencies()  # Attempt to restore the DLL file
+        if QGISRedFileSystemUtils.DllTempoFolder is None:
+            raise FileNotFoundError("GISRed dependencies not found in " + QGISRedFileSystemUtils().getGISRedDllFolder())
         dll_path = QGISRedFileSystemUtils().getCurrentDll()
+    dll_folder = os.path.dirname(dll_path)
     if sys.platform == "win32":
+        os.chdir(dll_folder)
+        if dll_folder not in _dllDirectories:
+            _dllDirectories[dll_folder] = os.add_dll_directory(dll_folder)
         return WinDLL(dll_path)
     return CDLL(dll_path)
 
