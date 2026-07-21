@@ -64,6 +64,9 @@ class QGISRedLegendsDialog(QDialog, formClass):
         "qgisred_tree",
     )
 
+    # Query layers editable as a single symbol but restricted to size changes only
+    SIZE_ONLY_QUERY_IDENTIFIERS = {"qgisred_connectivity_links"}
+
     # ============================================================
     # INITIALIZATION
     # ============================================================
@@ -158,6 +161,13 @@ class QGISRedLegendsDialog(QDialog, formClass):
             "qgisred_isolationvalves", "qgisred_meters", "qgisred_demands"
         }
         return identifier in INPUT_IDENTIFIERS
+
+    def isSizeOnlyQueryLayer(self):
+        """Check if the current layer is a query layer editable for size only."""
+        if not self.currentLayer:
+            return False
+        identifier = self.currentLayer.customProperty("qgisred_identifier")
+        return identifier in self.SIZE_ONLY_QUERY_IDENTIFIERS
 
     def getResultFieldMapping(self):
         """Map layer identifier to field name in the 'All' shapefile."""
@@ -523,7 +533,7 @@ class QGISRedLegendsDialog(QDialog, formClass):
                 "qgisred_sources", "qgisred_serviceconnections",
                 "qgisred_isolationvalves", "qgisred_meters", "qgisred_demands"
             }
-            if not isResultLayer and not isInputLayer:
+            if not isResultLayer and not isInputLayer and identifier not in self.SIZE_ONLY_QUERY_IDENTIFIERS:
                 return
 
         currentGroupPath = self.cbGroups.currentData()
@@ -689,7 +699,8 @@ class QGISRedLegendsDialog(QDialog, formClass):
             self.currentFieldName = field
 
         elif newType == "graduatedSymbol":
-            self.convertToGraduated(field)
+            if not self.restoreOriginalGraduatedRenderer(field):
+                self.convertToGraduated(field)
             self.currentFieldType, self.currentFieldName = self.detectFieldType(
                 self.currentLayer
             )
@@ -1575,8 +1586,8 @@ class QGISRedLegendsDialog(QDialog, formClass):
 
             return self.FIELD_TYPE_CATEGORICAL, fieldName
 
-        # singleSymbol renderer for input layers gets its own field type
-        if renderer and renderer.type() == "singleSymbol" and self.isInputLayer():
+        # singleSymbol renderer for input and size-only query layers gets its own field type
+        if renderer and renderer.type() == "singleSymbol" and (self.isInputLayer() or self.isSizeOnlyQueryLayer()):
             return self.FIELD_TYPE_SINGLE, None
 
         return self.FIELD_TYPE_UNKNOWN, None
@@ -2853,6 +2864,17 @@ class QGISRedLegendsDialog(QDialog, formClass):
         renderer = QgsCategorizedSymbolRenderer(field, categories)
         self._workingRenderer = renderer
 
+    def restoreOriginalGraduatedRenderer(self, field):
+        """Reuse the renderer the layer had when the dialog opened instead of synthesizing
+        a generic classification, so Categorized -> Graduated round-trips keep the legend."""
+        original = self.originalRenderer
+        if isinstance(original, QgsRuleBasedRenderer):
+            original = self.ruleBasedAsGraduated(original)
+        if isinstance(original, QgsGraduatedSymbolRenderer) and original.classAttribute() == field:
+            self._workingRenderer = original.clone()
+            return True
+        return False
+
     def convertToGraduated(self, field):
         layer = self.currentLayer
         fieldIdx = layer.fields().indexOf(field)
@@ -4124,7 +4146,7 @@ class QGISRedLegendsDialog(QDialog, formClass):
 
     def updateInputLayerRestrictions(self):
         """Disable right-panel batch controls for input layers; apply per-element column rules."""
-        isInput = self.isInputLayer()
+        isInput = self.isInputLayer() or self.isSizeOnlyQueryLayer()
 
         # Classification panel
         self.cbMode.setEnabled(not isInput)
@@ -4164,7 +4186,7 @@ class QGISRedLegendsDialog(QDialog, formClass):
         """Apply per-element-type color/size column restrictions for input layers."""
         identifier = self.currentLayer.customProperty("qgisred_identifier") if self.currentLayer else ""
 
-        COLOR_LOCKED = {"qgisred_reservoirs", "qgisred_tanks", "qgisred_sources"}
+        COLOR_LOCKED = {"qgisred_reservoirs", "qgisred_tanks", "qgisred_sources"} | self.SIZE_ONLY_QUERY_IDENTIFIERS
 
         if identifier in COLOR_LOCKED:
             self._disableColorColumnInTable()
