@@ -135,7 +135,13 @@ class QGISRedFileSystemUtils:
         tmp = tempfile.mkdtemp(prefix="QGISRed_")
         QGISRedFileSystemUtils.DllTempoFolder = tmp
         for name in os.listdir(src_folder):
-            shutil.copy2(os.path.join(src_folder, name), os.path.join(tmp, name))
+            src = os.path.join(src_folder, name)
+            dst = os.path.join(tmp, name)
+            if os.path.isdir(src):
+                # Satellite assemblies (localization folders: es, fr...) must be copied recursively
+                shutil.copytree(src, dst, dirs_exist_ok=True)
+            else:
+                shutil.copy2(src, dst)
 
     def writeFile(self, file, string):
         file.write(string)
