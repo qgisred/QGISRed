@@ -3498,7 +3498,7 @@ class QGISRedLegendsDialog(QDialog, formClass):
             )
             return
 
-        filename = name.replace(" ", "") + ".qml" if globalStyle else self.getProjectStyleFilename(name)
+        filename = self.getStyleBasename(name) + ".qml" if globalStyle else self.getProjectStyleFilename(name)
         folder = self.getStyleFolder(globalStyle)
 
         if not folder:
@@ -3786,7 +3786,7 @@ class QGISRedLegendsDialog(QDialog, formClass):
             )
             return
 
-        filename = name.replace(" ", "") + ".qml" + (".bak" if isDefault else "")
+        filename = self.getStyleBasename(name) + ".qml" + (".bak" if isDefault else "")
         subfolder = os.path.join("defaults", "layerStyles") if isDefault else "layerStyles"
         folder = self.pluginFolder if isDefault else self.getQGISRedDirectoryFromUtils()
         path = os.path.join(folder, subfolder, filename)
@@ -3804,6 +3804,18 @@ class QGISRedLegendsDialog(QDialog, formClass):
             message = self.tr("Strategy loaded into the dialog from %1. Press Apply to update the layer.").replace("%1", filename)
         QMessageBox.information(self, self.tr("Loaded"), message)
 
+    def getStyleBasename(self, name):
+        styleURI = self.currentLayer.customProperty("styleURI") if self.currentLayer else None
+        if styleURI:
+            basename = os.path.basename(styleURI)
+            if basename.endswith(".bak"):
+                basename = basename[:-4]
+            if basename.endswith(".qml"):
+                basename = basename[:-4]
+            if basename:
+                return basename
+        return name.replace(" ", "")
+
     def getElementNameForIdentifier(self, identifier):
         utils = self.utils or QGISRedIdentifierUtils()
         name = utils.identifierToElementName.get(identifier)
@@ -3817,7 +3829,7 @@ class QGISRedLegendsDialog(QDialog, formClass):
         return None
 
     def getProjectStyleFilename(self, name):
-        base = name.replace(" ", "")
+        base = self.getStyleBasename(name)
         if self.networkName:
             return f"{self.networkName}_{base}.qml"
         return base + ".qml"
