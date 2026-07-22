@@ -10,7 +10,7 @@ import statistics
 
 from qgis.PyQt.QtGui import QIcon, QColor
 from qgis.PyQt.QtWidgets import QDialog, QMessageBox, QHeaderView, QLineEdit, QAbstractItemView
-from qgis.PyQt.QtWidgets import QCheckBox, QSpinBox, QApplication, QProgressDialog, QWidget, QHBoxLayout
+from qgis.PyQt.QtWidgets import QCheckBox, QSpinBox, QApplication, QProgressDialog, QWidget, QHBoxLayout, QMenu
 from qgis.PyQt.QtCore import Qt, QTimer, QEvent
 from qgis.PyQt import uic
 from ...compat import QVariantInt, QVariantDouble, QVariantLongLong
@@ -85,11 +85,10 @@ class QGISRedLegendsDialog(QDialog, formClass):
         self.resizeToFitContents()
 
     def resizeToFitContents(self):
-        content = self.scrollAreaWidgetContents_4.sizeHint()
-        margin = 2 * self.scrollArea_4.frameWidth() + 4
-        neededWidth = content.width() + margin
-        neededHeight = content.height() + margin
-        self.resize(max(self.width(), neededWidth), max(self.height(), neededHeight))
+        # The scroll area adjusts to its contents, so the dialog's own size hint
+        # already accounts for the full editor content plus header and buttons.
+        hint = self.sizeHint()
+        self.resize(max(self.width(), hint.width() + 4), max(self.height(), hint.height() + 4))
 
     def initializeProperties(self):
         self.currentFieldType = self.FIELD_TYPE_UNKNOWN
@@ -107,6 +106,8 @@ class QGISRedLegendsDialog(QDialog, formClass):
         self.layerTreeRoot = None
         self.style = None
         self.lastValidLayerId = None
+        self.initialRenderers = {}
+        self.isClosing = False
 
         self.parentPlugin = None
         self.qgisInterface = None
@@ -290,6 +291,7 @@ class QGISRedLegendsDialog(QDialog, formClass):
         self.setupAdvancedUi()
         self.loadStyleDatabase()
         self.applyConsistentStyling()
+        self.setupStyleMenus()
         self.setupTooltips()
         self.hideIntervalControls()
         self.installEventFilter(self)
@@ -416,6 +418,25 @@ class QGISRedLegendsDialog(QDialog, formClass):
         self.spinSizeMin.setStyleSheet(spinStyle)
         self.spinSizeMax.setStyleSheet(spinStyle)
 
+    def setupStyleMenus(self):
+        loadMenu = QMenu(self)
+        loadMenu.addAction(self.tr("Default Style"), self.loadDefaultStyle)
+        loadMenu.addAction(self.tr("Global Style"), self.loadGlobalStyle)
+        loadMenu.addAction(self.tr("Project Style"), self.loadProjectStyle)
+        loadMenu.addSeparator()
+        self.actionRevertOriginal = loadMenu.addAction(self.tr("Revert to Original Legend"), self.revertToOriginalStyle)
+        self.actionRevertOriginal.setToolTip(self.tr("Restore the legend the layer had when this dialog was opened"))
+        self.btLoadMenu.setMenu(loadMenu)
+
+        saveMenu = QMenu(self)
+        saveMenu.setToolTipsVisible(True)
+        applyNote = self.tr("Applies the current legend to the layer, then saves it")
+        actionSaveGlobal = saveMenu.addAction(self.tr("To Global…"), self.saveGlobalStyle)
+        actionSaveGlobal.setToolTip(applyNote)
+        actionSaveProject = saveMenu.addAction(self.tr("To Project…"), self.saveProjectStyle)
+        actionSaveProject.setToolTip(applyNote)
+        self.btSaveMenu.setMenu(saveMenu)
+
     def setupTooltips(self):
         self.btUp.setToolTip(self.tr("Move selected class up"))
         self.btDown.setToolTip(self.tr("Move selected class down"))
@@ -425,13 +446,10 @@ class QGISRedLegendsDialog(QDialog, formClass):
         if hasattr(self, "btRefreshColors"):
             self.btRefreshColors.setToolTip(self.tr("Refresh color ramp"))
 
-        self.btLoadDefault.setToolTip(self.tr("Load default style for this layer"))
-        self.btLoadGlobal.setToolTip(self.tr("Load style from global database"))
-        self.btSaveGlobal.setToolTip(self.tr("Save current style to global database"))
-        self.btLoadProject.setToolTip(self.tr("Load style from project database"))
-        self.btSaveProject.setToolTip(self.tr("Save current style to project database"))
+        self.btLoadMenu.setToolTip(self.tr("Load a saved style or revert to the original legend"))
+        self.btSaveMenu.setToolTip(self.tr("Apply the current legend and save it as a style"))
         self.btApplyLegend.setToolTip(self.tr("Apply changes to layer"))
-        self.btCancelLegend.setToolTip(self.tr("Cancel and close dialog"))
+        self.btCancelLegend.setToolTip(self.tr("Cancel and close dialog; edits not yet applied are discarded"))
 
     def hideIntervalControls(self):
         self.labelIntervalRange.setVisible(False)
@@ -481,11 +499,6 @@ class QGISRedLegendsDialog(QDialog, formClass):
         self.btClassMinus.clicked.connect(self.removeClass)
         self.btUp.clicked.connect(self.moveClassUp)
         self.btDown.clicked.connect(self.moveClassDown)
-        self.btSaveProject.clicked.connect(self.saveProjectStyle)
-        self.btSaveGlobal.clicked.connect(self.saveGlobalStyle)
-        self.btLoadDefault.clicked.connect(self.loadDefaultStyle)
-        self.btLoadGlobal.clicked.connect(self.loadGlobalStyle)
-        self.btLoadProject.clicked.connect(self.loadProjectStyle)
         self.tableView.cellDoubleClicked.connect(self.onCellDoubleClicked)
         self.tableView.itemSelectionChanged.connect(self.updateButtonStates)
         self.connectLayerTreeSignal()
@@ -594,6 +607,10 @@ class QGISRedLegendsDialog(QDialog, formClass):
         self.currentLayer = layer
         self._workingRenderer = None
         self.originalRenderer = layer.renderer().clone() if layer.renderer() else None
+        # Pristine snapshot for "Revert to Original Legend": taken once per layer,
+        # never touched by Apply/Save (unlike originalRenderer).
+        if layer.id() not in self.initialRenderers:
+            self.initialRenderers[layer.id()] = self.originalRenderer.clone() if self.originalRenderer else None
         self.currentFieldType, self.currentFieldName = self.detectFieldType(layer)
         self.frameLegends.setEnabled(True)
 
@@ -3488,11 +3505,11 @@ class QGISRedLegendsDialog(QDialog, formClass):
         self.updateStrategyCustomProperty(selectedParts)
         self.currentLayer.saveNamedStyle(path)
         self.originalRenderer = self.currentLayer.renderer().clone() if self.currentLayer.renderer() else None
-        QMessageBox.information(
-            self,
-            self.tr("Saved"),
-            self.tr("Style saved as %1 in the layerStyles folder of your project.").replace("%1", filename),
-        )
+        if globalStyle:
+            message = self.tr("The current legend was applied to the layer and saved as %1 in the global layerStyles folder.")
+        else:
+            message = self.tr("The current legend was applied to the layer and saved as %1 in the layerStyles folder of your project.")
+        QMessageBox.information(self, self.tr("Saved"), message.replace("%1", filename))
 
     def promptForStrategyParts(self, globalStyle):
         applicableParts = self.getBuildableStrategyParts()
@@ -4481,10 +4498,29 @@ class QGISRedLegendsDialog(QDialog, formClass):
     # ============================================================
 
     def cancelAndClose(self):
+        if self.isClosing:
+            return
+        self.isClosing = True
         if self.currentLayer and self.originalRenderer:
             self.currentLayer.setRenderer(self.originalRenderer.clone())
             self.currentLayer.triggerRepaint()
         self.close()
+
+    def reject(self):
+        # Esc must behave exactly like the Close button: discard unapplied edits
+        # and run closeEvent cleanup instead of just hiding the dialog.
+        self.cancelAndClose()
+        super().reject()
+
+    def revertToOriginalStyle(self):
+        if not self.currentLayer:
+            return
+        snapshot = self.initialRenderers.get(self.currentLayer.id())
+        if snapshot is None:
+            return
+        self.currentLayer.setRenderer(snapshot.clone())
+        self.currentLayer.triggerRepaint()
+        self.handleValidLayerSelection(self.currentLayer)
 
     def eventFilter(self, obj, event):
         if obj == self.btClassPlus and event.type() == QEvent.Type.MouseButtonPress:
