@@ -355,6 +355,8 @@ class _ResultsRenderingMixin:
         text_format.setSizeUnit(RENDER_UNIT_POINTS)
 
         label_bg_color = getattr(self, '_labelBgColor', None)
+        if getattr(self, '_labelBgColorLocked', False):
+            label_bg_color = getattr(self, '_bgColor', None)
         if label_bg_color:
             bg_settings = QgsTextBackgroundSettings()
             bg_settings.setEnabled(True)

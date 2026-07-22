@@ -158,6 +158,7 @@ class QGISRedResultsDock(
         self.cbShowId.clicked.connect(self._onLabelStyleChanged)
         self.btLabelBgColor.clicked.connect(self._onLabelBgColorClicked)
         self.btClearLabelBgColor.clicked.connect(self._onClearLabelBgColor)
+        self.btLockLabelBgColor.toggled.connect(self._onLockLabelBgColor)
         self.dspPipeFactor.valueChanged.connect(self._onSymbolFactorChanged)
         self.dspSymbolFactor.valueChanged.connect(self._onSymbolFactorChanged)
         self.dspArrowFactor.valueChanged.connect(self._onSymbolFactorChanged)
@@ -179,6 +180,11 @@ class QGISRedResultsDock(
         self.btClearLabelBgColor.setIcon(resetIcon)
         self.btResetAppearance.setIcon(resetIcon)
 
+        self._iconLockOpen = QIcon(":/images/iconResultsLockOpen.svg")
+        self._iconLockClosed = QIcon(":/images/iconResultsLockClosed.svg")
+        self.btLockLabelBgColor.setIcon(self._iconLockOpen)
+        self.btLockLabelBgColor.setToolTip(self.tr("Link the label background to the map background color"))
+
         self._setupDistributionCharts()
         self._setupEvolutionCharts()
 
@@ -194,6 +200,7 @@ class QGISRedResultsDock(
         self._labelColorByRange = False
         self._labelShowId = False
         self._labelBgColor = None
+        self._labelBgColorLocked = False   # when True, labels use the map background color
         self._pipeFactor = 1.0
         self._symbolFactor = 1.0
         self._arrowFactor = 1.0

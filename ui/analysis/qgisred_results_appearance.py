@@ -68,6 +68,32 @@ class _ResultsAppearanceMixin:
         self._refreshLabelsIfShowing("Node")
         self._refreshLabelsIfShowing("Link")
 
+    def _onLockLabelBgColor(self, checked):
+        """Toggle linking the label background to the map background color. When locked,
+        labels use self._bgColor and the label-color buttons are disabled."""
+        self._labelBgColorLocked = checked
+        self._updateLabelBgLockUI()
+        self._saveAppearanceSettings()
+        self._refreshLabelsIfShowing("Node")
+        self._refreshLabelsIfShowing("Link")
+
+    def _updateLabelBgLockUI(self):
+        """Sync the lock button (icon, tooltip, checked state) and the enabled state of the
+        label background color buttons to self._labelBgColorLocked. Reused by the toggle
+        handler, settings load, and reset-all."""
+        locked = self._labelBgColorLocked
+        self.btLockLabelBgColor.blockSignals(True)
+        self.btLockLabelBgColor.setChecked(locked)
+        self.btLockLabelBgColor.blockSignals(False)
+        self.btLockLabelBgColor.setIcon(
+            self._iconLockClosed if locked else self._iconLockOpen)
+        self.btLockLabelBgColor.setToolTip(
+            QCoreApplication.translate("QGISRedResultsDock", "Label background follows the map background color")
+            if locked else
+            QCoreApplication.translate("QGISRedResultsDock", "Link the label background to the map background color"))
+        self.btLabelBgColor.setEnabled(not locked)
+        self.btClearLabelBgColor.setEnabled(not locked and self._labelBgColor is not None)
+
     # ------------------------------------------------------------------
     # Decimals
     # ------------------------------------------------------------------
@@ -206,6 +232,9 @@ class _ResultsAppearanceMixin:
             self.btClearBgColor.setEnabled(True)
             self._applyBgColor()
             self._saveAppearanceSettings()
+            if self._labelBgColorLocked:
+                self._refreshLabelsIfShowing("Node")
+                self._refreshLabelsIfShowing("Link")
 
     def _onClearBgColor(self):
         self._bgColor = None
@@ -214,6 +243,9 @@ class _ResultsAppearanceMixin:
         self.btClearBgColor.setEnabled(False)
         self._applyBgColor()
         self._saveAppearanceSettings()
+        if self._labelBgColorLocked:
+            self._refreshLabelsIfShowing("Node")
+            self._refreshLabelsIfShowing("Link")
 
     def _applyBgColor(self):
         canvas = self.iface.mapCanvas()
@@ -253,6 +285,7 @@ class _ResultsAppearanceMixin:
         self._labelColorByRange = False
         self._labelShowId = False
         self._labelBgColor = None
+        self._labelBgColorLocked = False
         self._pipeFactor = 1.0
         self._symbolFactor = 1.0
         self._arrowFactor = 1.0
@@ -272,6 +305,7 @@ class _ResultsAppearanceMixin:
         self.btLabelBgColor.setStyleSheet("")
         self.btLabelBgColor.setText(QCoreApplication.translate("QGISRedResultsDock", "No color"))
         self.btClearLabelBgColor.setEnabled(False)
+        self._updateLabelBgLockUI()
         self.dspPipeFactor.blockSignals(True)
         self.dspPipeFactor.setValue(1.0)
         self.dspPipeFactor.blockSignals(False)
@@ -318,7 +352,8 @@ class _ResultsAppearanceMixin:
                       fontSize=str(self._labelFontSize),
                       colorByRange="true" if self._labelColorByRange else "false",
                       showId="true" if self._labelShowId else "false",
-                      bgColor=self._labelBgColor.name() if self._labelBgColor else "")
+                      bgColor=self._labelBgColor.name() if self._labelBgColor else "",
+                      lockBgToMap="true" if self._labelBgColorLocked else "false")
         dec_elem = ET.SubElement(root, "Decimals")
         for var_name, val in self._varDecimals.items():
             ET.SubElement(dec_elem, "Var", name=var_name, value=str(val))
@@ -349,6 +384,7 @@ class _ResultsAppearanceMixin:
                     self._labelShowId = labels.get("showId", "false") == "true"
                     bg_hex = labels.get("bgColor", "")
                     self._labelBgColor = QColor(bg_hex) if bg_hex else None
+                    self._labelBgColorLocked = labels.get("lockBgToMap", "false") == "true"
 
                 dec_elem = root.find("Decimals")
                 if dec_elem is not None:
@@ -385,6 +421,7 @@ class _ResultsAppearanceMixin:
         if self._labelBgColor:
             self.btLabelBgColor.setStyleSheet(f"background-color: {self._labelBgColor.name()};")
             self.btLabelBgColor.setText(self._labelBgColor.name())
+        self._updateLabelBgLockUI()
         node_field = self._node_field_map.get(self.cbNodes.currentText(), "")
         self._resetDecimalsForVariable(node_field, "Nodes", "Node")
         link_field = self._link_field_map.get(self.cbLinks.currentText(), "")

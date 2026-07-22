@@ -151,6 +151,8 @@
         <file>images/iconResultsContinuousHrs.svg</file>
         <file>images/iconResultsSplitDays.svg</file>
         <file>images/iconResultsLoop.svg</file>
+        <file>images/iconResultsLockOpen.svg</file>
+        <file>images/iconResultsLockClosed.svg</file>
         <file>images/iconClear.svg</file>
         <file>images/iconWarning.svg</file>
         <file>images/iconNews.svg</file>
