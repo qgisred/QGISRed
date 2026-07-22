@@ -348,10 +348,11 @@ class ProfileSection:
 
     def _onProfileHoverNodeId(self, dock, node_id):
         self._activateProfile(dock)
-        self._showProfileMapHover(node_id if node_id else None)
+        self._showProfileMapHover(node_id if node_id else None, from_chart=True)
 
-    def _showProfileMapHover(self, node_id):
-        if node_id == getattr(self, "_profileHoverNodeId", None):
+    def _showProfileMapHover(self, node_id, from_chart=False):
+        if (node_id == getattr(self, "_profileHoverNodeId", None)
+                and from_chart == getattr(self, "_profileHoverFromChart", False)):
             return
         self._clearProfileMapHover()
         if not node_id:
@@ -365,15 +366,18 @@ class ProfileSection:
             from qgis.PyQt.QtGui import QColor
 
             marker = QgsVertexMarker(self.iface.mapCanvas())
-            marker.setColor(QColor(255, 127, 0))
-            with suppress(Exception):
-                marker.setFillColor(QColor(255, 127, 0, 90))
-            marker.setIconSize(16)
+            if from_chart:
+                marker.setColor(QColor(25, 118, 210))
+                marker.setPenWidth(2)
+            else:
+                marker.setColor(QColor(255, 127, 0))
+                marker.setPenWidth(3)
+            marker.setIconSize(20)
             marker.setIconType(QgsVertexMarker.ICON_CIRCLE)
-            marker.setPenWidth(3)
             marker.setCenter(QgsPointXY(geoms[0].asPoint()))
             self._profileHoverMarker = marker
             self._profileHoverNodeId = node_id
+            self._profileHoverFromChart = from_chart
 
     def _clearProfileMapHover(self):
         marker = getattr(self, "_profileHoverMarker", None)
@@ -1504,7 +1508,7 @@ class ProfileSection:
         for geom in node_geoms:
             marker = QgsVertexMarker(canvas)
             marker.setColor(QColor(255, 127, 0))
-            marker.setIconSize(12)
+            marker.setIconSize(18)
             marker.setIconType(QgsVertexMarker.ICON_CIRCLE)
             marker.setPenWidth(3)
             marker.setCenter(QgsPointXY(geom.asPoint()))
