@@ -2024,6 +2024,42 @@
 <context>
     <name>ProfileSection</name>
     <message>
+        <source>Extend path</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Create branch</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Declare pass node</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Move pass node</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Delete pass node</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Start new path here</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Click nodes to trace the path; right-click to finish.</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Click nodes to build the branch; right-click to finish.</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Click the destination node for the pass point.</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
         <location filename="../sections/profile_section.py" line="121"/>
         <source>Run a simulation first to build a longitudinal profile.</source>
         <translation type="unfinished"></translation>
@@ -4257,6 +4293,78 @@ Left-click: Add a new item below the current selection</source>
 </context>
 <context>
     <name>QGISRedProfileDock</name>
+    <message>
+        <source>Edit trajectories: click nodes to trace, right-click a node for its options</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>How to edit trajectories</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Turn on &apos;Edit trajectories&apos; and click nodes on the map</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Trace the first path</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Turn on Edit, click the pass nodes one after another, and right-click to finish (just like drawing a pipe in QGISRed).</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Extend a path</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Right-click its end node and keep clicking nodes to prolong it; right-click to finish.</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Declare a pass node</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Right-click an intermediate node of any current path (one that is not a pass node yet).</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Move a pass node</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Right-click it, choose Move, then click a free node (it may be a bifurcation, a branch end, or the tree origin).</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Remove a pass node</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Right-click it and choose Delete. A bifurcation cannot be removed directly.</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Create a branch</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Right-click any pass node, then click the new branch nodes one after another (without repeating a node already declared); right-click to finish.</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Remove a branch</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Delete its pass nodes from the far end toward the origin. When only the branch end is left, deleting it removes the whole branch.</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Everything starts with the single Edit trajectories button. While editing is on, clicking and right-clicking network nodes builds and reshapes the paths. Turn it off and moving over a trajectory only tracks it and shows information on the chart.</source>
+        <translation type="unfinished"></translation>
+    </message>
     <message>
         <location filename="../ui/analysis/qgisred_profile_dock.py" line="56"/>
         <source>QGISRed: Longitudinal profile</source>

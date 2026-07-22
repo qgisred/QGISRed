@@ -21,7 +21,7 @@ class SelectPointType(IntEnum):
 
 
 class QGISRedSelectPointTool(QgsMapTool):
-    def __init__(self, button, parent, method, type=SelectPointType.Point, cursor=None, icon_size=24, pass_modifiers=False, move_callback=None):
+    def __init__(self, button, parent, method, type=SelectPointType.Point, cursor=None, icon_size=24, pass_modifiers=False, move_callback=None, context_callback=None):
         # type 1: points; 2: lines; 3: 2-points; 4: 2-line; 5: point-line
         QgsMapTool.__init__(self, parent.iface.mapCanvas())
         self.canvas = parent.iface.mapCanvas()
@@ -33,6 +33,7 @@ class QGISRedSelectPointTool(QgsMapTool):
         self.icon_size = icon_size
         self.pass_modifiers = bool(pass_modifiers)
         self.move_callback = move_callback
+        self.context_callback = context_callback
 
         # Handle cursor: can be a string path, a QPixmap, or a QCursor
         self.custom_cursor = None
@@ -184,6 +185,10 @@ class QGISRedSelectPointTool(QgsMapTool):
                     self.activate()
                     # self.resetProperties()
             else:
+                if self.context_callback is not None:
+                    point = self.objectSnapped.point() if self.objectSnapped is not None else None
+                    self.context_callback(point)
+                    return
                 # For tools that opted-in to receive modifiers, allow right-click callbacks too
                 # (e.g. Time Series uses right-click to pick a magnitude).
                 if self.pass_modifiers:

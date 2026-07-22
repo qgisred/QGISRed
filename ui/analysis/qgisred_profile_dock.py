@@ -51,7 +51,7 @@ _MENU_BTN_STYLE = _BTN_STYLE + "QToolButton::menu-indicator { image: none; width
 
 
 class QGISRedProfileDock(QDockWidget):
-    profileModeChanged = pyqtSignal(str)
+    editModeToggled = pyqtSignal(bool)
     clearRequested = pyqtSignal()
     variableChanged = pyqtSignal(str)
     secondaryVariableChanged = pyqtSignal(str)
@@ -68,8 +68,6 @@ class QGISRedProfileDock(QDockWidget):
         self.iface = iface
         self.setWindowTitle(self.tr("QGISRed: Longitudinal profile"))
         self.setObjectName("QGISRedProfileDock")
-        self._suppress_mode_signal = False
-        self._modeButtons = {}
         self._chartComment = ""
         self._defaultConfigPath = ""
         self._buildUi()
@@ -104,16 +102,18 @@ class QGISRedProfileDock(QDockWidget):
         toolbar.addWidget(self.btnNewPanel)
         toolbar.addWidget(self._separator(toolbar_widget))
 
-        self.btnPick = self._addModeButton(toolbar_widget, toolbar, "pick", ":/images/iconProfilePick.svg",
-                                           self.tr("Click network nodes on the map to build the profile path"))
-        self.btnAdd = self._addModeButton(toolbar_widget, toolbar, "add", ":/images/iconProfileAddNode.svg",
-                                          self.tr("Convert an intermediate node of the path into a profile point"))
-        self.btnRemove = self._addModeButton(toolbar_widget, toolbar, "remove", ":/images/iconProfileRemoveNode.svg",
-                                             self.tr("Remove a declared profile point"))
-        self.btnMove = self._addModeButton(toolbar_widget, toolbar, "move", ":/images/iconProfileMoveNode.svg",
-                                           self.tr("Move a profile point: click it, then its new position"))
-        self.btnBranch = self._addModeButton(toolbar_widget, toolbar, "branch", ":/images/iconProfileBranch.svg",
-                                             self.tr("Add a branch: click a node of the profile, then the branch endpoints"))
+        self.btnEdit = self._makeIconButton(
+            toolbar_widget, ":/images/pencil.svg",
+            self.tr("Edit trajectories: click nodes to trace, right-click a node for its options"),
+            checkable=True)
+        self.btnEdit.toggled.connect(self._onEditToggled)
+        toolbar.addWidget(self.btnEdit)
+
+        self.btnHelp = self._makeIconButton(
+            toolbar_widget, ":/images/iconAbout.svg",
+            self.tr("How to edit trajectories"))
+        self.btnHelp.clicked.connect(self.showEditHelp)
+        toolbar.addWidget(self.btnHelp)
 
         toolbar.addWidget(self._separator(toolbar_widget))
 
@@ -287,7 +287,7 @@ class QGISRedProfileDock(QDockWidget):
         self._splitter.addWidget(self.table)
 
         self.plot = ProfilePlotWidget(self._splitter)
-        self.plot.setEmptyText(self.tr("Enable 'Pick path' and click nodes on the map"))
+        self.plot.setEmptyText(self.tr("Turn on 'Edit trajectories' and click nodes on the map"))
         self.plot.cursorNodeChanged.connect(self._onCursorNode)
         self.plot.curveDeleteRequested.connect(self.curveDeleteRequested)
         self.table.currentCellChanged.connect(self._onTableRowChanged)
@@ -351,13 +351,6 @@ class QGISRedProfileDock(QDockWidget):
         button.setStyleSheet(_MENU_BTN_STYLE)
         return button
 
-    def _addModeButton(self, parent, toolbar, mode, icon_path, tooltip):
-        button = self._makeIconButton(parent, icon_path, tooltip, checkable=True)
-        button.toggled.connect(lambda checked, m=mode: self._onModeToggled(m, checked))
-        toolbar.addWidget(button)
-        self._modeButtons[mode] = button
-        return button
-
     def _separator(self, parent):
         line = QFrame(parent)
         line.setFrameShape(QFrame.Shape.VLine)
@@ -402,17 +395,12 @@ class QGISRedProfileDock(QDockWidget):
                 self.cbVariable.setItemText(index, self._variableDisplayText("Quality"))
             self._rebuildSecondaryVariables()
 
-    def setActiveMode(self, mode):
-        self._suppress_mode_signal = True
-        for m, button in self._modeButtons.items():
-            button.setChecked(m == mode)
-        self._suppress_mode_signal = False
+    def setEditMode(self, on):
+        self._setCheckedSilently(self.btnEdit, bool(on))
+        self.editModeToggled.emit(bool(on))
 
-    def currentMode(self):
-        for mode, button in self._modeButtons.items():
-            if button.isChecked():
-                return mode
-        return ""
+    def isEditMode(self):
+        return self.btnEdit.isChecked()
 
     def setSeries(self, series, title, x_label, y_label, y_right_label=""):
         self.plot.setLabels(title, x_label, y_label, y_right_label)
@@ -459,7 +447,6 @@ class QGISRedProfileDock(QDockWidget):
         self.setEnvelopeModeState("off")
         self._setCheckedSilently(self.btnTable, False)
         self.table.setVisible(False)
-        self.setActiveMode("pick")
         self._updateChartActionsEnabled()
 
     @staticmethod
@@ -470,7 +457,7 @@ class QGISRedProfileDock(QDockWidget):
 
     def _updateChartActionsEnabled(self):
         has_data = bool(getattr(self.plot, "_series", []))
-        for button in (self.btnAdd, self.btnRemove, self.btnMove, self.btnBranch, self.btnClear,
+        for button in (self.btnClear,
                        self.btnZoomWindow, self.btnPan, self.btnZoomIn, self.btnZoomOut, self.btnFit,
                        self.btnLabels, self.btnSymbols, self.btnEnvelope, self.btnChartOptions,
                        self.btnTable, self.btnExportCsv, self.btnExportImage,
@@ -606,18 +593,56 @@ class QGISRedProfileDock(QDockWidget):
         self.plot.render(painter)
         painter.end()
 
-    def _onModeToggled(self, mode, checked):
-        if self._suppress_mode_signal:
-            return
-        if checked:
-            self._suppress_mode_signal = True
-            for other, button in self._modeButtons.items():
-                if other != mode:
-                    button.setChecked(False)
-            self._suppress_mode_signal = False
-            self.profileModeChanged.emit(mode)
-        elif not any(button.isChecked() for button in self._modeButtons.values()):
-            self.profileModeChanged.emit("")
+    def _onEditToggled(self, checked):
+        self.editModeToggled.emit(bool(checked))
+
+    def showEditHelp(self):
+        dlg = QDialog(self)
+        dlg.setWindowTitle(self.tr("How to edit trajectories"))
+        layout = QVBoxLayout(dlg)
+        scroll = QScrollArea(dlg)
+        scroll.setWidgetResizable(True)
+        scroll.setFrameShape(QFrame.Shape.NoFrame)
+        body = QLabel(self._editHelpHtml(), dlg)
+        body.setWordWrap(True)
+        body.setTextInteractionFlags(Qt.TextInteractionFlag.TextBrowserInteraction)
+        body.setAlignment(Qt.AlignmentFlag.AlignTop)
+        body.setContentsMargins(4, 4, 4, 4)
+        scroll.setWidget(body)
+        layout.addWidget(scroll)
+        buttons = QDialogButtonBox(QDialogButtonBox.StandardButton.Close, dlg)
+        buttons.rejected.connect(dlg.reject)
+        buttons.accepted.connect(dlg.accept)
+        layout.addWidget(buttons)
+        dlg.resize(520, 460)
+        dlg.exec()
+
+    def _editHelpHtml(self):
+        rows = [
+            (self.tr("Trace the first path"),
+             self.tr("Turn on Edit, click the pass nodes one after another, and right-click to finish "
+                     "(just like drawing a pipe in QGISRed).")),
+            (self.tr("Extend a path"),
+             self.tr("Right-click its end node and keep clicking nodes to prolong it; right-click to finish.")),
+            (self.tr("Declare a pass node"),
+             self.tr("Right-click an intermediate node of any current path (one that is not a pass node yet).")),
+            (self.tr("Move a pass node"),
+             self.tr("Right-click it, choose Move, then click a free node (it may be a bifurcation, a branch "
+                     "end, or the tree origin).")),
+            (self.tr("Remove a pass node"),
+             self.tr("Right-click it and choose Delete. A bifurcation cannot be removed directly.")),
+            (self.tr("Create a branch"),
+             self.tr("Right-click any pass node, then click the new branch nodes one after another "
+                     "(without repeating a node already declared); right-click to finish.")),
+            (self.tr("Remove a branch"),
+             self.tr("Delete its pass nodes from the far end toward the origin. When only the branch end is "
+                     "left, deleting it removes the whole branch.")),
+        ]
+        intro = self.tr("Everything starts with the single Edit trajectories button. While editing is on, "
+                        "clicking and right-clicking network nodes builds and reshapes the paths. Turn it off "
+                        "and moving over a trajectory only tracks it and shows information on the chart.")
+        items = "".join("<li><b>{0}.</b> {1}</li>".format(title, text) for title, text in rows)
+        return "<p>{0}</p><ul>{1}</ul>".format(intro, items)
 
     def _onChartOptions(self):
         from .qgisred_profile_chart_options_dialog import QGISRedProfileChartOptionsDialog

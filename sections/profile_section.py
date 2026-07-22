@@ -115,8 +115,7 @@ class ProfileSection:
             self._activateProfile(dock)
             dock.show()
             dock.raise_()
-            dock.setActiveMode("pick")
-            self.runProfilePickTool()
+            dock.setEditMode(True)
             self._drawProfileHighlight()
 
     def newProfilePanel(self):
@@ -174,11 +173,10 @@ class ProfileSection:
         dock.clearPlot()
         dock.show()
         dock.raise_()
-        dock.setActiveMode("pick")
-        self.runProfilePickTool()
+        dock.setEditMode(True)
 
     def _wireProfileDock(self, dock):
-        dock.profileModeChanged.connect(lambda mode, d=dock: self._onProfileModeChanged(d, mode))
+        dock.editModeToggled.connect(lambda on, d=dock: self._onProfileEditToggled(d, on))
         dock.clearRequested.connect(lambda d=dock: self._onProfileClearRequested(d))
         dock.variableChanged.connect(lambda key, d=dock: self._onProfileVariableChanged(d, key))
         dock.secondaryVariableChanged.connect(lambda key, d=dock: self._onProfileVariableChanged(d, key))
@@ -294,7 +292,7 @@ class ProfileSection:
 
     def _rearmProfileMapTool(self, dock):
         with suppress(Exception):
-            self._onProfileModeChanged(dock, dock.currentMode())
+            self._onProfileEditToggled(dock, dock.isEditMode())
 
     def _clearHighlightForState(self, state):
         if state is None:
@@ -320,14 +318,14 @@ class ProfileSection:
             self._activeProfile = remaining[-1] if remaining else None
         self._restyleProfileDocks()
 
-    def _setProfileMapTool(self, kind, callback):
+    def _setProfileMapTool(self, kind, callback, context_callback=None):
         from ..tools.map_tools.qgisred_selectPoint import QGISRedSelectPointTool, SelectPointType
 
         self._deactivateProfileMapTool()
         point_type = SelectPointType.TwoPoints if kind == "two" else SelectPointType.Point
         self.myMapTools["Profile"] = QGISRedSelectPointTool(
             None, self, callback, point_type, cursor=":/images/iconProfile.svg",
-            move_callback=self._profileHoverOnMap,
+            move_callback=self._profileHoverOnMap, context_callback=context_callback,
         )
         self.iface.mapCanvas().setMapTool(self.myMapTools["Profile"])
 
@@ -385,25 +383,25 @@ class ProfileSection:
             self._profileHoverMarker = None
         self._profileHoverNodeId = None
 
-    def runProfilePickTool(self):
-        self._setProfileMapTool("one", self.profilePickCallback)
-
-    def _onProfileModeChanged(self, dock, mode):
+    def _onProfileEditToggled(self, dock, on):
         self._activateProfile(dock)
         self._deactivateProfileMapTool()
-        if not mode:
-            return
-        if mode == "pick":
-            self._setProfileMapTool("one", self.profilePickCallback)
-        elif mode == "add":
-            self._setProfileMapTool("one", self.profileAddCallback)
-        elif mode == "remove":
-            self._setProfileMapTool("one", self.profileRemoveCallback)
-        elif mode == "move":
-            self._setProfileMapTool("two", self.profileMoveCallback)
-        elif mode == "branch":
-            self._profileCurrentBranch = None
-            self._setProfileMapTool("one", self.profileBranchCallback)
+        self._profileEditSeq = None
+        self._profileExtendAtStart = False
+        self._profileMoveSource = None
+        self._profileCurrentBranch = None
+        if on:
+            if not (getattr(self, "_profileReferenceNodes", []) or []):
+                self._profileEditSeq = "main"
+            self._setProfileMapTool("one", self._profileEditLeftClick, self._profileEditRightClick)
+        else:
+            self._setProfileMapTool("one", self._profileTrackingClick, self._profileTrackingContext)
+
+    def _profileTrackingClick(self, _point):
+        self._syncActiveProfileToVisible()
+
+    def _profileTrackingContext(self, _point):
+        return
 
     def _onProfileClearRequested(self, dock):
         self._activateProfile(dock)
@@ -416,7 +414,7 @@ class ProfileSection:
         self._clearProfileHighlight()
         dock.clearPlot()
         dock.resetControls()
-        self.runProfilePickTool()
+        self._onProfileEditToggled(dock, dock.isEditMode())
 
     def _onProfileVariableChanged(self, dock, _key):
         self._activateProfile(dock)
@@ -602,21 +600,177 @@ class ProfileSection:
         self._redrawProfile()
         self.pushMessage(self.tr("Profile configuration imported."), level=3)
 
-    def profilePickCallback(self, point):
+    def _profileEditLeftClick(self, point):
         self._syncActiveProfileToVisible()
         node_id = self._resolveProfileNode(point)
         if node_id is None:
             self.pushMessage(self.tr("No network node found at this location."), level=1)
             return
-        refs = getattr(self, "_profileReferenceNodes", [])
-        if refs and refs[-1] == node_id:
+        seq = getattr(self, "_profileEditSeq", None)
+        if seq == "move":
+            source = getattr(self, "_profileMoveSource", None)
+            self._profileMoveSource = None
+            self._profileEditSeq = None
+            if source is not None and source != node_id:
+                self._applyProfileMove(source, node_id)
             return
-        refs.append(node_id)
+        if seq == "branch":
+            self._profileAppendBranchNode(node_id)
+            return
+        if seq == "main":
+            self._profileAppendMainNode(node_id)
+
+    def _profileEditRightClick(self, point):
+        self._syncActiveProfileToVisible()
+        seq = getattr(self, "_profileEditSeq", None)
+        if seq == "move":
+            self._profileMoveSource = None
+            self._profileEditSeq = None
+            return
+        if self._profileSequenceHasNodes(seq):
+            self._profileFinishSequence()
+            return
+        node_id = self._resolveProfileNode(point) if point is not None else None
+        self._profileShowContextMenu(node_id)
+
+    def _profileSequenceHasNodes(self, seq):
+        if seq == "main":
+            return bool(getattr(self, "_profileReferenceNodes", []) or [])
+        if seq == "branch":
+            return getattr(self, "_profileCurrentBranch", None) is not None
+        return False
+
+    def _profileShowContextMenu(self, node_id):
+        from qgis.PyQt.QtWidgets import QMenu
+        from qgis.PyQt.QtGui import QCursor
+
+        role = self._profileClassifyNode(node_id)
+        if not role:
+            return
+        entries = self._profileMenuEntries(role, node_id)
+        if not entries:
+            return
+        menu = QMenu()
+        mapping = {}
+        for label, handler in entries:
+            action = menu.addAction(label)
+            mapping[action] = handler
+        chosen = menu.exec(QCursor.pos())
+        if chosen is not None and chosen in mapping:
+            mapping[chosen]()
+
+    def _profileMenuEntries(self, role, node_id):
+        extend = (self.tr("Extend path"), lambda: self._profileStartExtend(node_id))
+        branch = (self.tr("Create branch"), lambda: self._profileStartBranch(node_id))
+        declare = (self.tr("Declare pass node"), lambda: self._profileDeclarePoint(node_id))
+        move = (self.tr("Move pass node"), lambda: self._profileStartMove(node_id))
+        remove = (self.tr("Delete pass node"), lambda: self._profileRemovePoint(node_id))
+        start = (self.tr("Start new path here"), lambda: self._profileStartMain(node_id))
+        return {
+            "start": [start],
+            "intermediate_path": [declare],
+            "origin": [extend, branch],
+            "terminal": [extend, branch, move, remove],
+            "through": [branch, move, remove],
+            "bifurcation": [branch],
+        }.get(role, [])
+
+    def _profileClassifyNode(self, node_id):
+        main = getattr(self, "_profilePath", None)
+        tree_exists = bool(main and main["nodes"])
+        if not tree_exists:
+            return "start" if node_id else None
+        if not node_id:
+            return None
+        path_target, _pb = self._profileTargetForNode(node_id, "path")
+        if path_target is None:
+            return None
+        declared_target, _db = self._profileTargetForNode(node_id, "declared")
+        if declared_target is None:
+            return "intermediate_path"
+        if node_id == main["nodes"][0]:
+            return "origin"
+        if self._isBranchOrigin(node_id):
+            return "bifurcation"
+        if self._profileIsTerminalWaypoint(node_id):
+            return "terminal"
+        return "through"
+
+    def _profileIsTerminalWaypoint(self, node_id):
+        main = getattr(self, "_profilePath", None)
+        if main and main["nodes"]:
+            if node_id == main["nodes"][-1] and node_id != main["nodes"][0]:
+                return True
+        for branch in getattr(self, "_profileBranches", []) or []:
+            branch_path = branch.get("path")
+            if branch_path and branch_path["nodes"] and node_id == branch_path["nodes"][-1]:
+                return True
+        return False
+
+    def _profileStartMain(self, node_id):
+        self._profileEditSeq = "main"
+        self._profileExtendAtStart = False
+        self.pushMessage(self.tr("Click nodes to trace the path; right-click to finish."), level=3)
+        self._profileAppendMainNode(node_id)
+
+    def _profileStartExtend(self, node_id):
+        main = getattr(self, "_profilePath", None)
+        if main and main["nodes"] and node_id in (main["nodes"][0], main["nodes"][-1]):
+            self._profileEditSeq = "main"
+            self._profileExtendAtStart = (node_id == main["nodes"][0])
+            self.pushMessage(self.tr("Click nodes to trace the path; right-click to finish."), level=3)
+            return
+        for branch in getattr(self, "_profileBranches", []) or []:
+            branch_path = branch.get("path")
+            if branch_path and branch_path["nodes"] and node_id == branch_path["nodes"][-1]:
+                self._profileCurrentBranch = branch
+                self._profileEditSeq = "branch"
+                self.pushMessage(self.tr("Click nodes to build the branch; right-click to finish."), level=3)
+                return
+
+    def _profileStartBranch(self, node_id):
+        tree_distance = self._profileNodeTreeDistance(node_id)
+        if tree_distance is None:
+            return
+        if not isinstance(getattr(self, "_profileBranches", None), list):
+            self._profileBranches = []
+        branch = {"reference_nodes": [node_id], "offset": tree_distance, "path": None, "distances": None}
+        self._profileBranches.append(branch)
+        self._profileCurrentBranch = branch
+        self._profileEditSeq = "branch"
+        with suppress(ProfilePathError):
+            self._recomputeBranch(branch)
+        self.pushMessage(self.tr("Click nodes to build the branch; right-click to finish."), level=3)
+        self._redrawProfile()
+
+    def _profileStartMove(self, node_id):
+        self._profileEditSeq = "move"
+        self._profileMoveSource = node_id
+        self.pushMessage(self.tr("Click the destination node for the pass point."), level=3)
+
+    def _profileDeclarePoint(self, node_id):
+        self._applyProfileAdd(node_id)
+
+    def _profileRemovePoint(self, node_id):
+        self._applyProfileRemove(node_id)
+
+    def _profileAppendMainNode(self, node_id):
+        refs = getattr(self, "_profileReferenceNodes", []) or []
+        at_start = getattr(self, "_profileExtendAtStart", False)
+        if refs and (refs[0] if at_start else refs[-1]) == node_id:
+            return
+        if at_start:
+            refs.insert(0, node_id)
+        else:
+            refs.append(node_id)
         self._profileReferenceNodes = refs
         try:
             self._recomputeProfileStructure()
         except ProfilePathError:
-            refs.pop()
+            if at_start:
+                refs.pop(0)
+            else:
+                refs.pop()
             self._profileReferenceNodes = refs
             self.pushMessage(
                 self.tr("Selected node is not connected to the previous one along the network."),
@@ -625,50 +779,9 @@ class ProfileSection:
             return
         self._redrawProfile()
 
-    def profileAddCallback(self, point):
-        self._syncActiveProfileToVisible()
-        node_id = self._resolveProfileNode(point)
-        if node_id is None:
-            self.pushMessage(self.tr("No network node found at this location."), level=1)
-            return
-        self._applyProfileAdd(node_id)
-
-    def profileRemoveCallback(self, point):
-        self._syncActiveProfileToVisible()
-        node_id = self._resolveProfileNode(point)
-        if node_id is None:
-            self.pushMessage(self.tr("No network node found at this location."), level=1)
-            return
-        self._applyProfileRemove(node_id)
-
-    def profileMoveCallback(self, point, new_point):
-        self._syncActiveProfileToVisible()
-        node_id = self._resolveProfileNode(point)
-        new_node_id = self._resolveProfileNode(new_point)
-        if node_id is None or new_node_id is None:
-            self.pushMessage(self.tr("No network node found at this location."), level=1)
-            return
-        self._applyProfileMove(node_id, new_node_id)
-
-    def profileBranchCallback(self, point):
-        self._syncActiveProfileToVisible()
-        node_id = self._resolveProfileNode(point)
-        if node_id is None:
-            self.pushMessage(self.tr("No network node found at this location."), level=1)
-            return
-        tree_distance = self._profileNodeTreeDistance(node_id)
+    def _profileAppendBranchNode(self, node_id):
         current = getattr(self, "_profileCurrentBranch", None)
-        if tree_distance is not None:
-            if not isinstance(getattr(self, "_profileBranches", None), list):
-                self._profileBranches = []
-            branch = {"reference_nodes": [node_id], "offset": tree_distance, "path": None, "distances": None}
-            self._profileBranches.append(branch)
-            self._profileCurrentBranch = branch
-            self._recomputeBranch(branch)
-            self._redrawProfile()
-            return
         if current is None:
-            self.pushMessage(self.tr("Click a node of the current profile to start a branch."), level=1)
             return
         current["reference_nodes"].append(node_id)
         try:
@@ -677,6 +790,18 @@ class ProfileSection:
             current["reference_nodes"].pop()
             self.pushMessage(self.tr("Selected node is not connected to the branch along the network."), level=1)
             return
+        self._redrawProfile()
+
+    def _profileFinishSequence(self):
+        current = getattr(self, "_profileCurrentBranch", None)
+        if current is not None and len(current.get("reference_nodes") or []) < 2:
+            self._profileBranches = [
+                b for b in (getattr(self, "_profileBranches", []) or []) if b is not current
+            ]
+        self._profileEditSeq = None
+        self._profileExtendAtStart = False
+        self._profileMoveSource = None
+        self._profileCurrentBranch = None
         self._redrawProfile()
 
     def _profileNodeTreeDistance(self, node):

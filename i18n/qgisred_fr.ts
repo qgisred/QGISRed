@@ -2059,6 +2059,42 @@
 <context>
     <name>ProfileSection</name>
     <message>
+        <source>Extend path</source>
+        <translation>Prolonger le trajet</translation>
+    </message>
+    <message>
+        <source>Create branch</source>
+        <translation>Créer une branche</translation>
+    </message>
+    <message>
+        <source>Declare pass node</source>
+        <translation>Déclarer un point de passage</translation>
+    </message>
+    <message>
+        <source>Move pass node</source>
+        <translation>Déplacer le point de passage</translation>
+    </message>
+    <message>
+        <source>Delete pass node</source>
+        <translation>Supprimer le point de passage</translation>
+    </message>
+    <message>
+        <source>Start new path here</source>
+        <translation>Commencer un nouveau trajet ici</translation>
+    </message>
+    <message>
+        <source>Click nodes to trace the path; right-click to finish.</source>
+        <translation>Cliquez sur les nœuds pour tracer le trajet ; clic droit pour terminer.</translation>
+    </message>
+    <message>
+        <source>Click nodes to build the branch; right-click to finish.</source>
+        <translation>Cliquez sur les nœuds pour construire la branche ; clic droit pour terminer.</translation>
+    </message>
+    <message>
+        <source>Click the destination node for the pass point.</source>
+        <translation>Cliquez sur le nœud de destination pour le point de passage.</translation>
+    </message>
+    <message>
         <location filename="../sections/analysis_section.py" line="936"/>
         <source>Longitudinal profile...</source>
         <translation type="obsolete">Profil en long...</translation>
@@ -4340,6 +4376,78 @@ Left-click: Add a new item below the current selection</source>
 </context>
 <context>
     <name>QGISRedProfileDock</name>
+    <message>
+        <source>Edit trajectories: click nodes to trace, right-click a node for its options</source>
+        <translation>Modifier les trajets : cliquez sur les nœuds pour tracer ; clic droit sur un nœud pour ses options</translation>
+    </message>
+    <message>
+        <source>How to edit trajectories</source>
+        <translation>Comment modifier les trajets</translation>
+    </message>
+    <message>
+        <source>Turn on &apos;Edit trajectories&apos; and click nodes on the map</source>
+        <translation>Activez « Modifier les trajets » et cliquez sur les nœuds de la carte</translation>
+    </message>
+    <message>
+        <source>Trace the first path</source>
+        <translation>Tracer le premier trajet</translation>
+    </message>
+    <message>
+        <source>Turn on Edit, click the pass nodes one after another, and right-click to finish (just like drawing a pipe in QGISRed).</source>
+        <translation>Activez Modifier, cliquez sur les points de passage l'un après l'autre, puis faites un clic droit pour terminer (comme pour tracer une conduite dans QGISRed).</translation>
+    </message>
+    <message>
+        <source>Extend a path</source>
+        <translation>Prolonger un trajet</translation>
+    </message>
+    <message>
+        <source>Right-click its end node and keep clicking nodes to prolong it; right-click to finish.</source>
+        <translation>Faites un clic droit sur son nœud final et continuez à cliquer sur des nœuds pour le prolonger ; clic droit pour terminer.</translation>
+    </message>
+    <message>
+        <source>Declare a pass node</source>
+        <translation>Déclarer un point de passage</translation>
+    </message>
+    <message>
+        <source>Right-click an intermediate node of any current path (one that is not a pass node yet).</source>
+        <translation>Faites un clic droit sur un nœud intermédiaire d'un trajet existant (qui n'est pas encore un point de passage).</translation>
+    </message>
+    <message>
+        <source>Move a pass node</source>
+        <translation>Déplacer un point de passage</translation>
+    </message>
+    <message>
+        <source>Right-click it, choose Move, then click a free node (it may be a bifurcation, a branch end, or the tree origin).</source>
+        <translation>Faites un clic droit dessus, choisissez Déplacer, puis cliquez sur un nœud libre (ce peut être une bifurcation, l'extrémité d'une branche ou l'origine de l'arbre).</translation>
+    </message>
+    <message>
+        <source>Remove a pass node</source>
+        <translation>Supprimer un point de passage</translation>
+    </message>
+    <message>
+        <source>Right-click it and choose Delete. A bifurcation cannot be removed directly.</source>
+        <translation>Faites un clic droit dessus et choisissez Supprimer. Une bifurcation ne peut pas être supprimée directement.</translation>
+    </message>
+    <message>
+        <source>Create a branch</source>
+        <translation>Créer une branche</translation>
+    </message>
+    <message>
+        <source>Right-click any pass node, then click the new branch nodes one after another (without repeating a node already declared); right-click to finish.</source>
+        <translation>Faites un clic droit sur un point de passage, puis cliquez sur les nœuds de la nouvelle branche l'un après l'autre (sans répéter un nœud déjà déclaré) ; clic droit pour terminer.</translation>
+    </message>
+    <message>
+        <source>Remove a branch</source>
+        <translation>Supprimer une branche</translation>
+    </message>
+    <message>
+        <source>Delete its pass nodes from the far end toward the origin. When only the branch end is left, deleting it removes the whole branch.</source>
+        <translation>Supprimez ses points de passage depuis l'extrémité vers l'origine. Lorsqu'il ne reste que l'extrémité de la branche, sa suppression efface toute la branche.</translation>
+    </message>
+    <message>
+        <source>Everything starts with the single Edit trajectories button. While editing is on, clicking and right-clicking network nodes builds and reshapes the paths. Turn it off and moving over a trajectory only tracks it and shows information on the chart.</source>
+        <translation>Tout commence avec l'unique bouton Modifier les trajets. Lorsque l'édition est active, cliquer et faire un clic droit sur les nœuds du réseau construit et remodèle les trajets. Une fois désactivée, se déplacer sur un trajet ne fait que le suivre et afficher des informations sur le graphique.</translation>
+    </message>
     <message>
         <location filename="../sections/analysis_section.py" line="936"/>
         <source>Longitudinal profile</source>
