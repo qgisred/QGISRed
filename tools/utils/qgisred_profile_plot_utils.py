@@ -3,11 +3,11 @@
 ENVELOPE_MODES = ("off", "band", "lines", "both")
 
 PROFILE_VARIABLE_COLORS = {
-    "Elevation": "#8c643c",
-    "Head": "#1f78b4",
-    "Pressure": "#729b6f",
-    "Quality": "#8d5a99",
-    "HeadLoss": "#becf50",
+    "Elevation": "#a0562e",
+    "Head": "#1976d2",
+    "Pressure": "#43a047",
+    "Quality": "#9c27b0",
+    "HeadLoss": "#c0ca33",
 }
 
 

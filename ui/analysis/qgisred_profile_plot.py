@@ -177,7 +177,7 @@ class ProfilePlotWidget(QWidget):
                 for d, v in s.get("points", [])
             ]
             base_color = s.get("color") or PALETTE[i % len(PALETTE)]
-            base_width = float(s.get("width", 2.0))
+            base_width = float(s.get("width", 2.6))
             entry = {
                 "label": s.get("label", ""),
                 "display_label": s.get("display_label") or s.get("label", ""),
@@ -622,7 +622,7 @@ class ProfilePlotWidget(QWidget):
             cx, cy = px(d), py(v)
             if idx in reference:
                 painter.setPen(QPen(QColor(255, 255, 255), 1.0))
-                m = marker_size + 3.5
+                m = marker_size + 5.5
                 painter.drawPolygon(QPolygonF([
                     QPointF(cx, cy - m), QPointF(cx + m, cy),
                     QPointF(cx, cy + m), QPointF(cx - m, cy),
@@ -646,7 +646,7 @@ class ProfilePlotWidget(QWidget):
                 continue
             x0, y0 = px(d0), py(v0)
             x1, y1 = px(d1), py(v1)
-            self._drawFlowArrow(painter, x0, y0, x1, y1, info.get("direction", 0))
+            self._drawFlowArrow(painter, x0, y0, x1, y1, info.get("direction", 0), s["color"])
             kind = info.get("kind", "pipe")
             if kind in ("pump", "valve"):
                 mx = (x0 + x1) / 2.0
@@ -661,7 +661,7 @@ class ProfilePlotWidget(QWidget):
             if v is None:
                 continue
             kind = node_kinds[idx] if idx < len(node_kinds) else "junction"
-            self._drawNodeGlyph(painter, px(d), py(v), kind)
+            self._drawNodeGlyph(painter, px(d), py(v), kind, s["color"])
 
     def _elementSvgImage(self, kind, size):
         if not hasattr(self, "_svg_images"):
@@ -697,7 +697,7 @@ class ProfilePlotWidget(QWidget):
         painter.drawImage(QRectF(x - half, y - half, size, size), image)
         return True
 
-    def _drawNodeGlyph(self, painter, x, y, kind):
+    def _drawNodeGlyph(self, painter, x, y, kind, color=None):
         if kind in ("reservoir", "tank") and self._drawElementIcon(painter, x, y, kind, 18.0):
             return
         outline = QPen(QColor(40, 48, 60), 1.2)
@@ -715,7 +715,7 @@ class ProfilePlotWidget(QWidget):
             painter.drawLine(QPointF(x - 6, y - 2), QPointF(x + 6, y - 2))
         else:
             painter.setPen(QPen(QColor(255, 255, 255), 1.0))
-            painter.setBrush(QBrush(QColor(60, 70, 90)))
+            painter.setBrush(QBrush(QColor(color) if color is not None else QColor(60, 70, 90)))
             painter.drawPolygon(QPolygonF([
                 QPointF(x, y - 5), QPointF(x + 5, y), QPointF(x, y + 5), QPointF(x - 5, y)
             ]))
@@ -741,7 +741,7 @@ class ProfilePlotWidget(QWidget):
             QPointF(x + 7, y - 6), QPointF(x + 7, y + 6), QPointF(x, y),
         ]))
 
-    def _drawFlowArrow(self, painter, x0, y0, x1, y1, direction):
+    def _drawFlowArrow(self, painter, x0, y0, x1, y1, direction, color=None):
         if direction == 0:
             return
         dx = x1 - x0
@@ -762,7 +762,8 @@ class ProfilePlotWidget(QWidget):
         base1 = QPointF(mx - ux * 3.0 + perp_x * 3.0, my - uy * 3.0 + perp_y * 3.0)
         base2 = QPointF(mx - ux * 3.0 - perp_x * 3.0, my - uy * 3.0 - perp_y * 3.0)
         painter.setPen(Qt.PenStyle.NoPen)
-        painter.setBrush(QBrush(QColor(40, 40, 40)))
+        arrow_color = QColor(color).darker(135) if color is not None else QColor(40, 40, 40)
+        painter.setBrush(QBrush(arrow_color))
         painter.drawPolygon(QPolygonF([tip, base1, base2]))
 
     def _drawValueLabels(self, painter, s, px, py, plot):

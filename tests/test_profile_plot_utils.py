@@ -128,11 +128,11 @@ def test_cursor_snapshot_falls_back_to_label():
 
 
 def test_profile_variable_color_hex_known_keys():
-    assert profile_variable_color_hex("Pressure") == "#729b6f"
-    assert profile_variable_color_hex("Head") == "#1f78b4"
-    assert profile_variable_color_hex("Quality") == "#8d5a99"
-    assert profile_variable_color_hex("Elevation") == "#8c643c"
-    assert profile_variable_color_hex("HeadLoss") == "#becf50"
+    assert profile_variable_color_hex("Pressure") == "#43a047"
+    assert profile_variable_color_hex("Head") == "#1976d2"
+    assert profile_variable_color_hex("Quality") == "#9c27b0"
+    assert profile_variable_color_hex("Elevation") == "#a0562e"
+    assert profile_variable_color_hex("HeadLoss") == "#c0ca33"
 
 
 def test_profile_variable_color_hex_unknown_key():
