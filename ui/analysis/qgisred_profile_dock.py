@@ -407,8 +407,8 @@ class QGISRedProfileDock(QDockWidget):
         self.plot.setSeries(series)
         self._updateChartActionsEnabled()
 
-    def setSymbols(self, node_kinds, link_info):
-        self.plot.setSymbols(node_kinds, link_info)
+    def setSymbols(self, symbols):
+        self.plot.setSymbols(symbols)
 
     def clearSymbols(self):
         self.plot.clearSymbols()

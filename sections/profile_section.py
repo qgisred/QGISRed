@@ -511,6 +511,15 @@ class ProfileSection:
         if not getattr(self, "_profileShowSymbols", False):
             dock.clearSymbols()
             return
+        symbols = {MAIN_PATH_KEY: self._profilePathSymbols(nodes, links)}
+        for i, branch in enumerate(getattr(self, "_profileBranches", []) or []):
+            branch_path = branch.get("path")
+            if branch_path and branch_path["nodes"]:
+                symbols["branch_{}".format(i)] = self._profilePathSymbols(
+                    branch_path["nodes"], branch_path["links"])
+        dock.setSymbols(symbols)
+
+    def _profilePathSymbols(self, nodes, links):
         node_kind_map = {0: "junction", 1: "reservoir", 2: "tank"}
         node_types = getattr(self, "_profileNodeTypes", {})
         link_types = getattr(self, "_profileLinkTypes", {})
@@ -532,7 +541,7 @@ class ProfileSection:
             else:
                 kind = "pipe"
             link_info.append({"kind": kind, "direction": directions[i] if i < len(directions) else 0})
-        dock.setSymbols(node_kinds, link_info)
+        return {"nodes": node_kinds, "links": link_info}
 
     def _onProfileTimeChanged(self, _text=None):
         saved = getattr(self, "_activeProfile", None)
@@ -1226,6 +1235,7 @@ class ProfileSection:
                 "node_ids": node_id_strs,
                 "color": self._profileVariableColor("HeadLoss"),
                 "fill": False,
+                "symbols_mode": "full",
             })
             y_label = self._profileVariableDisplayWithUnit("HeadLoss")
         else:
@@ -1240,6 +1250,7 @@ class ProfileSection:
                 "node_ids": node_id_strs,
                 "color": self._profileVariableColor(key),
                 "fill": key == "Elevation",
+                "symbols_mode": "full",
             })
             if key == "Head":
                 elevation_samples = sample_node_variable(
@@ -1279,6 +1290,7 @@ class ProfileSection:
                     "y_axis": "right",
                     "fill": False,
                     "deletable": True,
+                    "symbols_mode": "arrows",
                 })
                 y_right_label = self._profileVariableDisplayWithUnit(secondary_key)
 
@@ -1439,6 +1451,7 @@ class ProfileSection:
                 "deletable": True,
                 "path_key": branch_key,
                 "path_label": branch_label,
+                "symbols_mode": "full",
             })
             if key == "Head":
                 elev_samples = sample_node_variable(

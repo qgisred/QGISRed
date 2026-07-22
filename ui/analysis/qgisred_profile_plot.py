@@ -1,4 +1,6 @@
 # -*- coding: utf-8 -*-
+import math
+
 from qgis.PyQt.QtCore import Qt, QPointF, QRectF, QSize, pyqtSignal
 from qgis.PyQt.QtGui import QPainter, QColor, QPen, QBrush, QFont, QFontMetrics, QPolygonF
 from qgis.PyQt.QtWidgets import QWidget, QSizePolicy
@@ -111,8 +113,8 @@ class ProfilePlotWidget(QWidget):
         self._show_value_labels = bool(show)
         self.update()
 
-    def setSymbols(self, node_kinds, link_info):
-        self._symbols = {"nodes": node_kinds or [], "links": link_info or []}
+    def setSymbols(self, symbols):
+        self._symbols = symbols or None
         self.update()
 
     def clearSymbols(self):
@@ -193,6 +195,7 @@ class ProfilePlotWidget(QWidget):
                 "y_axis": "right" if s.get("y_axis") == "right" else "left",
                 "fill": bool(s.get("fill", True)),
                 "deletable": bool(s.get("deletable", False)),
+                "symbols_mode": s.get("symbols_mode"),
                 "width": base_width,
                 "line_style": "solid",
                 "show_markers": True,
@@ -506,8 +509,15 @@ class ProfilePlotWidget(QWidget):
         for s in self._series:
             self._drawSeries(painter, s, px, py_of(s), plot.bottom())
         self._drawNodeVerticalLines(painter, plot, px, py_of)
-        if self._symbols is not None and self._series:
-            self._drawSymbols(painter, self._series[0], px, py_of(self._series[0]))
+        if self._symbols and self._series:
+            for s in self._series:
+                mode = s.get("symbols_mode")
+                if not mode:
+                    continue
+                sym = self._symbols.get(s.get("path_key", MAIN_PATH_KEY))
+                if not sym:
+                    continue
+                self._drawSymbols(painter, s, px, py_of(s), sym, arrows_only=(mode == "arrows"))
         if self._show_value_labels and self._series:
             for s in self._series:
                 self._drawValueLabels(painter, s, px, py_of(s), plot)
@@ -632,10 +642,10 @@ class ProfilePlotWidget(QWidget):
                 r = max(1.8, marker_size)
                 painter.drawEllipse(QPointF(cx, cy), r, r)
 
-    def _drawSymbols(self, painter, s, px, py):
+    def _drawSymbols(self, painter, s, px, py, sym, arrows_only=False):
         points = s["points"]
-        node_kinds = self._symbols.get("nodes", [])
-        link_info = self._symbols.get("links", [])
+        node_kinds = sym.get("nodes", [])
+        link_info = sym.get("links", [])
 
         for i, info in enumerate(link_info):
             if i + 1 >= len(points):
@@ -647,16 +657,27 @@ class ProfilePlotWidget(QWidget):
             x0, y0 = px(d0), py(v0)
             x1, y1 = px(d1), py(v1)
             self._drawFlowArrow(painter, x0, y0, x1, y1, info.get("direction", 0), s["color"])
+            if arrows_only:
+                continue
             kind = info.get("kind", "pipe")
             if kind in ("pump", "valve"):
                 mx = (x0 + x1) / 2.0
                 my = (y0 + y1) / 2.0 - 12.0
-                if not self._drawElementIcon(painter, mx, my, kind, 18.0):
+                direction = info.get("direction", 0)
+                fdir = direction if direction != 0 else 1
+                seg_dx, seg_dy = x1 - x0, y1 - y0
+                if abs(seg_dx) < 1e-6 and abs(seg_dy) < 1e-6:
+                    angle = -90.0
+                else:
+                    angle = math.degrees(math.atan2(fdir * seg_dy, fdir * seg_dx))
+                if not self._drawElementIcon(painter, mx, my, kind, 18.0, angle):
                     if kind == "pump":
-                        self._drawPumpGlyph(painter, mx, my)
+                        self._drawPumpGlyph(painter, mx, my, angle)
                     else:
-                        self._drawValveGlyph(painter, mx, my)
+                        self._drawValveGlyph(painter, mx, my, angle)
 
+        if arrows_only:
+            return
         for idx, (d, v) in enumerate(points):
             if v is None:
                 continue
@@ -689,12 +710,19 @@ class ProfilePlotWidget(QWidget):
         self._svg_images[cache_key] = image
         return image
 
-    def _drawElementIcon(self, painter, x, y, kind, size):
+    def _drawElementIcon(self, painter, x, y, kind, size, angle=0.0):
         image = self._elementSvgImage(kind, size)
         if image is None:
             return False
         half = size / 2.0
-        painter.drawImage(QRectF(x - half, y - half, size, size), image)
+        if angle:
+            painter.save()
+            painter.translate(x, y)
+            painter.rotate(angle)
+            painter.drawImage(QRectF(-half, -half, size, size), image)
+            painter.restore()
+        else:
+            painter.drawImage(QRectF(x - half, y - half, size, size), image)
         return True
 
     def _drawNodeGlyph(self, painter, x, y, kind, color=None):
@@ -720,26 +748,34 @@ class ProfilePlotWidget(QWidget):
                 QPointF(x, y - 5), QPointF(x + 5, y), QPointF(x, y + 5), QPointF(x - 5, y)
             ]))
 
-    def _drawPumpGlyph(self, painter, x, y):
+    def _drawPumpGlyph(self, painter, x, y, angle=0.0):
+        painter.save()
+        painter.translate(x, y)
+        painter.rotate(angle)
         r = 7.0
         painter.setPen(QPen(QColor(40, 48, 60), 1.3))
         painter.setBrush(QBrush(QColor(46, 160, 44)))
-        painter.drawEllipse(QPointF(x, y), r, r)
+        painter.drawEllipse(QPointF(0, 0), r, r)
         painter.setPen(Qt.PenStyle.NoPen)
         painter.setBrush(QBrush(QColor(255, 255, 255)))
         painter.drawPolygon(QPolygonF([
-            QPointF(x - 3.0, y - 3.5), QPointF(x - 3.0, y + 3.5), QPointF(x + 4.0, y),
+            QPointF(-3.0, -3.5), QPointF(-3.0, 3.5), QPointF(4.0, 0),
         ]))
+        painter.restore()
 
-    def _drawValveGlyph(self, painter, x, y):
+    def _drawValveGlyph(self, painter, x, y, angle=0.0):
+        painter.save()
+        painter.translate(x, y)
+        painter.rotate(angle)
         painter.setPen(QPen(QColor(40, 48, 60), 1.2))
         painter.setBrush(QBrush(QColor(214, 90, 40)))
         painter.drawPolygon(QPolygonF([
-            QPointF(x - 7, y - 6), QPointF(x - 7, y + 6), QPointF(x, y),
+            QPointF(-7, -6), QPointF(-7, 6), QPointF(0, 0),
         ]))
         painter.drawPolygon(QPolygonF([
-            QPointF(x + 7, y - 6), QPointF(x + 7, y + 6), QPointF(x, y),
+            QPointF(7, -6), QPointF(7, 6), QPointF(0, 0),
         ]))
+        painter.restore()
 
     def _drawFlowArrow(self, painter, x0, y0, x1, y1, direction, color=None):
         if direction == 0:
