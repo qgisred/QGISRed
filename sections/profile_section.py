@@ -32,7 +32,7 @@ from ..tools.utils.qgisred_profile_plot_utils import (
 _NODE_LAYER_IDENTIFIERS = ("qgisred_junctions", "qgisred_tanks", "qgisred_reservoirs")
 _LINK_LAYER_IDENTIFIERS = ("qgisred_pipes", "qgisred_pumps", "qgisred_valves")
 
-_PATH_HIGHLIGHT_RGB = (214, 39, 40)
+_PATH_HIGHLIGHT_RGB = (0, 184, 196)
 
 
 class ProfileState:
@@ -1454,8 +1454,8 @@ class ProfileSection:
                     if band is None:
                         band = QgsRubberBand(canvas, Qgis.GeometryType.Line)
                         band.setColor(QColor(_PATH_HIGHLIGHT_RGB[0], _PATH_HIGHLIGHT_RGB[1],
-                                             _PATH_HIGHLIGHT_RGB[2], 200))
-                        band.setWidth(3)
+                                             _PATH_HIGHLIGHT_RGB[2], 220))
+                        band.setWidth(5)
                         self._profileHighlights.append(band)
                     band.addGeometry(feature.geometry(), layer)
 
