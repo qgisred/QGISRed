@@ -431,6 +431,9 @@ class QGISRedProfileDock(QDockWidget):
     def clearEnvelope(self):
         self.plot.clearEnvelope()
 
+    def setStableRanges(self, left_points, right_points):
+        self.plot.setStableRanges(left_points, right_points)
+
     def clearPlot(self):
         self.plot.clear()
         self.table.clearContents()

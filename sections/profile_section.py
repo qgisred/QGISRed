@@ -456,6 +456,45 @@ class ProfileSection:
         }
         dock.setEnvelope(max_points, min_points, self._profileEnvelopeMode, labels)
 
+    def _profileStableSegments(self, include_branches):
+        segments = []
+        main = getattr(self, "_profilePath", None)
+        if main and main["nodes"]:
+            segments.append((main["nodes"], self._profileDistances))
+        if include_branches:
+            for branch in getattr(self, "_profileBranches", []) or []:
+                branch_path = branch.get("path")
+                if branch_path and branch_path["nodes"]:
+                    segments.append((branch_path["nodes"], branch["distances"]))
+        return segments
+
+    def _profileStableAxisPoints(self, key, segments):
+        if key not in ("Head", "Pressure", "Quality"):
+            return None
+        stat_max, stat_min = self._profileStats()
+        points = []
+        for seg_nodes, seg_distances in segments:
+            max_points, min_points = envelope_points(seg_nodes, seg_distances, stat_max, stat_min, key)
+            points.extend((d, v) for d, v in max_points if v is not None)
+            points.extend((d, v) for d, v in min_points if v is not None)
+        return points or None
+
+    def _applyProfileStableRanges(self, dock, key, secondary_key):
+        left_segments = self._profileStableSegments(include_branches=True)
+        left = self._profileStableAxisPoints(key, left_segments) or []
+        if key == "Head":
+            elev = getattr(self, "_profileNodeElev", {})
+            for seg_nodes, seg_distances in left_segments:
+                for i, node in enumerate(seg_nodes):
+                    value = elev.get(node)
+                    if value is not None:
+                        left.append((seg_distances[i], float(value)))
+        right = None
+        if secondary_key and secondary_key != key:
+            right = self._profileStableAxisPoints(
+                secondary_key, self._profileStableSegments(include_branches=False))
+        dock.setStableRanges(left or None, right)
+
     def _onProfileSymbolsToggled(self, dock, checked):
         self._activateProfile(dock)
         self._profileShowSymbols = bool(checked)
@@ -1253,6 +1292,8 @@ class ProfileSection:
             title = self.tr("Longitudinal profiles")
         dock.setSeries(series, title, self._profileDistanceDisplay(), y_label, y_right_label)
         self._drawProfileHighlight()
+        with suppress(Exception):
+            self._applyProfileStableRanges(dock, key, secondary_key)
         with suppress(Exception):
             self._applyProfileEnvelope(dock, key, nodes, distances)
         with suppress(Exception):

@@ -82,6 +82,7 @@ class ProfilePlotWidget(QWidget):
         self._show_value_labels = False
         self._symbols = None
         self._envelope = None
+        self._stable = {"left": None, "right": None}
         self._view_x = None
         self._pan_mode = False
         self._zoom_window_mode = False
@@ -135,6 +136,13 @@ class ProfilePlotWidget(QWidget):
 
     def clearEnvelope(self):
         self._envelope = None
+        self.update()
+
+    def setStableRanges(self, left_points, right_points):
+        self._stable = {
+            "left": [(float(d), float(v)) for d, v in left_points if v is not None] if left_points else None,
+            "right": [(float(d), float(v)) for d, v in right_points if v is not None] if right_points else None,
+        }
         self.update()
 
     def setCursorNode(self, index):
@@ -228,6 +236,7 @@ class ProfilePlotWidget(QWidget):
         self._cursor_path_key = None
         self._symbols = None
         self._envelope = None
+        self._stable = {"left": None, "right": None}
         self._view_x = None
         self._zoom_rect = None
         self.update()
@@ -290,11 +299,11 @@ class ProfilePlotWidget(QWidget):
             for d, v in s["points"]:
                 if v is not None and x0 - 1e-9 <= d <= x1 + 1e-9:
                     values.append(v)
-        if which == "left" and self._envelope is not None:
-            for boundary in ("max", "min"):
-                for d, v in self._envelope[boundary]:
-                    if v is not None and x0 - 1e-9 <= d <= x1 + 1e-9:
-                        values.append(v)
+        stable = self._stable.get(which)
+        if stable:
+            for d, v in stable:
+                if v is not None and x0 - 1e-9 <= d <= x1 + 1e-9:
+                    values.append(v)
         if not values:
             for s in self._series:
                 if s.get("y_axis", "left") == which:
