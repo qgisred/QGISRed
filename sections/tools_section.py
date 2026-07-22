@@ -636,12 +636,16 @@ class ToolsSection:
             else str(themeName).strip().lower()
         )
 
-        if normalized_theme == "nodes":
-            self._applyDemandSectorNodesStyle(vlayer)
+        if normalized_theme == "nodes" or normalized_theme == "multinodes":
+            self._applyDemandSectorNodeBasedStyle(vlayer)
             return
 
         if normalized_theme == "links":
             self._applyDemandSectorLinksStyle(vlayer)
+            return
+        
+        if normalized_theme == "multilinks":
+            self._applyDemandSectorMultiLinksStyle(vlayer)
             return
 
         if normalized_theme == "frontiers":
@@ -661,7 +665,7 @@ class ToolsSection:
         elif layer_name.endswith("_frontiers"):
             self._applyDemandSectorFrontiersStyle(vlayer)
         
-    def _applyDemandSectorNodesStyle(self, vlayer):
+    def _applyDemandSectorNodeBasedStyle(self, vlayer):
         sector_field_index = vlayer.fields().indexFromName("SectorID")
 
         if sector_field_index == -1:
@@ -698,7 +702,7 @@ class ToolsSection:
 
             categories.append(
                 QgsRendererCategory(
-                    "__UNDECLARED__",
+                    "Undeclared",
                     symbol,
                     "Undeclared"
                 )
@@ -730,7 +734,7 @@ class ToolsSection:
             "OR trim(to_string(\"SectorID\")) = '' "
             "OR lower(trim(to_string(\"SectorID\"))) "
             "IN ('null', 'undefined') "
-            "THEN '__UNDECLARED__' "
+            "THEN 'Undeclared' "
             "ELSE trim(to_string(\"SectorID\")) "
             "END"
         )
@@ -822,7 +826,7 @@ class ToolsSection:
 
             categories.append(
                 QgsRendererCategory(
-                    "__UNDECLARED__",
+                    "Undeclared",
                     undeclared_symbol,
                     "Undeclared"
                 )
@@ -860,8 +864,100 @@ class ToolsSection:
             "OR trim(to_string(\"SectorID\")) = '' "
             "OR lower(trim(to_string(\"SectorID\"))) "
             "IN ('null', 'undefined') "
-            "THEN '__UNDECLARED__' "
+            "THEN 'Undeclared' "
 
+            "ELSE trim(to_string(\"SectorID\")) "
+            "END"
+        )
+
+        renderer = QgsCategorizedSymbolRenderer(
+            renderer_expression,
+            categories
+        )
+
+        vlayer.setRenderer(renderer)
+
+        QGISRedStylingUtils(
+            self.ProjectDirectory,
+            self.NetworkName,
+            self.iface
+        ).translateRendererLabels(vlayer)
+
+        vlayer.triggerRepaint()
+
+    def _applyDemandSectorMultiLinksStyle(self, vlayer):
+        sector_field_index = vlayer.fields().indexFromName("SectorID")
+
+        if sector_field_index == -1:
+            return
+
+        sector_ids = set()
+        has_undeclared = False
+
+        for feature in vlayer.getFeatures():
+            raw_sector_id = feature[sector_field_index]
+
+            sector_id = (
+                ""
+                if raw_sector_id is None
+                else str(raw_sector_id).strip()
+            )
+
+            if (
+                sector_id == ""
+                or sector_id.lower() in ("null", "undefined")
+            ):
+                has_undeclared = True
+            else:
+                sector_ids.add(sector_id)
+
+        categories = []
+
+        if has_undeclared:
+            undeclared_symbol = QgsSymbol.defaultSymbol(
+                vlayer.geometryType()
+            )
+
+            undeclared_symbol.setColor(QColor("orange"))
+            undeclared_symbol.setWidth(0.7)
+
+            categories.append(
+                QgsRendererCategory(
+                    "Undeclared",
+                    undeclared_symbol,
+                    "Undeclared"
+                )
+            )
+
+        for sector_id in sorted(
+            sector_ids,
+            key=str.casefold
+        ):
+            symbol = QgsSymbol.defaultSymbol(
+                vlayer.geometryType()
+            )
+
+            symbol.setColor(
+                self._colorForSectorId(sector_id)
+            )
+
+            symbol.setWidth(0.7)
+
+            categories.append(
+                QgsRendererCategory(
+                    sector_id,
+                    symbol,
+                    sector_id
+                )
+            )
+
+        renderer_expression = (
+            "CASE "
+            "WHEN \"SectorID\" IS NULL "
+            "OR trim(to_string(\"SectorID\")) = '' "
+            "OR lower(trim(to_string(\"SectorID\"))) "
+            "IN ('null', 'undefined') "
+            "THEN 'Undeclared' "
             "ELSE trim(to_string(\"SectorID\")) "
             "END"
         )
