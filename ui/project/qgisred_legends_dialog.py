@@ -46,6 +46,9 @@ class QGISRedLegendsDialog(QDialog, formClass):
     WARN_CLASSES = 50
     MAX_CLASSES = 1000
 
+    # Same size used by QGISRED_COMBO_STYLE, so every input matches the comboboxes
+    CONTROL_FONT_SIZE = "8pt"
+
     ALLOWED_GROUP_IDENTIFIERS = [
         "qgisred_thematicmaps",
         "qgisred_results",
@@ -336,11 +339,13 @@ class QGISRedLegendsDialog(QDialog, formClass):
     def applyTableStylesheet(self):
         stylesheet = """
             QTableWidget {background-color: white;gridline-color: #d0d0d0;
-            selection-background-color: #3399ff;selection-color: white;border: 1px solid #d0d0d0;}
+            selection-background-color: #3399ff;selection-color: white;border: 1px solid #d0d0d0;
+            font-size: %(fontSize)s;}
             QTableWidget::item {border-bottom: 1px solid #d0d0d0;padding: 0px;}
             QTableWidget::item:selected {background-color: #3399ff;}
-            QHeaderView::section {background-color: #f0f0f0;padding: 4px;border: 1px solid #d0d0d0;}
-        """
+            QHeaderView::section {background-color: #f0f0f0;padding: 4px;border: 1px solid #d0d0d0;
+            font-size: %(fontSize)s;}
+        """ % {"fontSize": self.CONTROL_FONT_SIZE}
         self.tableView.setStyleSheet(stylesheet)
 
     def setupClassCountField(self):
@@ -402,8 +407,7 @@ class QGISRedLegendsDialog(QDialog, formClass):
     def applyConsistentStyling(self):
         comboStyle = "QComboBox { background-color: white; }"
         spinStyle = (
-            "QSpinBox { background-color: white; } "
-            "QDoubleSpinBox { background-color: white; }"
+            "QSpinBox, QDoubleSpinBox { background-color: white; font-size: %s; }" % self.CONTROL_FONT_SIZE
         )
 
         self.cbGroups.setStyleSheet(comboStyle)
@@ -417,6 +421,7 @@ class QGISRedLegendsDialog(QDialog, formClass):
         self.spinSizeEqual.setStyleSheet(spinStyle)
         self.spinSizeMin.setStyleSheet(spinStyle)
         self.spinSizeMax.setStyleSheet(spinStyle)
+        self.leClassCount.setStyleSheet(spinStyle)
 
     def setupStyleMenus(self):
         loadMenu = QMenu(self)
@@ -1857,11 +1862,12 @@ class QGISRedLegendsDialog(QDialog, formClass):
                 border: none;
                 padding: 2px;
                 color: #2b2b2b;
+                font-size: %s;
             }
             QLineEdit:focus {
                 border: 1px solid #3399ff;
             }
-        """
+        """ % self.CONTROL_FONT_SIZE
 
     def getReadOnlyLineEditStyle(self):
         return """
@@ -1870,8 +1876,9 @@ class QGISRedLegendsDialog(QDialog, formClass):
                 border: none;
                 padding: 2px;
                 color: #808080;
+                font-size: %s;
             }
-        """
+        """ % self.CONTROL_FONT_SIZE
 
     def getUniqueValuesFromLayer(self):
         if not self.currentLayer or not self.currentFieldName:
