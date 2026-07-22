@@ -3,7 +3,7 @@
 from qgis.PyQt.QtGui import QColor, QPixmap, QPainter, QIcon
 from ...compat import PAINTER_ANTIALIASING, STYLE_CC_COMBOBOX, STYLE_CE_COMBOBOXLABEL
 from qgis.PyQt.QtWidgets import QDialog, QDialogButtonBox, QDoubleSpinBox, QLabel, QVBoxLayout
-from qgis.PyQt.QtWidgets import QToolButton, QComboBox, QApplication, QStylePainter, QStyleOptionComboBox
+from qgis.PyQt.QtWidgets import QToolButton, QComboBox, QApplication, QStylePainter, QStyleOptionComboBox, QSizePolicy
 from qgis.PyQt.QtWidgets import QCheckBox
 from qgis.PyQt.QtCore import pyqtSignal, Qt, QEvent, QSize, QObject, QPoint, QItemSelectionModel, QItemSelection
 
@@ -294,8 +294,9 @@ class QGISRedColorRampSelector(QComboBox):
         self.currentIndexChanged.connect(self.onSelectionChanged)
 
     def configureDimensions(self):
-        self.setFixedWidth(self.preferredWidth)
+        self.setMinimumWidth(self.preferredWidth)
         self.setFixedHeight(self.preferredHeight)
+        self.setSizePolicy(QSizePolicy.Policy.Expanding, QSizePolicy.Policy.Fixed)
         self.setIconSize(QSize(self.iconWidth, self.iconHeight))
 
     def paintEvent(self, event):

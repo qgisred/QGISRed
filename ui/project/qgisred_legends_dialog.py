@@ -399,9 +399,7 @@ class QGISRedLegendsDialog(QDialog, formClass):
     def setupColorRampButton(self):
         self.btnColorRamp = QGISRedColorRampSelector(self)
         self.btnColorRamp.setVisible(False)
-        self.palletesHorizontalLayout.addStretch(1)
         self.palletesHorizontalLayout.addWidget(self.btnColorRamp)
-        self.palletesHorizontalLayout.addStretch(1)
         self.btnColorRamp.rampChanged.connect(self.onCustomColorChanged)
 
     def applyConsistentStyling(self):
@@ -422,6 +420,24 @@ class QGISRedLegendsDialog(QDialog, formClass):
         self.spinSizeMin.setStyleSheet(spinStyle)
         self.spinSizeMax.setStyleSheet(spinStyle)
         self.leClassCount.setStyleSheet(spinStyle)
+
+        self.applySubOptionStyling()
+
+    def applySubOptionStyling(self):
+        # Sub-option captions (Min, Max, Value, Interval Range, Invert) read as
+        # secondary to the section labels: italic.
+        subOptionWidgets = [
+            self.labelIntervalRange,
+            self.labelSizeValue,
+            self.labelSpinMin,
+            self.labelSpinMax,
+            self.ckSizeInvert,
+            self.ckColorInvert,
+        ]
+        for widget in subOptionWidgets:
+            font = widget.font()
+            font.setItalic(True)
+            widget.setFont(font)
 
     def setupStyleMenus(self):
         loadMenu = QMenu(self)
