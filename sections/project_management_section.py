@@ -944,10 +944,8 @@ class ProjectManagementSection:
 
         # DemandsBuilder layers need the QGIS project tree and providers
         # to be fully restored before they are reconciled.
-        QTimer.singleShot(
-            500,
-            self._open_demands_builder_layers_after_project_load
-        )
+        QTimer.singleShot(500, self._open_demands_builder_layers_after_project_load)
+        QTimer.singleShot(500, self._open_demand_sector_layers_after_project_load)
 
     def _open_demands_builder_layers_after_project_load(self):
         """Reopen missing DemandsBuilder layers after QGIS finishes restoring the project."""
@@ -961,6 +959,58 @@ class ProjectManagementSection:
             return
 
         self.openDemandsBuilderLayers()
+
+        if self.iface:
+            self.iface.layerTreeCanvasBridge().setCanvasLayers()
+            self.iface.mapCanvas().refresh()
+
+    def _open_demand_sector_layers_after_project_load(self):
+        """Reopen and restyle Demand Sectors layers after loading the QGIS project."""
+        if self.isUnloading:
+            return
+
+        if (
+            not self.ProjectDirectory
+            or self.ProjectDirectory == self.TemporalFolder
+        ):
+            return
+
+        demand_sectors_folder = os.path.join(
+            self.ProjectDirectory,
+            "Auxiliary Layers",
+            "DemandSectors"
+        )
+
+        if not os.path.isdir(demand_sectors_folder):
+            return
+
+        for sectorization_name in os.listdir(demand_sectors_folder):
+            sectorization_folder = os.path.join(
+                demand_sectors_folder,
+                sectorization_name
+            )
+
+            if not os.path.isdir(sectorization_folder):
+                continue
+
+            prefix = sectorization_name + "_"
+
+            for filename in os.listdir(sectorization_folder):
+                if not filename.lower().endswith(".shp"):
+                    continue
+
+                theme_name = os.path.splitext(filename)[0]
+
+                if not theme_name.startswith(prefix):
+                    continue
+
+                theme_name = theme_name[len(prefix):]
+
+                if theme_name:
+                    self.openDemandSectorTheme(
+                        sectorization_name,
+                        theme_name
+                    )
 
         if self.iface:
             self.iface.layerTreeCanvasBridge().setCanvasLayers()
