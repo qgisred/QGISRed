@@ -1,0 +1,23 @@
+[flake8]
+# max-line-length applies to --statistics / periodic runs only;
+# the pre-commit hook uses --select to avoid blocking on style.
+max-line-length = 120
+
+# Team style choices — not errors
+extend-ignore =
+    E221,
+    W503,
+
+per-file-ignores =
+    # pytest fixture imports appear "unused/redefined" to flake8
+    tests/*.py: F401, F811, E702, E741, W293, W291, W391
+    tests/conftest.py: E402
+    # compat.py has intentional late conditional imports
+    compat.py: E402
+    # build/release scripts — not plugin code
+    scripts/*.py: W293, W291, W391, E302, E303, E305
+
+exclude =
+    .git,
+    __pycache__,
+    .pytest_cache,

@@ -1,13 +1,13 @@
 #!/bin/sh
 # .githooks/pre-commit
-# Runs pytest before every commit. Blocks the commit if any test fails.
+# Runs flake8 (blocking on real errors) and pytest (tests) before every commit.
 #
 # One-time setup for each contributor:
 #   Windows:    scripts\setup-hooks.bat
 #   Linux/Mac:  git config core.hooksPath .githooks
 #
-# Requirements: python (any interpreter on PATH) with pytest installed.
-#   python -m pip install pytest
+# Requirements: python with pytest and flake8 installed.
+#   python -m pip install pytest flake8
 
 # ── Resolve repo root (two levels up from .githooks/pre-commit) ─────────────
 HOOK_DIR="$(cd "$(dirname "$0")" && pwd)"
@@ -16,11 +16,43 @@ REPO_ROOT="$(cd "$HOOK_DIR/.." && pwd)"
 # ── Redirect all output to stderr so git shows it in the terminal ────────────
 exec 1>&2
 
+# ── 1. Flake8 — block only on real errors, not style noise ──────────────────
+echo "---------------------------------------------"
+echo " QGISRed pre-commit: running flake8"
+echo "---------------------------------------------"
+
+if ! python -m flake8 --version >/dev/null 2>&1; then
+    echo ""
+    echo "WARNING: flake8 not installed — skipping quality check."
+    echo "  Install with: python -m pip install flake8"
+    echo ""
+else
+    # --select limits to real errors only (unused imports, redefinitions,
+    # ambiguous names, trailing whitespace).
+    # Style issues (E501 long lines, E302 blank lines, etc.) are checked
+    # by the periodic script and the remote CI scanner.
+    python -m flake8 "$REPO_ROOT" \
+        --select=F401,F811,F841,W291,W293,W391,E741,E402 \
+        --per-file-ignores="tests/*.py:F401,F811,E741,W291,W293,W391 tests/conftest.py:E402 compat.py:E402 scripts/*.py:W291,W293,W391"
+    FLAKE8_EXIT=$?
+    if [ "$FLAKE8_EXIT" -ne 0 ]; then
+        echo ""
+        echo "---------------------------------------------"
+        echo " COMMIT BLOCKED: flake8 found issues above."
+        echo " Fix them, then commit again."
+        echo " Run 'scripts/check-quality.bat --stats' for full report."
+        echo " To skip (not recommended): git commit --no-verify"
+        echo "---------------------------------------------"
+        exit $FLAKE8_EXIT
+    fi
+    echo " Flake8 clean."
+fi
+
+# ── 2. Pytest ────────────────────────────────────────────────────────────────
 echo "---------------------------------------------"
 echo " QGISRed pre-commit: running pytest"
 echo "---------------------------------------------"
 
-# ── Check that pytest is importable ─────────────────────────────────────────
 if ! python -m pytest --version >/dev/null 2>&1; then
     echo ""
     echo "ERROR: 'python -m pytest' failed."
@@ -31,7 +63,6 @@ if ! python -m pytest --version >/dev/null 2>&1; then
     exit 1
 fi
 
-# ── Run the test suite ───────────────────────────────────────────────────────
 python -m pytest "$REPO_ROOT/tests/" -v --tb=short
 TEST_EXIT=$?
 
