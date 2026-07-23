@@ -172,13 +172,13 @@ class _ResultsAppearanceMixin:
             self.spNodeDecimals.setValue(dec)
             self.spNodeDecimals.blockSignals(False)
             var_name = self.cbNodes.currentText() if self.cbNodes.currentIndex() > 0 else QCoreApplication.translate("QGISRedResultsDock", "Nodes")
-            self.lbNodeDecimals.setText(QCoreApplication.translate("QGISRedResultsDock", "%1 decimals").replace("%1", var_name) + ":")
+            self.lbNodeDecimals.setText(QCoreApplication.translate("QGISRedResultsDock", "%1 decimals").replace("%1", f"<b>{var_name}</b>") + ":")
         else:
             self.spLinkDecimals.blockSignals(True)
             self.spLinkDecimals.setValue(dec)
             self.spLinkDecimals.blockSignals(False)
             var_name = self.cbLinks.currentText() if self.cbLinks.currentIndex() > 0 else QCoreApplication.translate("QGISRedResultsDock", "Links")
-            self.lbLinkDecimals.setText(QCoreApplication.translate("QGISRedResultsDock", "%1 decimals").replace("%1", var_name) + ":")
+            self.lbLinkDecimals.setText(QCoreApplication.translate("QGISRedResultsDock", "%1 decimals").replace("%1", f"<b>{var_name}</b>") + ":")
 
     # ------------------------------------------------------------------
     # Enablement (grey out controls tied to a variable combobox on None)
