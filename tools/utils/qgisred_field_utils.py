@@ -5,7 +5,8 @@ import csv as _csv
 import shutil
 
 from qgis.PyQt.QtCore import QCoreApplication
-from qgis.core import QgsMessageLog, Qgis
+from qgis.core import QgsMessageLog, Qgis  # noqa: F401 (Qgis kept for potential callers)
+from ...compat import QGIS_WARNING
 from .qgisred_filesystem_utils import QGISRedFileSystemUtils
 from .qgisred_project_utils import QGISRedProjectUtils
 
@@ -518,7 +519,7 @@ class QGISRedFieldUtils:
                             prettyNames[normEl][fieldName] = prop
             except Exception as e:
                 QgsMessageLog.logMessage(
-                    f"Error loading unit definitions: {e}", "QGISRed", Qgis.Warning)
+                    f"Error loading unit definitions: {e}", "QGISRed", QGIS_WARNING)
 
         prettyNames["Common"] = dict(_COMMON_PRETTY_NAMES)
         if "ServiceConnection" in prettyNames:

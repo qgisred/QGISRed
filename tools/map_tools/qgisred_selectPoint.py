@@ -9,7 +9,7 @@ from ..utils.qgisred_styling_utils import create_combined_cursor
 from ..utils.qgisred_ui_utils import QGISRedUIUtils
 from ...compat import (
     SNAP_TYPE_VERTEX, SNAP_TYPE_SEGMENT, SNAP_TYPE_BOTH,
-    VERTEX_ICON_BOX, VERTEX_ICON_TRIANGLE
+    VERTEX_ICON_BOX, VERTEX_ICON_TRIANGLE, VERTEX_ICON_X,
 )
 
 
@@ -50,21 +50,18 @@ class QGISRedSelectPointTool(QgsMapTool):
         if self.type == SelectPointType.TwoPoints or self.type == SelectPointType.TwoLines or self.type == SelectPointType.PointLine:
             self.startMarker.setColor(QColor(139, 0, 0))
         self.startMarker.setIconSize(15)
-        self.startMarker.setIconType(QgsVertexMarker.ICON_BOX)
+        self.startMarker.setIconType(VERTEX_ICON_BOX)
         if self.type == SelectPointType.Line or self.type == SelectPointType.TwoLines:
-            try:
-                self.startMarker.setIconType(QgsVertexMarker.ICON_TRIANGLE)
-            except Exception:
-                self.startMarker.setIconType(QgsVertexMarker.ICON_X)
+            self.startMarker.setIconType(VERTEX_ICON_TRIANGLE or VERTEX_ICON_X)
         self.startMarker.setPenWidth(3)
         self.startMarker.hide()
 
         self.endMarker = QgsVertexMarker(self.iface.mapCanvas())
         self.endMarker.setColor(QColor(0, 128, 0))
         self.endMarker.setIconSize(15)
-        self.endMarker.setIconType(QgsVertexMarker.ICON_BOX)
+        self.endMarker.setIconType(VERTEX_ICON_BOX)
         if self.type == SelectPointType.TwoLines or self.type == SelectPointType.PointLine:
-            self.endMarker.setIconType(QgsVertexMarker.ICON_X)
+            self.endMarker.setIconType(VERTEX_ICON_X)
         self.endMarker.setPenWidth(3)
         self.endMarker.hide()
         self.firstPoint = None

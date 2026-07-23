@@ -16,35 +16,12 @@ from qgis.PyQt.QtGui import QColor, QFont
 from ...compat import (
     RENDER_UNIT_POINTS, RENDER_UNIT_MILLIMETERS,
     TEXT_BG_SHAPE_RECTANGLE, TEXT_BG_SIZE_BUFFER,
+    PAL_PROPERTY_COLOR, PAL_PLACEMENT_LINE, PAL_PLACEMENT_AROUND_POINT,
+    SL_PROP_SIZE, SL_PROP_STROKE_COLOR, SL_PROP_STROKE_WIDTH,
 )
 from ...tools.utils.qgisred_styling_utils import QGISRedStylingUtils, _NULL_RULE_LABEL, _NullHiddenLegend
 from ...tools.utils.qgisred_ui_utils import QGISRedUIUtils
 from ...tools.utils.qgisred_field_utils import QGISRedFieldUtils
-
-# Compatibility shims for QgsSymbolLayer property enums (may be scoped in QGIS 4.x)
-try:
-    _SL_PROP_SIZE = QgsSymbolLayer.PropertySize
-except AttributeError:
-    try:
-        _SL_PROP_SIZE = QgsSymbolLayer.Property.Size
-    except AttributeError:
-        _SL_PROP_SIZE = 9  # historical fallback
-
-try:
-    _SL_PROP_STROKE_WIDTH = QgsSymbolLayer.PropertyStrokeWidth
-except AttributeError:
-    try:
-        _SL_PROP_STROKE_WIDTH = QgsSymbolLayer.Property.StrokeWidth
-    except AttributeError:
-        _SL_PROP_STROKE_WIDTH = 6  # historical fallback
-
-try:
-    _SL_PROP_STROKE_COLOR = QgsSymbolLayer.PropertyStrokeColor
-except AttributeError:
-    try:
-        _SL_PROP_STROKE_COLOR = QgsSymbolLayer.Property.StrokeColor
-    except AttributeError:
-        _SL_PROP_STROKE_COLOR = 4  # historical fallback
 
 # Default label text colors (used unless the user picks "By range" or overrides them in
 # Appearance). Dark tones close to black so labels stay legible, but distinguishable
@@ -438,7 +415,7 @@ class _ResultsRenderingMixin:
                 from qgis.core import QgsPropertyCollection
                 prop = QgsProperty.fromExpression(color_expr)
                 ddp = QgsPropertyCollection()
-                ddp.setProperty(QgsPalLayerSettings.Color, prop)
+                ddp.setProperty(PAL_PROPERTY_COLOR, prop)
                 layer_settings.setDataDefinedProperties(ddp)
 
         layer_settings.setFormat(text_format)
@@ -494,10 +471,10 @@ class _ResultsRenderingMixin:
         layer_settings.enabled = True
 
         if is_node:
-            layer_settings.placement = QgsPalLayerSettings.AroundPoint
+            layer_settings.placement = PAL_PLACEMENT_AROUND_POINT
             layer_settings.dist = 2.0
         else:
-            layer_settings.placement = QgsPalLayerSettings.Line
+            layer_settings.placement = PAL_PLACEMENT_LINE
             layer_settings.dist = 1.0
         layer_settings.distUnits = RENDER_UNIT_MILLIMETERS
         labels = QgsVectorLayerSimpleLabeling(layer_settings)
@@ -617,11 +594,11 @@ class _ResultsRenderingMixin:
                                 f' {target_pipe_width}, {pipe_max})'
                             )
                             sl0.setDataDefinedProperty(
-                                _SL_PROP_STROKE_WIDTH,
+                                SL_PROP_STROKE_WIDTH,
                                 QgsProperty.fromExpression(prop_expr))
                         else:
                             sl0.setDataDefinedProperty(
-                                _SL_PROP_STROKE_WIDTH, QgsProperty())
+                                SL_PROP_STROKE_WIDTH, QgsProperty())
                 # Pump/valve SVG icon sizes (MarkerLine at indices 1, 2).
                 # Scale with pipe_factor since they are link elements.
                 for icon_idx in (1, 2):
@@ -682,7 +659,7 @@ class _ResultsRenderingMixin:
                         if sl is None:
                             continue
                         ddp = sl.dataDefinedProperties()
-                        size_prop = ddp.property(_SL_PROP_SIZE)
+                        size_prop = ddp.property(SL_PROP_SIZE)
                         if size_prop.isActive():
                             old_expr = size_prop.expressionString()
                             if can_be_proportional:
@@ -694,7 +671,7 @@ class _ResultsRenderingMixin:
                                 new_expr = _build_node_size_expr(
                                     old_expr, str(target_junction), str(target_special))
                             if new_expr != old_expr:
-                                ddp.setProperty(_SL_PROP_SIZE, QgsProperty.fromExpression(new_expr))
+                                ddp.setProperty(SL_PROP_SIZE, QgsProperty.fromExpression(new_expr))
                                 sl.setDataDefinedProperties(ddp)
                         # Junction border: SimpleMarker junctions render a thin black outline
                         # by default (outline_width=0 is still a visible cosmetic hairline in
@@ -705,11 +682,11 @@ class _ResultsRenderingMixin:
                                 continue
                             if hide_junction_border:
                                 sl.setDataDefinedProperty(
-                                    _SL_PROP_STROKE_COLOR,
+                                    SL_PROP_STROKE_COLOR,
                                     QgsProperty.fromExpression("color_rgba(0,0,0,0)"))
                             else:
                                 sl.setDataDefinedProperty(
-                                    _SL_PROP_STROKE_COLOR, QgsProperty())
+                                    SL_PROP_STROKE_COLOR, QgsProperty())
 
         layer.setRenderer(new_renderer)
         layer.triggerRepaint()

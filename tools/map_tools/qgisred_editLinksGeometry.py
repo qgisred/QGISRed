@@ -3,7 +3,7 @@ from qgis.PyQt.QtCore import Qt
 from qgis.PyQt.QtGui import QCursor, QColor
 from qgis.core import QgsPointXY, QgsPoint, QgsFeatureRequest, QgsFeature, QgsGeometry, QgsProject, QgsVector
 from qgis.core import QgsVectorLayerEditUtils, QgsSnappingConfig, QgsTolerance
-from ...compat import SNAP_TYPE_SEGMENT
+from ...compat import SNAP_TYPE_SEGMENT, VERTEX_ICON_BOX, VERTEX_ICON_X, VERTEX_ICON_CROSS, VERTEX_ICON_CIRCLE, VERTEX_ICON_DOUBLE_TRIANGLE
 from qgis.gui import QgsMapTool, QgsVertexMarker, QgsRubberBand, QgsMapCanvasSnappingUtils
 try:
     from qgis.gui import Qgis
@@ -32,7 +32,7 @@ class QGISRedEditLinksGeometryTool(QgsMapTool):
         self.vertexMarker = QgsVertexMarker(self.iface.mapCanvas())
         self.vertexMarker.setColor(QColor(255, 87, 51))
         self.vertexMarker.setIconSize(15)
-        self.vertexMarker.setIconType(QgsVertexMarker.ICON_BOX)  # or ICON_CROSS, ICON_X
+        self.vertexMarker.setIconType(VERTEX_ICON_BOX)  # or ICON_CROSS, ICON_X
         self.vertexMarker.setPenWidth(3)
         self.vertexMarker.hide()
 
@@ -40,10 +40,7 @@ class QGISRedEditLinksGeometryTool(QgsMapTool):
         self.pipeMarker = QgsVertexMarker(self.iface.mapCanvas())
         self.pipeMarker.setColor(QColor(143, 0, 255))
         self.pipeMarker.setIconSize(10)
-        try:
-            self.pipeMarker.setIconType(QgsVertexMarker.ICON_DOUBLE_TRIANGLE)  # or ICON_CROSS, ICON_X
-        except Exception:
-            self.pipeMarker.setIconType(QgsVertexMarker.ICON_X)  # or ICON_CROSS, ICON_X
+        self.pipeMarker.setIconType(VERTEX_ICON_DOUBLE_TRIANGLE or VERTEX_ICON_X)
         self.pipeMarker.setPenWidth(3)
         self.pipeMarker.hide()
 
@@ -58,7 +55,7 @@ class QGISRedEditLinksGeometryTool(QgsMapTool):
         self.newVertexMarker = QgsVertexMarker(self.iface.mapCanvas())
         self.newVertexMarker.setColor(QColor(55, 198, 5))
         self.newVertexMarker.setIconSize(15)
-        self.newVertexMarker.setIconType(QgsVertexMarker.ICON_BOX)  # or ICON_CROSS, ICON_X
+        self.newVertexMarker.setIconType(VERTEX_ICON_BOX)  # or ICON_CROSS, ICON_X
         self.newVertexMarker.setPenWidth(3)
         self.newVertexMarker.hide()
 
@@ -67,7 +64,7 @@ class QGISRedEditLinksGeometryTool(QgsMapTool):
         self.insertMarker.setColor(QColor(55, 198, 5))
         self.insertMarker.setFillColor(QColor(55, 198, 5))
         self.insertMarker.setIconSize(14)
-        self.insertMarker.setIconType(QgsVertexMarker.ICON_CROSS)
+        self.insertMarker.setIconType(VERTEX_ICON_CROSS)
         self.insertMarker.setPenWidth(4)
         self.insertMarker.setZValue(100)
         self.insertMarker.hide()
@@ -184,7 +181,7 @@ class QGISRedEditLinksGeometryTool(QgsMapTool):
             m.setColor(QColor(120, 120, 120))
             m.setFillColor(QColor(255, 255, 255, 200))
             m.setIconSize(7)
-            m.setIconType(QgsVertexMarker.ICON_CIRCLE)
+            m.setIconType(VERTEX_ICON_CIRCLE)
             m.setPenWidth(2)
             self.vertexMarkers.append(m)
 

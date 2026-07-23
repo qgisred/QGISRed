@@ -3,7 +3,7 @@ from qgis.PyQt.QtCore import Qt
 from qgis.PyQt.QtGui import QCursor, QColor
 from qgis.core import QgsPointXY, QgsPoint, QgsFeatureRequest, QgsFeature, QgsGeometry, QgsProject, QgsVector
 from qgis.core import QgsVectorLayerEditUtils, QgsSnappingConfig, QgsTolerance
-from ...compat import SNAP_TYPE_VERTEX
+from ...compat import SNAP_TYPE_VERTEX, VERTEX_ICON_BOX
 from qgis.gui import QgsMapTool, QgsVertexMarker, QgsRubberBand, QgsMapCanvasSnappingUtils
 try:
     from qgis.gui import Qgis
@@ -33,7 +33,7 @@ class QGISRedMoveNodesTool(QgsMapTool):
         self.vertexMarker = QgsVertexMarker(self.iface.mapCanvas())
         self.vertexMarker.setColor(QColor(255, 87, 51))
         self.vertexMarker.setIconSize(15)
-        self.vertexMarker.setIconType(QgsVertexMarker.ICON_BOX)  # or ICON_CROSS, ICON_X
+        self.vertexMarker.setIconType(VERTEX_ICON_BOX)  # or ICON_CROSS, ICON_X
         self.vertexMarker.setPenWidth(3)
         self.vertexMarker.hide()
         self.mousePoint = None
@@ -49,7 +49,7 @@ class QGISRedMoveNodesTool(QgsMapTool):
         self.newVertexMarker = QgsVertexMarker(self.iface.mapCanvas())
         self.newVertexMarker.setColor(QColor(55, 198, 5))
         self.newVertexMarker.setIconSize(15)
-        self.newVertexMarker.setIconType(QgsVertexMarker.ICON_BOX)  # or ICON_CROSS, ICON_X
+        self.newVertexMarker.setIconType(VERTEX_ICON_BOX)  # or ICON_CROSS, ICON_X
         self.newVertexMarker.setPenWidth(3)
         self.newVertexMarker.hide()
 

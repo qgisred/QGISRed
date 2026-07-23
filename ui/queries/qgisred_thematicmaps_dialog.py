@@ -7,7 +7,7 @@ import os
 # Third-party imports
 from qgis.PyQt.QtGui import QIcon
 from qgis.PyQt.QtWidgets import QDialog, QMessageBox, QWidget
-from ...compat import sip, NODE_TYPE_LAYER, NODE_TYPE_GROUP
+from ...compat import sip, NODE_TYPE_LAYER, NODE_TYPE_GROUP, PAL_PLACEMENT_OVER_POINT
 from qgis.PyQt import uic
 from qgis.PyQt.QtCore import QCoreApplication
 
@@ -393,7 +393,7 @@ class QGISRedThematicMapsDialog(QDialog, FORM_CLASS):
         labelSettings = QgsPalLayerSettings()
         labelSettings.fieldName = expression
         labelSettings.isExpression = True
-        labelSettings.placement = QgsPalLayerSettings.OverPoint
+        labelSettings.placement = PAL_PLACEMENT_OVER_POINT
         # Apply labeling to the layer
         labeling = QgsVectorLayerSimpleLabeling(labelSettings)
         layer.setLabeling(labeling)

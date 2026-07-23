@@ -1458,7 +1458,7 @@ class AnalysisSection:
         for label in choices:
             actions.append(menu.addAction(label))
 
-        selected = menu.exec_(QCursor.pos())
+        selected = menu.exec(QCursor.pos())
         if selected is None:
             return None
         try:

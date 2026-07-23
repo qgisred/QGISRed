@@ -30,7 +30,7 @@ class QGISRedMultiLayerSelection(QgsMapTool):
         mFillColor = QColor(255, 0, 0, 100)
         self.myRubberBand.setColor(mFillColor)
         self.myRubberBand.setWidth(2)
-        self.myRubberBand.setLineStyle(2)
+        self.myRubberBand.setLineStyle(Qt.PenStyle.DashLine)
 
         self.rubberBand1 = None
         self.rubberBand2 = None

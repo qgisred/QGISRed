@@ -13,7 +13,7 @@ from ..tools.utils.qgisred_layer_utils import QGISRedLayerUtils
 from ..tools.utils.qgisred_styling_utils import QGISRedStylingUtils
 from ..tools.qgisred_dependencies import QGISRedDependencies as GISRed
 from ..tools.map_tools.qgisred_selectPoint import QGISRedSelectPointTool, SelectPointType
-from ..compat import LAYER_TYPE_VECTOR
+from ..compat import LAYER_TYPE_VECTOR, PAL_PROPERTY_COLOR, PAL_PLACEMENT_LINE
 
 
 class ToolsSection:
@@ -567,7 +567,7 @@ class ToolsSection:
                 )
             color_expression += "ELSE 'gray' END"
 
-            label_settings.dataDefinedProperties().setProperty(QgsPalLayerSettings.Color, QgsProperty.fromExpression(color_expression))
+            label_settings.dataDefinedProperties().setProperty(PAL_PROPERTY_COLOR, QgsProperty.fromExpression(color_expression))
 
         if geom_type == 1:
             if vlayer.fields().indexFromName("%Dem") != -1:
@@ -575,7 +575,7 @@ class ToolsSection:
                 label_settings.fieldName = '"%Dem" || \' %\''
                 label_settings.isExpression = True
                 label_settings.enabled = True
-                label_settings.placement = QgsPalLayerSettings.Line
+                label_settings.placement = PAL_PLACEMENT_LINE
 
                 vlayer.setLabelsEnabled(True)
                 vlayer.setLabeling(

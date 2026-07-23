@@ -364,6 +364,7 @@ class ProfileSection:
             from qgis.gui import QgsVertexMarker
             from qgis.core import QgsPointXY
             from qgis.PyQt.QtGui import QColor
+            from ..compat import VERTEX_ICON_CIRCLE
 
             marker = QgsVertexMarker(self.iface.mapCanvas())
             if from_chart:
@@ -373,7 +374,7 @@ class ProfileSection:
                 marker.setColor(QColor(255, 127, 0))
                 marker.setPenWidth(3)
             marker.setIconSize(20)
-            marker.setIconType(QgsVertexMarker.ICON_CIRCLE)
+            marker.setIconType(VERTEX_ICON_CIRCLE)
             marker.setCenter(QgsPointXY(geoms[0].asPoint()))
             self._profileHoverMarker = marker
             self._profileHoverNodeId = node_id
@@ -1473,6 +1474,7 @@ class ProfileSection:
         from qgis.gui import QgsRubberBand, QgsVertexMarker
         from qgis.core import Qgis, QgsPointXY
         from qgis.PyQt.QtGui import QColor
+        from ..compat import VERTEX_ICON_CIRCLE
 
         self._clearProfileHighlight()
         if getattr(self, "_profileFocusCeded", False):
@@ -1522,7 +1524,7 @@ class ProfileSection:
             marker = QgsVertexMarker(canvas)
             marker.setColor(QColor(255, 127, 0))
             marker.setIconSize(18)
-            marker.setIconType(QgsVertexMarker.ICON_CIRCLE)
+            marker.setIconType(VERTEX_ICON_CIRCLE)
             marker.setPenWidth(3)
             marker.setCenter(QgsPointXY(geom.asPoint()))
             self._profileMarkers.append(marker)

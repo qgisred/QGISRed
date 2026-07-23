@@ -6,7 +6,11 @@ from qgis.PyQt.QtGui import QColor
 from qgis.PyQt.QtWidgets import QCheckBox, QFrame, QHBoxLayout
 from qgis.core import (QgsPointXY, QgsPoint, QgsGeometry, QgsProject, QgsSnappingConfig,
                        QgsTolerance, QgsVectorLayer, Qgis)
-from ...compat import SNAP_TYPE_BOTH, SNAP_TYPE_VERTEX, SNAP_MATCH_EDGE
+from ...compat import (
+    SNAP_TYPE_BOTH, SNAP_TYPE_VERTEX, SNAP_MATCH_EDGE,
+    VERTEX_ICON_BOX, VERTEX_ICON_X,
+    RUBBERBAND_ICON_CROSS,
+)
 from qgis.gui import QgsMapTool, QgsVertexMarker, QgsRubberBand, QgsMapCanvasSnappingUtils
 
 
@@ -38,14 +42,14 @@ class QGISRedCreateLineTool(QgsMapTool):
         self.startMarker = QgsVertexMarker(self.iface.mapCanvas())
         self.startMarker.setColor(QColor(255, 87, 51))
         self.startMarker.setIconSize(self.MARKER_SIZE)
-        self.startMarker.setIconType(QgsVertexMarker.ICON_BOX)
+        self.startMarker.setIconType(VERTEX_ICON_BOX)
         self.startMarker.setPenWidth(3)
         self.startMarker.hide()
 
         self.endMarker = QgsVertexMarker(self.iface.mapCanvas())
         self.endMarker.setColor(QColor(255, 87, 51))
         self.endMarker.setIconSize(self.MARKER_SIZE)
-        self.endMarker.setIconType(QgsVertexMarker.ICON_BOX)
+        self.endMarker.setIconType(VERTEX_ICON_BOX)
         self.endMarker.setPenWidth(3)
         self.endMarker.hide()
 
@@ -252,7 +256,7 @@ class QGISRedCreateLineTool(QgsMapTool):
             self._gridRubberBand = QgsRubberBand(self.iface.mapCanvas(), True)
         self._gridRubberBand.setToGeometry(geom, None)
         self._gridRubberBand.setColor(QColor(100, 100, 200, 100))
-        self._gridRubberBand.setIcon(QgsRubberBand.ICON_CROSS)
+        self._gridRubberBand.setIcon(RUBBERBAND_ICON_CROSS)
         self._gridRubberBand.setIconSize(4)
 
     def _snapToGrid(self, point):
@@ -325,8 +329,8 @@ class QGISRedCreateLineTool(QgsMapTool):
         if match is not None:
             with suppress(Exception):
                 if match.type() & SNAP_MATCH_EDGE:
-                    return QgsVertexMarker.ICON_X
-        return QgsVertexMarker.ICON_BOX
+                    return VERTEX_ICON_X
+        return VERTEX_ICON_BOX
 
     def _filterMatch(self, match):
         if not match.isValid():
@@ -389,7 +393,7 @@ class QGISRedCreateLineTool(QgsMapTool):
                 self.startMarker.show()
             elif self._showGrid and self._gridSpacing > 0:
                 self.objectSnapped = None
-                self.startMarker.setIconType(QgsVertexMarker.ICON_BOX)
+                self.startMarker.setIconType(VERTEX_ICON_BOX)
                 gridPt = self._snapToGrid(self.toMapCoordinates(event.pos()))
                 self.startMarker.setCenter(gridPt)
                 self.startMarker.show()
@@ -411,7 +415,7 @@ class QGISRedCreateLineTool(QgsMapTool):
                 self.mousePoints[-1] = filtered.point()
             else:
                 self.objectSnapped = None
-                self.endMarker.setIconType(QgsVertexMarker.ICON_BOX)
+                self.endMarker.setIconType(VERTEX_ICON_BOX)
                 if self._showGrid and self._gridSpacing > 0:
                     point = self._snapToGrid(point)
                     self.endMarker.setCenter(point)

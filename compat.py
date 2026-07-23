@@ -192,9 +192,23 @@ except AttributeError:
 from qgis.gui import QgsVertexMarker as _QgsVertexMarker
 
 _vertex_icon_ns = getattr(_QgsVertexMarker, 'IconType', _QgsVertexMarker)
-VERTEX_ICON_TRIANGLE = getattr(_vertex_icon_ns, 'ICON_TRIANGLE', None)
-VERTEX_ICON_BOX = getattr(_vertex_icon_ns, 'ICON_BOX', None)
-VERTEX_ICON_X = getattr(_vertex_icon_ns, 'ICON_X', None)
+VERTEX_ICON_TRIANGLE        = getattr(_vertex_icon_ns, 'ICON_TRIANGLE', None)
+VERTEX_ICON_BOX             = getattr(_vertex_icon_ns, 'ICON_BOX', None)
+VERTEX_ICON_X               = getattr(_vertex_icon_ns, 'ICON_X', None)
+VERTEX_ICON_CIRCLE          = getattr(_vertex_icon_ns, 'ICON_CIRCLE', None)
+VERTEX_ICON_CROSS           = getattr(_vertex_icon_ns, 'ICON_CROSS', None)
+VERTEX_ICON_DOUBLE_TRIANGLE = getattr(_vertex_icon_ns, 'ICON_DOUBLE_TRIANGLE', None)
+
+# ---------------------------------------------------------------------------
+# QgsRubberBand icon type constants.
+# QGIS 3: QgsRubberBand.ICON_CROSS (flat)
+# QGIS 4: QgsRubberBand.IconType.ICON_CROSS (scoped)
+# ---------------------------------------------------------------------------
+from qgis.gui import QgsRubberBand as _QgsRubberBand
+
+_rubberband_icon_ns = getattr(_QgsRubberBand, 'IconType', _QgsRubberBand)
+RUBBERBAND_ICON_CROSS = getattr(_rubberband_icon_ns, 'ICON_CROSS', None)
+
 # ---------------------------------------------------------------------------
 # QgsLayerTreeNode node-type constants.
 # QGIS 3: QgsLayerTreeNode.NodeLayer / NodeGroup (flat)
@@ -236,3 +250,52 @@ try:
 except AttributeError:
     TEXT_BG_SHAPE_RECTANGLE = _QgsTextBackgroundSettings.ShapeType.ShapeRectangle
     TEXT_BG_SIZE_BUFFER     = _QgsTextBackgroundSettings.SizeType.SizeBuffer
+
+# ---------------------------------------------------------------------------
+# QgsPalLayerSettings property and placement constants.
+# QGIS 3: QgsPalLayerSettings.Color / Line / AroundPoint / OverPoint (flat)
+# QGIS 4: QgsPalLayerSettings.Property.Color /
+#         QgsPalLayerSettings.Placement.Line / AroundPoint / OverPoint (scoped)
+# ---------------------------------------------------------------------------
+from qgis.core import QgsPalLayerSettings as _QgsPalLayerSettings
+
+try:
+    PAL_PROPERTY_COLOR = _QgsPalLayerSettings.Property.Color
+except AttributeError:
+    PAL_PROPERTY_COLOR = _QgsPalLayerSettings.Color
+
+try:
+    PAL_PLACEMENT_LINE        = _QgsPalLayerSettings.Placement.Line
+    PAL_PLACEMENT_AROUND_POINT = _QgsPalLayerSettings.Placement.AroundPoint
+    PAL_PLACEMENT_OVER_POINT  = _QgsPalLayerSettings.Placement.OverPoint
+except AttributeError:
+    PAL_PLACEMENT_LINE        = _QgsPalLayerSettings.Line
+    PAL_PLACEMENT_AROUND_POINT = _QgsPalLayerSettings.AroundPoint
+    PAL_PLACEMENT_OVER_POINT  = _QgsPalLayerSettings.OverPoint
+
+# ---------------------------------------------------------------------------
+# QgsSymbolLayer data-defined property constants.
+# QGIS 3: QgsSymbolLayer.PropertySize / PropertyFillColor / … (flat)
+# QGIS 4: QgsSymbolLayer.Property.Size / FillColor / … (scoped)
+# ---------------------------------------------------------------------------
+from qgis.core import QgsSymbolLayer as _QgsSymbolLayer
+
+try:
+    SL_PROP_SIZE = _QgsSymbolLayer.PropertySize
+except AttributeError:
+    SL_PROP_SIZE = _QgsSymbolLayer.Property.Size
+
+try:
+    SL_PROP_FILL_COLOR = _QgsSymbolLayer.PropertyFillColor
+except AttributeError:
+    SL_PROP_FILL_COLOR = _QgsSymbolLayer.Property.FillColor
+
+try:
+    SL_PROP_STROKE_COLOR = _QgsSymbolLayer.PropertyStrokeColor
+except AttributeError:
+    SL_PROP_STROKE_COLOR = _QgsSymbolLayer.Property.StrokeColor
+
+try:
+    SL_PROP_STROKE_WIDTH = _QgsSymbolLayer.PropertyStrokeWidth
+except AttributeError:
+    SL_PROP_STROKE_WIDTH = _QgsSymbolLayer.Property.StrokeWidth
