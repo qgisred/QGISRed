@@ -422,7 +422,13 @@ class _ResultsRenderingMixin:
         if color_by_range and not is_status_field:
             color_expr = self._buildRangeColorExpression(layer, fieldName)
 
-        default_color = _DEFAULT_NODE_LABEL_COLOR if is_node else _DEFAULT_LINK_LABEL_COLOR
+        # Color the label text by magnitude (same palette as the header label) so the
+        # user identifies the variable by color. Fall back to the neutral defaults.
+        mag_color = self._MAGNITUDE_COLORS.get(fieldName)
+        if mag_color:
+            default_color = QColor(mag_color)
+        else:
+            default_color = _DEFAULT_NODE_LABEL_COLOR if is_node else _DEFAULT_LINK_LABEL_COLOR
 
         if show_id:
             text_format.setAllowHtmlFormatting(True)
@@ -474,7 +480,7 @@ class _ResultsRenderingMixin:
             else:
                 line2_inner = f'format_number("{fieldName}", {decimals}){unit_suffix}'
 
-            line1 = f'\'<span style="color:{default_color.name()};">\' || "Id" || \'</span>\''
+            line1 = '\'<span style="color:#000000;">\' || "Id" || \'</span>\''
 
             if color_expr:
                 # Wrap value in a span whose color is the range color expression
