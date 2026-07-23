@@ -466,19 +466,14 @@ class _ResultsRenderingMixin:
                 f"WHEN \"Status\" LIKE 'Active%' THEN '{active_txt}' END"
             )
         elif show_id:
-            element = "Nodes" if is_node else "Links"
-            unit_field = "Flow" if fieldName in ("Flow_Sig", "Flow_Unsig") else fieldName
-            unit = QGISRedFieldUtils().getUnitAbbreviation(element, unit_field)
-            unit_suffix = f' || \' {unit}\'' if unit else ''
-
             if time_field:
                 raw_field_expr2 = f'abs("{fieldName}")' if is_flow_field else f'"{fieldName}"'
                 raw_val = f'format_number(round({raw_field_expr2}, {decimals}), {decimals})'
-                line2_inner = f'{raw_val}{unit_suffix} || \' (@ \' || "{time_field}" || \')\''
+                line2_inner = f'{raw_val} || \' (@ \' || "{time_field}" || \')\''
             elif is_flow_field:
-                line2_inner = f'format_number(abs("{fieldName}"), {decimals}){unit_suffix}'
+                line2_inner = f'format_number(abs("{fieldName}"), {decimals})'
             else:
-                line2_inner = f'format_number("{fieldName}", {decimals}){unit_suffix}'
+                line2_inner = f'format_number("{fieldName}", {decimals})'
 
             line1 = '\'<span style="color:#000000;">\' || "Id" || \'</span>\''
 
