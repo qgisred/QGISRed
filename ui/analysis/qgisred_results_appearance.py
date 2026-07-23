@@ -10,7 +10,6 @@ from qgis.PyQt.QtGui import QColor, QPixmap, QIcon, QPainter
 from ...compat import PAINTER_ANTIALIASING
 from ...tools.utils.qgisred_field_utils import QGISRedFieldUtils
 from .qgisred_results_data import NODE_RESULT_FIELDS, LINK_RESULT_FIELDS
-from .qgisred_results_rendering import time_field_name
 
 
 class _ResultsAppearanceMixin:
@@ -31,10 +30,7 @@ class _ResultsAppearanceMixin:
         if checkbox.isChecked() and combobox.currentIndex() > 0:
             field = field_map.get(combobox.currentText(), "")
             if field:
-                is_min_max_stat = self._statsMode and self.cbStatistics.currentText() in (
-                    self.lbl_maximum, self.lbl_minimum)
-                time_fld = time_field_name(field, layer_type) if is_min_max_stat else None
-                self.setLayerLabels(layer, field, time_fld)
+                self.setLayerLabels(layer, field)
         else:
             layer.setLabelsEnabled(False)
             layer.triggerRepaint()

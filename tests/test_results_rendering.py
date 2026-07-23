@@ -2,6 +2,7 @@
 from unittest.mock import MagicMock, patch
 import pytest
 from QGISRed.ui.analysis.qgisred_results_rendering import _ResultsRenderingMixin
+from QGISRed.ui.analysis.qgisred_results_appearance import _ResultsAppearanceMixin
 from QGISRed.tools.utils.qgisred_field_utils import QGISRedFieldUtils
 
 # Helper to build a mock QgsProject
@@ -418,3 +419,62 @@ class TestSetGraduatedPaletteVariableSwitch:
             assert isinstance(state["renderer"], _FakeGraduatedRenderer), (
                 "Switching away from Status must reload a graduated style"
             )
+
+
+# Regression tests: every real caller of setLayerLabels must match its signature.
+# A previous change dropped the `time_field` argument from setLayerLabels but left
+# a caller (_refreshLabelsIfShowing) passing it, raising TypeError at runtime. The
+# existing setLayerLabels tests didn't catch it (they call it directly), and the
+# paintIntervalTimeResults tests mock setLayerLabels away — a MagicMock accepts any
+# signature. These tests exercise the caller chain with the REAL setLayerLabels.
+class _AppearanceDock(_ResultsRenderingMixin, _ResultsAppearanceMixin):
+    """Combines the rendering + appearance mixins to drive the real caller chain
+    _onLabelStyleChanged -> _refreshLabelsIfShowing -> setLayerLabels."""
+
+    def __init__(self, show_id=False):
+        self.cbNodeLabels = MagicMock(); self.cbNodeLabels.isChecked.return_value = True
+        self.cbLinkLabels = MagicMock(); self.cbLinkLabels.isChecked.return_value = True
+        self.spNodeDecimals = MagicMock(); self.spNodeDecimals.value.return_value = 2
+        self.spLinkDecimals = MagicMock(); self.spLinkDecimals.value.return_value = 2
+        self.lbNodesMagnitude = MagicMock()
+        self.lbLinksMagnitude = MagicMock()
+        self.spFontSize = MagicMock(); self.spFontSize.value.return_value = 10
+        self.rbColorByRange = MagicMock(); self.rbColorByRange.isChecked.return_value = False
+        self.cbShowId = MagicMock(); self.cbShowId.isChecked.return_value = show_id
+        self._labelFontSize = 10
+        self._labelColorByRange = False
+        self._labelShowId = show_id
+        self._labelBgColor = None
+        self._labelBgColorLocked = False
+        self.cbNodes = MagicMock()
+        self.cbNodes.currentIndex.return_value = 1
+        self.cbNodes.currentText.return_value = "Pressure"
+        self.cbLinks = MagicMock()
+        self.cbLinks.currentIndex.return_value = 1
+        self.cbLinks.currentText.return_value = "Velocity"
+        self._node_field_map = {"Pressure": "Pressure"}
+        self._link_field_map = {"Velocity": "Velocity"}
+        self._saveAppearanceSettings = MagicMock()
+
+    def tr(self, text):
+        return text
+
+    def _findResultLayer(self, layer_type, scenario=None):
+        layer = MagicMock()
+        layer.geometryType.return_value = 0 if layer_type == "Node" else 1
+        return layer
+
+
+class TestLabelStyleCallersMatchSignature:
+    @pytest.mark.parametrize("show_id", [False, True])
+    def test_on_label_style_changed_calls_real_setLayerLabels(self, show_id):
+        with patch("QGISRed.tools.utils.qgisred_project_utils.QgsProject") as MockProj, \
+             patch("QGISRed.ui.analysis.qgisred_results_rendering.QgsVectorLayerSimpleLabeling") as MockLabeling:
+            MockProj.instance.return_value = _make_project("LPS")
+            dock = _AppearanceDock(show_id=show_id)
+
+            # Must not raise TypeError from a caller/setLayerLabels signature mismatch.
+            dock._onLabelStyleChanged()
+
+            # setLayerLabels ran for real for both Node and Link.
+            assert MockLabeling.call_count == 2
