@@ -147,6 +147,27 @@ def time_field_name(var_name, layer_type):
 class _ResultsRenderingMixin:
     """Mixin for QGISRedResultsDock: symbology, rendering and layer style management."""
 
+    # Text color for each magnitude label, keyed by internal field name (stable
+    # across languages) so the user can identify the displayed variable by color.
+    _MAGNITUDE_COLORS = {
+        # Nodes
+        "Pressure": "#729b6f",    # verde
+        "Head": "#d5cf3c",        # ocre
+        "Demand": "#1f78b4",      # azul
+        "Quality": "#8d5a99",     # morado
+        # Links
+        "Flow": "#1f78b4",        # azul
+        "Flow_Unsig": "#1f78b4",  # azul
+        "Flow_Sig": "#1f78b4",    # azul
+        "Velocity": "#e17da2",    # magenta
+        "HeadLoss": "#729b6f",    # verde
+        "UnitHdLoss": "#becf50",  # verde claro
+        "FricFactor": "#52828f",  # gris
+        "Status": "#e77148",      # naranja
+        "ReactRate": "#e8718d",   # rosa
+    }
+    _MAGNITUDE_DEFAULT_COLOR = "#000000"
+
     def _getRenderStorageKey(self, layer_path, var_key):
         """Build the cache key used to store/retrieve a renderer for a given layer and variable."""
         prefix = f"stat_{self._currentStat}|" if self._statsMode else "time|"
@@ -298,7 +319,7 @@ class _ResultsRenderingMixin:
                     unit = QGISRedFieldUtils().getUnitAbbreviation(element, unit_field)
                     unit_suffix = " " + unit if unit else ""
 
-                    self._setMagnitudeLabel(nameLayer, selected_variable_text, unit)
+                    self._setMagnitudeLabel(nameLayer, selected_variable_text, unit, field)
 
                     value_expr = 'abs("Flow")' if field == "Flow" else '"' + field + '"'
 
@@ -345,18 +366,20 @@ class _ResultsRenderingMixin:
             if field:
                 unit_field = "Flow" if field in ("Flow_Sig", "Flow_Unsig") else field
                 unit = QGISRedFieldUtils().getUnitAbbreviation(element, unit_field)
-            self._setMagnitudeLabel(nameLayer, selected_variable_text, unit)
+            self._setMagnitudeLabel(nameLayer, selected_variable_text, unit, field)
 
-    def _setMagnitudeLabel(self, nameLayer, magnitudeText, unit):
-        """Show the currently displayed magnitude (bold, black) and its unit
-        (smaller, not bold, in parentheses) next to the Nodes/Links header."""
+    def _setMagnitudeLabel(self, nameLayer, magnitudeText, unit, field=""):
+        """Show the currently displayed magnitude (bold, in its own color) and its
+        unit (smaller, not bold, in parentheses) next to the Nodes/Links header.
+        The color is keyed by field name so the user can identify the variable by color."""
         label = self.lbNodesMagnitude if "Node" in nameLayer else self.lbLinksMagnitude
         if not magnitudeText:
             label.setText("")
             return
-        text = f'<span style="font-size:12pt; font-weight:bold; color:#000000;">{magnitudeText}</span>'
+        color = self._MAGNITUDE_COLORS.get(field, self._MAGNITUDE_DEFAULT_COLOR)
+        text = f'<span style="font-size:12pt; font-weight:bold; color:{color};">{magnitudeText}</span>'
         if unit:
-            text += f' <span style="font-size:10pt; font-weight:normal; color:#000000;">({unit})</span>'
+            text += f' <span style="font-size:10pt; font-weight:normal; color:{color};">({unit})</span>'
         label.setText(text)
 
     def setLayerLabels(self, layer, fieldName, time_field=None):
