@@ -52,8 +52,7 @@ class _ResultsAppearanceMixin:
         color = QColorDialog.getColor(initial, self, QCoreApplication.translate("QGISRedResultsDock", "Label background color"))
         if color.isValid():
             self._labelBgColor = color
-            self.btLabelBgColor.setStyleSheet(f"background-color: {color.name()};")
-            self.btLabelBgColor.setText(color.name())
+            self._setLabelBgButtonDisplay(color)
             self.btClearLabelBgColor.setEnabled(True)
             self._saveAppearanceSettings()
             self._refreshLabelsIfShowing("Node")
@@ -61,12 +60,20 @@ class _ResultsAppearanceMixin:
 
     def _onClearLabelBgColor(self):
         self._labelBgColor = None
-        self.btLabelBgColor.setStyleSheet("")
-        self.btLabelBgColor.setText(QCoreApplication.translate("QGISRedResultsDock", "No color"))
+        self._setLabelBgButtonDisplay(None)
         self.btClearLabelBgColor.setEnabled(False)
         self._saveAppearanceSettings()
         self._refreshLabelsIfShowing("Node")
         self._refreshLabelsIfShowing("Link")
+
+    def _setLabelBgButtonDisplay(self, color):
+        """Paint btLabelBgColor to show the given color (hex swatch + label), or 'No color'."""
+        if color:
+            self.btLabelBgColor.setStyleSheet(f"background-color: {color.name()};")
+            self.btLabelBgColor.setText(color.name())
+        else:
+            self.btLabelBgColor.setStyleSheet("")
+            self.btLabelBgColor.setText(QCoreApplication.translate("QGISRedResultsDock", "No color"))
 
     def _onLockLabelBgColor(self, checked):
         """Toggle linking the label background to the map background color. When locked,
@@ -93,6 +100,8 @@ class _ResultsAppearanceMixin:
             QCoreApplication.translate("QGISRedResultsDock", "Link the label background to the map background color"))
         self.btLabelBgColor.setEnabled(not locked)
         self.btClearLabelBgColor.setEnabled(not locked and self._labelBgColor is not None)
+        # When locked, the button shows the map background color (or "No color"); otherwise its own color.
+        self._setLabelBgButtonDisplay(self._bgColor if locked else self._labelBgColor)
 
     # ------------------------------------------------------------------
     # Decimals
@@ -233,6 +242,7 @@ class _ResultsAppearanceMixin:
             self._applyBgColor()
             self._saveAppearanceSettings()
             if self._labelBgColorLocked:
+                self._setLabelBgButtonDisplay(self._bgColor)
                 self._refreshLabelsIfShowing("Node")
                 self._refreshLabelsIfShowing("Link")
 
@@ -244,6 +254,7 @@ class _ResultsAppearanceMixin:
         self._applyBgColor()
         self._saveAppearanceSettings()
         if self._labelBgColorLocked:
+            self._setLabelBgButtonDisplay(None)
             self._refreshLabelsIfShowing("Node")
             self._refreshLabelsIfShowing("Link")
 
