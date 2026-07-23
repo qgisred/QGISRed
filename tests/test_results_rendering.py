@@ -5,15 +5,18 @@ from QGISRed.ui.analysis.qgisred_results_rendering import _ResultsRenderingMixin
 from QGISRed.ui.analysis.qgisred_results_appearance import _ResultsAppearanceMixin
 from QGISRed.tools.utils.qgisred_field_utils import QGISRedFieldUtils
 
+
 # Helper to build a mock QgsProject
 def _make_project(flow_unit="LPS"):
     proj = MagicMock()
+
     def read_entry(section, key, default=""):
         if section == "QGISRed" and key == "project_units":
             return flow_unit, True
         return default, False
     proj.readEntry.side_effect = read_entry
     return proj
+
 
 class MockDock(_ResultsRenderingMixin):
     def __init__(self):
@@ -30,11 +33,13 @@ class MockDock(_ResultsRenderingMixin):
     def tr(self, text):
         return text
 
+
 @pytest.fixture(autouse=True)
 def clear_cache():
     QGISRedFieldUtils._unit_definitions = None
     yield
     QGISRedFieldUtils._unit_definitions = None
+
 
 class TestResultsLabels:
     def test_set_layer_labels_show_id(self):

@@ -6,6 +6,7 @@ from zipfile import ZipFile
 from unittest.mock import MagicMock, patch
 from QGISRed.tools.utils.qgisred_project_io import QGISRedProjectIO
 
+
 class TestProjectIO:
     @pytest.fixture
     def temp_project_dir(self):

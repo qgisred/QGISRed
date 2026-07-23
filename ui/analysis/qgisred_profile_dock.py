@@ -34,6 +34,7 @@ def secondary_variable_keys(primary_key):
         if key in PROFILE_SECONDARY_VARIABLE_KEYS and key != primary_key
     ]
 
+
 _BTN_STYLE = (
     "QToolButton {"
     "  border: 1px solid #c8c8c8;"

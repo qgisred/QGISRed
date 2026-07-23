@@ -4,6 +4,7 @@ import sys
 import os
 from unittest.mock import MagicMock
 
+
 # ---------------------------------------------------------------------------
 # Minimal stand-in for QgsPointXY so arithmetic in _snapToGrid works
 # ---------------------------------------------------------------------------
@@ -37,12 +38,16 @@ class _QgsMapTool:
     """Minimal real stub for QgsMapTool."""
     def __init__(self, *args, **kwargs):
         pass
+
     def activate(self):
         pass
+
     def deactivate(self):
         pass
+
     def setAction(self, action):
         pass
+
     def toMapCoordinates(self, pos):
         return MagicMock()
 
@@ -52,16 +57,20 @@ class _QgsVertexMarker:
     ICON_BOX = 'ICON_BOX'
     ICON_X = 'ICON_X'
     ICON_CROSS = 'ICON_CROSS'
+
     def __init__(self, *args, **kwargs):
         pass
+
     def __getattr__(self, name):
         return MagicMock()
 
 
 class _QgsRubberBand:
     ICON_CROSS = 'ICON_CROSS'
+
     def __init__(self, *args, **kwargs):
         pass
+
     def __getattr__(self, name):
         return MagicMock()
 

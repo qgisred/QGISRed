@@ -1,6 +1,7 @@
 import pytest
 from QGISRed.ui.analysis.qgisred_results_data import seconds_to_time_str
 
+
 class TestResultsData:
     @pytest.mark.parametrize("seconds, expected", [
         (0, "0:00"),

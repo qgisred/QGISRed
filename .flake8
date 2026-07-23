@@ -21,3 +21,4 @@ exclude =
     .git,
     __pycache__,
     .pytest_cache,
+    resources3x.py,

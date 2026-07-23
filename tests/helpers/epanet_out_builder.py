@@ -51,7 +51,8 @@ def build_epanet_out(
     buf = bytearray()
 
     # ── Prologue (15 ints = 60 bytes) ──
-    prologue = struct.pack('15i',
+    prologue = struct.pack(
+        '15i',
         516114521,       # magic1
         20,              # version
         n_nodes,

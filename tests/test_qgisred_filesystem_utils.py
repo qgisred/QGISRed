@@ -5,6 +5,7 @@ import tempfile
 from unittest.mock import patch
 from QGISRed.tools.utils.qgisred_filesystem_utils import QGISRedFileSystemUtils
 
+
 class TestFileSystemUtils:
     @pytest.fixture
     def utils(self):

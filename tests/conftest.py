@@ -43,6 +43,7 @@ if 'PyQt5.QtWidgets' not in sys.modules:
 if 'PyQt5.QtGui' not in sys.modules:
     sys.modules['PyQt5.QtGui'] = MagicMock()
 
+
 # Qt widget classes used as base classes must be real types (not MagicMock
 # instances) to avoid metaclass conflicts in `class Foo(QDialog, FORM_CLASS):`
 # constructs.  The metaclass also returns a MagicMock for any unknown class
@@ -51,11 +52,13 @@ class _QtStubMeta(type):
     def __getattr__(cls, name):
         return MagicMock()
 
+
 def _qt_stub(name):
     return _QtStubMeta(name, (), {
         "__init__": lambda self, *a, **kw: None,
         "__getattr__": lambda self, attr: MagicMock(),
     })
+
 
 _FORM_STUB = _qt_stub("FORM_CLASS")
 _QT_WIDGET_STUBS = ("QDialog", "QDockWidget", "QWidget", "QMainWindow", "QFrame", "QTableView")
@@ -80,6 +83,7 @@ def _apply_qt_mock_config():
 _apply_qt_mock_config()
 
 import pytest
+
 
 @pytest.fixture(autouse=True)
 def _ensure_qt_mock_config():
