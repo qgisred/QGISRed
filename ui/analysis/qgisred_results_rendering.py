@@ -323,6 +323,30 @@ class _ResultsRenderingMixin:
         if hasattr(self, "_updateEvolutionCheckboxLabels"):
             self._updateEvolutionCheckboxLabels()
 
+    def _refreshMagnitudeLabels(self):
+        """Set the Nodes/Links magnitude+unit labels from the current combo
+        state, without re-rendering. Used on restore, where the combos are
+        populated but paintIntervalTimeResults() is not called."""
+        for nameLayer in ["Node", "Link"]:
+            if "Link" in nameLayer:
+                combo, field_map = self.cbLinks, self._link_field_map
+                element = "Links"
+            else:
+                combo, field_map = self.cbNodes, self._node_field_map
+                element = "Nodes"
+
+            if combo.currentIndex() <= 0:
+                self._setMagnitudeLabel(nameLayer, "", "")
+                continue
+
+            selected_variable_text = combo.currentText()
+            field = field_map.get(selected_variable_text, "")
+            unit = ""
+            if field:
+                unit_field = "Flow" if field in ("Flow_Sig", "Flow_Unsig") else field
+                unit = QGISRedFieldUtils().getUnitAbbreviation(element, unit_field)
+            self._setMagnitudeLabel(nameLayer, selected_variable_text, unit)
+
     def _setMagnitudeLabel(self, nameLayer, magnitudeText, unit):
         """Show the currently displayed magnitude (bold, black) and its unit
         (smaller, not bold, in parentheses) next to the Nodes/Links header."""

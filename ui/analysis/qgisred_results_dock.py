@@ -995,6 +995,15 @@ class QGISRedResultsDock(
             self._applyTimeDisplay(final_labels, restore_format=fmt, restore_idx=time_idx)
             self.Computing = False
             self.iface.actionMapTips().setChecked(True)
+
+            needs_open = (
+                (restore["node_field"] and self._findResultLayer("Node") is None)
+                or (restore["link_field"] and self._findResultLayer("Link") is None)
+            )
+            if needs_open and self.validationsOpenResult():
+                self.openAllResultsProcess()
+            else:
+                self._refreshMagnitudeLabels()
         else:
             # ── Default path: no saved state ─────────────────────────────────────────
             self.applyStatisticFromOptions()
