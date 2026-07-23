@@ -944,11 +944,11 @@ class ProjectManagementSection:
 
         # DemandsBuilder layers need the QGIS project tree and providers
         # to be fully restored before they are reconciled.
-        QTimer.singleShot(500, self._open_demands_builder_layers_after_project_load)
-        QTimer.singleShot(500, self._open_demand_sector_layers_after_project_load)
+        QTimer.singleShot(500, self._restyle_demands_builder_layers_after_project_load)
+        QTimer.singleShot(500, self._restyle_demand_sector_layers_after_project_load)
 
-    def _open_demands_builder_layers_after_project_load(self):
-        """Reopen missing DemandsBuilder layers after QGIS finishes restoring the project."""
+    def _restyle_demands_builder_layers_after_project_load(self):
+        """Reapply styles only to DemandsBuilder layers already loaded in QGIS."""
         if self.isUnloading:
             return
 
@@ -958,62 +958,109 @@ class ProjectManagementSection:
         ):
             return
 
-        self.openDemandsBuilderLayers()
-
-        if self.iface:
-            self.iface.layerTreeCanvasBridge().setCanvasLayers()
-            self.iface.mapCanvas().refresh()
-
-    def _open_demand_sector_layers_after_project_load(self):
-        """Reopen and restyle Demand Sectors layers after loading the QGIS project."""
-        if self.isUnloading:
-            return
-
-        if (
-            not self.ProjectDirectory
-            or self.ProjectDirectory == self.TemporalFolder
-        ):
-            return
-
-        demand_sectors_folder = os.path.join(
-            self.ProjectDirectory,
-            "Auxiliary Layers",
-            "DemandSectors"
+        demands_builder_folder = os.path.normcase(
+            os.path.normpath(
+                os.path.join(
+                    self.ProjectDirectory,
+                    "Auxiliary Layers",
+                    "DemandsBuilder"
+                )
+            )
         )
 
-        if not os.path.isdir(demand_sectors_folder):
-            return
-
-        for sectorization_name in os.listdir(demand_sectors_folder):
-            sectorization_folder = os.path.join(
-                demand_sectors_folder,
-                sectorization_name
-            )
-
-            if not os.path.isdir(sectorization_folder):
+        for layer in QgsProject.instance().mapLayers().values():
+            if not isinstance(layer, QgsVectorLayer):
                 continue
 
-            prefix = sectorization_name + "_"
+            source_path = layer.source().split("|")[0]
 
-            for filename in os.listdir(sectorization_folder):
-                if not filename.lower().endswith(".shp"):
-                    continue
+            if not source_path:
+                continue
 
-                theme_name = os.path.splitext(filename)[0]
+            normalized_source = os.path.normcase(
+                os.path.normpath(source_path)
+            )
 
-                if not theme_name.startswith(prefix):
-                    continue
+            try:
+                common_path = os.path.commonpath(
+                    [normalized_source, demands_builder_folder]
+                )
+            except ValueError:
+                continue
 
-                theme_name = theme_name[len(prefix):]
+            if common_path != demands_builder_folder:
+                continue
 
-                if theme_name:
-                    self.openDemandSectorTheme(
-                        sectorization_name,
-                        theme_name
-                    )
+            self._applyDemandsBuilderStyle(layer)
 
         if self.iface:
-            self.iface.layerTreeCanvasBridge().setCanvasLayers()
+            self.iface.mapCanvas().refresh()
+
+    def _restyle_demand_sector_layers_after_project_load(self):
+        """Reapply styles only to Demand Sectors layers already loaded in QGIS."""
+        if self.isUnloading:
+            return
+
+        if (
+            not self.ProjectDirectory
+            or self.ProjectDirectory == self.TemporalFolder
+        ):
+            return
+
+        demand_sectors_folder = os.path.normcase(
+            os.path.normpath(
+                os.path.join(
+                    self.ProjectDirectory,
+                    "Auxiliary Layers",
+                    "DemandSectors"
+                )
+            )
+        )
+
+        for layer in QgsProject.instance().mapLayers().values():
+            if not isinstance(layer, QgsVectorLayer):
+                continue
+
+            source_path = layer.source().split("|")[0]
+
+            if not source_path:
+                continue
+
+            normalized_source = os.path.normcase(
+                os.path.normpath(source_path)
+            )
+
+            try:
+                common_path = os.path.commonpath(
+                    [normalized_source, demand_sectors_folder]
+                )
+            except ValueError:
+                continue
+
+            if common_path != demand_sectors_folder:
+                continue
+
+            filename = os.path.splitext(
+                os.path.basename(source_path)
+            )[0]
+
+            theme_name = filename.rsplit("_", 1)[-1]
+
+            if theme_name.lower() not in (
+                "nodes",
+                "links",
+                "multinodes",
+                "multilinks",
+                "frontiers"
+            ):
+                continue
+
+            self._applyDemandSectorBuilderStyle(
+                layer,
+                theme_name
+            )
+
+        if self.iface:
             self.iface.mapCanvas().refresh()
 
     def runCloseProject(self):
