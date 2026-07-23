@@ -687,7 +687,7 @@
                         </widget>
                        </item>
                        <item>
-                        <spacer name="horizontalSpacer_btAppearance">
+                        <spacer name="horizontalSpacer_NodesMagRight">
                          <property name="orientation">
                           <enum>Qt::Horizontal</enum>
                          </property>
@@ -698,25 +698,6 @@
                           </size>
                          </property>
                         </spacer>
-                       </item>
-                       <item>
-                        <widget class="QToolButton" name="btAppearance">
-                         <property name="toolTip">
-                          <string>Appearance options</string>
-                         </property>
-                         <property name="autoRaise">
-                          <bool>true</bool>
-                         </property>
-                         <property name="iconSize">
-                          <size>
-                           <width>18</width>
-                           <height>18</height>
-                          </size>
-                         </property>
-                         <property name="text">
-                          <string/>
-                         </property>
-                        </widget>
                        </item>
                       </layout>
                      </item>
@@ -843,22 +824,6 @@
                          <property name="sizeHint" stdset="0">
                           <size>
                            <width>40</width>
-                           <height>20</height>
-                          </size>
-                         </property>
-                        </spacer>
-                       </item>
-                       <item>
-                        <spacer name="horizontalSpacer_LinksMagRight">
-                         <property name="orientation">
-                          <enum>Qt::Horizontal</enum>
-                         </property>
-                         <property name="sizeType">
-                          <enum>QSizePolicy::Fixed</enum>
-                         </property>
-                         <property name="sizeHint" stdset="0">
-                          <size>
-                           <width>26</width>
                            <height>20</height>
                           </size>
                          </property>

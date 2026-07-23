@@ -144,13 +144,7 @@ class QGISRedResultsDock(
         self.lbPipeFactor.setText(self.tr("Links") + ":")
         self.lbArrowFactor.setText(self.tr("Arrows") + ":")
 
-        # Appearance tab — hidden by default, shown only via btAppearance
-        self._appearanceTabTitle = self.tabWidget.tabText(2)
-        self.tabWidget.removeTab(2)
-        self.tabWidget.currentChanged.connect(self._onTabChanged)
-
         # Appearance tab connections
-        self.btAppearance.clicked.connect(self._showAppearanceTab)
         self.spFontSize.valueChanged.connect(self._onLabelStyleChanged)
         self.spNodeDecimals.valueChanged.connect(self._onDecimalsChanged)
         self.spLinkDecimals.valueChanged.connect(self._onDecimalsChanged)
@@ -237,8 +231,6 @@ class QGISRedResultsDock(
         self._iconStepForward = QIcon(":/images/iconResultsStepForward.svg")
         self._iconGoToEnd = QIcon(":/images/iconResultsGoToEnd.svg")
         self._iconLoop = QIcon(":/images/iconResultsLoop.svg")
-        self._iconAppearance = QIcon(":/images/iconProjectSettings.svg")
-        self.btAppearance.setIcon(self._iconAppearance)
 
         self.btInitTime.setIcon(self._iconGoToStart)
         self.btLessTime.setIcon(self._iconStepBackward)
@@ -719,19 +711,6 @@ class QGISRedResultsDock(
                 else:
                     self.cbNodes.setCurrentIndex(1)  # Default to first result
         self.Computing = False
-
-    """Appearance tab visibility"""
-
-    def _showAppearanceTab(self):
-        if self.tabWidget.indexOf(self.tabAppearance) == -1:
-            self.tabWidget.addTab(self.tabAppearance, self._appearanceTabTitle)
-        self.tabWidget.setCurrentWidget(self.tabAppearance)
-
-    def _onTabChanged(self, index):
-        if self.tabWidget.currentWidget() is not self.tabAppearance:
-            app_idx = self.tabWidget.indexOf(self.tabAppearance)
-            if app_idx != -1:
-                self.tabWidget.removeTab(app_idx)
 
     """Private helpers"""
 
