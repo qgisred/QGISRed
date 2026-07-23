@@ -60,6 +60,9 @@ class QGISRedImportDialog(QDialog, FORM_CLASS):
         # QGISRed project
         self.btSelectZip.clicked.connect(self.selectZIP)
         self.btImportProject.clicked.connect(self.importProject)
+        # Hide project name/CRS fields when the QGISRed Project (ZIP) tab is active
+        self._addDataMode = False
+        self.tabWidget.currentChanged.connect(self.onTabChanged)
 
         self.messageBar = QGISRedBanner.inject(self, self.gridLayout_3)
 
@@ -98,6 +101,7 @@ class QGISRedImportDialog(QDialog, FORM_CLASS):
         self.tbScLength.setEnabled(self.isPunctualConnection)
 
         if not self.NewProject:
+            self._addDataMode = True
             self.setWindowTitle(self.tr("QGISRed: Add data"))
             icon_path = ":/images/iconAddData.svg"
             self.setWindowIcon(QIcon(icon_path))
@@ -118,6 +122,19 @@ class QGISRedImportDialog(QDialog, FORM_CLASS):
             self.cbCreateSubfolder.setVisible(False)
             self.label_materials.setVisible(False)
             self.cbMaterials.setVisible(False)
+
+    def onTabChanged(self, index):
+        # In "Add data" mode the name/CRS fields are already hidden permanently.
+        if self._addDataMode:
+            return
+        isProjectTab = self.tabWidget.widget(index) is self.tabProject
+        visible = not isProjectTab
+        # Keep the row's height reserved when hidden so the tabs stay in place.
+        for widget in (self.lbName, self.tbNetworkName, self.lbCrs, self.tbCRS, self.btSelectCRS):
+            policy = widget.sizePolicy()
+            policy.setRetainSizeWhenHidden(True)
+            widget.setSizePolicy(policy)
+            widget.setVisible(visible)
 
     def selectDirectory(self):
         selected_directory = QFileDialog.getExistingDirectory(self, "Select folder", self.ProjectDirectory)

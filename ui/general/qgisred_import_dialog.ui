@@ -72,22 +72,6 @@
      <item>
       <layout class="QHBoxLayout" name="horizontalLayout_13">
        <item>
-        <spacer name="horizontalSpacer_58">
-         <property name="orientation">
-          <enum>Qt::Horizontal</enum>
-         </property>
-         <property name="sizeType">
-          <enum>QSizePolicy::Fixed</enum>
-         </property>
-         <property name="sizeHint" stdset="0">
-          <size>
-           <width>80</width>
-           <height>20</height>
-          </size>
-         </property>
-        </spacer>
-       </item>
-       <item>
         <widget class="QCheckBox" name="cbCreateSubfolder">
          <property name="text">
           <string>Automatically create a subfolder for this project</string>
@@ -4070,18 +4054,6 @@
         <layout class="QGridLayout" name="gridLayout_45">
          <item row="0" column="0">
           <layout class="QGridLayout" name="gridLayout_44">
-           <item row="2" column="0">
-            <widget class="QLabel" name="lbProject_2">
-             <property name="font">
-              <font>
-               <italic>true</italic>
-              </font>
-             </property>
-             <property name="text">
-              <string>** Project name will be ignored preserving the name of the network stored in the ZIP file</string>
-             </property>
-            </widget>
-           </item>
            <item row="0" column="0">
             <layout class="QHBoxLayout" name="horizontalLayout_11">
              <item>
