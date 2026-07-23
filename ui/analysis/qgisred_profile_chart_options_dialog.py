@@ -1,13 +1,13 @@
 # -*- coding: utf-8 -*-
 from qgis.PyQt.QtGui import QColor
 from qgis.PyQt.QtWidgets import (
-    QDialog, QTabWidget, QWidget, QVBoxLayout, QHBoxLayout, QFormLayout, QGroupBox,
-    QLabel, QLineEdit, QCheckBox, QComboBox, QDoubleSpinBox, QSpinBox, QPushButton, QColorDialog,
-    QDialogButtonBox, QGridLayout, QScrollArea
+    QDialog, QTabWidget, QWidget, QVBoxLayout, QFormLayout, QGroupBox,
+    QLineEdit, QCheckBox, QComboBox, QDoubleSpinBox, QSpinBox, QPushButton, QColorDialog,
+    QDialogButtonBox, QScrollArea
 )
 
 from .profile_chart_settings import (
-    ProfileAxisSettings, ProfileGeneralSettings, ProfileCurveStyle,
+    ProfileCurveStyle,
     LINE_STYLES, LEGEND_POSITIONS, clone_axis, clone_general, clone_curve_overrides,
 )
 

@@ -5,7 +5,6 @@ from contextlib import suppress
 import os
 import time
 import tempfile
-import platform
 import uuid
 import json
 import urllib.request

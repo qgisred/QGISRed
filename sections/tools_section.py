@@ -643,7 +643,7 @@ class ToolsSection:
         if normalized_theme == "links":
             self._applyDemandSectorLinksStyle(vlayer)
             return
-        
+
         if normalized_theme == "multilinks":
             self._applyDemandSectorMultiLinksStyle(vlayer)
             return
@@ -664,7 +664,7 @@ class ToolsSection:
             self._applyDemandSectorLinksStyle(vlayer)
         elif layer_name.endswith("_frontiers"):
             self._applyDemandSectorFrontiersStyle(vlayer)
-        
+
     def _applyDemandSectorNodeBasedStyle(self, vlayer):
         sector_field_index = vlayer.fields().indexFromName("SectorID")
 

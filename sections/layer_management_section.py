@@ -10,7 +10,6 @@ from qgis.PyQt.QtWidgets import QApplication
 from qgis.PyQt.QtCore import Qt
 
 from ..tools.utils.qgisred_layer_utils import QGISRedLayerUtils
-from ..tools.utils.qgisred_styling_utils import QGISRedStylingUtils
 from ..tools.utils.qgisred_identifier_utils import QGISRedIdentifierUtils
 from ..tools.utils.qgisred_filesystem_utils import (
     DIR_ISSUES, DIR_QUERIES,

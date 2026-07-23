@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
 import copy
-from dataclasses import dataclass, field
+from dataclasses import dataclass
 
 
 @dataclass

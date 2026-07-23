@@ -1,7 +1,7 @@
 from ..utils.qgisred_filesystem_utils import QGISRedFileSystemUtils
 import os
 import sys
-from ctypes import c_char_p, CDLL
+from ctypes import CDLL
 if sys.platform == "win32":
     from ctypes import WinDLL
 

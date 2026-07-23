@@ -1471,7 +1471,7 @@ class ProfileSection:
 
     def _drawProfileHighlight(self):
         from qgis.gui import QgsRubberBand, QgsVertexMarker
-        from qgis.core import Qgis, QgsGeometry, QgsPointXY
+        from qgis.core import Qgis, QgsPointXY
         from qgis.PyQt.QtGui import QColor
 
         self._clearProfileHighlight()
