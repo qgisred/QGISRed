@@ -1281,11 +1281,8 @@ class QGISRedImportDialog(QDialog, FORM_CLASS):
                     self.pushMessage(self.tr("Validations"), self.tr("ZIP file does not exist"), level=1)
                     return
 
-            self.close()
-            # Process
-            self.parent.zoomToFullExtent = True
+            # Unzip (dialog kept open so validation messages remain visible)
             QApplication.setOverrideCursor(Qt.CursorShape.WaitCursor)
-            # Unzip
             tempFolder = tempfile._get_default_tempdir() + "\\" + next(tempfile._get_candidate_names())
             QGISRedProjectIO().unzipFile(self.ZipFile, tempFolder)
             QApplication.restoreOverrideCursor()
@@ -1299,9 +1296,27 @@ class QGISRedImportDialog(QDialog, FORM_CLASS):
                     break
 
             if not validProject:
+                QGISRedFileSystemUtils().removeFolder(tempFolder)
                 self.pushMessage(self.tr("Warning"), self.tr("ZIP file does not contain a valid QGISRed project"), level=1)
                 return
 
+            # Create a subfolder named after the network stored in the ZIP
+            if self.cbCreateSubfolder.isChecked():
+                subFolder = os.path.join(self.ProjectDirectory, self.NetworkName)
+                if os.path.exists(subFolder):
+                    dirList = os.listdir(subFolder)
+                    for name in self.ownMainLayers:
+                        if self.NetworkName + "_" + name + ".shp" in dirList:
+                            QGISRedFileSystemUtils().removeFolder(tempFolder)
+                            message = self.tr("The selected folder has some files with the same project name.")
+                            self.pushMessage(self.tr("Validations"), message, level=1)
+                            return
+                os.makedirs(subFolder, exist_ok=True)
+                self.ProjectDirectory = subFolder
+
+            self.close()
+            # Process
+            self.parent.zoomToFullExtent = True
             QGISRedFileSystemUtils().copyFolderFiles(tempFolder, self.ProjectDirectory)
             QGISRedFileSystemUtils().removeFolder(tempFolder)
             self.parent.ProjectDirectory = self.ProjectDirectory
