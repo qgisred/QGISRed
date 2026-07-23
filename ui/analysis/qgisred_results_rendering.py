@@ -356,7 +356,7 @@ class _ResultsRenderingMixin:
             return
         text = f'<span style="font-size:12pt; font-weight:bold; color:#000000;">{magnitudeText}</span>'
         if unit:
-            text += f' <span style="font-size:9pt; font-weight:normal; color:#000000;">({unit})</span>'
+            text += f' <span style="font-size:10pt; font-weight:normal; color:#000000;">({unit})</span>'
         label.setText(text)
 
     def setLayerLabels(self, layer, fieldName, time_field=None):
