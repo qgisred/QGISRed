@@ -93,6 +93,36 @@ class TestResultsLabels:
             assert '"Id"' not in expr
             assert 'format_number("Pressure", 2)' in expr
 
+    def test_set_layer_labels_status_groups_into_closed_and_active(self):
+        # Status is a categorical string field: labels must group the 13 link
+        # states into just "Closed" and "Active" (Open* → no label), never the
+        # numeric format_number() that returns NULL for a text field.
+        with patch("QGISRed.tools.utils.qgisred_project_utils.QgsProject") as MockProj, \
+             patch("QGISRed.ui.analysis.qgisred_results_rendering.QgsVectorLayerSimpleLabeling") as MockLabeling:
+
+            MockProj.instance.return_value = _make_project("LPS")
+
+            dock = MockDock()
+            dock._labelShowId = True  # ignored for categorical Status
+            dock.cbLinkLabels.isChecked.return_value = True
+            dock.spLinkDecimals.value.return_value = 2
+
+            layer = MagicMock()
+            layer.geometryType.return_value = 1  # Link
+
+            dock.setLayerLabels(layer, "Status")
+
+            assert MockLabeling.call_args is not None
+            expr = MockLabeling.call_args[0][0].fieldName
+
+            assert "LIKE '%Closed%'" in expr
+            assert "LIKE 'Active%'" in expr
+            assert "'Closed'" in expr
+            assert "'Active'" in expr
+            # No Open group and no numeric formatting of the string field
+            assert "Open" not in expr
+            assert 'format_number("Status"' not in expr
+
 
 # Regression tests: Flow labels must never show the sign, in normal results (no
 # time_field) or in statistics mode (Maximum/Minimum stats set time_field, which used

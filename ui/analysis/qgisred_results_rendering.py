@@ -367,8 +367,12 @@ class _ResultsRenderingMixin:
             bg_settings.setFillColor(label_bg_color)
             text_format.setBackground(bg_settings)
 
+        # Status is a categorical string field, not a numeric range — skip the
+        # graduated "By range" color expression, which assumes numeric ranges.
+        is_status_field = fieldName == "Status"
+
         color_expr = None
-        if color_by_range:
+        if color_by_range and not is_status_field:
             color_expr = self._buildRangeColorExpression(layer, fieldName)
 
         default_color = _DEFAULT_NODE_LABEL_COLOR if is_node else _DEFAULT_LINK_LABEL_COLOR
@@ -396,7 +400,19 @@ class _ResultsRenderingMixin:
         else:
             value_expr = f'format_number("{fieldName}", {decimals})'
 
-        if show_id:
+        if is_status_field:
+            # Status is categorical: group the 13 link states into just two labels.
+            # Any "Closed" state (incl. "Temp Closed") -> "Closed"; "Active"/"Active
+            # (Rev Pump)" -> "Active". "Open*" states match no WHEN, so the CASE
+            # returns NULL and QGIS paints no label for them. Comparison uses the
+            # English values stored by _resolve_link_status; output is translated.
+            closed_txt = self.tr("Closed")
+            active_txt = self.tr("Active")
+            full_expr = (
+                f"CASE WHEN \"Status\" LIKE '%Closed%' THEN '{closed_txt}' "
+                f"WHEN \"Status\" LIKE 'Active%' THEN '{active_txt}' END"
+            )
+        elif show_id:
             element = "Nodes" if is_node else "Links"
             unit_field = "Flow" if fieldName in ("Flow_Sig", "Flow_Unsig") else fieldName
             unit = QGISRedFieldUtils().getUnitAbbreviation(element, unit_field)
