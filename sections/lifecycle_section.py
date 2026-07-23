@@ -427,15 +427,8 @@ class LifecycleSection:
             GISRed.SetCulture(ui_language)
 
     def getVersion(self, filename, what):
-        import sys
-        if sys.platform != "win32":
-            return ""
         try:
-            import win32api
-            pairs = win32api.GetFileVersionInfo(filename, "\\VarFileInfo\\Translation")
-            lang, codepage = pairs[0]
-            path = "\\StringFileInfo\\%04x%04x\\%s" % (lang, codepage, what)
-            return win32api.GetFileVersionInfo(filename, path)
+            return GISRed.GetVersion()
         except Exception:
             return ""
 

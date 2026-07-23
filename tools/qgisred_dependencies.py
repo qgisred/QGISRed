@@ -40,6 +40,13 @@ class QGISRedDependencies:
         b = mydll.SetCulture(culture)
         return QGISRedDependencies.toString(b)
 
+    def GetVersion():
+        mydll = _load_dll()
+        mydll.GetVersion.argtypes = ()
+        mydll.GetVersion.restype = c_char_p
+        b = mydll.GetVersion()
+        return QGISRedDependencies.toString(b)
+
     @staticmethod
     def AddConnection(projectFolder, networkName, tempFolder, pipePoints):
         projectFolder = QGISRedDependencies.encode(projectFolder)
