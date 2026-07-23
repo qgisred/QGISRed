@@ -1,3 +1,4 @@
+from contextlib import suppress
 from enum import IntEnum
 import inspect
 from qgis.PyQt.QtGui import QColor, QCursor, QPixmap
@@ -219,10 +220,8 @@ class QGISRedSelectPointTool(QgsMapTool):
 
     def canvasMoveEvent(self, event):
         if self.move_callback is not None:
-            try:
+            with suppress(Exception):
                 self.move_callback(QgsPointXY(self.toMapCoordinates(event.pos())))
-            except Exception:  # nosec B110 — mouse-move callback; silent fail is intentional
-                pass
         match = self.snapper.snapToMap(self.toMapCoordinates(event.pos()))
         if match.isValid():
             self.objectSnapped = match
