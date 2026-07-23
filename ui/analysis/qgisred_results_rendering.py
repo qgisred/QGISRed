@@ -336,8 +336,8 @@ class _ResultsRenderingMixin:
                         tip_lines.append('@ [% "' + time_field + '" %]')
                     layer_to_paint.setMapTipTemplate('<br>'.join(tip_lines))
 
-                    # Configure layer labels
-                    self.setLayerLabels(layer_to_paint, field, time_field)
+                    # Configure layer labels (occurrence time is shown only in the tooltip)
+                    self.setLayerLabels(layer_to_paint, field)
 
         if hasattr(self, "_refreshDistributionChartsIfNeeded"):
             self._refreshDistributionChartsIfNeeded()
@@ -382,7 +382,7 @@ class _ResultsRenderingMixin:
             text += f' <span style="font-size:10pt; font-weight:normal; color:{color};">({unit})</span>'
         label.setText(text)
 
-    def setLayerLabels(self, layer, fieldName, time_field=None):
+    def setLayerLabels(self, layer, fieldName):
         node_labels_enabled = layer.geometryType() == 0 and self.cbNodeLabels.isChecked()
         link_labels_enabled = layer.geometryType() == 1 and self.cbLinkLabels.isChecked()
         if not (node_labels_enabled or link_labels_enabled):
@@ -443,12 +443,10 @@ class _ResultsRenderingMixin:
 
         layer_settings.setFormat(text_format)
 
-        # Build value expression — format_number ensures fixed decimal places (respects locale)
+        # Build value expression — format_number ensures fixed decimal places (respects locale).
+        # The occurrence time (Max/Min stats) is never shown in the label; it lives in the tooltip.
         is_flow_field = fieldName in ("Flow", "Flow_Sig")
-        if time_field:
-            raw_field_expr = f'abs("{fieldName}")' if is_flow_field else f'"{fieldName}"'
-            value_expr = f'format_number(round({raw_field_expr}, {decimals}), {decimals}) || \' (@ \' || "{time_field}" || \')\''
-        elif is_flow_field:
+        if is_flow_field:
             value_expr = f'format_number(abs("{fieldName}"), {decimals})'
         else:
             value_expr = f'format_number("{fieldName}", {decimals})'
@@ -466,11 +464,7 @@ class _ResultsRenderingMixin:
                 f"WHEN \"Status\" LIKE 'Active%' THEN '{active_txt}' END"
             )
         elif show_id:
-            if time_field:
-                raw_field_expr2 = f'abs("{fieldName}")' if is_flow_field else f'"{fieldName}"'
-                raw_val = f'format_number(round({raw_field_expr2}, {decimals}), {decimals})'
-                line2_inner = f'{raw_val} || \' (@ \' || "{time_field}" || \')\''
-            elif is_flow_field:
+            if is_flow_field:
                 line2_inner = f'format_number(abs("{fieldName}"), {decimals})'
             else:
                 line2_inner = f'format_number("{fieldName}", {decimals})'

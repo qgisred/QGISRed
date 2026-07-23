@@ -17,7 +17,7 @@ from ...tools.utils.qgisred_field_utils import QGISRedFieldUtils
 from ...tools.utils.qgisred_project_utils import QGISRedProjectUtils
 from ...tools.qgisred_dependencies import QGISRedDependencies as GISRed
 
-from .qgisred_results_rendering import _ResultsRenderingMixin, time_field_name
+from .qgisred_results_rendering import _ResultsRenderingMixin
 from .qgisred_results_data import (_ResultsDataMixin, _STAT_VAR_ALIASES,
                                    NODE_RESULT_FIELDS, LINK_RESULT_FIELDS)
 from .qgisred_results_distribution import _ResultsDistributionMixin
@@ -1603,9 +1603,7 @@ class QGISRedResultsDock(
                 if combobox.currentIndex() > 0:
                     field = field_map.get(combobox.currentText(), "")
                     if field:
-                        is_min_max_stat = self._statsMode and self.cbStatistics.currentText() in (self.lbl_maximum, self.lbl_minimum)
-                        time_field = time_field_name(field, layer_type) if is_min_max_stat else None
-                        self.setLayerLabels(layer, field, time_field)
+                        self.setLayerLabels(layer, field)
             else:
                 layer.setLabelsEnabled(False)
                 layer.triggerRepaint()

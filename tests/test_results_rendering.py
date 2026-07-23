@@ -124,15 +124,13 @@ class TestResultsLabels:
             assert 'format_number("Status"' not in expr
 
 
-# Regression tests: Flow labels must never show the sign, in normal results (no
-# time_field) or in statistics mode (Maximum/Minimum stats set time_field, which used
-# to skip the abs() wrapping entirely).
+# Regression tests: Flow labels must never show the sign — the label always uses abs().
 class TestFlowLabelsNeverShowSign:
-    def _get_expr(self, dock, layer, fieldName, time_field=None):
+    def _get_expr(self, dock, layer, fieldName):
         with patch("QGISRed.tools.utils.qgisred_project_utils.QgsProject") as MockProj, \
              patch("QGISRed.ui.analysis.qgisred_results_rendering.QgsVectorLayerSimpleLabeling") as MockLabeling:
             MockProj.instance.return_value = _make_project("LPS")
-            dock.setLayerLabels(layer, fieldName, time_field=time_field)
+            dock.setLayerLabels(layer, fieldName)
             assert MockLabeling.call_args is not None
             return MockLabeling.call_args[0][0].fieldName
 
@@ -148,49 +146,36 @@ class TestFlowLabelsNeverShowSign:
         layer.geometryType.return_value = 1  # Link
         return layer
 
-    def test_flow_label_without_time_field_is_absolute(self):
+    def test_flow_label_is_absolute(self):
         dock = self._make_link_dock()
         expr = self._get_expr(dock, self._make_link_layer(), "Flow")
         assert 'abs("Flow")' in expr
 
-    def test_flow_sig_label_without_time_field_is_absolute(self):
+    def test_flow_sig_label_is_absolute(self):
         dock = self._make_link_dock()
         expr = self._get_expr(dock, self._make_link_layer(), "Flow_Sig")
         assert 'abs("Flow_Sig")' in expr
 
-    def test_flow_label_with_time_field_is_absolute(self):
-        # Reproduces the Maximum/Minimum statistics case: paintIntervalTimeResults
-        # passes a non-None time_field, which used to bypass abs() entirely.
+    def test_non_flow_label_is_not_wrapped_in_abs(self):
         dock = self._make_link_dock()
-        expr = self._get_expr(dock, self._make_link_layer(), "Flow", time_field="Time_Max")
-        assert 'abs("Flow")' in expr
-        assert '"Time_Max"' in expr
-
-    def test_flow_sig_label_with_time_field_is_absolute(self):
-        dock = self._make_link_dock()
-        expr = self._get_expr(dock, self._make_link_layer(), "Flow_Sig", time_field="Time_Max")
-        assert 'abs("Flow_Sig")' in expr
-
-    def test_non_flow_label_with_time_field_is_not_wrapped_in_abs(self):
-        dock = self._make_link_dock()
-        expr = self._get_expr(dock, self._make_link_layer(), "Velocity", time_field="Time_Max")
+        expr = self._get_expr(dock, self._make_link_layer(), "Velocity")
         assert 'abs(' not in expr
         assert '"Velocity"' in expr
 
-    def test_flow_label_with_time_field_and_show_id_is_absolute(self):
+    def test_flow_label_with_show_id_is_absolute(self):
         dock = self._make_link_dock(show_id=True)
-        expr = self._get_expr(dock, self._make_link_layer(), "Flow", time_field="Time_Max")
+        expr = self._get_expr(dock, self._make_link_layer(), "Flow")
         assert 'abs("Flow")' in expr
 
 
-# Regression tests: for Max/Min statistics, the occurrence time must be appended as
-# " (@ <time>)" — '@' inside the parentheses — not separated by a hyphen.
-class TestStatisticsTimeLabelFormat:
-    def _get_expr(self, dock, layer, fieldName, time_field=None):
+# Regression tests: the occurrence time (Max/Min stats) must NEVER appear in the map
+# label — it is shown only in the tooltip. The label carries just the value.
+class TestLabelsNeverShowOccurrenceTime:
+    def _get_expr(self, dock, layer, fieldName):
         with patch("QGISRed.tools.utils.qgisred_project_utils.QgsProject") as MockProj, \
              patch("QGISRed.ui.analysis.qgisred_results_rendering.QgsVectorLayerSimpleLabeling") as MockLabeling:
             MockProj.instance.return_value = _make_project("LPS")
-            dock.setLayerLabels(layer, fieldName, time_field=time_field)
+            dock.setLayerLabels(layer, fieldName)
             assert MockLabeling.call_args is not None
             return MockLabeling.call_args[0][0].fieldName
 
@@ -206,17 +191,17 @@ class TestStatisticsTimeLabelFormat:
         layer.geometryType.return_value = 1  # Link
         return layer
 
-    def test_time_field_uses_at_sign_inside_parentheses(self):
+    def test_label_has_no_time_reference(self):
         dock = self._make_link_dock()
-        expr = self._get_expr(dock, self._make_link_layer(), "Velocity", time_field="Time_Max")
-        assert "' (@ '" in expr
-        assert " - " not in expr
+        expr = self._get_expr(dock, self._make_link_layer(), "Velocity")
+        assert "(@ " not in expr
+        assert "Time" not in expr
 
-    def test_time_field_with_show_id_uses_at_sign_inside_parentheses(self):
+    def test_label_with_show_id_has_no_time_reference(self):
         dock = self._make_link_dock(show_id=True)
-        expr = self._get_expr(dock, self._make_link_layer(), "Velocity", time_field="Time_Max")
-        assert "' (@ '" in expr
-        assert " - " not in expr
+        expr = self._get_expr(dock, self._make_link_layer(), "Velocity")
+        assert "(@ " not in expr
+        assert "Time" not in expr
 
 
 # Regression tests: the map tooltip must show the occurrence time as a final "@ time"
