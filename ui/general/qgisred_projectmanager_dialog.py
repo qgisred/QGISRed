@@ -337,11 +337,11 @@ class QGISRedProjectManagerDialog(QDialog, FORM_CLASS):
                 if sys.platform == "win32":
                     os.startfile(mainFolder)  # nosec B606 — opens a known local project folder in Explorer, by design
                 elif sys.platform == "darwin":
-                    import subprocess
-                    subprocess.Popen(["open", mainFolder])
+                    import subprocess  # nosec B404
+                    subprocess.Popen(["open", mainFolder])  # nosec B603, B607 — opens a known local folder
                 else:
-                    import subprocess
-                    subprocess.Popen(["xdg-open", mainFolder])
+                    import subprocess  # nosec B404
+                    subprocess.Popen(["xdg-open", mainFolder])  # nosec B603, B607 — opens a known local folder
                 isSameProject = self._getUniformedPath(self.ProjectDirectory) == self._getUniformedPath(mainFolder)
                 isSameNet = self.NetworkName == name
                 if isSameProject and isSameNet:

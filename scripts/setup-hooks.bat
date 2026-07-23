@@ -21,7 +21,7 @@ if errorlevel 1 (
 echo  Git hooks configured successfully.
 echo  Git will now run .githooks\pre-commit before every commit.
 echo.
-echo  Make sure pytest and flake8 are installed:
-echo    python -m pip install pytest flake8
+echo  Make sure pytest, flake8 and bandit are installed:
+echo    python -m pip install pytest flake8 bandit
 echo.
 pause

@@ -1,13 +1,13 @@
 #!/bin/sh
 # .githooks/pre-commit
-# Runs flake8 (blocking on real errors) and pytest (tests) before every commit.
+# Runs flake8, bandit and pytest before every commit.
 #
 # One-time setup for each contributor:
 #   Windows:    scripts\setup-hooks.bat
 #   Linux/Mac:  git config core.hooksPath .githooks
 #
-# Requirements: python with pytest and flake8 installed.
-#   python -m pip install pytest flake8
+# Requirements: python with pytest, flake8 and bandit installed.
+#   python -m pip install pytest flake8 bandit
 
 # ── Resolve repo root (two levels up from .githooks/pre-commit) ─────────────
 HOOK_DIR="$(cd "$(dirname "$0")" && pwd)"
@@ -48,7 +48,32 @@ else
     echo " Flake8 clean."
 fi
 
-# ── 2. Pytest ────────────────────────────────────────────────────────────────
+# ── 2. Bandit — security scan ────────────────────────────────────────────────
+echo "---------------------------------------------"
+echo " QGISRed pre-commit: running bandit"
+echo "---------------------------------------------"
+
+if ! python -m bandit --version >/dev/null 2>&1; then
+    echo ""
+    echo "WARNING: bandit not installed — skipping security scan."
+    echo "  Install with: python -m pip install bandit"
+    echo ""
+else
+    python -m bandit -r "$REPO_ROOT" -c "$REPO_ROOT/pyproject.toml" -q
+    BANDIT_EXIT=$?
+    if [ "$BANDIT_EXIT" -ne 0 ]; then
+        echo ""
+        echo "---------------------------------------------"
+        echo " COMMIT BLOCKED: bandit found security issues."
+        echo " Review the findings above, fix or add #nosec with justification."
+        echo " To skip (not recommended): git commit --no-verify"
+        echo "---------------------------------------------"
+        exit $BANDIT_EXIT
+    fi
+    echo " Bandit clean."
+fi
+
+# ── 3. Pytest ────────────────────────────────────────────────────────────────
 echo "---------------------------------------------"
 echo " QGISRed pre-commit: running pytest"
 echo "---------------------------------------------"

@@ -1,0 +1,7 @@
+[tool.bandit]
+# Exclude test code and release scripts — not plugin code
+exclude_dirs = ["tests", "scripts"]
+# B101: assert in tests (pytest pattern, excluded via exclude_dirs anyway)
+# B311: random for non-crypto use in tests
+# B405/B314: xml.etree used on plugin-generated XML, not untrusted input
+skips = ["B101", "B311", "B405", "B314"]

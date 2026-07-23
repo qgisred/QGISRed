@@ -221,7 +221,7 @@ class QGISRedSelectPointTool(QgsMapTool):
         if self.move_callback is not None:
             try:
                 self.move_callback(QgsPointXY(self.toMapCoordinates(event.pos())))
-            except Exception:
+            except Exception:  # nosec B110 — mouse-move callback; silent fail is intentional
                 pass
         match = self.snapper.snapToMap(self.toMapCoordinates(event.pos()))
         if match.isValid():
