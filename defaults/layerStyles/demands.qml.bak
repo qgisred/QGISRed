@@ -212,12 +212,12 @@
               <Option name="properties" type="Map">
                 <Option name="fillColor" type="Map">
                   <Option value="true" name="active" type="bool"/>
-                  <Option value="if (BaseValue is NULL, '#ffffff', if( BaseValue >0, '#fdbf6f', if (BaseValue &lt;0 , '#a6cee3', '#ffffff')))" name="expression" type="QString"/>
+                  <Option value="with_variable('bd', coalesce(attribute($currentfeature,'BaseDem'),attribute($currentfeature,'BaseValue')), if (@bd is NULL, '#ffffff', if( @bd >0, '#fdbf6f', if (@bd &lt;0 , '#a6cee3', '#ffffff'))))" name="expression" type="QString"/>
                   <Option value="3" name="type" type="int"/>
                 </Option>
                 <Option name="size" type="Map">
                   <Option value="true" name="active" type="bool"/>
-                  <Option value="if (BaseValue is NULL, 1.6, if( BaseValue >0, 1.6, if (BaseValue &lt;0 , 3.5, 1.6)))" name="expression" type="QString"/>
+                  <Option value="with_variable('bd', coalesce(attribute($currentfeature,'BaseDem'),attribute($currentfeature,'BaseValue')), if (@bd is NULL, 1.6, if( @bd >0, 1.6, if (@bd &lt;0 , 3.5, 1.6))))" name="expression" type="QString"/>
                   <Option value="3" name="type" type="int"/>
                 </Option>
               </Option>
@@ -533,6 +533,6 @@ def my_form_open(dialog, layer, feature):
   <dataDefinedFieldProperties/>
   <widgets/>
   <previewExpression>"Descrip"</previewExpression>
-  <mapTip enabled="1">Mult_Demand [% "BaseValue" %] ...</mapTip>
+  <mapTip enabled="1">Mult_Demand [% coalesce(attribute($currentfeature,'BaseDem'), attribute($currentfeature,'BaseValue')) %] ...</mapTip>
   <layerGeometryType>0</layerGeometryType>
 </qgis>

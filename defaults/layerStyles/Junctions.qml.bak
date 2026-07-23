@@ -156,7 +156,7 @@
   </selection>
   <labeling type="simple">
     <settings calloutType="simple">
-      <text-style fontUnderline="0" allowHtml="0" fontWordSpacing="0" multilineHeightUnit="Percentage" previewBkgrdColor="255,255,255,255,rgb:1,1,1,1" legendString="Aa" textOpacity="1" fontFamily="Arial" textOrientation="horizontal" multilineHeight="1" fieldName="Id" forcedItalic="0" forcedBold="0" fontKerning="1" fontItalic="0" blendMode="0" namedStyle="Normal" fontWeight="50" fontSizeMapUnitScale="3x:0,0,0,0,0,0" tabStopDistanceMapUnitScale="3x:0,0,0,0,0,0" isExpression="0" useSubstitutions="0" tabStopDistance="80" fontStrikeout="0" fontLetterSpacing="0" capitalization="0" fontSize="8" textColor="255,127,0,255,rgb:1,0.49803921568627452,0,1" tabStopDistanceUnit="Point" fontSizeUnit="Point">
+      <text-style fontUnderline="0" allowHtml="0" fontWordSpacing="0" multilineHeightUnit="Percentage" previewBkgrdColor="255,255,255,255,rgb:1,1,1,1" legendString="Aa" textOpacity="1" fontFamily="Arial" textOrientation="horizontal" multilineHeight="1" fieldName="coalesce(attribute($currentfeature,'JunctionID'),attribute($currentfeature,'Id'))" forcedItalic="0" forcedBold="0" fontKerning="1" fontItalic="0" blendMode="0" namedStyle="Normal" fontWeight="50" fontSizeMapUnitScale="3x:0,0,0,0,0,0" tabStopDistanceMapUnitScale="3x:0,0,0,0,0,0" isExpression="1" useSubstitutions="0" tabStopDistance="80" fontStrikeout="0" fontLetterSpacing="0" capitalization="0" fontSize="8" textColor="255,127,0,255,rgb:1,0.49803921568627452,0,1" tabStopDistanceUnit="Point" fontSizeUnit="Point">
         <families/>
         <text-buffer bufferOpacity="1" bufferBlendMode="0" bufferDraw="0" bufferNoFill="1" bufferSizeUnits="MM" bufferColor="250,250,250,255,rgb:0.98039215686274506,0.98039215686274506,0.98039215686274506,1" bufferSizeMapUnitScale="3x:0,0,0,0,0,0" bufferJoinStyle="128" bufferSize="1"/>
         <text-mask maskType="0" maskOpacity="1" maskSize2="1.5" maskSize="1.5" maskedSymbolLayers="" maskEnabled="0" maskSizeUnits="MM" maskSizeMapUnitScale="3x:0,0,0,0,0,0" maskJoinStyle="128"/>
@@ -351,7 +351,7 @@
     <constraint exp="" field="Descrip" desc=""/>
   </constraintExpressions>
   <expressionfields/>
-  <previewExpression>"Id"</previewExpression>
+  <previewExpression>coalesce(attribute($currentfeature,'JunctionID'),attribute($currentfeature,'Id'))</previewExpression>
   <mapTip enabled="1">Junction [% coalesce(attribute($currentfeature,'JunctionID'), attribute($currentfeature,'Id')) %]</mapTip>
   <layerGeometryType>0</layerGeometryType>
 </qgis>

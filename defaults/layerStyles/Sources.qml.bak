@@ -44,7 +44,7 @@
               <Option type="Map" name="properties">
                 <Option type="Map" name="outlineColor">
                   <Option value="true" type="bool" name="active"/>
-                  <Option value="if (BaseValue is NULL or BaseValue = 0, '#9d979d' , if ( Type = 'MASS', '#ffd17123', if (Type = 'FLOWPACED', '#ff23d146', if (Type = 'CONCEN', '#0d20ed', '#ffcb0f96'))))" type="QString" name="expression"/>
+                  <Option value="with_variable('bq', coalesce(attribute($currentfeature,'SourceQual'),attribute($currentfeature,'BaseValue')), with_variable('st', coalesce(attribute($currentfeature,'SourceType'),attribute($currentfeature,'Type')), if (@bq is NULL or @bq = 0, '#9d979d' , if ( @st = 'MASS', '#ffd17123', if (@st = 'FLOWPACED', '#ff23d146', if (@st = 'CONCEN', '#0d20ed', '#ffcb0f96'))))))" type="QString" name="expression"/>
                   <Option value="3" type="int" name="type"/>
                 </Option>
               </Option>
@@ -110,7 +110,7 @@
   </selection>
   <labeling type="simple">
     <settings calloutType="simple">
-      <text-style fontKerning="1" textOpacity="1" isExpression="1" fontItalic="0" textOrientation="horizontal" fontUnderline="0" useSubstitutions="0" namedStyle="Normal" allowHtml="0" tabStopDistanceUnit="Point" multilineHeight="1" fontWordSpacing="0" fontLetterSpacing="0" forcedItalic="0" tabStopDistanceMapUnitScale="3x:0,0,0,0,0,0" fontStrikeout="0" fontWeight="50" previewBkgrdColor="255,255,255,255,rgb:1,1,1,1" fontFamily="Arial" fieldName="concat(&quot;Type&quot;,' ',&quot;BaseValue&quot;)" fontSizeMapUnitScale="3x:0,0,0,0,0,0" multilineHeightUnit="Percentage" tabStopDistance="80" legendString="Aa" textColor="50,50,50,255,rgb:0.19607843137254902,0.19607843137254902,0.19607843137254902,1" fontSizeUnit="Point" forcedBold="0" capitalization="0" fontSize="7" blendMode="0">
+      <text-style fontKerning="1" textOpacity="1" isExpression="1" fontItalic="0" textOrientation="horizontal" fontUnderline="0" useSubstitutions="0" namedStyle="Normal" allowHtml="0" tabStopDistanceUnit="Point" multilineHeight="1" fontWordSpacing="0" fontLetterSpacing="0" forcedItalic="0" tabStopDistanceMapUnitScale="3x:0,0,0,0,0,0" fontStrikeout="0" fontWeight="50" previewBkgrdColor="255,255,255,255,rgb:1,1,1,1" fontFamily="Arial" fieldName="concat(coalesce(attribute($currentfeature,'SourceType'),attribute($currentfeature,'Type')),' ',coalesce(attribute($currentfeature,'SourceQual'),attribute($currentfeature,'BaseValue')))" fontSizeMapUnitScale="3x:0,0,0,0,0,0" multilineHeightUnit="Percentage" tabStopDistance="80" legendString="Aa" textColor="50,50,50,255,rgb:0.19607843137254902,0.19607843137254902,0.19607843137254902,1" fontSizeUnit="Point" forcedBold="0" capitalization="0" fontSize="7" blendMode="0">
         <families/>
         <text-buffer bufferSizeUnits="MM" bufferDraw="0" bufferBlendMode="0" bufferNoFill="1" bufferSizeMapUnitScale="3x:0,0,0,0,0,0" bufferColor="250,250,250,255,rgb:0.98039215686274506,0.98039215686274506,0.98039215686274506,1" bufferJoinStyle="128" bufferOpacity="1" bufferSize="1"/>
         <text-mask maskedSymbolLayers="" maskEnabled="0" maskSizeMapUnitScale="3x:0,0,0,0,0,0" maskSize="1.5" maskSize2="1.5" maskOpacity="1" maskJoinStyle="128" maskType="0" maskSizeUnits="MM"/>
@@ -234,7 +234,7 @@
   </labeling>
   <blendMode>0</blendMode>
   <featureBlendMode>0</featureBlendMode>
-  <previewExpression>"Type"</previewExpression>
-  <mapTip enabled="1">Source [% "Type" %] [% "BaseValue" %]</mapTip>
+  <previewExpression>coalesce(attribute($currentfeature,'SourceType'),attribute($currentfeature,'Type'))</previewExpression>
+  <mapTip enabled="1">Source [% coalesce(attribute($currentfeature,'SourceType'), attribute($currentfeature,'Type')) %] [% coalesce(attribute($currentfeature,'SourceQual'), attribute($currentfeature,'BaseValue')) %]</mapTip>
   <layerGeometryType>0</layerGeometryType>
 </qgis>

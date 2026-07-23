@@ -53,7 +53,7 @@
                 </Option>
                 <Option type="Map" name="width">
                   <Option type="bool" name="active" value="true"/>
-                  <Option type="QString" name="expression" value="if (Type is NULL, 0, if (Type = 'EnergySensor', 5, 0))"/>
+                  <Option type="QString" name="expression" value="with_variable('mt', coalesce(attribute($currentfeature,'MeterType'),attribute($currentfeature,'Type')), if (@mt is NULL, 0, if (@mt = 'EnergySensor', 5, 0)))"/>
                   <Option type="int" name="type" value="3"/>
                 </Option>
               </Option>
@@ -98,7 +98,7 @@
                 </Option>
                 <Option type="Map" name="width">
                   <Option type="bool" name="active" value="true"/>
-                  <Option type="QString" name="expression" value="if (Type is NULL, 0, if (Type = 'ValveOpening', 5, 0))"/>
+                  <Option type="QString" name="expression" value="with_variable('mt', coalesce(attribute($currentfeature,'MeterType'),attribute($currentfeature,'Type')), if (@mt is NULL, 0, if (@mt = 'ValveOpening', 5, 0)))"/>
                   <Option type="int" name="type" value="3"/>
                 </Option>
               </Option>
@@ -143,7 +143,7 @@
                 </Option>
                 <Option type="Map" name="width">
                   <Option type="bool" name="active" value="true"/>
-                  <Option type="QString" name="expression" value="if (Type is NULL, 0, if (Type = 'DifferentialManometer', 5, 0))"/>
+                  <Option type="QString" name="expression" value="with_variable('mt', coalesce(attribute($currentfeature,'MeterType'),attribute($currentfeature,'Type')), if (@mt is NULL, 0, if (@mt = 'DifferentialManometer', 5, 0)))"/>
                   <Option type="int" name="type" value="3"/>
                 </Option>
               </Option>
@@ -188,7 +188,7 @@
                 </Option>
                 <Option type="Map" name="width">
                   <Option type="bool" name="active" value="true"/>
-                  <Option type="QString" name="expression" value="if (Type is NULL, 0, if (Type = 'StatusSensor', 5, 0))"/>
+                  <Option type="QString" name="expression" value="with_variable('mt', coalesce(attribute($currentfeature,'MeterType'),attribute($currentfeature,'Type')), if (@mt is NULL, 0, if (@mt = 'StatusSensor', 5, 0)))"/>
                   <Option type="int" name="type" value="3"/>
                 </Option>
               </Option>
@@ -233,7 +233,7 @@
                 </Option>
                 <Option type="Map" name="width">
                   <Option type="bool" name="active" value="true"/>
-                  <Option type="QString" name="expression" value="if (Type is NULL, 0, if (Type = 'Tachometer', 5, 0))"/>
+                  <Option type="QString" name="expression" value="with_variable('mt', coalesce(attribute($currentfeature,'MeterType'),attribute($currentfeature,'Type')), if (@mt is NULL, 0, if (@mt = 'Tachometer', 5, 0)))"/>
                   <Option type="int" name="type" value="3"/>
                 </Option>
               </Option>
@@ -278,7 +278,7 @@
                 </Option>
                 <Option type="Map" name="width">
                   <Option type="bool" name="active" value="true"/>
-                  <Option type="QString" name="expression" value="if (Type is NULL, 0, if (Type = 'Countermeter', 5, 0))"/>
+                  <Option type="QString" name="expression" value="with_variable('mt', coalesce(attribute($currentfeature,'MeterType'),attribute($currentfeature,'Type')), if (@mt is NULL, 0, if (@mt = 'Countermeter', 5, 0)))"/>
                   <Option type="int" name="type" value="3"/>
                 </Option>
               </Option>
@@ -323,7 +323,7 @@
                 </Option>
                 <Option type="Map" name="width">
                   <Option type="bool" name="active" value="true"/>
-                  <Option type="QString" name="expression" value="if (Type is NULL, 0, if (Type = 'Flowmeter', 5, 0))"/>
+                  <Option type="QString" name="expression" value="with_variable('mt', coalesce(attribute($currentfeature,'MeterType'),attribute($currentfeature,'Type')), if (@mt is NULL, 0, if (@mt = 'Flowmeter', 5, 0)))"/>
                   <Option type="int" name="type" value="3"/>
                 </Option>
               </Option>
@@ -368,7 +368,7 @@
                 </Option>
                 <Option type="Map" name="width">
                   <Option type="bool" name="active" value="true"/>
-                  <Option type="QString" name="expression" value="if (Type is NULL, 0, if (Type = 'QualitySensor', 5, 0))"/>
+                  <Option type="QString" name="expression" value="with_variable('mt', coalesce(attribute($currentfeature,'MeterType'),attribute($currentfeature,'Type')), if (@mt is NULL, 0, if (@mt = 'QualitySensor', 5, 0)))"/>
                   <Option type="int" name="type" value="3"/>
                 </Option>
               </Option>
@@ -413,7 +413,7 @@
                 </Option>
                 <Option type="Map" name="width">
                   <Option type="bool" name="active" value="true"/>
-                  <Option type="QString" name="expression" value="if (Type is NULL, 0, if (Type = 'LevelSensor', 5, 0))"/>
+                  <Option type="QString" name="expression" value="with_variable('mt', coalesce(attribute($currentfeature,'MeterType'),attribute($currentfeature,'Type')), if (@mt is NULL, 0, if (@mt = 'LevelSensor', 5, 0)))"/>
                   <Option type="int" name="type" value="3"/>
                 </Option>
               </Option>
@@ -458,7 +458,7 @@
                 </Option>
                 <Option type="Map" name="width">
                   <Option type="bool" name="active" value="true"/>
-                  <Option type="QString" name="expression" value="if (Type is NULL, 5, if (Type = 'Manometer', 5, 0))"/>
+                  <Option type="QString" name="expression" value="with_variable('mt', coalesce(attribute($currentfeature,'MeterType'),attribute($currentfeature,'Type')), if (@mt is NULL, 5, if (@mt = 'Manometer', 5, 0)))"/>
                   <Option type="int" name="type" value="3"/>
                 </Option>
               </Option>
@@ -524,7 +524,7 @@
   </selection>
   <labeling type="simple">
     <settings calloutType="simple">
-      <text-style previewBkgrdColor="255,255,255,255,rgb:1,1,1,1" fontWeight="50" isExpression="0" allowHtml="0" multilineHeight="1" fontItalic="0" fontSizeMapUnitScale="3x:0,0,0,0,0,0" textOrientation="horizontal" textOpacity="1" tabStopDistanceUnit="Point" fontSize="8" useSubstitutions="0" legendString="Aa" fontKerning="1" tabStopDistance="80" fontWordSpacing="0" blendMode="0" fieldName="Id" forcedBold="0" multilineHeightUnit="Percentage" fontSizeUnit="Point" fontStrikeout="0" textColor="237,109,215,255,hsv:0.86105555555555557,0.54044403753719383,0.92845044632639051,1" fontFamily="Arial" fontLetterSpacing="0" forcedItalic="0" namedStyle="Normal" fontUnderline="0" tabStopDistanceMapUnitScale="3x:0,0,0,0,0,0" capitalization="0">
+      <text-style previewBkgrdColor="255,255,255,255,rgb:1,1,1,1" fontWeight="50" isExpression="1" allowHtml="0" multilineHeight="1" fontItalic="0" fontSizeMapUnitScale="3x:0,0,0,0,0,0" textOrientation="horizontal" textOpacity="1" tabStopDistanceUnit="Point" fontSize="8" useSubstitutions="0" legendString="Aa" fontKerning="1" tabStopDistance="80" fontWordSpacing="0" blendMode="0" fieldName="coalesce(attribute($currentfeature,'MeterID'),attribute($currentfeature,'Id'))" forcedBold="0" multilineHeightUnit="Percentage" fontSizeUnit="Point" fontStrikeout="0" textColor="237,109,215,255,hsv:0.86105555555555557,0.54044403753719383,0.92845044632639051,1" fontFamily="Arial" fontLetterSpacing="0" forcedItalic="0" namedStyle="Normal" fontUnderline="0" tabStopDistanceMapUnitScale="3x:0,0,0,0,0,0" capitalization="0">
         <families/>
         <text-buffer bufferOpacity="1" bufferSizeMapUnitScale="3x:0,0,0,0,0,0" bufferSizeUnits="MM" bufferJoinStyle="128" bufferDraw="0" bufferBlendMode="0" bufferColor="250,250,250,255,rgb:0.98039215686274506,0.98039215686274506,0.98039215686274506,1" bufferNoFill="1" bufferSize="1"/>
         <text-mask maskedSymbolLayers="" maskSize="1.5" maskSizeUnits="MM" maskJoinStyle="128" maskOpacity="1" maskSize2="1.5" maskSizeMapUnitScale="3x:0,0,0,0,0,0" maskType="0" maskEnabled="0"/>
@@ -718,6 +718,6 @@
   </constraintExpressions>
   <expressionfields/>
   <previewExpression>"Descrip"</previewExpression>
-  <mapTip enabled="1">[[% "Type" %]] [% coalesce(attribute($currentfeature,'MeterID'), attribute($currentfeature,'Id')) %]</mapTip>
+  <mapTip enabled="1">[[% coalesce(attribute($currentfeature,'MeterType'),attribute($currentfeature,'Type')) %]] [% coalesce(attribute($currentfeature,'MeterID'), attribute($currentfeature,'Id')) %]</mapTip>
   <layerGeometryType>0</layerGeometryType>
 </qgis>

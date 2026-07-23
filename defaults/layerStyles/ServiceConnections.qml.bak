@@ -265,7 +265,7 @@
                   <Option name="properties" type="Map">
                     <Option name="fillColor" type="Map">
                       <Option value="true" name="active" type="bool"/>
-                      <Option value="if(BaseDemand>0,if(IsActive is NULL or IsActive >0,'#b7dfa3','#c7cbc5'),'#fff')" name="expression" type="QString"/>
+                      <Option value="if(coalesce(attribute($currentfeature,'BaseDem'),attribute($currentfeature,'BaseDemand'))>0,if(IsActive is NULL or IsActive >0,'#b7dfa3','#c7cbc5'),'#fff')" name="expression" type="QString"/>
                       <Option value="3" name="type" type="int"/>
                     </Option>
                     <Option name="outlineColor" type="Map">
@@ -346,7 +346,7 @@
   </selection>
   <labeling type="simple">
     <settings calloutType="simple">
-      <text-style fontWeight="50" namedStyle="Cursiva" blendMode="0" multilineHeight="1" multilineHeightUnit="Percentage" tabStopDistance="80" fontSize="7" legendString="Aa" fontSizeUnit="Point" fontFamily="Arial" stretchFactor="100" tabStopDistanceUnit="Point" fontLetterSpacing="0" textOrientation="horizontal" forcedBold="0" fontStrikeout="0" allowHtml="0" fontKerning="1" textColor="120,206,127,255,rgb:0.47058823529411764,0.80784313725490198,0.49803921568627452,1" fontUnderline="0" previewBkgrdColor="255,255,255,255,rgb:1,1,1,1" forcedItalic="0" isExpression="0" fontItalic="1" useSubstitutions="0" textOpacity="1" tabStopDistanceMapUnitScale="3x:0,0,0,0,0,0" fontWordSpacing="0" fontSizeMapUnitScale="3x:0,0,0,0,0,0" capitalization="0" fieldName="Id">
+      <text-style fontWeight="50" namedStyle="Cursiva" blendMode="0" multilineHeight="1" multilineHeightUnit="Percentage" tabStopDistance="80" fontSize="7" legendString="Aa" fontSizeUnit="Point" fontFamily="Arial" stretchFactor="100" tabStopDistanceUnit="Point" fontLetterSpacing="0" textOrientation="horizontal" forcedBold="0" fontStrikeout="0" allowHtml="0" fontKerning="1" textColor="120,206,127,255,rgb:0.47058823529411764,0.80784313725490198,0.49803921568627452,1" fontUnderline="0" previewBkgrdColor="255,255,255,255,rgb:1,1,1,1" forcedItalic="0" isExpression="1" fontItalic="1" useSubstitutions="0" textOpacity="1" tabStopDistanceMapUnitScale="3x:0,0,0,0,0,0" fontWordSpacing="0" fontSizeMapUnitScale="3x:0,0,0,0,0,0" capitalization="0" fieldName="coalesce(attribute($currentfeature,'ConnectID'),attribute($currentfeature,'Id'))">
         <families/>
         <text-buffer bufferSizeUnits="MM" bufferOpacity="1" bufferSize="1" bufferNoFill="1" bufferJoinStyle="128" bufferColor="250,250,250,255,rgb:0.98039215686274506,0.98039215686274506,0.98039215686274506,1" bufferBlendMode="0" bufferDraw="0" bufferSizeMapUnitScale="3x:0,0,0,0,0,0"/>
         <text-mask maskSizeUnits="MM" maskSizeMapUnitScale="3x:0,0,0,0,0,0" maskOpacity="1" maskSize2="1.5" maskJoinStyle="128" maskEnabled="0" maskSize="1.5" maskType="0" maskedSymbolLayers=""/>
@@ -751,7 +751,7 @@ def my_form_open(dialog, layer, feature):
   </reuseLastValue>
   <dataDefinedFieldProperties/>
   <widgets/>
-  <previewExpression>"Id"</previewExpression>
-  <mapTip enabled="1">SConnec [% coalesce(attribute($currentfeature,'ServiceConnectionID'), attribute($currentfeature,'Id')) %]</mapTip>
+  <previewExpression>coalesce(attribute($currentfeature,'ConnectID'),attribute($currentfeature,'Id'))</previewExpression>
+  <mapTip enabled="1">SConnec [% coalesce(attribute($currentfeature,'ConnectID'), attribute($currentfeature,'Id')) %]</mapTip>
   <layerGeometryType>1</layerGeometryType>
 </qgis>

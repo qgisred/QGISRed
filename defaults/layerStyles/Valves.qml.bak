@@ -202,7 +202,7 @@
   </selection>
   <labeling type="simple">
     <settings calloutType="simple">
-      <text-style previewBkgrdColor="255,255,255,255,rgb:1,1,1,1" fontWeight="50" isExpression="1" allowHtml="0" multilineHeight="1" fontItalic="0" fontSizeMapUnitScale="3x:0,0,0,0,0,0" textOrientation="horizontal" textOpacity="1" tabStopDistanceUnit="Point" fontSize="8" useSubstitutions="0" legendString="Aa" fontKerning="1" tabStopDistance="80" fontWordSpacing="0" blendMode="0" fieldName="concat(&quot;Type&quot;,' ',&quot;Id&quot;)" forcedBold="0" multilineHeightUnit="Percentage" fontSizeUnit="Point" fontStrikeout="0" textColor="51,160,44,255,rgb:0.20000000000000001,0.62745098039215685,0.17254901960784313,1" fontFamily="Arial" fontLetterSpacing="0" forcedItalic="0" namedStyle="Normal" fontUnderline="0" tabStopDistanceMapUnitScale="3x:0,0,0,0,0,0" capitalization="0">
+      <text-style previewBkgrdColor="255,255,255,255,rgb:1,1,1,1" fontWeight="50" isExpression="1" allowHtml="0" multilineHeight="1" fontItalic="0" fontSizeMapUnitScale="3x:0,0,0,0,0,0" textOrientation="horizontal" textOpacity="1" tabStopDistanceUnit="Point" fontSize="8" useSubstitutions="0" legendString="Aa" fontKerning="1" tabStopDistance="80" fontWordSpacing="0" blendMode="0" fieldName="concat(coalesce(attribute($currentfeature,'ValveType'),attribute($currentfeature,'Type')),' ',coalesce(attribute($currentfeature,'ValveID'),attribute($currentfeature,'Id')))" forcedBold="0" multilineHeightUnit="Percentage" fontSizeUnit="Point" fontStrikeout="0" textColor="51,160,44,255,rgb:0.20000000000000001,0.62745098039215685,0.17254901960784313,1" fontFamily="Arial" fontLetterSpacing="0" forcedItalic="0" namedStyle="Normal" fontUnderline="0" tabStopDistanceMapUnitScale="3x:0,0,0,0,0,0" capitalization="0">
         <families/>
         <text-buffer bufferOpacity="1" bufferSizeMapUnitScale="3x:0,0,0,0,0,0" bufferSizeUnits="MM" bufferJoinStyle="128" bufferDraw="0" bufferBlendMode="0" bufferColor="250,250,250,255,rgb:0.98039215686274506,0.98039215686274506,0.98039215686274506,1" bufferNoFill="1" bufferSize="1"/>
         <text-mask maskedSymbolLayers="" maskSize="1.5" maskSizeUnits="MM" maskJoinStyle="128" maskOpacity="1" maskSize2="1.5" maskSizeMapUnitScale="3x:0,0,0,0,0,0" maskType="0" maskEnabled="0"/>
@@ -413,7 +413,7 @@
     <constraint field="Descrip" exp="" desc=""/>
   </constraintExpressions>
   <expressionfields/>
-  <previewExpression>"Id"</previewExpression>
-  <mapTip enabled="1">[% "Type" %] [% coalesce(attribute($currentfeature,'ValveID'), attribute($currentfeature,'Id')) %]</mapTip>
+  <previewExpression>coalesce(attribute($currentfeature,'ValveID'),attribute($currentfeature,'Id'))</previewExpression>
+  <mapTip enabled="1">[% coalesce(attribute($currentfeature,'ValveType'), attribute($currentfeature,'Type')) %] [% coalesce(attribute($currentfeature,'ValveID'), attribute($currentfeature,'Id')) %]</mapTip>
   <layerGeometryType>1</layerGeometryType>
 </qgis>
