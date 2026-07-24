@@ -22,7 +22,7 @@ class SelectPointType(IntEnum):
 
 
 class QGISRedSelectPointTool(QgsMapTool):
-    def __init__(self, button, parent, method, type=SelectPointType.Point, cursor=None, icon_size=24, pass_modifiers=False, move_callback=None, context_callback=None):
+    def __init__(self, button, parent, method, type=SelectPointType.Point, cursor=None, icon_size=24, pass_modifiers=False, move_callback=None, context_callback=None, show_snap_marker=True):
         # type 1: points; 2: lines; 3: 2-points; 4: 2-line; 5: point-line
         QgsMapTool.__init__(self, parent.iface.mapCanvas())
         self.canvas = parent.iface.mapCanvas()
@@ -35,6 +35,10 @@ class QGISRedSelectPointTool(QgsMapTool):
         self.pass_modifiers = bool(pass_modifiers)
         self.move_callback = move_callback
         self.context_callback = context_callback
+        # When False, the snap vertex markers are not drawn on hover. Tools that
+        # provide their own hover highlight (e.g. longitudinal profiles) use this
+        # to avoid showing a second, redundant marker under the cursor.
+        self.show_snap_marker = bool(show_snap_marker)
 
         # Handle cursor: can be a string path, a QPixmap, or a QCursor
         self.custom_cursor = None
@@ -230,12 +234,13 @@ class QGISRedSelectPointTool(QgsMapTool):
                 elif match.hasEdge():
                     marker.setIconType(VERTEX_ICON_TRIANGLE)
 
-            if self.firstPoint is None:
-                self.startMarker.setCenter(QgsPointXY(match.point().x(), match.point().y()))
-                self.startMarker.show()
-            else:
-                self.endMarker.setCenter(QgsPointXY(match.point().x(), match.point().y()))
-                self.endMarker.show()
+            if self.show_snap_marker:
+                if self.firstPoint is None:
+                    self.startMarker.setCenter(QgsPointXY(match.point().x(), match.point().y()))
+                    self.startMarker.show()
+                else:
+                    self.endMarker.setCenter(QgsPointXY(match.point().x(), match.point().y()))
+                    self.endMarker.show()
         else:
             self.startMarker.hide()
             self.endMarker.hide()

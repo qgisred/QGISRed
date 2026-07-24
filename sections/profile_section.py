@@ -318,14 +318,15 @@ class ProfileSection:
             self._activeProfile = remaining[-1] if remaining else None
         self._restyleProfileDocks()
 
-    def _setProfileMapTool(self, kind, callback, context_callback=None):
+    def _setProfileMapTool(self, kind, callback, context_callback=None, cursor=":/images/iconProfile.svg"):
         from ..tools.map_tools.qgisred_selectPoint import QGISRedSelectPointTool, SelectPointType
 
         self._deactivateProfileMapTool()
         point_type = SelectPointType.TwoPoints if kind == "two" else SelectPointType.Point
         self.myMapTools["Profile"] = QGISRedSelectPointTool(
-            None, self, callback, point_type, cursor=":/images/iconProfile.svg",
+            None, self, callback, point_type, cursor=cursor,
             move_callback=self._profileHoverOnMap, context_callback=context_callback,
+            show_snap_marker=False,
         )
         self.iface.mapCanvas().setMapTool(self.myMapTools["Profile"])
 
@@ -367,12 +368,10 @@ class ProfileSection:
             from ..compat import VERTEX_ICON_CIRCLE
 
             marker = QgsVertexMarker(self.iface.mapCanvas())
-            if from_chart:
-                marker.setColor(QColor(25, 118, 210))
-                marker.setPenWidth(2)
-            else:
-                marker.setColor(QColor(255, 127, 0))
-                marker.setPenWidth(3)
+            # Blue circle for the node under the cursor, whether the hover comes
+            # from the chart or from the map (a single, consistent highlight).
+            marker.setColor(QColor(25, 118, 210))
+            marker.setPenWidth(2 if from_chart else 3)
             marker.setIconSize(20)
             marker.setIconType(VERTEX_ICON_CIRCLE)
             marker.setCenter(QgsPointXY(geoms[0].asPoint()))
@@ -398,9 +397,11 @@ class ProfileSection:
         if on:
             if not (getattr(self, "_profileReferenceNodes", []) or []):
                 self._profileEditSeq = "main"
-            self._setProfileMapTool("one", self._profileEditLeftClick, self._profileEditRightClick)
+            self._setProfileMapTool("one", self._profileEditLeftClick, self._profileEditRightClick,
+                                    cursor=":/images/pencil.svg")
         else:
-            self._setProfileMapTool("one", self._profileTrackingClick, self._profileTrackingContext)
+            self._setProfileMapTool("one", self._profileTrackingClick, self._profileTrackingContext,
+                                    cursor=":/images/iconProfile.svg")
 
     def _profileTrackingClick(self, _point):
         self._syncActiveProfileToVisible()
