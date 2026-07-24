@@ -19,25 +19,59 @@ class TestFileSystemUtils:
         assert utils.getUniformedPath(path) == expected
 
     def test_generatePath(self, utils):
-        folder = "C:\\projects"
+        # Use a real absolute folder so realpath() doesn't resolve it against the CWD.
+        folder = tempfile.gettempdir()
         file = "net.inp"
-        # os.path.join handles separators
-        expected = os.path.join(folder, file).replace("/", os.sep)
+        # generatePath joins folder + file and normalizes via getUniformedPath (realpath + os.sep).
+        expected = os.path.realpath(os.path.join(folder, file)).replace("/", os.sep)
         assert utils.generatePath(folder, file) == expected
 
-    def test_getQGISRedFolder(self, utils):
-        with patch.dict(os.environ, {"APPDATA": "C:\\AppData"}):
-            assert utils.getQGISRedFolder() == "C:\\AppData\\QGISRed"
+    # getQGISRedFolder / getGISRedDllFolder branch on sys.platform, so mock it to
+    # exercise every OS branch regardless of the host running the tests. Expected
+    # values are built with os.path.join (never hardcoded separators) so the
+    # assertions hold on Windows, macOS and Linux alike.
 
-    def test_getGISRedDllFolder_x64(self, utils):
-        with patch.dict(os.environ, {"APPDATA": "C:\\AppData"}):
-            with patch('platform.architecture', return_value=('64bit', 'WindowsPE')):
-                assert utils.getGISRedDllFolder() == "C:\\AppData\\QGISRed\\dlls\\x64"
+    def test_getQGISRedFolder_windows(self, utils):
+        appdata = os.path.join(tempfile.gettempdir(), "AppData")
+        with patch("sys.platform", "win32"), patch.dict(os.environ, {"APPDATA": appdata}):
+            assert utils.getQGISRedFolder() == os.path.join(appdata, "QGISRed")
 
-    def test_getGISRedDllFolder_x86(self, utils):
-        with patch.dict(os.environ, {"APPDATA": "C:\\AppData"}):
-            with patch('platform.architecture', return_value=('32bit', 'WindowsPE')):
-                assert utils.getGISRedDllFolder() == "C:\\AppData\\QGISRed\\dlls\\x86"
+    def test_getQGISRedFolder_macos(self, utils):
+        with patch("sys.platform", "darwin"):
+            expected = os.path.join(os.path.expanduser("~"), "Library", "Application Support", "QGISRed")
+            assert utils.getQGISRedFolder() == expected
+
+    def test_getQGISRedFolder_linux(self, utils):
+        xdg = os.path.join(tempfile.gettempdir(), "config")
+        with patch("sys.platform", "linux"), patch.dict(os.environ, {"XDG_CONFIG_HOME": xdg}):
+            assert utils.getQGISRedFolder() == os.path.join(xdg, "QGISRed")
+
+    def test_getGISRedDllFolder_windows_x64(self, utils):
+        appdata = os.path.join(tempfile.gettempdir(), "AppData")
+        with patch("sys.platform", "win32"), patch.dict(os.environ, {"APPDATA": appdata}), \
+                patch("platform.architecture", return_value=("64bit", "WindowsPE")):
+            assert utils.getGISRedDllFolder() == os.path.join(appdata, "QGISRed", "dlls", "x64")
+
+    def test_getGISRedDllFolder_windows_x86(self, utils):
+        appdata = os.path.join(tempfile.gettempdir(), "AppData")
+        with patch("sys.platform", "win32"), patch.dict(os.environ, {"APPDATA": appdata}), \
+                patch("platform.architecture", return_value=("32bit", "WindowsPE")):
+            assert utils.getGISRedDllFolder() == os.path.join(appdata, "QGISRed", "dlls", "x86")
+
+    def test_getGISRedDllFolder_macos(self, utils):
+        with patch("sys.platform", "darwin"):
+            expected = os.path.join(utils.getQGISRedFolder(), "dlls", "osx")
+            assert utils.getGISRedDllFolder() == expected
+
+    def test_getGISRedDllFolder_linux_x64(self, utils):
+        with patch("sys.platform", "linux"), patch("platform.machine", return_value="x86_64"):
+            expected = os.path.join(utils.getQGISRedFolder(), "dlls", "x64")
+            assert utils.getGISRedDllFolder() == expected
+
+    def test_getGISRedDllFolder_linux_arm64(self, utils):
+        with patch("sys.platform", "linux"), patch("platform.machine", return_value="aarch64"):
+            expected = os.path.join(utils.getQGISRedFolder(), "dlls", "arm64")
+            assert utils.getGISRedDllFolder() == expected
 
     def test_removeFolder(self, utils):
         # Create a temp folder

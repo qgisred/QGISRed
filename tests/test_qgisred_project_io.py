@@ -32,13 +32,16 @@ class TestProjectIO:
     def test_addProjectToGplFile_append_and_reorder(self, io_utils, temp_project_dir):
         gpl_file = os.path.join(temp_project_dir, "projects.gpl")
         
-        # Existing entries
+        # Existing entries (opaque strings, preserved verbatim)
         with open(gpl_file, "w") as f:
             f.write("OldNet;C:/old\n")
             f.write("OtherNet;C:/other\n")
-            
-        new_dir = "C:/new"
-        expected_dir = os.path.normpath(new_dir)
+
+        # Use a real absolute folder: addProjectToGplFile normalizes the directory
+        # via getUniformedPath (realpath + os.sep), which would otherwise resolve a
+        # relative Windows-style path against the CWD on non-Windows hosts.
+        new_dir = os.path.join(temp_project_dir, "new")
+        expected_dir = os.path.realpath(new_dir).replace("/", os.sep)
         io_utils.addProjectToGplFile(gpl_file, networkName="NetNew", projectDirectory=new_dir)
         
         with open(gpl_file, "r") as f:
