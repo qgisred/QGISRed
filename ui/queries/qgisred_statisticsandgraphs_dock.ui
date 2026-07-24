@@ -686,21 +686,6 @@
                <item>
                 <layout class="QVBoxLayout" name="verticalLayout_2">
                  <item>
-                  <widget class="QLabel" name="labelOnlySelectedElements">
-                   <property name="font">
-                    <font>
-                     <pointsize>10</pointsize>
-                    </font>
-                   </property>
-                   <property name="text">
-                    <string>Only selected elements</string>
-                   </property>
-                   <property name="alignment">
-                    <set>Qt::AlignRight|Qt::AlignVCenter</set>
-                   </property>
-                  </widget>
-                 </item>
-                 <item>
                   <layout class="QHBoxLayout" name="horizontalLayoutStatistic">
                    <property name="spacing">
                     <number>6</number>
@@ -913,6 +898,22 @@
                    </property>
                    <property name="visible">
                     <bool>false</bool>
+                   </property>
+                  </widget>
+                 </item>
+                 <item>
+                  <widget class="QLabel" name="labelTableFilter">
+                   <property name="visible">
+                    <bool>false</bool>
+                   </property>
+                   <property name="styleSheet">
+                    <string notr="true">color: rgb(80, 80, 80);</string>
+                   </property>
+                   <property name="text">
+                    <string/>
+                   </property>
+                   <property name="alignment">
+                    <set>Qt::AlignLeft|Qt::AlignVCenter</set>
                    </property>
                   </widget>
                  </item>

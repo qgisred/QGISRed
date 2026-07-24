@@ -243,6 +243,7 @@ class QGISRedStatisticsDock(QDockWidget, formClass):
     def closeEvent(self, event):
         self._closeHistogramPopout()
         self.filterPreviewTimer.stop()
+        self.safeDisconnect(self.canvas.selectionChanged, self.scheduleFilterPreview)
         self.removeFilterPreviewHighlights()
         self.resultsDockVisibilityTimer.stop()
         self.disconnectResultsDock()
@@ -286,7 +287,7 @@ class QGISRedStatisticsDock(QDockWidget, formClass):
         layout.setContentsMargins(0, 0, 0, 0)
         layout.addWidget(self.histogram)
         self.graphWidget.setLayout(layout)
-        self.labelOnlySelectedElements.hide()
+        self.labelTableFilter.hide()
 
         self._histogramPopout = None
         self.btHistogramExpand = QToolButton()
@@ -470,6 +471,9 @@ class QGISRedStatisticsDock(QDockWidget, formClass):
         self.leFrom.textChanged.connect(self.scheduleFilterPreview)
         self.leTo.textChanged.connect(self.scheduleFilterPreview)
         self.cbSelectedElements.toggled.connect(self.scheduleFilterPreview)
+        # Canvas-level hook: per-layer connections depend on group discovery, which can
+        # fail on QGIS 4 (layer-tree wrapper quirks), so also listen to the canvas itself
+        self.canvas.selectionChanged.connect(self.scheduleFilterPreview)
 
     def onCollapsibleGroupToggled(self, collapsed):
         if not collapsed:
@@ -567,7 +571,7 @@ class QGISRedStatisticsDock(QDockWidget, formClass):
             self._feedHistogramPopout()
             self.tbExcel.setRowCount(0)
             self.tbExcel.setColumnCount(0)
-            self.labelOnlySelectedElements.hide()
+            self.labelTableFilter.hide()
         self.scheduleFilterPreview()
 
     def onProjectChanged(self, *args):
@@ -580,7 +584,7 @@ class QGISRedStatisticsDock(QDockWidget, formClass):
         self._feedHistogramPopout()
         self.tbExcel.setRowCount(0)
         self.tbExcel.setColumnCount(0)
-        self.labelOnlySelectedElements.hide()
+        self.labelTableFilter.hide()
         self.onLayerTreeChanged()
 
     def isResultsDockAlive(self):
@@ -878,7 +882,53 @@ class QGISRedStatisticsDock(QDockWidget, formClass):
             ident = layer.customProperty("qgisred_identifier") or ""
             if ident.startswith(prefix):
                 return layer
+        # Group discovery can fail (QGIS 4 layer-tree wrapper quirks): identifiers
+        # still live on the layers themselves
+        for layer in QgsProject.instance().mapLayers().values():
+            ident = layer.customProperty("qgisred_identifier") or ""
+            if ident.startswith(prefix):
+                return layer
         return None
+
+    def selectionCounterpartLayers(self, baseLayer):
+        # Layers in the other group (Inputs <-> Results) whose selection also counts
+        ident = baseLayer.customProperty("qgisred_identifier") or ""
+        if ident in ELEMENT_RESULT_CATEGORY:
+            resultsLayer = self.resolveResultsLayer(ELEMENT_RESULT_CATEGORY[ident])
+            return [resultsLayer] if resultsLayer is not None else []
+        if self.isResultsIdentifier(ident):
+            category = "Node" if ident.startswith("qgisred_node") else "Link"
+            inputLayers = QGISRedLayerUtils.getLayersByGroupIdentifier("qgisred_inputs")
+            if not inputLayers:
+                # Group discovery can fail (QGIS 4 layer-tree wrapper quirks)
+                inputLayers = QgsProject.instance().mapLayers().values()
+            return [
+                layer for layer in inputLayers
+                if ELEMENT_RESULT_CATEGORY.get(layer.customProperty("qgisred_identifier")) == category
+            ]
+        return []
+
+    def unionSelectedFids(self, baseLayer):
+        # Union of the selections on the base layer and on its counterpart group,
+        # expressed as base-layer feature ids (layers are joined by element id)
+        fids = set(baseLayer.selectedFeatureIds())
+        selectedElementIds = set()
+        for layer in self.selectionCounterpartLayers(baseLayer):
+            if layer is baseLayer:
+                continue
+            idFieldName = self.fieldUtils.getIdFieldName(layer)
+            if layer.fields().indexFromName(idFieldName) < 0:
+                continue
+            for feature in layer.selectedFeatures():
+                selectedElementIds.add(str(feature[idFieldName]))
+        if selectedElementIds:
+            baseIdField = self.fieldUtils.getIdFieldName(baseLayer)
+            if baseLayer.fields().indexFromName(baseIdField) >= 0:
+                request = QgsFeatureRequest().setSubsetOfAttributes([baseIdField], baseLayer.fields())
+                for feature in baseLayer.getFeatures(request):
+                    if str(feature[baseIdField]) in selectedElementIds:
+                        fids.add(feature.id())
+        return fids
 
     def onElementTypeChanged(self):
         if self.suspendCascade:
@@ -889,7 +939,7 @@ class QGISRedStatisticsDock(QDockWidget, formClass):
         self._feedHistogramPopout()
         self.tbExcel.setRowCount(0)
         self.tbExcel.setColumnCount(0)
-        self.labelOnlySelectedElements.hide()
+        self.labelTableFilter.hide()
         self.updateProperties()
         self.updateClassifyBy()
         self.updateSecondClassifyBy()
@@ -1512,7 +1562,7 @@ class QGISRedStatisticsDock(QDockWidget, formClass):
             return None
         request = QgsFeatureRequest()
         if self.cbSelectedElements.isChecked():
-            selectedIds = layer.selectedFeatureIds()
+            selectedIds = self.unionSelectedFids(layer)
             if not selectedIds:
                 return []
             request.setFilterFids(list(selectedIds))
@@ -2134,7 +2184,7 @@ class QGISRedStatisticsDock(QDockWidget, formClass):
         baseLayer = layers["baseLayer"]
         if baseLayer.featureCount() == 0:
             return False
-        if self.cbSelectedElements.isChecked() and not baseLayer.selectedFeatureIds():
+        if self.cbSelectedElements.isChecked() and not self.unionSelectedFids(baseLayer):
             return False
         featureRequest = self.buildFeatureRequest(baseLayer)
         if featureRequest is False:
@@ -2248,6 +2298,7 @@ class QGISRedStatisticsDock(QDockWidget, formClass):
         chartTitle = self.buildChartTitle(context, prettyProperty, prettyClassify, selectedSecondIndex)
         self._tableTitleBase = self.buildTableTitle(context, prettyProperty, prettyClassify, propertyUnit)
         subtitle = self.buildSubtitle(elementIdentifier)
+        self.updateTableFilterLabel(elementIdentifier)
         xLabel = "{} ({})".format(prettyClassify, classifyUnit) if classifyUnit else prettyClassify
         useSum = self.usesSumColumn(propertyField, elementIdentifier)
         self._chartBins = bins
@@ -2326,6 +2377,7 @@ class QGISRedStatisticsDock(QDockWidget, formClass):
         titleProperty = "{} ({})".format(pluralProperty, propertyUnit) if propertyUnit else pluralProperty
         self._tableTitleBase = titleProperty
         self.labelTableTitle.setText("{} {}".format(self.tr("Stats for"), titleProperty))
+        self.updateTableFilterLabel(elementIdentifier)
         self._tableMatrix = None
         self.labelTableStatistic.hide()
         self.cbTableStatistic.hide()
@@ -2395,6 +2447,11 @@ class QGISRedStatisticsDock(QDockWidget, formClass):
         if propertyUnit and title.startswith(pluralProperty):
             title = "{} ({}){}".format(pluralProperty, propertyUnit, title[len(pluralProperty):])
         return title
+
+    def updateTableFilterLabel(self, elementIdentifier):
+        filterText = self.buildFilterText(elementIdentifier)
+        self.labelTableFilter.setText(filterText)
+        self.labelTableFilter.setVisible(bool(filterText))
 
     def updateTableTitle(self):
         if not self._tableTitleBase:
@@ -2498,19 +2555,16 @@ class QGISRedStatisticsDock(QDockWidget, formClass):
         request = QgsFeatureRequest()
         applied = False
         if self.cbSelectedElements.isChecked():
-            selectedIds = layer.selectedFeatureIds()
+            selectedIds = self.unionSelectedFids(layer)
             if not selectedIds:
                 QMessageBox.information(
                     self,
                     self.tr("No selection"),
-                    self.tr("'Only selected elements' is checked but no features are selected on the active layer."),
+                    self.tr("'Only selected elements' is checked but no matching features are selected on the Inputs or Results layers."),
                 )
                 return False
             request.setFilterFids(list(selectedIds))
             applied = True
-            self.labelOnlySelectedElements.show()
-        else:
-            self.labelOnlySelectedElements.hide()
 
         expression = self.buildAttributeExpression(layer)
         if expression is False:
@@ -2872,7 +2926,8 @@ class QGISRedStatisticsDock(QDockWidget, formClass):
             return str(int(value))
         return self.formatNumber(value, decimals)
 
-    def buildSubtitle(self, elementIdentifier):
+    def buildFilterText(self, elementIdentifier):
+        # Attribute filter and/or "Only selected elements": either, both, or empty
         parts = []
         attributeField = self.cbAttribute.currentData(Qt.ItemDataRole.UserRole)
         if attributeField:
@@ -2888,6 +2943,13 @@ class QGISRedStatisticsDock(QDockWidget, formClass):
                     parts.append("{} {} {}".format(prettyAttribute, condition, valueText))
         if self.cbSelectedElements.isChecked():
             parts.append(self.tr("Only selected elements"))
+        return "; ".join(parts)
+
+    def buildSubtitle(self, elementIdentifier):
+        parts = []
+        filterText = self.buildFilterText(elementIdentifier)
+        if filterText:
+            parts.append(filterText)
         notes = []
         if self.lastNullCount:
             notes.append(self.tr("{0} nulls excluded").format(self.lastNullCount))
