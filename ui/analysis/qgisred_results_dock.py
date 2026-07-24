@@ -231,6 +231,7 @@ class QGISRedResultsDock(
         self._iconStepForward = QIcon(":/images/iconResultsStepForward.svg")
         self._iconGoToEnd = QIcon(":/images/iconResultsGoToEnd.svg")
         self._iconLoop = QIcon(":/images/iconResultsLoop.svg")
+        self._iconConstantRate = QIcon(":/images/iconResultsConstantRate.svg")
 
         self.btInitTime.setIcon(self._iconGoToStart)
         self.btLessTime.setIcon(self._iconStepBackward)
@@ -239,15 +240,24 @@ class QGISRedResultsDock(
         self.btPlayForward.setIcon(self._iconPlayForward)
         self.btPlayBackward.setIcon(self._iconPlayBackward)
         self.btAnimLoop.setIcon(self._iconLoop)
+        self.btConstantRate.setIcon(self._iconConstantRate)
+        # Highlight the checked state clearly (house style for a selected toggle)
+        self.btConstantRate.setStyleSheet(
+            "QToolButton:checked { background-color: #d0e4f7; border: 1px solid #3399ff;"
+            " border-radius: 3px; }"
+        )
 
         self._animPlaying = False
         self._animDirection = 1
+        self._constantRateMode = False
         self._animTimer = QTimer()
         self._animTimer.setSingleShot(True)
         self._animTimer.timeout.connect(self._animStep)
         self.btPlayForward.clicked.connect(self._onPlayForwardClicked)
         self.btPlayBackward.clicked.connect(self._onPlayBackwardClicked)
         self.sliderAnimSpeed.valueChanged.connect(self._onAnimSpeedChanged)
+        self.btConstantRate.toggled.connect(self._onConstantRateToggled)
+        self.spSecondsPerHour.valueChanged.connect(self._onSecondsPerHourChanged)
 
         self.statsDisplayWidget.setVisible(False)
         self.timeDisplayWidget.setVisible(True)
@@ -988,6 +998,7 @@ class QGISRedResultsDock(
             self.applyStatisticFromOptions()
             self.openBaseResults(self._readTimeLabelsFromOut())
         self.loadAppearanceSettings()
+        self._restoreConstantRateSettings()
         self._startStaleCheckTimer()
         self.show()
         self.simulationFinished.emit()
@@ -1453,7 +1464,57 @@ class QGISRedResultsDock(
             self.cbTimes.setCurrentIndex(index - 1)
 
     def _animIntervalMs(self):
+        if self._constantRateMode:
+            step_hours = self._stepHoursAt(self.cbTimes.currentIndex(), self._animDirection)
+            if step_hours and step_hours > 0:
+                return max(20, int(self.spSecondsPerHour.value() * 1000 * step_hours))
+            # Fallback: time step not interpretable → use the speed slider behaviour
         return max(100, 2000 - (self.sliderAnimSpeed.value() - 1) * 200)
+
+    def _stepHoursAt(self, index, direction):
+        """Real elapsed hours between instant `index` and its neighbour in the play
+        direction. Returns None when it cannot be interpreted (single period or
+        unparseable labels), signalling the caller to fall back to the slider."""
+        n = len(self.TimeLabels)
+        if n < 2:
+            return None
+        b = index + direction
+        if not (0 <= b < n):  # at the ends, use the opposite neighbour
+            b = index - direction
+        if not (0 <= b < n):
+            return None
+        h1 = self._elapsedTextToHours(self.TimeLabels[index])
+        h2 = self._elapsedTextToHours(self.TimeLabels[b])
+        if h1 is None or h2 is None:
+            return None
+        return abs(h2 - h1)
+
+    def _onConstantRateToggled(self, checked):
+        self._constantRateMode = checked
+        self.sliderAnimSpeed.setVisible(not checked)
+        self.lbConstantRatePrefix.setVisible(checked)
+        self.spSecondsPerHour.setVisible(checked)
+        self.lbConstantRateSuffix.setVisible(checked)
+        QgsProject.instance().writeEntryBool("QGISRed", "constant_rate_mode", checked)
+        if self._animPlaying:  # apply the new pacing immediately
+            self._animTimer.stop()
+            self._animTimer.start(self._animIntervalMs())
+
+    def _onSecondsPerHourChanged(self, value):
+        QgsProject.instance().writeEntry("QGISRed", "constant_rate_seconds", value)
+        if self._animPlaying:
+            self._animTimer.stop()
+            self._animTimer.start(self._animIntervalMs())
+
+    def _restoreConstantRateSettings(self):
+        """Restore the constant-rate toggle and seconds value saved in the project."""
+        secs, _ = QgsProject.instance().readNumEntry("QGISRed", "constant_rate_seconds", 1)
+        self.spSecondsPerHour.blockSignals(True)
+        self.spSecondsPerHour.setValue(max(1, min(3600, secs)))
+        self.spSecondsPerHour.blockSignals(False)
+        mode, _ = QgsProject.instance().readBoolEntry("QGISRed", "constant_rate_mode", False)
+        # setChecked fires _onConstantRateToggled, which syncs widget visibility
+        self.btConstantRate.setChecked(mode)
 
     def _onPlayForwardClicked(self):
         if self._animPlaying and self._animDirection == 1:

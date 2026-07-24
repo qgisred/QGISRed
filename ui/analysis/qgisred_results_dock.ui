@@ -522,6 +522,84 @@
                          </widget>
                         </item>
                         <item>
+                         <widget class="QToolButton" name="btConstantRate">
+                          <property name="checkable">
+                           <bool>true</bool>
+                          </property>
+                          <property name="maximumSize">
+                           <size>
+                            <width>18</width>
+                            <height>18</height>
+                           </size>
+                          </property>
+                          <property name="toolTip">
+                           <string>Constant playback rate</string>
+                          </property>
+                         </widget>
+                        </item>
+                        <item>
+                         <widget class="QLabel" name="lbConstantRatePrefix">
+                          <property name="visible">
+                           <bool>false</bool>
+                          </property>
+                          <property name="font">
+                           <font>
+                            <family>MS Shell Dlg 2</family>
+                            <pointsize>8</pointsize>
+                            <italic>true</italic>
+                           </font>
+                          </property>
+                          <property name="styleSheet">
+                           <string notr="true">font: italic 8pt "MS Shell Dlg 2";</string>
+                          </property>
+                          <property name="text">
+                           <string>1h in:</string>
+                          </property>
+                         </widget>
+                        </item>
+                        <item>
+                         <widget class="QSpinBox" name="spSecondsPerHour">
+                          <property name="visible">
+                           <bool>false</bool>
+                          </property>
+                          <property name="maximumSize">
+                           <size>
+                            <width>52</width>
+                            <height>18</height>
+                           </size>
+                          </property>
+                          <property name="minimum">
+                           <number>1</number>
+                          </property>
+                          <property name="maximum">
+                           <number>3600</number>
+                          </property>
+                          <property name="value">
+                           <number>1</number>
+                          </property>
+                         </widget>
+                        </item>
+                        <item>
+                         <widget class="QLabel" name="lbConstantRateSuffix">
+                          <property name="visible">
+                           <bool>false</bool>
+                          </property>
+                          <property name="font">
+                           <font>
+                            <family>MS Shell Dlg 2</family>
+                            <pointsize>8</pointsize>
+                            <italic>true</italic>
+                           </font>
+                          </property>
+                          <property name="styleSheet">
+                           <string notr="true">font: italic 8pt "MS Shell Dlg 2";</string>
+                          </property>
+                          <property name="text">
+                           <string>sec</string>
+                          </property>
+                         </widget>
+                        </item>
+                        <item>
                          <widget class="QSlider" name="sliderAnimSpeed">
                           <property name="minimum">
                            <number>1</number>
