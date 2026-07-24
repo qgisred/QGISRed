@@ -96,6 +96,9 @@ class _NullHiddenLegend(QgsMapLayerLegend):
         self._layer = layer
         # Delegate to a default legend; keep the reference so it is not GC'd.
         self._default = QgsMapLayerLegend.defaultVectorLegend(layer)
+        # The layer tree model rebuilds legend nodes only on this legend's
+        # itemsChanged; the default legend emits it on rendererChanged.
+        self._default.itemsChanged.connect(self.itemsChanged)
 
     def createLayerTreeModelLegendNodes(self, nodeLayer):
         from qgis.PyQt import sip

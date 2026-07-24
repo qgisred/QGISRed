@@ -22,6 +22,7 @@ from qgis.core import QgsClassificationPrettyBreaks, QgsStyle, QgsPresetSchemeCo
 from qgis.core import QgsRuleBasedRenderer, NULL
 from qgis.utils import iface
 
+from ...compat import WKB_LINE_GEOMETRY, WKB_POINT_GEOMETRY
 from ...tools.utils.qgisred_styling_utils import _NULL_RULE_LABEL
 from ...tools.utils.qgisred_ui_utils import QGISRedUIUtils
 from ...tools.utils.qgisred_identifier_utils import QGISRedIdentifierUtils
@@ -1995,7 +1996,7 @@ class QGISRedLegendsDialog(QDialog, formClass):
         symbol.setColor(newColor)
 
         if smartSize is not None:
-            if self.currentLayer.geometryType() == 1:
+            if self.currentLayer.geometryType() == WKB_LINE_GEOMETRY:
                 symbol.setWidth(smartSize)
             else:
                 symbol.setSize(smartSize)
@@ -2093,9 +2094,9 @@ class QGISRedLegendsDialog(QDialog, formClass):
 
     def setDefaultSymbolSize(self, symbol):
         geometryType = self.currentLayer.geometryType()
-        if geometryType == 0:
+        if geometryType == WKB_POINT_GEOMETRY:
             symbol.setSize(3)
-        elif geometryType == 1:
+        elif geometryType == WKB_LINE_GEOMETRY:
             symbol.setWidth(0.4)
         else:
             symbol.setSize(1.5)
@@ -2852,7 +2853,7 @@ class QGISRedLegendsDialog(QDialog, formClass):
             colorContainer = self.tableView.cellWidget(row, 1)
             colorWidget = colorContainer.findChild(QGISRedSymbolColorSelector) if colorContainer else None
             if colorWidget:
-                colorWidget.updateSymbolSize(size, self.currentLayer.geometryType() == 1)
+                colorWidget.updateSymbolSize(size, self.currentLayer.geometryType() == WKB_LINE_GEOMETRY)
 
             # Update size palette when in automatic interval mode with manual sizes
             sizeMode = self.cbSizes.currentText() if hasattr(self, "cbSizes") else "Manual"
@@ -2960,7 +2961,7 @@ class QGISRedLegendsDialog(QDialog, formClass):
         )
 
     def setSymbolSizeForGeometry(self, symbol, geometryType):
-        if geometryType == 1:
+        if geometryType == WKB_LINE_GEOMETRY:
             symbol.setWidth(0.6)
         else:
             symbol.setSize(2.5)
@@ -2979,7 +2980,7 @@ class QGISRedLegendsDialog(QDialog, formClass):
 
     def applySizeToSymbol(self, symbol, size):
         """Applies size to a symbol, preserving its structure."""
-        isLine = self.currentLayer.geometryType() == 1
+        isLine = self.currentLayer.geometryType() == WKB_LINE_GEOMETRY
         if isLine:
             symbol.setWidth(size)
         else:
@@ -3066,8 +3067,14 @@ class QGISRedLegendsDialog(QDialog, formClass):
             self.applySingleSymbolLegend()
 
         self.currentLayer.triggerRepaint()
+        self.refreshLayerTreeSymbology(self.currentLayer)
         self.ensureLayerVisible(self.currentLayer)
         self.originalRenderer = self.currentLayer.renderer().clone() if self.currentLayer.renderer() else None
+
+    def refreshLayerTreeSymbology(self, layer):
+        """Rebuild the layer's entry in the Layers Panel; triggerRepaint only refreshes the canvas."""
+        if iface and iface.layerTreeView():
+            iface.layerTreeView().refreshLayerSymbology(layer.id())
 
     def ensureLayerVisible(self, layer):
         """Make the layer (and any hidden ancestor group) visible so applied changes can be seen."""
@@ -3394,7 +3401,7 @@ class QGISRedLegendsDialog(QDialog, formClass):
             return
 
         fieldName = self.currentFieldName
-        isLine = self.currentLayer.geometryType() == 1
+        isLine = self.currentLayer.geometryType() == WKB_LINE_GEOMETRY
 
         if self.ckSizeInvert.isChecked():
             expression = f'{maxSize} - ("{fieldName}" / {globalValueMax}) * ({maxSize} - {minSize})'
@@ -4031,9 +4038,9 @@ class QGISRedLegendsDialog(QDialog, formClass):
         for category in renderer.categories():
             symbol = category.symbol()
             value = category.value()
-            if geometryType == 1:
+            if geometryType == WKB_LINE_GEOMETRY:
                 size = float(symbol.width())
-            elif geometryType == 0:
+            elif geometryType == WKB_POINT_GEOMETRY:
                 size = float(symbol.size())
             else:
                 size = None
@@ -4270,9 +4277,9 @@ class QGISRedLegendsDialog(QDialog, formClass):
             return "fill"
 
         geometryType = self.currentLayer.geometryType()
-        if geometryType == 0:
+        if geometryType == WKB_POINT_GEOMETRY:
             return "marker"
-        if geometryType == 1:
+        if geometryType == WKB_LINE_GEOMETRY:
             return "line"
         return "fill"
 
@@ -4337,9 +4344,9 @@ class QGISRedLegendsDialog(QDialog, formClass):
             return 0.4
 
         geometryType = self.currentLayer.geometryType()
-        if geometryType == 0:
+        if geometryType == WKB_POINT_GEOMETRY:
             return 3.0
-        elif geometryType == 1:
+        elif geometryType == WKB_LINE_GEOMETRY:
             return 0.4
         else:
             return 1.5
@@ -4539,6 +4546,7 @@ class QGISRedLegendsDialog(QDialog, formClass):
         if self.currentLayer and self.originalRenderer:
             self.currentLayer.setRenderer(self.originalRenderer.clone())
             self.currentLayer.triggerRepaint()
+            self.refreshLayerTreeSymbology(self.currentLayer)
         self.close()
 
     def reject(self):
@@ -4555,6 +4563,7 @@ class QGISRedLegendsDialog(QDialog, formClass):
             return
         self.currentLayer.setRenderer(snapshot.clone())
         self.currentLayer.triggerRepaint()
+        self.refreshLayerTreeSymbology(self.currentLayer)
         self.handleValidLayerSelection(self.currentLayer)
 
     def eventFilter(self, obj, event):
