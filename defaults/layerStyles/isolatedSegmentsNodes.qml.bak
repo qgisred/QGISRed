@@ -55,7 +55,7 @@
               <Option type="Map" name="properties">
                 <Option type="Map" name="width">
                   <Option type="bool" value="true" name="active"/>
-                  <Option type="QString" value="if(&quot;ElemType&quot; ='TANK', 7, 0)" name="expression"/>
+                  <Option type="QString" value="if(&quot;NodeType&quot; ='TANK', 7, 0)" name="expression"/>
                   <Option type="int" value="3" name="type"/>
                 </Option>
               </Option>
@@ -108,7 +108,7 @@
               <Option type="Map" name="properties">
                 <Option type="Map" name="width">
                   <Option type="bool" value="true" name="active"/>
-                  <Option type="QString" value="if(&quot;ElemType&quot; ='RESERVOIR', 7, 0)" name="expression"/>
+                  <Option type="QString" value="if(&quot;NodeType&quot; ='RESERVOIR', 7, 0)" name="expression"/>
                   <Option type="int" value="3" name="type"/>
                 </Option>
               </Option>
@@ -163,7 +163,7 @@
               <Option type="Map" name="properties">
                 <Option type="Map" name="size">
                   <Option type="bool" value="true" name="active"/>
-                  <Option type="QString" value="if(&quot;ElemType&quot; !='INCIDENCE', 0,6)" name="expression"/>
+                  <Option type="QString" value="if(&quot;NodeType&quot; !='INCIDENCE', 0,6)" name="expression"/>
                   <Option type="int" value="3" name="type"/>
                 </Option>
               </Option>
@@ -228,7 +228,7 @@
                 </Option>
                 <Option type="Map" name="size">
                   <Option type="bool" value="true" name="active"/>
-                  <Option type="QString" value="if(&quot;ElemType&quot; !='ISOLATIONVALVE', 0,2)" name="expression"/>
+                  <Option type="QString" value="if(&quot;NodeType&quot; !='ISOLATIONVALVE', 0,2)" name="expression"/>
                   <Option type="int" value="3" name="type"/>
                 </Option>
               </Option>
@@ -288,7 +288,7 @@
                 </Option>
                 <Option type="Map" name="size">
                   <Option type="bool" value="true" name="active"/>
-                  <Option type="QString" value="if(&quot;ElemType&quot; !='JUNCTION', 0,2)" name="expression"/>
+                  <Option type="QString" value="if(&quot;NodeType&quot; !='JUNCTION', 0,2)" name="expression"/>
                   <Option type="int" value="3" name="type"/>
                 </Option>
               </Option>
@@ -303,6 +303,6 @@
   </renderer-v2>
   <blendMode>0</blendMode>
   <featureBlendMode>0</featureBlendMode>
-  <mapTip>[[% "ElemType" %]] [% "Id" %]</mapTip>
+  <mapTip>[[% "NodeType" %]] [% "Id" %]</mapTip>
   <layerGeometryType>0</layerGeometryType>
 </qgis>

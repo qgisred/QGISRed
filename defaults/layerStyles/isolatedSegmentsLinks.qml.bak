@@ -31,12 +31,12 @@
                 </Option>
                 <Option type="Map" name="outlineStyle">
                   <Option value="true" type="bool" name="active"/>
-                  <Option value="if(&quot;ElemType&quot;='SERVICECONNECTION', 'solid', 'no')" type="QString" name="expression"/>
+                  <Option value="if(&quot;LinkType&quot;='SERVICECONNECTION', 'solid', 'no')" type="QString" name="expression"/>
                   <Option value="3" type="int" name="type"/>
                 </Option>
                 <Option type="Map" name="outlineWidth">
                   <Option value="true" type="bool" name="active"/>
-                  <Option value="if(&quot;ElemType&quot;='SERVICECONNECTION', 2, 0)" type="QString" name="expression"/>
+                  <Option value="if(&quot;LinkType&quot;='SERVICECONNECTION', 2, 0)" type="QString" name="expression"/>
                   <Option value="3" type="int" name="type"/>
                 </Option>
               </Option>
@@ -98,7 +98,7 @@
                     </Option>
                     <Option type="Map" name="size">
                       <Option value="true" type="bool" name="active"/>
-                      <Option value="if(&quot;ElemType&quot;='SERVICECONNECTION', 2, 0)" type="QString" name="expression"/>
+                      <Option value="if(&quot;LinkType&quot;='SERVICECONNECTION', 2, 0)" type="QString" name="expression"/>
                       <Option value="3" type="int" name="type"/>
                     </Option>
                   </Option>
@@ -136,14 +136,14 @@
                 </Option>
                 <Option type="Map" name="outlineColor">
                   <Option value="true" type="bool" name="active"/>
-                  <Option value="if (&quot;ElemType&quot; = 'PIPE', 
+                  <Option value="if (&quot;LinkType&quot; = 'PIPE', 
                     if(&quot;Status&quot; = 'TO OPEN','#00ffee', if(&quot;Status&quot; = 'TO RECOVER', '#e7ca65', if(&quot;Status&quot; = 'NOW CLOSED', '#ff0f13', '#ff9900'))), if(&quot;Status&quot; = 'NOW CLOSED', '#ff0f13', if(&quot;Status&quot; = 'ACTIVE','#ff9900', if(&quot;Status&quot; = 'OPEN', '#85b66f', if(&quot;Status&quot; = 'TO CLOSE', '#ff00ff', if(&quot;Status&quot; = 'TO OPEN','#00ffee','#ff9900'))))))" type="QString" name="expression"/>
                   <Option value="3" type="int" name="type"/>
                 </Option>
                 <Option type="Map" name="outlineStyle">
                 <Option value="true" type="bool" name="active"/>
-                <Option value="if(&quot;ElemType&quot;='SERVICECONNECTION', 'no',
-                                if(&quot;ElemType&quot;='PIPE',
+                <Option value="if(&quot;LinkType&quot;='SERVICECONNECTION', 'no',
+                                if(&quot;LinkType&quot;='PIPE',
                                   if(&quot;Status&quot;='NOW CLOSED', 'dash',
                                       if(&quot;Status&quot;='ISOLATED' OR &quot;Status&quot;='TO RECOVER', 'solid', 'no')
                                   ),
@@ -210,7 +210,7 @@
                     </Option>
                     <Option type="Map" name="size">
                       <Option value="true" type="bool" name="active"/>
-                      <Option value="if(&quot;ElemType&quot;='PUMP', 6, 0)" type="QString" name="expression"/>
+                      <Option value="if(&quot;LinkType&quot;='PUMP', 6, 0)" type="QString" name="expression"/>
                       <Option value="3" type="int" name="type"/>
                     </Option>
                   </Option>
@@ -273,7 +273,7 @@
                     </Option>
                     <Option type="Map" name="size">
                       <Option value="true" type="bool" name="active"/>
-                      <Option value="if(&quot;ElemType&quot;='VALVE', 6, 0)" type="QString" name="expression"/>
+                      <Option value="if(&quot;LinkType&quot;='VALVE', 6, 0)" type="QString" name="expression"/>
                       <Option value="3" type="int" name="type"/>
                     </Option>
                   </Option>
@@ -290,6 +290,6 @@
   </renderer-v2>
   <blendMode>0</blendMode>
   <featureBlendMode>0</featureBlendMode>
-  <mapTip>[[% "ElemType" %]] [% "Id" %]</mapTip>
+  <mapTip>[[% "LinkType" %]] [% "Id" %]</mapTip>
   <layerGeometryType>1</layerGeometryType>
 </qgis>
