@@ -3,7 +3,7 @@
 
 from qgis.core import QgsCoordinateTransform, QgsProject, QgsRectangle
 from qgis.PyQt.QtGui import QCursor
-from ctypes import windll
+import sys
 
 from ..tools.utils.qgisred_filesystem_utils import QGISRedFileSystemUtils
 from ..tools.utils.qgisred_layer_utils import QGISRedLayerUtils
@@ -25,16 +25,28 @@ class UtilsSection:
             self.zoomToFullExtent = False
 
     def getTolerance(self):
-        LOGPIXELSX = 88
-        user32 = windll.user32
-        user32.SetProcessDPIAware()
-        dc = user32.GetDC(0)
-        pix_per_inch = windll.gdi32.GetDeviceCaps(dc, LOGPIXELSX)
-        user32.ReleaseDC(0, dc)
-
+        pix_per_inch = self._getScreenDpiX()
         unitsPerPixel = self.iface.mapCanvas().getCoordinateTransform().mapUnitsPerPixel()
         un = 25.4 / pix_per_inch
         return 1 * unitsPerPixel / un
+
+    def _getScreenDpiX(self):
+        """Horizontal screen DPI. Uses the Win32 API on Windows and Qt elsewhere."""
+        if sys.platform == "win32":
+            from ctypes import windll
+
+            LOGPIXELSX = 88
+            user32 = windll.user32
+            user32.SetProcessDPIAware()
+            dc = user32.GetDC(0)
+            pix_per_inch = windll.gdi32.GetDeviceCaps(dc, LOGPIXELSX)
+            user32.ReleaseDC(0, dc)
+            return pix_per_inch
+
+        from qgis.PyQt.QtWidgets import QApplication
+
+        screen = self.iface.mapCanvas().screen() or QApplication.primaryScreen()
+        return screen.logicalDotsPerInchX()
 
     def getUniformedPath(self, path):
         return QGISRedFileSystemUtils().getUniformedPath(path)

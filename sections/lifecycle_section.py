@@ -193,7 +193,7 @@ class LifecycleSection:
         # QGISRed news
         QTimer.singleShot(2000, self.checkForNews)
 
-        self.gplFolder = os.path.join(os.getenv("APPDATA"), "QGISRed")
+        self.gplFolder = QGISRedFileSystemUtils().getQGISRedFolder()
         try:  # create directory if does not exist
             os.stat(self.gplFolder)
         except Exception:
