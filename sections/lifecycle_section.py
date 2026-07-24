@@ -431,45 +431,81 @@ class LifecycleSection:
         except Exception:
             return ""
 
-    def checkDependencies(self):
+    def getInstallerFileName(self):
+        """Return the dependencies installer filename for the current OS and architecture."""
         import sys
-        gisredDir = QGISRedFileSystemUtils().getGISRedDllFolder()
-        if sys.platform != "win32":
-            dll_name = "GISRed.QGISRed.dylib" if sys.platform == "darwin" else "GISRed.QGISRed.so"
-            return os.path.isfile(os.path.join(gisredDir, dll_name))
-        valid = False
-        if os.path.isdir(gisredDir):
+        import platform
+        if sys.platform == "win32":
+            return "QGISRed_Installation.msi"
+        if sys.platform == "darwin":
+            arch = "arm64" if platform.machine().lower() in ("arm64", "aarch64") else "x64"
+            return "QGISRed_Installation-{}.pkg".format(arch)
+        return "QGISRed_Installation.deb"
+
+    def _dependenciesInstalled(self, gisredDir):
+        """Return True when the required dependencies (right version on Windows) are present."""
+        import sys
+        if sys.platform == "win32":
+            if not os.path.isdir(gisredDir):
+                return False
             currentVersion = self.getVersion(os.path.join(gisredDir, "GISRed.QGISRed.dll"), "FileVersion")
-            if currentVersion == self.DependenciesVersion:
-                valid = True
+            return currentVersion == self.DependenciesVersion
+        dll_name = "GISRed.QGISRed.dylib" if sys.platform == "darwin" else "GISRed.QGISRed.so"
+        return os.path.isfile(os.path.join(gisredDir, dll_name))
+
+    def _launchInstaller(self, localFile):
+        """Open the downloaded installer with the OS default handler."""
+        import sys
+        import subprocess  # nosec B404 — used only to open a verified installer via the OS default handler
+        if sys.platform == "win32":
+            os.startfile(localFile)  # nosec B606 — launches the .msi installer just downloaded over verified HTTPS, by design
+        elif sys.platform == "darwin":
+            subprocess.Popen(["open", localFile])  # nosec B603 B607 — opens the .pkg in the macOS Installer
+        else:
+            subprocess.Popen(["xdg-open", localFile])  # nosec B603 B607 — opens the .deb in the default package installer
+
+    def _waitForInstallation(self, localFile, gisredDir):
+        """Block up to ~2 min while the user completes the installer, then report success."""
+        import sys
+        for _ in range(60):  # 60 × 2 s = 2 min timeout
+            time.sleep(2)
+            QCoreApplication.processEvents()
+            if sys.platform == "win32":
+                # The running MSI keeps the file locked; removal succeeds once it finishes.
+                with suppress(Exception):
+                    os.remove(localFile)
+                    return True
+            elif self._dependenciesInstalled(gisredDir):
+                with suppress(Exception):
+                    os.remove(localFile)
+                return True
+        return False
+
+    def checkDependencies(self):
+        gisredDir = QGISRedFileSystemUtils().getGISRedDllFolder()
+        valid = self._dependenciesInstalled(gisredDir)
         if not valid:
-            link = "https://qgisred.upv.es/files/dependencies/" + self.DependenciesVersion + "/QGISRed_Installation.msi"
+            installer = self.getInstallerFileName()
+            link = "https://qgisred.upv.es/files/dependencies/" + self.DependenciesVersion + "/" + installer
             request = QMessageBox.question(
                 self.iface.mainWindow(),
                 self.tr("QGISRed Dependencies"),
                 self.tr(
-                    "QGISRed plugin only runs in Windows OS and requires some dependencies (v{}). Do you want to install them now?").format(self.DependenciesVersion),
+                    "QGISRed plugin requires some dependencies (v{}). Do you want to install them now?").format(self.DependenciesVersion),
                 QMessageBox.StandardButtons(QMessageBox.StandardButton.Yes | QMessageBox.StandardButton.No),
             )
             if request == QMessageBox.StandardButton.Yes:
                 if not link.startswith("https://"):
                     return valid
                 _ctx = ssl.create_default_context()
-                fd, localFile = tempfile.mkstemp(suffix=".msi", prefix="QGISRed_")
+                fd, localFile = tempfile.mkstemp(suffix=os.path.splitext(installer)[1], prefix="QGISRed_")
                 os.close(fd)
                 try:
                     with urllib.request.urlopen(link, context=_ctx) as response:  # nosec B310 — link validated startswith("https://") above
                         with open(localFile, "wb") as f:
                             f.write(response.read())
-                    os.startfile(localFile)  # nosec B606 — launches the .msi installer just downloaded over verified HTTPS, by design
-                    installed = False
-                    for _ in range(60):  # 60 × 2 s = 2 min timeout
-                        time.sleep(2)
-                        QCoreApplication.processEvents()
-                        with suppress(Exception):
-                            os.remove(localFile)
-                            installed = True
-                            break
+                    self._launchInstaller(localFile)
+                    installed = self._waitForInstallation(localFile, gisredDir)
                     if installed:
                         valid = self.checkDependencies()
                         if valid:
