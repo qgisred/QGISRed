@@ -77,22 +77,6 @@ class QGISRedDigitalTwinMixin:
         return _to_string(b)
 
     @staticmethod
-    def CreateDemandSectorization(projectFolder, networkName, sectorizationName):
-        projectFolder = _encode(projectFolder)
-        networkName = _encode(networkName)
-        sectorizationName = _encode(sectorizationName)
-
-        mydll = _load_dll()
-
-        mydll.CreateDemandSectorization.argtypes = (c_char_p, c_char_p, c_char_p)
-
-        mydll.CreateDemandSectorization.restype = c_char_p
-
-        b = mydll.CreateDemandSectorization(projectFolder, networkName, sectorizationName)
-
-        return _to_string(b)
-    
-    @staticmethod
     def CreateRemoveDemandSectorTheme(projectFolder, networkName, sectorizationName, themeName, create):
         projectFolder = _encode(projectFolder)
         networkName = _encode(networkName)
@@ -154,7 +138,7 @@ class QGISRedDigitalTwinMixin:
 
         mydll = _load_dll()
 
-        mydll.CreateCompleteDemandSectorTheme.argtypes = (c_char_p, c_char_p, c_char_p, 
+        mydll.CreateCompleteDemandSectorTheme.argtypes = (c_char_p, c_char_p, c_char_p,
                                                           c_char_p, c_char_p)
 
         mydll.CreateCompleteDemandSectorTheme.restype = c_char_p
@@ -163,7 +147,7 @@ class QGISRedDigitalTwinMixin:
             sectorizationName, fromTheme, toTheme)
 
         return _to_string(b)
-    
+
     @staticmethod
     def UpdateDemandSectorTheme(projectFolder, networkName, sectorizationName, themeName):
         projectFolder = _encode(projectFolder)

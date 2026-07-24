@@ -8,7 +8,7 @@ from qgis.core import (
     QgsProperty, QgsRenderContext,
     QgsGraduatedSymbolRenderer,
     QgsRuleBasedRenderer, QgsRendererRange,
-    QgsProject, QgsSymbolLayer,
+    QgsProject,
 )
 from qgis.PyQt.QtCore import QSizeF
 from qgis.PyQt.QtGui import QColor, QFont

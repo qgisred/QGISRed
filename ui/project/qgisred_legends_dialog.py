@@ -19,7 +19,7 @@ from ...compat import (
     SL_PROP_SIZE, SL_PROP_FILL_COLOR, SL_PROP_STROKE_COLOR, SL_PROP_STROKE_WIDTH,
 )
 
-from qgis.core import QgsProject, QgsVectorLayer, QgsMessageLog, Qgis, QgsGraduatedSymbolRenderer
+from qgis.core import QgsProject, QgsVectorLayer, QgsMessageLog, QgsGraduatedSymbolRenderer
 from qgis.core import QgsCategorizedSymbolRenderer, QgsRendererRange, QgsRendererCategory, QgsSymbol
 from qgis.core import QgsLayerTreeGroup, QgsLayerTreeLayer, QgsGradientColorRamp, QgsClassificationJenks
 from qgis.core import QgsClassificationPrettyBreaks, QgsStyle, QgsPresetSchemeColorRamp, QgsProperty, QgsSymbolLayer
