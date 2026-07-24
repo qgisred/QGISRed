@@ -71,10 +71,10 @@ class QGISRedSaveStrategyDialog(QDialog):
         self.sizesApplicable = sizesApplicable
         self.colorsApplicable = colorsApplicable
 
-        structuralLabel = self.tr("All Classes") if isCategorical else self.tr("Intervals")
+        structuralLabel = self.tr("Save strategy for All Classes") if isCategorical else self.tr("Save strategy for Intervals")
         self.ckStructural = self.createPartCheckBox(structuralLabel, structuralApplicable, initialStructural)
-        self.ckSizes = self.createPartCheckBox(self.tr("Sizes"), sizesApplicable, initialSizes)
-        self.ckColors = self.createPartCheckBox(self.tr("Colors"), colorsApplicable, initialColors)
+        self.ckSizes = self.createPartCheckBox(self.tr("Save strategy for Sizes"), sizesApplicable, initialSizes)
+        self.ckColors = self.createPartCheckBox(self.tr("Save strategy for Colors"), colorsApplicable, initialColors)
 
         if isCategorical:
             self.ckStructural.toggled.connect(self.onStructuralToggled)

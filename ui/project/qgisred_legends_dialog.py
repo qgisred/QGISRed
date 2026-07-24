@@ -452,7 +452,7 @@ class QGISRedLegendsDialog(QDialog, formClass):
 
         saveMenu = QMenu(self)
         saveMenu.setToolTipsVisible(True)
-        applyNote = self.tr("Applies the current legend to the layer, then saves it")
+        applyNote = self.tr("Saves the legend as shown in the dialog; the layer itself only changes with Apply")
         actionSaveGlobal = saveMenu.addAction(self.tr("To Global…"), self.saveGlobalStyle)
         actionSaveGlobal.setToolTip(applyNote)
         actionSaveProject = saveMenu.addAction(self.tr("To Project…"), self.saveProjectStyle)
@@ -469,7 +469,7 @@ class QGISRedLegendsDialog(QDialog, formClass):
             self.btRefreshColors.setToolTip(self.tr("Refresh color ramp"))
 
         self.btLoadMenu.setToolTip(self.tr("Load a saved style or revert to the original legend"))
-        self.btSaveMenu.setToolTip(self.tr("Apply the current legend and save it as a style"))
+        self.btSaveMenu.setToolTip(self.tr("Save the current legend as a style"))
         self.btApplyLegend.setToolTip(self.tr("Apply changes to layer"))
         self.btCancelLegend.setToolTip(self.tr("Cancel and close dialog; edits not yet applied are discarded"))
 
@@ -3516,6 +3516,10 @@ class QGISRedLegendsDialog(QDialog, formClass):
 
         path = os.path.join(folder, filename)
 
+        selectedParts = self.promptForStrategyParts(globalStyle)
+        if selectedParts is None:
+            return
+
         if os.path.exists(path):
             reply = QMessageBox.question(
                 self,
@@ -3526,33 +3530,43 @@ class QGISRedLegendsDialog(QDialog, formClass):
             if reply != QMessageBox.StandardButton.Yes:
                 return
 
-        self.applyLegend()
+        self.saveDialogLegendToFile(path, selectedParts)
+        if globalStyle:
+            message = self.tr("The current legend was saved as %1 in the global layerStyles folder.")
+        else:
+            message = self.tr("The current legend was saved as %1 in the layerStyles folder of your project.")
+        QMessageBox.information(self, self.tr("Saved"), message.replace("%1", filename))
 
-        selectedParts = self.promptForStrategyParts(globalStyle)
-        if selectedParts is None:
-            return
+    def saveDialogLegendToFile(self, path, selectedParts):
+        """Write the legend shown in the dialog to a QML without changing the live layer (only Apply does that)."""
+        rendererSnapshot = self.currentLayer.renderer().clone() if self.currentLayer.renderer() else None
+        strategySnapshot = self.currentLayer.customProperty("qgisred_legend_strategy")
 
+        if self.currentFieldType == self.FIELD_TYPE_NUMERIC:
+            self.applyNumericLegend()
+        elif self.currentFieldType == self.FIELD_TYPE_CATEGORICAL:
+            self.applyCategoricalLegend()
+        elif self.currentFieldType == self.FIELD_TYPE_SINGLE:
+            self.applySingleSymbolLegend()
         self.updateStrategyCustomProperty(selectedParts)
         self.currentLayer.saveNamedStyle(path)
-        self.originalRenderer = self.currentLayer.renderer().clone() if self.currentLayer.renderer() else None
-        if globalStyle:
-            message = self.tr("The current legend was applied to the layer and saved as %1 in the global layerStyles folder.")
+
+        if rendererSnapshot is not None:
+            self.currentLayer.setRenderer(rendererSnapshot)
+        if strategySnapshot:
+            self.currentLayer.setCustomProperty("qgisred_legend_strategy", strategySnapshot)
         else:
-            message = self.tr("The current legend was applied to the layer and saved as %1 in the layerStyles folder of your project.")
-        QMessageBox.information(self, self.tr("Saved"), message.replace("%1", filename))
+            self.currentLayer.removeCustomProperty("qgisred_legend_strategy")
+        self.currentLayer.triggerRepaint()
+        self.refreshLayerTreeSymbology(self.currentLayer)
 
     def promptForStrategyParts(self, globalStyle):
         applicableParts = self.getBuildableStrategyParts()
         if not applicableParts:
-            self.currentLayer.removeCustomProperty("qgisred_legend_strategy")
             return []
 
         isCategorical = self.currentFieldType == self.FIELD_TYPE_CATEGORICAL
-        currentParts = set(self.readSavedStrategyParts())
-        initialChecks = currentParts if currentParts else set(applicableParts)
-
         structuralApplicable = "allClasses" in applicableParts or "intervals" in applicableParts
-        initialStructural = "allClasses" in initialChecks or "intervals" in initialChecks
 
         dialog = QGISRedSaveStrategyDialog(
             self.currentLayer.name(),
@@ -3561,30 +3575,12 @@ class QGISRedLegendsDialog(QDialog, formClass):
             structuralApplicable,
             "sizes" in applicableParts,
             "colors" in applicableParts,
-            initialStructural=initialStructural,
-            initialSizes="sizes" in initialChecks,
-            initialColors="colors" in initialChecks,
             parent=self,
         )
         if dialog.exec_() != QDialog.DialogCode.Accepted:
             return None
 
         return dialog.selectedParts()
-
-    def readSavedStrategyParts(self):
-        if not self.currentLayer:
-            return []
-        rawStrategy = self.currentLayer.customProperty("qgisred_legend_strategy")
-        if not rawStrategy:
-            return []
-        try:
-            strategy = json.loads(rawStrategy)
-        except Exception:
-            return []
-        parts = strategy.get("parts")
-        if isinstance(parts, list):
-            return parts
-        return self.inferLegacyParts(strategy)
 
     def updateStrategyCustomProperty(self, parts):
         if not parts:
