@@ -61,6 +61,127 @@ class QGISRedDigitalTwinMixin:
         return _to_string(b)
 
     @staticmethod
+    def CreateDemandSectorization(projectFolder, networkName, sectorizationName):
+        projectFolder = _encode(projectFolder)
+        networkName = _encode(networkName)
+        sectorizationName = _encode(sectorizationName)
+
+        mydll = _load_dll()
+
+        mydll.CreateDemandSectorization.argtypes = (c_char_p, c_char_p, c_char_p)
+
+        mydll.CreateDemandSectorization.restype = c_char_p
+
+        b = mydll.CreateDemandSectorization(projectFolder, networkName, sectorizationName)
+
+        return _to_string(b)
+
+    @staticmethod
+    def CreateDemandSectorization(projectFolder, networkName, sectorizationName):
+        projectFolder = _encode(projectFolder)
+        networkName = _encode(networkName)
+        sectorizationName = _encode(sectorizationName)
+
+        mydll = _load_dll()
+
+        mydll.CreateDemandSectorization.argtypes = (c_char_p, c_char_p, c_char_p)
+
+        mydll.CreateDemandSectorization.restype = c_char_p
+
+        b = mydll.CreateDemandSectorization(projectFolder, networkName, sectorizationName)
+
+        return _to_string(b)
+    
+    @staticmethod
+    def CreateRemoveDemandSectorTheme(projectFolder, networkName, sectorizationName, themeName, create):
+        projectFolder = _encode(projectFolder)
+        networkName = _encode(networkName)
+        sectorizationName = _encode(sectorizationName)
+        themeName = _encode(themeName)
+        create = _encode(create)
+
+        mydll = _load_dll()
+
+        mydll.CreateRemoveDemandSectorTheme.argtypes = (c_char_p, c_char_p, c_char_p, c_char_p, c_char_p)
+
+        mydll.CreateRemoveDemandSectorTheme.restype = c_char_p
+
+        b = mydll.CreateRemoveDemandSectorTheme(projectFolder, networkName,
+            sectorizationName, themeName, create)
+
+        return _to_string(b)
+
+    @staticmethod
+    def GetDemandSectorThemes(projectFolder, networkName, sectorizationName):
+        projectFolder = _encode(projectFolder)
+        networkName = _encode(networkName)
+        sectorizationName = _encode(sectorizationName)
+
+        mydll = _load_dll()
+
+        mydll.GetDemandSectorThemes.argtypes = (c_char_p, c_char_p, c_char_p)
+
+        mydll.GetDemandSectorThemes.restype = c_char_p
+
+        b = mydll.GetDemandSectorThemes(projectFolder, networkName, sectorizationName)
+
+        return _to_string(b)
+
+    @staticmethod
+    def CheckDemandSectorTheme(projectFolder, networkName, sectorizationName, themeName):
+        projectFolder = _encode(projectFolder)
+        networkName = _encode(networkName)
+        sectorizationName = _encode(sectorizationName)
+        themeName = _encode(themeName)
+
+        mydll = _load_dll()
+
+        mydll.CheckDemandSectorTheme.argtypes = (c_char_p, c_char_p, c_char_p, c_char_p)
+
+        mydll.CheckDemandSectorTheme.restype = c_char_p
+
+        b = mydll.CheckDemandSectorTheme(projectFolder, networkName, sectorizationName, themeName)
+
+        return _to_string(b)
+
+    @staticmethod
+    def CreateCompleteDemandSectorTheme(projectFolder, networkName, sectorizationName, fromTheme, toTheme):
+        projectFolder = _encode(projectFolder)
+        networkName = _encode(networkName)
+        sectorizationName = _encode(sectorizationName)
+        fromTheme = _encode(fromTheme)
+        toTheme = _encode(toTheme)
+
+        mydll = _load_dll()
+
+        mydll.CreateCompleteDemandSectorTheme.argtypes = (c_char_p, c_char_p, c_char_p, 
+                                                          c_char_p, c_char_p)
+
+        mydll.CreateCompleteDemandSectorTheme.restype = c_char_p
+
+        b = mydll.CreateCompleteDemandSectorTheme(projectFolder, networkName,
+            sectorizationName, fromTheme, toTheme)
+
+        return _to_string(b)
+    
+    @staticmethod
+    def UpdateDemandSectorTheme(projectFolder, networkName, sectorizationName, themeName):
+        projectFolder = _encode(projectFolder)
+        networkName = _encode(networkName)
+        sectorizationName = _encode(sectorizationName)
+        themeName = _encode(themeName)
+
+        mydll = _load_dll()
+
+        mydll.UpdateDemandSectorTheme.argtypes = (c_char_p, c_char_p, c_char_p, c_char_p)
+
+        mydll.UpdateDemandSectorTheme.restype = c_char_p
+
+        b = mydll.UpdateDemandSectorTheme(projectFolder, networkName, sectorizationName, themeName)
+
+        return _to_string(b)
+
+    @staticmethod
     def ElevationInterpolation(projectFolder, networkName, tempFolder, elevationFiles):
         projectFolder = _encode(projectFolder)
         networkName = _encode(networkName)
