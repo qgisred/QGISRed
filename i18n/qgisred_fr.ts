@@ -1483,12 +1483,12 @@
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../sections/lifecycle_section.py" line="481"/>
+        <location filename="../sections/lifecycle_section.py" line="493"/>
         <source>QGISRed Dependencies</source>
         <translation type="unfinished">Dépendances de QGISRed</translation>
     </message>
     <message>
-        <location filename="../sections/lifecycle_section.py" line="447"/>
+        <location filename="../sections/lifecycle_section.py" line="459"/>
         <source>QGISRed plugin only runs in Windows OS and requires some dependencies (v{}). Do you want to install them now?</source>
         <translation type="unfinished"></translation>
     </message>
@@ -1498,12 +1498,12 @@
         <translation type="obsolete">Mises à jour de QGISRed</translation>
     </message>
     <message>
-        <location filename="../sections/lifecycle_section.py" line="536"/>
+        <location filename="../sections/lifecycle_section.py" line="548"/>
         <source>QGISRed News</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../sections/lifecycle_section.py" line="481"/>
+        <location filename="../sections/lifecycle_section.py" line="493"/>
         <source>The installation may have failed. Please try again or report the issue in GitHub</source>
         <translation type="unfinished"></translation>
     </message>
@@ -2074,47 +2074,47 @@
 <context>
     <name>ProfileSection</name>
     <message>
-        <location filename="../sections/profile_section.py" line="716"/>
+        <location filename="../sections/profile_section.py" line="717"/>
         <source>Extend path</source>
         <translation>Prolonger le trajet</translation>
     </message>
     <message>
-        <location filename="../sections/profile_section.py" line="717"/>
+        <location filename="../sections/profile_section.py" line="718"/>
         <source>Create branch</source>
         <translation>Créer une branche</translation>
     </message>
     <message>
-        <location filename="../sections/profile_section.py" line="718"/>
+        <location filename="../sections/profile_section.py" line="719"/>
         <source>Declare pass node</source>
         <translation>Déclarer un point de passage</translation>
     </message>
     <message>
-        <location filename="../sections/profile_section.py" line="719"/>
+        <location filename="../sections/profile_section.py" line="720"/>
         <source>Move pass node</source>
         <translation>Déplacer le point de passage</translation>
     </message>
     <message>
-        <location filename="../sections/profile_section.py" line="720"/>
+        <location filename="../sections/profile_section.py" line="721"/>
         <source>Delete pass node</source>
         <translation>Supprimer le point de passage</translation>
     </message>
     <message>
-        <location filename="../sections/profile_section.py" line="721"/>
+        <location filename="../sections/profile_section.py" line="722"/>
         <source>Start new path here</source>
         <translation>Commencer un nouveau trajet ici</translation>
     </message>
     <message>
-        <location filename="../sections/profile_section.py" line="774"/>
+        <location filename="../sections/profile_section.py" line="775"/>
         <source>Click nodes to trace the path; right-click to finish.</source>
         <translation>Cliquez sur les nœuds pour tracer le trajet ; clic droit pour terminer.</translation>
     </message>
     <message>
-        <location filename="../sections/profile_section.py" line="796"/>
+        <location filename="../sections/profile_section.py" line="797"/>
         <source>Click nodes to build the branch; right-click to finish.</source>
         <translation>Cliquez sur les nœuds pour construire la branche ; clic droit pour terminer.</translation>
     </message>
     <message>
-        <location filename="../sections/profile_section.py" line="802"/>
+        <location filename="../sections/profile_section.py" line="803"/>
         <source>Click the destination node for the pass point.</source>
         <translation>Cliquez sur le nœud de destination pour le point de passage.</translation>
     </message>
@@ -2124,12 +2124,12 @@
         <translation type="obsolete">Profil en long...</translation>
     </message>
     <message>
-        <location filename="../sections/profile_section.py" line="1307"/>
+        <location filename="../sections/profile_section.py" line="1308"/>
         <source>Longitudinal profiles at {0}</source>
         <translation>Profils en long à {0}</translation>
     </message>
     <message>
-        <location filename="../sections/profile_section.py" line="1309"/>
+        <location filename="../sections/profile_section.py" line="1310"/>
         <source>Longitudinal profiles</source>
         <translation>Profils en long</translation>
     </message>
@@ -2139,17 +2139,17 @@
         <translation>Lancez d'abord une simulation pour construire un profil en long.</translation>
     </message>
     <message>
-        <location filename="../sections/profile_section.py" line="660"/>
+        <location filename="../sections/profile_section.py" line="661"/>
         <source>No network node found at this location.</source>
         <translation>Aucun nœud du réseau n'a été trouvé à cet endroit.</translation>
     </message>
     <message>
-        <location filename="../sections/profile_section.py" line="828"/>
+        <location filename="../sections/profile_section.py" line="829"/>
         <source>Selected node is not connected to the previous one along the network.</source>
         <translation>Le nœud sélectionné n'est pas connecté au précédent le long du réseau.</translation>
     </message>
     <message>
-        <location filename="../sections/profile_section.py" line="1231"/>
+        <location filename="../sections/profile_section.py" line="1232"/>
         <source>Accumulated head loss</source>
         <translation>Pertes de charge cumulées</translation>
     </message>
@@ -2159,12 +2159,12 @@
         <translation type="obsolete">Profil en long</translation>
     </message>
     <message>
-        <location filename="../sections/profile_section.py" line="1371"/>
+        <location filename="../sections/profile_section.py" line="1372"/>
         <source>Distance</source>
         <translation>Distance</translation>
     </message>
     <message>
-        <location filename="../sections/profile_section.py" line="1462"/>
+        <location filename="../sections/profile_section.py" line="1463"/>
         <source>Elevation</source>
         <translation>Cotes</translation>
     </message>
@@ -2179,37 +2179,37 @@
         <translation type="obsolete">Pression</translation>
     </message>
     <message>
-        <location filename="../sections/profile_section.py" line="1348"/>
+        <location filename="../sections/profile_section.py" line="1349"/>
         <source>Quality</source>
         <translation type="unfinished">Qualité</translation>
     </message>
     <message>
-        <location filename="../sections/profile_section.py" line="965"/>
+        <location filename="../sections/profile_section.py" line="966"/>
         <source>Pick an intermediate node of the current profile path.</source>
         <translation>Sélectionnez un nœud intermédiaire du tracé actuel du profil.</translation>
     </message>
     <message>
-        <location filename="../sections/profile_section.py" line="1008"/>
+        <location filename="../sections/profile_section.py" line="1009"/>
         <source>Pick a declared profile point to remove.</source>
         <translation>Sélectionnez un point de passage déclaré à supprimer.</translation>
     </message>
     <message>
-        <location filename="../sections/profile_section.py" line="1018"/>
+        <location filename="../sections/profile_section.py" line="1019"/>
         <source>Only declared profile points can be moved.</source>
         <translation>Seuls les points de passage déclarés peuvent être déplacés.</translation>
     </message>
     <message>
-        <location filename="../sections/profile_section.py" line="976"/>
+        <location filename="../sections/profile_section.py" line="977"/>
         <source>This point starts a branch and cannot be removed. Trim the branch from its far end first.</source>
         <translation>Ce point est l'origine d'une ramification et ne peut pas être supprimé. Réduisez d'abord la ramification par son extrémité.</translation>
     </message>
     <message>
-        <location filename="../sections/profile_section.py" line="1038"/>
+        <location filename="../sections/profile_section.py" line="1039"/>
         <source>The point cannot be moved there without reusing already declared pipes or nodes.</source>
         <translation>Le point ne peut pas être déplacé là sans réutiliser des conduites ou des nœuds déjà déclarés.</translation>
     </message>
     <message>
-        <location filename="../sections/profile_section.py" line="1065"/>
+        <location filename="../sections/profile_section.py" line="1066"/>
         <source>This branch has derivations. Remove them first from their far ends.</source>
         <translation>Cette ramification comporte des dérivations. Supprimez-les d'abord par leurs extrémités.</translation>
     </message>
@@ -2219,12 +2219,12 @@
         <translation type="obsolete">Le nœud déplacé ne peut pas être connecté le long du réseau.</translation>
     </message>
     <message>
-        <location filename="../sections/profile_section.py" line="1442"/>
+        <location filename="../sections/profile_section.py" line="1443"/>
         <source>Branch</source>
         <translation>Branche</translation>
     </message>
     <message>
-        <location filename="../sections/profile_section.py" line="1302"/>
+        <location filename="../sections/profile_section.py" line="1303"/>
         <source>Main path</source>
         <translation>Trajet principal</translation>
     </message>
@@ -2234,72 +2234,72 @@
         <translation type="obsolete">Cliquez sur un nœud du profil actuel pour démarrer une branche.</translation>
     </message>
     <message>
-        <location filename="../sections/profile_section.py" line="844"/>
+        <location filename="../sections/profile_section.py" line="845"/>
         <source>Selected node is not connected to the branch along the network.</source>
         <translation>Le nœud sélectionné n'est pas connecté à la branche le long du réseau.</translation>
     </message>
     <message>
-        <location filename="../sections/profile_section.py" line="1377"/>
+        <location filename="../sections/profile_section.py" line="1378"/>
         <source>Id</source>
         <translation>Id</translation>
     </message>
     <message>
-        <location filename="../sections/profile_section.py" line="595"/>
+        <location filename="../sections/profile_section.py" line="596"/>
         <source>The profile configuration could not be exported.</source>
         <translation>La configuration du profil n'a pas pu être exportée.</translation>
     </message>
     <message>
-        <location filename="../sections/profile_section.py" line="597"/>
+        <location filename="../sections/profile_section.py" line="598"/>
         <source>Profile configuration exported.</source>
         <translation>Configuration du profil exportée.</translation>
     </message>
     <message>
-        <location filename="../sections/profile_section.py" line="609"/>
+        <location filename="../sections/profile_section.py" line="610"/>
         <source>The profile configuration could not be imported.</source>
         <translation>La configuration du profil n'a pas pu être importée.</translation>
     </message>
     <message>
-        <location filename="../sections/profile_section.py" line="622"/>
+        <location filename="../sections/profile_section.py" line="623"/>
         <source>The saved profile does not match the current network.</source>
         <translation>Le profil enregistré ne correspond pas au réseau actuel.</translation>
     </message>
     <message>
-        <location filename="../sections/profile_section.py" line="654"/>
+        <location filename="../sections/profile_section.py" line="655"/>
         <source>Profile configuration imported.</source>
         <translation>Configuration du profil importée.</translation>
     </message>
     <message>
-        <location filename="../sections/profile_section.py" line="458"/>
+        <location filename="../sections/profile_section.py" line="459"/>
         <source>Maxima</source>
         <translation>Maxima</translation>
     </message>
     <message>
-        <location filename="../sections/profile_section.py" line="459"/>
+        <location filename="../sections/profile_section.py" line="460"/>
         <source>Minima</source>
         <translation>Minima</translation>
     </message>
     <message>
-        <location filename="../sections/profile_section.py" line="460"/>
+        <location filename="../sections/profile_section.py" line="461"/>
         <source>Envelope</source>
         <translation>Enveloppe</translation>
     </message>
     <message>
-        <location filename="../sections/profile_section.py" line="1383"/>
+        <location filename="../sections/profile_section.py" line="1384"/>
         <source>Maximum</source>
         <translation>Maximum</translation>
     </message>
     <message>
-        <location filename="../sections/profile_section.py" line="1383"/>
+        <location filename="../sections/profile_section.py" line="1384"/>
         <source>Max. time</source>
         <translation>Heure max.</translation>
     </message>
     <message>
-        <location filename="../sections/profile_section.py" line="1383"/>
+        <location filename="../sections/profile_section.py" line="1384"/>
         <source>Minimum</source>
         <translation>Minimum</translation>
     </message>
     <message>
-        <location filename="../sections/profile_section.py" line="1383"/>
+        <location filename="../sections/profile_section.py" line="1384"/>
         <source>Min. time</source>
         <translation>Heure min.</translation>
     </message>
@@ -5293,12 +5293,12 @@ Left-click: Add a new item below the current selection</source>
         <translation>Évolution</translation>
     </message>
     <message>
-        <location filename="../ui/analysis/qgisred_results_dock.py" line="107"/>
+        <location filename="../ui/analysis/qgisred_results_dock.py" line="110"/>
         <source>Volume</source>
         <translation>Volume</translation>
     </message>
     <message>
-        <location filename="../ui/analysis/qgisred_results_dock.py" line="108"/>
+        <location filename="../ui/analysis/qgisred_results_dock.py" line="111"/>
         <source>Overflow Flow</source>
         <translation>Débit de débordement</translation>
     </message>
@@ -5328,67 +5328,67 @@ Left-click: Add a new item below the current selection</source>
         <translation type="obsolete">&gt;|</translation>
     </message>
     <message>
-        <location filename="../ui/analysis/qgisred_results_appearance.py" line="170"/>
+        <location filename="../ui/analysis/qgisred_results_appearance.py" line="172"/>
         <source>Nodes</source>
         <translation>Nœuds</translation>
     </message>
     <message>
-        <location filename="../ui/analysis/qgisred_results_dock.py" line="82"/>
+        <location filename="../ui/analysis/qgisred_results_dock.py" line="85"/>
         <source>None</source>
         <translation>Aucun</translation>
     </message>
     <message>
-        <location filename="../ui/analysis/qgisred_results_dock.py" line="92"/>
+        <location filename="../ui/analysis/qgisred_results_dock.py" line="95"/>
         <source>Pressure</source>
         <translation>Pression</translation>
     </message>
     <message>
-        <location filename="../ui/analysis/qgisred_results_dock.py" line="93"/>
+        <location filename="../ui/analysis/qgisred_results_dock.py" line="96"/>
         <source>Head</source>
         <translation>Charge</translation>
     </message>
     <message>
-        <location filename="../ui/analysis/qgisred_results_dock.py" line="94"/>
+        <location filename="../ui/analysis/qgisred_results_dock.py" line="97"/>
         <source>Demand</source>
         <translation>Demande</translation>
     </message>
     <message>
-        <location filename="../ui/analysis/qgisred_results_dock.py" line="1031"/>
+        <location filename="../ui/analysis/qgisred_results_dock.py" line="1034"/>
         <source>Quality</source>
         <translation>Qualité</translation>
     </message>
     <message>
-        <location filename="../ui/analysis/qgisred_results_appearance.py" line="176"/>
+        <location filename="../ui/analysis/qgisred_results_appearance.py" line="178"/>
         <source>Links</source>
         <translation>Liens</translation>
     </message>
     <message>
-        <location filename="../ui/analysis/qgisred_results_dock.py" line="96"/>
+        <location filename="../ui/analysis/qgisred_results_dock.py" line="99"/>
         <source>Flow</source>
         <translation>Débit</translation>
     </message>
     <message>
-        <location filename="../ui/analysis/qgisred_results_dock.py" line="97"/>
+        <location filename="../ui/analysis/qgisred_results_dock.py" line="100"/>
         <source>Velocity</source>
         <translation>Vitesse</translation>
     </message>
     <message>
-        <location filename="../ui/analysis/qgisred_results_dock.py" line="98"/>
+        <location filename="../ui/analysis/qgisred_results_dock.py" line="101"/>
         <source>HeadLoss</source>
         <translation>Perte de charge</translation>
     </message>
     <message>
-        <location filename="../ui/analysis/qgisred_results_dock.py" line="99"/>
+        <location filename="../ui/analysis/qgisred_results_dock.py" line="102"/>
         <source>Unit HeadLoss</source>
         <translation>Perte de charge unitaire</translation>
     </message>
     <message>
-        <location filename="../ui/analysis/qgisred_results_dock.py" line="101"/>
+        <location filename="../ui/analysis/qgisred_results_dock.py" line="104"/>
         <source>Status</source>
         <translation>État</translation>
     </message>
     <message>
-        <location filename="../ui/analysis/qgisred_results_dock.py" line="1722"/>
+        <location filename="../ui/analysis/qgisred_results_dock.py" line="1729"/>
         <source>Some issues occurred in the process</source>
         <translation>Des problèmes sont survenus durant le processus</translation>
     </message>
@@ -5473,42 +5473,42 @@ Left-click: Add a new item below the current selection</source>
         <translation>Actif</translation>
     </message>
     <message>
-        <location filename="../ui/analysis/qgisred_results_dock.py" line="83"/>
+        <location filename="../ui/analysis/qgisred_results_dock.py" line="86"/>
         <source>Maximum</source>
         <translation type="unfinished">Maximum</translation>
     </message>
     <message>
-        <location filename="../ui/analysis/qgisred_results_dock.py" line="84"/>
+        <location filename="../ui/analysis/qgisred_results_dock.py" line="87"/>
         <source>Minimum</source>
         <translation type="unfinished">Minimum</translation>
     </message>
     <message>
-        <location filename="../ui/analysis/qgisred_results_dock.py" line="85"/>
+        <location filename="../ui/analysis/qgisred_results_dock.py" line="88"/>
         <source>Range</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../ui/analysis/qgisred_results_dock.py" line="86"/>
+        <location filename="../ui/analysis/qgisred_results_dock.py" line="89"/>
         <source>Average</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../ui/analysis/qgisred_results_dock.py" line="100"/>
+        <location filename="../ui/analysis/qgisred_results_dock.py" line="103"/>
         <source>Friction Factor</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../ui/analysis/qgisred_results_dock.py" line="102"/>
+        <location filename="../ui/analysis/qgisred_results_dock.py" line="105"/>
         <source>Reaction Rate</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../ui/analysis/qgisred_results_dock.py" line="414"/>
+        <location filename="../ui/analysis/qgisred_results_dock.py" line="417"/>
         <source>The current project has been changed. Please, try again.</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../ui/analysis/qgisred_results_dock.py" line="88"/>
+        <location filename="../ui/analysis/qgisred_results_dock.py" line="91"/>
         <source>Warning</source>
         <translation type="unfinished">Avertissement</translation>
     </message>
@@ -5533,42 +5533,42 @@ Left-click: Add a new item below the current selection</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../ui/analysis/qgisred_results_dock.py" line="87"/>
+        <location filename="../ui/analysis/qgisred_results_dock.py" line="90"/>
         <source>StdDev</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../ui/analysis/qgisred_results_dock.py" line="103"/>
+        <location filename="../ui/analysis/qgisred_results_dock.py" line="106"/>
         <source>Flow (Signed)</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../ui/analysis/qgisred_results_dock.py" line="104"/>
+        <location filename="../ui/analysis/qgisred_results_dock.py" line="107"/>
         <source>Flow (Unsigned)</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../ui/analysis/qgisred_results_dock.py" line="111"/>
+        <location filename="../ui/analysis/qgisred_results_dock.py" line="114"/>
         <source>Maximum values</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../ui/analysis/qgisred_results_dock.py" line="112"/>
+        <location filename="../ui/analysis/qgisred_results_dock.py" line="115"/>
         <source>Minimum values</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../ui/analysis/qgisred_results_dock.py" line="113"/>
+        <location filename="../ui/analysis/qgisred_results_dock.py" line="116"/>
         <source>Range values</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../ui/analysis/qgisred_results_dock.py" line="114"/>
+        <location filename="../ui/analysis/qgisred_results_dock.py" line="117"/>
         <source>Average values</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../ui/analysis/qgisred_results_dock.py" line="115"/>
+        <location filename="../ui/analysis/qgisred_results_dock.py" line="118"/>
         <source>Standard deviation values</source>
         <translation type="unfinished"></translation>
     </message>
@@ -5588,12 +5588,12 @@ Left-click: Add a new item below the current selection</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../ui/analysis/qgisred_results_dock.py" line="90"/>
+        <location filename="../ui/analysis/qgisred_results_dock.py" line="93"/>
         <source>Step times</source>
         <translation>Instants de pas</translation>
     </message>
     <message>
-        <location filename="../ui/analysis/qgisred_results_dock.py" line="91"/>
+        <location filename="../ui/analysis/qgisred_results_dock.py" line="94"/>
         <source>All calculation times</source>
         <translation>Tous les instants de calcul</translation>
     </message>
@@ -5608,17 +5608,17 @@ Left-click: Add a new item below the current selection</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../ui/analysis/qgisred_results_dock.py" line="543"/>
+        <location filename="../ui/analysis/qgisred_results_dock.py" line="546"/>
         <source>%1 results not found</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../ui/analysis/qgisred_results_dock.py" line="1326"/>
+        <location filename="../ui/analysis/qgisred_results_dock.py" line="1331"/>
         <source>for %1</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../ui/analysis/qgisred_results_dock.py" line="1662"/>
+        <location filename="../ui/analysis/qgisred_results_dock.py" line="1669"/>
         <source>No %1 results are available</source>
         <translation type="unfinished"></translation>
     </message>
@@ -5633,32 +5633,32 @@ Left-click: Add a new item below the current selection</source>
         <translation type="obsolete">hh</translation>
     </message>
     <message>
-        <location filename="../ui/analysis/qgisred_results_dock.py" line="1074"/>
+        <location filename="../ui/analysis/qgisred_results_dock.py" line="1077"/>
         <source>24h format</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../ui/analysis/qgisred_results_dock.py" line="1075"/>
+        <location filename="../ui/analysis/qgisred_results_dock.py" line="1078"/>
         <source>dd hh:mm:ss format</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../ui/analysis/qgisred_results_dock.py" line="1075"/>
+        <location filename="../ui/analysis/qgisred_results_dock.py" line="1078"/>
         <source>HH:mm:ss format</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../ui/analysis/qgisred_results_dock.py" line="1073"/>
+        <location filename="../ui/analysis/qgisred_results_dock.py" line="1076"/>
         <source>Elapsed time</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../ui/analysis/qgisred_results_dock.py" line="1073"/>
+        <location filename="../ui/analysis/qgisred_results_dock.py" line="1076"/>
         <source>Civil hour</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../ui/analysis/qgisred_results_dock.py" line="1074"/>
+        <location filename="../ui/analysis/qgisred_results_dock.py" line="1077"/>
         <source>am/pm format</source>
         <translation type="unfinished"></translation>
     </message>
@@ -5733,7 +5733,7 @@ Left-click: Add a new item below the current selection</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../ui/analysis/qgisred_results_appearance.py" line="332"/>
+        <location filename="../ui/analysis/qgisred_results_appearance.py" line="334"/>
         <source>No color</source>
         <translation type="unfinished"></translation>
     </message>
@@ -5748,17 +5748,17 @@ Left-click: Add a new item below the current selection</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../ui/analysis/qgisred_results_dock.py" line="145"/>
+        <location filename="../ui/analysis/qgisred_results_dock.py" line="148"/>
         <source>Arrows</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../ui/analysis/qgisred_results_appearance.py" line="177"/>
+        <location filename="../ui/analysis/qgisred_results_appearance.py" line="179"/>
         <source>%1 decimals</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../ui/analysis/qgisred_results_appearance.py" line="232"/>
+        <location filename="../ui/analysis/qgisred_results_appearance.py" line="234"/>
         <source>Map background color</source>
         <translation type="unfinished"></translation>
     </message>
@@ -5847,6 +5847,11 @@ Left-click: Add a new item below the current selection</source>
         <source>sec</source>
         <translation type="unfinished"></translation>
     </message>
+    <message>
+        <location filename="../ui/analysis/qgisred_results_dock.py" line="1848"/>
+        <source>Reading results...</source>
+        <translation type="unfinished"></translation>
+    </message>
 </context>
 <context>
     <name>QGISRedSaveStrategyDialog</name>
@@ -5899,7 +5904,7 @@ Left-click: Add a new item below the current selection</source>
 <context>
     <name>QGISRedSelectPointTool</name>
     <message>
-        <location filename="../tools/map_tools/qgisred_selectPoint.py" line="194"/>
+        <location filename="../tools/map_tools/qgisred_selectPoint.py" line="198"/>
         <source>A not valid point was selected</source>
         <translation type="unfinished"></translation>
     </message>

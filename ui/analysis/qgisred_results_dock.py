@@ -15,6 +15,7 @@ from ...tools.utils.qgisred_layer_utils import QGISRedLayerUtils
 from ...tools.utils.qgisred_ui_utils import QGISRedUIUtils
 from ...tools.utils.qgisred_field_utils import QGISRedFieldUtils
 from ...tools.utils.qgisred_project_utils import QGISRedProjectUtils
+from ...tools.utils.qgisred_map_overlay import QGISRedMapOverlay
 from ...tools.qgisred_dependencies import QGISRedDependencies as GISRed
 
 from .qgisred_results_rendering import _ResultsRenderingMixin
@@ -56,6 +57,8 @@ class QGISRedResultsDock(
     Computing = False
     TimeLabels = []
     outPath = ""
+    _resultsOverlay = None
+    _lastResultsPct = -1
     _RESULTS_CONTEXTS = [
         "QGISRedResultsDock",
         "_ResultsRenderingMixin",
@@ -1296,6 +1299,7 @@ class QGISRedResultsDock(
             QApplication.setOverrideCursor(Qt.CursorShape.WaitCursor)
             try:
                 if self.validationsOpenResult():
+                    self._beginResultsOverlay()
                     self.ensureResultsLayersAreOpen()
                     self.clearResultFields()
                     if self._statsMode:
@@ -1308,6 +1312,7 @@ class QGISRedResultsDock(
                     # This fixes the issue where opening the table too fast shows all columns
                     QTimer.singleShot(200, self.forceFinalFieldsVisibility)
             finally:
+                self._endResultsOverlay()
                 QApplication.restoreOverrideCursor()
         self.statisticsModeChanged.emit(new_stat if self._statsMode else "")
 
@@ -1613,6 +1618,7 @@ class QGISRedResultsDock(
             return
 
         QApplication.setOverrideCursor(Qt.CursorShape.WaitCursor)
+        self._beginResultsOverlay()
         try:
             self.ensureResultsLayersAreOpen()
 
@@ -1623,6 +1629,7 @@ class QGISRedResultsDock(
 
             self.paintIntervalTimeResults(False)
         finally:
+            self._endResultsOverlay()
             QApplication.restoreOverrideCursor()
 
     """Main methods"""
@@ -1807,6 +1814,7 @@ class QGISRedResultsDock(
 
     def openAllResultsProcess(self):
         QApplication.setOverrideCursor(Qt.CursorShape.WaitCursor)
+        self._beginResultsOverlay()
         try:
             # Ensure result layers are opened
             self.ensureResultsLayersAreOpen()
@@ -1820,6 +1828,7 @@ class QGISRedResultsDock(
 
             self.paintIntervalTimeResults(True)
         finally:
+            self._endResultsOverlay()
             QApplication.restoreOverrideCursor()
 
         # Defer final visibility application to ensure the layer is fully ready
@@ -1827,3 +1836,29 @@ class QGISRedResultsDock(
 
         # Activate map tips
         self.iface.actionMapTips().setChecked(True)
+
+    def _beginResultsOverlay(self):
+        """Arm the map overlay for a results-reading operation.
+
+        The overlay only becomes visible if the operation lasts long enough
+        (see QGISRedMapOverlay delay), avoiding a flicker on fast reads.
+        """
+        self._lastResultsPct = -1
+        self._resultsOverlay = QGISRedMapOverlay(self.iface.mapCanvas())
+        self._resultsOverlay.start(self.tr("Reading results..."))
+
+    def _endResultsOverlay(self):
+        """Hide the map overlay after a results-reading operation."""
+        if self._resultsOverlay:
+            self._resultsOverlay.finish()
+            self._resultsOverlay = None
+
+    def _reportResultsProgress(self, processed, total):
+        """Update the map overlay with the reading progress (throttled to whole %)."""
+        overlay = getattr(self, "_resultsOverlay", None)
+        if not overlay or total <= 0:
+            return
+        pct = int(processed * 100 / total)
+        if pct != self._lastResultsPct:
+            self._lastResultsPct = pct
+            overlay.setProgress(min(pct, 100))

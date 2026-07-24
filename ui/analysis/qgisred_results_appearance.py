@@ -133,6 +133,7 @@ class _ResultsAppearanceMixin:
         if not self._findResultLayer("Node") and not self._findResultLayer("Link"):
             return
         QApplication.setOverrideCursor(Qt.CursorShape.WaitCursor)
+        self._beginResultsOverlay()
         try:
             for layerName in ["Node", "Link"]:
                 layer = self._findResultLayer(layerName)
@@ -154,6 +155,7 @@ class _ResultsAppearanceMixin:
             else:
                 self.completeResultLayers()
         finally:
+            self._endResultsOverlay()
             QApplication.restoreOverrideCursor()
 
     def _resetDecimalsForVariable(self, field_name, csv_element_type, layer_type="Node"):

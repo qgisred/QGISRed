@@ -434,6 +434,12 @@ class _ResultsDataMixin:
             return
 
         field_utils = QGISRedFieldUtils()
+        total = sum(
+            layer.featureCount()
+            for layer in (self._findResultLayer("Node"), self._findResultLayer("Link"))
+            if layer
+        )
+        processed = 0
         for layerName in ["Node", "Link"]:
             target_layer = self._findResultLayer(layerName)
             if not target_layer:
@@ -464,6 +470,8 @@ class _ResultsDataMixin:
             varDecimals = getattr(self, '_varDecimals', {})
             attribute_updates = {}
             for feature in target_layer.getFeatures():
+                processed += 1
+                self._reportResultsProgress(processed, total)
                 feature_id = str(feature.attributes()[id_field_idx])
                 if feature_id in results:
                     updates = {}
@@ -553,6 +561,12 @@ class _ResultsDataMixin:
         }
 
         field_utils = QGISRedFieldUtils()
+        total = sum(
+            layer.featureCount()
+            for layer in (self._findResultLayer("Node"), self._findResultLayer("Link"))
+            if layer
+        )
+        processed = 0
         for layerName in ["Node", "Link"]:
             target_layer = self._findResultLayer(layerName)
             if not target_layer:
@@ -595,6 +609,8 @@ class _ResultsDataMixin:
             varDecimals = getattr(self, '_varDecimals', {})
             attribute_updates = {}
             for feature in target_layer.getFeatures():
+                processed += 1
+                self._reportResultsProgress(processed, total)
                 feature_id = str(feature.attributes()[id_field_idx])
                 if feature_id not in results:
                     continue
