@@ -471,7 +471,7 @@ class QGISRedLegendsDialog(QDialog, formClass):
         self.btLoadMenu.setToolTip(self.tr("Load a saved style or revert to the original legend"))
         self.btSaveMenu.setToolTip(self.tr("Save the current legend as a style"))
         self.btApplyLegend.setToolTip(self.tr("Apply changes to layer"))
-        self.btCancelLegend.setToolTip(self.tr("Cancel and close dialog; edits not yet applied are discarded"))
+        self.btCancelLegend.setToolTip(self.tr("Close and restore the legend the layer had when this dialog was opened"))
 
     def hideIntervalControls(self):
         self.labelIntervalRange.setVisible(False)
@@ -4539,10 +4539,14 @@ class QGISRedLegendsDialog(QDialog, formClass):
         if self.isClosing:
             return
         self.isClosing = True
-        if self.currentLayer and self.originalRenderer:
-            self.currentLayer.setRenderer(self.originalRenderer.clone())
-            self.currentLayer.triggerRepaint()
-            self.refreshLayerTreeSymbology(self.currentLayer)
+        # Cancel behaves like "Revert to Original Legend": restore the pristine
+        # snapshot taken when the layer was first selected, even after Apply.
+        if self.currentLayer:
+            snapshot = self.initialRenderers.get(self.currentLayer.id())
+            if snapshot is not None:
+                self.currentLayer.setRenderer(snapshot.clone())
+                self.currentLayer.triggerRepaint()
+                self.refreshLayerTreeSymbology(self.currentLayer)
         self.close()
 
     def reject(self):

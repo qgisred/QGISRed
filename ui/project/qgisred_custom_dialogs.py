@@ -312,6 +312,8 @@ class QGISRedColorRampSelector(QComboBox):
         option = QStyleOptionComboBox()
         self.initStyleOption(option)
         option.currentText = ""
+        option.currentIcon = QIcon()
+        option.iconSize = QSize()
         return option
 
     def renderRampPreview(self, painter):
