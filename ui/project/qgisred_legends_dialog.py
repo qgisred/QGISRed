@@ -19,7 +19,7 @@ from qgis.core import QgsProject, QgsVectorLayer, QgsMessageLog, Qgis, QgsGradua
 from qgis.core import QgsCategorizedSymbolRenderer, QgsRendererRange, QgsRendererCategory, QgsSymbol
 from qgis.core import QgsLayerTreeGroup, QgsLayerTreeLayer, QgsGradientColorRamp, QgsClassificationJenks
 from qgis.core import QgsClassificationPrettyBreaks, QgsStyle, QgsPresetSchemeColorRamp, QgsProperty, QgsSymbolLayer
-from qgis.core import QgsRuleBasedRenderer, NULL
+from qgis.core import QgsRuleBasedRenderer, QgsFillSymbolLayer, NULL
 from qgis.utils import iface
 
 from ...compat import WKB_LINE_GEOMETRY, WKB_POINT_GEOMETRY
@@ -2967,12 +2967,12 @@ class QGISRedLegendsDialog(QDialog, formClass):
             symbol.setSize(2.5)
 
     def applyColorToSymbol(self, symbol, color):
-        """Applies color to all layers of a symbol, preserving its structure."""
+        """Applies fill color to all layers of a symbol, preserving its structure."""
         for i in range(symbol.symbolLayerCount()):
             symbolLayer = symbol.symbolLayer(i)
             symbolLayer.setColor(color)
-            # Also set stroke color for fill symbols to maintain consistency
-            if hasattr(symbolLayer, 'setStrokeColor'):
+            # Sync stroke only on polygon fills; marker/line strokes belong to the style
+            if isinstance(symbolLayer, QgsFillSymbolLayer):
                 symbolLayer.setStrokeColor(color)
             # Handle sub-symbols (e.g., marker line's marker symbol)
             if hasattr(symbolLayer, 'subSymbol') and symbolLayer.subSymbol():
