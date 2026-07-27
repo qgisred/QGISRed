@@ -19,6 +19,8 @@ from qgis.core import (
 from qgis.gui import QgsAttributeTableFilterModel, QgsAttributeTableModel, QgsAttributeTableView
 from qgis.utils import iface as _iface
 
+from .qgisred_field_utils import QGISRedFieldUtils
+
 
 def _plugin_root():
     """Returns the plugin root directory (two levels up from tools/utils/)."""
@@ -627,11 +629,18 @@ class QGISRedStylingUtils:
         layer.setRenderer(renderer)
         layer.saveNamedStyle(qmlFile)
 
-    def hideFields(self, layer, fieldname):
+    def hideFields(self, layer, fieldname, idFieldName=None):
         config = layer.attributeTableConfig()
         columns = config.columns()
 
-        fieldsToKeep = ['Id', fieldname]
+        # The identity column's name is per-layer (ValveID, PumpID, ...) on a project
+        # exported by the current DLL, not the legacy bare "Id" this used to hardcode.
+        # getIdFieldName() resolves it from the layer's own qgisred_identifier property;
+        # callers whose layer doesn't carry that (e.g. a derived query layer tagged with
+        # its own query identifier instead) must resolve it themselves and pass it in.
+        if idFieldName is None:
+            idFieldName = QGISRedFieldUtils().getIdFieldName(layer)
+        fieldsToKeep = [idFieldName, fieldname]
 
         for column in columns:
             column.hidden = column.name not in fieldsToKeep

@@ -273,7 +273,24 @@ class QGISRedThematicMapsDialog(QDialog, FORM_CLASS):
         derivedLayer.setCustomProperty("qgisred_identifier", layerIdentifier)
 
         QgsProject.instance().addMapLayer(derivedLayer, False)
-        QGISRedStylingUtils().hideFields(derivedLayer, field)
+        # 'field' here is the query's stable identifier value ('Type'), used above to build
+        # layerIdentifier -- it must stay 'Type' regardless of schema. The real column on a
+        # project exported by the current DLL is 'ValveType'; resolve it only for the actual
+        # attribute-table lookup, which needs the name that is really on the layer.
+        hideField = field
+        if layerType == 'valves' and field == 'Type' and derivedLayer.fields().indexFromName('ValveType') >= 0:
+            hideField = 'ValveType'
+
+        # hideFields() would otherwise resolve the identity column itself via
+        # derivedLayer's own qgisred_identifier -- but that property is set above to this
+        # query's own identifier (e.g. "qgisred_query_valves_type"), not the element's
+        # ("qgisred_valves"), so its CSV-driven lookup can't match and falls back to the
+        # legacy bare "Id". Resolve the per-layer id explicitly here instead.
+        idFieldCandidates = {'valves': 'ValveID', 'pumps': 'PumpID'}
+        idFieldName = idFieldCandidates.get(layerType)
+        if idFieldName is None or derivedLayer.fields().indexFromName(idFieldName) < 0:
+            idFieldName = None
+        QGISRedStylingUtils().hideFields(derivedLayer, hideField, idFieldName)
 
         if parentGroup is not None and not sip.isdeleted(parentGroup):
             # Use insertChildNode with a new QgsLayerTreeLayer instance for better QGIS 4 compatibility
