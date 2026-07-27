@@ -1231,11 +1231,15 @@ class QGISRedElementExplorerDock(QDockWidget, FORM_CLASS):
         Curves.XValue/Yvalue (condition = curve Type).  Returns '' for all other cases.
         """
         if fieldName == "Setting" and layerIdentifier == "qgisred_valves":
-            idx = fields.indexFromName("Type")
+            idx = fields.indexFromName("ValveType")
+            if idx < 0:
+                idx = fields.indexFromName("Type")
             if idx >= 0 and attributes[idx] is not None:
                 return str(attributes[idx])
         if fieldName in ("XValue", "Xvalue", "YValue", "Yvalue") and layerIdentifier == "qgisred_curves":
-            idx = fields.indexFromName("Type")
+            idx = fields.indexFromName("CurveType")
+            if idx < 0:
+                idx = fields.indexFromName("Type")
             if idx >= 0 and attributes[idx] is not None:
                 return str(attributes[idx])
         return ""
