@@ -294,9 +294,9 @@ class TestCsvLoading:
     def test_renamed_fields_keep_pretty_names(self, fu):
         with patch("QGISRed.tools.utils.qgisred_project_utils.QgsProject") as MockProj:
             MockProj.instance.return_value = _make_project()
-            assert fu.getProperty("Pumps", "PumpCurvID", translate=False) == "Head Curve"
-            assert fu.getProperty("Pumps", "IdHFCurve", translate=False) == "Head Curve"
-            assert fu.getProperty("Valves", "ValveType", translate=False) == "Type"
+            assert fu.getProperty("Pumps", "PumpCurvID", translate=False) == "Pump Curve"
+            assert fu.getProperty("Pumps", "IdHFCurve", translate=False) == "Pump Curve"
+            assert fu.getProperty("Valves", "ValveType", translate=False) == "Valve Type"
             assert fu.getProperty("Tanks", "VolCurveID", translate=False) == "Volume Curve"
 
     def test_cache_reused(self, fu):
@@ -316,7 +316,7 @@ class TestGetPluralProperty:
             assert fu.getPluralProperty("Pipes", "Length") == "Lengths"
             assert fu.getPluralProperty("Pipes", "Diameter") == "Diameters"
             assert fu.getPluralProperty("Links", "Velocity") == "Velocities"
-            assert fu.getPluralProperty("Pumps", "IdHFCurve") == "Head Curves"
+            assert fu.getPluralProperty("Pumps", "IdHFCurve") == "Pump Curves"
 
     def test_unmapped_name_falls_back_to_singular(self, fu):
         with patch("QGISRed.tools.utils.qgisred_project_utils.QgsProject") as MockProj, \
