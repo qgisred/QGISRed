@@ -134,6 +134,10 @@ class _ResultsAppearanceMixin:
             return
         QApplication.setOverrideCursor(Qt.CursorShape.WaitCursor)
         self._beginResultsOverlay()
+        # Cancel any in-flight render job before reloadData() rebuilds the OGR provider,
+        # otherwise a background render reading the same provider races with it and crashes
+        # QGIS natively (see openOrReloadLayerResults for the full rationale).
+        self.iface.mapCanvas().stopRendering()
         try:
             for layerName in ["Node", "Link"]:
                 layer = self._findResultLayer(layerName)

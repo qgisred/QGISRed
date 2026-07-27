@@ -531,6 +531,12 @@ class QGISRedResultsDock(
         return QGISRedLayerUtils().getLayers()
 
     def openOrReloadLayerResults(self, scenario, nameLayer=None):
+        # Cancel any in-flight canvas render job before touching OGR providers below.
+        # reloadData() rebuilds the provider on the main thread; if a background
+        # QgsMapRendererParallelJob is simultaneously reading features from the same
+        # provider, that data race triggers a native access violation (QGIS crash).
+        self.iface.mapCanvas().stopRendering()
+
         resultPath = self.getResultsPath()
         utils = QGISRedLayerUtils(resultPath, self.NetworkName + "_" + scenario, self.iface)
         # Navigation utils uses the plain NetworkName so getOrCreateNestedGroup can match
