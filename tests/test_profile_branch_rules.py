@@ -201,16 +201,18 @@ def test_move_bifurcation_reroutes_each_derivation():
     assert branch["offset"] == 200.0
 
 
-def test_move_is_rejected_when_reroute_needs_declared_pipe():
+def test_move_bifurcation_rejected_to_lower_connectivity():
     adjacency, lengths = _grid()
     s = _Section(adjacency, lengths)
     s._profileReferenceNodes = ["A", "D"]
     s._profileBranches = [_branch(["B", "F"])]
     s._rebuildProfilePaths()
 
-    # D only connects to the trunk, so the branch cannot reach F from D.
+    # B (branch origin) has connectivity 3; D has connectivity 1, so the branch
+    # point cannot be moved there (Rule 4). Everything stays put and the user is warned.
+    s.messages.clear()
     s._applyProfileMove("B", "D")
     branch = s._profileBranches[0]
     assert branch["reference_nodes"] == ["B", "F"]
     assert branch["path"]["nodes"] == ["B", "E", "F"]
-    assert s.messages
+    assert s.messages and "connectivity" in s.messages[-1][0]

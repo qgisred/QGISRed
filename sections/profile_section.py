@@ -879,17 +879,36 @@ class ProfileSection:
         move = (self.tr("Move pass node"), lambda: self._profileStartMove(node_id))
         remove = (self.tr("Delete pass node"), lambda: self._profileRemovePoint(node_id))
         start = (self.tr("Start new path here"), lambda: self._profileStartMain(node_id))
-        # Branches must start from an intermediate pass node: a branch off an
-        # endpoint (path/branch start or end) would just be extending the path,
-        # so terminal nodes ("origin"/"terminal") don't offer "Create branch".
-        return {
-            "start": [start],
-            "intermediate_path": [declare],
-            "origin": [extend],
-            "terminal": [extend, move, remove],
-            "through": [branch, move, remove],
-            "bifurcation": [branch],
-        }.get(role, [])
+        if role == "start":
+            return [start]
+        if role == "intermediate_path":
+            return [declare]
+        if role not in ("origin", "terminal", "through", "bifurcation"):
+            return []
+
+        # Connectivity-driven options for declared pass nodes:
+        #  - Extend is offered at an endpoint (origin/terminal) only when a
+        #    converging line is still free. A connectivity-1 endpoint has its only
+        #    line used, so it cannot extend (only move/delete).
+        #  - Create branch is offered only at an interior node whose connectivity
+        #    is > 2 and that still has a free converging line (a branch needs a
+        #    line not already on a path). Connectivity 1/2 nodes never branch.
+        #  - Move is always available. Delete is available except for a branch
+        #    origin (a bifurcation anchors a branch and cannot be removed).
+        degree = self._profileNodeDegree(node_id)
+        has_free_link = self._profileNodeHasFreeLink(node_id)
+
+        entries = []
+        if role in ("origin", "terminal"):
+            if has_free_link:
+                entries.append(extend)
+        elif role in ("through", "bifurcation"):
+            if degree > 2 and has_free_link:
+                entries.append(branch)
+        entries.append(move)
+        if role != "bifurcation":
+            entries.append(remove)
+        return entries
 
     def _profileClassifyNode(self, node_id):
         main = getattr(self, "_profilePath", None)
@@ -948,6 +967,10 @@ class ProfileSection:
         tree_distance = self._profileNodeTreeDistance(node_id)
         if tree_distance is None:
             return
+        # Rule 3: a branch needs connectivity > 2 and a converging line still free
+        # (the menu already enforces this; guard defensively).
+        if self._profileNodeDegree(node_id) <= 2 or not self._profileNodeHasFreeLink(node_id):
+            return
         if not isinstance(getattr(self, "_profileBranches", None), list):
             self._profileBranches = []
         branch = {"reference_nodes": [node_id], "offset": tree_distance, "path": None, "distances": None}
@@ -981,6 +1004,29 @@ class ProfileSection:
             if branch_path and branch_path.get("nodes"):
                 nodes.update(branch_path["nodes"])
         return nodes
+
+    def _profileNodeDegree(self, node_id):
+        """Connectivity of a node: number of lines converging on it."""
+        adjacency = getattr(self, "_profileAdjacency", None) or {}
+        return len(adjacency.get(node_id, []))
+
+    def _profileUsedLinks(self):
+        """Every link already part of a profile trajectory (main path or branches)."""
+        used = set()
+        main = getattr(self, "_profilePath", None)
+        if main:
+            used.update(main.get("links") or [])
+        for branch in getattr(self, "_profileBranches", []) or []:
+            branch_path = branch.get("path")
+            if branch_path:
+                used.update(branch_path.get("links") or [])
+        return used
+
+    def _profileNodeHasFreeLink(self, node_id):
+        """True if a line converging on the node is not yet part of any trajectory."""
+        adjacency = getattr(self, "_profileAdjacency", None) or {}
+        used = self._profileUsedLinks()
+        return any(lid not in used for lid, _neighbor in adjacency.get(node_id, []))
 
     def _profileAppendMainNode(self, node_id):
         refs = getattr(self, "_profileReferenceNodes", []) or []
@@ -1221,6 +1267,17 @@ class ProfileSection:
         in_branch = any(node_id in (b.get("reference_nodes") or []) for b in branches)
         if not in_main and not in_branch:
             self.pushMessage(self.tr("Only declared profile points can be moved."), level=1)
+            return
+
+        # Rule 4: a pass node that anchors a branch can only move to a node with
+        # equal or higher connectivity (so it can still host the branch). The
+        # no-overlap requirement is enforced by the rebuild below.
+        if self._isBranchOrigin(node_id) and \
+                self._profileNodeDegree(new_node_id) < self._profileNodeDegree(node_id):
+            self.pushMessage(
+                self.tr("A branching point can only be moved to a node with the same or higher connectivity."),
+                level=1,
+            )
             return
 
         prev_main = main_refs

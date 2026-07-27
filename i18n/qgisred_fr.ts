@@ -2149,6 +2149,11 @@
         <translation>Le nœud sélectionné n'est pas connecté au précédent le long du réseau.</translation>
     </message>
     <message>
+        <location filename="../sections/profile_section.py" line="1278"/>
+        <source>A branching point can only be moved to a node with the same or higher connectivity.</source>
+        <translation>Un nœud de bifurcation ne peut être déplacé que vers un nœud de connectivité égale ou supérieure.</translation>
+    </message>
+    <message>
         <location filename="../sections/profile_section.py" line="957"/>
         <source>That node is already part of the current path and cannot be repeated.</source>
         <translation>Ce nœud fait déjà partie du trajet actuel et ne peut pas être répété.</translation>

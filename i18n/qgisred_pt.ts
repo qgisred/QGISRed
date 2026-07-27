@@ -2194,6 +2194,11 @@
         <translation>O nó selecionado não está ligado ao anterior ao longo da rede.</translation>
     </message>
     <message>
+        <location filename="../sections/profile_section.py" line="1278"/>
+        <source>A branching point can only be moved to a node with the same or higher connectivity.</source>
+        <translation>Um nó de bifurcação só pode ser movido para um nó com conectividade igual ou superior.</translation>
+    </message>
+    <message>
         <location filename="../sections/profile_section.py" line="957"/>
         <source>That node is already part of the current path and cannot be repeated.</source>
         <translation>Esse nó já faz parte do trajeto atual e não pode ser repetido.</translation>

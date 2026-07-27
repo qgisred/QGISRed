@@ -2109,6 +2109,11 @@
         <translation type="unfinished"></translation>
     </message>
     <message>
+        <location filename="../sections/profile_section.py" line="1278"/>
+        <source>A branching point can only be moved to a node with the same or higher connectivity.</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
         <location filename="../sections/profile_section.py" line="957"/>
         <source>That node is already part of the current path and cannot be repeated.</source>
         <translation type="unfinished"></translation>

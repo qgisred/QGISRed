@@ -47,6 +47,16 @@ def _grid():
     return build_adjacency(node_ids, link_ids, link_from, link_to), lengths
 
 
+def _linear():
+    # A-B-C-D-E chain: A,E connectivity 1; B,C,D connectivity 2.
+    node_ids = ["A", "B", "C", "D", "E"]
+    link_ids = ["L1", "L2", "L3", "L4"]
+    link_from = [0, 1, 2, 3]
+    link_to = [1, 2, 3, 4]
+    lengths = {lid: 100.0 for lid in link_ids}
+    return build_adjacency(node_ids, link_ids, link_from, link_to), lengths
+
+
 def _labels(section, node_id):
     role = section._profileClassifyNode(node_id)
     return [label for label, _handler in section._profileMenuEntries(role, node_id)]
@@ -64,21 +74,23 @@ def _tree():
 def test_classify_origin():
     s = _tree()
     assert s._profileClassifyNode("A") == "origin"
-    # Endpoint: no "Create branch" (a branch there would just extend the path).
-    assert _labels(s, "A") == ["Extend path"]
+    # A has connectivity 1 (only L1, already used): no extend, no branch — only move/delete.
+    assert _labels(s, "A") == ["Move pass node", "Delete pass node"]
 
 
 def test_classify_main_terminal():
     s = _tree()
     assert s._profileClassifyNode("D") == "terminal"
-    # Endpoint: no "Create branch".
-    assert _labels(s, "D") == ["Extend path", "Move pass node", "Delete pass node"]
+    # D has connectivity 1 (only L3, used): no line free to extend — only move/delete.
+    assert _labels(s, "D") == ["Move pass node", "Delete pass node"]
 
 
 def test_classify_bifurcation():
     s = _tree()
     assert s._profileClassifyNode("B") == "bifurcation"
-    assert _labels(s, "B") == ["Create branch"]
+    # B has connectivity 3 but all its lines (L1, L2, L4) are already used: no free
+    # line for another branch. A branch origin is not deletable, so only move.
+    assert _labels(s, "B") == ["Move pass node"]
 
 
 def test_classify_intermediate_path_node():
@@ -91,8 +103,8 @@ def test_classify_intermediate_path_node():
 def test_classify_branch_terminal():
     s = _tree()
     assert s._profileClassifyNode("F") == "terminal"
-    # Branch endpoint: no "Create branch".
-    assert _labels(s, "F") == ["Extend path", "Move pass node", "Delete pass node"]
+    # F has connectivity 1 (only L5, used): no line free to extend — only move/delete.
+    assert _labels(s, "F") == ["Move pass node", "Delete pass node"]
 
 
 def test_classify_foreign_node_with_tree_offers_nothing():
@@ -106,8 +118,29 @@ def test_classify_declared_through_waypoint():
     s = _Section(adjacency, lengths)
     s._profileReferenceNodes = ["A", "C", "D"]
     s._rebuildProfilePaths()
+    # C has connectivity 3 with a free line (L6): branch is offered (Rule 3).
     assert s._profileClassifyNode("C") == "through"
     assert _labels(s, "C") == ["Create branch", "Move pass node", "Delete pass node"]
+
+
+def test_connectivity_2_interior_node_has_no_branch():
+    adjacency, lengths = _linear()
+    s = _Section(adjacency, lengths)
+    s._profileReferenceNodes = ["B", "C", "D"]
+    s._rebuildProfilePaths()
+    # C is an interior pass node of connectivity 2 (both lines used): no branch (Rule 2).
+    assert s._profileClassifyNode("C") == "through"
+    assert _labels(s, "C") == ["Move pass node", "Delete pass node"]
+
+
+def test_connectivity_2_endpoints_can_extend():
+    adjacency, lengths = _linear()
+    s = _Section(adjacency, lengths)
+    s._profileReferenceNodes = ["B", "C", "D"]
+    s._rebuildProfilePaths()
+    # B and D are connectivity-2 endpoints with a free line, so extend is offered.
+    assert _labels(s, "B") == ["Extend path", "Move pass node", "Delete pass node"]
+    assert _labels(s, "D") == ["Extend path", "Move pass node", "Delete pass node"]
 
 
 def test_classify_without_tree_offers_start_on_node_only():
