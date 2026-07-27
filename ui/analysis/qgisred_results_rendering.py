@@ -23,6 +23,7 @@ from ...compat import (
 from ...tools.utils.qgisred_styling_utils import QGISRedStylingUtils, _NULL_RULE_LABEL, _NullHiddenLegend
 from ...tools.utils.qgisred_ui_utils import QGISRedUIUtils
 from ...tools.utils.qgisred_field_utils import QGISRedFieldUtils
+from ...tools.utils.qgisred_result_fields import resultIdField, resultTypeField
 
 # Default label text colors (used unless the user picks "By range" or overrides them in
 # Appearance). Dark tones close to black so labels stay legible, but distinguishable
@@ -45,27 +46,31 @@ _LABEL_CLEARANCE       = 1.0   # mm — gap between the symbol edge and the labe
 _LABEL_BG_BUFFER       = 1.0   # mm — must match the QgsTextBackgroundSettings buffer size
 
 
-def _build_node_size_expr(expr, junction_str, special_str):
+def _build_node_size_expr(expr, junction_str, special_str, type_field="Type"):
     """Build a node symbol-layer size expression from type keywords in expr.
 
     junction_str / special_str can be a plain number ("2.0") or any QGIS expression
     string (e.g. 'scale_linear(...)').  The result is always rebuilt from scratch so
     it is correct regardless of whether expr is already a scale_linear call or an
     absolute-size expression.
+    ``type_field`` is the layer's element-type column: NodeType on layers written by a
+    recent DLL, Type on projects simulated before the rename.
     """
     s = expr.strip()
     has_tank = "'TANK'" in s
     has_res  = "'RESERVOIR'" in s
+    t = f'"{type_field}"'
     if has_tank and not has_res:
-        return f"if(Type ='TANK', {special_str}, 0)"
+        return f"if({t} ='TANK', {special_str}, 0)"
     if has_res and not has_tank:
-        return f"if(Type ='RESERVOIR', {special_str}, 0)"
+        return f"if({t} ='RESERVOIR', {special_str}, 0)"
     if has_tank and has_res:
-        return f"if(Type ='RESERVOIR' or Type='TANK', 0, {junction_str})"
+        return f"if({t} ='RESERVOIR' or {t}='TANK', 0, {junction_str})"
     return junction_str
 
 
-def _apply_proportional_node_size(expr, field, field_min, field_max, junction_size, special_size):
+def _apply_proportional_node_size(expr, field, field_min, field_max, junction_size, special_size,
+                                  type_field="Type"):
     """Build a scale_linear expression for a node symbol layer in proportional mode.
 
     The factor size is the floor (minimum actual value → factor size).
@@ -76,12 +81,12 @@ def _apply_proportional_node_size(expr, field, field_min, field_max, junction_si
     fmin = round(field_min, 6)
     fmax = round(field_max, 6)
     if fmin == fmax:
-        return _build_node_size_expr(expr, str(junction_size), str(special_size))
+        return _build_node_size_expr(expr, str(junction_size), str(special_size), type_field)
     j_max = round(junction_size * 2, 6)
     s_max = round(special_size  * 2, 6)
     scale_j = f'scale_linear("{field}", {fmin}, {fmax}, {junction_size}, {j_max})'
     scale_s = f'scale_linear("{field}", {fmin}, {fmax}, {special_size}, {s_max})'
-    return _build_node_size_expr(expr, scale_j, scale_s)
+    return _build_node_size_expr(expr, scale_j, scale_s, type_field)
 
 
 def _apply_absolute_node_size(expr, junction_size, special_size):
@@ -91,6 +96,8 @@ def _apply_absolute_node_size(expr, junction_size, special_size):
       Tank:       if(Type ='TANK', N, 0)                        → N = special_size
       Reservoir:  if(Type ='RESERVOIR', N, 0)                   → N = special_size
       Junction:   if(Type ='RESERVOIR' or Type='TANK', 0, N)    → N = junction_size
+    The type column may equally be NodeType or a coalesce() over both names; only the
+    'TANK'/'RESERVOIR' literals and the trailing size constant are matched.
     The replacement is always absolute (not relative to the current N), so calling
     this function repeatedly with the same arguments is idempotent.
     """
@@ -338,12 +345,16 @@ class _ResultsRenderingMixin:
 
                     value_expr = 'abs("Flow")' if field == "Flow" else '"' + field + '"'
 
+                    # NodeType/LinkType and NodeID/LinkID on layers written by a recent DLL;
+                    # Type/Id on projects that have not been simulated since the rename.
+                    type_col = '"' + resultTypeField(layer_to_paint, default="Type") + '"'
+                    id_col = '"' + resultIdField(layer_to_paint) + '"'
                     _TYPE_KEYS = ["JUNCTION", "RESERVOIR", "TANK", "PIPE", "PUMP", "VALVE"]
                     cases = " ".join(
-                        "WHEN \"Type\" = '" + k + "' THEN '" + self.tr(k.title()) + "'"
+                        "WHEN " + type_col + " = '" + k + "' THEN '" + self.tr(k.title()) + "'"
                         for k in _TYPE_KEYS
                     )
-                    type_id_expr = '[% (CASE ' + cases + ' ELSE "Type" END) || \' \' || "Id" %]'
+                    type_id_expr = '[% (CASE ' + cases + ' ELSE ' + type_col + ' END) || \' \' || ' + id_col + ' %]'
 
                     tip_lines = ['<b>' + selected_variable_text + '</b>', type_id_expr]
                     tip_lines.append(stat_prefix + '[% ' + value_expr + ' %]' + unit_suffix)
@@ -493,7 +504,9 @@ class _ResultsRenderingMixin:
 
         # The Id line is always black; the value line is colored by range (or the symbol color).
         # Id (top) and value (bottom) live in <div> blocks so HTML rendering forces a line break.
-        id_line = '\'<span style="color:#000000;">\' || "Id" || \'</span>\''
+        # The column is NodeID/LinkID after the DLL rename and Id on older result layers.
+        id_col = '"' + resultIdField(layer) + '"'
+        id_line = '\'<span style="color:#000000;">\' || ' + id_col + ' || \'</span>\''
 
         if show_id and show_value:
             if color_expr:
@@ -518,6 +531,7 @@ class _ResultsRenderingMixin:
         layer_settings.isExpression = True
         layer_settings.enabled = True
 
+        type_col = '"' + resultTypeField(layer, default="Type") + '"'
         if is_node:
             layer_settings.placement = PAL_PLACEMENT_AROUND_POINT
             junction_dist, special_dist = self._nodeLabelDistances(bool(label_bg_color))
@@ -527,7 +541,7 @@ class _ResultsRenderingMixin:
             ddp.setProperty(
                 PAL_PROPERTY_LABEL_DISTANCE,
                 QgsProperty.fromExpression(
-                    f"CASE WHEN \"Type\" IN ('TANK', 'RESERVOIR') THEN {special_dist}"
+                    f"CASE WHEN {type_col} IN ('TANK', 'RESERVOIR') THEN {special_dist}"
                     f" ELSE {junction_dist} END"
                 ),
             )
@@ -540,7 +554,7 @@ class _ResultsRenderingMixin:
             ddp.setProperty(
                 PAL_PROPERTY_LABEL_DISTANCE,
                 QgsProperty.fromExpression(
-                    f"CASE WHEN \"Type\" IN ('PUMP', 'VALVE') THEN {valve_pump_dist}"
+                    f"CASE WHEN {type_col} IN ('PUMP', 'VALVE') THEN {valve_pump_dist}"
                     f" ELSE {pipe_dist} END"
                 ),
             )
@@ -768,6 +782,7 @@ class _ResultsRenderingMixin:
                 # Node sizes are set via data-defined expressions on each symbol layer.
                 # sym.setSize() has no effect because those expressions override it.
                 hide_junction_border = getattr(self, '_nodeBorder', False)
+                type_field = resultTypeField(layer, default="Type")
                 for sl_idx in range(sym.symbolLayerCount()):
                     with suppress(Exception):
                         sl = sym.symbolLayer(sl_idx)
@@ -781,10 +796,10 @@ class _ResultsRenderingMixin:
                                 new_expr = _apply_proportional_node_size(
                                     old_expr, field,
                                     prop_field_min, prop_field_max,
-                                    target_junction, target_special)
+                                    target_junction, target_special, type_field)
                             else:
                                 new_expr = _build_node_size_expr(
-                                    old_expr, str(target_junction), str(target_special))
+                                    old_expr, str(target_junction), str(target_special), type_field)
                             if new_expr != old_expr:
                                 ddp.setProperty(SL_PROP_SIZE, QgsProperty.fromExpression(new_expr))
                                 sl.setDataDefinedProperties(ddp)
@@ -813,11 +828,12 @@ class _ResultsRenderingMixin:
         try:
             if layer.geometryType() == 1 and self.cbFlowDirections.isChecked():
                 # Show arrows in pipes
+                type_col = '"' + resultTypeField(layer, default="Type") + '"'
                 arrow_symbol_layer = symbol.symbolLayer(3)  # arrow positive flow
-                prop.setExpressionString("if(Type='PIPE', if(" + field + ">0,3,0),0)")
+                prop.setExpressionString("if(" + type_col + "='PIPE', if(" + field + ">0,3,0),0)")
                 arrow_symbol_layer.subSymbol().setDataDefinedSize(prop)
                 arrow_symbol_layer = symbol.symbolLayer(4)  # arrow negative flow
-                prop.setExpressionString("if(Type='PIPE', if(" + field + "<0,3,0),0)")
+                prop.setExpressionString("if(" + type_col + "='PIPE', if(" + field + "<0,3,0),0)")
                 arrow_symbol_layer.subSymbol().setDataDefinedSize(prop)
             else:
                 # Hide arrows

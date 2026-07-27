@@ -2,6 +2,8 @@
 """Helpers for node Demand in the results distribution histogram only."""
 from qgis.core import NULL
 
+from ...tools.utils.qgisred_result_fields import resultTypeField
+
 _NODE_SPECIAL_TYPES = frozenset({"TANK", "RESERVOIR"})
 _NON_JUNCTION_LAYER_IDS = frozenset({"qgisred_tanks", "qgisred_reservoirs"})
 
@@ -16,8 +18,10 @@ def is_junction_node_feature(feature, layer_identifier=None):
     if layer_identifier in _NON_JUNCTION_LAYER_IDS:
         return False
     field_names = feature.fields().names()
-    if "Type" in field_names:
-        node_type = str(feature["Type"] or "").strip().upper()
+    # NodeType on result layers written by a recent DLL, Type on older ones.
+    type_field = resultTypeField(field_names)
+    if type_field:
+        node_type = str(feature[type_field] or "").strip().upper()
         return node_type not in _NODE_SPECIAL_TYPES
     return is_junction_node_layer(layer_identifier)
 

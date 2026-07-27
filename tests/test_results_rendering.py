@@ -35,6 +35,22 @@ class MockDock(_ResultsRenderingMixin):
         return text
 
 
+class _StubFields:
+    def __init__(self, names):
+        self._names = list(names)
+
+    def names(self):
+        return list(self._names)
+
+
+def _result_layer(geometry_type, field_names):
+    """Result layer whose columns follow one of the two DLL schemas."""
+    layer = MagicMock()
+    layer.geometryType.return_value = geometry_type
+    layer.fields.return_value = _StubFields(field_names)
+    return layer
+
+
 @pytest.fixture(autouse=True)
 def clear_cache():
     QGISRedFieldUtils._unit_definitions = None
@@ -781,6 +797,73 @@ class TestNodeLabelDistances:
             assert any("'TANK'" in e and "'RESERVOIR'" in e for e in exprs)
             assert not any("'PUMP'" in e for e in exprs)
 
+
+class TestRenamedResultColumns:
+    """Result layers use NodeID/LinkID and NodeType/LinkType once re-simulated with a
+    recent DLL, and Id/Type until then. Both must render identically."""
+
+    def _dock(self, show_node_id=False, show_link_id=False):
+        dock = MockDock()
+        dock._labelShowNodeId = show_node_id
+        dock._labelShowLinkId = show_link_id
+        dock.cbNodeLabels.isChecked.return_value = False
+        dock.cbLinkLabels.isChecked.return_value = False
+        dock.spNodeDecimals.value.return_value = 2
+        dock.spLinkDecimals.value.return_value = 2
+        return dock
+
+    def _labelExpressions(self, layer, field, dock):
+        with patch("QGISRed.tools.utils.qgisred_project_utils.QgsProject") as MockProj, \
+             patch("QGISRed.ui.analysis.qgisred_results_rendering.QgsVectorLayerSimpleLabeling") as MockLabeling, \
+             patch("QGISRed.ui.analysis.qgisred_results_rendering.QgsProperty") as MockProperty:
+            MockProj.instance.return_value = _make_project("LPS")
+            dock.setLayerLabels(layer, field)
+            label_expr = MockLabeling.call_args[0][0].fieldName
+            dd_exprs = [c.args[0] for c in MockProperty.fromExpression.call_args_list]
+            return label_expr, dd_exprs
+
+    def test_node_labels_use_the_renamed_columns(self):
+        layer = _result_layer(0, ["NodeID", "NodeType", "Pressure"])
+        label_expr, dd_exprs = self._labelExpressions(layer, "Pressure", self._dock(show_node_id=True))
+        assert '"NodeID"' in label_expr
+        assert '"Id"' not in label_expr
+        assert any('"NodeType" IN (' in e for e in dd_exprs)
+
+    def test_node_labels_keep_the_legacy_columns(self):
+        layer = _result_layer(0, ["Id", "Type", "Pressure"])
+        label_expr, dd_exprs = self._labelExpressions(layer, "Pressure", self._dock(show_node_id=True))
+        assert '"Id"' in label_expr
+        assert any('"Type" IN (' in e for e in dd_exprs)
+
+    def test_link_labels_use_the_renamed_columns(self):
+        layer = _result_layer(1, ["LinkID", "LinkType", "Flow"])
+        label_expr, dd_exprs = self._labelExpressions(layer, "Flow", self._dock(show_link_id=True))
+        assert '"LinkID"' in label_expr
+        assert any('"LinkType" IN (' in e for e in dd_exprs)
+
+    def test_link_labels_keep_the_legacy_columns(self):
+        layer = _result_layer(1, ["Id", "Type", "Flow"])
+        label_expr, dd_exprs = self._labelExpressions(layer, "Flow", self._dock(show_link_id=True))
+        assert '"Id"' in label_expr
+        assert any('"Type" IN (' in e for e in dd_exprs)
+
+    @pytest.mark.parametrize("field_names,expected", [
+        (["LinkID", "LinkType", "Flow"], '"LinkType"'),
+        (["Id", "Type", "Flow"], '"Type"'),
+    ])
+    def test_flow_arrows_switch_on_the_resolved_type_column(self, field_names, expected):
+        with patch("QGISRed.ui.analysis.qgisred_results_rendering.QgsProperty") as MockProperty:
+            dock = MockDock()
+            dock.cbFlowDirections = MagicMock()
+            dock.cbFlowDirections.isChecked.return_value = True
+            symbol = MagicMock()
+            layer = _result_layer(1, field_names)
+
+            dock.setArrowsVisibility(symbol, layer, "Flow")
+
+            exprs = [c.args[0] for c in MockProperty.return_value.setExpressionString.call_args_list]
+            assert len(exprs) == 2  # one per flow direction
+            assert all(e.startswith("if({}='PIPE'".format(expected)) for e in exprs)
 
 
 class TestLabelStyleCallersMatchSignature:

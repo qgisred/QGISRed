@@ -49,3 +49,9 @@ class TestJunctionPositiveNodeDemand:
         feature = _FakeFeature({"Demand": 6.0})
         assert junction_positive_node_demand(feature, "qgisred_junctions") == 6.0
         assert junction_positive_node_demand(feature, "qgisred_tanks") is None
+
+    def test_reads_the_renamed_node_type_column(self):
+        # Result layers written by a recent DLL carry NodeType instead of Type
+        assert junction_positive_node_demand(_FakeFeature({"NodeType": "JUNCTION", "Demand": 4.5})) == 4.5
+        assert junction_positive_node_demand(_FakeFeature({"NodeType": "TANK", "Demand": 10.0})) is None
+        assert junction_positive_node_demand(_FakeFeature({"NodeType": "RESERVOIR", "Demand": 10.0})) is None

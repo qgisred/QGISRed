@@ -50,12 +50,12 @@
               <Option name="properties" type="Map">
                 <Option name="size" type="Map">
                   <Option name="active" value="true" type="bool"/>
-                  <Option name="expression" value="if(Type ='TANK', 7,0)" type="QString"/>
+                  <Option name="expression" value="if(coalesce(attribute($currentfeature,'NodeType'),attribute($currentfeature,'Type')) ='TANK', 7,0)" type="QString"/>
                   <Option name="type" value="3" type="int"/>
                 </Option>
                 <Option name="width" type="Map">
                   <Option name="active" value="true" type="bool"/>
-                  <Option name="expression" value="if(Type ='TANK', 7,0)" type="QString"/>
+                  <Option name="expression" value="if(coalesce(attribute($currentfeature,'NodeType'),attribute($currentfeature,'Type')) ='TANK', 7,0)" type="QString"/>
                   <Option name="type" value="3" type="int"/>
                 </Option>
               </Option>
@@ -90,12 +90,12 @@
               <Option name="properties" type="Map">
                 <Option name="size" type="Map">
                   <Option name="active" value="true" type="bool"/>
-                  <Option name="expression" value="if(Type ='RESERVOIR', 7,0)" type="QString"/>
+                  <Option name="expression" value="if(coalesce(attribute($currentfeature,'NodeType'),attribute($currentfeature,'Type')) ='RESERVOIR', 7,0)" type="QString"/>
                   <Option name="type" value="3" type="int"/>
                 </Option>
                 <Option name="width" type="Map">
                   <Option name="active" value="true" type="bool"/>
-                  <Option name="expression" value="if(Type ='RESERVOIR', 7,0)" type="QString"/>
+                  <Option name="expression" value="if(coalesce(attribute($currentfeature,'NodeType'),attribute($currentfeature,'Type')) ='RESERVOIR', 7,0)" type="QString"/>
                   <Option name="type" value="3" type="int"/>
                 </Option>
               </Option>
@@ -131,12 +131,12 @@
               <Option name="properties" type="Map">
                 <Option name="size" type="Map">
                   <Option name="active" value="true" type="bool"/>
-                  <Option name="expression" value="if(Type ='RESERVOIR' or Type='TANK', 0,2)" type="QString"/>
+                  <Option name="expression" value="if(coalesce(attribute($currentfeature,'NodeType'),attribute($currentfeature,'Type')) ='RESERVOIR' or coalesce(attribute($currentfeature,'NodeType'),attribute($currentfeature,'Type'))='TANK', 0,2)" type="QString"/>
                   <Option name="type" value="3" type="int"/>
                 </Option>
                 <Option name="width" type="Map">
                   <Option name="active" value="true" type="bool"/>
-                  <Option name="expression" value="if(Type ='RESERVOIR' or Type='TANK', 0,2)" type="QString"/>
+                  <Option name="expression" value="if(coalesce(attribute($currentfeature,'NodeType'),attribute($currentfeature,'Type')) ='RESERVOIR' or coalesce(attribute($currentfeature,'NodeType'),attribute($currentfeature,'Type'))='TANK', 0,2)" type="QString"/>
                   <Option name="type" value="3" type="int"/>
                 </Option>
               </Option>
@@ -180,12 +180,12 @@
               <Option name="properties" type="Map">
                 <Option name="size" type="Map">
                   <Option name="active" value="true" type="bool"/>
-                  <Option name="expression" value="if(Type ='TANK', 7,0)" type="QString"/>
+                  <Option name="expression" value="if(coalesce(attribute($currentfeature,'NodeType'),attribute($currentfeature,'Type')) ='TANK', 7,0)" type="QString"/>
                   <Option name="type" value="3" type="int"/>
                 </Option>
                 <Option name="width" type="Map">
                   <Option name="active" value="true" type="bool"/>
-                  <Option name="expression" value="if(Type ='TANK', 7,0)" type="QString"/>
+                  <Option name="expression" value="if(coalesce(attribute($currentfeature,'NodeType'),attribute($currentfeature,'Type')) ='TANK', 7,0)" type="QString"/>
                   <Option name="type" value="3" type="int"/>
                 </Option>
               </Option>
@@ -220,12 +220,12 @@
               <Option name="properties" type="Map">
                 <Option name="size" type="Map">
                   <Option name="active" value="true" type="bool"/>
-                  <Option name="expression" value="if(Type ='RESERVOIR', 7,0)" type="QString"/>
+                  <Option name="expression" value="if(coalesce(attribute($currentfeature,'NodeType'),attribute($currentfeature,'Type')) ='RESERVOIR', 7,0)" type="QString"/>
                   <Option name="type" value="3" type="int"/>
                 </Option>
                 <Option name="width" type="Map">
                   <Option name="active" value="true" type="bool"/>
-                  <Option name="expression" value="if(Type ='RESERVOIR', 7,0)" type="QString"/>
+                  <Option name="expression" value="if(coalesce(attribute($currentfeature,'NodeType'),attribute($currentfeature,'Type')) ='RESERVOIR', 7,0)" type="QString"/>
                   <Option name="type" value="3" type="int"/>
                 </Option>
               </Option>
@@ -261,12 +261,12 @@
               <Option name="properties" type="Map">
                 <Option name="size" type="Map">
                   <Option name="active" value="true" type="bool"/>
-                  <Option name="expression" value="if(Type ='RESERVOIR' or Type='TANK', 0,2)" type="QString"/>
+                  <Option name="expression" value="if(coalesce(attribute($currentfeature,'NodeType'),attribute($currentfeature,'Type')) ='RESERVOIR' or coalesce(attribute($currentfeature,'NodeType'),attribute($currentfeature,'Type'))='TANK', 0,2)" type="QString"/>
                   <Option name="type" value="3" type="int"/>
                 </Option>
                 <Option name="width" type="Map">
                   <Option name="active" value="true" type="bool"/>
-                  <Option name="expression" value="if(Type ='RESERVOIR' or Type='TANK', 0,2)" type="QString"/>
+                  <Option name="expression" value="if(coalesce(attribute($currentfeature,'NodeType'),attribute($currentfeature,'Type')) ='RESERVOIR' or coalesce(attribute($currentfeature,'NodeType'),attribute($currentfeature,'Type'))='TANK', 0,2)" type="QString"/>
                   <Option name="type" value="3" type="int"/>
                 </Option>
               </Option>
@@ -310,12 +310,12 @@
               <Option name="properties" type="Map">
                 <Option name="size" type="Map">
                   <Option name="active" value="true" type="bool"/>
-                  <Option name="expression" value="if(Type ='TANK', 7,0)" type="QString"/>
+                  <Option name="expression" value="if(coalesce(attribute($currentfeature,'NodeType'),attribute($currentfeature,'Type')) ='TANK', 7,0)" type="QString"/>
                   <Option name="type" value="3" type="int"/>
                 </Option>
                 <Option name="width" type="Map">
                   <Option name="active" value="true" type="bool"/>
-                  <Option name="expression" value="if(Type ='TANK', 7,0)" type="QString"/>
+                  <Option name="expression" value="if(coalesce(attribute($currentfeature,'NodeType'),attribute($currentfeature,'Type')) ='TANK', 7,0)" type="QString"/>
                   <Option name="type" value="3" type="int"/>
                 </Option>
               </Option>
@@ -350,12 +350,12 @@
               <Option name="properties" type="Map">
                 <Option name="size" type="Map">
                   <Option name="active" value="true" type="bool"/>
-                  <Option name="expression" value="if(Type ='RESERVOIR', 7,0)" type="QString"/>
+                  <Option name="expression" value="if(coalesce(attribute($currentfeature,'NodeType'),attribute($currentfeature,'Type')) ='RESERVOIR', 7,0)" type="QString"/>
                   <Option name="type" value="3" type="int"/>
                 </Option>
                 <Option name="width" type="Map">
                   <Option name="active" value="true" type="bool"/>
-                  <Option name="expression" value="if(Type ='RESERVOIR', 7,0)" type="QString"/>
+                  <Option name="expression" value="if(coalesce(attribute($currentfeature,'NodeType'),attribute($currentfeature,'Type')) ='RESERVOIR', 7,0)" type="QString"/>
                   <Option name="type" value="3" type="int"/>
                 </Option>
               </Option>
@@ -391,12 +391,12 @@
               <Option name="properties" type="Map">
                 <Option name="size" type="Map">
                   <Option name="active" value="true" type="bool"/>
-                  <Option name="expression" value="if(Type ='RESERVOIR' or Type='TANK', 0,2)" type="QString"/>
+                  <Option name="expression" value="if(coalesce(attribute($currentfeature,'NodeType'),attribute($currentfeature,'Type')) ='RESERVOIR' or coalesce(attribute($currentfeature,'NodeType'),attribute($currentfeature,'Type'))='TANK', 0,2)" type="QString"/>
                   <Option name="type" value="3" type="int"/>
                 </Option>
                 <Option name="width" type="Map">
                   <Option name="active" value="true" type="bool"/>
-                  <Option name="expression" value="if(Type ='RESERVOIR' or Type='TANK', 0,2)" type="QString"/>
+                  <Option name="expression" value="if(coalesce(attribute($currentfeature,'NodeType'),attribute($currentfeature,'Type')) ='RESERVOIR' or coalesce(attribute($currentfeature,'NodeType'),attribute($currentfeature,'Type'))='TANK', 0,2)" type="QString"/>
                   <Option name="type" value="3" type="int"/>
                 </Option>
               </Option>
@@ -440,12 +440,12 @@
               <Option name="properties" type="Map">
                 <Option name="size" type="Map">
                   <Option name="active" value="true" type="bool"/>
-                  <Option name="expression" value="if(Type ='TANK', 7,0)" type="QString"/>
+                  <Option name="expression" value="if(coalesce(attribute($currentfeature,'NodeType'),attribute($currentfeature,'Type')) ='TANK', 7,0)" type="QString"/>
                   <Option name="type" value="3" type="int"/>
                 </Option>
                 <Option name="width" type="Map">
                   <Option name="active" value="true" type="bool"/>
-                  <Option name="expression" value="if(Type ='TANK', 7,0)" type="QString"/>
+                  <Option name="expression" value="if(coalesce(attribute($currentfeature,'NodeType'),attribute($currentfeature,'Type')) ='TANK', 7,0)" type="QString"/>
                   <Option name="type" value="3" type="int"/>
                 </Option>
               </Option>
@@ -480,12 +480,12 @@
               <Option name="properties" type="Map">
                 <Option name="size" type="Map">
                   <Option name="active" value="true" type="bool"/>
-                  <Option name="expression" value="if(Type ='RESERVOIR', 7,0)" type="QString"/>
+                  <Option name="expression" value="if(coalesce(attribute($currentfeature,'NodeType'),attribute($currentfeature,'Type')) ='RESERVOIR', 7,0)" type="QString"/>
                   <Option name="type" value="3" type="int"/>
                 </Option>
                 <Option name="width" type="Map">
                   <Option name="active" value="true" type="bool"/>
-                  <Option name="expression" value="if(Type ='RESERVOIR', 7,0)" type="QString"/>
+                  <Option name="expression" value="if(coalesce(attribute($currentfeature,'NodeType'),attribute($currentfeature,'Type')) ='RESERVOIR', 7,0)" type="QString"/>
                   <Option name="type" value="3" type="int"/>
                 </Option>
               </Option>
@@ -521,12 +521,12 @@
               <Option name="properties" type="Map">
                 <Option name="size" type="Map">
                   <Option name="active" value="true" type="bool"/>
-                  <Option name="expression" value="if(Type ='RESERVOIR' or Type='TANK', 0,2)" type="QString"/>
+                  <Option name="expression" value="if(coalesce(attribute($currentfeature,'NodeType'),attribute($currentfeature,'Type')) ='RESERVOIR' or coalesce(attribute($currentfeature,'NodeType'),attribute($currentfeature,'Type'))='TANK', 0,2)" type="QString"/>
                   <Option name="type" value="3" type="int"/>
                 </Option>
                 <Option name="width" type="Map">
                   <Option name="active" value="true" type="bool"/>
-                  <Option name="expression" value="if(Type ='RESERVOIR' or Type='TANK', 0,2)" type="QString"/>
+                  <Option name="expression" value="if(coalesce(attribute($currentfeature,'NodeType'),attribute($currentfeature,'Type')) ='RESERVOIR' or coalesce(attribute($currentfeature,'NodeType'),attribute($currentfeature,'Type'))='TANK', 0,2)" type="QString"/>
                   <Option name="type" value="3" type="int"/>
                 </Option>
               </Option>
@@ -570,12 +570,12 @@
               <Option name="properties" type="Map">
                 <Option name="size" type="Map">
                   <Option name="active" value="true" type="bool"/>
-                  <Option name="expression" value="if(Type ='TANK', 7,0)" type="QString"/>
+                  <Option name="expression" value="if(coalesce(attribute($currentfeature,'NodeType'),attribute($currentfeature,'Type')) ='TANK', 7,0)" type="QString"/>
                   <Option name="type" value="3" type="int"/>
                 </Option>
                 <Option name="width" type="Map">
                   <Option name="active" value="true" type="bool"/>
-                  <Option name="expression" value="if(Type ='TANK', 7,0)" type="QString"/>
+                  <Option name="expression" value="if(coalesce(attribute($currentfeature,'NodeType'),attribute($currentfeature,'Type')) ='TANK', 7,0)" type="QString"/>
                   <Option name="type" value="3" type="int"/>
                 </Option>
               </Option>
@@ -610,12 +610,12 @@
               <Option name="properties" type="Map">
                 <Option name="size" type="Map">
                   <Option name="active" value="true" type="bool"/>
-                  <Option name="expression" value="if(Type ='RESERVOIR', 7,0)" type="QString"/>
+                  <Option name="expression" value="if(coalesce(attribute($currentfeature,'NodeType'),attribute($currentfeature,'Type')) ='RESERVOIR', 7,0)" type="QString"/>
                   <Option name="type" value="3" type="int"/>
                 </Option>
                 <Option name="width" type="Map">
                   <Option name="active" value="true" type="bool"/>
-                  <Option name="expression" value="if(Type ='RESERVOIR', 7,0)" type="QString"/>
+                  <Option name="expression" value="if(coalesce(attribute($currentfeature,'NodeType'),attribute($currentfeature,'Type')) ='RESERVOIR', 7,0)" type="QString"/>
                   <Option name="type" value="3" type="int"/>
                 </Option>
               </Option>
@@ -651,12 +651,12 @@
               <Option name="properties" type="Map">
                 <Option name="size" type="Map">
                   <Option name="active" value="true" type="bool"/>
-                  <Option name="expression" value="if(Type ='RESERVOIR' or Type='TANK', 0,2)" type="QString"/>
+                  <Option name="expression" value="if(coalesce(attribute($currentfeature,'NodeType'),attribute($currentfeature,'Type')) ='RESERVOIR' or coalesce(attribute($currentfeature,'NodeType'),attribute($currentfeature,'Type'))='TANK', 0,2)" type="QString"/>
                   <Option name="type" value="3" type="int"/>
                 </Option>
                 <Option name="width" type="Map">
                   <Option name="active" value="true" type="bool"/>
-                  <Option name="expression" value="if(Type ='RESERVOIR' or Type='TANK', 0,2)" type="QString"/>
+                  <Option name="expression" value="if(coalesce(attribute($currentfeature,'NodeType'),attribute($currentfeature,'Type')) ='RESERVOIR' or coalesce(attribute($currentfeature,'NodeType'),attribute($currentfeature,'Type'))='TANK', 0,2)" type="QString"/>
                   <Option name="type" value="3" type="int"/>
                 </Option>
               </Option>
@@ -1004,6 +1004,6 @@
     <fieldstyles/>
   </conditionalstyles>
   <storedexpressions/>
-  <previewExpression>"Id"</previewExpression>
+  <previewExpression>coalesce(attribute($currentfeature,'NodeID'),attribute($currentfeature,'Id'))</previewExpression>
   <layerGeometryType>0</layerGeometryType>
 </qgis>

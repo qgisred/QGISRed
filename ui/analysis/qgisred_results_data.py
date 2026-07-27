@@ -16,6 +16,7 @@ import os
 from qgis.PyQt.QtCore import QCoreApplication
 from ...tools.utils.qgisred_ui_utils import QGISRedUIUtils
 from ...tools.utils.qgisred_field_utils import QGISRedFieldUtils
+from ...tools.utils.qgisred_result_fields import resultIdField
 
 # Average flow is split into Flow_Unsig and Flow_Sig; both use Flow's decimal setting.
 _STAT_VAR_ALIASES = {
@@ -462,7 +463,7 @@ class _ResultsDataMixin:
             variables = list(results[first_id].keys())
             field_indices = self._buildFieldIndexMap(target_layer, variables)
             time_field_idx = target_layer.fields().indexOf("Time")
-            id_field_idx = target_layer.fields().indexOf("Id")
+            id_field_idx = target_layer.fields().indexOf(resultIdField(target_layer))
             if id_field_idx == -1:
                 id_field_idx = 0  # fallback to first field
 
@@ -601,7 +602,7 @@ class _ResultsDataMixin:
                     time_field_indices[provider_variable] = target_layer.fields().indexOf(time_col_name)
 
             stat_field_idx = target_layer.fields().indexOf("Statistics")
-            id_field_idx = target_layer.fields().indexOf("Id")
+            id_field_idx = target_layer.fields().indexOf(resultIdField(target_layer))
             if id_field_idx == -1:
                 id_field_idx = 0
 

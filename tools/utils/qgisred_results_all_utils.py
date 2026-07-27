@@ -3,6 +3,8 @@ import os
 
 from qgis.core import QgsFeatureRequest, QgsVectorLayer
 
+from .qgisred_result_fields import resultIdField
+
 
 ALL_FIELD_NAME_OVERRIDES = {"UnitHdLoss": "UnitHeadLo"}
 
@@ -30,10 +32,7 @@ class QGISRedResultsAllUtils:
 
     @staticmethod
     def getIdFieldName(allLayer):
-        for candidate in ("Id", "NodeID", "LinkID", "ID"):
-            if allLayer.fields().indexFromName(candidate) >= 0:
-                return candidate
-        return "Id"
+        return resultIdField(allLayer)
 
     @staticmethod
     def collectAllNumericValues(allLayer, fieldName, idSet=None, absolute=False, filterExpression=""):

@@ -602,3 +602,32 @@ class TestGetIdFieldName:
             MockProj.instance.return_value = _make_project()
             layer = _StubLayer(None, ["Id", "Length"])
             assert fu.getIdFieldName(layer) == "Id"
+
+    def test_result_layers_use_nodeid_and_linkid(self, fu):
+        # Result layers carry a variable-dependent identifier, so the NodeID/LinkID
+        # columns must be detected from the fields alone.
+        with patch("QGISRed.tools.utils.qgisred_project_utils.QgsProject") as MockProj:
+            MockProj.instance.return_value = _make_project()
+            node = _StubLayer("qgisred_node_pressure", ["NodeID", "NodeType", "Pressure"])
+            link = _StubLayer("qgisred_link_flow", ["LinkID", "LinkType", "Flow"])
+            assert fu.getIdFieldName(node) == "NodeID"
+            assert fu.getIdFieldName(link) == "LinkID"
+
+    def test_result_layers_simulated_before_the_rename_still_use_id(self, fu):
+        with patch("QGISRed.tools.utils.qgisred_project_utils.QgsProject") as MockProj:
+            MockProj.instance.return_value = _make_project()
+            node = _StubLayer("qgisred_node_pressure", ["Id", "Type", "Pressure"])
+            assert fu.getIdFieldName(node) == "Id"
+
+
+class TestGetTypeFieldName:
+    def test_prefers_the_new_type_columns(self, fu):
+        assert fu.getTypeFieldName(_StubLayer("qgisred_node", ["NodeID", "NodeType"])) == "NodeType"
+        assert fu.getTypeFieldName(_StubLayer("qgisred_link", ["LinkID", "LinkType"])) == "LinkType"
+
+    def test_falls_back_to_the_legacy_type_column(self, fu):
+        assert fu.getTypeFieldName(_StubLayer("qgisred_node", ["Id", "Type"])) == "Type"
+
+    def test_returns_default_when_there_is_no_type_column(self, fu):
+        assert fu.getTypeFieldName(_StubLayer("qgisred_node", ["Id", "Pressure"])) is None
+        assert fu.getTypeFieldName(_StubLayer("qgisred_node", ["Id"]), default="Type") == "Type"

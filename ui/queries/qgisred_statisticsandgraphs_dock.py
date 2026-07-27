@@ -39,6 +39,7 @@ from ...tools.utils.qgisred_field_utils import QGISRedFieldUtils, normalize_elem
 from ...tools.utils.qgisred_layer_utils import QGISRedLayerUtils
 from ...tools.utils.qgisred_project_utils import QGISRedProjectUtils
 from ...tools.utils.qgisred_results_all_utils import QGISRedResultsAllUtils
+from ...tools.utils.qgisred_result_fields import resultTypeField
 from ...tools.utils.qgisred_ui_utils import QGISRED_COMBO_STYLE, QGISRedUIUtils
 from .qgisred_statistics_manual_breaks_dialog import QGISRedStatisticsManualBreaksDialog
 from .statistics_histogram_widget import StatisticsHistogramWidget
@@ -53,6 +54,8 @@ DEFAULT_NUM_CLASSES = 5
 CATEGORICAL_FIELD_NAMES = {
     "Material", "Type", "Status", "InstalDate", "Tag",
     "ValveType", "MeterType", "SourceType", "IniStatus", "InstDate",
+    # Result-layer element type: NodeType/LinkType after the DLL rename, Type before it
+    "NodeType", "LinkType",
 }
 
 WHITE_STYLE = (
@@ -2586,7 +2589,9 @@ class QGISRedStatisticsDock(QDockWidget, formClass):
     def headLossExclusionExpression(self, layer):
         # HeadLoss only applies to pipes, so pumps and valves are left out
         fields = layer.fields()
-        if fields.indexFromName("Type") < 0 or fields.indexFromName("HeadLoss") < 0:
+        # LinkType on result layers written by a recent DLL, Type on older ones
+        typeField = resultTypeField(layer)
+        if typeField is None or fields.indexFromName("HeadLoss") < 0:
             return ""
         classifyField = self.cbClassifiedBy.currentData(Qt.ItemDataRole.UserRole)
         secondField = self.cbSecondClassifiedBy.currentData(Qt.ItemDataRole.UserRole) if classifyField else ""
@@ -2595,7 +2600,7 @@ class QGISRedStatisticsDock(QDockWidget, formClass):
         involvedFields = (self.cbProperty.currentData(Qt.ItemDataRole.UserRole), classifyField, secondField, attributeField)
         if "HeadLoss" not in involvedFields:
             return ""
-        return "{} NOT IN ('PUMP', 'VALVE')".format(QgsExpression.quotedColumnRef("Type"))
+        return "{} NOT IN ('PUMP', 'VALVE')".format(QgsExpression.quotedColumnRef(typeField))
 
     def demandExclusionExpression(self, layer):
         # Demand results only apply to junctions consuming water
@@ -2610,8 +2615,10 @@ class QGISRedStatisticsDock(QDockWidget, formClass):
         if "Demand" not in involvedFields:
             return ""
         expression = "{} > 0".format(QgsExpression.quotedColumnRef("Demand"))
-        if fields.indexFromName("Type") >= 0:
-            expression = "{} = 'Junction' AND {}".format(QgsExpression.quotedColumnRef("Type"), expression)
+        # NodeType on result layers written by a recent DLL, Type on older ones
+        typeField = resultTypeField(layer)
+        if typeField is not None:
+            expression = "{} = 'Junction' AND {}".format(QgsExpression.quotedColumnRef(typeField), expression)
         return expression
 
     def breaksFeatureRequest(self, layer):

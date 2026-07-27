@@ -9,6 +9,7 @@ from qgis.core import QgsMessageLog, Qgis  # noqa: F401 (Qgis kept for potential
 from ...compat import QGIS_WARNING
 from .qgisred_filesystem_utils import QGISRedFileSystemUtils
 from .qgisred_project_utils import QGISRedProjectUtils
+from .qgisred_result_fields import resultTypeField
 
 # Maps QGIS input-layer identifiers to canonical element names used in the CSV.
 IDENTIFIER_TO_ELEMENT = {
@@ -449,11 +450,18 @@ class QGISRedFieldUtils:
     def getIdFieldName(self, layer):
         """Return the element ID field name of a QGIS layer, for both naming schemes.
 
-        Prefers the per-layer identifier field (PipeID, TankID, ...) detected via the
-        CSV ``Identifier`` property; falls back to the legacy ``Id`` field. Callers must
-        still check that the returned field exists before reading it.
+        Result layers (Node/Link) are checked first: their identifier column is NodeID or
+        LinkID in projects simulated with a recent DLL and plain ``Id`` in older ones, and
+        the qgisred_identifier of those layers is variable-dependent (qgisred_node_pressure,
+        ...) so the CSV lookup below cannot resolve them.
+        Otherwise prefers the per-layer identifier field (PipeID, TankID, ...) detected via
+        the CSV ``Identifier`` property, and falls back to the legacy ``Id`` field. Callers
+        must still check that the returned field exists before reading it.
         """
         fields = layer.fields()
+        for candidate in ("NodeID", "LinkID"):
+            if fields.indexFromName(candidate) != -1:
+                return candidate
         element = normalize_element(layer.customProperty("qgisred_identifier", "") or "")
         for field in fields:
             fieldName = field.name()
@@ -465,6 +473,14 @@ class QGISRedFieldUtils:
             if fields.indexFromName(candidate) != -1:
                 return candidate
         return "Id"
+
+    def getTypeFieldName(self, layer, default=None):
+        """Return the element type field of a result layer (NodeType / LinkType / Type).
+
+        Returns ``default`` when the layer has no type column, so callers can skip
+        type-dependent filtering rather than build an expression on a missing field.
+        """
+        return resultTypeField(layer, default=default)
 
     # ------------------------------------------------------------------ #
     # CSV loading and row lookup                                           #
