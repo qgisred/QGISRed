@@ -173,8 +173,8 @@ class QGISRedQueriesByPropertiesDock(QDockWidget, FORM_CLASS):
             'qgisred_demands': ['BaseDem', 'BaseValue', 'Pressure'],
             'qgisred_sources': ['Quality', 'Pressure', 'SourceQual', 'BaseValue'],
             'qgisred_serviceconnections': ['BaseDem', 'BaseDemand'],
-            'qgisred_isolationvalves': ['Status'],
-            'qgisred_meters': ['Type'],
+            'qgisred_isolationvalves': ['IniStatus', 'Status'],
+            'qgisred_meters': ['MeterType', 'Type'],
         }
 
         self.fieldTypeMapping = {
@@ -750,7 +750,7 @@ class QGISRedQueriesByPropertiesDock(QDockWidget, FORM_CLASS):
         self.isResultsMode = self.isResultsLayer(layer)
         self.cbProperty.clear()
         self.cbStatisticsFor.clear()
-        resultsMetaLower = {'time', 'statistics', 'time_h', 'time_d', 'time_q', 'type'}
+        resultsMetaLower = {'time', 'statistics', 'time_h', 'time_d', 'time_q', 'type', 'nodetype', 'linktype'}
         resultsFieldsLower = {
             'flow', 'flow_unsig', 'flow_sig', 'velocity', 'headloss',
             'unithdloss', 'fricfactor', 'reactrate', 'quality',
@@ -957,6 +957,8 @@ class QGISRedQueriesByPropertiesDock(QDockWidget, FORM_CLASS):
         if prop == 'BaseDem' and qrIdent in ('qgisred_junctions', 'qgisred_demands', 'qgisred_serviceconnections'):
             return True
         if prop == 'BaseValue' and qrIdent == 'qgisred_demands':
+            return True
+        if prop == 'BaseDemand' and qrIdent == 'qgisred_serviceconnections':
             return True
         if prop == 'Demand':
             cat = self.elementResultCategory.get(qrIdent)
