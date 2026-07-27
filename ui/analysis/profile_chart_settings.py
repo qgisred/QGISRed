@@ -17,7 +17,7 @@ class ProfileGeneralSettings:
     show_legend: bool = True
     plot_bg_hex: str = "#fafcff"
     legend_position: str = "center"
-    legend_font_size: int = 8
+    legend_font_size: int = 9
     legend_symbol_size: int = 18
     legend_show_frame: bool = False
     legend_bg_hex: str = ""
