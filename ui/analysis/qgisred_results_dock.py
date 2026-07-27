@@ -152,7 +152,8 @@ class QGISRedResultsDock(
         self.spNodeDecimals.valueChanged.connect(self._onDecimalsChanged)
         self.spLinkDecimals.valueChanged.connect(self._onDecimalsChanged)
         self.rbColorByRange.toggled.connect(self._onLabelStyleChanged)
-        self.cbShowId.clicked.connect(self._onLabelStyleChanged)
+        self.cbShowNodeId.clicked.connect(self._onLabelStyleChanged)
+        self.cbShowLinkId.clicked.connect(self._onLabelStyleChanged)
         self.btLabelBgColor.clicked.connect(self._onLabelBgColorClicked)
         self.btClearLabelBgColor.clicked.connect(self._onClearLabelBgColor)
         self.btLockLabelBgColor.toggled.connect(self._onLockLabelBgColor)
@@ -195,7 +196,8 @@ class QGISRedResultsDock(
         self._labelFontSize = 8
         self._varDecimals = {}
         self._labelColorByRange = False
-        self._labelShowId = False
+        self._labelShowNodeId = False
+        self._labelShowLinkId = False
         self._labelBgColor = None
         self._labelBgColorLocked = False   # when True, labels use the map background color
         self._pipeFactor = 1.0
@@ -1646,20 +1648,15 @@ class QGISRedResultsDock(
 
         self.ensureResultsLayersAreOpen()
 
-        checkbox = self.cbNodeLabels if layer_type == "Node" else self.cbLinkLabels
         combobox = self.cbNodes if layer_type == "Node" else self.cbLinks
         field_map = self._link_field_map if layer_type == "Link" else self._node_field_map
 
         layer = self._findResultLayer(layer_type)
         if layer:
-            if checkbox.isChecked():
-                if combobox.currentIndex() > 0:
-                    field = field_map.get(combobox.currentText(), "")
-                    if field:
-                        self.setLayerLabels(layer, field)
-            else:
-                layer.setLabelsEnabled(False)
-                layer.triggerRepaint()
+            # setLayerLabels decides what to draw from the value checkbox (Results tab) and the
+            # Id checkbox (Appearance tab); it also disables labels when neither is shown.
+            field = field_map.get(combobox.currentText(), "") if combobox.currentIndex() > 0 else ""
+            self.setLayerLabels(layer, field)
 
     def validationsOpenResult(self):
         if not self.isCurrentProject():

@@ -390,17 +390,28 @@ class _ResultsRenderingMixin:
         label.setText(text)
 
     def setLayerLabels(self, layer, fieldName):
-        node_labels_enabled = layer.geometryType() == 0 and self.cbNodeLabels.isChecked()
-        link_labels_enabled = layer.geometryType() == 1 and self.cbLinkLabels.isChecked()
-        if not (node_labels_enabled or link_labels_enabled):
+        is_node = layer.geometryType() == 0
+        is_link = layer.geometryType() == 1
+        if not (is_node or is_link):
+            return
+
+        # The label content is split across the two tabs: the *value* is toggled from the
+        # Results tab (label checkbox + a selected variable) and the *Id* from the Appearance
+        # tab (Show Node/Link ID). Any combination is valid — value only, Id only, both, or
+        # neither (in which case labels are turned off here).
+        value_checkbox = self.cbNodeLabels if is_node else self.cbLinkLabels
+        show_value = value_checkbox.isChecked() and bool(fieldName)
+        show_id = getattr(self, '_labelShowNodeId' if is_node else '_labelShowLinkId', False)
+
+        if not (show_value or show_id):
+            layer.setLabelsEnabled(False)
+            layer.triggerRepaint()
             return
 
         font_size = getattr(self, '_labelFontSize', 10)
-        is_node = layer.geometryType() == 0
         sp = getattr(self, 'spNodeDecimals' if is_node else 'spLinkDecimals', None)
         decimals = sp.value() if sp else 2
         color_by_range = getattr(self, '_labelColorByRange', False)
-        show_id = getattr(self, '_labelShowId', False)
 
         layer_settings = QgsPalLayerSettings()
         text_format = QgsTextFormat()
@@ -426,7 +437,7 @@ class _ResultsRenderingMixin:
         is_status_field = fieldName == "Status"
 
         color_expr = None
-        if color_by_range and not is_status_field:
+        if show_value and color_by_range and not is_status_field:
             color_expr = self._buildRangeColorExpression(layer, fieldName)
 
         # Color the label text by magnitude (same palette as the header label) so the
@@ -450,51 +461,51 @@ class _ResultsRenderingMixin:
 
         layer_settings.setFormat(text_format)
 
-        # Build value expression — format_number ensures fixed decimal places (respects locale).
-        # The occurrence time (Max/Min stats) is never shown in the label; it lives in the tooltip.
+        # Build the value sub-expression — format_number ensures fixed decimal places (respects
+        # locale). The occurrence time (Max/Min stats) is never shown in the label; it lives in
+        # the tooltip. value_inner is None when the value is not being shown (Id-only labels).
         is_flow_field = fieldName in ("Flow", "Flow_Sig")
-        if is_flow_field:
-            value_expr = f'format_number(abs("{fieldName}"), {decimals})'
-        else:
-            value_expr = f'format_number("{fieldName}", {decimals})'
-
-        if is_status_field:
-            # Status is categorical: group the 13 link states into just two labels.
-            # Any "Closed" state (incl. "Temp Closed") -> "Closed"; "Active"/"Active
-            # (Rev Pump)" -> "Active". "Open*" states match no WHEN, so the CASE
-            # returns NULL and QGIS paints no label for them. Comparison uses the
-            # English values stored by _resolve_link_status; output is translated.
-            closed_txt = self.tr("Closed")
-            active_txt = self.tr("Active")
-            full_expr = (
-                f"CASE WHEN \"Status\" LIKE '%Closed%' THEN '{closed_txt}' "
-                f"WHEN \"Status\" LIKE 'Active%' THEN '{active_txt}' END"
-            )
-        elif show_id:
-            if is_flow_field:
-                line2_inner = f'format_number(abs("{fieldName}"), {decimals})'
+        value_inner = None
+        if show_value:
+            if is_status_field:
+                # Status is categorical: group the 13 link states into just two labels.
+                # Any "Closed" state (incl. "Temp Closed") -> "Closed"; "Active"/"Active
+                # (Rev Pump)" -> "Active". "Open*" states match no WHEN, so the CASE
+                # returns NULL and QGIS paints no label for them. Comparison uses the
+                # English values stored by _resolve_link_status; output is translated.
+                closed_txt = self.tr("Closed")
+                active_txt = self.tr("Active")
+                value_inner = (
+                    f"CASE WHEN \"Status\" LIKE '%Closed%' THEN '{closed_txt}' "
+                    f"WHEN \"Status\" LIKE 'Active%' THEN '{active_txt}' END"
+                )
+            elif is_flow_field:
+                value_inner = f'format_number(abs("{fieldName}"), {decimals})'
             else:
-                line2_inner = f'format_number("{fieldName}", {decimals})'
+                value_inner = f'format_number("{fieldName}", {decimals})'
 
-            line1 = '\'<span style="color:#000000;">\' || "Id" || \'</span>\''
+        # The Id line is always black; the value line is colored by range (or the symbol color).
+        # Id (top) and value (bottom) live in <div> blocks so HTML rendering forces a line break.
+        id_line = '\'<span style="color:#000000;">\' || "Id" || \'</span>\''
 
+        if show_id and show_value:
             if color_expr:
-                # Wrap value in a span whose color is the range color expression
-                line2 = (
+                value_line = (
                     f"\'<span style=\"color:\' || ({color_expr}) || \';\">\' "
-                    f"|| ({line2_inner}) || \'</span>\'"
+                    f"|| coalesce({value_inner}, \'\') || \'</span>\'"
                 )
             else:
-                # Fall back to primary symbol color
                 sym_color = default_color.name()
                 with suppress(Exception):
                     sym_color = layer.renderer().symbol().color().name()
-                line2 = f"\'<span style=\"color:{sym_color};\">\' || ({line2_inner}) || \'</span>\'"
-
-            # Wrap line1 and line2 in <div> blocks to force a line break in HTML rendering
-            full_expr = f"'<div>' || ({line1}) || '</div><div>' || ({line2}) || '</div>'"
+                value_line = f"\'<span style=\"color:{sym_color};\">\' || coalesce({value_inner}, \'\') || \'</span>\'"
+            full_expr = f"'<div>' || ({id_line}) || '</div><div>' || ({value_line}) || '</div>'"
+        elif show_id:
+            # Id only — labels appear even with no variable selected or the value label off.
+            full_expr = id_line
         else:
-            full_expr = value_expr
+            # Value only (non-HTML; text color handled by text_format / data-defined property).
+            full_expr = value_inner
 
         layer_settings.fieldName = full_expr
         layer_settings.isExpression = True

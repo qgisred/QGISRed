@@ -28,7 +28,8 @@ class MockDock(_ResultsRenderingMixin):
         self.lbLinksMagnitude = MagicMock()
         self._labelFontSize = 10
         self._labelColorByRange = False
-        self._labelShowId = False
+        self._labelShowNodeId = False
+        self._labelShowLinkId = False
 
     def tr(self, text):
         return text
@@ -49,7 +50,7 @@ class TestResultsLabels:
             MockProj.instance.return_value = _make_project("LPS")
 
             dock = MockDock()
-            dock._labelShowId = True
+            dock._labelShowNodeId = True
             dock.cbNodeLabels.isChecked.return_value = True
             dock.spNodeDecimals.value.return_value = 2
 
@@ -81,7 +82,7 @@ class TestResultsLabels:
             MockProj.instance.return_value = _make_project("LPS")
 
             dock = MockDock()
-            dock._labelShowId = False
+            dock._labelShowNodeId = False
             dock.cbNodeLabels.isChecked.return_value = True
             dock.spNodeDecimals.value.return_value = 2
 
@@ -99,6 +100,182 @@ class TestResultsLabels:
             assert '"Id"' not in expr
             assert 'format_number("Pressure", 2)' in expr
 
+    def test_set_layer_labels_id_only_when_value_label_off(self):
+        # Value label off (Results tab) but Show Node ID on (Appearance tab): the label
+        # must still render, showing only the Id — never the value expression.
+        with patch("QGISRed.tools.utils.qgisred_project_utils.QgsProject") as MockProj, \
+             patch("QGISRed.ui.analysis.qgisred_results_rendering.QgsVectorLayerSimpleLabeling") as MockLabeling:
+
+            MockProj.instance.return_value = _make_project("LPS")
+
+            dock = MockDock()
+            dock._labelShowNodeId = True
+            dock.cbNodeLabels.isChecked.return_value = False  # value label off
+            dock.spNodeDecimals.value.return_value = 2
+
+            layer = MagicMock()
+            layer.geometryType.return_value = 0  # Node
+
+            dock.setLayerLabels(layer, "Pressure")
+
+            assert MockLabeling.call_args is not None  # labels enabled
+            expr = MockLabeling.call_args[0][0].fieldName
+            assert '"Id"' in expr
+            assert 'format_number' not in expr
+            assert 'Pressure' not in expr
+
+    def test_set_layer_labels_id_only_without_selected_variable(self):
+        # Showing only the Id must work even with no variable selected (empty field).
+        with patch("QGISRed.tools.utils.qgisred_project_utils.QgsProject") as MockProj, \
+             patch("QGISRed.ui.analysis.qgisred_results_rendering.QgsVectorLayerSimpleLabeling") as MockLabeling:
+
+            MockProj.instance.return_value = _make_project("LPS")
+
+            dock = MockDock()
+            dock._labelShowLinkId = True
+            dock.cbLinkLabels.isChecked.return_value = True  # on, but no field passed
+            dock.spLinkDecimals.value.return_value = 2
+
+            layer = MagicMock()
+            layer.geometryType.return_value = 1  # Link
+
+            dock.setLayerLabels(layer, "")  # no variable selected
+
+            assert MockLabeling.call_args is not None
+            expr = MockLabeling.call_args[0][0].fieldName
+            assert '"Id"' in expr
+            assert 'format_number' not in expr
+
+    def test_set_layer_labels_disabled_when_neither_value_nor_id(self):
+        # Value label off and Id off: labels must be turned off, not left stale.
+        with patch("QGISRed.tools.utils.qgisred_project_utils.QgsProject") as MockProj, \
+             patch("QGISRed.ui.analysis.qgisred_results_rendering.QgsVectorLayerSimpleLabeling") as MockLabeling:
+
+            MockProj.instance.return_value = _make_project("LPS")
+
+            dock = MockDock()
+            dock._labelShowNodeId = False
+            dock.cbNodeLabels.isChecked.return_value = False
+            dock.spNodeDecimals.value.return_value = 2
+
+            layer = MagicMock()
+            layer.geometryType.return_value = 0  # Node
+
+            dock.setLayerLabels(layer, "Pressure")
+
+            layer.setLabelsEnabled.assert_called_once_with(False)
+            assert MockLabeling.call_args is None
+
+    def test_node_id_flag_does_not_affect_link_labels(self):
+        # The Id flags are per element type: Show Node ID must not add an Id line to links.
+        with patch("QGISRed.tools.utils.qgisred_project_utils.QgsProject") as MockProj, \
+             patch("QGISRed.ui.analysis.qgisred_results_rendering.QgsVectorLayerSimpleLabeling") as MockLabeling:
+
+            MockProj.instance.return_value = _make_project("LPS")
+
+            dock = MockDock()
+            dock._labelShowNodeId = True
+            dock._labelShowLinkId = False
+            dock.cbLinkLabels.isChecked.return_value = True
+            dock.spLinkDecimals.value.return_value = 2
+
+            layer = MagicMock()
+            layer.geometryType.return_value = 1  # Link
+
+            dock.setLayerLabels(layer, "Velocity")
+
+            expr = MockLabeling.call_args[0][0].fieldName
+            assert '"Id"' not in expr
+            assert 'format_number("Velocity", 2)' in expr
+
+    def test_set_layer_labels_id_only_when_value_label_off(self):
+        # Value label off (Results tab) but Show Node ID on (Appearance tab): the label
+        # must still render, showing only the Id — never the value expression.
+        with patch("QGISRed.tools.utils.qgisred_project_utils.QgsProject") as MockProj, \
+             patch("QGISRed.ui.analysis.qgisred_results_rendering.QgsVectorLayerSimpleLabeling") as MockLabeling:
+
+            MockProj.instance.return_value = _make_project("LPS")
+
+            dock = MockDock()
+            dock._labelShowNodeId = True
+            dock.cbNodeLabels.isChecked.return_value = False  # value label off
+            dock.spNodeDecimals.value.return_value = 2
+
+            layer = MagicMock()
+            layer.geometryType.return_value = 0  # Node
+
+            dock.setLayerLabels(layer, "Pressure")
+
+            assert MockLabeling.call_args is not None  # labels enabled
+            expr = MockLabeling.call_args[0][0].fieldName
+            assert '"Id"' in expr
+            assert 'format_number' not in expr
+            assert 'Pressure' not in expr
+
+    def test_set_layer_labels_id_only_without_selected_variable(self):
+        # Showing only the Id must work even with no variable selected (empty field).
+        with patch("QGISRed.tools.utils.qgisred_project_utils.QgsProject") as MockProj, \
+             patch("QGISRed.ui.analysis.qgisred_results_rendering.QgsVectorLayerSimpleLabeling") as MockLabeling:
+
+            MockProj.instance.return_value = _make_project("LPS")
+
+            dock = MockDock()
+            dock._labelShowLinkId = True
+            dock.cbLinkLabels.isChecked.return_value = True  # on, but no field passed
+            dock.spLinkDecimals.value.return_value = 2
+
+            layer = MagicMock()
+            layer.geometryType.return_value = 1  # Link
+
+            dock.setLayerLabels(layer, "")  # no variable selected
+
+            assert MockLabeling.call_args is not None
+            expr = MockLabeling.call_args[0][0].fieldName
+            assert '"Id"' in expr
+            assert 'format_number' not in expr
+
+    def test_set_layer_labels_disabled_when_neither_value_nor_id(self):
+        # Value label off and Id off: labels must be turned off, not left stale.
+        with patch("QGISRed.tools.utils.qgisred_project_utils.QgsProject") as MockProj, \
+             patch("QGISRed.ui.analysis.qgisred_results_rendering.QgsVectorLayerSimpleLabeling") as MockLabeling:
+
+            MockProj.instance.return_value = _make_project("LPS")
+
+            dock = MockDock()
+            dock._labelShowNodeId = False
+            dock.cbNodeLabels.isChecked.return_value = False
+            dock.spNodeDecimals.value.return_value = 2
+
+            layer = MagicMock()
+            layer.geometryType.return_value = 0  # Node
+
+            dock.setLayerLabels(layer, "Pressure")
+
+            layer.setLabelsEnabled.assert_called_once_with(False)
+            assert MockLabeling.call_args is None
+
+    def test_node_id_flag_does_not_affect_link_labels(self):
+        # The Id flags are per element type: Show Node ID must not add an Id line to links.
+        with patch("QGISRed.tools.utils.qgisred_project_utils.QgsProject") as MockProj, \
+             patch("QGISRed.ui.analysis.qgisred_results_rendering.QgsVectorLayerSimpleLabeling") as MockLabeling:
+
+            MockProj.instance.return_value = _make_project("LPS")
+
+            dock = MockDock()
+            dock._labelShowNodeId = True
+            dock._labelShowLinkId = False
+            dock.cbLinkLabels.isChecked.return_value = True
+            dock.spLinkDecimals.value.return_value = 2
+
+            layer = MagicMock()
+            layer.geometryType.return_value = 1  # Link
+
+            dock.setLayerLabels(layer, "Velocity")
+
+            expr = MockLabeling.call_args[0][0].fieldName
+            assert '"Id"' not in expr
+            assert 'format_number("Velocity", 2)' in expr
+
     def test_set_layer_labels_status_groups_into_closed_and_active(self):
         # Status is a categorical string field: labels must group the 13 link
         # states into just "Closed" and "Active" (Open* → no label), never the
@@ -109,7 +286,7 @@ class TestResultsLabels:
             MockProj.instance.return_value = _make_project("LPS")
 
             dock = MockDock()
-            dock._labelShowId = True  # ignored for categorical Status
+            dock._labelShowLinkId = True  # adds the Id line; the Status value still groups
             dock.cbLinkLabels.isChecked.return_value = True
             dock.spLinkDecimals.value.return_value = 2
 
@@ -142,7 +319,7 @@ class TestFlowLabelsNeverShowSign:
 
     def _make_link_dock(self, show_id=False):
         dock = MockDock()
-        dock._labelShowId = show_id
+        dock._labelShowLinkId = show_id
         dock.cbLinkLabels.isChecked.return_value = True
         dock.spLinkDecimals.value.return_value = 2
         return dock
@@ -187,7 +364,7 @@ class TestLabelsNeverShowOccurrenceTime:
 
     def _make_link_dock(self, show_id=False):
         dock = MockDock()
-        dock._labelShowId = show_id
+        dock._labelShowLinkId = show_id
         dock.cbLinkLabels.isChecked.return_value = True
         dock.spLinkDecimals.value.return_value = 2
         return dock
@@ -471,10 +648,12 @@ class _AppearanceDock(_ResultsRenderingMixin, _ResultsAppearanceMixin):
         self.lbLinksMagnitude = MagicMock()
         self.spFontSize = MagicMock(); self.spFontSize.value.return_value = 10
         self.rbColorByRange = MagicMock(); self.rbColorByRange.isChecked.return_value = False
-        self.cbShowId = MagicMock(); self.cbShowId.isChecked.return_value = show_id
+        self.cbShowNodeId = MagicMock(); self.cbShowNodeId.isChecked.return_value = show_id
+        self.cbShowLinkId = MagicMock(); self.cbShowLinkId.isChecked.return_value = show_id
         self._labelFontSize = 10
         self._labelColorByRange = False
-        self._labelShowId = show_id
+        self._labelShowNodeId = show_id
+        self._labelShowLinkId = show_id
         self._labelBgColor = None
         self._labelBgColorLocked = False
         self.cbNodes = MagicMock()

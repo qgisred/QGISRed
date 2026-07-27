@@ -1447,11 +1447,38 @@
                 </layout>
                </item>
                <item row="5" column="0" colspan="2">
-                <widget class="QCheckBox" name="cbShowId">
-                 <property name="text">
-                  <string>Show ID alongside value</string>
+                <layout class="QHBoxLayout" name="horizontalLayout_showId">
+                 <property name="spacing">
+                  <number>6</number>
                  </property>
-                </widget>
+                 <item>
+                  <widget class="QCheckBox" name="cbShowNodeId">
+                   <property name="text">
+                    <string>Show Node ID</string>
+                   </property>
+                  </widget>
+                 </item>
+                 <item>
+                  <widget class="QCheckBox" name="cbShowLinkId">
+                   <property name="text">
+                    <string>Show Link ID</string>
+                   </property>
+                  </widget>
+                 </item>
+                 <item>
+                  <spacer name="horizontalSpacer_showId">
+                   <property name="orientation">
+                    <enum>Qt::Horizontal</enum>
+                   </property>
+                   <property name="sizeHint" stdset="0">
+                    <size>
+                     <width>0</width>
+                     <height>0</height>
+                    </size>
+                   </property>
+                  </spacer>
+                 </item>
+                </layout>
                </item>
                <item row="6" column="0" colspan="2">
                 <widget class="QLabel" name="lbLabelBgColorText">

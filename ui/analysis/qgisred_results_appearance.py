@@ -21,24 +21,22 @@ class _ResultsAppearanceMixin:
     # ------------------------------------------------------------------
 
     def _refreshLabelsIfShowing(self, layer_type):
+        # Labels are (re)built whenever the layer exists; setLayerLabels decides whether to
+        # show the value (Results tab checkbox + selected variable), the Id (Appearance tab
+        # checkbox), both, or neither — disabling the labels itself when nothing is shown.
         layer = self._findResultLayer(layer_type)
         if not layer:
             return
-        checkbox = self.cbNodeLabels if layer_type == "Node" else self.cbLinkLabels
         combobox = self.cbNodes if layer_type == "Node" else self.cbLinks
         field_map = self._node_field_map if layer_type == "Node" else self._link_field_map
-        if checkbox.isChecked() and combobox.currentIndex() > 0:
-            field = field_map.get(combobox.currentText(), "")
-            if field:
-                self.setLayerLabels(layer, field)
-        else:
-            layer.setLabelsEnabled(False)
-            layer.triggerRepaint()
+        field = field_map.get(combobox.currentText(), "") if combobox.currentIndex() > 0 else ""
+        self.setLayerLabels(layer, field)
 
     def _onLabelStyleChanged(self):
         self._labelFontSize = self.spFontSize.value()
         self._labelColorByRange = self.rbColorByRange.isChecked()
-        self._labelShowId = self.cbShowId.isChecked()
+        self._labelShowNodeId = self.cbShowNodeId.isChecked()
+        self._labelShowLinkId = self.cbShowLinkId.isChecked()
         self._saveAppearanceSettings()
         self._refreshLabelsIfShowing("Node")
         self._refreshLabelsIfShowing("Link")
@@ -296,7 +294,8 @@ class _ResultsAppearanceMixin:
         self._labelFontSize = 8
         self._varDecimals = {}
         self._labelColorByRange = False
-        self._labelShowId = False
+        self._labelShowNodeId = False
+        self._labelShowLinkId = False
         self._labelBgColor = None
         self._labelBgColorLocked = False
         self._pipeFactor = 1.0
@@ -314,7 +313,8 @@ class _ResultsAppearanceMixin:
         link_field = self._link_field_map.get(self.cbLinks.currentText(), "")
         self._resetDecimalsForVariable(link_field, "Links", "Link")
         self.rbColorBlack.setChecked(True)
-        self.cbShowId.setChecked(False)
+        self.cbShowNodeId.setChecked(False)
+        self.cbShowLinkId.setChecked(False)
         self.btLabelBgColor.setStyleSheet("")
         self.btLabelBgColor.setText(QCoreApplication.translate("QGISRedResultsDock", "No color"))
         self.btClearLabelBgColor.setEnabled(False)
@@ -364,7 +364,8 @@ class _ResultsAppearanceMixin:
         ET.SubElement(root, "Labels",
                       fontSize=str(self._labelFontSize),
                       colorByRange="true" if self._labelColorByRange else "false",
-                      showId="true" if self._labelShowId else "false",
+                      showNodeId="true" if self._labelShowNodeId else "false",
+                      showLinkId="true" if self._labelShowLinkId else "false",
                       bgColor=self._labelBgColor.name() if self._labelBgColor else "",
                       lockBgToMap="true" if self._labelBgColorLocked else "false")
         dec_elem = ET.SubElement(root, "Decimals")
@@ -394,7 +395,10 @@ class _ResultsAppearanceMixin:
                 if labels is not None:
                     self._labelFontSize = int(labels.get("fontSize", 10))
                     self._labelColorByRange = labels.get("colorByRange", "false") == "true"
-                    self._labelShowId = labels.get("showId", "false") == "true"
+                    # Back-compat: the pre-split single "showId" applied to both element types.
+                    legacy_show_id = labels.get("showId", "false") == "true"
+                    self._labelShowNodeId = labels.get("showNodeId", "true" if legacy_show_id else "false") == "true"
+                    self._labelShowLinkId = labels.get("showLinkId", "true" if legacy_show_id else "false") == "true"
                     bg_hex = labels.get("bgColor", "")
                     self._labelBgColor = QColor(bg_hex) if bg_hex else None
                     self._labelBgColorLocked = labels.get("lockBgToMap", "false") == "true"
@@ -429,7 +433,8 @@ class _ResultsAppearanceMixin:
         self.rbColorByRange.setChecked(self._labelColorByRange)
         self.rbColorBlack.setChecked(not self._labelColorByRange)
         self.rbColorByRange.blockSignals(False)
-        self.cbShowId.setChecked(self._labelShowId)
+        self.cbShowNodeId.setChecked(self._labelShowNodeId)
+        self.cbShowLinkId.setChecked(self._labelShowLinkId)
         self.btClearLabelBgColor.setEnabled(self._labelBgColor is not None)
         if self._labelBgColor:
             self.btLabelBgColor.setStyleSheet(f"background-color: {self._labelBgColor.name()};")
