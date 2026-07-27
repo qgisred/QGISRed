@@ -16,7 +16,8 @@ from qgis.PyQt.QtGui import QColor, QFont
 from ...compat import (
     RENDER_UNIT_POINTS, RENDER_UNIT_MILLIMETERS,
     TEXT_BG_SHAPE_RECTANGLE, TEXT_BG_SIZE_BUFFER,
-    PAL_PROPERTY_COLOR, PAL_PLACEMENT_LINE, PAL_PLACEMENT_AROUND_POINT,
+    PAL_PROPERTY_COLOR, PAL_PROPERTY_LABEL_DISTANCE,
+    PAL_PLACEMENT_LINE, PAL_PLACEMENT_AROUND_POINT,
     SL_PROP_SIZE, SL_PROP_STROKE_COLOR, SL_PROP_STROKE_WIDTH,
 )
 from ...tools.utils.qgisred_styling_utils import QGISRedStylingUtils, _NULL_RULE_LABEL, _NullHiddenLegend
@@ -35,6 +36,13 @@ _BASE_ARROW_SIZE       = 3.0   # mm — arrow sub-symbol in setArrowsVisibility
 _BASE_JUNCTION_SIZE    = 2.0   # mm — SimpleMarker for junctions in NodePressure.qml
 _BASE_SPECIAL_SIZE     = 7.0   # mm — SvgMarker for tanks/reservoirs in NodePressure.qml
 _BASE_VALVE_PUMP_SIZE  = 6.0   # mm — SvgMarker for pumps/valves in LinkFlow.qml (indices 1, 2)
+
+# Label separation (mm) from the geometry it belongs to. The link label is pushed out far
+# enough that its (optionally opaque) background never overlaps the symbol drawn on the
+# line: half the symbol's perpendicular extent + a clearance margin. Pumps and valves get
+# a larger distance than pipes because their SVG icon is much bigger than a flow arrow.
+_LABEL_CLEARANCE       = 1.0   # mm — gap between the symbol edge and the label box
+_LABEL_BG_BUFFER       = 1.0   # mm — must match the QgsTextBackgroundSettings buffer size
 
 
 def _build_node_size_expr(expr, junction_str, special_str):
@@ -427,7 +435,7 @@ class _ResultsRenderingMixin:
             bg_settings.setEnabled(True)
             bg_settings.setType(TEXT_BG_SHAPE_RECTANGLE)
             bg_settings.setSizeType(TEXT_BG_SIZE_BUFFER)
-            bg_settings.setSize(QSizeF(1.0, 1.0))
+            bg_settings.setSize(QSizeF(_LABEL_BG_BUFFER, _LABEL_BG_BUFFER))
             bg_settings.setSizeUnit(RENDER_UNIT_MILLIMETERS)
             bg_settings.setFillColor(label_bg_color)
             text_format.setBackground(bg_settings)
@@ -448,16 +456,15 @@ class _ResultsRenderingMixin:
         else:
             default_color = _DEFAULT_NODE_LABEL_COLOR if is_node else _DEFAULT_LINK_LABEL_COLOR
 
+        from qgis.core import QgsPropertyCollection
+        ddp = QgsPropertyCollection()
+
         if show_id:
             text_format.setAllowHtmlFormatting(True)
         else:
             text_format.setColor(default_color)
             if color_expr:
-                from qgis.core import QgsPropertyCollection
-                prop = QgsProperty.fromExpression(color_expr)
-                ddp = QgsPropertyCollection()
-                ddp.setProperty(PAL_PROPERTY_COLOR, prop)
-                layer_settings.setDataDefinedProperties(ddp)
+                ddp.setProperty(PAL_PROPERTY_COLOR, QgsProperty.fromExpression(color_expr))
 
         layer_settings.setFormat(text_format)
 
@@ -513,15 +520,82 @@ class _ResultsRenderingMixin:
 
         if is_node:
             layer_settings.placement = PAL_PLACEMENT_AROUND_POINT
-            layer_settings.dist = 2.0
+            junction_dist, special_dist = self._nodeLabelDistances(bool(label_bg_color))
+            layer_settings.dist = junction_dist
+            # Tanks and reservoirs use a much larger SVG marker than junctions, so they
+            # need their labels pushed further out to clear it.
+            ddp.setProperty(
+                PAL_PROPERTY_LABEL_DISTANCE,
+                QgsProperty.fromExpression(
+                    f"CASE WHEN \"Type\" IN ('TANK', 'RESERVOIR') THEN {special_dist}"
+                    f" ELSE {junction_dist} END"
+                ),
+            )
         else:
             layer_settings.placement = PAL_PLACEMENT_LINE
-            layer_settings.dist = 1.0
+            pipe_dist, valve_pump_dist = self._linkLabelDistances(bool(label_bg_color))
+            layer_settings.dist = pipe_dist
+            # A single `dist` cannot clear both a flow arrow and a pump/valve icon, which are
+            # far bigger. Data-defined LabelDistance pushes only those two types further out.
+            ddp.setProperty(
+                PAL_PROPERTY_LABEL_DISTANCE,
+                QgsProperty.fromExpression(
+                    f"CASE WHEN \"Type\" IN ('PUMP', 'VALVE') THEN {valve_pump_dist}"
+                    f" ELSE {pipe_dist} END"
+                ),
+            )
         layer_settings.distUnits = RENDER_UNIT_MILLIMETERS
+        layer_settings.setDataDefinedProperties(ddp)
         labels = QgsVectorLayerSimpleLabeling(layer_settings)
         layer.setLabeling(labels)
         layer.setLabelsEnabled(True)
         layer.triggerRepaint()
+
+    def _labelMargin(self, has_background):
+        """Gap (mm) to leave between the symbol edge and the label, background included."""
+        return _LABEL_CLEARANCE + (_LABEL_BG_BUFFER if has_background else 0.0)
+
+    def _linkLabelDistances(self, has_background):
+        """Perpendicular label offsets (mm) for pipes and for pumps/valves.
+
+        Each is half the perpendicular extent of the symbol painted on the link plus the
+        label background buffer and a fixed clearance, so an opaque label box never covers
+        the flow arrow (pipes) or the SVG icon (pumps/valves). Both track the Appearance
+        factors, since the symbols they must clear scale with them.
+        """
+        margin = self._labelMargin(has_background)
+
+        arrow_factor = getattr(self, '_arrowFactor', 1.0)
+        pipe_factor = getattr(self, '_pipeFactor', 1.0)
+
+        show_arrows = False
+        with suppress(Exception):
+            show_arrows = self.cbFlowDirections.isChecked()
+
+        pipe_dist = margin
+        if show_arrows:
+            pipe_dist = _BASE_ARROW_SIZE * arrow_factor / 2.0 + margin
+        valve_pump_dist = _BASE_VALVE_PUMP_SIZE * pipe_factor / 2.0 + margin
+        # Pumps/valves are never closer than pipes, whatever the factor combination.
+        valve_pump_dist = max(valve_pump_dist, pipe_dist)
+        return round(pipe_dist, 3), round(valve_pump_dist, 3)
+
+    def _nodeLabelDistances(self, has_background):
+        """Label offsets (mm) for junctions and for tanks/reservoirs.
+
+        Same rule as the link offsets: half the symbol's radius plus the margin. In
+        proportional mode the renderer grows node markers up to 2x their factor size,
+        so the offset accounts for that worst case and the label stays clear of the
+        largest symbol on the layer.
+        """
+        margin = self._labelMargin(has_background)
+
+        symbol_factor = getattr(self, '_symbolFactor', 1.0)
+        growth = 2.0 if getattr(self, '_proportional', False) else 1.0
+
+        junction_dist = _BASE_JUNCTION_SIZE * symbol_factor * growth / 2.0 + margin
+        special_dist = _BASE_SPECIAL_SIZE * symbol_factor * growth / 2.0 + margin
+        return round(junction_dist, 3), round(special_dist, 3)
 
     def _buildRangeColorExpression(self, layer, fieldName):
         """Build a CASE WHEN expression to color label text matching the graduated renderer ranges."""

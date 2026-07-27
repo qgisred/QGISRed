@@ -675,6 +675,114 @@ class _AppearanceDock(_ResultsRenderingMixin, _ResultsAppearanceMixin):
         return layer
 
 
+class TestLinkLabelDistances:
+    def _dock(self, arrows=True, pipe_factor=1.0, arrow_factor=1.0):
+        dock = MockDock()
+        dock.cbFlowDirections = MagicMock()
+        dock.cbFlowDirections.isChecked.return_value = arrows
+        dock._pipeFactor = pipe_factor
+        dock._arrowFactor = arrow_factor
+        return dock
+
+    def test_pumps_and_valves_are_pushed_further_than_pipes(self):
+        pipe, valve_pump = self._dock()._linkLabelDistances(False)
+        assert valve_pump > pipe
+
+    def test_arrows_widen_the_pipe_offset(self):
+        with_arrows, _ = self._dock(arrows=True)._linkLabelDistances(False)
+        without_arrows, _ = self._dock(arrows=False)._linkLabelDistances(False)
+        assert with_arrows > without_arrows
+
+    def test_opaque_background_adds_its_buffer(self):
+        opaque_pipe, opaque_vp = self._dock()._linkLabelDistances(True)
+        plain_pipe, plain_vp = self._dock()._linkLabelDistances(False)
+        assert opaque_pipe > plain_pipe
+        assert opaque_vp > plain_vp
+
+    def test_offsets_scale_with_the_appearance_factors(self):
+        base_pipe, base_vp = self._dock()._linkLabelDistances(False)
+        big_pipe, _ = self._dock(arrow_factor=2.0)._linkLabelDistances(False)
+        _, big_vp = self._dock(pipe_factor=2.0)._linkLabelDistances(False)
+        assert big_pipe > base_pipe
+        assert big_vp > base_vp
+
+    def test_pumps_never_end_up_closer_than_pipes(self):
+        # A huge arrow factor with a tiny pipe factor must not invert the two offsets.
+        pipe, valve_pump = self._dock(arrow_factor=10.0, pipe_factor=0.1)._linkLabelDistances(False)
+        assert valve_pump >= pipe
+
+    def test_link_labels_use_a_type_based_distance_expression(self):
+        with patch("QGISRed.tools.utils.qgisred_project_utils.QgsProject") as MockProj, \
+             patch("QGISRed.ui.analysis.qgisred_results_rendering.QgsVectorLayerSimpleLabeling"), \
+             patch("QGISRed.ui.analysis.qgisred_results_rendering.QgsProperty") as MockProperty:
+            MockProj.instance.return_value = _make_project("LPS")
+
+            dock = self._dock()
+            dock.cbLinkLabels.isChecked.return_value = True
+            dock.spLinkDecimals.value.return_value = 2
+
+            layer = MagicMock()
+            layer.geometryType.return_value = 1  # Link
+            dock.setLayerLabels(layer, "Flow")
+
+            exprs = [c.args[0] for c in MockProperty.fromExpression.call_args_list]
+            assert any("'PUMP'" in e and "'VALVE'" in e for e in exprs)
+
+
+class TestNodeLabelDistances:
+    def _dock(self, symbol_factor=1.0, proportional=False):
+        dock = MockDock()
+        dock._symbolFactor = symbol_factor
+        dock._proportional = proportional
+        return dock
+
+    def test_tanks_and_reservoirs_are_pushed_further_than_junctions(self):
+        junction, special = self._dock()._nodeLabelDistances(False)
+        assert special > junction
+
+    def test_junctions_clear_their_own_symbol(self):
+        # Half the 2 mm junction marker + 1 mm clearance.
+        junction, _ = self._dock()._nodeLabelDistances(False)
+        assert junction == pytest.approx(2.0)
+
+    def test_opaque_background_adds_its_buffer(self):
+        opaque_junction, opaque_special = self._dock()._nodeLabelDistances(True)
+        plain_junction, plain_special = self._dock()._nodeLabelDistances(False)
+        assert opaque_junction > plain_junction
+        assert opaque_special > plain_special
+
+    def test_offsets_scale_with_the_symbol_factor(self):
+        base_junction, base_special = self._dock()._nodeLabelDistances(False)
+        big_junction, big_special = self._dock(symbol_factor=2.0)._nodeLabelDistances(False)
+        assert big_junction > base_junction
+        assert big_special > base_special
+
+    def test_proportional_mode_accounts_for_the_grown_markers(self):
+        base_junction, base_special = self._dock()._nodeLabelDistances(False)
+        prop_junction, prop_special = self._dock(proportional=True)._nodeLabelDistances(False)
+        assert prop_junction > base_junction
+        assert prop_special > base_special
+
+    def test_node_labels_use_a_type_based_distance_expression(self):
+        with patch("QGISRed.tools.utils.qgisred_project_utils.QgsProject") as MockProj, \
+             patch("QGISRed.ui.analysis.qgisred_results_rendering.QgsVectorLayerSimpleLabeling"), \
+             patch("QGISRed.ui.analysis.qgisred_results_rendering.QgsProperty") as MockProperty:
+            MockProj.instance.return_value = _make_project("LPS")
+
+            dock = self._dock()
+            dock.cbNodeLabels.isChecked.return_value = True
+            dock.spNodeDecimals.value.return_value = 2
+
+            layer = MagicMock()
+            layer.geometryType.return_value = 0  # Node
+            dock.setLayerLabels(layer, "Pressure")
+
+            exprs = [c.args[0] for c in MockProperty.fromExpression.call_args_list]
+            assert any("'TANK'" in e and "'RESERVOIR'" in e for e in exprs)
+            assert not any("'PUMP'" in e for e in exprs)
+
+
+
 class TestLabelStyleCallersMatchSignature:
     @pytest.mark.parametrize("show_id", [False, True])
     def test_on_label_style_changed_calls_real_setLayerLabels(self, show_id):

@@ -1450,6 +1450,9 @@ class QGISRedResultsDock(
 
             layer_to_paint.setRenderer(renderer)
             layer_to_paint.triggerRepaint()
+            # Link labels are pushed clear of the arrows, so their offset changes with this
+            # checkbox.
+            self._refreshLabelsIfShowing("Link")
 
         QgsProject.instance().writeEntry(
             "QGISRed", "results_flow_directions",

@@ -222,10 +222,14 @@ class _ResultsAppearanceMixin:
         self._saveAppearanceSettings()
         node_layer = self._findResultLayer("Node")
         link_layer = self._findResultLayer("Link")
+        # Label offsets are derived from the symbol sizes they have to clear, so they must
+        # be recomputed whenever these factors change.
         if node_layer:
             self.applySymbolScaleFactors(node_layer)
+            self._refreshLabelsIfShowing("Node")
         if link_layer:
             self.applySymbolScaleFactors(link_layer)
+            self._refreshLabelsIfShowing("Link")
 
     # ------------------------------------------------------------------
     # Background color

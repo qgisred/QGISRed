@@ -265,6 +265,11 @@ except AttributeError:
     PAL_PROPERTY_COLOR = _QgsPalLayerSettings.Color
 
 try:
+    PAL_PROPERTY_LABEL_DISTANCE = _QgsPalLayerSettings.Property.LabelDistance
+except AttributeError:
+    PAL_PROPERTY_LABEL_DISTANCE = _QgsPalLayerSettings.LabelDistance
+
+try:
     PAL_PLACEMENT_LINE        = _QgsPalLayerSettings.Placement.Line
     PAL_PLACEMENT_AROUND_POINT = _QgsPalLayerSettings.Placement.AroundPoint
     PAL_PLACEMENT_OVER_POINT  = _QgsPalLayerSettings.Placement.OverPoint
