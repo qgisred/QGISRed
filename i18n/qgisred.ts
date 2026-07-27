@@ -4758,7 +4758,37 @@ Left-click: Add a new item below the current selection</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../ui/analysis/qgisred_profile_dock.py" line="106"/>
+        <location filename="../ui/analysis/qgisred_profile_dock.py" line="655"/>
+        <source>Double right-click an end pass node to extend the path.</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="../ui/analysis/qgisred_profile_dock.py" line="655"/>
+        <source>Double right-click an interior pass node to start a branch.</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="../ui/analysis/qgisred_profile_dock.py" line="650"/>
+        <source>Mouse shortcuts</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="../ui/analysis/qgisred_profile_dock.py" line="650"/>
+        <source>Left-click a pass node to start moving it, then click the free destination node.</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="../ui/analysis/qgisred_profile_dock.py" line="650"/>
+        <source>Double-click an intermediate node to turn it into a pass node.</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="../ui/analysis/qgisred_profile_dock.py" line="650"/>
+        <source>Double-click a pass node to delete it.</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="../ui/analysis/qgisred_profile_dock.py" line="624"/>
         <source>Edit paths: click nodes to trace, right-click a node for its options. Press next button for more info</source>
         <translation type="unfinished"></translation>
     </message>

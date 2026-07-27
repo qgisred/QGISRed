@@ -4937,7 +4937,37 @@ Clique esquerdo: Adicionar um novo item abaixo da seleção atual</translation>
         <translation>Traçar o primeiro trajeto</translation>
     </message>
     <message>
-        <location filename="../ui/analysis/qgisred_profile_dock.py" line="106"/>
+        <location filename="../ui/analysis/qgisred_profile_dock.py" line="655"/>
+        <source>Double right-click an end pass node to extend the path.</source>
+        <translation>Duplo clique direito num ponto de passagem de extremidade para prolongar o trajeto.</translation>
+    </message>
+    <message>
+        <location filename="../ui/analysis/qgisred_profile_dock.py" line="655"/>
+        <source>Double right-click an interior pass node to start a branch.</source>
+        <translation>Duplo clique direito num ponto de passagem interior para iniciar um ramo.</translation>
+    </message>
+    <message>
+        <location filename="../ui/analysis/qgisred_profile_dock.py" line="650"/>
+        <source>Mouse shortcuts</source>
+        <translation>Atalhos de rato</translation>
+    </message>
+    <message>
+        <location filename="../ui/analysis/qgisred_profile_dock.py" line="650"/>
+        <source>Left-click a pass node to start moving it, then click the free destination node.</source>
+        <translation>Clique esquerdo num ponto de passagem para começar a movê-lo; depois clique no nó de destino livre.</translation>
+    </message>
+    <message>
+        <location filename="../ui/analysis/qgisred_profile_dock.py" line="650"/>
+        <source>Double-click an intermediate node to turn it into a pass node.</source>
+        <translation>Duplo clique num nó intermédio para o tornar num ponto de passagem.</translation>
+    </message>
+    <message>
+        <location filename="../ui/analysis/qgisred_profile_dock.py" line="650"/>
+        <source>Double-click a pass node to delete it.</source>
+        <translation>Duplo clique num ponto de passagem para o eliminar.</translation>
+    </message>
+    <message>
+        <location filename="../ui/analysis/qgisred_profile_dock.py" line="624"/>
         <source>Edit paths: click nodes to trace, right-click a node for its options. Press next button for more info</source>
         <translation>Editar trajetos: clique nos nós para traçar, clique com o botão direito num nó para as suas opções. Clique no botão seguinte para mais informação</translation>
     </message>

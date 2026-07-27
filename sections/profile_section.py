@@ -393,7 +393,8 @@ class ProfileSection:
             self._setProfileButtonChecked(False)
         self._restyleProfileDocks()
 
-    def _setProfileMapTool(self, kind, callback, context_callback=None, cursor=":/images/iconProfile.svg"):
+    def _setProfileMapTool(self, kind, callback, context_callback=None, cursor=":/images/iconProfile.svg",
+                           double_click_callback=None):
         from ..tools.map_tools.qgisred_selectPoint import QGISRedSelectPointTool, SelectPointType
 
         self._deactivateProfileMapTool()
@@ -401,7 +402,7 @@ class ProfileSection:
         self.myMapTools["Profile"] = QGISRedSelectPointTool(
             None, self, callback, point_type, cursor=cursor,
             move_callback=self._profileHoverOnMap, context_callback=context_callback,
-            show_snap_marker=False,
+            show_snap_marker=False, double_click_callback=double_click_callback,
         )
         self.iface.mapCanvas().setMapTool(self.myMapTools["Profile"])
 
@@ -473,7 +474,8 @@ class ProfileSection:
             if not (getattr(self, "_profileReferenceNodes", []) or []):
                 self._profileEditSeq = "main"
             self._setProfileMapTool("one", self._profileEditLeftClick, self._profileEditRightClick,
-                                    cursor=":/images/pencil.svg")
+                                    cursor=":/images/pencil.svg",
+                                    double_click_callback=self._profileEditDoubleClick)
         else:
             self._setProfileMapTool("one", self._profileTrackingClick, self._profileTrackingContext,
                                     cursor=":/images/iconProfile.svg")
@@ -832,6 +834,57 @@ class ProfileSection:
             return
         if seq == "main":
             self._profileAppendMainNode(node_id)
+            return
+        # Idle (no active sequence): a single left-click on a declared pass node
+        # starts a move — the next click marks the free destination node.
+        if seq is None and self._profileClassifyNode(node_id) in (
+                "origin", "terminal", "through", "bifurcation"):
+            self._profileStartMove(node_id)
+
+    def _profileEditDoubleClick(self, point, button):
+        from qgis.PyQt.QtCore import Qt
+
+        self._syncActiveProfileToVisible()
+        node_id = self._resolveProfileNode(point)
+        if button == Qt.MouseButton.LeftButton:
+            self._profileHandleDoubleClickNode(node_id)
+        elif button == Qt.MouseButton.RightButton:
+            self._profileHandleRightDoubleClickNode(node_id)
+
+    def _profileHandleDoubleClickNode(self, node_id):
+        # Left double-click shortcuts (editing on, not mid-tracing):
+        #  - on an intermediate node: declare it as a pass node,
+        #  - on a declared pass node: delete it and rebuild the path.
+        if getattr(self, "_profileEditSeq", None) in ("main", "branch"):
+            return
+        if node_id is None:
+            return
+        # Cancel a move the first click of the double may have armed.
+        self._profileEditSeq = None
+        self._profileMoveSource = None
+        role = self._profileClassifyNode(node_id)
+        if role == "intermediate_path":
+            self._applyProfileAdd(node_id)
+        elif role in ("origin", "terminal", "through", "bifurcation"):
+            self._applyProfileRemove(node_id)
+
+    def _profileHandleRightDoubleClickNode(self, node_id):
+        # Right double-click shortcuts on a declared pass node (same gating as the
+        # context menu): an end node extends the path, an interior node starts a
+        # branch. Only acts if the first right-click had deferred a context menu.
+        if not getattr(self, "_profileContextPending", False):
+            return
+        self._profileContextPending = False
+        self._profileContextToken = getattr(self, "_profileContextToken", 0) + 1  # cancel pending menu
+        if node_id is None:
+            return
+        role = self._profileClassifyNode(node_id)
+        if role in ("origin", "terminal"):
+            if self._profileNodeHasFreeLink(node_id):
+                self._profileStartExtend(node_id)
+        elif role in ("through", "bifurcation"):
+            if self._profileNodeDegree(node_id) > 2 and self._profileNodeHasFreeLink(node_id):
+                self._profileStartBranch(node_id)
 
     def _profileEditRightClick(self, point):
         self._syncActiveProfileToVisible()
@@ -844,7 +897,33 @@ class ProfileSection:
             self._profileFinishSequence()
             return
         node_id = self._resolveProfileNode(point) if point is not None else None
-        self._profileShowContextMenu(node_id)
+        role = self._profileClassifyNode(node_id) if node_id else None
+        if role in ("origin", "terminal", "through", "bifurcation"):
+            # On a pass node, defer the menu so a double right-click (extend /
+            # start branch) can be caught first. Other targets open it at once.
+            self._deferProfileContextMenu(node_id)
+        else:
+            self._profileShowContextMenu(node_id)
+
+    def _deferProfileContextMenu(self, node_id):
+        from qgis.PyQt.QtCore import QTimer
+        from qgis.PyQt.QtWidgets import QApplication
+
+        # Keep the results map-tip from popping up during the deferral window.
+        self._hideProfileMapTip()
+        self._profilePendingContextNode = node_id
+        self._profileContextPending = True
+        self._profileContextToken = getattr(self, "_profileContextToken", 0) + 1
+        token = self._profileContextToken
+        with suppress(Exception):
+            QTimer.singleShot(QApplication.doubleClickInterval(),
+                              lambda: self._profileShowPendingContextMenu(token))
+
+    def _profileShowPendingContextMenu(self, token):
+        if token != getattr(self, "_profileContextToken", None):
+            return  # superseded by a double right-click or a newer right-click
+        self._profileContextPending = False
+        self._profileShowContextMenu(getattr(self, "_profilePendingContextNode", None))
 
     def _profileSequenceHasNodes(self, seq):
         if seq == "main":
@@ -868,9 +947,18 @@ class ProfileSection:
         for label, handler in entries:
             action = menu.addAction(label)
             mapping[action] = handler
+        # The results map-tip is a top-level ToolTip window that would otherwise
+        # paint over the menu; hide it before opening the menu.
+        self._hideProfileMapTip()
         chosen = menu.exec(QCursor.pos())
         if chosen is not None and chosen in mapping:
             mapping[chosen]()
+
+    def _hideProfileMapTip(self):
+        with suppress(Exception):
+            map_tip = getattr(self, "_mapTip", None)
+            if map_tip is not None:
+                map_tip.hide()
 
     def _profileMenuEntries(self, role, node_id):
         extend = (self.tr("Extend path"), lambda: self._profileStartExtend(node_id))

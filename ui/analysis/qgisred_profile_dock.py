@@ -653,11 +653,25 @@ class QGISRedProfileDock(QDockWidget):
              self.tr("Delete its pass nodes from the far end toward the origin. When only the branch end "
                      "is left, deleting it removes the whole branch.")),
         ]
+        shortcut_title = self.tr("Mouse shortcuts")
+        shortcuts = [
+            self.tr("Left-click a pass node to start moving it, then click the free destination node."),
+            self.tr("Double-click an intermediate node to turn it into a pass node."),
+            self.tr("Double-click a pass node to delete it."),
+            self.tr("Double right-click an end pass node to extend the path."),
+            self.tr("Double right-click an interior pass node to start a branch."),
+        ]
         items = "".join(
             "<p style=\"margin-top:11px; margin-bottom:0px;\"><b>{0}.</b> {1}</p>".format(title, text)
             for title, text in rows
         )
-        return "<p style=\"margin-top:0px; margin-bottom:2px;\">{0}</p>{1}".format(intro, items)
+        shortcut_items = "".join(
+            "<li style=\"margin-bottom:3px;\">{0}</li>".format(s) for s in shortcuts
+        )
+        return (
+            "<p style=\"margin-top:0px; margin-bottom:2px;\">{0}</p>{1}"
+            "<p style=\"margin-top:14px; margin-bottom:2px;\"><b>{2}</b></p><ul>{3}</ul>"
+        ).format(intro, items, shortcut_title, shortcut_items)
 
     def _onChartOptions(self):
         from .qgisred_profile_chart_options_dialog import QGISRedProfileChartOptionsDialog

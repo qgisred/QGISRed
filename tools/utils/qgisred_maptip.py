@@ -62,6 +62,13 @@ class QGISRedMapTip(QObject):
     # Public API
     # ------------------------------------------------------------------
 
+    def hide(self):
+        """Hide the tip now and cancel any pending show (e.g. while a menu is up)."""
+        with suppress(Exception):
+            self._showTimer.stop()
+            self._hideTimer.stop()
+            self._label.hide()
+
     def stop(self):
         """Disconnect signals and destroy the floating widget."""
         with suppress(Exception):

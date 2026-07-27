@@ -22,7 +22,7 @@ class SelectPointType(IntEnum):
 
 
 class QGISRedSelectPointTool(QgsMapTool):
-    def __init__(self, button, parent, method, type=SelectPointType.Point, cursor=None, icon_size=24, pass_modifiers=False, move_callback=None, context_callback=None, show_snap_marker=True):
+    def __init__(self, button, parent, method, type=SelectPointType.Point, cursor=None, icon_size=24, pass_modifiers=False, move_callback=None, context_callback=None, show_snap_marker=True, double_click_callback=None):
         # type 1: points; 2: lines; 3: 2-points; 4: 2-line; 5: point-line
         QgsMapTool.__init__(self, parent.iface.mapCanvas())
         self.canvas = parent.iface.mapCanvas()
@@ -35,6 +35,9 @@ class QGISRedSelectPointTool(QgsMapTool):
         self.pass_modifiers = bool(pass_modifiers)
         self.move_callback = move_callback
         self.context_callback = context_callback
+        # Optional double-click handler, called as double_click_callback(point, button).
+        self.double_click_callback = double_click_callback
+        self._ignore_next_release = False
         # When False, the snap vertex markers are not drawn on hover. Tools that
         # provide their own hover highlight (e.g. longitudinal profiles) use this
         # to avoid showing a second, redundant marker under the cursor.
@@ -126,6 +129,11 @@ class QGISRedSelectPointTool(QgsMapTool):
     def canvasReleaseEvent(self, event):
         # Guard against calls during shutdown
         if hasattr(self.parent, 'isUnloading') and self.parent.isUnloading:
+            return
+        # A double-click leaves a trailing release event; swallow it so it is not
+        # processed as a second single click.
+        if self._ignore_next_release:
+            self._ignore_next_release = False
             return
         if event.button() == Qt.MouseButton.LeftButton:
             if self.objectSnapped is None:
@@ -245,3 +253,15 @@ class QGISRedSelectPointTool(QgsMapTool):
             self.startMarker.hide()
             self.endMarker.hide()
             self.objectSnapped = None
+
+    def canvasDoubleClickEvent(self, event):
+        if hasattr(self.parent, 'isUnloading') and self.parent.isUnloading:
+            return
+        if self.double_click_callback is None:
+            return
+        # The double-click will be followed by a redundant release; swallow it.
+        self._ignore_next_release = True
+        with suppress(Exception):
+            match = self.snapper.snapToMap(self.toMapCoordinates(event.pos()))
+            if match.isValid():
+                self.double_click_callback(QgsPointXY(match.point()), event.button())

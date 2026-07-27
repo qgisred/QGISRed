@@ -193,3 +193,102 @@ def test_finish_sequence_prunes_empty_branch():
     s._profileFinishSequence()
     assert len(s._profileBranches) == 1
     assert s._profileEditSeq is None
+
+
+def test_double_click_intermediate_declares_pass_node():
+    adjacency, lengths = _grid()
+    s = _Section(adjacency, lengths)
+    s._profileReferenceNodes = ["A", "D"]
+    s._rebuildProfilePaths()
+    assert s._profileClassifyNode("C") == "intermediate_path"
+
+    s._profileHandleDoubleClickNode("C")
+
+    assert "C" in s._profileReferenceNodes
+
+
+def test_double_click_pass_node_deletes_it():
+    adjacency, lengths = _grid()
+    s = _Section(adjacency, lengths)
+    s._profileReferenceNodes = ["A", "C", "D"]
+    s._rebuildProfilePaths()
+    assert s._profileClassifyNode("C") == "through"
+
+    s._profileHandleDoubleClickNode("C")
+
+    assert s._profileReferenceNodes == ["A", "D"]
+
+
+def test_double_click_ignored_during_tracing():
+    adjacency, lengths = _grid()
+    s = _Section(adjacency, lengths)
+    s._profileReferenceNodes = ["A", "C", "D"]
+    s._rebuildProfilePaths()
+    s._profileEditSeq = "main"  # mid-tracing
+
+    s._profileHandleDoubleClickNode("C")
+
+    assert s._profileReferenceNodes == ["A", "C", "D"]  # unchanged
+
+
+def test_left_click_pass_node_arms_move():
+    adjacency, lengths = _grid()
+    s = _Section(adjacency, lengths)
+    s._profileReferenceNodes = ["A", "C", "D"]
+    s._rebuildProfilePaths()
+    s._profileEditSeq = None
+    s._resolveProfileNode = lambda _point: "C"  # C is a declared pass node
+
+    s._profileEditLeftClick(object())
+
+    assert s._profileEditSeq == "move"
+    assert s._profileMoveSource == "C"
+
+
+def test_left_click_intermediate_node_does_nothing():
+    adjacency, lengths = _grid()
+    s = _Section(adjacency, lengths)
+    s._profileReferenceNodes = ["A", "D"]
+    s._rebuildProfilePaths()
+    s._profileEditSeq = None
+    s._resolveProfileNode = lambda _point: "C"  # C is intermediate, not declared
+
+    s._profileEditLeftClick(object())
+
+    assert s._profileEditSeq is None
+    assert getattr(s, "_profileMoveSource", None) is None
+
+
+def test_right_double_click_endpoint_extends():
+    adjacency, lengths = _linear()
+    s = _Section(adjacency, lengths)
+    s._profileReferenceNodes = ["B", "C", "D"]
+    s._rebuildProfilePaths()
+    s._profileContextPending = True  # a menu was deferred by the first right-click
+    # B is the path start with a free line (A-B), so extend is armed at the start.
+    s._profileHandleRightDoubleClickNode("B")
+    assert s._profileEditSeq == "main"
+    assert s._profileExtendAtStart is True
+
+
+def test_right_double_click_interior_pass_starts_branch():
+    adjacency, lengths = _grid()
+    s = _Section(adjacency, lengths)
+    s._profileReferenceNodes = ["A", "C", "D"]
+    s._rebuildProfilePaths()
+    s._profileContextPending = True
+    # C has connectivity 3 with a free line (L6), so a branch is started.
+    s._profileHandleRightDoubleClickNode("C")
+    assert s._profileEditSeq == "branch"
+    assert len(s._profileBranches) == 1
+
+
+def test_right_double_click_ignored_without_pending_menu():
+    adjacency, lengths = _grid()
+    s = _Section(adjacency, lengths)
+    s._profileReferenceNodes = ["A", "C", "D"]
+    s._rebuildProfilePaths()
+    # No context menu was deferred (e.g. a stray double right-click): do nothing.
+    s._profileHandleRightDoubleClickNode("C")
+    assert getattr(s, "_profileEditSeq", None) is None
+    assert s._profileBranches == []
