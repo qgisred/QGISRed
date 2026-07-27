@@ -794,9 +794,9 @@ class ProfilePlotWidget(QWidget):
         my = (y0 + y1) / 2.0
         perp_x = -uy
         perp_y = ux
-        tip = QPointF(mx + ux * 5.0, my + uy * 5.0)
-        base1 = QPointF(mx - ux * 3.0 + perp_x * 3.0, my - uy * 3.0 + perp_y * 3.0)
-        base2 = QPointF(mx - ux * 3.0 - perp_x * 3.0, my - uy * 3.0 - perp_y * 3.0)
+        tip = QPointF(mx + ux * 6.5, my + uy * 6.5)
+        base1 = QPointF(mx - ux * 4.0 + perp_x * 4.0, my - uy * 4.0 + perp_y * 4.0)
+        base2 = QPointF(mx - ux * 4.0 - perp_x * 4.0, my - uy * 4.0 - perp_y * 4.0)
         painter.setPen(Qt.PenStyle.NoPen)
         arrow_color = QColor(color).darker(135) if color is not None else QColor(40, 40, 40)
         painter.setBrush(QBrush(arrow_color))
