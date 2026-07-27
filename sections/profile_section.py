@@ -98,15 +98,23 @@ def _profile_state_property(field):
 
 class ProfileSection:
     def runProfile(self):
+        button = getattr(self, "profileButton", None)
+        if button is not None and not button.isChecked():
+            # The checkable action was toggled off: hide the profile panels.
+            self._hideProfiles()
+            return
         if not self.checkDependencies():
+            self._setProfileButtonChecked(False)
             return
         self.defineCurrentProject()
         if not self.isValidProject():
+            self._setProfileButtonChecked(False)
             return
         self._ensureResultsDockVisibleForTimeSeries()
         out_path = self._outFilePath()
         if not os.path.exists(out_path):
             self.pushMessage(self.tr("Run a simulation first to build a longitudinal profile."), level=1)
+            self._setProfileButtonChecked(False)
             return
 
         if not getattr(self, "_profiles", None):
@@ -118,6 +126,7 @@ class ProfileSection:
             dock.raise_()
             dock.setEditMode(True)
             self._drawProfileHighlight()
+        self._setProfileButtonChecked(True)
 
     def newProfilePanel(self):
         if not self.checkDependencies():
@@ -166,6 +175,7 @@ class ProfileSection:
             with suppress(Exception):
                 QApplication.instance().focusChanged.connect(self._onProfilePanelFocusChanged)
                 self._profileFocusConnected = True
+        self._ensureProfileMapToolSignal()
 
         self._setActiveProfileDock(dock)
         with suppress(Exception):
@@ -175,6 +185,7 @@ class ProfileSection:
         dock.show()
         dock.raise_()
         dock.setEditMode(True)
+        self._setProfileButtonChecked(True)
 
     def _wireProfileDock(self, dock):
         dock.editModeToggled.connect(lambda on, d=dock: self._onProfileEditToggled(d, on))
@@ -204,6 +215,64 @@ class ProfileSection:
     def _activeDock(self):
         state = getattr(self, "_activeProfile", None)
         return state.dock if state is not None else None
+
+    def _setProfileButtonChecked(self, checked):
+        # The ribbon button reflects "profile mode active"; it is driven by the
+        # dock lifecycle, NOT linked to the canvas map tool, so zooming/panning
+        # or reorganizing docks does not toggle it off.
+        button = getattr(self, "profileButton", None)
+        if button is None:
+            return
+        with suppress(Exception):
+            if button.isChecked() != bool(checked):
+                button.setChecked(bool(checked))
+
+    def _anyProfileDockVisible(self):
+        for state in getattr(self, "_profiles", []) or []:
+            dock = state.dock
+            if dock is None:
+                continue
+            with suppress(Exception):
+                if dock.isVisible():
+                    return True
+        return False
+
+    def _hideProfiles(self):
+        self._deactivateProfileMapTool()
+        self._clearProfileMapHover()
+        for state in list(getattr(self, "_profiles", []) or []):
+            with suppress(Exception):
+                self._clearHighlightForState(state)
+            dock = state.dock
+            if dock is not None:
+                with suppress(Exception):
+                    dock.hide()
+        self._setProfileButtonChecked(False)
+
+    def _ensureProfileMapToolSignal(self):
+        if getattr(self, "_profileMapToolSignalConnected", False):
+            return
+        try:
+            self.iface.mapCanvas().mapToolSet.connect(self._onMapToolSetForProfile)
+            self._profileMapToolSignalConnected = True
+        except Exception:
+            self._profileMapToolSignalConnected = False
+
+    def _onMapToolSetForProfile(self, tool):
+        # The canvas map tool is the authoritative signal for "which analysis
+        # mode owns the canvas" — far more reliable than Qt focus events. Drive
+        # the profile button off it, but ignore neutral tools (zoom/pan/edit) so
+        # they don't toggle the button off.
+        tools = getattr(self, "myMapTools", {})
+        profile_tool = tools.get("Profile")
+        if profile_tool is not None and tool is profile_tool:
+            self._setProfileButtonChecked(True)
+            return
+        ts_tool = tools.get("TimeSeries")
+        evo_tool = tools.get("ResultsEvolution")
+        if tool is not None and (tool is ts_tool or tool is evo_tool):
+            # A competing analysis mode took the canvas: profiles is no longer active.
+            self._cedeProfileFocus()
 
     def _syncActiveProfileToVisible(self):
         active = getattr(self, "_activeProfile", None)
@@ -282,6 +351,7 @@ class ProfileSection:
         for state in list(self._profiles):
             self._clearHighlightForState(state)
         self._restyleProfileDocks()
+        self._setProfileButtonChecked(False)
 
     def _redrawAllProfileHighlights(self):
         saved = getattr(self, "_activeProfile", None)
@@ -317,6 +387,8 @@ class ProfileSection:
         active = getattr(self, "_activeProfile", None)
         if active is None or active is gone or active not in remaining:
             self._activeProfile = remaining[-1] if remaining else None
+        if not remaining:
+            self._setProfileButtonChecked(False)
         self._restyleProfileDocks()
 
     def _setProfileMapTool(self, kind, callback, context_callback=None, cursor=":/images/iconProfile.svg"):
@@ -557,15 +629,29 @@ class ProfileSection:
         state = getattr(dock, "_state", None)
         if state is None:
             return
-        if not visible:
+        if visible:
+            self._setActiveProfileDock(dock)
+            with suppress(Exception):
+                self._drawProfileHighlight()
+            return
+
+        from qgis.PyQt.QtCore import QTimer
+
+        def _apply_hidden():
+            # A dock reorganize (tabify/move) hides then re-shows the dock. Defer
+            # the teardown one event-loop tick so a transient hide doesn't tear
+            # down the tool or toggle the button off.
+            with suppress(Exception):
+                if dock.isVisible():
+                    return
             if self._activeDock() is dock:
                 self._deactivateProfileMapTool()
             self._clearHighlightForState(state)
             self._clearProfileMapHover()
-        else:
-            self._setActiveProfileDock(dock)
-            with suppress(Exception):
-                self._drawProfileHighlight()
+            if not self._anyProfileDockVisible():
+                self._setProfileButtonChecked(False)
+
+        QTimer.singleShot(0, _apply_hidden)
 
     def _onProfileExportConfig(self, dock, path):
         from ..ui.analysis.profile_config_io import write_profile_config
