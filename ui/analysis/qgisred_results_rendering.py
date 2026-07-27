@@ -128,22 +128,38 @@ class _ResultsRenderingMixin:
     # across languages) so the user can identify the displayed variable by color.
     _MAGNITUDE_COLORS = {
         # Nodes
-        "Pressure": "#729b6f",    # verde
-        "Head": "#d5cf3c",        # ocre
-        "Demand": "#1f78b4",      # azul
-        "Quality": "#8d5a99",     # morado
+        "Pressure": "#729b6f",    # verde (presión)
+        "Head": "#b5981f",        # ocre/ámbar (más oscuro e intenso que el ocre previo)
+        "Demand": "#67add9",      # azul claro (distinto del azul de Flow)
+        "Quality": "#8d5a99",     # morado (calidad en nudos)
         # Links
         "Flow": "#1f78b4",        # azul
         "Flow_Unsig": "#1f78b4",  # azul
         "Flow_Sig": "#1f78b4",    # azul
         "Velocity": "#e17da2",    # magenta
-        "HeadLoss": "#729b6f",    # verde
-        "UnitHdLoss": "#becf50",  # verde claro
+        "HeadLoss": "#2f8f5b",    # verde esmeralda (pérdidas totales; distinto de presión y de Head)
+        "UnitHdLoss": "#becf50",  # verde claro (pérdidas unitarias)
         "FricFactor": "#52828f",  # gris
         "Status": "#e77148",      # naranja
         "ReactRate": "#e8718d",   # rosa
     }
+    # Overrides applied only to link layers for field names shared with nodes, so the
+    # link variant is distinguishable when both element types show the same magnitude
+    # (e.g. quality on nodes and on links at the same time).
+    _MAGNITUDE_LINK_COLORS = {
+        "Quality": "#b18ec9",     # violeta claro (calidad en líneas; distinto del morado de nudos)
+    }
     _MAGNITUDE_DEFAULT_COLOR = "#000000"
+
+    def _magnitudeColor(self, field, is_node):
+        """Return the label color (hex string) for a magnitude, or None if the field has
+        no assigned color. Link layers get the link-specific override when one exists for
+        a field name shared with nodes."""
+        if not is_node:
+            override = self._MAGNITUDE_LINK_COLORS.get(field)
+            if override:
+                return override
+        return self._MAGNITUDE_COLORS.get(field)
 
     def _getRenderStorageKey(self, layer_path, var_key):
         """Build the cache key used to store/retrieve a renderer for a given layer and variable."""
@@ -367,7 +383,7 @@ class _ResultsRenderingMixin:
         if not magnitudeText:
             label.setText("")
             return
-        color = self._MAGNITUDE_COLORS.get(field, self._MAGNITUDE_DEFAULT_COLOR)
+        color = self._magnitudeColor(field, "Node" in nameLayer) or self._MAGNITUDE_DEFAULT_COLOR
         text = f'<span style="font-size:12pt; font-weight:bold; color:{color};">{magnitudeText}</span>'
         if unit:
             text += f' <span style="font-size:10pt; font-weight:normal; color:{color};">({unit})</span>'
@@ -415,7 +431,7 @@ class _ResultsRenderingMixin:
 
         # Color the label text by magnitude (same palette as the header label) so the
         # user identifies the variable by color. Fall back to the neutral defaults.
-        mag_color = self._MAGNITUDE_COLORS.get(fieldName)
+        mag_color = self._magnitudeColor(fieldName, is_node)
         if mag_color:
             default_color = QColor(mag_color)
         else:
