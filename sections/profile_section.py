@@ -559,22 +559,43 @@ class ProfileSection:
         mode = getattr(self, "_profileEnvelopeMode", "off")
         return mode != "off" and key in ("Head", "Pressure", "Quality", "HeadLoss")
 
-    def _applyProfileEnvelope(self, dock, key, nodes, links, distances):
-        if not self._profileEnvelopeActive(key):
+    def _applyProfileEnvelope(self, dock, key, secondary_key, nodes, links, distances):
+        envelopes = []
+        primary = self._buildEnvelopeEntry(key, nodes, links, distances, "left")
+        if primary is not None:
+            envelopes.append(primary)
+        if (secondary_key and secondary_key != key
+                and not (key == "Head" and secondary_key == "Elevation")):
+            secondary = self._buildEnvelopeEntry(secondary_key, nodes, links, distances, "right")
+            if secondary is not None:
+                envelopes.append(secondary)
+        if not envelopes:
             dock.clearEnvelope()
             return
+        dock.setEnvelope(envelopes)
+
+    def _buildEnvelopeEntry(self, key, nodes, links, distances, axis):
+        if not self._profileEnvelopeActive(key):
+            return None
         if key == "HeadLoss":
             stat_max, stat_min = self._profileLinkStats()
             max_points, min_points = self._lossEnvelopePoints(links, distances, nodes, stat_max, stat_min)
         else:
             stat_max, stat_min = self._profileStats()
             max_points, min_points = envelope_points(nodes, distances, stat_max, stat_min, key)
-        labels = {
-            "max": self.tr("Maxima"),
-            "min": self.tr("Minima"),
-            "band": self.tr("Envelope"),
+        var_display = self._profileVariableDisplay(key)
+        return {
+            "max": max_points,
+            "min": min_points,
+            "mode": self._profileEnvelopeMode,
+            "color": self._profileVariableColor(key),
+            "axis": axis,
+            "labels": {
+                "max": "{0} · {1}".format(self.tr("Maxima"), var_display),
+                "min": "{0} · {1}".format(self.tr("Minima"), var_display),
+                "band": "{0} · {1}".format(self.tr("Envelope"), var_display),
+            },
         }
-        dock.setEnvelope(max_points, min_points, self._profileEnvelopeMode, labels)
 
     def _profileStableSegments(self, include_branches):
         segments = []
@@ -1496,7 +1517,7 @@ class ProfileSection:
         with suppress(Exception):
             self._applyProfileStableRanges(dock, key, secondary_key)
         with suppress(Exception):
-            self._applyProfileEnvelope(dock, key, nodes, links, distances)
+            self._applyProfileEnvelope(dock, key, secondary_key, nodes, links, distances)
         with suppress(Exception):
             self._applyProfileSymbols(dock, nodes, links)
 

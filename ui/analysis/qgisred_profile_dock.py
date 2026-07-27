@@ -414,8 +414,8 @@ class QGISRedProfileDock(QDockWidget):
     def clearSymbols(self):
         self.plot.clearSymbols()
 
-    def setEnvelope(self, max_points, min_points, mode="both", labels=None):
-        self.plot.setEnvelope(max_points, min_points, mode, labels)
+    def setEnvelope(self, envelopes):
+        self.plot.setEnvelope(envelopes)
 
     def currentEnvelopeMode(self):
         for mode, action in self._envelopeActions.items():

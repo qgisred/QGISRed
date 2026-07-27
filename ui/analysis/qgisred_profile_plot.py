@@ -83,7 +83,7 @@ class ProfilePlotWidget(QWidget):
         self._cursor_path_key = None
         self._show_value_labels = False
         self._symbols = None
-        self._envelope = None
+        self._envelopes = None
         self._stable = {"left": None, "right": None}
         self._view_x = None
         self._pan_mode = False
@@ -121,23 +121,33 @@ class ProfilePlotWidget(QWidget):
         self._symbols = None
         self.update()
 
-    def setEnvelope(self, max_points, min_points, mode="both", labels=None):
-        if not max_points or not min_points or mode == "off":
-            self._envelope = None
-        else:
-            labels = labels or {}
-            self._envelope = {
+    def setEnvelope(self, envelopes):
+        # envelopes: list of dicts with keys max, min, mode, color, axis, labels.
+        # Each band is drawn in its curve's color (softened) and mapped to its own
+        # Y axis, so left- and right-axis bands can overlap and stay distinguishable.
+        result = []
+        for env in envelopes or []:
+            max_points = env.get("max")
+            min_points = env.get("min")
+            mode = env.get("mode", "both")
+            if not max_points or not min_points or mode == "off":
+                continue
+            labels = env.get("labels") or {}
+            result.append({
                 "max": [(float(d), None if v is None else float(v)) for d, v in max_points],
                 "min": [(float(d), None if v is None else float(v)) for d, v in min_points],
                 "mode": mode,
+                "color": env.get("color"),
+                "axis": "right" if env.get("axis") == "right" else "left",
                 "max_label": labels.get("max", "Maxima"),
                 "min_label": labels.get("min", "Minima"),
                 "band_label": labels.get("band", "Envelope"),
-            }
+            })
+        self._envelopes = result or None
         self.update()
 
     def clearEnvelope(self):
-        self._envelope = None
+        self._envelopes = None
         self.update()
 
     def setStableRanges(self, left_points, right_points):
@@ -238,7 +248,7 @@ class ProfilePlotWidget(QWidget):
         self._cursor_data_x = None
         self._cursor_path_key = None
         self._symbols = None
-        self._envelope = None
+        self._envelopes = None
         self._stable = {"left": None, "right": None}
         self._view_x = None
         self._zoom_rect = None
@@ -253,9 +263,9 @@ class ProfilePlotWidget(QWidget):
                     continue
                 xs.append(d)
                 ys.append(v)
-        if self._envelope is not None:
+        for env in self._envelopes or []:
             for boundary in ("max", "min"):
-                for d, v in self._envelope[boundary]:
+                for d, v in env[boundary]:
                     if v is None:
                         continue
                     xs.append(d)
@@ -504,8 +514,8 @@ class ProfilePlotWidget(QWidget):
 
         painter.save()
         painter.setClipRect(plot)
-        if self._envelope is not None:
-            self._drawEnvelope(painter, px, py)
+        if self._envelopes:
+            self._drawEnvelope(painter, px, py, py_r if has_right else None)
         for s in self._series:
             self._drawSeries(painter, s, px, py_of(s), plot.bottom())
         self._drawNodeVerticalLines(painter, plot, px, py_of)
@@ -538,14 +548,20 @@ class ProfilePlotWidget(QWidget):
         color = QColor(self._general_cfg.plot_bg_hex)
         return color if color.isValid() else QColor(250, 252, 255)
 
-    def _drawEnvelope(self, painter, px, py):
-        show_band, show_lines = resolve_envelope_mode(self._envelope.get("mode", "both"))
-        max_points = self._envelope["max"]
-        min_points = self._envelope["min"]
+    def _drawEnvelope(self, painter, px, py, py_r):
+        for env in self._envelopes or []:
+            py_axis = py_r if (py_r is not None and env.get("axis") == "right") else py
+            self._drawEnvelopeBand(painter, env, px, py_axis)
+
+    def _drawEnvelopeBand(self, painter, env, px, py):
+        show_band, show_lines = resolve_envelope_mode(env.get("mode", "both"))
+        max_points = env["max"]
+        min_points = env["min"]
+        base = self._envelopeColor(env)
 
         if show_band:
-            band = QColor(ENVELOPE_FILL)
-            band.setAlpha(55)
+            band = QColor(base)
+            band.setAlpha(45)  # much softer than the (opaque) curve, so bands can overlap
             painter.setPen(Qt.PenStyle.NoPen)
             painter.setBrush(QBrush(band))
             run = []
@@ -560,11 +576,24 @@ class ProfilePlotWidget(QWidget):
             self._fillBand(painter, run, px, py)
 
         if show_lines:
-            painter.setPen(QPen(ENVELOPE_LINE, 1.2, Qt.PenStyle.DashLine))
+            line = QColor(base)
+            line.setAlpha(150)
+            painter.setPen(QPen(line, 1.2, Qt.PenStyle.DashLine))
             painter.setBrush(Qt.BrushStyle.NoBrush)
             for points in (max_points, min_points):
                 for segment in profile_line_segments(points):
                     painter.drawPolyline(QPolygonF([QPointF(px(d), py(v)) for d, v in segment]))
+
+    @staticmethod
+    def _envelopeColor(env):
+        color = env.get("color")
+        if isinstance(color, QColor) and color.isValid():
+            return QColor(color)
+        if isinstance(color, str):
+            parsed = QColor(color)
+            if parsed.isValid():
+                return parsed
+        return QColor(ENVELOPE_FILL)
 
     def _fillBand(self, painter, run, px, py):
         if len(run) < 2:
@@ -863,17 +892,19 @@ class ProfilePlotWidget(QWidget):
             entries.append({"label": s.get("display_label") or label, "curve_key": label, "kind": "line",
                             "color": s["color"], "width": s["width"], "dashed": False,
                             "deletable": s.get("deletable", False)})
-        if self._envelope is not None:
-            show_band, show_lines = resolve_envelope_mode(self._envelope.get("mode", "both"))
+        for env in self._envelopes or []:
+            show_band, show_lines = resolve_envelope_mode(env.get("mode", "both"))
+            base = self._envelopeColor(env)
             if show_lines:
-                entries.append({"label": self._envelope["max_label"], "kind": "line",
-                                "color": QColor(ENVELOPE_LINE), "width": 1.2, "dashed": True})
-                entries.append({"label": self._envelope["min_label"], "kind": "line",
-                                "color": QColor(ENVELOPE_LINE), "width": 1.2, "dashed": True})
+                line = QColor(base)
+                entries.append({"label": env["max_label"], "kind": "line",
+                                "color": QColor(line), "width": 1.2, "dashed": True})
+                entries.append({"label": env["min_label"], "kind": "line",
+                                "color": QColor(line), "width": 1.2, "dashed": True})
             elif show_band:
-                fill = QColor(ENVELOPE_FILL)
+                fill = QColor(base)
                 fill.setAlpha(120)
-                entries.append({"label": self._envelope["band_label"], "kind": "band", "color": fill})
+                entries.append({"label": env["band_label"], "kind": "band", "color": fill})
         return entries
 
     def _drawLegend(self, painter, plot):
