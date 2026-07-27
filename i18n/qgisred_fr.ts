@@ -4436,6 +4436,56 @@ Left-click: Add a new item below the current selection</source>
         <translation>Tracer le premier trajet</translation>
     </message>
     <message>
+        <location filename="../ui/analysis/qgisred_profile_dock.py" line="624"/>
+        <source>Edit paths: click nodes to trace, right-click a node for its options. Press next button for more info</source>
+        <translation>Éditer les trajets : cliquez sur les nœuds pour tracer, clic droit sur un nœud pour ses options. Cliquez sur le bouton suivant pour plus d'informations</translation>
+    </message>
+    <message>
+        <location filename="../ui/analysis/qgisred_profile_dock.py" line="624"/>
+        <source>How to edit paths</source>
+        <translation>Comment éditer les trajets</translation>
+    </message>
+    <message>
+        <location filename="../ui/analysis/qgisred_profile_dock.py" line="624"/>
+        <source>Turn on 'Edit paths' and click nodes on the map</source>
+        <translation>Activez « Éditer les trajets » et cliquez sur les nœuds de la carte</translation>
+    </message>
+    <message>
+        <location filename="../ui/analysis/qgisred_profile_dock.py" line="624"/>
+        <source>A profile can follow a single path or a tree (a main path with branches). Everything starts by activating the Edit paths button: with editing on, click network nodes to trace the first path and right-click any node to open its options menu, which lists only the actions available for that node. With editing off, moving over a path just tracks it and shows its values on the chart.</source>
+        <translation>Un profil peut suivre un seul trajet ou un arbre (un trajet principal avec des branches). Tout commence en activant le bouton Éditer les trajets : l'édition activée, cliquez sur les nœuds du réseau pour tracer le premier trajet et faites un clic droit sur n'importe quel nœud pour ouvrir son menu d'options, qui ne présente que les actions disponibles pour ce nœud. L'édition désactivée, survoler un trajet ne fait que le suivre et afficher ses valeurs sur le graphique.</translation>
+    </message>
+    <message>
+        <location filename="../ui/analysis/qgisred_profile_dock.py" line="624"/>
+        <source>With Edit paths on and no path yet, click the pass nodes one after another and right-click to finish (just like drawing a pipe in QGISRed).</source>
+        <translation>Avec Éditer les trajets activé et aucun trajet pour l'instant, cliquez sur les nœuds de passage l'un après l'autre et faites un clic droit pour terminer (comme pour dessiner une conduite dans QGISRed).</translation>
+    </message>
+    <message>
+        <location filename="../ui/analysis/qgisred_profile_dock.py" line="624"/>
+        <source>Right-click an end node, choose Extend path, and keep clicking nodes to prolong it; right-click to finish.</source>
+        <translation>Faites un clic droit sur un nœud d'extrémité, choisissez Prolonger le trajet et continuez à cliquer sur les nœuds pour le prolonger ; clic droit pour terminer.</translation>
+    </message>
+    <message>
+        <location filename="../ui/analysis/qgisred_profile_dock.py" line="624"/>
+        <source>Right-click an intermediate node of a path (one that is not a pass node yet) and choose Declare pass node.</source>
+        <translation>Faites un clic droit sur un nœud intermédiaire d'un trajet (qui n'est pas encore un point de passage) et choisissez Déclarer un point de passage.</translation>
+    </message>
+    <message>
+        <location filename="../ui/analysis/qgisred_profile_dock.py" line="624"/>
+        <source>Right-click an interior pass node, choose Create branch, and click the new branch nodes one after another; right-click to finish. A branch needs a converging line that is not already part of a path, so it is only offered where one is free.</source>
+        <translation>Faites un clic droit sur un point de passage intérieur, choisissez Créer une branche et cliquez sur les nouveaux nœuds de la branche l'un après l'autre ; clic droit pour terminer. Une branche a besoin d'une ligne convergente qui ne fait pas déjà partie d'un trajet ; elle n'est donc proposée que là où il en reste une libre.</translation>
+    </message>
+    <message>
+        <location filename="../ui/analysis/qgisred_profile_dock.py" line="624"/>
+        <source>Right-click it, choose Move pass node, then click the destination node. A branch point can only be moved to a node with the same or higher connectivity.</source>
+        <translation>Faites un clic droit dessus, choisissez Déplacer le point de passage, puis cliquez sur le nœud de destination. Un nœud de bifurcation ne peut être déplacé que vers un nœud de connectivité égale ou supérieure.</translation>
+    </message>
+    <message>
+        <location filename="../ui/analysis/qgisred_profile_dock.py" line="624"/>
+        <source>Right-click it and choose Delete pass node. A branch origin cannot be removed directly.</source>
+        <translation>Faites un clic droit dessus et choisissez Supprimer le point de passage. L'origine d'une branche ne peut pas être supprimée directement.</translation>
+    </message>
+    <message>
         <location filename="../ui/analysis/qgisred_profile_dock.py" line="626"/>
         <source>Turn on Edit, click the pass nodes one after another, and right-click to finish (just like drawing a pipe in QGISRed).</source>
         <translation>Activez Modifier, cliquez sur les points de passage l'un après l'autre, puis faites un clic droit pour terminer (comme pour tracer une conduite dans QGISRed).</translation>

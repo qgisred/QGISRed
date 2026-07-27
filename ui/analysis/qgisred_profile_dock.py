@@ -105,14 +105,15 @@ class QGISRedProfileDock(QDockWidget):
 
         self.btnEdit = self._makeIconButton(
             toolbar_widget, ":/images/pencil.svg",
-            self.tr("Edit trajectories: click nodes to trace, right-click a node for its options"),
+            self.tr("Edit paths: click nodes to trace, right-click a node for its options. "
+                    "Press next button for more info"),
             checkable=True)
         self.btnEdit.toggled.connect(self._onEditToggled)
         toolbar.addWidget(self.btnEdit)
 
         self.btnHelp = self._makeIconButton(
             toolbar_widget, ":/images/iconAbout.svg",
-            self.tr("How to edit trajectories"))
+            self.tr("How to edit paths"))
         self.btnHelp.clicked.connect(self.showEditHelp)
         toolbar.addWidget(self.btnHelp)
 
@@ -288,7 +289,7 @@ class QGISRedProfileDock(QDockWidget):
         self._splitter.addWidget(self.table)
 
         self.plot = ProfilePlotWidget(self._splitter)
-        self.plot.setEmptyText(self.tr("Turn on 'Edit trajectories' and click nodes on the map"))
+        self.plot.setEmptyText(self.tr("Turn on 'Edit paths' and click nodes on the map"))
         self.plot.cursorNodeChanged.connect(self._onCursorNode)
         self.plot.curveDeleteRequested.connect(self.curveDeleteRequested)
         self.table.currentCellChanged.connect(self._onTableRowChanged)
@@ -602,7 +603,7 @@ class QGISRedProfileDock(QDockWidget):
 
     def showEditHelp(self):
         dlg = QDialog(self)
-        dlg.setWindowTitle(self.tr("How to edit trajectories"))
+        dlg.setWindowTitle(self.tr("How to edit paths"))
         layout = QVBoxLayout(dlg)
         scroll = QScrollArea(dlg)
         scroll.setWidgetResizable(True)
@@ -622,31 +623,41 @@ class QGISRedProfileDock(QDockWidget):
         dlg.exec()
 
     def _editHelpHtml(self):
+        intro = self.tr(
+            "A profile can follow a single path or a tree (a main path with branches). Everything starts "
+            "by activating the Edit paths button: with editing on, click network nodes to trace the first "
+            "path and right-click any node to open its options menu, which lists only the actions available "
+            "for that node. With editing off, moving over a path just tracks it and shows its values on the "
+            "chart.")
         rows = [
             (self.tr("Trace the first path"),
-             self.tr("Turn on Edit, click the pass nodes one after another, and right-click to finish "
-                     "(just like drawing a pipe in QGISRed).")),
+             self.tr("With Edit paths on and no path yet, click the pass nodes one after another and "
+                     "right-click to finish (just like drawing a pipe in QGISRed).")),
             (self.tr("Extend a path"),
-             self.tr("Right-click its end node and keep clicking nodes to prolong it; right-click to finish.")),
+             self.tr("Right-click an end node, choose Extend path, and keep clicking nodes to prolong it; "
+                     "right-click to finish.")),
             (self.tr("Declare a pass node"),
-             self.tr("Right-click an intermediate node of any current path (one that is not a pass node yet).")),
-            (self.tr("Move a pass node"),
-             self.tr("Right-click it, choose Move, then click a free node (it may be a bifurcation, a branch "
-                     "end, or the tree origin).")),
-            (self.tr("Remove a pass node"),
-             self.tr("Right-click it and choose Delete. A bifurcation cannot be removed directly.")),
+             self.tr("Right-click an intermediate node of a path (one that is not a pass node yet) and "
+                     "choose Declare pass node.")),
             (self.tr("Create a branch"),
-             self.tr("Right-click any pass node, then click the new branch nodes one after another "
-                     "(without repeating a node already declared); right-click to finish.")),
+             self.tr("Right-click an interior pass node, choose Create branch, and click the new branch "
+                     "nodes one after another; right-click to finish. A branch needs a converging line "
+                     "that is not already part of a path, so it is only offered where one is free.")),
+            (self.tr("Move a pass node"),
+             self.tr("Right-click it, choose Move pass node, then click the destination node. A branch "
+                     "point can only be moved to a node with the same or higher connectivity.")),
+            (self.tr("Remove a pass node"),
+             self.tr("Right-click it and choose Delete pass node. A branch origin cannot be removed "
+                     "directly.")),
             (self.tr("Remove a branch"),
-             self.tr("Delete its pass nodes from the far end toward the origin. When only the branch end is "
-                     "left, deleting it removes the whole branch.")),
+             self.tr("Delete its pass nodes from the far end toward the origin. When only the branch end "
+                     "is left, deleting it removes the whole branch.")),
         ]
-        intro = self.tr("Everything starts with the single Edit trajectories button. While editing is on, "
-                        "clicking and right-clicking network nodes builds and reshapes the paths. Turn it off "
-                        "and moving over a trajectory only tracks it and shows information on the chart.")
-        items = "".join("<li><b>{0}.</b> {1}</li>".format(title, text) for title, text in rows)
-        return "<p>{0}</p><ul>{1}</ul>".format(intro, items)
+        items = "".join(
+            "<p style=\"margin-top:11px; margin-bottom:0px;\"><b>{0}.</b> {1}</p>".format(title, text)
+            for title, text in rows
+        )
+        return "<p style=\"margin-top:0px; margin-bottom:2px;\">{0}</p>{1}".format(intro, items)
 
     def _onChartOptions(self):
         from .qgisred_profile_chart_options_dialog import QGISRedProfileChartOptionsDialog

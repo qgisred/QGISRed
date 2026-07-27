@@ -1011,7 +1011,7 @@ class ProfileSection:
         return len(adjacency.get(node_id, []))
 
     def _profileUsedLinks(self):
-        """Every link already part of a profile trajectory (main path or branches)."""
+        """Every link already part of a profile path (main path or branches)."""
         used = set()
         main = getattr(self, "_profilePath", None)
         if main:
@@ -1023,7 +1023,7 @@ class ProfileSection:
         return used
 
     def _profileNodeHasFreeLink(self, node_id):
-        """True if a line converging on the node is not yet part of any trajectory."""
+        """True if a line converging on the node is not yet part of any path."""
         adjacency = getattr(self, "_profileAdjacency", None) or {}
         used = self._profileUsedLinks()
         return any(lid not in used for lid, _neighbor in adjacency.get(node_id, []))
