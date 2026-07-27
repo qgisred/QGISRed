@@ -52,6 +52,7 @@ class ProfileState:
         self.report_start = 0
         self.report_step = 3600
         self.stat_cache = None
+        self.link_stat_cache = None
         self.show_symbols = False
         self.envelope_mode = "off"
         self.highlights = []
@@ -74,6 +75,7 @@ _PROFILE_STATE_FIELDS = {
     "_profileReportStart": "report_start",
     "_profileReportStep": "report_step",
     "_profileStatCache": "stat_cache",
+    "_profileLinkStatCache": "link_stat_cache",
     "_profileShowSymbols": "show_symbols",
     "_profileEnvelopeMode": "envelope_mode",
     "_profileHighlights": "highlights",
@@ -518,16 +520,55 @@ class ProfileSection:
         self._profileStatCache = cache
         return cache
 
+    def _profileLinkStats(self):
+        cache = getattr(self, "_profileLinkStatCache", None)
+        if cache is not None:
+            return cache
+        from ..ui.analysis.qgisred_results_binary import getOut_StatLinksProperties
+
+        out_path = self._outFilePath()
+        cache = (
+            getOut_StatLinksProperties(out_path, "Maximum"),
+            getOut_StatLinksProperties(out_path, "Minimum"),
+        )
+        self._profileLinkStatCache = cache
+        return cache
+
+    @staticmethod
+    def _linkLossStat(stat, link_id):
+        entry = stat.get(link_id) or {}
+        headloss = entry.get("HeadLoss") or {}
+        value = headloss.get("Value")
+        return float(value) if value is not None else 0.0
+
+    def _lossEnvelopePoints(self, links, distances, nodes, stat_max, stat_min):
+        # Accumulated head loss has no per-node statistic: build the band by
+        # accumulating the per-link maximum (and minimum) head loss over the
+        # whole simulation, mirroring how the current-time curve accumulates the
+        # per-link loss. The band starts at 0 at the first node of the segment.
+        max_losses = {lid: self._linkLossStat(stat_max, lid) for lid in links}
+        min_losses = {lid: self._linkLossStat(stat_min, lid) for lid in links}
+        cum_max = cumulative_link_losses(links, max_losses)
+        cum_min = cumulative_link_losses(links, min_losses)
+        count = min(len(nodes), len(distances), len(cum_max), len(cum_min))
+        max_points = [(distances[i], cum_max[i]) for i in range(count)]
+        min_points = [(distances[i], cum_min[i]) for i in range(count)]
+        return max_points, min_points
+
     def _profileEnvelopeActive(self, key):
         mode = getattr(self, "_profileEnvelopeMode", "off")
-        return mode != "off" and key in ("Head", "Pressure", "Quality")
+        return mode != "off" and key in ("Head", "Pressure", "Quality", "HeadLoss")
 
-    def _applyProfileEnvelope(self, dock, key, nodes, distances):
+    def _applyProfileEnvelope(self, dock, key, nodes, links, distances):
         if not self._profileEnvelopeActive(key):
             dock.clearEnvelope()
             return
-        stat_max, stat_min = self._profileStats()
-        max_points, min_points = envelope_points(nodes, distances, stat_max, stat_min, key)
+        if key == "HeadLoss":
+            stat_max, stat_min = self._profileLinkStats()
+            max_points, min_points = self._lossEnvelopePoints(links, distances, nodes, stat_max, stat_min)
+        else:
+            stat_max, stat_min = self._profileStats()
+            max_points, min_points = envelope_points(nodes, distances, stat_max, stat_min, key)
         labels = {
             "max": self.tr("Maxima"),
             "min": self.tr("Minima"),
@@ -539,20 +580,29 @@ class ProfileSection:
         segments = []
         main = getattr(self, "_profilePath", None)
         if main and main["nodes"]:
-            segments.append((main["nodes"], self._profileDistances))
+            segments.append((main["nodes"], main["links"], self._profileDistances))
         if include_branches:
             for branch in getattr(self, "_profileBranches", []) or []:
                 branch_path = branch.get("path")
                 if branch_path and branch_path["nodes"]:
-                    segments.append((branch_path["nodes"], branch["distances"]))
+                    segments.append((branch_path["nodes"], branch_path["links"], branch["distances"]))
         return segments
 
     def _profileStableAxisPoints(self, key, segments):
+        if key == "HeadLoss":
+            stat_max, stat_min = self._profileLinkStats()
+            points = []
+            for seg_nodes, seg_links, seg_distances in segments:
+                max_points, min_points = self._lossEnvelopePoints(
+                    seg_links, seg_distances, seg_nodes, stat_max, stat_min)
+                points.extend((d, v) for d, v in max_points if v is not None)
+                points.extend((d, v) for d, v in min_points if v is not None)
+            return points or None
         if key not in ("Head", "Pressure", "Quality"):
             return None
         stat_max, stat_min = self._profileStats()
         points = []
-        for seg_nodes, seg_distances in segments:
+        for seg_nodes, seg_links, seg_distances in segments:
             max_points, min_points = envelope_points(seg_nodes, seg_distances, stat_max, stat_min, key)
             points.extend((d, v) for d, v in max_points if v is not None)
             points.extend((d, v) for d, v in min_points if v is not None)
@@ -563,7 +613,7 @@ class ProfileSection:
         left = self._profileStableAxisPoints(key, left_segments) or []
         if key == "Head":
             elev = getattr(self, "_profileNodeElev", {})
-            for seg_nodes, seg_distances in left_segments:
+            for seg_nodes, seg_links, seg_distances in left_segments:
                 for i, node in enumerate(seg_nodes):
                     value = elev.get(node)
                     if value is not None:
@@ -703,6 +753,7 @@ class ProfileSection:
         self._profileBranches = []
         self._profileCurrentBranch = None
         self._profileStatCache = None
+        self._profileLinkStatCache = None
 
         try:
             self._recomputeProfileStructure()
@@ -1445,7 +1496,7 @@ class ProfileSection:
         with suppress(Exception):
             self._applyProfileStableRanges(dock, key, secondary_key)
         with suppress(Exception):
-            self._applyProfileEnvelope(dock, key, nodes, distances)
+            self._applyProfileEnvelope(dock, key, nodes, links, distances)
         with suppress(Exception):
             self._applyProfileSymbols(dock, nodes, links)
 
@@ -1512,16 +1563,32 @@ class ProfileSection:
         ]
         add_envelope = self._profileEnvelopeActive(key)
         stat_max, stat_min = ({}, {})
+        loss_max = loss_min = None
         if add_envelope:
             headers += [self.tr("Maximum"), self.tr("Max. time"), self.tr("Minimum"), self.tr("Min. time")]
-            stat_max, stat_min = self._profileStats()
+            if key == "HeadLoss":
+                # Accumulated loss has no per-node stat: use the accumulated max/min band.
+                links = (getattr(self, "_profilePath", {}) or {}).get("links") or []
+                lstat_max, lstat_min = self._profileLinkStats()
+                max_points, min_points = self._lossEnvelopePoints(links, distances, nodes, lstat_max, lstat_min)
+                loss_max = [v for _d, v in max_points]
+                loss_min = [v for _d, v in min_points]
+            else:
+                stat_max, stat_min = self._profileStats()
         rows = []
         for i, node in enumerate(nodes):
             row = [str(node), format_profile_value(distances[i])]
             for s in series:
                 value = s["points"][i][1] if i < len(s["points"]) else None
                 row.append(format_profile_value(value))
-            if add_envelope:
+            if add_envelope and key == "HeadLoss":
+                row += [
+                    format_profile_value(loss_max[i] if loss_max and i < len(loss_max) else None),
+                    "-",
+                    format_profile_value(loss_min[i] if loss_min and i < len(loss_min) else None),
+                    "-",
+                ]
+            elif add_envelope:
                 mx = stat_max.get(node, {}).get(key, {})
                 mn = stat_min.get(node, {}).get(key, {})
                 row += [

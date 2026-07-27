@@ -18,6 +18,9 @@ HEAD_MAX = {"A": 100.0, "B": 95.0, "C": 90.0, "D": 85.0, "E": 93.0, "F": 80.0}
 HEAD_MIN = {"A": 60.0, "B": 58.0, "C": 55.0, "D": 50.0, "E": 57.0, "F": 45.0}
 PRESS_MAX = {"A": 40.0, "B": 38.0, "C": 36.0, "D": 34.0, "E": 37.0, "F": 30.0}
 PRESS_MIN = {"A": 10.0, "B": 9.0, "C": 8.0, "D": 7.0, "E": 8.5, "F": 5.0}
+# Per-link head-loss statistics over the whole simulation.
+LOSS_MAX = {"L1": 5.0, "L2": 4.0, "L3": 3.0, "L4": 6.0, "L5": 2.0, "L6": 1.0, "L7": 1.0}
+LOSS_MIN = {"L1": 1.0, "L2": 1.0, "L3": 1.0, "L4": 1.0, "L5": 1.0, "L6": 0.0, "L7": 0.0}
 
 
 class _Dock:
@@ -38,6 +41,11 @@ class _Section(ProfileSection):
     def _profileStats(self):
         stat_max = {n: {"Head": {"Value": HEAD_MAX[n]}, "Pressure": {"Value": PRESS_MAX[n]}} for n in HEAD_MAX}
         stat_min = {n: {"Head": {"Value": HEAD_MIN[n]}, "Pressure": {"Value": PRESS_MIN[n]}} for n in HEAD_MIN}
+        return stat_max, stat_min
+
+    def _profileLinkStats(self):
+        stat_max = {lid: {"HeadLoss": {"Value": LOSS_MAX[lid]}} for lid in LOSS_MAX}
+        stat_min = {lid: {"HeadLoss": {"Value": LOSS_MIN[lid]}} for lid in LOSS_MIN}
         return stat_max, stat_min
 
 
@@ -68,10 +76,16 @@ def test_head_stable_points_span_whole_simulation_over_all_nodes():
     assert min(values) == 45.0   # F min (branch node)
 
 
-def test_headloss_has_no_stable_points():
+def test_headloss_stable_points_span_accumulated_band():
     s = _tree()
     segments = s._profileStableSegments(include_branches=True)
-    assert s._profileStableAxisPoints("HeadLoss", segments) is None
+    pts = s._profileStableAxisPoints("HeadLoss", segments)
+    assert pts is not None
+    values = [v for _d, v in pts]
+    # Main path A-B-C-D accumulates the per-link max losses: 5 + 4 + 3 = 12.
+    assert max(values) == 12.0
+    # Every segment's band starts at 0 at its first node.
+    assert min(values) == 0.0
 
 
 def test_apply_stable_ranges_includes_elevation_for_head():
