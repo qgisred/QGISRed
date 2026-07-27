@@ -3217,7 +3217,8 @@ class QGISRedLegendsDialog(QDialog, formClass):
             lighterHex = self._lightenColor(color, self.SERVICE_CONNECTION_LIGHTEN_FRACTION).name().lower()
             strokeExpr = f"if(IsActive is NULL, '{userHex}',if(IsActive >0, '{userHex}','#ff0f13'))"
             fillExpr = (
-                f"if(BaseDemand>0,if(IsActive is NULL or IsActive >0,'{lighterHex}','#c7cbc5'),'#fff')"
+                f"if(coalesce(attribute($currentfeature,'BaseDem'),attribute($currentfeature,'BaseDemand'))>0,"
+                f"if(IsActive is NULL or IsActive >0,'{lighterHex}','#c7cbc5'),'#fff')"
             )
             self._setExpressionOnLayers(symbol, SL_PROP_STROKE_COLOR, strokeExpr)
             self._setExpressionOnLayers(symbol, SL_PROP_FILL_COLOR, fillExpr)
@@ -3233,7 +3234,7 @@ class QGISRedLegendsDialog(QDialog, formClass):
             rgb = f"color_rgb({color.red()},{color.green()},{color.blue()})"
             fillExpr = (
                 f"if( \"Available\"!=0,"
-                f"if( \"Status\"='CLOSED',color_rgb(255,19,19), "
+                f"if( coalesce(attribute($currentfeature,'IniStatus'),attribute($currentfeature,'Status'))='CLOSED',color_rgb(255,19,19), "
                 f"if(\"LossCoeff\" = 0, {rgb},color_rgb(246,185,18))),"
                 f"color_rgb(125,139,143))"
             )
@@ -3249,8 +3250,9 @@ class QGISRedLegendsDialog(QDialog, formClass):
         if color is not None:
             userHex = color.name().lower()
             fillExpr = (
-                f"if (BaseValue is NULL, '#ffffff', if( BaseValue >0, '{userHex}', "
-                f"if (BaseValue <0 , '#a6cee3', '#ffffff')))"
+                f"with_variable('bd', coalesce(attribute($currentfeature,'BaseDem'),attribute($currentfeature,'BaseValue')), "
+                f"if (@bd is NULL, '#ffffff', if( @bd >0, '{userHex}', "
+                f"if (@bd <0 , '#a6cee3', '#ffffff'))))"
             )
             self._setExpressionOnLayers(symbol, SL_PROP_FILL_COLOR, fillExpr)
         if size is not None:
@@ -3258,8 +3260,9 @@ class QGISRedLegendsDialog(QDialog, formClass):
             smallSize = round(1.6 * scale, 3)
             bigSize = round(3.5 * scale, 3)
             sizeExpr = (
-                f"if (BaseValue is NULL, {smallSize}, if( BaseValue >0, {smallSize}, "
-                f"if (BaseValue <0 , {bigSize}, {smallSize})))"
+                f"with_variable('bd', coalesce(attribute($currentfeature,'BaseDem'),attribute($currentfeature,'BaseValue')), "
+                f"if (@bd is NULL, {smallSize}, if( @bd >0, {smallSize}, "
+                f"if (@bd <0 , {bigSize}, {smallSize}))))"
             )
             self._setExpressionOnLayers(symbol, SL_PROP_SIZE, sizeExpr)
 
