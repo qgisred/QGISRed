@@ -288,8 +288,22 @@ class _ResultsRenderingMixin:
                     layer_to_paint.setName(display_name)
 
                     # Configure map tip
-                    is_min_max_stat = self._statsMode and self.cbStatistics.currentText() in (self.lbl_maximum, self.lbl_minimum)
-                    time_field = time_field_name(field, nameLayer) if is_min_max_stat else None
+                    time_field = None
+                    stat_prefix = ""
+                    if self._statsMode:
+                        current_stat = self.cbStatistics.currentText()
+                        if current_stat in (self.lbl_maximum, self.lbl_minimum):
+                            time_field = time_field_name(field, nameLayer)
+                        # Prefix the value with the statistic being shown
+                        stat_prefix = {
+                            self.lbl_maximum: self.tr("Max"),
+                            self.lbl_minimum: self.tr("Min"),
+                            self.lbl_average: self.tr("Avg"),
+                            self.lbl_range: self.tr("Rng"),
+                            self.lbl_std_deviation: self.tr("Std"),
+                        }.get(current_stat, "")
+                        if stat_prefix:
+                            stat_prefix += " "
 
                     element = "Nodes" if "Node" in nameLayer else "Links"
                     unit_field = "Flow" if field in ("Flow_Sig", "Flow_Unsig") else field
@@ -308,7 +322,7 @@ class _ResultsRenderingMixin:
                     type_id_expr = '[% (CASE ' + cases + ' ELSE "Type" END) || \' \' || "Id" %]'
 
                     tip_lines = ['<b>' + selected_variable_text + '</b>', type_id_expr]
-                    tip_lines.append('[% ' + value_expr + ' %]' + unit_suffix)
+                    tip_lines.append(stat_prefix + '[% ' + value_expr + ' %]' + unit_suffix)
                     if time_field:
                         tip_lines.append('@ [% "' + time_field + '" %]')
                     layer_to_paint.setMapTipTemplate('<br>'.join(tip_lines))

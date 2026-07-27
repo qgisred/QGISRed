@@ -219,6 +219,9 @@ class TestMapTipOccurrenceTime:
         dock._statsMode = stats_mode
         dock.lbl_maximum = "Maximum"
         dock.lbl_minimum = "Minimum"
+        dock.lbl_average = "Average"
+        dock.lbl_range = "Range"
+        dock.lbl_std_deviation = "StdDev"
         dock.TimeLabels = ["0:00"]
         dock.cbTimes = MagicMock()
         dock.cbTimes.currentIndex.return_value = 0
@@ -270,6 +273,29 @@ class TestMapTipOccurrenceTime:
         dock = self._make_dock(stats_mode=False)
         tip = self._paint_and_get_tip(dock)
         assert "@ [%" not in tip
+
+    def _value_line(self, tip):
+        # Value line is the one carrying the feature value expression
+        return next(line for line in tip.split("<br>") if "[% abs" in line or '[% "' in line)
+
+    def test_stat_tooltip_prefixes_value_with_stat_abbreviation(self):
+        for stat_label, prefix in (
+            ("Maximum", "Max"),
+            ("Minimum", "Min"),
+            ("Average", "Avg"),
+            ("Range", "Rng"),
+            ("StdDev", "Std"),
+        ):
+            dock = self._make_dock(stats_mode=True, stat_label=stat_label)
+            tip = self._paint_and_get_tip(dock)
+            value_line = self._value_line(tip)
+            assert value_line.startswith(prefix + " "), (stat_label, value_line)
+
+    def test_regular_result_tooltip_has_no_stat_prefix(self):
+        dock = self._make_dock(stats_mode=False)
+        tip = self._paint_and_get_tip(dock)
+        value_line = self._value_line(tip)
+        assert value_line.startswith("[%")
 
 
 # Regression test for a bug where switching a result variable to/from a rule-based
