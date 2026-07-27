@@ -2169,6 +2169,18 @@
         <translation>El nudo seleccionado no está conectado con el anterior a lo largo de la red.</translation>
     </message>
     <message>
+        <location filename="../sections/profile_section.py" line="834"/>
+        <location filename="../sections/profile_section.py" line="872"/>
+        <source>That node is already part of the current path and cannot be repeated.</source>
+        <translation>Ese nudo ya forma parte del trayecto actual y no se puede repetir.</translation>
+    </message>
+    <message>
+        <location filename="../sections/profile_section.py" line="853"/>
+        <location filename="../sections/profile_section.py" line="883"/>
+        <source>That node cannot be added because reaching it would pass again through a node already in the path. Pick a different node.</source>
+        <translation>Ese nudo no se puede añadir porque para llegar a él habría que pasar de nuevo por un nudo que ya está en el trayecto. Elija otro nudo.</translation>
+    </message>
+    <message>
         <location filename="../sections/profile_section.py" line="1232"/>
         <source>Accumulated head loss</source>
         <translation>Pérdidas acumuladas</translation>

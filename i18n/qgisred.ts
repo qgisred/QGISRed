@@ -2109,6 +2109,18 @@
         <translation type="unfinished"></translation>
     </message>
     <message>
+        <location filename="../sections/profile_section.py" line="834"/>
+        <location filename="../sections/profile_section.py" line="872"/>
+        <source>That node is already part of the current path and cannot be repeated.</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="../sections/profile_section.py" line="853"/>
+        <location filename="../sections/profile_section.py" line="883"/>
+        <source>That node cannot be added because reaching it would pass again through a node already in the path. Pick a different node.</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
         <location filename="../sections/profile_section.py" line="845"/>
         <source>Selected node is not connected to the branch along the network.</source>
         <translation type="unfinished"></translation>

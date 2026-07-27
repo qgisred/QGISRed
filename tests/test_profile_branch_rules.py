@@ -83,14 +83,48 @@ def test_append_main_node_rejects_repeated_node():
     s._rebuildProfilePaths()
     assert s._profilePath["nodes"] == ["A", "B", "C", "D"]
 
-    # Appending C forces the path D->C, revisiting C which is already on the
-    # trace. It must be rejected: the reference list and path stay unchanged and
-    # the user is warned.
+    # C is already on the trace, so it cannot be added again. The reference list
+    # and path stay unchanged and the user is warned that it is already part of
+    # the current path.
     s._profileAppendMainNode("C")
 
     assert s._profileReferenceNodes == ["A", "D"]
     assert s._profilePath["nodes"] == ["A", "B", "C", "D"]
     assert s.messages and s.messages[-1][1] == 1
+    assert "already part of the current path" in s.messages[-1][0]
+
+
+def test_append_branch_node_rejects_node_already_in_path():
+    adjacency, lengths = _grid()
+    s = _Section(adjacency, lengths)
+    s._profileReferenceNodes = ["A", "D"]
+    s._rebuildProfilePaths()
+    s._profileStartBranch("C")  # branch origin on the trunk
+    assert s._profileCurrentBranch is not None
+    s.messages.clear()
+
+    # D is already declared on the trunk. Reaching it from the branch would form
+    # a loop; the message must say it is already part of the path, not that it is
+    # "not connected".
+    s._profileAppendBranchNode("D")
+
+    assert s._profileCurrentBranch["reference_nodes"] == ["C"]
+    assert s.messages and s.messages[-1][1] == 1
+    assert "already part of the current path" in s.messages[-1][0]
+
+
+def test_append_branch_node_accepts_fresh_node():
+    adjacency, lengths = _grid()
+    s = _Section(adjacency, lengths)
+    s._profileReferenceNodes = ["A", "D"]
+    s._rebuildProfilePaths()
+    s._profileStartBranch("B")
+    s.messages.clear()
+
+    s._profileAppendBranchNode("F")  # B-E-F uses only fresh nodes
+
+    assert s._profileCurrentBranch["reference_nodes"] == ["B", "F"]
+    assert s._profileCurrentBranch["path"]["nodes"] == ["B", "E", "F"]
 
 
 def test_is_branch_origin():

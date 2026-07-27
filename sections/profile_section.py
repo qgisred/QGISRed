@@ -721,11 +721,14 @@ class ProfileSection:
         move = (self.tr("Move pass node"), lambda: self._profileStartMove(node_id))
         remove = (self.tr("Delete pass node"), lambda: self._profileRemovePoint(node_id))
         start = (self.tr("Start new path here"), lambda: self._profileStartMain(node_id))
+        # Branches must start from an intermediate pass node: a branch off an
+        # endpoint (path/branch start or end) would just be extending the path,
+        # so terminal nodes ("origin"/"terminal") don't offer "Create branch".
         return {
             "start": [start],
             "intermediate_path": [declare],
-            "origin": [extend, branch],
-            "terminal": [extend, branch, move, remove],
+            "origin": [extend],
+            "terminal": [extend, move, remove],
             "through": [branch, move, remove],
             "bifurcation": [branch],
         }.get(role, [])
@@ -809,10 +812,28 @@ class ProfileSection:
     def _profileRemovePoint(self, node_id):
         self._applyProfileRemove(node_id)
 
+    def _profileAllPathNodes(self):
+        """Every node currently on the profile (main path and all branch paths)."""
+        nodes = set()
+        main = getattr(self, "_profilePath", None)
+        if main and main.get("nodes"):
+            nodes.update(main["nodes"])
+        for branch in getattr(self, "_profileBranches", []) or []:
+            branch_path = branch.get("path")
+            if branch_path and branch_path.get("nodes"):
+                nodes.update(branch_path["nodes"])
+        return nodes
+
     def _profileAppendMainNode(self, node_id):
         refs = getattr(self, "_profileReferenceNodes", []) or []
         at_start = getattr(self, "_profileExtendAtStart", False)
         if refs and (refs[0] if at_start else refs[-1]) == node_id:
+            return
+        if node_id in self._profileAllPathNodes():
+            self.pushMessage(
+                self.tr("That node is already part of the current path and cannot be repeated."),
+                level=1,
+            )
             return
         if at_start:
             refs.insert(0, node_id)
@@ -829,8 +850,8 @@ class ProfileSection:
             self._profileReferenceNodes = refs
             if isinstance(ex, ProfileRepeatedNodeError):
                 self.pushMessage(
-                    self.tr("That node cannot be added because reaching it would repeat a node "
-                            "already in the path. Pick a different node."),
+                    self.tr("That node cannot be added because reaching it would pass again through "
+                            "a node already in the path. Pick a different node."),
                     level=1,
                 )
             else:
@@ -845,6 +866,13 @@ class ProfileSection:
         current = getattr(self, "_profileCurrentBranch", None)
         if current is None:
             return
+        origin = (current.get("reference_nodes") or [None])[0]
+        if node_id != origin and node_id in self._profileAllPathNodes():
+            self.pushMessage(
+                self.tr("That node is already part of the current path and cannot be repeated."),
+                level=1,
+            )
+            return
         current["reference_nodes"].append(node_id)
         try:
             self._recomputeBranch(current)
@@ -852,8 +880,8 @@ class ProfileSection:
             current["reference_nodes"].pop()
             if isinstance(ex, ProfileRepeatedNodeError):
                 self.pushMessage(
-                    self.tr("That node cannot be added because reaching it would repeat a node "
-                            "already in the profile. Pick a different node."),
+                    self.tr("That node cannot be added because reaching it would pass again through "
+                            "a node already in the path. Pick a different node."),
                     level=1,
                 )
             else:

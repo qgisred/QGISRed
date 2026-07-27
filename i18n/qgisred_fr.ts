@@ -2149,6 +2149,18 @@
         <translation>Le nœud sélectionné n'est pas connecté au précédent le long du réseau.</translation>
     </message>
     <message>
+        <location filename="../sections/profile_section.py" line="834"/>
+        <location filename="../sections/profile_section.py" line="872"/>
+        <source>That node is already part of the current path and cannot be repeated.</source>
+        <translation>Ce nœud fait déjà partie du trajet actuel et ne peut pas être répété.</translation>
+    </message>
+    <message>
+        <location filename="../sections/profile_section.py" line="853"/>
+        <location filename="../sections/profile_section.py" line="883"/>
+        <source>That node cannot be added because reaching it would pass again through a node already in the path. Pick a different node.</source>
+        <translation>Ce nœud ne peut pas être ajouté car pour l'atteindre il faudrait repasser par un nœud déjà présent dans le trajet. Choisissez un autre nœud.</translation>
+    </message>
+    <message>
         <location filename="../sections/profile_section.py" line="1232"/>
         <source>Accumulated head loss</source>
         <translation>Pertes de charge cumulées</translation>

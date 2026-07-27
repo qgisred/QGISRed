@@ -64,13 +64,15 @@ def _tree():
 def test_classify_origin():
     s = _tree()
     assert s._profileClassifyNode("A") == "origin"
-    assert _labels(s, "A") == ["Extend path", "Create branch"]
+    # Endpoint: no "Create branch" (a branch there would just extend the path).
+    assert _labels(s, "A") == ["Extend path"]
 
 
 def test_classify_main_terminal():
     s = _tree()
     assert s._profileClassifyNode("D") == "terminal"
-    assert _labels(s, "D") == ["Extend path", "Create branch", "Move pass node", "Delete pass node"]
+    # Endpoint: no "Create branch".
+    assert _labels(s, "D") == ["Extend path", "Move pass node", "Delete pass node"]
 
 
 def test_classify_bifurcation():
@@ -89,7 +91,8 @@ def test_classify_intermediate_path_node():
 def test_classify_branch_terminal():
     s = _tree()
     assert s._profileClassifyNode("F") == "terminal"
-    assert _labels(s, "F") == ["Extend path", "Create branch", "Move pass node", "Delete pass node"]
+    # Branch endpoint: no "Create branch".
+    assert _labels(s, "F") == ["Extend path", "Move pass node", "Delete pass node"]
 
 
 def test_classify_foreign_node_with_tree_offers_nothing():

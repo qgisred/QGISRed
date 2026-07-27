@@ -2189,6 +2189,18 @@
         <translation>O nó selecionado não está ligado ao anterior ao longo da rede.</translation>
     </message>
     <message>
+        <location filename="../sections/profile_section.py" line="834"/>
+        <location filename="../sections/profile_section.py" line="872"/>
+        <source>That node is already part of the current path and cannot be repeated.</source>
+        <translation>Esse nó já faz parte do trajeto atual e não pode ser repetido.</translation>
+    </message>
+    <message>
+        <location filename="../sections/profile_section.py" line="853"/>
+        <location filename="../sections/profile_section.py" line="883"/>
+        <source>That node cannot be added because reaching it would pass again through a node already in the path. Pick a different node.</source>
+        <translation>Esse nó não pode ser adicionado porque para o alcançar seria necessário passar novamente por um nó que já está no trajeto. Escolha outro nó.</translation>
+    </message>
+    <message>
         <location filename="../sections/profile_section.py" line="1232"/>
         <source>Accumulated head loss</source>
         <translation>Perdas de carga acumuladas</translation>
