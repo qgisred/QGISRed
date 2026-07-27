@@ -33,6 +33,10 @@ class _Section(ProfileSection):
     def _redrawProfile(self):
         pass
 
+    def _recomputeProfileStructure(self):
+        # Adjacency is pre-built in this harness, so a recompute is just a rebuild.
+        self._rebuildProfilePaths()
+
 
 def _branch(reference_nodes):
     return {"reference_nodes": list(reference_nodes), "offset": 0.0, "path": None, "distances": None}
@@ -70,6 +74,23 @@ def test_rebuild_rejects_branch_that_reuses_trunk_pipe():
     s._profileBranches = [_branch(["A", "C"])]
     with pytest.raises(ProfilePathError):
         s._rebuildProfilePaths()
+
+
+def test_append_main_node_rejects_repeated_node():
+    adjacency, lengths = _grid()
+    s = _Section(adjacency, lengths)
+    s._profileReferenceNodes = ["A", "D"]
+    s._rebuildProfilePaths()
+    assert s._profilePath["nodes"] == ["A", "B", "C", "D"]
+
+    # Appending C forces the path D->C, revisiting C which is already on the
+    # trace. It must be rejected: the reference list and path stay unchanged and
+    # the user is warned.
+    s._profileAppendMainNode("C")
+
+    assert s._profileReferenceNodes == ["A", "D"]
+    assert s._profilePath["nodes"] == ["A", "B", "C", "D"]
+    assert s.messages and s.messages[-1][1] == 1
 
 
 def test_is_branch_origin():

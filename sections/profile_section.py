@@ -8,6 +8,7 @@ from ..tools.utils.qgisred_field_utils import QGISRedFieldUtils
 from ..tools.utils.qgisred_network_graph import build_adjacency_from_meta
 from ..tools.utils.qgisred_profile_path import (
     ProfilePathError,
+    ProfileRepeatedNodeError,
     build_profile_path,
     cumulative_distances,
     sample_node_variable,
@@ -820,16 +821,23 @@ class ProfileSection:
         self._profileReferenceNodes = refs
         try:
             self._recomputeProfileStructure()
-        except ProfilePathError:
+        except ProfilePathError as ex:
             if at_start:
                 refs.pop(0)
             else:
                 refs.pop()
             self._profileReferenceNodes = refs
-            self.pushMessage(
-                self.tr("Selected node is not connected to the previous one along the network."),
-                level=1,
-            )
+            if isinstance(ex, ProfileRepeatedNodeError):
+                self.pushMessage(
+                    self.tr("That node cannot be added because reaching it would repeat a node "
+                            "already in the path. Pick a different node."),
+                    level=1,
+                )
+            else:
+                self.pushMessage(
+                    self.tr("Selected node is not connected to the previous one along the network."),
+                    level=1,
+                )
             return
         self._redrawProfile()
 
@@ -840,9 +848,19 @@ class ProfileSection:
         current["reference_nodes"].append(node_id)
         try:
             self._recomputeBranch(current)
-        except ProfilePathError:
+        except ProfilePathError as ex:
             current["reference_nodes"].pop()
-            self.pushMessage(self.tr("Selected node is not connected to the branch along the network."), level=1)
+            if isinstance(ex, ProfileRepeatedNodeError):
+                self.pushMessage(
+                    self.tr("That node cannot be added because reaching it would repeat a node "
+                            "already in the profile. Pick a different node."),
+                    level=1,
+                )
+            else:
+                self.pushMessage(
+                    self.tr("Selected node is not connected to the branch along the network."),
+                    level=1,
+                )
             return
         self._redrawProfile()
 
@@ -909,7 +927,7 @@ class ProfileSection:
             )
             for node in path["nodes"]:
                 if node != origin and node in used_nodes:
-                    raise ProfilePathError("Branch reuses an already declared node")
+                    raise ProfileRepeatedNodeError("Branch reuses an already declared node")
             distances = [offset + d for d in cumulative_distances(path["links"], link_lengths)]
             results.append((branch, path, offset, distances))
             used_links |= set(path["links"])

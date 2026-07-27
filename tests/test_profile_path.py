@@ -4,6 +4,7 @@ import pytest
 from QGISRed.tools.utils.qgisred_network_graph import build_adjacency
 from QGISRed.tools.utils.qgisred_profile_path import (
     ProfilePathError,
+    ProfileRepeatedNodeError,
     build_profile_path,
     cumulative_distances,
     sample_node_variable,
@@ -51,6 +52,18 @@ def test_build_profile_path_disconnected_raises():
     adjacency = build_adjacency(node_ids, link_ids, [0], [1])
     with pytest.raises(ProfilePathError):
         build_profile_path(adjacency, ["A", "X"])
+
+
+def test_build_profile_path_rejects_repeated_node():
+    # Linear A-B-C-D-E: reaching C from D (after A->D) forces the path back
+    # through C, which is already part of the trace -> reject.
+    with pytest.raises(ProfileRepeatedNodeError):
+        build_profile_path(_network(), ["A", "D", "C"])
+
+
+def test_repeated_node_error_is_profile_path_error():
+    # Subclass relationship keeps existing `except ProfilePathError` handlers working.
+    assert issubclass(ProfileRepeatedNodeError, ProfilePathError)
 
 
 def test_cumulative_distances():

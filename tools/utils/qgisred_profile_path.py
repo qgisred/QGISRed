@@ -6,6 +6,16 @@ class ProfilePathError(Exception):
     pass
 
 
+class ProfileRepeatedNodeError(ProfilePathError):
+    """Raised when the traced path would visit a node more than once.
+
+    A repeated node forces back-and-forth segments that add nothing to a
+    longitudinal profile, so such a path is rejected while editing. It subclasses
+    ProfilePathError so existing ``except ProfilePathError`` handlers keep working.
+    """
+    pass
+
+
 def build_profile_path(adjacency, reference_nodes, excluded_links=None, excluded_nodes=None):
     reference_nodes = list(reference_nodes)
     excluded_links = set(excluded_links or ())
@@ -39,6 +49,14 @@ def build_profile_path(adjacency, reference_nodes, excluded_links=None, excluded
             nodes.extend(segment_nodes[1:])
             links.extend(segment_links)
         reference_indices.add(len(nodes) - 1)
+
+    seen = set()
+    for node in nodes:
+        if node in seen:
+            raise ProfileRepeatedNodeError(
+                "Node '{}' would be visited more than once along the path".format(node)
+            )
+        seen.add(node)
 
     is_reference = [idx in reference_indices for idx in range(len(nodes))]
     return {"nodes": nodes, "links": links, "is_reference": is_reference}
