@@ -144,9 +144,15 @@ _COMMON_PRETTY_NAMES = {
 }
 _NON_CHEMICAL_MODELS = frozenset({"none", "trace", "age"})
 _CHEMICAL_ONLY_FIELDS = frozenset({"IniQuality", "ReactRate"})
-# Abbreviation used by CSV rows that delegate their unit to the project volume
-# units (see _redirectVolumeRow).
-_VOLUME_UNITS_MARKER = "See VolumeUnits"
+# Abbreviations a CSV row can use instead of a literal unit, to say "whatever the
+# project is configured with". Expanded in _resolveAbbr; the volume one also swaps
+# the whole row so its decimals come from Global/VolumeUnits (see _redirectVolumeRow).
+_UNIT_MARKER_PREFIX = "See "
+_FLOW_UNITS_MARKER = _UNIT_MARKER_PREFIX + "FlowUnits"
+_PRESSURE_UNITS_MARKER = _UNIT_MARKER_PREFIX + "PressUnits"
+_VOLUME_UNITS_MARKER = _UNIT_MARKER_PREFIX + "VolumeUnits"
+_MASS_UNITS_MARKER = _UNIT_MARKER_PREFIX + "MassUnits"
+_CURRENCY_MARKER = _UNIT_MARKER_PREFIX + "Currency"
 _SUPERSCRIPT_TRANSLATION = str.maketrans("0123456789/", "⁰¹²³⁴⁵⁶⁷⁸⁹ᐟ")
 
 # Plural display names (English) keyed by the singular pretty name from the CSV.
@@ -695,12 +701,12 @@ class QGISRedFieldUtils:
         """Expand 'See X' tokens in an abbreviation string using project settings."""
         if not abbr:
             return abbr
-        if "See " in abbr:
-            abbr = abbr.replace("See FlowUnits", self._getFlowFieldAbbr())
-            abbr = abbr.replace("See PressUnits", self._getPressureFieldAbbr())
+        if _UNIT_MARKER_PREFIX in abbr:
+            abbr = abbr.replace(_FLOW_UNITS_MARKER, self._getFlowFieldAbbr())
+            abbr = abbr.replace(_PRESSURE_UNITS_MARKER, self._getPressureFieldAbbr())
             abbr = abbr.replace(_VOLUME_UNITS_MARKER, self._getVolumeAbbr())
-            abbr = abbr.replace("See MassUnits", self._getMassAbbr())
-            abbr = abbr.replace("See Currency", self._getCurrencyAbbr())
+            abbr = abbr.replace(_MASS_UNITS_MARKER, self._getMassAbbr())
+            abbr = abbr.replace(_CURRENCY_MARKER, self._getCurrencyAbbr())
         abbr = re.sub(r'sqr\(([^)]+)\)', r'√\1', abbr)
         abbr = self._formatExponents(abbr)
         return abbr
