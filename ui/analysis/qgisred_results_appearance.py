@@ -135,7 +135,7 @@ class _ResultsAppearanceMixin:
         # Block canvas rendering while the OGR providers are rebuilt below: a background
         # render reading the same provider races with it and crashes QGIS natively
         # (see freezeCanvases for the full rationale).
-        self.freezeCanvases()
+        self.beginResultsUpdate()
         try:
             for layerName in ["Node", "Link"]:
                 layer = self._findResultLayer(layerName)
@@ -158,7 +158,7 @@ class _ResultsAppearanceMixin:
                 self.completeResultLayers()
         finally:
             self._endResultsOverlay()
-            self.unfreezeCanvases()
+            self.endResultsUpdate()
             QApplication.restoreOverrideCursor()
 
     def _resetDecimalsForVariable(self, field_name, csv_element_type, layer_type="Node"):

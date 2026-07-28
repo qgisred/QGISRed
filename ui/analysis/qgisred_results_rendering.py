@@ -8,7 +8,7 @@ from qgis.core import (
     QgsProperty, QgsRenderContext,
     QgsGraduatedSymbolRenderer,
     QgsRuleBasedRenderer, QgsRendererRange,
-    QgsProject,
+    QgsProject, QgsMessageLog,
 )
 from qgis.PyQt.QtCore import QSizeF
 from qgis.PyQt.QtGui import QColor, QFont
@@ -19,6 +19,7 @@ from ...compat import (
     PAL_PROPERTY_COLOR, PAL_PROPERTY_LABEL_DISTANCE,
     PAL_PLACEMENT_LINE, PAL_PLACEMENT_AROUND_POINT,
     SL_PROP_SIZE, SL_PROP_STROKE_COLOR, SL_PROP_STROKE_WIDTH,
+    QGIS_WARNING,
 )
 from ...tools.utils.qgisred_styling_utils import QGISRedStylingUtils, _NULL_RULE_LABEL, _NullHiddenLegend
 from ...tools.utils.qgisred_ui_utils import QGISRedUIUtils
@@ -844,6 +845,52 @@ class _ResultsRenderingMixin:
             self.cbFlowDirections.setChecked(False)
             self.cbFlowDirections.setEnabled(False)
 
+    def _ensureGraduatedClasses(self, layer, renderer, field, db_field_name, nameLayer):
+        """Guarantee the graduated renderer really has classes for the field being displayed.
+
+        The QML style can carry a legend strategy (qgisred_legend_strategy) that classifies
+        a column which is *not* the one about to be displayed -in Average mode links show
+        Flow_Unsig / Flow_Sig while the style classifies Flow- or one whose values are still
+        NULL. QgsGraduatedSymbolRenderer.createRenderer() then returns zero ranges and the
+        layer ends up drawn, and listed in the legend, with no classes at all: the symptom
+        the user sees as "the legend is not applied".
+
+        Reclassify from the values actually displayed, keeping the style's symbol, ramp and
+        classification mode. Returns the renderer to use (the original one when it is fine).
+        """
+        if renderer.ranges():
+            return renderer
+
+        mode = getattr(renderer, "mode", lambda: None)()
+        rebuilt = None
+        if mode is not None:
+            symbol = None
+            ramp = None
+            with suppress(Exception):
+                symbols = renderer.symbols(QgsRenderContext())
+                symbol = symbols[0].clone() if symbols else None
+            with suppress(Exception):
+                source_ramp = renderer.sourceColorRamp()
+                ramp = source_ramp.clone() if source_ramp else None
+            with suppress(Exception):
+                rebuilt = QgsGraduatedSymbolRenderer.createRenderer(
+                    layer, field, len(renderer.ranges()) or 5, mode, symbol, ramp
+                )
+
+        if rebuilt is not None and rebuilt.ranges():
+            return rebuilt
+
+        # Nothing to classify: the column exists but every feature is NULL, i.e. the
+        # statistics were never written to the layer. Leave a trace, the empty legend
+        # on the map is otherwise indistinguishable from a styling problem.
+        QgsMessageLog.logMessage(
+            self.tr("No values to classify in field '%1' of layer %2: the legend was left empty")
+                .replace("%1", db_field_name).replace("%2", self.tr(nameLayer)),
+            "QGISRed",
+            QGIS_WARNING,
+        )
+        return renderer
+
     def setGraduatedPalette(self, layer, field, setRender, nameLayer, previously_displayed=None):
         renderer = layer.renderer()
         db_field_name = field  # column name as stored in the DBF
@@ -890,6 +937,7 @@ class _ResultsRenderingMixin:
 
             if isinstance(renderer, QgsGraduatedSymbolRenderer):
                 renderer.setClassAttribute(field)
+                renderer = self._ensureGraduatedClasses(layer, renderer, field, db_field_name, nameLayer)
 
         # Update arrow visibility
         with suppress(Exception):

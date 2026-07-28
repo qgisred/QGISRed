@@ -595,7 +595,46 @@ class QGISRedLayerUtils:
 
     """Remove Layers"""
 
+    @staticmethod
+    def stopRenderingForRemoval(iface=None):
+        """Leave every map canvas with no render job running and no cached image.
+
+        A layer destroyed while a parallel render job is in flight leaves a dangling
+        QgsMapLayer pointer behind: when the job finishes, QGIS runs
+        QgsMapRendererJob::cleanupJobs -> QgsMapRendererCache::setCacheImageWithParameters
+        -> dropUnusedConnections, which dereferences it and dies with an access violation.
+        The crash surfaces later, from the Qt event loop, with no trace of the code that
+        removed the layer.
+
+        stopRendering() cancels and joins the render threads, so no renderingFinished
+        event can arrive afterwards; clearCache() drops the cached images that still
+        reference the layer. Must be called *before* removeMapLayer().
+        """
+        from contextlib import suppress
+
+        if iface is None:
+            with suppress(Exception):
+                from qgis.utils import iface as qgis_iface
+                iface = qgis_iface
+        if iface is None:
+            return
+
+        canvases = []
+        with suppress(Exception):
+            canvases = list(iface.mapCanvases())
+        with suppress(Exception):
+            main = iface.mapCanvas()
+            if main is not None and main not in canvases:
+                canvases.append(main)
+
+        for canvas in canvases:
+            with suppress(Exception):
+                canvas.stopRendering()
+            with suppress(Exception):
+                canvas.clearCache()
+
     def removeLayers(self, layers, ext=".shp"):
+        self.stopRenderingForRemoval(self.iface)
         for layerName in layers:
             self.removeLayer(layerName, ext)
 
@@ -614,6 +653,7 @@ class QGISRedLayerUtils:
                 QgsProject.instance().removeMapLayer(layer.id())
 
     def removePluginLayers(self):
+        self.stopRenderingForRemoval(self.iface)
         project = QgsProject.instance()
         root = project.layerTreeRoot()
         layersToRemove = []
@@ -634,6 +674,7 @@ class QGISRedLayerUtils:
     def removeEmptyLayersInGroup(self, group, exceptions=None):
         if exceptions is None:
             exceptions = [self.tr("Pipes")]
+        self.stopRenderingForRemoval(self.iface)
         project = QgsProject.instance()
 
         for node in list(group.children()):
@@ -715,6 +756,8 @@ class QGISRedLayerUtils:
                 QgsProject.instance().addMapLayer(clonedLayer, group is None)
                 if group is not None:
                     group.addChildNode(QgsLayerTreeLayer(clonedLayer))
+                    # The original layer is destroyed here: no render job may be holding it.
+                    self.stopRenderingForRemoval(self.iface)
                     QgsProject.instance().removeMapLayer(layer.id())
 
     @staticmethod
