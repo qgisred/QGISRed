@@ -1,19 +1,23 @@
 # -*- coding: utf-8 -*-
 """Lightweight text overlay drawn over the QGIS map canvas.
 
-Used to show a transient progress message
-centered on the map while a synchronous, main-thread operation runs. Because
-the plugin does all its heavy work on the main thread, callers must trigger a
-repaint after updating the overlay; ``setProgress`` calls
-``QApplication.processEvents()`` so the text is actually painted between chunks.
+Used to show a transient progress message centered on the map while a
+synchronous, main-thread operation runs. ``setProgress`` calls
+``repaint()`` on this widget alone -- a synchronous, immediate paint of
+just this label -- instead of ``QApplication.processEvents()``, which
+used to drain the *entire* Qt event queue (user input, other timers)
+from inside the read loop and let unrelated code reenter it while a
+QgsFeatureIterator on the results layer was still open.
 
 To avoid a distracting flicker on fast operations, the overlay is *armed* by
-``start()`` but only becomes visible once ``delayMs`` has elapsed. The delay
-timer is dispatched by the ``processEvents()`` calls happening in the read loop,
-so if ``finish()`` is reached before ``delayMs`` the overlay never appears.
+``start()`` but only becomes visible once ``delayMs`` has elapsed. The elapsed
+time is measured with a plain ``QElapsedTimer`` and checked synchronously on
+each ``setProgress()`` call, so if ``finish()`` is reached before ``delayMs``
+the overlay never appears -- same behaviour as before, without relying on the
+Qt event loop to dispatch a timer.
 """
-from qgis.PyQt.QtWidgets import QLabel, QApplication
-from qgis.PyQt.QtCore import Qt, QTimer
+from qgis.PyQt.QtWidgets import QLabel
+from qgis.PyQt.QtCore import Qt, QElapsedTimer
 
 
 class QGISRedMapOverlay(QLabel):
@@ -24,7 +28,9 @@ class QGISRedMapOverlay(QLabel):
         self._canvas = canvas
         self._baseText = ""
         self._delayMs = delayMs
-        self._pending = False
+        self._armed = False
+        self._revealed = False
+        self._elapsed = QElapsedTimer()
         self.setAttribute(Qt.WidgetAttribute.WA_TransparentForMouseEvents, True)
         self.setAlignment(Qt.AlignmentFlag.AlignCenter)
         self.setStyleSheet(
@@ -37,9 +43,6 @@ class QGISRedMapOverlay(QLabel):
             "  font-weight: bold;"
             "}"
         )
-        self._delayTimer = QTimer(self)
-        self._delayTimer.setSingleShot(True)
-        self._delayTimer.timeout.connect(self._reveal)
         self.hide()
 
     def start(self, baseText):
@@ -49,30 +52,34 @@ class QGISRedMapOverlay(QLabel):
         """
         self._baseText = baseText
         self.setText(baseText)
-        self._pending = True
-        self._delayTimer.start(self._delayMs)
+        self._armed = True
+        self._revealed = False
+        self._elapsed.start()
 
     def setProgress(self, percent):
         """Update the overlay to '<baseText> <percent>%' and repaint.
 
-        Always pumps the event loop so the pending delay timer can fire.
+        Reveals the overlay once the arming delay has elapsed, then
+        force-repaints just this widget so the text is actually painted
+        between chunks -- without touching the rest of the event queue.
         """
         self.setText("{0} {1}%".format(self._baseText, percent))
-        if self.isVisible():
+        if self._armed and not self._revealed and self._elapsed.hasExpired(self._delayMs):
+            self._reveal()
+        if self._revealed:
             self._recenter()
-        QApplication.processEvents()
+            self.repaint()
 
     def finish(self):
         """Cancel the pending show (if any), hide and schedule deletion."""
-        self._delayTimer.stop()
-        self._pending = False
+        self._armed = False
+        self._revealed = False
         self.hide()
         self.deleteLater()
 
     def _reveal(self):
         """Show the overlay once the arming delay has elapsed."""
-        if not self._pending:
-            return
+        self._revealed = True
         self._recenter()
         self.show()
         self.raise_()
