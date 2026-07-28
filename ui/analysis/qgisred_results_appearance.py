@@ -132,10 +132,10 @@ class _ResultsAppearanceMixin:
             return
         QApplication.setOverrideCursor(Qt.CursorShape.WaitCursor)
         self._beginResultsOverlay()
-        # Cancel any in-flight render job before reloadData() rebuilds the OGR provider,
-        # otherwise a background render reading the same provider races with it and crashes
-        # QGIS natively (see openOrReloadLayerResults for the full rationale).
-        self.iface.mapCanvas().stopRendering()
+        # Block canvas rendering while the OGR providers are rebuilt below: a background
+        # render reading the same provider races with it and crashes QGIS natively
+        # (see freezeCanvases for the full rationale).
+        self.freezeCanvases()
         try:
             for layerName in ["Node", "Link"]:
                 layer = self._findResultLayer(layerName)
@@ -158,6 +158,7 @@ class _ResultsAppearanceMixin:
                 self.completeResultLayers()
         finally:
             self._endResultsOverlay()
+            self.unfreezeCanvases()
             QApplication.restoreOverrideCursor()
 
     def _resetDecimalsForVariable(self, field_name, csv_element_type, layer_type="Node"):

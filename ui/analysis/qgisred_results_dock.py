@@ -59,6 +59,8 @@ class QGISRedResultsDock(
     outPath = ""
     _resultsOverlay = None
     _lastResultsPct = -1
+    _canvasFreezeDepth = 0
+    _frozenCanvases = None
     _RESULTS_CONTEXTS = [
         "QGISRedResultsDock",
         "_ResultsRenderingMixin",
@@ -532,13 +534,59 @@ class QGISRedResultsDock(
     def getLayers(self):
         return QGISRedLayerUtils().getLayers()
 
-    def openOrReloadLayerResults(self, scenario, nameLayer=None):
-        # Cancel any in-flight canvas render job before touching OGR providers below.
-        # reloadData() rebuilds the provider on the main thread; if a background
-        # QgsMapRendererParallelJob is simultaneously reading features from the same
-        # provider, that data race triggers a native access violation (QGIS crash).
-        self.iface.mapCanvas().stopRendering()
+    def getMapCanvases(self):
+        """Every open 2D map canvas (main canvas plus any additional map views)."""
+        canvases = []
+        with suppress(AttributeError, TypeError):
+            canvases = list(self.iface.mapCanvases())
+        main = self.iface.mapCanvas()
+        if main is not None and main not in canvases:
+            canvases.append(main)
+        return [canvas for canvas in canvases if canvas is not None]
 
+    def freezeCanvases(self):
+        """Block canvas rendering while OGR providers are rebuilt.
+
+        reloadData()/addAttributes() rebuild the provider on the main thread. If a
+        background QgsMapRendererParallelJob is reading features from that same
+        provider at that moment, the data race triggers a native access violation
+        (QGIS crash). stopRendering() alone is not enough: almost everything done in
+        between (group visibility changes, updateFields, addAttributes, renderer
+        updates...) emits signals that schedule a brand-new render job, so the
+        canvases must stay frozen for the whole operation and only be released -and
+        refreshed- at the end.
+
+        Nestable: only the outermost call freezes and unfreezes.
+        """
+        self._canvasFreezeDepth += 1
+        if self._canvasFreezeDepth > 1:
+            return
+        self._frozenCanvases = []
+        for canvas in self.getMapCanvases():
+            if canvas.isFrozen():
+                continue  # frozen by someone else: not ours to release
+            canvas.freeze(True)   # no new render job can start
+            canvas.stopRendering()  # cancel the in-flight one (blocks until threads join)
+            self._frozenCanvases.append(canvas)
+
+    def unfreezeCanvases(self):
+        """Release the canvases frozen by freezeCanvases and repaint them."""
+        self._canvasFreezeDepth = max(0, self._canvasFreezeDepth - 1)
+        if self._canvasFreezeDepth:
+            return
+        for canvas in self._frozenCanvases or []:
+            canvas.freeze(False)
+            canvas.refresh()
+        self._frozenCanvases = []
+
+    def openOrReloadLayerResults(self, scenario, nameLayer=None):
+        self.freezeCanvases()
+        try:
+            self._openOrReloadLayerResults(scenario, nameLayer)
+        finally:
+            self.unfreezeCanvases()
+
+    def _openOrReloadLayerResults(self, scenario, nameLayer=None):
         resultPath = self.getResultsPath()
         utils = QGISRedLayerUtils(resultPath, self.NetworkName + "_" + scenario, self.iface)
         # Navigation utils uses the plain NetworkName so getOrCreateNestedGroup can match
@@ -557,6 +605,16 @@ class QGISRedResultsDock(
             existingLayer = next(
                 (lyr for lyr in self.getLayers() if self.getLayerPath(lyr) == resultLayerPath), None
             )
+            if existingLayer is not None and (
+                sip.isdeleted(existingLayer) or not existingLayer.isValid() or existingLayer.dataProvider() is None
+            ):
+                # Broken handle (file replaced under a layer that could not be loaded).
+                # reloadData() on a provider with no open OGR dataset crashes natively,
+                # so drop the layer and open it again from scratch.
+                with suppress(RuntimeError):
+                    QgsProject.instance().removeMapLayer(existingLayer.id())
+                existingLayer = None
+
             if existingLayer is None:
                 # Layer not open yet — open it fresh and prepare its fields
                 utils.openLayer(group, file, results=True)
@@ -1305,6 +1363,7 @@ class QGISRedResultsDock(
         # 3. Heavy operations (only if not computing)
         if not self.Computing:
             QApplication.setOverrideCursor(Qt.CursorShape.WaitCursor)
+            self.freezeCanvases()
             try:
                 if self.validationsOpenResult():
                     self._beginResultsOverlay()
@@ -1321,6 +1380,7 @@ class QGISRedResultsDock(
                     QTimer.singleShot(200, self.forceFinalFieldsVisibility)
             finally:
                 self._endResultsOverlay()
+                self.unfreezeCanvases()
                 QApplication.restoreOverrideCursor()
         self.statisticsModeChanged.emit(new_stat if self._statsMode else "")
 
@@ -1363,6 +1423,7 @@ class QGISRedResultsDock(
             return
 
         QApplication.setOverrideCursor(Qt.CursorShape.WaitCursor)
+        self.freezeCanvases()
         try:
             self.saveCurrentRender()
             if self.cbFlowDirections.isVisible():
@@ -1382,6 +1443,7 @@ class QGISRedResultsDock(
             self.paintIntervalTimeResults(True)
             QTimer.singleShot(300, self.forceFinalFieldsVisibility)
         finally:
+            self.unfreezeCanvases()
             QApplication.restoreOverrideCursor()
         self._updateEvolutionCheckboxLabels()
         self.evolutionVariableChanged.emit("Link")
@@ -1406,6 +1468,7 @@ class QGISRedResultsDock(
             return
 
         QApplication.setOverrideCursor(Qt.CursorShape.WaitCursor)
+        self.freezeCanvases()
         try:
             self.saveCurrentRender()
             self.ensureResultsLayersAreOpen()
@@ -1418,6 +1481,7 @@ class QGISRedResultsDock(
             self.paintIntervalTimeResults(True)
             QTimer.singleShot(300, self.forceFinalFieldsVisibility)
         finally:
+            self.unfreezeCanvases()
             QApplication.restoreOverrideCursor()
         self._updateEvolutionCheckboxLabels()
         self.evolutionVariableChanged.emit("Node")
@@ -1630,6 +1694,7 @@ class QGISRedResultsDock(
 
         QApplication.setOverrideCursor(Qt.CursorShape.WaitCursor)
         self._beginResultsOverlay()
+        self.freezeCanvases()
         try:
             self.ensureResultsLayersAreOpen()
 
@@ -1641,6 +1706,7 @@ class QGISRedResultsDock(
             self.paintIntervalTimeResults(False)
         finally:
             self._endResultsOverlay()
+            self.unfreezeCanvases()
             QApplication.restoreOverrideCursor()
 
     """Main methods"""
@@ -1723,8 +1789,15 @@ class QGISRedResultsDock(
                 resultsPath = self.getResultsPath()
                 if not os.path.exists(resultsPath):
                     os.makedirs(resultsPath)
-                for fname in os.listdir(tempFolder):
-                    shutil.copy2(os.path.join(tempFolder, fname), os.path.join(resultsPath, fname))
+                # Freeze the canvases: the copy overwrites shapefiles that the still-open
+                # result layers are reading, and a background render job hitting them
+                # mid-copy crashes QGIS natively.
+                self.freezeCanvases()
+                try:
+                    for fname in os.listdir(tempFolder):
+                        shutil.copy2(os.path.join(tempFolder, fname), os.path.join(resultsPath, fname))
+                finally:
+                    self.unfreezeCanvases()
         finally:
             shutil.rmtree(tempFolder, ignore_errors=True)
 
@@ -1821,6 +1894,7 @@ class QGISRedResultsDock(
     def openAllResultsProcess(self):
         QApplication.setOverrideCursor(Qt.CursorShape.WaitCursor)
         self._beginResultsOverlay()
+        self.freezeCanvases()
         try:
             # Ensure result layers are opened
             self.ensureResultsLayersAreOpen()
@@ -1835,6 +1909,7 @@ class QGISRedResultsDock(
             self.paintIntervalTimeResults(True)
         finally:
             self._endResultsOverlay()
+            self.unfreezeCanvases()
             QApplication.restoreOverrideCursor()
 
         # Defer final visibility application to ensure the layer is fully ready
