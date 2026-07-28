@@ -7,7 +7,7 @@ from qgis.core import (
     QgsTextBackgroundSettings,
     QgsProperty, QgsRenderContext,
     QgsGraduatedSymbolRenderer,
-    QgsRuleBasedRenderer, QgsRendererRange,
+    QgsRuleBasedRenderer,
     QgsProject, QgsMessageLog,
 )
 from qgis.PyQt.QtCore import QSizeF
@@ -22,7 +22,6 @@ from ...compat import (
     QGIS_WARNING,
 )
 from ...tools.utils.qgisred_styling_utils import QGISRedStylingUtils, _NULL_RULE_LABEL, _NullHiddenLegend
-from ...tools.utils.qgisred_ui_utils import QGISRedUIUtils
 from ...tools.utils.qgisred_field_utils import QGISRedFieldUtils
 from ...tools.utils.qgisred_result_fields import resultIdField, resultTypeField
 from .qgisred_results_data import resultStyleName
@@ -188,90 +187,56 @@ class _ResultsRenderingMixin:
         quality on nodes; flow on links), whose labels are highlighted in bold."""
         return field in (self._BOLD_NODE_FIELDS if is_node else self._BOLD_LINK_FIELDS)
 
+    # Renderer types worth remembering. A result layer only ever shows a single symbol
+    # while it is being opened, before any style reaches it, and caching that would
+    # overwrite a real entry with an empty one.
+    _CACHEABLE_RENDERERS = ("graduatedSymbol", "RuleRenderer", "categorizedSymbol")
+
     def _getRenderStorageKey(self, layer_path, var_key):
         """Build the cache key used to store/retrieve a renderer for a given layer and variable."""
         prefix = f"stat_{self._currentStat}|" if self._statsMode else "time|"
         return f"{prefix}{layer_path}|{var_key}"
 
     def _lookupCachedRenderer(self, layer, db_field_name):
-        """Look up any previously saved renderer for this layer and variable in the render cache.
+        """Renderer remembered for this layer and variable, already cloned, or None."""
+        cached = self.Renders.get(
+            self._getRenderStorageKey(self.getLayerPath(layer), db_field_name))
+        if cached is None:
+            return None
+        with suppress(Exception):
+            return cached.clone()
+        return None
 
-        Returns (ranges, has_render) where ranges is the cached renderer data (or None)
-        and has_render is True when a cached renderer was found.
+    def rememberCurrentRender(self, layer):
+        """Snapshot the renderer about to be replaced, under the key it was applied with.
+
+        Called right before a layer is restyled, which is the one moment its current look
+        can be lost — whoever produced it, this dock or the user through the QGIS
+        symbology panel. The key comes from what was recorded when that renderer was
+        applied, not from the current state: the statistic and the variable have often
+        already moved on by the time we get here.
         """
-        render_cache = self.Renders.get(self.Scenario)
         layer_path = self.getLayerPath(layer)
-        storage_key = self._getRenderStorageKey(layer_path, db_field_name)
-        ranges = None
-        has_render = False
+        storage_key = self._renderKeyInUse.get(layer_path)
+        if not storage_key:
+            return
+        renderer = layer.renderer()
+        with suppress(Exception):
+            if renderer is not None and renderer.type() in self._CACHEABLE_RENDERERS:
+                self.Renders[storage_key] = renderer.clone()
 
-        if render_cache is None:
-            # Scenario not found — fall back to Base scenario
-            base_render_cache = self.Renders.get("Base")
-            if base_render_cache is not None:
-                base_key = self._getRenderStorageKey(
-                    layer_path.replace("_" + self.Scenario + "_", "_Base_"), db_field_name
-                )
-                ranges = base_render_cache.get(base_key)
-                if ranges is not None:
-                    has_render = True
-        else:
-            ranges = render_cache.get(storage_key)
-            if ranges is not None:
-                has_render = True
-            else:
-                # Current scenario has no entry — fall back to Base scenario
-                base_render_cache = self.Renders.get("Base")
-                if base_render_cache is not None:
-                    base_key = self._getRenderStorageKey(
-                        layer_path.replace("_" + self.Scenario + "_", "_Base_"), db_field_name
-                    )
-                    ranges = base_render_cache.get(base_key)
-                    if ranges is not None:
-                        has_render = True
+    def forgetRenderKey(self, layer_path):
+        """Drop the key bound to a layer that is going away.
 
-        return ranges, has_render
+        Its path can come back as a brand new layer, and the stale key would make the
+        next snapshot store that empty layer over a style the user had built.
+        """
+        self._renderKeyInUse.pop(layer_path, None)
 
-    def saveCurrentRender(self):
-        scenario_renders = self.Renders.get(self.Scenario, {})
-
-        for nameLayer in ["Node", "Link"]:
-            layer = self._findResultLayer(nameLayer)
-            if not layer:
-                continue
-
-            var_key = self.displayingLinkField if "Link" in nameLayer else self.displayingNodeField
-            if not var_key:
-                continue
-
-            layer_path = self.getLayerPath(layer)
-            storage_key = self._getRenderStorageKey(layer_path, var_key)
-            renderer = layer.renderer()
-            try:
-                if renderer.type() == "graduatedSymbol":
-                    scenario_renders[storage_key] = renderer.ranges()
-                elif renderer.type() == "RuleRenderer":
-                    root = renderer.rootRule()
-                    children = root.children()
-                    child_labels = {c.label() for c in children}
-                    if any(_NULL_RULE_LABEL in lbl for lbl in child_labels):
-                        if var_key != "Status":
-                            ranges = []
-                            for rule in children:
-                                if _NULL_RULE_LABEL in rule.label():
-                                    continue
-                                m = re.search(r'[>]=? ?([\d.eE+\-]+) AND .+?<= ?([\d.eE+\-]+)', rule.filterExpression())
-                                if m:
-                                    ranges.append(QgsRendererRange(float(m.group(1)), float(m.group(2)), rule.symbol().clone(), rule.label()))
-                            if ranges:
-                                scenario_renders[storage_key] = ranges
-                    else:
-                        scenario_renders[storage_key] = root.clone()
-            except Exception:
-                message = self.tr("Some issue occurred in the process of saving the style of the layer %1").replace("%1", self.tr(nameLayer))
-                QGISRedUIUtils.showGlobalMessage(self.iface, message, level=1, duration=5)
-
-        self.Renders[self.Scenario] = scenario_renders
+    def clearRenderCache(self):
+        """Forget every remembered renderer. Called when the project changes."""
+        self.Renders.clear()
+        self._renderKeyInUse.clear()
 
     def paintIntervalTimeResults(self, setRender=False):
         if not self._statsMode:
@@ -889,6 +854,11 @@ class _ResultsRenderingMixin:
         )
 
     def setGraduatedPalette(self, layer, field, setRender, nameLayer, previously_displayed=None):
+        # Whatever the layer looks like right now is about to be replaced, so this is the
+        # last chance to remember it — including anything the user changed by hand.
+        if setRender:
+            self.rememberCurrentRender(layer)
+
         renderer = layer.renderer()
         db_field_name = field  # column name as stored in the DBF
         qmlName = resultStyleName(nameLayer, db_field_name)
@@ -896,25 +866,19 @@ class _ResultsRenderingMixin:
             field = "abs(" + field + ")"
 
         is_status = (db_field_name == "Status")
-        ranges, hasRender = self._lookupCachedRenderer(layer, db_field_name) if setRender else (None, False)
+        cached = self._lookupCachedRenderer(layer, db_field_name) if setRender else None
 
         utils = QGISRedStylingUtils(self.ProjectDirectory, self.NetworkName, self.iface)
 
         # Ensure correct renderer type
-        if is_status:
-            # Load QML when we have no cached render and the current renderer does not already
-            # belong to Status (i.e. we were displaying something else before this call).
-            if not hasRender and previously_displayed != db_field_name:
+        if cached is not None:
+            renderer = cached
+        elif is_status:
+            # Load the QML unless the current renderer already belongs to Status (i.e. we
+            # were displaying something else before this call).
+            if previously_displayed != db_field_name:
                 utils.setStyle(layer, qmlName, field=db_field_name)
                 renderer = layer.renderer()
-
-            if hasRender and isinstance(ranges, QgsRuleBasedRenderer.Rule):
-                try:
-                    renderer = QgsRuleBasedRenderer(ranges.clone())
-                except Exception:
-                    message = self.tr("Some issue occurred in the process of applying the style to the layer %1").replace("%1", self.tr(nameLayer))
-                    QGISRedUIUtils.showGlobalMessage(self.iface, message, level=1, duration=5)
-                    return
         else:
             if isinstance(renderer, QgsGraduatedSymbolRenderer):
                 renderer_correct = renderer.classAttribute() == field and len(renderer.ranges()) > 0
@@ -923,7 +887,7 @@ class _ResultsRenderingMixin:
             else:
                 renderer_correct = False
 
-            if not hasRender and not renderer_correct:
+            if not renderer_correct:
                 # The QML is shared by several variables (Flow, Flow_Sig and Flow_Unsig all
                 # use LinkFlow.qml), so the style's own legend strategy would classify the
                 # column it was saved with. Pass the field actually selected in the combobox
@@ -931,12 +895,11 @@ class _ResultsRenderingMixin:
                 utils.setStyle(layer, qmlName, field=field)
                 renderer = layer.renderer()
 
-            if hasRender and isinstance(ranges, list):
-                renderer = QgsGraduatedSymbolRenderer(field, ranges)
-
-            if isinstance(renderer, QgsGraduatedSymbolRenderer):
-                renderer.setClassAttribute(field)
-                self._warnIfNoClasses(renderer, db_field_name, nameLayer)
+        # A cached renderer already classifies the right column: it was captured while that
+        # very variable was on screen.
+        if cached is None and isinstance(renderer, QgsGraduatedSymbolRenderer):
+            renderer.setClassAttribute(field)
+            self._warnIfNoClasses(renderer, db_field_name, nameLayer)
 
         # Update arrow visibility
         with suppress(Exception):
@@ -948,6 +911,11 @@ class _ResultsRenderingMixin:
 
         layer.setRenderer(renderer)
         QGISRedStylingUtils(self.ProjectDirectory, self.NetworkName, self.iface).applyNullStyle(layer)
+
+        # Bind the layer to the key this renderer belongs to, so the next restyle knows
+        # where to file it away without having to guess the state it was applied under.
+        self._renderKeyInUse[self.getLayerPath(layer)] = self._getRenderStorageKey(
+            self.getLayerPath(layer), db_field_name)
 
         final_renderer = layer.renderer()
         if isinstance(final_renderer, QgsRuleBasedRenderer):

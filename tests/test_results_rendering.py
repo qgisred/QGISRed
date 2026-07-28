@@ -610,6 +610,7 @@ class TestSetGraduatedPaletteVariableSwitch:
             dock.iface = MagicMock()
             dock.Scenario = "Base"
             dock.Renders = {}
+            dock._renderKeyInUse = {}
             dock._statsMode = False
             dock._currentStat = None
             dock._flowDirectionField = MagicMock(return_value=None)

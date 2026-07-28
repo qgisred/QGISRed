@@ -53,7 +53,6 @@ class QGISRedResultsDock(
     iface = None
     NetworkName = ""
     ProjectDirectory = ""
-    Renders = {}
     Computing = False
     TimeLabels = []
     outPath = ""
@@ -85,6 +84,10 @@ class QGISRedResultsDock(
 
         self._resultFileStamps = {}
         self._frozenCanvases = []
+        # Per-instance so that the styles remembered for one project never surface in
+        # another: the dock outlives the project, a class-level dict would not be emptied.
+        self.Renders = {}
+        self._renderKeyInUse = {}
 
         # Translated labels
         self.lbl_none            = self.tr("None")
@@ -709,6 +712,9 @@ class QGISRedResultsDock(
         self.Scenario = "Base"
         layer = self._findResultLayer(nameLayer)
         if layer:
+            # The path can come back as a different layer object, so release the key bound
+            # to this one before it goes (see forgetRenderKey).
+            self.forgetRenderKey(self.getLayerPath(layer))
             # Never destroy a layer with a render job in flight: it would leave a dangling
             # pointer in QgsMapRendererCache and crash QGIS when the job finishes
             # (see QGISRedLayerUtils.stopRenderingForRemoval).
@@ -1062,6 +1068,9 @@ class QGISRedResultsDock(
     def setProjectInfo(self, projectDir, networkName):
         """Set project/network/outPath without touching the UI or loading layers.
         Used by TimeSeries when only outPath is needed."""
+        if (projectDir, networkName) != (self.ProjectDirectory, self.NetworkName):
+            # Remembered styles belong to the layers of the project being left behind.
+            self.clearRenderCache()
         self.ProjectDirectory = projectDir
         self.NetworkName = networkName
         self.Scenario = "Base"
@@ -1072,7 +1081,6 @@ class QGISRedResultsDock(
         self.setProjectInfo(projectDir, networkName)
         restore = self._collectSavedState()
 
-        self.saveCurrentRender()
         self.loadReportFile()
         self.updateQualityOptions()
         self.updateQualityItemComboboxes()  # adjusts combo content (Quality, ReactRate)
@@ -1392,11 +1400,7 @@ class QGISRedResultsDock(
     """Clicked events"""
 
     def statisticsChanged(self):
-        # 1. First, save render BEFORE updating state to new statistic (only if not computing)
-        if not self.Computing:
-            self.saveCurrentRender()
-
-        # 2. Update state and UI
+        # Update state and UI
         new_stat = self.cbStatistics.currentText()
         self._currentStat = new_stat
 
@@ -1494,7 +1498,6 @@ class QGISRedResultsDock(
         QApplication.setOverrideCursor(Qt.CursorShape.WaitCursor)
         self.beginResultsUpdate()
         try:
-            self.saveCurrentRender()
             if self.cbFlowDirections.isVisible():
                 self._flowDirectionsUserState = self.cbFlowDirections.isChecked()
             has_direction = self._flowDirectionField() is not None
@@ -1539,7 +1542,6 @@ class QGISRedResultsDock(
         QApplication.setOverrideCursor(Qt.CursorShape.WaitCursor)
         self.beginResultsUpdate()
         try:
-            self.saveCurrentRender()
             self.ensureResultsLayersAreOpen()
 
             # Update visibility when variable changes
@@ -1841,7 +1843,6 @@ class QGISRedResultsDock(
 
         # Create list with results layers opened
         self.Scenario = "Base"
-        self.saveCurrentRender()
 
         # Run simulation — result layers stay open and are refreshed in-place
         self.simulationProcess()
