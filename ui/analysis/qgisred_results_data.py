@@ -30,6 +30,21 @@ _RESULT_FIELD_DISPLAY_NAMES = {
     "Flow_Unsig": "Flow (Unsigned)",
 }
 
+
+def resultStyleName(layerType, variable):
+    """QML style name for a result layer — ("Link", "Flow_Unsig") → "LinkFlow".
+
+    Single source of truth for everyone who needs it: the results dock when it restyles
+    a layer, the metadata reader when it reopens a project, and the legend editor when
+    it saves or loads one. Always spelled in English so the file name does not depend on
+    the interface language. Empty string when there is no variable to name.
+    """
+    element = (layerType or "").split("_")[0]
+    if not element or not variable:
+        return ""
+    return element + _STAT_VAR_ALIASES.get(variable, variable)
+
+
 # Field definitions for result layers: (name, type [, length]).
 NODE_RESULT_FIELDS = [
     ("Time", "String", 15),

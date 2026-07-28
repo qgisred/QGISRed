@@ -133,6 +133,25 @@ class QGISRedStylingUtils:
             return [self.NetworkName + "_" + qmlFile, qmlFile]
         return [qmlFile]
 
+    def findStyleFile(self, folder, fileNames):
+        """Path of the first of `fileNames` present in `folder`, matched in lowercase.
+
+        The same style is spelled differently depending on who asks: openLayer passes
+        "pipes", the legend editor writes "Pipes.qml" and the shipped defaults are
+        capitalised. Comparing in lowercase resolves all of them the same way instead of
+        relying on the file system being case-insensitive.
+        Returns None when none of them exists.
+        """
+        try:
+            entries = {entry.lower(): entry for entry in os.listdir(folder)}
+        except OSError:
+            return None
+        for fileName in fileNames:
+            entry = entries.get(fileName.lower())
+            if entry is not None:
+                return os.path.join(folder, entry)
+        return None
+
     def _loadStyleFile(self, layer, qmlPath, field):
         layer.loadNamedStyle(qmlPath)
         layer.setLabelsEnabled(False)
@@ -152,33 +171,31 @@ class QGISRedStylingUtils:
 
         # 1- project style (network-prefixed first, see projectStyleFileNames)
         projectStylePath = os.path.join(self.ProjectDirectory, "layerStyles")
-        for fileName in self.projectStyleFileNames(name + ".qml"):
-            qmlPath = os.path.join(projectStylePath, fileName)
-            if os.path.exists(qmlPath):
-                self._loadStyleFile(layer, qmlPath, field)
-                return
+        qmlPath = self.findStyleFile(projectStylePath, self.projectStyleFileNames(name + ".qml"))
+        if qmlPath:
+            self._loadStyleFile(layer, qmlPath, field)
+            return
 
         # 2- global style (shared by every network, so never prefixed)
         stylePath = os.path.join(self._getQGISRedFolder(), "layerStyles")
-        qmlPath = os.path.join(stylePath, name + ".qml")
-        if os.path.exists(qmlPath):
+        qmlPath = self.findStyleFile(stylePath, [name + ".qml"])
+        if qmlPath:
             self._loadStyleFile(layer, qmlPath, field)
             return
 
         # 3- default style
-        pluginPath = _plugin_root()
-        defaultStylePath = os.path.join(pluginPath, "defaults", "layerStyles")
-        qmlPath = os.path.join(defaultStylePath, name + ".qml.bak")
-        self._loadStyleFile(layer, qmlPath, field)
+        defaultStylePath = os.path.join(_plugin_root(), "defaults", "layerStyles")
+        defaultName = name + ".qml.bak"
+        qmlPath = self.findStyleFile(defaultStylePath, [defaultName])
+        self._loadStyleFile(layer, qmlPath or os.path.join(defaultStylePath, defaultName), field)
 
     def resolveStylePath(self, qmlFile):
         projectFolder = os.path.join(self.ProjectDirectory, "layerStyles")
-        for fileName in self.projectStyleFileNames(qmlFile):
-            projectPath = os.path.join(projectFolder, fileName)
-            if os.path.exists(projectPath):
-                return projectPath
-        globalPath = os.path.join(self._getQGISRedFolder(), "layerStyles", qmlFile)
-        if os.path.exists(globalPath):
+        projectPath = self.findStyleFile(projectFolder, self.projectStyleFileNames(qmlFile))
+        if projectPath:
+            return projectPath
+        globalPath = self.findStyleFile(os.path.join(self._getQGISRedFolder(), "layerStyles"), [qmlFile])
+        if globalPath:
             return globalPath
         return os.path.join(_plugin_root(), "defaults", "layerStyles", qmlFile + ".bak")
 

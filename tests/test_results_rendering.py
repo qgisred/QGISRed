@@ -624,10 +624,12 @@ class TestSetGraduatedPaletteVariableSwitch:
             layer.setRenderer.side_effect = lambda r: state.update(renderer=r)
 
             def fake_set_style(lyr, qml_name, field=None):
-                if qml_name.endswith("_Status"):
+                # Style names are "<Node|Link><Variable>" — see resultStyleName.
+                variable = qml_name[len("Link"):] if qml_name.startswith("Link") else qml_name[len("Node"):]
+                if variable == "Status":
                     state["renderer"] = _FakeRuleBasedRenderer()
                 else:
-                    state["renderer"] = _FakeGraduatedRenderer(qml_name.split("_", 1)[1])
+                    state["renderer"] = _FakeGraduatedRenderer(variable)
 
             MockStylingUtils.return_value.setStyle.side_effect = fake_set_style
 

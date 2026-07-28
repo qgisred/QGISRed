@@ -25,6 +25,7 @@ from ...tools.utils.qgisred_styling_utils import QGISRedStylingUtils, _NULL_RULE
 from ...tools.utils.qgisred_ui_utils import QGISRedUIUtils
 from ...tools.utils.qgisred_field_utils import QGISRedFieldUtils
 from ...tools.utils.qgisred_result_fields import resultIdField, resultTypeField
+from .qgisred_results_data import resultStyleName
 
 # Default label text colors (used unless the user picks "By range" or overrides them in
 # Appearance). Dark tones close to black so labels stay legible, but distinguishable
@@ -890,7 +891,7 @@ class _ResultsRenderingMixin:
     def setGraduatedPalette(self, layer, field, setRender, nameLayer, previously_displayed=None):
         renderer = layer.renderer()
         db_field_name = field  # column name as stored in the DBF
-        qml_field_name = "Flow" if db_field_name in ("Flow_Sig", "Flow_Unsig") else db_field_name
+        qmlName = resultStyleName(nameLayer, db_field_name)
         if field == "Flow":
             field = "abs(" + field + ")"
 
@@ -904,7 +905,6 @@ class _ResultsRenderingMixin:
             # Load QML when we have no cached render and the current renderer does not already
             # belong to Status (i.e. we were displaying something else before this call).
             if not hasRender and previously_displayed != db_field_name:
-                qmlName = nameLayer.split("_")[0] + "_" + db_field_name
                 utils.setStyle(layer, qmlName, field=db_field_name)
                 renderer = layer.renderer()
 
@@ -928,7 +928,6 @@ class _ResultsRenderingMixin:
                 # use LinkFlow.qml), so the style's own legend strategy would classify the
                 # column it was saved with. Pass the field actually selected in the combobox
                 # so the classification is built over the values about to be displayed.
-                qmlName = nameLayer.split("_")[0] + "_" + qml_field_name
                 utils.setStyle(layer, qmlName, field=field)
                 renderer = layer.renderer()
 

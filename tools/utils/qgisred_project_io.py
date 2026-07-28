@@ -149,7 +149,7 @@ class QGISRedProjectIO:
         if top == "Results":
             from ...ui.analysis.qgisred_results_data import (
                 apply_result_column_visibility, infer_stat_en_from_layer,
-                _RESULT_FIELD_DISPLAY_NAMES, _STAT_VAR_ALIASES,
+                _RESULT_FIELD_DISPLAY_NAMES, resultStyleName,
             )
             from ...tools.utils.qgisred_project_utils import QGISRedProjectUtils
             stat_en = QgsProject.instance().readEntry("QGISRed", "project_statistics", "NONE")[0]
@@ -186,12 +186,10 @@ class QGISRedProjectIO:
                     continue
                 scenario = file_name.rsplit("_", 1)[0]  # "Base_Node" → "Base"
                 QgsProject.instance().writeEntry("QGISRed", f"results_{scenario}_{layer_type}", variable)
-                # Flow_Sig / Flow_Unsig share the Flow QML style
-                style_var = _STAT_VAR_ALIASES.get(variable, variable)
                 # Load QML template (color ramp + symbol complexity), fix the classAttribute
                 # (QML templates may have a wrong default like 'Time'), then add a null/else
                 # rule so out-of-range features are visible rather than invisible.
-                styling.setStyle(opened, layer_type + "_" + style_var)
+                styling.setStyle(opened, resultStyleName(layer_type, variable))
                 renderer = opened.renderer()
                 from qgis.core import QgsGraduatedSymbolRenderer
                 if isinstance(renderer, QgsGraduatedSymbolRenderer):

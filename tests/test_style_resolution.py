@@ -115,6 +115,46 @@ class TestSetStyle:
 
         assert layer.loadedPath is None
 
+    def test_style_name_case_does_not_matter(self, tmp_path):
+        # openLayer passes input layer names in lowercase ("pipes"), while the legend
+        # editor and the shipped defaults capitalise them.
+        utils = _makeUtils(tmp_path)
+        expected = _writeStyle(os.path.join(str(tmp_path / "project"), "layerStyles"), "Net_Pipes.qml")
+
+        layer = _FakeLayer()
+        utils.setStyle(layer, "pipes")
+
+        assert layer.loadedPath == expected
+
+    def test_network_name_case_does_not_matter(self, tmp_path):
+        utils = _makeUtils(tmp_path, networkName="NET")
+        expected = _writeStyle(os.path.join(str(tmp_path / "project"), "layerStyles"), "net_Pipes.qml")
+
+        layer = _FakeLayer()
+        utils.setStyle(layer, "Pipes")
+
+        assert layer.loadedPath == expected
+
+    def test_global_style_matches_case_insensitively(self, tmp_path):
+        globalFolder = str(tmp_path / "global")
+        utils = _makeUtils(tmp_path, globalFolder=globalFolder)
+        expected = _writeStyle(os.path.join(globalFolder, "layerStyles"), "Pipes.qml")
+
+        layer = _FakeLayer()
+        utils.setStyle(layer, "pipes")
+
+        assert layer.loadedPath == expected
+
+    def test_missing_default_still_attempts_the_expected_path(self, tmp_path):
+        # Result layers are opened as "Base_Node", for which no default QML exists;
+        # the call must stay harmless rather than change shape.
+        utils = _makeUtils(tmp_path)
+        layer = _FakeLayer()
+
+        utils.setStyle(layer, "Base_Node")
+
+        assert layer.loadedPath.endswith(os.path.join("defaults", "layerStyles", "BaseNode.qml.bak"))
+
 
 class TestResolveStylePath:
     def test_prefers_network_prefixed_project_style(self, tmp_path):

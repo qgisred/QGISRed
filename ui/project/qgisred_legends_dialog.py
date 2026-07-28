@@ -33,6 +33,7 @@ from ...tools.utils.qgisred_field_utils import QGISRedFieldUtils, resolve_layer_
 from ...tools.utils.qgisred_layer_utils import QGISRedLayerUtils
 from ...tools.utils.qgisred_project_utils import QGISRedProjectUtils
 from ...tools.utils.qgisred_filesystem_utils import QGISRedFileSystemUtils, DIR_RESULTS
+from ..analysis.qgisred_results_data import resultStyleName
 from .qgisred_custom_dialogs import QGISRedRangeEditDialog, QGISRedSymbolColorSelector
 from .qgisred_custom_dialogs import QGISRedColorRampSelector, QGISRedRowSelectionFilter
 from .qgisred_custom_dialogs import QGISRedPaletteEmulator, QGISRedSizePaletteEmulator
@@ -3733,7 +3734,43 @@ class QGISRedLegendsDialog(QDialog, formClass):
             message = self.tr("Strategy loaded into the dialog from %1. Press Apply to update the layer.").replace("%1", filename)
         QMessageBox.information(self, self.tr("Loaded"), message)
 
+    def getResultStyleName(self, identifier):
+        """QML name the results dock loads for this layer, e.g. "NodePressure".
+
+        None when the layer is not a result layer. Never derived from layer.name(), which
+        is translated and would yield a different file name in every language.
+        """
+        if identifier.startswith("qgisred_node_"):
+            element = "Node"
+        elif identifier.startswith("qgisred_link_"):
+            element = "Link"
+        else:
+            return None
+        return resultStyleName(element, self.getResultStyleVariable(element)) or None
+
+    def getResultStyleVariable(self, element):
+        """Result variable the layer displays, in English, or None.
+
+        The column the renderer classifies is read straight from the layer being edited,
+        so it cannot go stale. Status is the exception: it classifies through rule filters
+        and exposes no class attribute, and there the project entry answers — the dock
+        rewrites it on every restyle, and so does the metadata reader when reopening.
+        """
+        field = (self.currentFieldName or "").strip()
+        # Flow is classified through abs("Flow"); every other variable is a bare column.
+        match = re.fullmatch(r'abs\(\s*"?(\w+)"?\s*\)', field)
+        if match:
+            field = match.group(1)
+        if re.fullmatch(r'\w+', field):
+            return field
+
+        # The dock only ever works on the Base scenario (see its Scenario assignments).
+        return QgsProject.instance().readEntry("QGISRed", "results_Base_" + element)[0] or None
+
     def getElementNameForIdentifier(self, identifier):
+        resultName = self.getResultStyleName(identifier or "")
+        if resultName:
+            return resultName
         utils = self.utils or QGISRedIdentifierUtils()
         name = utils.identifierToElementName.get(identifier)
         if name:
