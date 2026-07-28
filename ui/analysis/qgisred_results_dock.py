@@ -60,6 +60,7 @@ class QGISRedResultsDock(
     _lastResultsPct = -1
     _canvasFreezeDepth = 0
     _frozenCanvases = None
+    _pendingResultsCall = None
     _RESULTS_CONTEXTS = [
         "QGISRedResultsDock",
         "_ResultsRenderingMixin",
@@ -633,6 +634,34 @@ class QGISRedResultsDock(
         if self._canvasFreezeDepth <= 1:  # outermost session: the files are final now
             self._rememberResultFileStamps()
         self.unfreezeCanvases()
+        if self._canvasFreezeDepth == 0 and self._pendingResultsCall is not None:
+            # A caller arrived while this session was running and got deferred
+            # below instead of reentering it (see _deferIfBusyReading). Replay it
+            # now that the layers are settled -- it re-reads current widget state,
+            # so this is the same as if it had run right away.
+            callback = self._pendingResultsCall
+            self._pendingResultsCall = None
+            callback()
+
+    def _deferIfBusyReading(self, callback):
+        """True (and remembers `callback`) if a results read/update session is
+        already running; the caller must return immediately without doing any
+        work of its own.
+
+        With no QApplication.processEvents() left in the read loop (see the v5
+        overlay fix), this should be unreachable through normal UI input --
+        Qt cannot dispatch a new signal while the current one is still on the
+        stack. It stays as a backstop for less obvious reentry paths (a modal
+        dialog opened mid-read, a future processEvents() call elsewhere) and,
+        should one of those still happen, coalesces bursts into a single replay:
+        each new deferred call overwrites the previous one, so only the last
+        state requested (e.g. the second of two quick time changes) survives
+        and runs once the in-flight session ends.
+        """
+        if self._canvasFreezeDepth <= 0:
+            return False
+        self._pendingResultsCall = callback
+        return True
 
     """Layers and Groups"""
 
@@ -1435,6 +1464,8 @@ class QGISRedResultsDock(
 
         # 3. Heavy operations (only if not computing)
         if not self.Computing:
+            if self._deferIfBusyReading(self.statisticsChanged):
+                return
             QApplication.setOverrideCursor(Qt.CursorShape.WaitCursor)
             self.beginResultsUpdate()
             try:
@@ -1495,6 +1526,9 @@ class QGISRedResultsDock(
         if not self.validationsOpenResult():
             return
 
+        if self._deferIfBusyReading(self.linksChanged):
+            return
+
         QApplication.setOverrideCursor(Qt.CursorShape.WaitCursor)
         self.beginResultsUpdate()
         try:
@@ -1537,6 +1571,9 @@ class QGISRedResultsDock(
             return
 
         if not self.validationsOpenResult():
+            return
+
+        if self._deferIfBusyReading(self.nodesChanged):
             return
 
         QApplication.setOverrideCursor(Qt.CursorShape.WaitCursor)
@@ -1763,6 +1800,9 @@ class QGISRedResultsDock(
         if not self.validationsOpenResult():
             return
 
+        if self._deferIfBusyReading(self.timeChanged):
+            return
+
         QApplication.setOverrideCursor(Qt.CursorShape.WaitCursor)
         self._beginResultsOverlay()
         self.beginResultsUpdate()
@@ -1965,6 +2005,9 @@ class QGISRedResultsDock(
         self.openAllResultsProcess()
 
     def openAllResultsProcess(self):
+        if self._deferIfBusyReading(self.openAllResultsProcess):
+            return
+
         QApplication.setOverrideCursor(Qt.CursorShape.WaitCursor)
         self._beginResultsOverlay()
         self.beginResultsUpdate()

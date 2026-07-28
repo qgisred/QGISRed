@@ -130,6 +130,8 @@ class _ResultsAppearanceMixin:
         """Delete and recreate Double result fields so shapefile precision matches the new decimal count."""
         if not self._findResultLayer("Node") and not self._findResultLayer("Link"):
             return
+        if self._deferIfBusyReading(self._reloadResultsWithNewDecimals):
+            return
         QApplication.setOverrideCursor(Qt.CursorShape.WaitCursor)
         self._beginResultsOverlay()
         # Block canvas rendering while the OGR providers are rebuilt below: a background
