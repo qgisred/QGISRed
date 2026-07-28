@@ -144,7 +144,7 @@ class _ResultsRenderingMixin:
     # across languages) so the user can identify the displayed variable by color.
     _MAGNITUDE_COLORS = {
         # Nodes
-        "Pressure": "#729b6f",    # verde (presión)
+        "Pressure": "#2f8f5b",    # verde esmeralda (presión; el verde con más contraste)
         "Head": "#b5981f",        # ocre/ámbar (más oscuro e intenso que el ocre previo)
         "Demand": "#67add9",      # azul claro (distinto del azul de Flow)
         "Quality": "#8d5a99",     # morado (calidad en nudos)
@@ -153,7 +153,7 @@ class _ResultsRenderingMixin:
         "Flow_Unsig": "#1f78b4",  # azul
         "Flow_Sig": "#1f78b4",    # azul
         "Velocity": "#e17da2",    # magenta
-        "HeadLoss": "#2f8f5b",    # verde esmeralda (pérdidas totales; distinto de presión y de Head)
+        "HeadLoss": "#729b6f",    # verde apagado (pérdidas totales; distinto de presión y de Head)
         "UnitHdLoss": "#becf50",  # verde claro (pérdidas unitarias)
         "FricFactor": "#52828f",  # gris
         "Status": "#e77148",      # naranja
@@ -167,6 +167,11 @@ class _ResultsRenderingMixin:
     }
     _MAGNITUDE_DEFAULT_COLOR = "#000000"
 
+    # The most used magnitudes: their labels are drawn in bold so they stand out from the
+    # rest, whatever color they end up with (fixed magnitude color or colored by range).
+    _BOLD_NODE_FIELDS = ("Head", "Pressure", "Quality")
+    _BOLD_LINK_FIELDS = ("Flow", "Flow_Sig", "Flow_Unsig")
+
     def _magnitudeColor(self, field, is_node):
         """Return the label color (hex string) for a magnitude, or None if the field has
         no assigned color. Link layers get the link-specific override when one exists for
@@ -176,6 +181,11 @@ class _ResultsRenderingMixin:
             if override:
                 return override
         return self._MAGNITUDE_COLORS.get(field)
+
+    def _isBoldMagnitude(self, field, is_node):
+        """True when the magnitude is one of the most used ones (heads, pressures and
+        quality on nodes; flow on links), whose labels are highlighted in bold."""
+        return field in (self._BOLD_NODE_FIELDS if is_node else self._BOLD_LINK_FIELDS)
 
     def _getRenderStorageKey(self, layer_path, var_key):
         """Build the cache key used to store/retrieve a renderer for a given layer and variable."""
@@ -433,9 +443,16 @@ class _ResultsRenderingMixin:
         decimals = sp.value() if sp else 2
         color_by_range = getattr(self, '_labelColorByRange', False)
 
+        # The most used magnitudes are highlighted in bold. When the Id is also shown the
+        # label is HTML, so the bold is applied with <b> tags around the value only (the Id
+        # line stays regular) and the base font must remain non-bold.
+        bold_value = show_value and self._isBoldMagnitude(fieldName, is_node)
+
         layer_settings = QgsPalLayerSettings()
         text_format = QgsTextFormat()
-        text_format.setFont(QFont("Arial"))
+        font = QFont("Arial")
+        font.setBold(bold_value and not show_id)
+        text_format.setFont(font)
         text_format.setSize(font_size)
         text_format.setSizeUnit(RENDER_UNIT_POINTS)
 
@@ -510,16 +527,21 @@ class _ResultsRenderingMixin:
         id_line = '\'<span style="color:#000000;">\' || ' + id_col + ' || \'</span>\''
 
         if show_id and show_value:
+            # <b>/</b> keep the bold on the value line only — the Id line above stays regular.
+            b_open, b_close = ("<b>", "</b>") if bold_value else ("", "")
             if color_expr:
                 value_line = (
-                    f"\'<span style=\"color:\' || ({color_expr}) || \';\">\' "
-                    f"|| coalesce({value_inner}, \'\') || \'</span>\'"
+                    f"\'<span style=\"color:\' || ({color_expr}) || \';\">{b_open}\' "
+                    f"|| coalesce({value_inner}, \'\') || \'{b_close}</span>\'"
                 )
             else:
                 sym_color = default_color.name()
                 with suppress(Exception):
                     sym_color = layer.renderer().symbol().color().name()
-                value_line = f"\'<span style=\"color:{sym_color};\">\' || coalesce({value_inner}, \'\') || \'</span>\'"
+                value_line = (
+                    f"\'<span style=\"color:{sym_color};\">{b_open}\' "
+                    f"|| coalesce({value_inner}, \'\') || \'{b_close}</span>\'"
+                )
             full_expr = f"'<div>' || ({id_line}) || '</div><div>' || ({value_line}) || '</div>'"
         elif show_id:
             # Id only — labels appear even with no variable selected or the value label off.
