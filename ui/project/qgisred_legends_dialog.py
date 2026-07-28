@@ -13,12 +13,16 @@ from qgis.PyQt.QtWidgets import QDialog, QMessageBox, QHeaderView, QLineEdit, QA
 from qgis.PyQt.QtWidgets import QCheckBox, QSpinBox, QApplication, QProgressDialog, QWidget, QHBoxLayout, QMenu
 from qgis.PyQt.QtCore import Qt, QTimer, QEvent
 from qgis.PyQt import uic
-from ...compat import QVariantInt, QVariantDouble, QVariantLongLong
+from ...compat import (
+    QVariantInt, QVariantDouble, QVariantLongLong,
+    QGIS_INFO, QGIS_WARNING,
+    SL_PROP_SIZE, SL_PROP_WIDTH, SL_PROP_FILL_COLOR, SL_PROP_STROKE_COLOR, SL_PROP_STROKE_WIDTH,
+)
 
-from qgis.core import QgsProject, QgsVectorLayer, QgsMessageLog, Qgis, QgsGraduatedSymbolRenderer
+from qgis.core import QgsProject, QgsVectorLayer, QgsMessageLog, QgsGraduatedSymbolRenderer
 from qgis.core import QgsCategorizedSymbolRenderer, QgsRendererRange, QgsRendererCategory, QgsSymbol
 from qgis.core import QgsLayerTreeGroup, QgsLayerTreeLayer, QgsGradientColorRamp, QgsClassificationJenks
-from qgis.core import QgsClassificationPrettyBreaks, QgsStyle, QgsPresetSchemeColorRamp, QgsProperty, QgsSymbolLayer
+from qgis.core import QgsClassificationPrettyBreaks, QgsStyle, QgsPresetSchemeColorRamp, QgsProperty
 from qgis.core import QgsRuleBasedRenderer, QgsFillSymbolLayer, QgsMapLayerStyle, NULL
 from qgis.utils import iface
 
@@ -30,6 +34,7 @@ from ...tools.utils.qgisred_field_utils import QGISRedFieldUtils, resolve_layer_
 from ...tools.utils.qgisred_layer_utils import QGISRedLayerUtils
 from ...tools.utils.qgisred_project_utils import QGISRedProjectUtils
 from ...tools.utils.qgisred_filesystem_utils import QGISRedFileSystemUtils, DIR_RESULTS
+from ..analysis.qgisred_results_data import resultStyleName
 from .qgisred_custom_dialogs import QGISRedRangeEditDialog, QGISRedSymbolColorSelector
 from .qgisred_custom_dialogs import QGISRedColorRampSelector, QGISRedRowSelectionFilter
 from .qgisred_custom_dialogs import QGISRedPaletteEmulator, QGISRedSizePaletteEmulator
@@ -492,19 +497,19 @@ class QGISRedLegendsDialog(QDialog, formClass):
                     QgsMessageLog.logMessage(
                         f"Failed to load style database: {dbPath}",
                         "QGISRed",
-                        Qgis.Warning,
+                        QGIS_WARNING,
                     )
             except Exception as e:
                 QgsMessageLog.logMessage(
                     f"Error loading style database: {str(e)}",
                     "QGISRed",
-                    Qgis.Warning,
+                    QGIS_WARNING,
                 )
         else:
             QgsMessageLog.logMessage(
                 f"Style database not found: {dbPath}",
                 "QGISRed",
-                Qgis.Info,
+                QGIS_INFO,
             )
 
     # ============================================================
@@ -3006,22 +3011,21 @@ class QGISRedLegendsDialog(QDialog, formClass):
                 sl.setWidth(newWidth)
 
     INPUT_COLOR_READERS = {
-        "qgisred_junctions": ("PropertyFillColor", r"BaseDem\s*>\s*0\s*,\s*'(#[0-9a-fA-F]{6})'"),
-        "qgisred_demands": ("PropertyFillColor", r"BaseValue\s*>\s*0\s*,\s*'(#[0-9a-fA-F]{6})'"),
-        "qgisred_pipes": ("PropertyStrokeColor", r"IniStatus is NULL\s*,\s*'(#[0-9a-fA-F]{6})'"),
-        "qgisred_valves": ("PropertyStrokeColor", r"IniStatus is NULL\s*,\s*'(#[0-9a-fA-F]{6})'"),
-        "qgisred_pumps": ("PropertyStrokeColor", r"IniStatus is NULL\s*,\s*'(#[0-9a-fA-F]{6})'"),
-        "qgisred_meters": ("PropertyFillColor", r"IsActive is NULL\s*,\s*'(#[0-9a-fA-F]{6})'"),
-        "qgisred_serviceconnections": ("PropertyStrokeColor", r"IsActive is NULL\s*,\s*'(#[0-9a-fA-F]{6})'"),
-        "qgisred_isolationvalves": ("PropertyFillColor", r'LossCoeff"\s*=\s*0\s*,\s*color_rgb\((\d+)\s*,\s*(\d+)\s*,\s*(\d+)\)'),
+        "qgisred_junctions": (SL_PROP_FILL_COLOR, r"BaseDem\s*>\s*0\s*,\s*'(#[0-9a-fA-F]{6})'"),
+        "qgisred_demands": (SL_PROP_FILL_COLOR, r"BaseValue\s*>\s*0\s*,\s*'(#[0-9a-fA-F]{6})'"),
+        "qgisred_pipes": (SL_PROP_STROKE_COLOR, r"IniStatus is NULL\s*,\s*'(#[0-9a-fA-F]{6})'"),
+        "qgisred_valves": (SL_PROP_STROKE_COLOR, r"IniStatus is NULL\s*,\s*'(#[0-9a-fA-F]{6})'"),
+        "qgisred_pumps": (SL_PROP_STROKE_COLOR, r"IniStatus is NULL\s*,\s*'(#[0-9a-fA-F]{6})'"),
+        "qgisred_meters": (SL_PROP_FILL_COLOR, r"IsActive is NULL\s*,\s*'(#[0-9a-fA-F]{6})'"),
+        "qgisred_serviceconnections": (SL_PROP_STROKE_COLOR, r"IsActive is NULL\s*,\s*'(#[0-9a-fA-F]{6})'"),
+        "qgisred_isolationvalves": (SL_PROP_FILL_COLOR, r'LossCoeff"\s*=\s*0\s*,\s*color_rgb\((\d+)\s*,\s*(\d+)\s*,\s*(\d+)\)'),
     }
 
     def _readInputLayerColor(self, symbol, identifier):
         entry = self.INPUT_COLOR_READERS.get(identifier)
         if not entry:
             return None
-        propertyName, regex = entry
-        propertyKey = getattr(QgsSymbolLayer, propertyName)
+        propertyKey, regex = entry
         match = self._findExpressionMatch(symbol, propertyKey, re.compile(regex))
         if not match:
             return None
@@ -3181,7 +3185,7 @@ class QGISRedLegendsDialog(QDialog, formClass):
                     for j in range(markerSymbol.symbolLayerCount()):
                         ml = markerSymbol.symbolLayer(j)
                         expr = f"if(IniStatus is NULL, 0,if(IniStatus !='CV', 0,{newCvSize}))"
-                        ml.setDataDefinedProperty(QgsSymbolLayer.PropertySize, QgsProperty.fromExpression(expr))
+                        ml.setDataDefinedProperty(SL_PROP_SIZE, QgsProperty.fromExpression(expr))
 
     def _scaleMarkerLineMarkerSize(self, symbol, defaultMarkerSize, newWidth, defaultWidth):
         """Scale every marker layer inside a MarkerLine proportionally to the line width."""
@@ -3205,7 +3209,7 @@ class QGISRedLegendsDialog(QDialog, formClass):
                 f"if (BaseDem is NULL, '#ffffff', if( BaseDem >0, '{userHex}', "
                 f"if (BaseDem <0 , '#a6cee3', '#ffffff')))"
             )
-            self._setExpressionOnLayers(symbol, QgsSymbolLayer.PropertyFillColor, fillExpr)
+            self._setExpressionOnLayers(symbol, SL_PROP_FILL_COLOR, fillExpr)
         if size is not None:
             scale = size / self.JUNCTION_DEFAULT_SIZE
             self._rebuildJunctionSize(symbol, scale)
@@ -3225,14 +3229,14 @@ class QGISRedLegendsDialog(QDialog, formClass):
         )
         for i in range(symbol.symbolLayerCount()):
             sl = symbol.symbolLayer(i)
-            existing = sl.dataDefinedProperties().property(QgsSymbolLayer.PropertySize)
+            existing = sl.dataDefinedProperties().property(SL_PROP_SIZE)
             if existing and existing.propertyType() == QgsProperty.ExpressionBasedProperty:
                 expr = existing.expressionString()
                 if re.search(r'EmittCoef\s*>\s*0\s*,\s*0\s*,', expr):
                     newExpr = noEmitterExpr
                 else:
                     newExpr = emitterExpr
-                sl.setDataDefinedProperty(QgsSymbolLayer.PropertySize, QgsProperty.fromExpression(newExpr))
+                sl.setDataDefinedProperty(SL_PROP_SIZE, QgsProperty.fromExpression(newExpr))
             if hasattr(sl, 'subSymbol') and sl.subSymbol():
                 self._rebuildJunctionSize(sl.subSymbol(), scale)
 
@@ -3240,9 +3244,9 @@ class QGISRedLegendsDialog(QDialog, formClass):
         if color is not None:
             userHex = color.name().lower()
             strokeExpr = f"if(IniStatus is NULL, '{userHex}',if(IniStatus !='CLOSED', '{userHex}','#ff0f13'))"
-            self._setExpressionOnLayers(symbol, QgsSymbolLayer.PropertyStrokeColor, strokeExpr)
+            self._setExpressionOnLayers(symbol, SL_PROP_STROKE_COLOR, strokeExpr)
             # The CV SvgMarker carries the same color rule on its fill — keep it in sync
-            self._setExpressionOnLayers(symbol, QgsSymbolLayer.PropertyFillColor, strokeExpr)
+            self._setExpressionOnLayers(symbol, SL_PROP_FILL_COLOR, strokeExpr)
         if size is not None:
             self._setLineWidth(symbol, size)
             self._scalePipeCvMarker(symbol, size)
@@ -3255,8 +3259,8 @@ class QGISRedLegendsDialog(QDialog, formClass):
                 f"if(IniStatus is 'CLOSED', '#ff0f13', "
                 f"if(IniStatus !='ACTIVE', '{userHex}','#ff9900')))"
             )
-            self._setExpressionOnLayers(symbol, QgsSymbolLayer.PropertyStrokeColor, colorExpr)
-            self._setExpressionOnLayers(symbol, QgsSymbolLayer.PropertyFillColor, colorExpr)
+            self._setExpressionOnLayers(symbol, SL_PROP_STROKE_COLOR, colorExpr)
+            self._setExpressionOnLayers(symbol, SL_PROP_FILL_COLOR, colorExpr)
         if size is not None:
             self._setLineWidth(symbol, size)
             self._scaleMarkerLineMarkerSize(
@@ -3267,8 +3271,8 @@ class QGISRedLegendsDialog(QDialog, formClass):
         if color is not None:
             userHex = color.name().lower()
             colorExpr = f"if(IniStatus is NULL, '{userHex}',if(IniStatus !='CLOSED', '{userHex}','#ff0f13'))"
-            self._setExpressionOnLayers(symbol, QgsSymbolLayer.PropertyStrokeColor, colorExpr)
-            self._setExpressionOnLayers(symbol, QgsSymbolLayer.PropertyFillColor, colorExpr)
+            self._setExpressionOnLayers(symbol, SL_PROP_STROKE_COLOR, colorExpr)
+            self._setExpressionOnLayers(symbol, SL_PROP_FILL_COLOR, colorExpr)
         if size is not None:
             self._setLineWidth(symbol, size)
             self._scaleMarkerLineMarkerSize(
@@ -3279,7 +3283,7 @@ class QGISRedLegendsDialog(QDialog, formClass):
         if color is not None:
             userHex = color.name().lower()
             fillExpr = f"if(IsActive is NULL, '{userHex}',if(IsActive !=0, '{userHex}','#cccccc'))"
-            self._setExpressionOnLayers(symbol, QgsSymbolLayer.PropertyFillColor, fillExpr)
+            self._setExpressionOnLayers(symbol, SL_PROP_FILL_COLOR, fillExpr)
         if size is not None:
             self._rebuildMeterSizes(symbol, size)
 
@@ -3288,7 +3292,7 @@ class QGISRedLegendsDialog(QDialog, formClass):
         nullBranchRegex = re.compile(r"Type\s+is\s+NULL\s*,\s*(\d+(?:\.\d+)?)")
         # The Meters QML binds the size expression to "width" on SvgMarker layers,
         # so probe both keys and write back to whichever holds the rule.
-        sizeKeys = (QgsSymbolLayer.PropertySize, QgsSymbolLayer.PropertyWidth)
+        sizeKeys = (SL_PROP_SIZE, SL_PROP_WIDTH)
         for i in range(symbol.symbolLayerCount()):
             sl = symbol.symbolLayer(i)
             for propertyKey in sizeKeys:
@@ -3312,10 +3316,11 @@ class QGISRedLegendsDialog(QDialog, formClass):
             lighterHex = self._lightenColor(color, self.SERVICE_CONNECTION_LIGHTEN_FRACTION).name().lower()
             strokeExpr = f"if(IsActive is NULL, '{userHex}',if(IsActive >0, '{userHex}','#ff0f13'))"
             fillExpr = (
-                f"if(BaseDemand>0,if(IsActive is NULL or IsActive >0,'{lighterHex}','#c7cbc5'),'#fff')"
+                f"if(coalesce(attribute($currentfeature,'BaseDem'),attribute($currentfeature,'BaseDemand'))>0,"
+                f"if(IsActive is NULL or IsActive >0,'{lighterHex}','#c7cbc5'),'#fff')"
             )
-            self._setExpressionOnLayers(symbol, QgsSymbolLayer.PropertyStrokeColor, strokeExpr)
-            self._setExpressionOnLayers(symbol, QgsSymbolLayer.PropertyFillColor, fillExpr)
+            self._setExpressionOnLayers(symbol, SL_PROP_STROKE_COLOR, strokeExpr)
+            self._setExpressionOnLayers(symbol, SL_PROP_FILL_COLOR, fillExpr)
         if size is not None:
             self._setLineWidth(symbol, size)
             self._scaleMarkerLineMarkerSize(
@@ -3328,11 +3333,12 @@ class QGISRedLegendsDialog(QDialog, formClass):
             rgb = f"color_rgb({color.red()},{color.green()},{color.blue()})"
             fillExpr = (
                 f"if( \"Available\"!=0,"
-                f"if( \"Status\"='CLOSED',color_rgb(255,19,19), "
+                f"if( coalesce(attribute($currentfeature,'IniStatus'),attribute($currentfeature,'Status'))='CLOSED',"
+                f"color_rgb(255,19,19), "
                 f"if(\"LossCoeff\" = 0, {rgb},color_rgb(246,185,18))),"
                 f"color_rgb(125,139,143))"
             )
-            self._setExpressionOnLayers(symbol, QgsSymbolLayer.PropertyFillColor, fillExpr)
+            self._setExpressionOnLayers(symbol, SL_PROP_FILL_COLOR, fillExpr)
         if size is not None:
             self.applySizeToSymbol(symbol, size)
 
@@ -3347,7 +3353,7 @@ class QGISRedLegendsDialog(QDialog, formClass):
                 f"if (BaseValue is NULL, '#ffffff', if( BaseValue >0, '{userHex}', "
                 f"if (BaseValue <0 , '#a6cee3', '#ffffff')))"
             )
-            self._setExpressionOnLayers(symbol, QgsSymbolLayer.PropertyFillColor, fillExpr)
+            self._setExpressionOnLayers(symbol, SL_PROP_FILL_COLOR, fillExpr)
         if size is not None:
             scale = size / self.DEMANDS_DEFAULT_SIZE
             smallSize = round(1.6 * scale, 3)
@@ -3356,7 +3362,7 @@ class QGISRedLegendsDialog(QDialog, formClass):
                 f"if (BaseValue is NULL, {smallSize}, if( BaseValue >0, {smallSize}, "
                 f"if (BaseValue <0 , {bigSize}, {smallSize})))"
             )
-            self._setExpressionOnLayers(symbol, QgsSymbolLayer.PropertySize, sizeExpr)
+            self._setExpressionOnLayers(symbol, SL_PROP_SIZE, sizeExpr)
 
     def buildNumericRenderer(self):
         ranges = []
@@ -3428,9 +3434,9 @@ class QGISRedLegendsDialog(QDialog, formClass):
         for i in range(symbol.symbolLayerCount()):
             symbolLayer = symbol.symbolLayer(i)
             if isLine:
-                symbolLayer.setDataDefinedProperty(QgsSymbolLayer.PropertyStrokeWidth, sizeProperty)
+                symbolLayer.setDataDefinedProperty(SL_PROP_STROKE_WIDTH, sizeProperty)
             else:
-                symbolLayer.setDataDefinedProperty(QgsSymbolLayer.PropertySize, sizeProperty)
+                symbolLayer.setDataDefinedProperty(SL_PROP_SIZE, sizeProperty)
 
     def buildCategoricalRenderer(self):
         categories = []
@@ -3833,7 +3839,43 @@ class QGISRedLegendsDialog(QDialog, formClass):
                 return basename
         return name.replace(" ", "")
 
+    def getResultStyleName(self, identifier):
+        """QML name the results dock loads for this layer, e.g. "NodePressure".
+
+        None when the layer is not a result layer. Never derived from layer.name(), which
+        is translated and would yield a different file name in every language.
+        """
+        if identifier.startswith("qgisred_node_"):
+            element = "Node"
+        elif identifier.startswith("qgisred_link_"):
+            element = "Link"
+        else:
+            return None
+        return resultStyleName(element, self.getResultStyleVariable(element)) or None
+
+    def getResultStyleVariable(self, element):
+        """Result variable the layer displays, in English, or None.
+
+        The column the renderer classifies is read straight from the layer being edited,
+        so it cannot go stale. Status is the exception: it classifies through rule filters
+        and exposes no class attribute, and there the project entry answers — the dock
+        rewrites it on every restyle, and so does the metadata reader when reopening.
+        """
+        field = (self.currentFieldName or "").strip()
+        # Flow is classified through abs("Flow"); every other variable is a bare column.
+        match = re.fullmatch(r'abs\(\s*"?(\w+)"?\s*\)', field)
+        if match:
+            field = match.group(1)
+        if re.fullmatch(r'\w+', field):
+            return field
+
+        # The dock only ever works on the Base scenario (see its Scenario assignments).
+        return QgsProject.instance().readEntry("QGISRed", "results_Base_" + element)[0] or None
+
     def getElementNameForIdentifier(self, identifier):
+        resultName = self.getResultStyleName(identifier or "")
+        if resultName:
+            return resultName
         utils = self.utils or QGISRedIdentifierUtils()
         name = utils.identifierToElementName.get(identifier)
         if name:

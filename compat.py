@@ -304,3 +304,8 @@ try:
     SL_PROP_STROKE_WIDTH = _QgsSymbolLayer.PropertyStrokeWidth
 except AttributeError:
     SL_PROP_STROKE_WIDTH = _QgsSymbolLayer.Property.StrokeWidth
+
+try:
+    SL_PROP_WIDTH = _QgsSymbolLayer.PropertyWidth
+except AttributeError:
+    SL_PROP_WIDTH = _QgsSymbolLayer.Property.Width

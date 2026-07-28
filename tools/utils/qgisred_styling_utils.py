@@ -96,9 +96,12 @@ class _NullHiddenLegend(QgsMapLayerLegend):
         self._layer = layer
         # Delegate to a default legend; keep the reference so it is not GC'd.
         self._default = QgsMapLayerLegend.defaultVectorLegend(layer)
-        # The layer tree model rebuilds legend nodes only on this legend's
-        # itemsChanged; the default legend emits it on rendererChanged.
-        self._default.itemsChanged.connect(self.itemsChanged)
+        # The legend panel listens to this object, not to the one being wrapped, and only
+        # the wrapped one hears about renderer changes. Without the relay the panel keeps
+        # showing the classes of the previous style until something installs a new legend
+        # — which is why the map updated on Apply but the legend did not.
+        with suppress(Exception):
+            self._default.itemsChanged.connect(self.itemsChanged)
 
     def createLayerTreeModelLegendNodes(self, nodeLayer):
         from qgis.PyQt import sip
