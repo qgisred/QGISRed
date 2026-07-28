@@ -623,7 +623,7 @@ class TestSetGraduatedPaletteVariableSwitch:
             layer.renderer.side_effect = lambda: state["renderer"]
             layer.setRenderer.side_effect = lambda r: state.update(renderer=r)
 
-            def fake_set_style(lyr, qml_name):
+            def fake_set_style(lyr, qml_name, field=None):
                 if qml_name.endswith("_Status"):
                     state["renderer"] = _FakeRuleBasedRenderer()
                 else:

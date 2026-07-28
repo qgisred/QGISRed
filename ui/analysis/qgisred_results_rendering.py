@@ -845,51 +845,22 @@ class _ResultsRenderingMixin:
             self.cbFlowDirections.setChecked(False)
             self.cbFlowDirections.setEnabled(False)
 
-    def _ensureGraduatedClasses(self, layer, renderer, field, db_field_name, nameLayer):
-        """Guarantee the graduated renderer really has classes for the field being displayed.
+    def _warnIfNoClasses(self, renderer, db_field_name, nameLayer):
+        """Log when the renderer ends up with no classes at all.
 
-        The QML style can carry a legend strategy (qgisred_legend_strategy) that classifies
-        a column which is *not* the one about to be displayed -in Average mode links show
-        Flow_Unsig / Flow_Sig while the style classifies Flow- or one whose values are still
-        NULL. QgsGraduatedSymbolRenderer.createRenderer() then returns zero ranges and the
-        layer ends up drawn, and listed in the legend, with no classes at all: the symptom
-        the user sees as "the legend is not applied".
-
-        Reclassify from the values actually displayed, keeping the style's symbol, ramp and
-        classification mode. Returns the renderer to use (the original one when it is fine).
+        The field is now always the one selected in the comboboxes, so an empty
+        classification means the column really has no values: the statistic was not
+        written to the layer. On the map that is indistinguishable from a styling
+        problem, hence the trace in the QGISRed log.
         """
-        if renderer.ranges():
-            return renderer
-
-        mode = getattr(renderer, "mode", lambda: None)()
-        rebuilt = None
-        if mode is not None:
-            symbol = None
-            ramp = None
-            with suppress(Exception):
-                symbols = renderer.symbols(QgsRenderContext())
-                symbol = symbols[0].clone() if symbols else None
-            with suppress(Exception):
-                source_ramp = renderer.sourceColorRamp()
-                ramp = source_ramp.clone() if source_ramp else None
-            with suppress(Exception):
-                rebuilt = QgsGraduatedSymbolRenderer.createRenderer(
-                    layer, field, len(renderer.ranges()) or 5, mode, symbol, ramp
-                )
-
-        if rebuilt is not None and rebuilt.ranges():
-            return rebuilt
-
-        # Nothing to classify: the column exists but every feature is NULL, i.e. the
-        # statistics were never written to the layer. Leave a trace, the empty legend
-        # on the map is otherwise indistinguishable from a styling problem.
+        if not isinstance(renderer, QgsGraduatedSymbolRenderer) or renderer.ranges():
+            return
         QgsMessageLog.logMessage(
             self.tr("No values to classify in field '%1' of layer %2: the legend was left empty")
                 .replace("%1", db_field_name).replace("%2", self.tr(nameLayer)),
             "QGISRed",
             QGIS_WARNING,
         )
-        return renderer
 
     def setGraduatedPalette(self, layer, field, setRender, nameLayer, previously_displayed=None):
         renderer = layer.renderer()
@@ -909,7 +880,7 @@ class _ResultsRenderingMixin:
             # belong to Status (i.e. we were displaying something else before this call).
             if not hasRender and previously_displayed != db_field_name:
                 qmlName = nameLayer.split("_")[0] + "_" + db_field_name
-                utils.setStyle(layer, qmlName)
+                utils.setStyle(layer, qmlName, field=db_field_name)
                 renderer = layer.renderer()
 
             if hasRender and isinstance(ranges, QgsRuleBasedRenderer.Rule):
@@ -928,8 +899,12 @@ class _ResultsRenderingMixin:
                 renderer_correct = False
 
             if not hasRender and not renderer_correct:
+                # The QML is shared by several variables (Flow, Flow_Sig and Flow_Unsig all
+                # use LinkFlow.qml), so the style's own legend strategy would classify the
+                # column it was saved with. Pass the field actually selected in the combobox
+                # so the classification is built over the values about to be displayed.
                 qmlName = nameLayer.split("_")[0] + "_" + qml_field_name
-                utils.setStyle(layer, qmlName)
+                utils.setStyle(layer, qmlName, field=field)
                 renderer = layer.renderer()
 
             if hasRender and isinstance(ranges, list):
@@ -937,7 +912,7 @@ class _ResultsRenderingMixin:
 
             if isinstance(renderer, QgsGraduatedSymbolRenderer):
                 renderer.setClassAttribute(field)
-                renderer = self._ensureGraduatedClasses(layer, renderer, field, db_field_name, nameLayer)
+                self._warnIfNoClasses(renderer, db_field_name, nameLayer)
 
         # Update arrow visibility
         with suppress(Exception):

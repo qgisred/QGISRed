@@ -14,7 +14,7 @@ from qgis.core import (
     QgsLineSymbol, QgsSimpleLineSymbolLayer, QgsSimpleMarkerSymbolLayer,
     QgsRendererCategory, QgsCategorizedSymbolRenderer, QgsVectorLayerCache, NULL,
     QgsGraduatedSymbolRenderer, QgsRuleBasedRenderer, QgsRenderContext,
-    QgsMapLayerLegend, QgsMessageLog, QgsStyle
+    QgsMapLayerLegend, QgsMessageLog, QgsStyle, QgsExpression
 )
 from qgis.gui import QgsAttributeTableFilterModel, QgsAttributeTableModel, QgsAttributeTableView
 from qgis.utils import iface as _iface
@@ -121,7 +121,13 @@ class QGISRedStylingUtils:
         from .qgisred_filesystem_utils import QGISRedFileSystemUtils
         return QGISRedFileSystemUtils(self.ProjectDirectory, self.NetworkName, self.iface).getQGISRedFolder()
 
-    def setStyle(self, layer, name):
+    def setStyle(self, layer, name, field=None):
+        """Load the QML style called `name` on `layer`.
+
+        field: column (or expression) the legend must classify, when the caller knows it.
+        It overrides the field recorded inside the style's legend strategy — see
+        applyLegendStrategy.
+        """
         if name == "":
             return
         name = name.replace("_", "") if name else ""
@@ -132,7 +138,7 @@ class QGISRedStylingUtils:
         if os.path.exists(qmlPath):
             layer.loadNamedStyle(qmlPath)
             layer.setLabelsEnabled(False)
-            self.applyStrategyFromLayer(layer)
+            self.applyStrategyFromLayer(layer, field)
             self.translateRendererLabels(layer)
             return
 
@@ -142,7 +148,7 @@ class QGISRedStylingUtils:
         if os.path.exists(qmlPath):
             layer.loadNamedStyle(qmlPath)
             layer.setLabelsEnabled(False)
-            self.applyStrategyFromLayer(layer)
+            self.applyStrategyFromLayer(layer, field)
             self.translateRendererLabels(layer)
             return
 
@@ -152,7 +158,7 @@ class QGISRedStylingUtils:
         qmlPath = os.path.join(defaultStylePath, name + ".qml.bak")
         layer.loadNamedStyle(qmlPath)
         layer.setLabelsEnabled(False)
-        self.applyStrategyFromLayer(layer)
+        self.applyStrategyFromLayer(layer, field)
         self.translateRendererLabels(layer)
 
     def resolveStylePath(self, qmlFile):
@@ -164,13 +170,13 @@ class QGISRedStylingUtils:
             return globalPath
         return os.path.join(_plugin_root(), "defaults", "layerStyles", qmlFile + ".bak")
 
-    def applyStrategyFromLayer(self, layer):
+    def applyStrategyFromLayer(self, layer, field=None):
         rawStrategy = layer.customProperty("qgisred_legend_strategy")
         if not rawStrategy:
             return
         try:
             strategy = json.loads(rawStrategy)
-            self.applyLegendStrategy(layer, strategy)
+            self.applyLegendStrategy(layer, strategy, field)
         except Exception as ex:
             QgsMessageLog.logMessage(
                 self.tr("Failed to apply legend strategy for layer %1: %2")
@@ -179,7 +185,27 @@ class QGISRedStylingUtils:
                 Qgis.MessageLevel.Warning,
             )
 
-    def applyLegendStrategy(self, layer, strategy):
+    @staticmethod
+    def isFieldReference(text):
+        """True when `text` names a column, False when it is an expression like abs(Flow).
+
+        Graduated renderers classify expressions just as well as columns, so an
+        expression must not be rejected as a missing field.
+        """
+        with suppress(Exception):
+            return QgsExpression(text).isField()
+        return "(" not in text
+
+    def applyLegendStrategy(self, layer, strategy, field=None):
+        """Apply a stored legend strategy to `layer`.
+
+        field: what the caller wants classified. It takes precedence over the field
+        recorded in the strategy, because the caller knows the current state and the
+        strategy only knows the state at the time the style was saved. The results dock
+        relies on this: in Average mode links display Flow_Unsig / Flow_Sig while the
+        style was saved classifying Flow, a column that stays NULL in that mode -
+        classifying it produces a renderer with no classes and an empty legend.
+        """
         if not isinstance(strategy, dict):
             return
         schema = strategy.get("schema")
@@ -192,11 +218,11 @@ class QGISRedStylingUtils:
             )
             return
 
-        field = strategy.get("field")
+        field = field or strategy.get("field")
         if not field:
             return
         fieldIndex = layer.fields().indexFromName(field)
-        if fieldIndex == -1:
+        if fieldIndex == -1 and self.isFieldReference(field):
             QgsMessageLog.logMessage(
                 self.tr("Legend strategy field '%1' not found on layer '%2'")
                     .replace("%1", field).replace("%2", layer.name()),
@@ -219,7 +245,9 @@ class QGISRedStylingUtils:
 
         if "colors" in parts:
             colorsBlock = self.resolveColorsBlock(strategy)
-            if mode == "categorized":
+            # Categorized colouring reads unique values through the field index, so it
+            # only applies to real columns (fieldIndex == -1 means an expression here).
+            if mode == "categorized" and fieldIndex != -1:
                 self.applyCategorizedColors(layer, field, fieldIndex, colorsBlock)
             elif mode == "graduated":
                 self.applyGraduatedColors(layer, colorsBlock)
