@@ -93,7 +93,6 @@ LAYER_ID_TO_FIELD = {
     # Service Connection
     'qgisred_query_serviceconnection_length':        ('Service Connection', 'Length'),
     'qgisred_query_serviceconnection_diameter':      ('Service Connection', 'Diameter'),
-    'qgisred_query_serviceconnection_roughness':     ('Service Connection', 'Roughness'),
     'qgisred_query_serviceconnection_material':      ('Service Connection', 'Material'),
     'qgisred_query_serviceconnection_installdate':   ('Service Connection', 'InstDate'),
     'qgisred_query_serviceconnection_age':           ('Service Connection', 'Age'),

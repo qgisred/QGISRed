@@ -670,7 +670,7 @@ class QGISRedImportDialog(QDialog, FORM_CLASS):
         self.selectComboBoxItem(self.cbServiceConnection_Id, ["connectid", "id"])
         self.selectComboBoxItem(self.cbServiceConnection_Length, ["length", "longitud"])
         self.selectComboBoxItem(self.cbServiceConnection_Diameter, ["diameter", "diam", "diametro", "diámetro"])
-        self.selectComboBoxItem(self.cbServiceConnection_Roughness, ["roughness"])
+        self.selectComboBoxItem(self.cbServiceConnection_Roughness, ["roughcoeff", "roughness"])
         self.selectComboBoxItem(self.cbServiceConnection_Material, ["material"])
         self.selectComboBoxItem(self.cbServiceConnection_Demand, ["demand", "basedem", "basedemand"])
         self.selectComboBoxItem(self.cbServiceConnection_Pattern, ["dempattid", "pattern", "idpattdem"])
