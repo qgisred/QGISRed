@@ -19,6 +19,7 @@ from QGISRed.ui.analysis.timeseries_globals import (
     _CUBIC_METERS_PER_VOLUME_UNIT,
     _MODEL_VOLUME_UNIT,
 )
+from QGISRed.tools.utils.qgisred_field_utils import plain_unit_abbr
 from QGISRed.ui.analysis.qgisred_results_binary import (
     _NT_JUNCTION,
     _NT_RESERVOIR,
@@ -152,7 +153,10 @@ class TestVolumeUnitSizes:
             if abbr
         }
         assert abbreviations, "no Global/VolumeUnits rows found in the units CSV"
-        missing = sorted(abbreviations - set(_CUBIC_METERS_PER_VOLUME_UNIT))
+        # Normalised the same way the runtime lookup does, so how the CSV spells the
+        # exponent (m3, m^3 or m³) does not decide whether this test passes.
+        keys = {plain_unit_abbr(abbr) for abbr in abbreviations}
+        missing = sorted(keys - set(_CUBIC_METERS_PER_VOLUME_UNIT))
         assert not missing, (
             "volume units declared in the CSV with no size in "
             "_CUBIC_METERS_PER_VOLUME_UNIT: {}. Add how many cubic meters each one is "
@@ -222,7 +226,7 @@ class TestStoredVolumeDisplayUnits:
 
     def test_si_flow_units_keep_cubic_meters(self, monkeypatch):
         _patch_project_units(monkeypatch, "SI", "LPS")
-        assert global_variable_unit_abbreviation(TOTAL_STORED_VOLUME_KEY) == "m3"
+        assert global_variable_unit_abbreviation(TOTAL_STORED_VOLUME_KEY) == "m³"
         assert stored_volume_display_factor() == 1.0
 
     def test_unknown_display_unit_is_not_converted(self, monkeypatch):

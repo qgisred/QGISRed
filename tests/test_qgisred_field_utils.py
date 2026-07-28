@@ -69,6 +69,42 @@ class TestResolveLayerId:
 
 
 # ---------------------------------------------------------------------------
+# plain_unit_abbr  (module-level helper, no project needed)
+# ---------------------------------------------------------------------------
+class TestPlainUnitAbbr:
+    @pytest.mark.parametrize("abbr, expected", [
+        ("m3", "m3"),            # plain spelling
+        ("m^3", "m3"),           # as the CSV writes it
+        ("m³", "m3"),            # as _formatExponents renders it
+        ("ft^3", "ft3"),
+        ("s/m^(1/3)", "s/m1/3"),  # parenthesised exponent, CSV form
+        ("s/m¹ᐟ³", "s/m1/3"),     # same, rendered form
+        ("mm^2/100", "mm2/100"),  # the 100 is a plain number, not an exponent
+        ("MG", "MG"),            # nothing to strip
+        ("", ""),
+        (None, ""),
+    ])
+    def test_collapses_every_exponent_spelling(self, abbr, expected):
+        from QGISRed.tools.utils.qgisred_field_utils import plain_unit_abbr
+
+        assert plain_unit_abbr(abbr) == expected
+
+    def test_csv_and_rendered_forms_always_agree(self, fu):
+        """Every abbreviation in the CSV keys the same before and after formatting."""
+        from QGISRed.tools.utils.qgisred_field_utils import plain_unit_abbr
+
+        rows = fu.loadUnitDefinitions().get("rows", [])
+        checked = 0
+        for row in rows:
+            for raw in (row["si_abbr"], row["us_abbr"]):
+                if not raw or "See " in raw:
+                    continue
+                assert plain_unit_abbr(raw) == plain_unit_abbr(fu._formatExponents(raw)), raw
+                checked += 1
+        assert checked, "no literal abbreviations found in the units CSV"
+
+
+# ---------------------------------------------------------------------------
 # _resolveAbbr  (pure logic, no project needed)
 # ---------------------------------------------------------------------------
 class TestResolveAbbr:
@@ -197,13 +233,14 @@ class TestGetPressureFieldAbbr:
 # ---------------------------------------------------------------------------
 class TestVolumeUnits:
     @pytest.mark.parametrize("unit_code, expected_abbr", [
-        ("LPS", "m3"),     # SI project
-        ("CMH", "m3"),
+        ("LPS", "m^3"),    # SI project; raw CSV spelling, superscripts are applied later
+        ("CMH", "m^3"),
         ("GPM", "MG"),     # US project: mega gallons
         ("MGD", "MG"),
         ("IMGD", "IMG"),   # imperial project: imperial mega gallons
     ])
     def test_get_volume_abbr(self, fu, unit_code, expected_abbr):
+        """Raw CSV value: it is substituted into the abbreviation before formatting."""
         with patch("QGISRed.tools.utils.qgisred_project_utils.QgsProject") as MockProj:
             MockProj.instance.return_value = _make_project(unit_code)
             assert fu._getVolumeAbbr() == expected_abbr
@@ -227,7 +264,7 @@ class TestVolumeUnits:
             assert fu._resolveAbbr("See VolumeUnits") == "MG"
 
     @pytest.mark.parametrize("unit_code, expected_abbr, expected_decimals", [
-        ("LPS", "m3", 0),
+        ("LPS", "m³", 0),
         ("GPM", "MG", 2),
         ("IMGD", "IMG", 2),
     ])
@@ -252,7 +289,7 @@ class TestVolumeUnits:
             MockProj.instance.return_value = _make_project("GPM")
             assert fu.getProperty("Nodes", "Volume", translate=False) == "Tank Volume"
 
-    @pytest.mark.parametrize("unit_code, expected_abbr", [("LPS", "m3"), ("GPM", "ft3")])
+    @pytest.mark.parametrize("unit_code, expected_abbr", [("LPS", "m³"), ("GPM", "ft³")])
     def test_tank_min_volume_keeps_its_own_unit(self, fu, unit_code, expected_abbr):
         """Tanks/MinVolume is an input in m³/ft³ and must not follow VolumeUnits."""
         with patch("QGISRed.tools.utils.qgisred_project_utils.QgsProject") as MockProj:

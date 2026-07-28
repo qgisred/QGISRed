@@ -153,7 +153,13 @@ _PRESSURE_UNITS_MARKER = _UNIT_MARKER_PREFIX + "PressUnits"
 _VOLUME_UNITS_MARKER = _UNIT_MARKER_PREFIX + "VolumeUnits"
 _MASS_UNITS_MARKER = _UNIT_MARKER_PREFIX + "MassUnits"
 _CURRENCY_MARKER = _UNIT_MARKER_PREFIX + "Currency"
-_SUPERSCRIPT_TRANSLATION = str.maketrans("0123456789/", "⁰¹²³⁴⁵⁶⁷⁸⁹ᐟ")
+# Exponent characters, plain and superscript. Both tables are built from the same two
+# strings so the rendering done by _formatExponents and the plain spelling recovered by
+# plain_unit_abbr() cannot drift apart.
+_PLAIN_EXPONENT_CHARS = "0123456789/"
+_SUPERSCRIPT_EXPONENT_CHARS = "⁰¹²³⁴⁵⁶⁷⁸⁹ᐟ"
+_SUPERSCRIPT_TRANSLATION = str.maketrans(_PLAIN_EXPONENT_CHARS, _SUPERSCRIPT_EXPONENT_CHARS)
+_PLAIN_TRANSLATION = str.maketrans(_SUPERSCRIPT_EXPONENT_CHARS, _PLAIN_EXPONENT_CHARS)
 
 # Plural display names (English) keyed by the singular pretty name from the CSV.
 # Names without a natural plural (e.g. quality chemicals, Energy) are left out
@@ -270,6 +276,19 @@ def resolve_layer_id(layer_identifier: str):
             abbr = utils.getUnitAbbreviation(*field)
     """
     return LAYER_ID_TO_FIELD.get(layer_identifier)
+
+
+def plain_unit_abbr(abbr: str) -> str:
+    """Return a unit abbreviation in plain spelling, for use as a key or comparison.
+
+    ``m3``, ``m^3`` and ``m³`` all collapse to ``m3``, and ``s/m^(1/3)`` and ``s/m¹ᐟ³``
+    both to ``s/m1/3``. Code that identifies a unit — a conversion table, a lookup —
+    should key on this so it depends neither on how the CSV writes the exponent nor on
+    whether the abbreviation has already been through ``_formatExponents``.
+    """
+    text = (abbr or "").translate(_PLAIN_TRANSLATION)
+    text = re.sub(r'\^\(([^)]*)\)', r'\1', text)
+    return text.replace("^", "")
 
 
 def _plugin_root():

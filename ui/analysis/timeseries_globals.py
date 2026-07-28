@@ -28,6 +28,8 @@ AVERAGE_NODE_PRESSURE_KEY = "AverageNodePressure"
 # Keyed by the CSV abbreviation on purpose: the conversion follows the unit, not the
 # unit system, so renaming m3 to hm3 in the CSV must not keep the old factor.
 # ft3 is here as a *source* unit (what US projects report in), never as a target.
+# Keys are plain spellings — they go through plain_unit_abbr(), which makes how the CSV
+# writes the exponent (m3, m^3 or m³) irrelevant to the lookup.
 _CUBIC_METERS_PER_VOLUME_UNIT = {
     "m3": 1.0,
     "ft3": 0.028316846592,  # 1728 in³ of 0.0254 m
@@ -81,7 +83,9 @@ def stored_volume_display_factor() -> float:
     unit is logged, rather than silently mislabelled with a stale factor.
     """
     try:
-        from ...tools.utils.qgisred_field_utils import QGISRedFieldUtils, normalize_element
+        from ...tools.utils.qgisred_field_utils import (
+            QGISRedFieldUtils, normalize_element, plain_unit_abbr,
+        )
 
         utils = QGISRedFieldUtils()
         source_unit = _MODEL_VOLUME_UNIT.get(utils.getVolumeUnitsCondition(), "m3")
@@ -89,6 +93,8 @@ def stored_volume_display_factor() -> float:
     except Exception:
         return 1.0
 
+    source_unit = plain_unit_abbr(source_unit)
+    target_unit = plain_unit_abbr(target_unit)
     if not target_unit or target_unit == source_unit:
         return 1.0
     source_size = _CUBIC_METERS_PER_VOLUME_UNIT.get(source_unit)
