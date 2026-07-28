@@ -198,9 +198,11 @@ class _ResultsAppearanceMixin:
         link_decimals_active = links_active and link_field != "Status"
         for widget in (self.lbNodeDecimals, self.spNodeDecimals,
                        self.lbSymbolFactor, self.dspSymbolFactor,
+                       self.lbSpecialFactor, self.dspSpecialFactor,
                        self.cbNodeBorder):
             widget.setEnabled(nodes_active)
         for widget in (self.lbPipeFactor, self.dspPipeFactor,
+                       self.lbValvePumpFactor, self.dspValvePumpFactor,
                        self.lbArrowFactor, self.dspArrowFactor):
             widget.setEnabled(links_active)
         for widget in (self.lbLinkDecimals, self.spLinkDecimals):
@@ -214,9 +216,23 @@ class _ResultsAppearanceMixin:
     # Symbol factors
     # ------------------------------------------------------------------
 
+    def _syncFactorWidgets(self):
+        """Push the stored factor values into their spinboxes without re-triggering
+        _onSymbolFactorChanged. Shared by settings load and the reset-all handler."""
+        for spinbox, value in ((self.dspSymbolFactor, self._symbolFactor),
+                               (self.dspSpecialFactor, self._specialFactor),
+                               (self.dspPipeFactor, self._pipeFactor),
+                               (self.dspValvePumpFactor, self._valvePumpFactor),
+                               (self.dspArrowFactor, self._arrowFactor)):
+            spinbox.blockSignals(True)
+            spinbox.setValue(value)
+            spinbox.blockSignals(False)
+
     def _onSymbolFactorChanged(self):
         self._pipeFactor = self.dspPipeFactor.value()
         self._symbolFactor = self.dspSymbolFactor.value()
+        self._specialFactor = self.dspSpecialFactor.value()
+        self._valvePumpFactor = self.dspValvePumpFactor.value()
         self._arrowFactor = self.dspArrowFactor.value()
         self._proportional = self.cbProportional.isChecked()
         self._nodeBorder = self.cbNodeBorder.isChecked()
@@ -305,6 +321,8 @@ class _ResultsAppearanceMixin:
         self._labelBgColorLocked = False
         self._pipeFactor = 1.0
         self._symbolFactor = 1.0
+        self._specialFactor = 1.0
+        self._valvePumpFactor = 1.0
         self._arrowFactor = 1.0
         self._proportional = False
         self._nodeBorder = False
@@ -324,15 +342,7 @@ class _ResultsAppearanceMixin:
         self.btLabelBgColor.setText(QCoreApplication.translate("QGISRedResultsDock", "No color"))
         self.btClearLabelBgColor.setEnabled(False)
         self._updateLabelBgLockUI()
-        self.dspPipeFactor.blockSignals(True)
-        self.dspPipeFactor.setValue(1.0)
-        self.dspPipeFactor.blockSignals(False)
-        self.dspSymbolFactor.blockSignals(True)
-        self.dspSymbolFactor.setValue(1.0)
-        self.dspSymbolFactor.blockSignals(False)
-        self.dspArrowFactor.blockSignals(True)
-        self.dspArrowFactor.setValue(1.0)
-        self.dspArrowFactor.blockSignals(False)
+        self._syncFactorWidgets()
         self.cbProportional.blockSignals(True)
         self.cbProportional.setChecked(False)
         self.cbProportional.blockSignals(False)
@@ -379,6 +389,8 @@ class _ResultsAppearanceMixin:
         ET.SubElement(root, "Symbols",
                       pipeFactor=str(self._pipeFactor),
                       symbolFactor=str(self._symbolFactor),
+                      specialFactor=str(self._specialFactor),
+                      valvePumpFactor=str(self._valvePumpFactor),
                       arrowFactor=str(self._arrowFactor),
                       proportional="true" if self._proportional else "false",
                       nodeBorder="true" if self._nodeBorder else "false")
@@ -422,6 +434,11 @@ class _ResultsAppearanceMixin:
                     self._pipeFactor = float(symbols.get("pipeFactor", 1.0))
                     self._symbolFactor = float(symbols.get("symbolFactor", 1.0))
                     self._arrowFactor = float(symbols.get("arrowFactor", 1.0))
+                    # Back-compat: before the split, tank/reservoir markers followed the node
+                    # factor and pump/valve icons followed the link one. Older configs have no
+                    # dedicated attribute, so inherit the old value and keep the same look.
+                    self._specialFactor = float(symbols.get("specialFactor", self._symbolFactor))
+                    self._valvePumpFactor = float(symbols.get("valvePumpFactor", self._pipeFactor))
                     self._proportional = symbols.get("proportional", "false") == "true"
                     self._nodeBorder = symbols.get("nodeBorder", "false") == "true"
 
@@ -449,15 +466,7 @@ class _ResultsAppearanceMixin:
         self._resetDecimalsForVariable(node_field, "Nodes", "Node")
         link_field = self._link_field_map.get(self.cbLinks.currentText(), "")
         self._resetDecimalsForVariable(link_field, "Links", "Link")
-        self.dspPipeFactor.blockSignals(True)
-        self.dspPipeFactor.setValue(self._pipeFactor)
-        self.dspPipeFactor.blockSignals(False)
-        self.dspSymbolFactor.blockSignals(True)
-        self.dspSymbolFactor.setValue(self._symbolFactor)
-        self.dspSymbolFactor.blockSignals(False)
-        self.dspArrowFactor.blockSignals(True)
-        self.dspArrowFactor.setValue(self._arrowFactor)
-        self.dspArrowFactor.blockSignals(False)
+        self._syncFactorWidgets()
         self.cbProportional.blockSignals(True)
         self.cbProportional.setChecked(self._proportional)
         self.cbProportional.blockSignals(False)

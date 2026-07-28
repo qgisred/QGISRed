@@ -148,8 +148,12 @@ class QGISRedResultsDock(
         self.cbFlowDirections.clicked.connect(self.flowDirectionsClicked)
 
         # Appearance tab — set symbology label text via tr() so they pick up translations
-        self.lbSymbolFactor.setText(self.tr("Nodes") + ":")
+        self.lbSymbolFactor.setText(self.tr("Junctions") + ":")
+        self.lbSpecialFactor.setText(self.tr("Tanks and reservoirs") + ":")
+        # "Links" (not "Pipes"): the width is set on the line symbol itself, so it applies
+        # to pumps and valves too — only their SVG icon has its own factor.
         self.lbPipeFactor.setText(self.tr("Links") + ":")
+        self.lbValvePumpFactor.setText(self.tr("Pumps and valves") + ":")
         self.lbArrowFactor.setText(self.tr("Arrows") + ":")
 
         # Appearance tab connections
@@ -164,6 +168,8 @@ class QGISRedResultsDock(
         self.btLockLabelBgColor.toggled.connect(self._onLockLabelBgColor)
         self.dspPipeFactor.valueChanged.connect(self._onSymbolFactorChanged)
         self.dspSymbolFactor.valueChanged.connect(self._onSymbolFactorChanged)
+        self.dspSpecialFactor.valueChanged.connect(self._onSymbolFactorChanged)
+        self.dspValvePumpFactor.valueChanged.connect(self._onSymbolFactorChanged)
         self.dspArrowFactor.valueChanged.connect(self._onSymbolFactorChanged)
         self.cbProportional.toggled.connect(self._onSymbolFactorChanged)
         self.cbNodeBorder.toggled.connect(self._onSymbolFactorChanged)
@@ -174,7 +180,9 @@ class QGISRedResultsDock(
         self.btResetNodeDecimals.clicked.connect(lambda: self._onResetSingleDecimals("Node"))
         self.btResetLinkDecimals.clicked.connect(lambda: self._onResetSingleDecimals("Link"))
         self.btResetSymbolFactor.clicked.connect(lambda: self.dspSymbolFactor.setValue(1.0))
+        self.btResetSpecialFactor.clicked.connect(lambda: self.dspSpecialFactor.setValue(1.0))
         self.btResetPipeFactor.clicked.connect(lambda: self.dspPipeFactor.setValue(1.0))
+        self.btResetValvePumpFactor.clicked.connect(lambda: self.dspValvePumpFactor.setValue(1.0))
         self.btResetArrowFactor.clicked.connect(lambda: self.dspArrowFactor.setValue(1.0))
 
         # Icon set here (not in .ui text) so the glyph never gets bundled into a translatable string
@@ -207,6 +215,8 @@ class QGISRedResultsDock(
         self._labelBgColorLocked = False   # when True, labels use the map background color
         self._pipeFactor = 1.0
         self._symbolFactor = 1.0
+        self._specialFactor = 1.0     # tanks/reservoirs, independent of the junction factor
+        self._valvePumpFactor = 1.0   # pump/valve icons, independent of the pipe width factor
         self._arrowFactor = 1.0
         self._proportional = False
         self._nodeBorder = False

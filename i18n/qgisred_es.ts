@@ -6249,13 +6249,23 @@ Click izquierdo: Añadir un nuevo item debajo de la selección actual</translati
     </message>
     <message>
         <location filename="../ui/analysis/qgisred_results_dock.ui" line="1578"/>
-        <source>Nodes:</source>
-        <translation>Nudos:</translation>
+        <source>Junctions:</source>
+        <translation>Uniones:</translation>
     </message>
     <message>
         <location filename="../ui/analysis/qgisred_results_dock.ui" line="1624"/>
         <source>Links:</source>
         <translation>Enlaces:</translation>
+    </message>
+    <message>
+        <location filename="../ui/analysis/qgisred_results_dock.ui" line="1624"/>
+        <source>Tanks and reservoirs:</source>
+        <translation>Depósitos y embalses:</translation>
+    </message>
+    <message>
+        <location filename="../ui/analysis/qgisred_results_dock.ui" line="1716"/>
+        <source>Pumps and valves:</source>
+        <translation>Bombas y válvulas:</translation>
     </message>
     <message>
         <location filename="../ui/analysis/qgisred_results_dock.ui" line="1424"/>
@@ -6313,9 +6323,24 @@ Click izquierdo: Añadir un nuevo item debajo de la selección actual</translati
         <translation>Resetar todo</translation>
     </message>
     <message>
+        <location filename="../ui/analysis/qgisred_results_dock.py" line="151"/>
+        <source>Junctions</source>
+        <translation>Uniones</translation>
+    </message>
+    <message>
         <location filename="../ui/analysis/qgisred_results_dock.py" line="148"/>
         <source>Arrows</source>
         <translation>Flechas</translation>
+    </message>
+    <message>
+        <location filename="../ui/analysis/qgisred_results_dock.py" line="152"/>
+        <source>Tanks and reservoirs</source>
+        <translation>Depósitos y embalses</translation>
+    </message>
+    <message>
+        <location filename="../ui/analysis/qgisred_results_dock.py" line="156"/>
+        <source>Pumps and valves</source>
+        <translation>Bombas y válvulas</translation>
     </message>
     <message>
         <location filename="../ui/analysis/qgisred_results_appearance.py" line="240"/>

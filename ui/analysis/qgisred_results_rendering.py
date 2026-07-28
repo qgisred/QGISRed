@@ -603,7 +603,7 @@ class _ResultsRenderingMixin:
         margin = self._labelMargin(has_background)
 
         arrow_factor = getattr(self, '_arrowFactor', 1.0)
-        pipe_factor = getattr(self, '_pipeFactor', 1.0)
+        valve_pump_factor = getattr(self, '_valvePumpFactor', 1.0)
 
         show_arrows = False
         with suppress(Exception):
@@ -612,7 +612,7 @@ class _ResultsRenderingMixin:
         pipe_dist = margin
         if show_arrows:
             pipe_dist = _BASE_ARROW_SIZE * arrow_factor / 2.0 + margin
-        valve_pump_dist = _BASE_VALVE_PUMP_SIZE * pipe_factor / 2.0 + margin
+        valve_pump_dist = _BASE_VALVE_PUMP_SIZE * valve_pump_factor / 2.0 + margin
         # Pumps/valves are never closer than pipes, whatever the factor combination.
         valve_pump_dist = max(valve_pump_dist, pipe_dist)
         return round(pipe_dist, 3), round(valve_pump_dist, 3)
@@ -628,10 +628,11 @@ class _ResultsRenderingMixin:
         margin = self._labelMargin(has_background)
 
         symbol_factor = getattr(self, '_symbolFactor', 1.0)
+        special_factor = getattr(self, '_specialFactor', 1.0)
         growth = 2.0 if getattr(self, '_proportional', False) else 1.0
 
         junction_dist = _BASE_JUNCTION_SIZE * symbol_factor * growth / 2.0 + margin
-        special_dist = _BASE_SPECIAL_SIZE * symbol_factor * growth / 2.0 + margin
+        special_dist = _BASE_SPECIAL_SIZE * special_factor * growth / 2.0 + margin
         return round(junction_dist, 3), round(special_dist, 3)
 
     def _buildRangeColorExpression(self, layer, fieldName):
@@ -695,15 +696,17 @@ class _ResultsRenderingMixin:
         if not is_line and not is_point:
             return
 
-        pipe_factor   = getattr(self, '_pipeFactor',   1.0)
-        symbol_factor = getattr(self, '_symbolFactor', 1.0)
-        arrow_factor  = getattr(self, '_arrowFactor',  1.0)
+        pipe_factor       = getattr(self, '_pipeFactor',      1.0)
+        symbol_factor     = getattr(self, '_symbolFactor',    1.0)
+        special_factor    = getattr(self, '_specialFactor',   1.0)
+        valve_pump_factor = getattr(self, '_valvePumpFactor', 1.0)
+        arrow_factor      = getattr(self, '_arrowFactor',     1.0)
 
-        target_pipe_width  = round(_BASE_PIPE_WIDTH      * pipe_factor,   6)
-        target_arrow_size  = round(_BASE_ARROW_SIZE      * arrow_factor,  6)
-        target_junction    = round(_BASE_JUNCTION_SIZE   * symbol_factor, 6)
-        target_special     = round(_BASE_SPECIAL_SIZE    * symbol_factor, 6)
-        target_valve_pump  = round(_BASE_VALVE_PUMP_SIZE * pipe_factor, 6)
+        target_pipe_width  = round(_BASE_PIPE_WIDTH      * pipe_factor,       6)
+        target_arrow_size  = round(_BASE_ARROW_SIZE      * arrow_factor,      6)
+        target_junction    = round(_BASE_JUNCTION_SIZE   * symbol_factor,     6)
+        target_special     = round(_BASE_SPECIAL_SIZE    * special_factor,    6)
+        target_valve_pump  = round(_BASE_VALVE_PUMP_SIZE * valve_pump_factor, 6)
 
         proportional = getattr(self, '_proportional', False)
         field = (self.displayingNodeField if is_point else self.displayingLinkField) or ""
@@ -751,8 +754,8 @@ class _ResultsRenderingMixin:
                         else:
                             sl0.setDataDefinedProperty(
                                 SL_PROP_STROKE_WIDTH, QgsProperty())
-                # Pump/valve SVG icon sizes (MarkerLine at indices 1, 2).
-                # Scale with pipe_factor since they are link elements.
+                # Pump/valve SVG icon sizes (MarkerLine at indices 1, 2). They have their own
+                # factor so the icons can be resized without touching the pipe line width.
                 for icon_idx in (1, 2):
                     with suppress(Exception):
                         sl = sym.symbolLayer(icon_idx)

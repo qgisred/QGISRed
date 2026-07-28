@@ -1575,7 +1575,7 @@
                <item row="3" column="0">
                 <widget class="QLabel" name="lbSymbolFactor">
                  <property name="text">
-                  <string>Nodes:</string>
+                  <string>Junctions:</string>
                  </property>
                 </widget>
                </item>
@@ -1619,13 +1619,59 @@
                 </layout>
                </item>
                <item row="4" column="0">
+                <widget class="QLabel" name="lbSpecialFactor">
+                 <property name="text">
+                  <string>Tanks and reservoirs:</string>
+                 </property>
+                </widget>
+               </item>
+               <item row="4" column="1">
+                <layout class="QHBoxLayout" name="horizontalLayout_specialFactor">
+                 <property name="spacing">
+                  <number>2</number>
+                 </property>
+                 <item>
+                  <widget class="QDoubleSpinBox" name="dspSpecialFactor">
+                   <property name="minimum">
+                    <double>0.250000000000000</double>
+                   </property>
+                   <property name="maximum">
+                    <double>4.000000000000000</double>
+                   </property>
+                   <property name="singleStep">
+                    <double>0.050000000000000</double>
+                   </property>
+                   <property name="decimals">
+                    <number>2</number>
+                   </property>
+                   <property name="value">
+                    <double>1.000000000000000</double>
+                   </property>
+                  </widget>
+                 </item>
+                 <item>
+                  <widget class="QPushButton" name="btResetSpecialFactor">
+                   <property name="text">
+                    <string>↺</string>
+                   </property>
+                   <property name="toolTip">
+                    <string>Restore value</string>
+                   </property>
+                   <property name="maximumWidth">
+                    <number>24</number>
+                   </property>
+                  </widget>
+                 </item>
+                </layout>
+               </item>
+               <item row="5" column="0">
                 <widget class="QLabel" name="lbPipeFactor">
                  <property name="text">
                   <string>Links:</string>
                  </property>
                 </widget>
                </item>
-               <item row="4" column="1">
+               <item row="5" column="1">
                 <layout class="QHBoxLayout" name="horizontalLayout_pipeFactor">
                  <property name="spacing">
                   <number>2</number>
@@ -1664,14 +1710,60 @@
                  </item>
                 </layout>
                </item>
-               <item row="5" column="0">
+               <item row="6" column="0">
+                <widget class="QLabel" name="lbValvePumpFactor">
+                 <property name="text">
+                  <string>Pumps and valves:</string>
+                 </property>
+                </widget>
+               </item>
+               <item row="6" column="1">
+                <layout class="QHBoxLayout" name="horizontalLayout_valvePumpFactor">
+                 <property name="spacing">
+                  <number>2</number>
+                 </property>
+                 <item>
+                  <widget class="QDoubleSpinBox" name="dspValvePumpFactor">
+                   <property name="minimum">
+                    <double>0.250000000000000</double>
+                   </property>
+                   <property name="maximum">
+                    <double>4.000000000000000</double>
+                   </property>
+                   <property name="singleStep">
+                    <double>0.050000000000000</double>
+                   </property>
+                   <property name="decimals">
+                    <number>2</number>
+                   </property>
+                   <property name="value">
+                    <double>1.000000000000000</double>
+                   </property>
+                  </widget>
+                 </item>
+                 <item>
+                  <widget class="QPushButton" name="btResetValvePumpFactor">
+                   <property name="text">
+                    <string>↺</string>
+                   </property>
+                   <property name="toolTip">
+                    <string>Restore value</string>
+                   </property>
+                   <property name="maximumWidth">
+                    <number>24</number>
+                   </property>
+                  </widget>
+                 </item>
+                </layout>
+               </item>
+               <item row="7" column="0">
                 <widget class="QLabel" name="lbArrowFactor">
                  <property name="text">
                   <string>Arrows:</string>
                  </property>
                 </widget>
                </item>
-               <item row="5" column="1">
+               <item row="7" column="1">
                 <layout class="QHBoxLayout" name="horizontalLayout_arrowFactor">
                  <property name="spacing">
                   <number>2</number>

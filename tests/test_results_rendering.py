@@ -692,12 +692,13 @@ class _AppearanceDock(_ResultsRenderingMixin, _ResultsAppearanceMixin):
 
 
 class TestLinkLabelDistances:
-    def _dock(self, arrows=True, pipe_factor=1.0, arrow_factor=1.0):
+    def _dock(self, arrows=True, pipe_factor=1.0, arrow_factor=1.0, valve_pump_factor=1.0):
         dock = MockDock()
         dock.cbFlowDirections = MagicMock()
         dock.cbFlowDirections.isChecked.return_value = arrows
         dock._pipeFactor = pipe_factor
         dock._arrowFactor = arrow_factor
+        dock._valvePumpFactor = valve_pump_factor
         return dock
 
     def test_pumps_and_valves_are_pushed_further_than_pipes(self):
@@ -718,13 +719,19 @@ class TestLinkLabelDistances:
     def test_offsets_scale_with_the_appearance_factors(self):
         base_pipe, base_vp = self._dock()._linkLabelDistances(False)
         big_pipe, _ = self._dock(arrow_factor=2.0)._linkLabelDistances(False)
-        _, big_vp = self._dock(pipe_factor=2.0)._linkLabelDistances(False)
+        _, big_vp = self._dock(valve_pump_factor=2.0)._linkLabelDistances(False)
         assert big_pipe > base_pipe
         assert big_vp > base_vp
 
+    def test_pump_offset_is_independent_of_the_pipe_width_factor(self):
+        base_pipe, base_vp = self._dock()._linkLabelDistances(False)
+        wide_pipe, wide_vp = self._dock(pipe_factor=3.0)._linkLabelDistances(False)
+        assert wide_pipe == base_pipe
+        assert wide_vp == base_vp
+
     def test_pumps_never_end_up_closer_than_pipes(self):
-        # A huge arrow factor with a tiny pipe factor must not invert the two offsets.
-        pipe, valve_pump = self._dock(arrow_factor=10.0, pipe_factor=0.1)._linkLabelDistances(False)
+        # A huge arrow factor with a tiny pump/valve factor must not invert the two offsets.
+        pipe, valve_pump = self._dock(arrow_factor=10.0, valve_pump_factor=0.25)._linkLabelDistances(False)
         assert valve_pump >= pipe
 
     def test_link_labels_use_a_type_based_distance_expression(self):
@@ -746,9 +753,10 @@ class TestLinkLabelDistances:
 
 
 class TestNodeLabelDistances:
-    def _dock(self, symbol_factor=1.0, proportional=False):
+    def _dock(self, symbol_factor=1.0, special_factor=1.0, proportional=False):
         dock = MockDock()
         dock._symbolFactor = symbol_factor
+        dock._specialFactor = special_factor
         dock._proportional = proportional
         return dock
 
@@ -769,9 +777,16 @@ class TestNodeLabelDistances:
 
     def test_offsets_scale_with_the_symbol_factor(self):
         base_junction, base_special = self._dock()._nodeLabelDistances(False)
-        big_junction, big_special = self._dock(symbol_factor=2.0)._nodeLabelDistances(False)
+        big_junction, _ = self._dock(symbol_factor=2.0)._nodeLabelDistances(False)
+        _, big_special = self._dock(special_factor=2.0)._nodeLabelDistances(False)
         assert big_junction > base_junction
         assert big_special > base_special
+
+    def test_tank_offset_is_independent_of_the_junction_factor(self):
+        base_junction, base_special = self._dock()._nodeLabelDistances(False)
+        big_junction, same_special = self._dock(symbol_factor=2.0)._nodeLabelDistances(False)
+        assert big_junction > base_junction
+        assert same_special == base_special
 
     def test_proportional_mode_accounts_for_the_grown_markers(self):
         base_junction, base_special = self._dock()._nodeLabelDistances(False)

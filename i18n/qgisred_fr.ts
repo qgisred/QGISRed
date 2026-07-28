@@ -6224,12 +6224,22 @@ Left-click: Add a new item below the current selection</source>
     </message>
     <message>
         <location filename="../ui/analysis/qgisred_results_dock.ui" line="1578"/>
-        <source>Nodes:</source>
+        <source>Junctions:</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
         <location filename="../ui/analysis/qgisred_results_dock.ui" line="1624"/>
         <source>Links:</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="../ui/analysis/qgisred_results_dock.ui" line="1624"/>
+        <source>Tanks and reservoirs:</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="../ui/analysis/qgisred_results_dock.ui" line="1716"/>
+        <source>Pumps and valves:</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
@@ -6283,8 +6293,23 @@ Left-click: Add a new item below the current selection</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
+        <location filename="../ui/analysis/qgisred_results_dock.py" line="151"/>
+        <source>Junctions</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
         <location filename="../ui/analysis/qgisred_results_dock.py" line="148"/>
         <source>Arrows</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="../ui/analysis/qgisred_results_dock.py" line="152"/>
+        <source>Tanks and reservoirs</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="../ui/analysis/qgisred_results_dock.py" line="156"/>
+        <source>Pumps and valves</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
