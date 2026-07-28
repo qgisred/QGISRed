@@ -639,6 +639,7 @@ class QGISRedLayerUtils:
             self.removeLayer(layerName, ext)
 
     def removeLayer(self, name, ext=".shp"):
+        self.stopRenderingForRemoval(self.iface)
         fs = self._fs()
         identifiers = self._identifiers()
         layers = self.getLayers()

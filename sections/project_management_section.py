@@ -769,6 +769,8 @@ class ProjectManagementSection:
             fname = os.path.basename(uri.split("|")[0])
             if pattern.match(fname.split('.')[0]):
                 layers_to_remove.append(layer.id())
+        if layers_to_remove:
+            QGISRedLayerUtils.stopRenderingForRemoval(self.iface)
         for layer_id in layers_to_remove:
             project.removeMapLayer(layer_id)
 

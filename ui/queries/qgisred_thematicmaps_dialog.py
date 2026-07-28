@@ -179,6 +179,7 @@ class QGISRedThematicMapsDialog(QDialog, FORM_CLASS):
                     parent.removeChildNode(queriesGroup)
 
     def recursiveRemoveByIdentifiers(self, group, identifiers):
+        QGISRedLayerUtils.stopRenderingForRemoval(self.iface)
         for child in list(group.children()):
             if isinstance(child, QgsLayerTreeLayer):
                 layer = child.layer()
@@ -255,6 +256,7 @@ class QGISRedThematicMapsDialog(QDialog, FORM_CLASS):
                     layerId = existingLayer.checkedLayers()[0].id()
 
                 if layerId and QgsProject.instance().mapLayer(layerId):
+                    QGISRedLayerUtils.stopRenderingForRemoval(self.iface)
                     QgsProject.instance().removeMapLayer(layerId)
 
                 if parentGroup and not sip.isdeleted(parentGroup):
@@ -349,6 +351,7 @@ class QGISRedThematicMapsDialog(QDialog, FORM_CLASS):
             if layerPath and os.path.exists(layerPath):
                 QgsVectorFileWriter.deleteShapeFile(layerPath)
 
+            QGISRedLayerUtils.stopRenderingForRemoval(self.iface)
             QgsProject.instance().removeMapLayer(existingLayer.id())
             return True
 
