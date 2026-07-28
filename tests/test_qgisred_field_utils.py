@@ -193,6 +193,75 @@ class TestGetPressureFieldAbbr:
 
 
 # ---------------------------------------------------------------------------
+# Volume units  (Global/VolumeUnits, reached through the 'See VolumeUnits' token)
+# ---------------------------------------------------------------------------
+class TestVolumeUnits:
+    @pytest.mark.parametrize("unit_code, expected_abbr", [
+        ("LPS", "m3"),     # SI project
+        ("CMH", "m3"),
+        ("GPM", "MG"),     # US project: mega gallons
+        ("MGD", "MG"),
+        ("IMGD", "IMG"),   # imperial project: imperial mega gallons
+    ])
+    def test_get_volume_abbr(self, fu, unit_code, expected_abbr):
+        with patch("QGISRed.tools.utils.qgisred_project_utils.QgsProject") as MockProj:
+            MockProj.instance.return_value = _make_project(unit_code)
+            assert fu._getVolumeAbbr() == expected_abbr
+
+    @pytest.mark.parametrize("unit_code, expected_condition", [
+        ("LPS", "SI"),
+        ("CMH", "SI"),
+        ("GPM", "US"),
+        ("MGD", "US"),
+        ("IMGD", "IMGD"),
+    ])
+    def test_get_volume_units_condition(self, fu, unit_code, expected_condition):
+        """Public CSV key: numeric volume conversions elsewhere are selected by it."""
+        with patch("QGISRed.tools.utils.qgisred_project_utils.QgsProject") as MockProj:
+            MockProj.instance.return_value = _make_project(unit_code)
+            assert fu.getVolumeUnitsCondition() == expected_condition
+
+    def test_resolve_abbr_expands_token(self, fu):
+        with patch("QGISRed.tools.utils.qgisred_project_utils.QgsProject") as MockProj:
+            MockProj.instance.return_value = _make_project("GPM")
+            assert fu._resolveAbbr("See VolumeUnits") == "MG"
+
+    @pytest.mark.parametrize("unit_code, expected_abbr, expected_decimals", [
+        ("LPS", "m3", 0),
+        ("GPM", "MG", 2),
+        ("IMGD", "IMG", 2),
+    ])
+    def test_node_volume_takes_unit_and_decimals_from_global_row(
+        self, fu, unit_code, expected_abbr, expected_decimals
+    ):
+        """Nodes/Volume (simulated tank volume) delegates to the project volume units."""
+        with patch("QGISRed.tools.utils.qgisred_project_utils.QgsProject") as MockProj:
+            MockProj.instance.return_value = _make_project(unit_code)
+            assert fu.getUnitAbbreviation("Nodes", "Volume") == expected_abbr
+            assert fu.getDecimals("Nodes", "Volume") == expected_decimals
+
+    def test_node_volume_resolves_to_the_global_row(self, fu):
+        with patch("QGISRed.tools.utils.qgisred_project_utils.QgsProject") as MockProj:
+            MockProj.instance.return_value = _make_project("GPM")
+            row = fu._resolveRow("Nodes", "Volume")
+            assert row["element"] == "Global"
+            assert row["us_name"] == "mega gallons"
+
+    def test_node_volume_keeps_its_property_name(self, fu):
+        with patch("QGISRed.tools.utils.qgisred_project_utils.QgsProject") as MockProj:
+            MockProj.instance.return_value = _make_project("GPM")
+            assert fu.getProperty("Nodes", "Volume", translate=False) == "Tank Volume"
+
+    @pytest.mark.parametrize("unit_code, expected_abbr", [("LPS", "m3"), ("GPM", "ft3")])
+    def test_tank_min_volume_keeps_its_own_unit(self, fu, unit_code, expected_abbr):
+        """Tanks/MinVolume is an input in m³/ft³ and must not follow VolumeUnits."""
+        with patch("QGISRed.tools.utils.qgisred_project_utils.QgsProject") as MockProj:
+            MockProj.instance.return_value = _make_project(unit_code)
+            assert fu.getUnitAbbreviation("Tanks", "MinVolume") == expected_abbr
+            assert fu.getDecimals("Tanks", "MinVolume") == 1
+
+
+# ---------------------------------------------------------------------------
 # _getMassAbbr
 # ---------------------------------------------------------------------------
 class TestGetMassAbbr:

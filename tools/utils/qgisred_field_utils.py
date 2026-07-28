@@ -144,6 +144,9 @@ _COMMON_PRETTY_NAMES = {
 }
 _NON_CHEMICAL_MODELS = frozenset({"none", "trace", "age"})
 _CHEMICAL_ONLY_FIELDS = frozenset({"IniQuality", "ReactRate"})
+# Abbreviation used by CSV rows that delegate their unit to the project volume
+# units (see _redirectVolumeRow).
+_VOLUME_UNITS_MARKER = "See VolumeUnits"
 _SUPERSCRIPT_TRANSLATION = str.maketrans("0123456789/", "⁰¹²³⁴⁵⁶⁷⁸⁹ᐟ")
 
 # Plural display names (English) keyed by the singular pretty name from the CSV.
@@ -488,6 +491,18 @@ class QGISRedFieldUtils:
                 return candidate
         return "Id"
 
+    def getVolumeUnitsCondition(self) -> str:
+        """Return the Global/VolumeUnits ConditionValue matching the current project.
+
+        ``'SI'`` for cubic meters, ``'US'`` for mega gallons and ``'IMGD'`` for
+        imperial mega gallons — the same split EPANET's own UI applies. Callers that
+        need the volume unit itself should use ``getUnitAbbreviation('Nodes', 'Volume')``;
+        this exposes the CSV key so numeric conversions can be selected by it.
+        """
+        if QGISRedProjectUtils.getUnits() == "SI":
+            return "SI"
+        return "IMGD" if (QGISRedProjectUtils.getFlowUnit() or "").strip().upper() == "IMGD" else "US"
+
     def getTypeFieldName(self, layer, default=None):
         """Return the element type field of a result layer (NodeType / LinkType / Type).
 
@@ -591,8 +606,27 @@ class QGISRedFieldUtils:
             return self._getRowByCondition(element, "Quality", condVal)
 
         if conditionFeature:
-            return self._getRowByCondition(element, fieldName, conditionFeature)
-        return self._getFirstRow(element, fieldName) or self._getFirstRowByProperty(element, fieldName)
+            row = self._getRowByCondition(element, fieldName, conditionFeature)
+        else:
+            row = self._getFirstRow(element, fieldName) or self._getFirstRowByProperty(element, fieldName)
+        return self._redirectVolumeRow(row)
+
+    def _redirectVolumeRow(self, row):
+        """Resolve rows that delegate their unit to the project volume units.
+
+        A row whose whole abbreviation is ``See VolumeUnits`` (e.g. Nodes/Volume, the
+        tank volume reported by the simulation) takes its unit name, abbreviation and
+        decimals from the Global/VolumeUnits row matching the project, the same way
+        Flow and Pressure resolve theirs. Rows with a unit of their own — notably
+        Tanks/MinVolume, an input always given in m³/ft³ — are returned untouched.
+        """
+        if not row or row["element"] == "Global":
+            return row
+        unitSystem = QGISRedProjectUtils.getUnits()
+        abbr = row["si_abbr"] if unitSystem == "SI" else row["us_abbr"]
+        if abbr.strip() != _VOLUME_UNITS_MARKER:
+            return row
+        return self._getRowByCondition("Global", "VolumeUnits", self.getVolumeUnitsCondition()) or row
 
     def _getFirstRow(self, element, fieldName):
         """Return the CSV row matching (element, fieldName).
@@ -664,6 +698,7 @@ class QGISRedFieldUtils:
         if "See " in abbr:
             abbr = abbr.replace("See FlowUnits", self._getFlowFieldAbbr())
             abbr = abbr.replace("See PressUnits", self._getPressureFieldAbbr())
+            abbr = abbr.replace(_VOLUME_UNITS_MARKER, self._getVolumeAbbr())
             abbr = abbr.replace("See MassUnits", self._getMassAbbr())
             abbr = abbr.replace("See Currency", self._getCurrencyAbbr())
         abbr = re.sub(r'sqr\(([^)]+)\)', r'√\1', abbr)
@@ -698,6 +733,17 @@ class QGISRedFieldUtils:
         row = self._getFirstRow("Global", "PressUnits")
         if not row:
             return ""
+        return row["si_abbr"] if unitSystem == "SI" else row["us_abbr"]
+
+    def _getVolumeAbbr(self):
+        """Return the volume unit abbreviation for the current project ('m3', 'MG', 'IMG')."""
+        row = self._getRowByCondition("Global", "VolumeUnits", self.getVolumeUnitsCondition())
+        if row:
+            return row["si_abbr"] or row["us_abbr"]
+        row = self._getFirstRow("Global", "VolumeUnits")
+        if not row:
+            return ""
+        unitSystem = QGISRedProjectUtils.getUnits()
         return row["si_abbr"] if unitSystem == "SI" else row["us_abbr"]
 
     def _getMassAbbr(self):

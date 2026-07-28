@@ -249,7 +249,11 @@ class AnalysisSection:
         return values
 
     def _getTankSeriesForSource(self, source, tank_id, prop_internal):
-        """Time series for a tank-only magnitude (stored volume / overflow flow)."""
+        """Time series for a tank-only magnitude (stored volume / overflow flow).
+
+        Stored volume is converted to the project display units (Nodes/Volume), the
+        same as the system-wide Total Stored Volume it can be plotted against.
+        """
         project_directory = source.get("project_directory") or ""
         network_name = source.get("network_name") or ""
         from ..ui.analysis.qgisred_tank_storage import (
@@ -259,9 +263,14 @@ class AnalysisSection:
             getOut_TimesTankVolume,
         )
         if prop_internal == "Volume":
+            from ..ui.analysis.timeseries_globals import stored_volume_display_factor
             if source["kind"] == "out":
-                return getOut_TimesTankVolume(source["out_path"], project_directory, network_name, tank_id)
-            return getHyd_TimesTankVolume(source["hyd_path"], source["out_path"], project_directory, network_name, tank_id)
+                series = getOut_TimesTankVolume(source["out_path"], project_directory, network_name, tank_id)
+            else:
+                series = getHyd_TimesTankVolume(
+                    source["hyd_path"], source["out_path"], project_directory, network_name, tank_id)
+            factor = stored_volume_display_factor()
+            return [v * factor for v in series] if factor != 1.0 else series
         # TankSpill (overflow flow)
         if source["kind"] == "out":
             return getOut_TimesTankSpill(source["out_path"], project_directory, network_name, tank_id)
@@ -911,7 +920,7 @@ class AnalysisSection:
 
         fieldUtils = QGISRedFieldUtils()
         if prop_internal == "Volume":
-            unit_abbr = fieldUtils.getUnitAbbreviation(normalize_element("Tanks"), "MinVolume")
+            unit_abbr = fieldUtils.getUnitAbbreviation(normalize_element("Nodes"), "Volume")
         elif prop_internal == "TankSpill":
             unit_abbr = fieldUtils.getUnitAbbreviation(normalize_element("Node"), "Demand")
         else:
@@ -1573,9 +1582,9 @@ class AnalysisSection:
         fieldUtils = QGISRedFieldUtils()
         y_display_decimals = None
         if category == "Node" and prop_internal == "Volume":
-            # Stored volume: model volume units & decimals (Tanks.MinVolume = Volume).
-            unit_abbr = fieldUtils.getUnitAbbreviation(normalize_element("Tanks"), "MinVolume")
-            y_display_decimals = fieldUtils.getDecimals(normalize_element("Tanks"), "MinVolume")
+            # Stored volume: project display volume units & decimals (Nodes.Volume).
+            unit_abbr = fieldUtils.getUnitAbbreviation(normalize_element("Nodes"), "Volume")
+            y_display_decimals = fieldUtils.getDecimals(normalize_element("Nodes"), "Volume")
         elif category == "Node" and prop_internal == "TankSpill":
             # Overflow flow: same units & decimals as node demand (a flow).
             unit_abbr = fieldUtils.getUnitAbbreviation(normalize_element("Node"), "Demand")

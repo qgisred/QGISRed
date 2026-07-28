@@ -21,13 +21,23 @@ TOTAL_STORED_VOLUME_KEY = "TotalStoredVolume"
 TOTAL_TANK_SPILL_KEY = "TotalTankSpill"
 AVERAGE_NODE_PRESSURE_KEY = "AverageNodePressure"
 
-# Display-only decimals for time-series charts/tables (not used in volume math).
-TOTAL_STORED_VOLUME_DISPLAY_DECIMALS = 2
-
-# EPANET model volume units are ft³ (US) / m³ (SI). Like EPANET-UI, stored
-# volume is displayed in million gallons for US flow units (imperial for IMGD).
-_FT3_PER_MILLION_US_GALLON = 1.0e6 * 231.0 / 1728.0  # 1 MG in ft³ (1 US gal = 231 in³)
-_FT3_PER_MILLION_IMPERIAL_GALLON = 1.0e6 * 4.54609 / 28.316846592  # 1 MGI in ft³
+# Stored volume comes out of the results binary in EPANET model volume units
+# (m³ SI / ft³ US). *Which* unit it is displayed in is declared by the units CSV
+# (Global/VolumeUnits, reached through Nodes/Volume); how big each unit is lives here,
+# so a unit added to the CSV only needs its size added to this table.
+# Keyed by the CSV abbreviation on purpose: the conversion follows the unit, not the
+# unit system, so renaming m3 to hm3 in the CSV must not keep the old factor.
+# ft3 is here as a *source* unit (what US projects report in), never as a target.
+_CUBIC_METERS_PER_VOLUME_UNIT = {
+    "m3": 1.0,
+    "ft3": 0.028316846592,  # 1728 in³ of 0.0254 m
+    "MG": 3785.411784,      # 1e6 US gallons of 3.785411784 L
+    "IMG": 4546.09,         # 1e6 imperial gallons of 4.54609 L
+}
+# Volume unit each EPANET unit system reports in, keyed by CSV ConditionValue.
+_MODEL_VOLUME_UNIT = {"SI": "m3", "US": "ft3", "IMGD": "ft3"}
+# Unknown units already reported, so a repainting chart logs each one only once.
+_UNKNOWN_VOLUME_UNITS_WARNED = set()
 
 GLOBAL_SYSTEM_VARIABLE_KEYS = frozenset({
     TOTAL_WATER_SUPPLY_KEY,
@@ -47,27 +57,46 @@ def global_axis_group_label() -> str:
     return tr("System")
 
 
-def _stored_volume_us_abbreviation() -> str:
-    """Return ``MG``/``MGI`` when the project uses US flow units, ``''`` for SI."""
-    try:
-        from ...tools.utils.qgisred_project_utils import QGISRedProjectUtils
+def _warn_unknown_volume_unit(unit: str) -> None:
+    """Log an unconvertible volume unit once, so a repainting chart does not spam."""
+    if unit in _UNKNOWN_VOLUME_UNITS_WARNED:
+        return
+    _UNKNOWN_VOLUME_UNITS_WARNED.add(unit)
+    from qgis.core import QgsMessageLog
+    from ...compat import QGIS_WARNING
 
-        if QGISRedProjectUtils.getUnits() != "US":
-            return ""
-        flow_unit = (QGISRedProjectUtils.getFlowUnit() or "").strip().upper()
-        return "MGI" if flow_unit == "IMGD" else "MG"
-    except Exception:
-        return ""
+    QgsMessageLog.logMessage(
+        "Volume unit '{}' has no size declared in timeseries_globals: stored volume "
+        "is left in model units.".format(unit),
+        "QGISRed", QGIS_WARNING,
+    )
 
 
 def stored_volume_display_factor() -> float:
-    """Factor from model volume units (ft³ US / m³ SI) to display units."""
-    abbr = _stored_volume_us_abbreviation()
-    if abbr == "MGI":
-        return 1.0 / _FT3_PER_MILLION_IMPERIAL_GALLON
-    if abbr == "MG":
-        return 1.0 / _FT3_PER_MILLION_US_GALLON
-    return 1.0
+    """Factor from the model volume unit (m³ SI / ft³ US) to the project display unit.
+
+    The CSV decides which unit the volume is shown in; ``_CUBIC_METERS_PER_VOLUME_UNIT``
+    says how big each unit is, and the factor is the ratio between the two. A unit with
+    no size declared cannot be converted, so the series is left in model units and the
+    unit is logged, rather than silently mislabelled with a stale factor.
+    """
+    try:
+        from ...tools.utils.qgisred_field_utils import QGISRedFieldUtils, normalize_element
+
+        utils = QGISRedFieldUtils()
+        source_unit = _MODEL_VOLUME_UNIT.get(utils.getVolumeUnitsCondition(), "m3")
+        target_unit = utils.getUnitAbbreviation(normalize_element("Nodes"), "Volume")
+    except Exception:
+        return 1.0
+
+    if not target_unit or target_unit == source_unit:
+        return 1.0
+    source_size = _CUBIC_METERS_PER_VOLUME_UNIT.get(source_unit)
+    target_size = _CUBIC_METERS_PER_VOLUME_UNIT.get(target_unit)
+    if not source_size or not target_size:
+        _warn_unknown_volume_unit(target_unit if not target_size else source_unit)
+        return 1.0
+    return source_size / target_size
 
 
 def global_system_variable_choices():
@@ -84,7 +113,9 @@ def global_system_variable_choices():
 def global_series_y_display_decimals(variable_key: str):
     """Return fixed Y-axis display decimals for a global variable, or None for CSV defaults."""
     if variable_key == TOTAL_STORED_VOLUME_KEY:
-        return TOTAL_STORED_VOLUME_DISPLAY_DECIMALS
+        from ...tools.utils.qgisred_field_utils import QGISRedFieldUtils, normalize_element
+
+        return QGISRedFieldUtils().getDecimals(normalize_element("Nodes"), "Volume")
     return None
 
 
@@ -233,10 +264,7 @@ def global_variable_unit_abbreviation(variable_key: str) -> str:
 
     utils = QGISRedFieldUtils()
     if variable_key == TOTAL_STORED_VOLUME_KEY:
-        us_abbr = _stored_volume_us_abbreviation()
-        if us_abbr:
-            return us_abbr
-        return utils.getUnitAbbreviation(normalize_element("Tanks"), "MinVolume")
+        return utils.getUnitAbbreviation(normalize_element("Nodes"), "Volume")
     if variable_key == AVERAGE_NODE_PRESSURE_KEY:
         return utils.getUnitAbbreviation(normalize_element("Nodes"), "Pressure")
     return utils.getUnitAbbreviation(normalize_element("Node"), "Demand")

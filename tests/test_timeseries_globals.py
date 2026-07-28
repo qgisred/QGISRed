@@ -3,7 +3,6 @@ import pytest
 
 from QGISRed.ui.analysis.timeseries_globals import (
     AVERAGE_NODE_PRESSURE_KEY,
-    TOTAL_STORED_VOLUME_DISPLAY_DECIMALS,
     TOTAL_STORED_VOLUME_KEY,
     TOTAL_TANK_SPILL_KEY,
     TOTAL_WATER_DEMAND_KEY,
@@ -17,6 +16,8 @@ from QGISRed.ui.analysis.timeseries_globals import (
     global_variable_table_column_label,
     global_variable_unit_abbreviation,
     stored_volume_display_factor,
+    _CUBIC_METERS_PER_VOLUME_UNIT,
+    _MODEL_VOLUME_UNIT,
 )
 from QGISRed.ui.analysis.qgisred_results_binary import (
     _NT_JUNCTION,
@@ -132,10 +133,57 @@ class TestGlobalTableColumnLabels:
         assert global_variable_short_label(TOTAL_TANK_SPILL_KEY) == "Spill"
 
 
+class TestVolumeUnitSizes:
+    """Guards the seam between the units CSV and the conversion table.
+
+    Declaring a volume unit in the CSV without its size here would leave the series
+    unconverted while relabelling it — the failure this test exists to catch.
+    """
+
+    def test_every_csv_volume_unit_has_a_declared_size(self):
+        from QGISRed.tools.utils.qgisred_field_utils import QGISRedFieldUtils
+
+        rows = QGISRedFieldUtils().loadUnitDefinitions().get("rows", [])
+        abbreviations = {
+            abbr
+            for row in rows
+            if row["element"] == "Global" and row["fieldName"] == "VolumeUnits"
+            for abbr in (row["si_abbr"], row["us_abbr"])
+            if abbr
+        }
+        assert abbreviations, "no Global/VolumeUnits rows found in the units CSV"
+        missing = sorted(abbreviations - set(_CUBIC_METERS_PER_VOLUME_UNIT))
+        assert not missing, (
+            "volume units declared in the CSV with no size in "
+            "_CUBIC_METERS_PER_VOLUME_UNIT: {}. Add how many cubic meters each one is "
+            "worth, or the stored volume series will be relabelled but not "
+            "converted.".format(missing)
+        )
+
+    def test_every_model_unit_has_a_declared_size(self):
+        missing = sorted(set(_MODEL_VOLUME_UNIT.values()) - set(_CUBIC_METERS_PER_VOLUME_UNIT))
+        assert not missing, "model volume units with no size declared: {}".format(missing)
+
+    def test_sizes_are_relative_to_cubic_meters(self):
+        """Independent arithmetic on the two gallon definitions."""
+        assert _CUBIC_METERS_PER_VOLUME_UNIT["m3"] == 1.0
+        # 1 ft³ = 1728 in³, 1 in = 0.0254 m
+        assert _CUBIC_METERS_PER_VOLUME_UNIT["ft3"] == pytest.approx(1728 * 0.0254 ** 3)
+        # 1 US gallon = 3.785411784 L, 1 imperial gallon = 4.54609 L
+        assert _CUBIC_METERS_PER_VOLUME_UNIT["MG"] == pytest.approx(1.0e6 * 3.785411784 / 1000.0)
+        assert _CUBIC_METERS_PER_VOLUME_UNIT["IMG"] == pytest.approx(1.0e6 * 4.54609 / 1000.0)
+
+
 class TestGlobalSeriesDisplayDecimals:
-    def test_stored_volume_uses_two_decimals(self):
+    """Stored volume decimals come from the CSV volume units, like its abbreviation."""
+
+    def test_stored_volume_decimals_for_us_projects(self, monkeypatch):
+        _patch_project_units(monkeypatch, "US", "GPM")
         assert global_series_y_display_decimals(TOTAL_STORED_VOLUME_KEY) == 2
-        assert TOTAL_STORED_VOLUME_DISPLAY_DECIMALS == 2
+
+    def test_stored_volume_decimals_for_si_projects(self, monkeypatch):
+        _patch_project_units(monkeypatch, "SI", "LPS")
+        assert global_series_y_display_decimals(TOTAL_STORED_VOLUME_KEY) == 0
 
     def test_other_globals_use_csv_defaults(self):
         assert global_series_y_display_decimals(TOTAL_WATER_SUPPLY_KEY) is None
@@ -153,7 +201,12 @@ def _patch_project_units(monkeypatch, units, flow_unit):
 
 
 class TestStoredVolumeDisplayUnits:
-    """Stored volume mirrors EPANET-UI: MG/MGI for US flow units, m³ for SI."""
+    """Stored volume mirrors EPANET-UI: mega gallons for US flow units, m³ for SI.
+
+    The displayed abbreviation comes from the Global/VolumeUnits rows of the units
+    CSV (via Nodes/Volume), so these assertions track the CSV, not the hardcoded
+    conversion factors.
+    """
 
     def test_us_flow_units_use_million_us_gallons(self, monkeypatch):
         _patch_project_units(monkeypatch, "US", "GPM")
@@ -163,17 +216,22 @@ class TestStoredVolumeDisplayUnits:
 
     def test_imperial_flow_unit_uses_million_imperial_gallons(self, monkeypatch):
         _patch_project_units(monkeypatch, "US", "IMGD")
-        assert global_variable_unit_abbreviation(TOTAL_STORED_VOLUME_KEY) == "MGI"
+        assert global_variable_unit_abbreviation(TOTAL_STORED_VOLUME_KEY) == "IMG"
         # 1 MGI = 1e6 imp gal = 1e6 * 4.54609 L / 28.316846592 L-per-ft³
         assert stored_volume_display_factor() == pytest.approx(28.316846592 / (4.54609 * 1.0e6))
 
     def test_si_flow_units_keep_cubic_meters(self, monkeypatch):
         _patch_project_units(monkeypatch, "SI", "LPS")
+        assert global_variable_unit_abbreviation(TOTAL_STORED_VOLUME_KEY) == "m3"
+        assert stored_volume_display_factor() == 1.0
+
+    def test_unknown_display_unit_is_not_converted(self, monkeypatch):
+        """A unit with no size declared must not reuse a stale factor."""
+        _patch_project_units(monkeypatch, "US", "GPM")
         monkeypatch.setattr(
             "QGISRed.tools.utils.qgisred_field_utils.QGISRedFieldUtils.getUnitAbbreviation",
-            lambda self, element, field, conditionFeature="": "m3",
+            lambda self, element, field, conditionFeature="": "hm3",
         )
-        assert global_variable_unit_abbreviation(TOTAL_STORED_VOLUME_KEY) == "m3"
         assert stored_volume_display_factor() == 1.0
 
     def test_stored_volume_series_converted_to_mg_for_us_projects(self, monkeypatch):
