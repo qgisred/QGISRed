@@ -660,62 +660,6 @@
   <blendMode>0</blendMode>
   <featureBlendMode>0</featureBlendMode>
   <layerOpacity>1</layerOpacity>
-  <fieldConfiguration>
-    <field name="Id" configurationFlags="NoFlag"/>
-    <field name="Type" configurationFlags="NoFlag"/>
-    <field name="IsActive" configurationFlags="NoFlag"/>
-    <field name="InstDate" configurationFlags="NoFlag"/>
-    <field name="Tag" configurationFlags="NoFlag"/>
-    <field name="Descrip" configurationFlags="NoFlag"/>
-  </fieldConfiguration>
-  <aliases>
-    <alias field="Id" name="" index="0"/>
-    <alias field="Type" name="" index="1"/>
-    <alias field="IsActive" name="" index="2"/>
-    <alias field="InstDate" name="" index="3"/>
-    <alias field="Tag" name="" index="4"/>
-    <alias field="Descrip" name="" index="5"/>
-  </aliases>
-  <splitPolicies>
-    <policy field="Id" policy="Duplicate"/>
-    <policy field="Type" policy="Duplicate"/>
-    <policy field="IsActive" policy="Duplicate"/>
-    <policy field="InstDate" policy="Duplicate"/>
-    <policy field="Tag" policy="Duplicate"/>
-    <policy field="Descrip" policy="Duplicate"/>
-  </splitPolicies>
-  <duplicatePolicies>
-    <policy field="Id" policy="Duplicate"/>
-    <policy field="Type" policy="Duplicate"/>
-    <policy field="IsActive" policy="Duplicate"/>
-    <policy field="InstDate" policy="Duplicate"/>
-    <policy field="Tag" policy="Duplicate"/>
-    <policy field="Descrip" policy="Duplicate"/>
-  </duplicatePolicies>
-  <defaults>
-    <default field="Id" applyOnUpdate="0" expression=""/>
-    <default field="Type" applyOnUpdate="0" expression=""/>
-    <default field="IsActive" applyOnUpdate="0" expression=""/>
-    <default field="InstDate" applyOnUpdate="0" expression=""/>
-    <default field="Tag" applyOnUpdate="0" expression=""/>
-    <default field="Descrip" applyOnUpdate="0" expression=""/>
-  </defaults>
-  <constraints>
-    <constraint constraints="0" field="Id" exp_strength="0" notnull_strength="0" unique_strength="0"/>
-    <constraint constraints="0" field="Type" exp_strength="0" notnull_strength="0" unique_strength="0"/>
-    <constraint constraints="0" field="IsActive" exp_strength="0" notnull_strength="0" unique_strength="0"/>
-    <constraint constraints="0" field="InstDate" exp_strength="0" notnull_strength="0" unique_strength="0"/>
-    <constraint constraints="0" field="Tag" exp_strength="0" notnull_strength="0" unique_strength="0"/>
-    <constraint constraints="0" field="Descrip" exp_strength="0" notnull_strength="0" unique_strength="0"/>
-  </constraints>
-  <constraintExpressions>
-    <constraint field="Id" exp="" desc=""/>
-    <constraint field="Type" exp="" desc=""/>
-    <constraint field="IsActive" exp="" desc=""/>
-    <constraint field="InstDate" exp="" desc=""/>
-    <constraint field="Tag" exp="" desc=""/>
-    <constraint field="Descrip" exp="" desc=""/>
-  </constraintExpressions>
   <expressionfields/>
   <previewExpression>"Descrip"</previewExpression>
   <mapTip enabled="1">[[% coalesce(attribute($currentfeature,'MeterType'),attribute($currentfeature,'Type')) %]] [% coalesce(attribute($currentfeature,'MeterID'), attribute($currentfeature,'Id')) %]</mapTip>

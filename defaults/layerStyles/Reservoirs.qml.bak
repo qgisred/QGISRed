@@ -239,62 +239,6 @@
   <blendMode>0</blendMode>
   <featureBlendMode>0</featureBlendMode>
   <layerOpacity>1</layerOpacity>
-  <fieldConfiguration>
-    <field name="Id" configurationFlags="NoFlag"/>
-    <field name="TotalHead" configurationFlags="NoFlag"/>
-    <field name="IdHeadPatt" configurationFlags="NoFlag"/>
-    <field name="IniQuality" configurationFlags="NoFlag"/>
-    <field name="Tag" configurationFlags="NoFlag"/>
-    <field name="Descrip" configurationFlags="NoFlag"/>
-  </fieldConfiguration>
-  <aliases>
-    <alias field="Id" name="" index="0"/>
-    <alias field="TotalHead" name="" index="1"/>
-    <alias field="IdHeadPatt" name="" index="2"/>
-    <alias field="IniQuality" name="" index="3"/>
-    <alias field="Tag" name="" index="4"/>
-    <alias field="Descrip" name="" index="5"/>
-  </aliases>
-  <splitPolicies>
-    <policy field="Id" policy="Duplicate"/>
-    <policy field="TotalHead" policy="Duplicate"/>
-    <policy field="IdHeadPatt" policy="Duplicate"/>
-    <policy field="IniQuality" policy="Duplicate"/>
-    <policy field="Tag" policy="Duplicate"/>
-    <policy field="Descrip" policy="Duplicate"/>
-  </splitPolicies>
-  <duplicatePolicies>
-    <policy field="Id" policy="Duplicate"/>
-    <policy field="TotalHead" policy="Duplicate"/>
-    <policy field="IdHeadPatt" policy="Duplicate"/>
-    <policy field="IniQuality" policy="Duplicate"/>
-    <policy field="Tag" policy="Duplicate"/>
-    <policy field="Descrip" policy="Duplicate"/>
-  </duplicatePolicies>
-  <defaults>
-    <default field="Id" applyOnUpdate="0" expression=""/>
-    <default field="TotalHead" applyOnUpdate="0" expression=""/>
-    <default field="IdHeadPatt" applyOnUpdate="0" expression=""/>
-    <default field="IniQuality" applyOnUpdate="0" expression=""/>
-    <default field="Tag" applyOnUpdate="0" expression=""/>
-    <default field="Descrip" applyOnUpdate="0" expression=""/>
-  </defaults>
-  <constraints>
-    <constraint constraints="0" field="Id" exp_strength="0" notnull_strength="0" unique_strength="0"/>
-    <constraint constraints="0" field="TotalHead" exp_strength="0" notnull_strength="0" unique_strength="0"/>
-    <constraint constraints="0" field="IdHeadPatt" exp_strength="0" notnull_strength="0" unique_strength="0"/>
-    <constraint constraints="0" field="IniQuality" exp_strength="0" notnull_strength="0" unique_strength="0"/>
-    <constraint constraints="0" field="Tag" exp_strength="0" notnull_strength="0" unique_strength="0"/>
-    <constraint constraints="0" field="Descrip" exp_strength="0" notnull_strength="0" unique_strength="0"/>
-  </constraints>
-  <constraintExpressions>
-    <constraint field="Id" exp="" desc=""/>
-    <constraint field="TotalHead" exp="" desc=""/>
-    <constraint field="IdHeadPatt" exp="" desc=""/>
-    <constraint field="IniQuality" exp="" desc=""/>
-    <constraint field="Tag" exp="" desc=""/>
-    <constraint field="Descrip" exp="" desc=""/>
-  </constraintExpressions>
   <expressionfields/>
   <previewExpression>coalesce(attribute($currentfeature,'ReservID'),attribute($currentfeature,'Id'))</previewExpression>
   <mapTip enabled="1">Reservoir [% coalesce(attribute($currentfeature,'ReservID'), attribute($currentfeature,'Id')) %]</mapTip>

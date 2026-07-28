@@ -422,59 +422,6 @@
   </geometryOptions>
   <legend showLabelLegend="0" type="default-vector"/>
   <referencedLayers/>
-  <fieldConfiguration>
-    <field name="BaseValue" configurationFlags="NoFlag">
-      <editWidget type="TextEdit">
-        <config>
-          <Option/>
-        </config>
-      </editWidget>
-    </field>
-    <field name="IdPattern" configurationFlags="NoFlag">
-      <editWidget type="TextEdit">
-        <config>
-          <Option/>
-        </config>
-      </editWidget>
-    </field>
-    <field name="Descrip" configurationFlags="NoFlag">
-      <editWidget type="TextEdit">
-        <config>
-          <Option/>
-        </config>
-      </editWidget>
-    </field>
-  </fieldConfiguration>
-  <aliases>
-    <alias field="BaseValue" name="" index="0"/>
-    <alias field="IdPattern" name="" index="1"/>
-    <alias field="Descrip" name="" index="2"/>
-  </aliases>
-  <splitPolicies>
-    <policy policy="Duplicate" field="BaseValue"/>
-    <policy policy="Duplicate" field="IdPattern"/>
-    <policy policy="Duplicate" field="Descrip"/>
-  </splitPolicies>
-  <duplicatePolicies>
-    <policy policy="Duplicate" field="BaseValue"/>
-    <policy policy="Duplicate" field="IdPattern"/>
-    <policy policy="Duplicate" field="Descrip"/>
-  </duplicatePolicies>
-  <defaults>
-    <default field="BaseValue" expression="" applyOnUpdate="0"/>
-    <default field="IdPattern" expression="" applyOnUpdate="0"/>
-    <default field="Descrip" expression="" applyOnUpdate="0"/>
-  </defaults>
-  <constraints>
-    <constraint constraints="0" field="BaseValue" exp_strength="0" unique_strength="0" notnull_strength="0"/>
-    <constraint constraints="0" field="IdPattern" exp_strength="0" unique_strength="0" notnull_strength="0"/>
-    <constraint constraints="0" field="Descrip" exp_strength="0" unique_strength="0" notnull_strength="0"/>
-  </constraints>
-  <constraintExpressions>
-    <constraint field="BaseValue" exp="" desc=""/>
-    <constraint field="IdPattern" exp="" desc=""/>
-    <constraint field="Descrip" exp="" desc=""/>
-  </constraintExpressions>
   <expressionfields/>
   <attributeactions>
     <defaultAction value="{00000000-0000-0000-0000-000000000000}" key="Canvas"/>
