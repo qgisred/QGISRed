@@ -121,6 +121,24 @@ class QGISRedStylingUtils:
         from .qgisred_filesystem_utils import QGISRedFileSystemUtils
         return QGISRedFileSystemUtils(self.ProjectDirectory, self.NetworkName, self.iface).getQGISRedFolder()
 
+    def projectStyleFileNames(self, qmlFile):
+        """File names to probe in the project's layerStyles folder, best match first.
+
+        A project style belongs to one network, so it is stored prefixed with the network
+        name (``Net_Pipes.qml``) — that is what the legend editor writes. The bare name is
+        still accepted afterwards, both for styles saved before the prefix existed and for
+        folders shared by hand between networks.
+        """
+        if self.NetworkName:
+            return [self.NetworkName + "_" + qmlFile, qmlFile]
+        return [qmlFile]
+
+    def _loadStyleFile(self, layer, qmlPath, field):
+        layer.loadNamedStyle(qmlPath)
+        layer.setLabelsEnabled(False)
+        self.applyStrategyFromLayer(layer, field)
+        self.translateRendererLabels(layer)
+
     def setStyle(self, layer, name, field=None):
         """Load the QML style called `name` on `layer`.
 
@@ -132,39 +150,33 @@ class QGISRedStylingUtils:
             return
         name = name.replace("_", "") if name else ""
 
-        # 1- project style
+        # 1- project style (network-prefixed first, see projectStyleFileNames)
         projectStylePath = os.path.join(self.ProjectDirectory, "layerStyles")
-        qmlPath = os.path.join(projectStylePath, name + ".qml")
-        if os.path.exists(qmlPath):
-            layer.loadNamedStyle(qmlPath)
-            layer.setLabelsEnabled(False)
-            self.applyStrategyFromLayer(layer, field)
-            self.translateRendererLabels(layer)
-            return
+        for fileName in self.projectStyleFileNames(name + ".qml"):
+            qmlPath = os.path.join(projectStylePath, fileName)
+            if os.path.exists(qmlPath):
+                self._loadStyleFile(layer, qmlPath, field)
+                return
 
-        # 2- global style
+        # 2- global style (shared by every network, so never prefixed)
         stylePath = os.path.join(self._getQGISRedFolder(), "layerStyles")
         qmlPath = os.path.join(stylePath, name + ".qml")
         if os.path.exists(qmlPath):
-            layer.loadNamedStyle(qmlPath)
-            layer.setLabelsEnabled(False)
-            self.applyStrategyFromLayer(layer, field)
-            self.translateRendererLabels(layer)
+            self._loadStyleFile(layer, qmlPath, field)
             return
 
         # 3- default style
         pluginPath = _plugin_root()
         defaultStylePath = os.path.join(pluginPath, "defaults", "layerStyles")
         qmlPath = os.path.join(defaultStylePath, name + ".qml.bak")
-        layer.loadNamedStyle(qmlPath)
-        layer.setLabelsEnabled(False)
-        self.applyStrategyFromLayer(layer, field)
-        self.translateRendererLabels(layer)
+        self._loadStyleFile(layer, qmlPath, field)
 
     def resolveStylePath(self, qmlFile):
-        projectPath = os.path.join(self.ProjectDirectory, "layerStyles", qmlFile)
-        if os.path.exists(projectPath):
-            return projectPath
+        projectFolder = os.path.join(self.ProjectDirectory, "layerStyles")
+        for fileName in self.projectStyleFileNames(qmlFile):
+            projectPath = os.path.join(projectFolder, fileName)
+            if os.path.exists(projectPath):
+                return projectPath
         globalPath = os.path.join(self._getQGISRedFolder(), "layerStyles", qmlFile)
         if os.path.exists(globalPath):
             return globalPath
