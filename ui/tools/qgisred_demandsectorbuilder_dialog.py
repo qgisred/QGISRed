@@ -647,31 +647,14 @@ class QGISRedDemandSectorBuilderDialog(QDialog, FORM_CLASS):
                 )
 
             project = QgsProject.instance()
-            root = project.layerTreeRoot()
 
-            networkGroup = root.findGroup(self.NetworkName)
+            demandSectorsGroup = self.getDemandSectorsGroup()
 
-            demandSectorsGroup = None
-            sectorizationGroup = None
-
-            if networkGroup is not None:
-                auxiliaryLayersGroup = networkGroup.findGroup(
-                    "Auxiliary Layers"
+            sectorizationGroup = (
+                demandSectorsGroup.findGroup(
+                    sectorization
                 )
-
-                if auxiliaryLayersGroup is not None:
-                    demandSectorsGroup = (
-                        auxiliaryLayersGroup.findGroup(
-                            "DemandSectors"
-                        )
-                    )
-
-                if demandSectorsGroup is not None:
-                    sectorizationGroup = (
-                        demandSectorsGroup.findGroup(
-                            sectorization
-                        )
-                    )
+            )
 
             if sectorizationGroup is not None:
                 layerIds = [
