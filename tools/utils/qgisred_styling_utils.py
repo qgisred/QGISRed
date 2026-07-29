@@ -196,6 +196,28 @@ class QGISRedStylingUtils:
         qmlPath = self.findStyleFile(defaultStylePath, [defaultName])
         self._loadStyleFile(layer, qmlPath or os.path.join(defaultStylePath, defaultName), field)
 
+    def setSavedStyle(self, layer, name, field=None):
+        """Load the project or global style for `name` if there is one. True when applied.
+
+        Unlike setStyle it does not fall through to the styles shipped with the plugin: it
+        answers whether the user saved one of their own. That is what lets the families
+        whose look is computed rather than shipped — demand sectors and their random
+        colours — keep generating it while still honouring a saved style.
+        """
+        if not name:
+            return False
+        name = name.replace("_", "")
+        candidates = (
+            (os.path.join(self.ProjectDirectory, "layerStyles"), self.projectStyleFileNames(name + ".qml")),
+            (os.path.join(self._getQGISRedFolder(), "layerStyles"), [name + ".qml"]),
+        )
+        for folder, fileNames in candidates:
+            qmlPath = self.findStyleFile(folder, fileNames)
+            if qmlPath:
+                self._loadStyleFile(layer, qmlPath, field)
+                return True
+        return False
+
     def resolveStylePath(self, qmlFile):
         projectFolder = os.path.join(self.ProjectDirectory, "layerStyles")
         projectPath = self.findStyleFile(projectFolder, self.projectStyleFileNames(qmlFile))

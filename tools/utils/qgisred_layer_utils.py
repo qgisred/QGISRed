@@ -486,6 +486,19 @@ class QGISRedLayerUtils:
         for fileName in layers:
             self.openLayer(group, fileName, issues=True)
 
+    def _applySectorStyle(self, styling, layer, originalName):
+        """Style a sector layer: a style of the user's own wins over the family default.
+
+        Hydraulic sectors ship a style file, so setStyle already covers them. Demand
+        sectors have theirs computed instead — setSectorsStyle draws a random colour per
+        class and redraws them on every reload — which used to mean a saved style could
+        never take effect for them.
+        """
+        if "HydraulicSectors" in originalName:
+            styling.setStyle(layer, originalName)
+        elif not styling.setSavedStyle(layer, originalName):
+            styling.setSectorsStyle(layer)
+
     def openLayer(self, group, name, ext=".shp", results=False, toEnd=False, sectors=False, issues=False):
         styling = self._styling()
         identifiers = self._identifiers()
@@ -508,20 +521,14 @@ class QGISRedLayerUtils:
                 if sectors:
                     existingLayer = self._findLayerByPath(layerPath)
                     if existingLayer is not None:
-                        if "HydraulicSectors" in originalName:
-                            styling.setStyle(existingLayer, originalName)
-                        else:
-                            styling.setSectorsStyle(existingLayer)
+                        self._applySectorStyle(styling, existingLayer, originalName)
                 return
             vlayer = QgsVectorLayer(layerPath, showName, "ogr")
             if not ext == ".dbf":
                 if results:
                     styling.setStyle(vlayer, originalName)
                 elif sectors:
-                    if "HydraulicSectors" in originalName:
-                        styling.setStyle(vlayer, originalName)
-                    else:
-                        styling.setSectorsStyle(vlayer)
+                    self._applySectorStyle(styling, vlayer, originalName)
                 elif issues:
                     pass
                 else:
