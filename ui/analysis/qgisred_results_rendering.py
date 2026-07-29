@@ -150,6 +150,27 @@ def read_node_base_sizes(expr):
     return None, None
 
 
+def apply_junction_size(expr, junction_size):
+    """Set the junction size in a node size expression, leaving tanks and reservoirs alone.
+
+    For the legend editor, whose single Size column edits the marker drawn for junctions:
+    the tank and reservoir size lives in its own expression and has its own Appearance
+    factor, so an expression carrying that one is returned untouched. Anything unrecognised
+    is left alone too, rather than overwritten with a number that may not belong there.
+    """
+    s = (expr or "").strip()
+    has_tank = "'TANK'" in s
+    has_res = "'RESERVOIR'" in s
+    if has_tank and has_res:
+        return _SIZE_AT_END.sub(f", {junction_size})", s)
+    if has_tank or has_res:
+        return s
+    with suppress(ValueError):
+        float(s)
+        return str(junction_size)
+    return s
+
+
 def time_field_name(var_name, layer_type):
     """Return the time-companion field name for a variable based on layer type."""
     if layer_type == "Node":

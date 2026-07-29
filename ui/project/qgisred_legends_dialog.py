@@ -36,6 +36,7 @@ from ...tools.utils.qgisred_layer_utils import QGISRedLayerUtils
 from ...tools.utils.qgisred_project_utils import QGISRedProjectUtils
 from ...tools.utils.qgisred_filesystem_utils import QGISRedFileSystemUtils, DIR_RESULTS
 from ..analysis.qgisred_results_data import resultStyleName
+from ..analysis.qgisred_results_rendering import apply_junction_size, read_node_base_sizes
 from .qgisred_custom_dialogs import QGISRedRangeEditDialog, QGISRedSymbolColorSelector
 from .qgisred_custom_dialogs import QGISRedColorRampSelector, QGISRedRowSelectionFilter
 from .qgisred_custom_dialogs import QGISRedPaletteEmulator, QGISRedSizePaletteEmulator
@@ -1885,7 +1886,7 @@ class QGISRedLegendsDialog(QDialog, formClass):
         colorSelector.setEnabled(self.isEditing)
         colorSelector.colorChanged.connect(self.onRowColorChanged)
 
-        size = self._getLineWidth(symbol) if geometryHint == "line" else symbol.size()
+        size = self._getLineWidth(symbol) if geometryHint == "line" else self._getNodeSize(symbol)
         colorSelector.updateSymbolSize(size, geometryHint == "line")
         colorSelector.setAutoFillBackground(False)
         colorSelector.setFixedSize(30, 20)
@@ -1904,7 +1905,7 @@ class QGISRedLegendsDialog(QDialog, formClass):
         self.tableView.setCellWidget(row, 1, container)
 
     def setSizeWidget(self, row, symbol, geometryHint):
-        size = self._getLineWidth(symbol) if geometryHint == "line" else symbol.size()
+        size = self._getLineWidth(symbol) if geometryHint == "line" else self._getNodeSize(symbol)
         sizeWidget = QLineEdit(str(size))
         sizeWidget.setEnabled(self.isEditing)
         sizeWidget.setAlignment(Qt.AlignmentFlag.AlignCenter)
@@ -3055,6 +3056,51 @@ class QGISRedLegendsDialog(QDialog, formClass):
             symbol.setWidth(size)
         else:
             symbol.setSize(size)
+            self.applyNodeSizeExpressions(symbol, size)
+
+    def applyNodeSizeExpressions(self, symbol, size):
+        """Write the size into the data-defined expressions that actually draw the markers.
+
+        On result layers the marker size comes from a per-symbol-layer expression, and a
+        data-defined property always beats setSize(). Writing only the latter is why the
+        size used to change in the legend — drawn with no feature, so the expression cannot
+        evaluate and QGIS falls back to the static size — and not on the map.
+
+        Tanks and reservoirs keep their own size: apply_junction_size leaves their
+        expressions alone, and Appearance scales them with a factor of their own.
+        """
+        for index in range(symbol.symbolLayerCount()):
+            with suppress(Exception):
+                symbolLayer = symbol.symbolLayer(index)
+                properties = symbolLayer.dataDefinedProperties()
+                sizeProperty = properties.property(SL_PROP_SIZE)
+                if not sizeProperty.isActive():
+                    continue
+                expression = sizeProperty.expressionString()
+                updated = apply_junction_size(expression, size)
+                if updated != expression:
+                    properties.setProperty(SL_PROP_SIZE, QgsProperty.fromExpression(updated))
+                    symbolLayer.setDataDefinedProperties(properties)
+
+    def _getNodeSize(self, symbol):
+        """Return the junction size actually drawn; falls back to symbol.size().
+
+        Mirror of applyNodeSizeExpressions: the drawn size lives in a data-defined
+        expression that beats setSize(), so reading the static size showed the value last
+        typed here while the map drew another one — the Appearance factor writes only the
+        expression. Line symbols never had this problem, because _getLineWidth reads the
+        very property the factor writes.
+        """
+        for index in range(symbol.symbolLayerCount()):
+            with suppress(Exception):
+                properties = symbol.symbolLayer(index).dataDefinedProperties()
+                sizeProperty = properties.property(SL_PROP_SIZE)
+                if not sizeProperty.isActive():
+                    continue
+                junction, _ = read_node_base_sizes(sizeProperty.expressionString())
+                if junction is not None:
+                    return junction
+        return symbol.size()
 
     def _getLineWidth(self, symbol):
         """Return the width of the first SimpleLine layer; falls back to symbol.width()."""
