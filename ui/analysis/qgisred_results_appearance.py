@@ -356,7 +356,8 @@ class _ResultsAppearanceMixin:
         self.btClearBgColor.setEnabled(False)
 
         self._applyBgColor()
-        self._saveAppearanceSettings()
+        with suppress(OSError):
+            os.remove(self._appearanceFilePath())
 
         self._reloadResultsWithNewDecimals()
         self._refreshLabelsIfShowing("Node")
