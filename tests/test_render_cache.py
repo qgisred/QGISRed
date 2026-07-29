@@ -46,6 +46,9 @@ class _CacheDock(_ResultsRenderingMixin):
     def __init__(self):
         self.Renders = {}
         self._renderKeyInUse = {}
+        self._styleBaseSizes = {}
+        self._watchedLayers = set()
+        self._writingOwnStyle = 0
         self._statsMode = False
         self._currentStat = None
 

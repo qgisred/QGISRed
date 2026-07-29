@@ -20,6 +20,11 @@ def _make_project(flow_unit="LPS"):
 
 class MockDock(_ResultsRenderingMixin):
     def __init__(self):
+        self.Renders = {}
+        self._renderKeyInUse = {}
+        self._styleBaseSizes = {}
+        self._watchedLayers = set()
+        self._writingOwnStyle = 0
         self.cbNodeLabels = MagicMock()
         self.cbLinkLabels = MagicMock()
         self.spNodeDecimals = MagicMock()
@@ -33,6 +38,11 @@ class MockDock(_ResultsRenderingMixin):
 
     def tr(self, text):
         return text
+
+    def getLayerPath(self, layer):
+        # The real dock resolves this from the layer source; the mixin only uses it as a
+        # cache key, so a constant is enough here.
+        return "C:/proj/Results/Net_Base_Link.shp"
 
 
 class _StubFields:

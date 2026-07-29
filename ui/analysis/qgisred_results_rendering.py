@@ -1,5 +1,5 @@
 # -*- coding: utf-8 -*-
-from contextlib import suppress
+from contextlib import contextmanager, suppress
 import re
 
 from qgis.core import (
@@ -115,6 +115,39 @@ def _apply_absolute_node_size(expr, junction_size, special_size):
         # if(Type ='RESERVOIR' or Type='TANK', 0, SIZE)  — replace SIZE at end
         return re.sub(r',\s*\d+(?:\.\d+)?\s*\)$', f',{junction_size})', s)
     return s
+
+
+# Readers for the sizes the writers above put into symbol expressions. They live next to
+# them so both halves stay in step: every pattern written by _build_node_size_expr or by
+# the re.sub calls in applySymbolScaleFactors has a reader here.
+_SIZE_BEFORE_ZERO = re.compile(r',\s*(\d+(?:\.\d+)?)\s*,\s*0\)')
+_SIZE_AT_END = re.compile(r',\s*(\d+(?:\.\d+)?)\s*\)\s*$')
+
+
+def _read_size_before_zero(expr):
+    """Size in ", N, 0)" — how tanks, reservoirs, pump/valve icons and arrows carry theirs."""
+    match = _SIZE_BEFORE_ZERO.search(expr or "")
+    return float(match.group(1)) if match else None
+
+
+def read_node_base_sizes(expr):
+    """(junction, special) sizes held by a node size expression; either may be None.
+
+    Mirrors _build_node_size_expr: the tank-only and reservoir-only forms carry the special
+    size before ", 0)", while the combined form carries the junction size last. Anything
+    else — a scale_linear from proportional mode, say — yields nothing rather than a guess.
+    """
+    s = (expr or "").strip()
+    has_tank = "'TANK'" in s
+    has_res = "'RESERVOIR'" in s
+    if has_tank and has_res:
+        match = _SIZE_AT_END.search(s)
+        return (float(match.group(1)) if match else None), None
+    if has_tank or has_res:
+        return None, _read_size_before_zero(s)
+    with suppress(ValueError):
+        return float(s), None
+    return None, None
 
 
 def time_field_name(var_name, layer_type):
@@ -237,6 +270,157 @@ class _ResultsRenderingMixin:
         """Forget every remembered renderer. Called when the project changes."""
         self.Renders.clear()
         self._renderKeyInUse.clear()
+        self._styleBaseSizes.clear()
+        self._watchedLayers.clear()
+
+    # ------------------------------------------------------------------
+    # Base sizes: what the style says before any Appearance factor is applied
+    # ------------------------------------------------------------------
+
+    # Fallbacks for a style that does not state a size, and for the factory styles this
+    # plugin ships, whose numbers these are. Reading the style is what makes a factor of
+    # 1.0 mean "leave it as the style drew it" instead of "go back to the values below".
+    _FALLBACK_BASE_SIZES = {
+        "pipe": _BASE_PIPE_WIDTH,
+        "arrow": _BASE_ARROW_SIZE,
+        "junction": _BASE_JUNCTION_SIZE,
+        "special": _BASE_SPECIAL_SIZE,
+        "valvePump": _BASE_VALVE_PUMP_SIZE,
+    }
+
+    @staticmethod
+    def _readDataDefinedSize(symbol, index):
+        """Size carried by the data-defined expression of a sub-symbol, or None."""
+        with suppress(Exception):
+            symbolLayer = symbol.symbolLayer(index)
+            sub = symbolLayer.subSymbol() if symbolLayer is not None else None
+            if sub is None:
+                return None
+            prop = sub.dataDefinedSize()
+            if prop.isActive():
+                return _read_size_before_zero(prop.expressionString())
+        return None
+
+    def readStyleBaseSizes(self, layer, renderer):
+        """Sizes the style itself states, read before any factor is written over them.
+
+        Only what is found is returned; applySymbolScaleFactors fills the rest from
+        _FALLBACK_BASE_SIZES. Must run on a renderer straight from the style file — one
+        restored from the render cache already carries the factors baked in, and taking
+        that as the base would multiply them again on every pass.
+        """
+        sizes = {}
+        symbols = None
+        with suppress(Exception):
+            symbols = renderer.symbols(QgsRenderContext())
+        if not symbols:
+            return sizes
+        symbol = symbols[0]
+
+        if layer.geometryType() == 1:
+            with suppress(Exception):
+                symbolLayer = symbol.symbolLayer(0)
+                if symbolLayer is not None and hasattr(symbolLayer, "width"):
+                    sizes["pipe"] = symbolLayer.width()
+            for index in (1, 2):
+                size = self._readDataDefinedSize(symbol, index)
+                if size is not None:
+                    sizes["valvePump"] = size
+                    break
+            for index in (3, 4):
+                size = self._readDataDefinedSize(symbol, index)
+                if size is not None:
+                    sizes["arrow"] = size
+                    break
+        elif layer.geometryType() == 0:
+            for index in range(symbol.symbolLayerCount()):
+                with suppress(Exception):
+                    symbolLayer = symbol.symbolLayer(index)
+                    prop = symbolLayer.dataDefinedProperties().property(SL_PROP_SIZE)
+                    if not prop.isActive():
+                        continue
+                    junction, special = read_node_base_sizes(prop.expressionString())
+                    if junction is not None:
+                        sizes["junction"] = junction
+                    if special is not None:
+                        sizes["special"] = special
+        return sizes
+
+    # Which Appearance factor scales each size, for dividing it back out.
+    _SIZE_FACTORS = {
+        "pipe": "_pipeFactor",
+        "arrow": "_arrowFactor",
+        "junction": "_symbolFactor",
+        "special": "_specialFactor",
+        "valvePump": "_valvePumpFactor",
+    }
+
+    def rememberStyleBaseSizes(self, layer, variable, renderer, scaled=False):
+        """Record the sizes a style states, for this layer and variable.
+
+        Keyed per variable, like the render cache: each one loads its own QML, and a
+        hand-made NodeDemand.qml may well state different sizes than NodePressure.qml.
+
+        `scaled` says whether what is being read already went through the Appearance
+        factors. A style straight from its file has not — its numbers are the base. A
+        renderer the user just edited has, because the editor works on what is drawn, so
+        its numbers are base × factor and the factor is divided back out. Getting this
+        backwards is what makes symbols grow on every pass.
+        """
+        sizes = self.readStyleBaseSizes(layer, renderer)
+        if scaled:
+            sizes = {name: value / factor for name, value, factor in (
+                (name, value, getattr(self, self._SIZE_FACTORS[name], 1.0) or 1.0)
+                for name, value in sizes.items())}
+        if sizes:
+            self._styleBaseSizes[self._getRenderStorageKey(self.getLayerPath(layer), variable)] = sizes
+
+    @contextmanager
+    def writingOwnStyle(self):
+        """Mark our own renderer writes so the watcher does not read them back as a base.
+
+        Counted rather than boolean: applySymbolScaleFactors guards its own write and is
+        also called from inside setGraduatedPalette, which guards a wider block.
+        """
+        self._writingOwnStyle += 1
+        try:
+            yield
+        finally:
+            self._writingOwnStyle -= 1
+
+    def watchRendererChanges(self, layer):
+        """Follow a result layer's renderer so styles set from outside redefine the base.
+
+        The legend editor and QGIS's own symbology panel both end in setRenderer, and
+        neither goes through this dock. Without this, a style set that way would keep being
+        scaled against the sizes of the file it replaced.
+        """
+        layerId = layer.id()
+        if layerId in self._watchedLayers:
+            return
+        with suppress(Exception):
+            layer.rendererChanged.connect(lambda lyr=layer: self.onLayerRendererChanged(lyr))
+            self._watchedLayers.add(layerId)
+
+    def onLayerRendererChanged(self, layer):
+        """Take a renderer set from outside this dock as the new base for its variable."""
+        if self._writingOwnStyle:
+            return
+        layer_path = self.getLayerPath(layer)
+        storage_key = self._renderKeyInUse.get(layer_path)
+        if not storage_key:
+            return
+        variable = storage_key.rsplit("|", 1)[-1]
+        with suppress(Exception):
+            self.rememberStyleBaseSizes(layer, variable, layer.renderer(), scaled=True)
+
+    def baseSizesFor(self, layer):
+        """Sizes to scale the Appearance factors against for what this layer shows now."""
+        sizes = dict(self._FALLBACK_BASE_SIZES)
+        storage_key = self._renderKeyInUse.get(self.getLayerPath(layer))
+        if storage_key:
+            sizes.update(self._styleBaseSizes.get(storage_key, {}))
+        return sizes
 
     def paintIntervalTimeResults(self, setRender=False):
         if not self._statsMode:
@@ -654,8 +838,10 @@ class _ResultsRenderingMixin:
 
         When _proportional is True, sizes scale with the displayed field value using
         scale_linear expressions; the factor still controls the maximum size.
-        Sizes are always computed as BASE_SIZE × factor, so repeated calls with the same
-        arguments are idempotent and no state about the previous call needs to be tracked.
+        Sizes are always computed as base × factor and assigned absolutely, so repeated
+        calls with the same arguments are idempotent and no state about the previous call
+        needs tracking. The base is what the style itself states (see baseSizesFor), so a
+        factor of 1.0 means "as the style drew it" and not "back to the shipped values".
         """
         is_line  = layer.geometryType() == 1
         is_point = layer.geometryType() == 0
@@ -668,11 +854,12 @@ class _ResultsRenderingMixin:
         valve_pump_factor = getattr(self, '_valvePumpFactor', 1.0)
         arrow_factor      = getattr(self, '_arrowFactor',     1.0)
 
-        target_pipe_width  = round(_BASE_PIPE_WIDTH      * pipe_factor,       6)
-        target_arrow_size  = round(_BASE_ARROW_SIZE      * arrow_factor,      6)
-        target_junction    = round(_BASE_JUNCTION_SIZE   * symbol_factor,     6)
-        target_special     = round(_BASE_SPECIAL_SIZE    * special_factor,    6)
-        target_valve_pump  = round(_BASE_VALVE_PUMP_SIZE * valve_pump_factor, 6)
+        base = self.baseSizesFor(layer)
+        target_pipe_width  = round(base["pipe"]      * pipe_factor,       6)
+        target_arrow_size  = round(base["arrow"]     * arrow_factor,      6)
+        target_junction    = round(base["junction"]  * symbol_factor,     6)
+        target_special     = round(base["special"]   * special_factor,    6)
+        target_valve_pump  = round(base["valvePump"] * valve_pump_factor, 6)
 
         proportional = getattr(self, '_proportional', False)
         field = (self.displayingNodeField if is_point else self.displayingLinkField) or ""
@@ -824,7 +1011,8 @@ class _ResultsRenderingMixin:
                 QGIS_WARNING,
             )
 
-        layer.setRenderer(new_renderer)
+        with self.writingOwnStyle():
+            layer.setRenderer(new_renderer)
         layer.triggerRepaint()
         if hasattr(self, 'iface') and self.iface:
             self.iface.mapCanvas().refresh()
@@ -915,6 +1103,13 @@ class _ResultsRenderingMixin:
             renderer.setClassAttribute(field)
             self._warnIfNoClasses(renderer, db_field_name, nameLayer)
 
+        # Read what the style states before anything writes over it. Skipped for a cached
+        # renderer: that one already carries the factors, and taking it as the base would
+        # multiply them again. It has to happen before the arrows are rebuilt below, which
+        # replaces their size outright.
+        if cached is None:
+            self.rememberStyleBaseSizes(layer, db_field_name, renderer)
+
         # Update arrow visibility
         with suppress(Exception):
             flow_field = self._flowDirectionField()
@@ -923,13 +1118,15 @@ class _ResultsRenderingMixin:
                 if symbol.type() == 1:  # line
                     self.setArrowsVisibility(symbol, layer, flow_field)
 
-        layer.setRenderer(renderer)
-        QGISRedStylingUtils(self.ProjectDirectory, self.NetworkName, self.iface).applyNullStyle(layer)
+        with self.writingOwnStyle():
+            layer.setRenderer(renderer)
+            QGISRedStylingUtils(self.ProjectDirectory, self.NetworkName, self.iface).applyNullStyle(layer)
 
         # Bind the layer to the key this renderer belongs to, so the next restyle knows
         # where to file it away without having to guess the state it was applied under.
         self._renderKeyInUse[self.getLayerPath(layer)] = self._getRenderStorageKey(
             self.getLayerPath(layer), db_field_name)
+        self.watchRendererChanges(layer)
 
         final_renderer = layer.renderer()
         if isinstance(final_renderer, QgsRuleBasedRenderer):

@@ -89,6 +89,9 @@ class QGISRedResultsDock(
         # another: the dock outlives the project, a class-level dict would not be emptied.
         self.Renders = {}
         self._renderKeyInUse = {}
+        self._styleBaseSizes = {}
+        self._watchedLayers = set()
+        self._writingOwnStyle = 0
 
         # Translated labels
         self.lbl_none            = self.tr("None")
