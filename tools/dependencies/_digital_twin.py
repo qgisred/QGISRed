@@ -49,6 +49,18 @@ class QGISRedDigitalTwinMixin:
         return _to_string(b)
 
     @staticmethod
+    def DemandSectors(projectFolder, networkName, tempFolder):
+        projectFolder = _encode(projectFolder)
+        networkName = _encode(networkName)
+        tempFolder = _encode(tempFolder)
+
+        mydll = _load_dll()
+        mydll.DemandSectors.argtypes = (c_char_p, c_char_p, c_char_p)
+        mydll.DemandSectors.restype = c_char_p
+        b = mydll.DemandSectors(projectFolder, networkName, tempFolder)
+        return _to_string(b)
+
+    @staticmethod
     def DemandSectorBuilder(projectFolder, networkName, tempFolder):
         projectFolder = _encode(projectFolder)
         networkName = _encode(networkName)
