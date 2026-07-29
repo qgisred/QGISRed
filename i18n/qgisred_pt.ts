@@ -861,12 +861,12 @@
     <message>
         <location filename="../ui/queries/qgisred_statisticsandgraphs_dock.ui" line="64"/>
         <source>Setup</source>
-        <translation type="unfinished"></translation>
+        <translation type="unfinished">Configuração</translation>
     </message>
     <message>
         <location filename="../ui/queries/qgisred_statisticsandgraphs_dock.ui" line="163"/>
         <source>Filters</source>
-        <translation type="unfinished"></translation>
+        <translation type="unfinished">Filtros</translation>
     </message>
     <message>
         <location filename="../ui/queries/qgisred_statisticsandgraphs_dock.ui" line="635"/>
@@ -881,42 +881,42 @@
     <message>
         <location filename="../ui/queries/qgisred_statisticsandgraphs_dock.ui" line="823"/>
         <source>Table</source>
-        <translation type="unfinished"></translation>
+        <translation type="unfinished">Tabela</translation>
     </message>
     <message>
         <location filename="../ui/queries/qgisred_statisticsandgraphs_dock.ui" line="82"/>
         <source>Property to be analyzed</source>
-        <translation type="unfinished"></translation>
+        <translation type="unfinished">Propriedade a ser analisada</translation>
     </message>
     <message>
         <location filename="../ui/queries/qgisred_statisticsandgraphs_dock.ui" line="326"/>
         <source>Classification property</source>
-        <translation type="unfinished"></translation>
+        <translation type="unfinished">Propriedade de classificação</translation>
     </message>
     <message>
         <location filename="../ui/queries/qgisred_statisticsandgraphs_dock.ui" line="465"/>
         <source>Second classification property</source>
-        <translation type="unfinished"></translation>
+        <translation type="unfinished">Segunda propriedade de classificação</translation>
     </message>
     <message>
         <location filename="../ui/queries/qgisred_statisticsandgraphs_dock.ui" line="26"/>
         <source>QGISRed: Statistics on Properties</source>
-        <translation type="unfinished"></translation>
+        <translation type="unfinished">QGISRed: Estatísticas sobre Propriedades</translation>
     </message>
     <message>
         <location filename="../ui/queries/qgisred_statisticsandgraphs_dock.ui" line="291"/>
         <source>Preview on map</source>
-        <translation type="unfinished"></translation>
+        <translation type="unfinished">Pré-visualização no mapa</translation>
     </message>
     <message>
         <location filename="../ui/queries/qgisred_statisticsandgraphs_dock.ui" line="311"/>
         <source>color: #155724; font-weight: bold;</source>
-        <translation type="unfinished"></translation>
+        <translation type="unfinished">color: #155724; font-weight: bold;</translation>
     </message>
     <message>
         <location filename="../ui/queries/qgisred_statisticsandgraphs_dock.ui" line="314"/>
         <source>0 elements match</source>
-        <translation type="unfinished"></translation>
+        <translation type="unfinished">0 elementos correspondem</translation>
     </message>
 </context>
 <context>
@@ -1927,7 +1927,7 @@
     <message>
         <location filename="../tools/qgisred_translatable_strings.py" line="319"/>
         <source>DemBuil_Sectors</source>
-        <translation type="unfinished"></translation>
+        <translation type="unfinished">DemBuil_Setores</translation>
     </message>
 </context>
 <context>
@@ -1985,7 +1985,7 @@
     <message>
         <location filename="../sections/lifecycle_section.py" line="490"/>
         <source>QGISRed plugin requires some dependencies (v{}). Do you want to install them now?</source>
-        <translation type="unfinished"></translation>
+        <translation type="unfinished">O plugin QGISRed requer algumas dependências (v{}). Deseja instalá-las agora?</translation>
     </message>
 </context>
 <context>
@@ -2538,12 +2538,12 @@
     <message>
         <location filename="../sections/menu_section.py" line="452"/>
         <source>Edit properties by group...</source>
-        <translation type="unfinished"></translation>
+        <translation type="unfinished">Editar propriedades por grupo...</translation>
     </message>
     <message>
         <location filename="../sections/menu_section.py" line="713"/>
         <source>Demand sector builder...</source>
-        <translation type="unfinished"></translation>
+        <translation type="unfinished">Construtor de setores de demanda...</translation>
     </message>
     <message>
         <location filename="../sections/menu_section.py" line="876"/>
@@ -2553,7 +2553,7 @@
     <message>
         <location filename="../sections/menu_section.py" line="790"/>
         <source>Statistics on properties...</source>
-        <translation type="unfinished"></translation>
+        <translation type="unfinished">Estatísticas sobre propriedades...</translation>
     </message>
 </context>
 <context>
@@ -3541,7 +3541,7 @@ Deseja também excluir os arquivos de resultados do disco?</translation>
     <message>
         <location filename="../tools/utils/qgisred_layer_utils.py" line="111"/>
         <source>DemandSectors</source>
-        <translation type="unfinished"></translation>
+        <translation type="unfinished">Setores de Demanda</translation>
     </message>
 </context>
 <context>
@@ -6442,12 +6442,12 @@ Clique esquerdo: Adicionar um novo item abaixo da seleção atual</translation>
     <message>
         <location filename="../ui/analysis/qgisred_results_dock.ui" line="1701"/>
         <source>↺</source>
-        <translation type="unfinished"></translation>
+        <translation type="unfinished">↺</translation>
     </message>
     <message>
         <location filename="../ui/analysis/qgisred_results_dock.ui" line="1704"/>
         <source>Restore value</source>
-        <translation type="unfinished"></translation>
+        <translation type="unfinished">Restaurar valor</translation>
     </message>
     <message>
         <location filename="../ui/analysis/qgisred_results_dock.ui" line="1486"/>
@@ -6457,12 +6457,12 @@ Clique esquerdo: Adicionar um novo item abaixo da seleção atual</translation>
     <message>
         <location filename="../ui/analysis/qgisred_results_dock.ui" line="1505"/>
         <source>Clear label background color</source>
-        <translation type="unfinished"></translation>
+        <translation type="unfinished">Limpar cor de fundo dos rótulos</translation>
     </message>
     <message>
         <location filename="../ui/analysis/qgisred_results_appearance.py" line="46"/>
         <source>Label background color</source>
-        <translation type="unfinished"></translation>
+        <translation type="unfinished">Cor de fundo dos rótulos</translation>
     </message>
     <message>
         <location filename="../ui/analysis/qgisred_results_appearance.py" line="91"/>
@@ -6477,22 +6477,22 @@ Clique esquerdo: Adicionar um novo item abaixo da seleção atual</translation>
     <message>
         <location filename="../ui/analysis/qgisred_results_dock.ui" line="536"/>
         <source>Constant playback rate</source>
-        <translation type="unfinished"></translation>
+        <translation type="unfinished">Velocidade de reprodução constante</translation>
     </message>
     <message>
         <location filename="../ui/analysis/qgisred_results_dock.ui" line="556"/>
         <source>1h in:</source>
-        <translation type="unfinished"></translation>
+        <translation type="unfinished">1h em:</translation>
     </message>
     <message>
         <location filename="../ui/analysis/qgisred_results_dock.ui" line="598"/>
         <source>sec</source>
-        <translation type="unfinished"></translation>
+        <translation type="unfinished">seg</translation>
     </message>
     <message>
         <location filename="../ui/analysis/qgisred_results_dock.py" line="1854"/>
         <source>Reading results...</source>
-        <translation type="unfinished"></translation>
+        <translation type="unfinished">Lendo resultados...</translation>
     </message>
 </context>
 <context>
@@ -6879,37 +6879,37 @@ Clique esquerdo: Adicionar um novo item abaixo da seleção atual</translation>
     <message>
         <location filename="../ui/queries/qgisred_statisticsandgraphs_dock.py" line="375"/>
         <source>Expand histogram to a floating window</source>
-        <translation type="unfinished">Expandir o histograma em uma janela flutuante</translation>
+        <translation type="unfinished">Expandir o histograma para uma janela flutuante</translation>
     </message>
     <message>
         <location filename="../ui/queries/qgisred_statisticsandgraphs_dock.py" line="375"/>
         <source>Collapse histogram back to the panel</source>
-        <translation type="unfinished">Recolher o histograma no painel</translation>
+        <translation type="unfinished">Recolher o histograma de volta ao painel</translation>
     </message>
     <message>
         <location filename="../ui/queries/qgisred_statisticsandgraphs_dock.py" line="3365"/>
         <source>None</source>
-        <translation type="unfinished">Nenhum</translation>
+        <translation type="unfinished">Nenhuma</translation>
     </message>
     <message>
         <location filename="../ui/queries/qgisred_statisticsandgraphs_dock.py" line="1323"/>
         <source>No Filter</source>
-        <translation type="unfinished"></translation>
+        <translation type="unfinished">Sem filtro</translation>
     </message>
     <message>
         <location filename="../ui/queries/qgisred_statisticsandgraphs_dock.py" line="2091"/>
         <source>All groups</source>
-        <translation type="unfinished"></translation>
+        <translation type="unfinished">Todos os grupos</translation>
     </message>
     <message>
         <location filename="../ui/queries/qgisred_statisticsandgraphs_dock.py" line="2371"/>
         <source>for</source>
-        <translation type="unfinished"></translation>
+        <translation type="unfinished">para</translation>
     </message>
     <message>
         <location filename="../ui/queries/qgisred_statisticsandgraphs_dock.py" line="2370"/>
         <source>on Range</source>
-        <translation type="unfinished"></translation>
+        <translation type="unfinished">no intervalo</translation>
     </message>
     <message>
         <location filename="../ui/queries/qgisred_statisticsandgraphs_dock.py" line="2997"/>
@@ -6919,7 +6919,7 @@ Clique esquerdo: Adicionar um novo item abaixo da seleção atual</translation>
     <message>
         <location filename="../ui/queries/qgisred_statisticsandgraphs_dock.py" line="689"/>
         <source>values for report times</source>
-        <translation type="unfinished"></translation>
+        <translation type="unfinished">valores para os tempos do relatório</translation>
     </message>
     <message>
         <location filename="../ui/queries/qgisred_statisticsandgraphs_dock.py" line="692"/>
@@ -6929,47 +6929,47 @@ Clique esquerdo: Adicionar um novo item abaixo da seleção atual</translation>
     <message>
         <location filename="../ui/queries/qgisred_statisticsandgraphs_dock.py" line="1836"/>
         <source>The selected properties must belong to the same element type.</source>
-        <translation type="unfinished"></translation>
+        <translation type="unfinished">As propriedades selecionadas devem pertencer ao mesmo tipo de elemento.</translation>
     </message>
     <message>
         <location filename="../ui/queries/qgisred_statisticsandgraphs_dock.py" line="1845"/>
         <source>No results</source>
-        <translation type="unfinished"></translation>
+        <translation type="unfinished">Nenhum resultado</translation>
     </message>
     <message>
         <location filename="../ui/queries/qgisred_statisticsandgraphs_dock.py" line="1845"/>
         <source>Results are not available for this element type.</source>
-        <translation type="unfinished"></translation>
+        <translation type="unfinished">Os resultados não estão disponíveis para este tipo de elemento.</translation>
     </message>
     <message>
         <location filename="../ui/queries/qgisred_statisticsandgraphs_dock.py" line="1850"/>
         <source>Result field &apos;{0}&apos; was not found on the results layer.</source>
-        <translation type="unfinished"></translation>
+        <translation type="unfinished">O campo de resultado '{0}' não foi encontrado na camada de resultados.</translation>
     </message>
     <message>
         <location filename="../ui/queries/qgisred_statisticsandgraphs_dock.py" line="2405"/>
         <source>Stats for</source>
-        <translation type="unfinished"></translation>
+        <translation type="unfinished">Estatísticas para</translation>
     </message>
     <message>
         <location filename="../ui/queries/qgisred_statisticsandgraphs_dock.py" line="2358"/>
         <source>by Categories</source>
-        <translation type="unfinished"></translation>
+        <translation type="unfinished">por Categorias</translation>
     </message>
     <message>
         <location filename="../ui/queries/qgisred_statisticsandgraphs_dock.py" line="2358"/>
         <source>by Ranges</source>
-        <translation type="unfinished"></translation>
+        <translation type="unfinished">por Intervalos</translation>
     </message>
     <message>
         <location filename="../ui/queries/qgisred_statisticsandgraphs_dock.py" line="3378"/>
         <source>and</source>
-        <translation type="unfinished"></translation>
+        <translation type="unfinished">e</translation>
     </message>
     <message>
         <location filename="../ui/queries/qgisred_statisticsandgraphs_dock.py" line="1486"/>
         <source>%d elements match</source>
-        <translation type="unfinished"></translation>
+        <translation type="unfinished">%d elementos correspondem</translation>
     </message>
     <message>
         <location filename="../ui/queries/qgisred_statisticsandgraphs_dock.py" line="1633"/>
@@ -7014,27 +7014,27 @@ Clique esquerdo: Adicionar um novo item abaixo da seleção atual</translation>
     <message>
         <location filename="../ui/queries/qgisred_statisticsandgraphs_dock.py" line="1727"/>
         <source>Field %s has no values.</source>
-        <translation type="unfinished"></translation>
+        <translation type="unfinished">O campo %s não tem valores.</translation>
     </message>
     <message>
         <location filename="../ui/queries/qgisred_statisticsandgraphs_dock.py" line="1728"/>
         <source>Field %s has only equal values.</source>
-        <translation type="unfinished"></translation>
+        <translation type="unfinished">O campo %s tem apenas valores iguais.</translation>
     </message>
     <message>
         <location filename="../ui/queries/qgisred_statisticsandgraphs_dock.py" line="1737"/>
         <source>Cannot classify.</source>
-        <translation type="unfinished"></translation>
+        <translation type="unfinished">Não é possível classificar.</translation>
     </message>
     <message>
         <location filename="../ui/queries/qgisred_statisticsandgraphs_dock.py" line="1739"/>
         <source>Classification will be ignored.</source>
-        <translation type="unfinished"></translation>
+        <translation type="unfinished">A classificação será ignorada.</translation>
     </message>
     <message>
         <location filename="../ui/queries/qgisred_statisticsandgraphs_dock.py" line="1740"/>
         <source>Classification</source>
-        <translation type="unfinished"></translation>
+        <translation type="unfinished">Classificação</translation>
     </message>
 </context>
 <context>
@@ -8489,7 +8489,7 @@ Clique esquerdo: Adicionar um novo item abaixo da seleção atual</translation>
     <message>
         <location filename="../ui/analysis/qgisred_results_rendering.py" line="494"/>
         <source>Closed</source>
-        <translation type="unfinished"></translation>
+        <translation type="unfinished">Fechada</translation>
     </message>
     <message>
         <location filename="../ui/analysis/qgisred_results_rendering.py" line="495"/>
@@ -8514,12 +8514,12 @@ Clique esquerdo: Adicionar um novo item abaixo da seleção atual</translation>
     <message>
         <location filename="../ui/analysis/qgisred_results_rendering.py" line="333"/>
         <source>Rng</source>
-        <translation type="unfinished"></translation>
+        <translation type="unfinished">Amp</translation>
     </message>
     <message>
         <location filename="../ui/analysis/qgisred_results_rendering.py" line="334"/>
         <source>Std</source>
-        <translation type="unfinished"></translation>
+        <translation type="unfinished">Desv</translation>
     </message>
 </context>
 <context>
@@ -8527,7 +8527,7 @@ Clique esquerdo: Adicionar um novo item abaixo da seleção atual</translation>
     <message>
         <location filename="../ui/queries/qgisred_statisticsandgraphs_dock.py" line="131"/>
         <source>QGISRed: Statistics on Properties Histogram</source>
-        <translation type="unfinished"></translation>
+        <translation type="unfinished">QGISRed: Histograma de Estatísticas sobre Propriedades</translation>
     </message>
 </context>
 <context>
@@ -8535,7 +8535,7 @@ Clique esquerdo: Adicionar um novo item abaixo da seleção atual</translation>
     <message>
         <location filename="../sections/analysis_section.py" line="949"/>
         <source>Show stored volume instead</source>
-        <translation type="unfinished">Mostrar antes o volume armazenado</translation>
+        <translation type="unfinished">Mostrar o volume armazenado em vez disso</translation>
     </message>
     <message>
         <location filename="../sections/analysis_section.py" line="954"/>
@@ -8545,7 +8545,7 @@ Clique esquerdo: Adicionar um novo item abaixo da seleção atual</translation>
     <message>
         <location filename="../sections/analysis_section.py" line="954"/>
         <source>Show overflow flow instead</source>
-        <translation type="unfinished">Mostrar antes o caudal transbordado</translation>
+        <translation type="unfinished">Mostrar a vazão de transbordamento em vez disso</translation>
     </message>
 </context>
 </TS>
