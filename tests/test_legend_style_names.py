@@ -4,12 +4,16 @@
 It must match the name the results dock asks setStyle for ("<Node|Link><Variable>"),
 and must not depend on the interface language.
 """
+import os
 from unittest.mock import MagicMock, patch
 
 import pytest
 
 from QGISRed.ui.project.qgisred_legends_dialog import QGISRedLegendsDialog
 from QGISRed.ui.analysis.qgisred_results_data import resultStyleName
+from QGISRed.tools.utils.qgisred_styling_utils import QGISRedStylingUtils
+
+PLUGIN_ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 
 
 @pytest.fixture(autouse=True)
@@ -121,24 +125,75 @@ class TestProjectEntryCoversStatus:
         assert _dialog("FricFactor").getResultStyleName("qgisred_link_quality") == "LinkFricFactor"
 
 
+class TestStyleNameForIdentifier:
+    """The editor must ask for the same file setStyle would load.
+
+    setStyle is called with the identifier minus its "qgisred_" prefix and strips
+    underscores before the lookup, so deriving it the same way here is what makes a saved
+    style findable again.
+    """
+
+    # Every family whose style comes from a file, with the shipped default it must reach.
+    STYLED_IDENTIFIERS = [
+        ("qgisred_pipes", "Pipes.qml.bak"),
+        ("qgisred_junctions", "Junctions.qml.bak"),
+        ("qgisred_tanks", "Tanks.qml.bak"),
+        ("qgisred_reservoirs", "Reservoirs.qml.bak"),
+        ("qgisred_valves", "Valves.qml.bak"),
+        ("qgisred_pumps", "Pumps.qml.bak"),
+        ("qgisred_sources", "Sources.qml.bak"),
+        ("qgisred_meters", "Meters.qml.bak"),
+        # These two were saved as MultipleDemands.qml and ServiceConnection.qml (singular).
+        ("qgisred_demands", "demands.qml.bak"),
+        ("qgisred_serviceconnections", "ServiceConnections.qml.bak"),
+        ("qgisred_isolationvalves", "IsolationValves.qml.bak"),
+        # And this whole family was saved with short names full of underscores.
+        ("qgisred_hydraulicsectors_links", "HydraulicSectorsLinks.qml.bak"),
+        ("qgisred_hydraulicsectors_nodes", "HydraulicSectorsNodes.qml.bak"),
+        ("qgisred_hydraulicsectors_isolateddemands", "HydraulicSectorsIsolatedDemands.qml.bak"),
+        ("qgisred_isolatedsegments_links", "isolatedSegmentsLinks.qml.bak"),
+        ("qgisred_isolatedsegments_nodes", "isolatedSegmentsNodes.qml.bak"),
+        ("qgisred_isolatedsegments_isolateddemands", "isolatedSegmentsIsolatedDemands.qml.bak"),
+        ("qgisred_tree_links", "TreeLinks.qml.bak"),
+        ("qgisred_tree_nodes", "TreeNodes.qml.bak"),
+    ]
+
+    @pytest.mark.parametrize("identifier, defaultFile", STYLED_IDENTIFIERS)
+    def test_resolves_to_the_shipped_default(self, identifier, defaultFile):
+        name = _dialog().getElementNameForIdentifier(identifier)
+        defaults = os.path.join(PLUGIN_ROOT, "defaults", "layerStyles")
+
+        found = QGISRedStylingUtils.findStyleFile(defaults, [name + ".qml.bak"])
+
+        assert found is not None, f"{identifier} → {name}.qml has no default style to match"
+        assert os.path.basename(found) == defaultFile
+
+    def test_thematic_maps_are_left_to_their_own_scheme(self):
+        # Their styles are named pipe_roughness.qml and resolved by the thematic maps
+        # dialog, which records the file it used in the styleURI custom property.
+        assert _dialog().getStyleNameForIdentifier("qgisred_query_pipes_roughness") is None
+
+    def test_a_layer_outside_the_plugin_has_no_derived_name(self):
+        assert _dialog().getStyleNameForIdentifier("something_else") is None
+        assert _dialog().getStyleNameForIdentifier("") is None
+
+
 class TestElementNameForIdentifier:
     def test_result_layer_ignores_the_translated_layer_name(self):
         dialog = _dialog("Pressure", layerName="Nudo Presión")
 
         assert dialog.getElementNameForIdentifier("qgisred_node_pressure") == "NodePressure"
 
-    def test_input_layer_keeps_using_the_identifier_map(self):
+    def test_input_layer_ignores_the_translated_layer_name_too(self):
+        # It used to come from identifierToElementName, which gave names setStyle never
+        # asks for ("Multiple Demands" against demands.qml).
         dialog = _dialog(None, layerName="Tuberías")
-        dialog.utils = MagicMock()
-        dialog.utils.identifierToElementName = {"qgisred_pipes": "Pipes"}
-        dialog.utils.identifierToLegendName = {}
 
-        assert dialog.getElementNameForIdentifier("qgisred_pipes") == "Pipes"
+        assert dialog.getElementNameForIdentifier("qgisred_pipes") == "pipes"
 
-    def test_unmapped_layer_still_falls_back_to_its_name(self):
+    def test_thematic_map_still_falls_back_to_its_name(self):
+        # And getStyleBasename then overrides it with the file the thematic maps dialog
+        # recorded in styleURI, which is the only place that scheme is known.
         dialog = _dialog(None, layerName="Mapa temático")
-        dialog.utils = MagicMock()
-        dialog.utils.identifierToElementName = {}
-        dialog.utils.identifierToLegendName = {}
 
         assert dialog.getElementNameForIdentifier("qgisred_query_something") == "Mapa temático"

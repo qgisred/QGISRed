@@ -139,7 +139,8 @@ class QGISRedStylingUtils:
             return [self.NetworkName + "_" + qmlFile, qmlFile]
         return [qmlFile]
 
-    def findStyleFile(self, folder, fileNames):
+    @staticmethod
+    def findStyleFile(folder, fileNames):
         """Path of the first of `fileNames` present in `folder`, matched in lowercase.
 
         The same style is spelled differently depending on who asks: openLayer passes

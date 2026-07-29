@@ -27,7 +27,7 @@ from qgis.core import QgsRuleBasedRenderer, QgsFillSymbolLayer, QgsMapLayerStyle
 from qgis.utils import iface
 
 from ...compat import WKB_LINE_GEOMETRY, WKB_POINT_GEOMETRY
-from ...tools.utils.qgisred_styling_utils import _NULL_RULE_LABEL
+from ...tools.utils.qgisred_styling_utils import _NULL_RULE_LABEL, QGISRedStylingUtils
 from ...tools.utils.qgisred_ui_utils import QGISRedUIUtils
 from ...tools.utils.qgisred_identifier_utils import QGISRedIdentifierUtils
 from ...tools.utils.qgisred_field_utils import QGISRedFieldUtils, resolve_layer_id
@@ -3772,10 +3772,12 @@ class QGISRedLegendsDialog(QDialog, formClass):
             return
 
         folder = os.path.join(projectDir, "layerStyles")
-        path = os.path.join(folder, filename)
+        # Same lookup setStyle uses, so this finds whatever it would load.
+        path = QGISRedStylingUtils.findStyleFile(folder, [filename])
 
-        if not os.path.exists(path):
-            QMessageBox.warning(self, self.tr("Not Found"), self.tr("Style file not found: %1").replace("%1", path))
+        if not path:
+            QMessageBox.warning(self, self.tr("Not Found"),
+                                self.tr("Style file not found: %1").replace("%1", os.path.join(folder, filename)))
             return
 
         strategy = self.readStrategyFromStyleFile(path)
@@ -3811,11 +3813,13 @@ class QGISRedLegendsDialog(QDialog, formClass):
 
         filename = self.getStyleBasename(name) + ".qml" + (".bak" if isDefault else "")
         subfolder = os.path.join("defaults", "layerStyles") if isDefault else "layerStyles"
-        folder = self.pluginFolder if isDefault else self.getQGISRedDirectoryFromUtils()
-        path = os.path.join(folder, subfolder, filename)
+        folder = os.path.join(self.pluginFolder if isDefault else self.getQGISRedDirectoryFromUtils(), subfolder)
+        # Same lookup setStyle uses, so this finds whatever it would load.
+        path = QGISRedStylingUtils.findStyleFile(folder, [filename])
 
-        if not os.path.exists(path):
-            QMessageBox.warning(self, self.tr("Not Found"), self.tr("Style file not found: %1").replace("%1", path))
+        if not path:
+            QMessageBox.warning(self, self.tr("Not Found"),
+                                self.tr("Style file not found: %1").replace("%1", os.path.join(folder, filename)))
             return
 
         strategy = self.readStrategyFromStyleFile(path)
@@ -3872,17 +3876,31 @@ class QGISRedLegendsDialog(QDialog, formClass):
         # The dock only ever works on the Base scenario (see its Scenario assignments).
         return QgsProject.instance().readEntry("QGISRed", "results_Base_" + element)[0] or None
 
+    def getStyleNameForIdentifier(self, identifier):
+        """Style name the plugin loads for this layer, or None when it has no file style.
+
+        setStyle() is called with the identifier minus its "qgisred_" prefix for input
+        layers, and with names that reduce to the same thing for sectors, trees and
+        isolated segments ("HydraulicSectors_Links" → HydraulicSectorsLinks.qml). Deriving
+        it the same way here is what makes a style saved from this dialog findable later.
+        Underscores have to go, because setStyle strips them before looking the file up;
+        case does not matter, findStyleFile compares in lowercase.
+
+        Thematic maps are left out on purpose: their styles follow a different scheme
+        (pipe_roughness.qml) resolved by the thematic maps dialog, not by setStyle.
+        """
+        prefix = "qgisred_"
+        if not identifier.startswith(prefix) or identifier.startswith(prefix + "query_"):
+            return None
+        return identifier[len(prefix):].replace("_", "") or None
+
     def getElementNameForIdentifier(self, identifier):
         resultName = self.getResultStyleName(identifier or "")
         if resultName:
             return resultName
-        utils = self.utils or QGISRedIdentifierUtils()
-        name = utils.identifierToElementName.get(identifier)
-        if name:
-            return name
-        name = utils.identifierToLegendName.get(identifier)
-        if name:
-            return name
+        styleName = self.getStyleNameForIdentifier(identifier or "")
+        if styleName:
+            return styleName
         if self.currentLayer:
             return self.currentLayer.name()
         return None
