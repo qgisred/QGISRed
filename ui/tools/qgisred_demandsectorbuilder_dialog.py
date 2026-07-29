@@ -5,7 +5,7 @@ import shutil
 
 from qgis.PyQt import uic
 from qgis.PyQt.QtCore import Qt
-from qgis.core import QgsProject
+from qgis.core import QgsProject, QgsVectorLayer
 from ...tools.utils.qgisred_layer_utils import QGISRedLayerUtils
 from qgis.PyQt.QtGui import QColor, QIcon
 from ...tools.qgisred_dependencies import (
@@ -744,14 +744,105 @@ class QGISRedDemandSectorBuilderDialog(QDialog, FORM_CLASS):
             )
             return
 
-        self._showOperationResult(
-            self.tr("Create demand sector theme"),
-            result
+        resultText = str(result or "").strip()
+
+        status, separator, payload = resultText.partition("^")
+        action, actionSeparator, shpPath = payload.partition("^")
+
+        shpPath = shpPath.strip()
+
+        if (
+            status.strip().lower() != "success" or
+            action.strip().lower() != "create" or
+            not actionSeparator or
+            not shpPath
+        ):
+            self._showError(
+                self.tr("Create demand sector theme"),
+                self.tr(
+                    "The sector theme was created, but its file path "
+                    "could not be obtained."
+                )
+            )
+            self._refreshCurrentThemes()
+            self._selectTreeTheme(theme)
+            return
+
+        layerName = f"{sectorization}_{theme}"
+
+        project = QgsProject.instance()
+
+        normalisedShpPath = os.path.normcase(
+            os.path.abspath(shpPath)
         )
 
-        self._refreshProjectLayers()
+        existingLayer = None
+
+        for projectLayer in project.mapLayers().values():
+
+            projectLayerPath = (
+                projectLayer.source().split("|")[0]
+            )
+
+            normalisedProjectLayerPath = os.path.normcase(
+                os.path.abspath(projectLayerPath)
+            )
+
+            if normalisedProjectLayerPath == normalisedShpPath:
+                existingLayer = projectLayer
+                break
+
+        if existingLayer is None:
+
+            layer = QgsVectorLayer(
+                shpPath,
+                layerName,
+                "ogr"
+            )
+
+            if not layer.isValid():
+                self._showError(
+                    self.tr("Create demand sector theme"),
+                    self.tr(
+                        'The theme "%s" was created, but it could not '
+                        "be loaded into the QGIS project."
+                    ) % theme
+                )
+                self._refreshCurrentThemes()
+                self._selectTreeTheme(theme)
+                return
+
+            project.addMapLayer(
+                layer,
+                False
+            )
+
+            sectorizationGroup = (
+                self.getDemandSectorizationGroup(
+                    sectorization
+                )
+            )
+
+            sectorizationGroup.addLayer(layer)
+            sectorizationGroup.setExpanded(True)
+
+            if self.iface is not None:
+                self.iface.layerTreeView().setCurrentLayer(
+                    layer
+                )
+
+        self._showInfo(
+            self.tr("Create demand sector theme"),
+            self.tr(
+                'The theme "%s" was created successfully.'
+            ) % theme
+        )
+
         self._refreshCurrentThemes()
         self._selectTreeTheme(theme)
+
+        if self.canvas is not None:
+            self.canvas.refresh()
 
     # ----------------------------------------------------------
     # Delete theme
