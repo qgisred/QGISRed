@@ -1,6 +1,7 @@
 # -*- coding: utf-8 -*-
 
 import os
+import shutil
 
 from qgis.PyQt import uic
 from qgis.PyQt.QtCore import Qt
@@ -622,22 +623,90 @@ class QGISRedDemandSectorBuilderDialog(QDialog, FORM_CLASS):
         if reply != QMessageBox.StandardButton.Yes:
             return
 
-        result = self._callBuilderMethod(
-            "DeleteDemandSectorization",
-            sectorizationName=sectorization
+        sectorizationsFolder = os.path.abspath(
+            os.path.join(
+                self.ProjectDirectory,
+                "Auxiliary Layers",
+                "DemandSectors"
+            )
         )
 
-        if not self._operationSucceeded(result):
-            self._showOperationResult(
+        sectorizationFolder = os.path.abspath(
+            os.path.join(
+                sectorizationsFolder,
+                sectorization
+            )
+        )
+
+        try:
+            if os.path.commonpath(
+                    [sectorizationsFolder, sectorizationFolder]
+            ) != sectorizationsFolder:
+                raise ValueError(
+                    self.tr("Invalid sectorization folder.")
+                )
+
+            project = QgsProject.instance()
+            root = project.layerTreeRoot()
+
+            networkGroup = root.findGroup(self.NetworkName)
+
+            demandSectorsGroup = None
+            sectorizationGroup = None
+
+            if networkGroup is not None:
+                auxiliaryLayersGroup = networkGroup.findGroup(
+                    "Auxiliary Layers"
+                )
+
+                if auxiliaryLayersGroup is not None:
+                    demandSectorsGroup = (
+                        auxiliaryLayersGroup.findGroup(
+                            "DemandSectors"
+                        )
+                    )
+
+                if demandSectorsGroup is not None:
+                    sectorizationGroup = (
+                        demandSectorsGroup.findGroup(
+                            sectorization
+                        )
+                    )
+
+            if sectorizationGroup is not None:
+                layerIds = [
+                    layerNode.layerId()
+                    for layerNode in sectorizationGroup.findLayers()
+                ]
+
+                if layerIds:
+                    project.removeMapLayers(layerIds)
+
+                demandSectorsGroup.removeChildNode(
+                    sectorizationGroup
+                )
+
+            if not os.path.isdir(sectorizationFolder):
+                raise FileNotFoundError(
+                    self.tr(
+                        'The sectorization folder "%s" does not exist.'
+                    ) % sectorization
+                )
+
+            shutil.rmtree(sectorizationFolder)
+
+        except Exception as exception:
+            self._showError(
                 self.tr("Delete demand sectorization"),
-                result,
-                errorByDefault=True
+                str(exception)
             )
             return
 
-        self._showOperationResult(
+        self._showInfo(
             self.tr("Delete demand sectorization"),
-            result
+            self.tr(
+                'The demand sectorization "%s" was deleted successfully.'
+            ) % sectorization
         )
 
         self._loadSectorizations()
@@ -1581,14 +1650,6 @@ class QGISRedDemandSectorBuilderDialog(QDialog, FORM_CLASS):
             if methodName == "CreateDemandSectorization":
 
                 return GISRed.CreateDemandSectorization(
-                    self.ProjectDirectory,
-                    self.NetworkName,
-                    arguments.get("sectorizationName", "")
-                )
-
-            if methodName == "DeleteDemandSectorization":
-
-                return GISRed.DeleteDemandSectorization(
                     self.ProjectDirectory,
                     self.NetworkName,
                     arguments.get("sectorizationName", "")
