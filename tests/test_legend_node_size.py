@@ -143,6 +143,37 @@ class TestGetNodeSize:
         assert read_node_base_sizes(apply_junction_size(expression, shown))[0] == shown
 
 
+class TestTemplateSymbol:
+    """A class added in the editor must inherit the structure of the ones already there.
+
+    A default symbol is a bare marker: it carries none of the data-defined size
+    expressions, pump and valve icons or flow arrows the result styles are built from.
+    """
+
+    def test_an_existing_symbol_is_cloned(self):
+        first, last = MagicMock(), MagicMock()
+
+        result = _dialog().templateSymbol([first, last])
+
+        assert result is last.clone.return_value, "the newest class is the natural template"
+        first.clone.assert_not_called()
+
+    def test_a_missing_symbol_is_skipped(self):
+        usable = MagicMock()
+
+        result = _dialog().templateSymbol([usable, None])
+
+        assert result is usable.clone.return_value
+
+    def test_with_nothing_to_copy_it_falls_back_to_a_default(self):
+        dialog = _dialog()
+
+        with patch("QGISRed.ui.project.qgisred_legends_dialog.QgsSymbol") as qgsSymbol:
+            result = dialog.templateSymbol([])
+
+        assert result is qgsSymbol.defaultSymbol.return_value
+
+
 class TestApplySizeToSymbol:
     def test_a_point_symbol_gets_both_the_static_size_and_the_expression(self):
         # setSize keeps the legend swatch in step; the expression is what the map reads.

@@ -3049,6 +3049,20 @@ class QGISRedLegendsDialog(QDialog, formClass):
             if hasattr(symbolLayer, 'subSymbol') and symbolLayer.subSymbol():
                 self.applyColorToSymbol(symbolLayer.subSymbol(), color)
 
+    def templateSymbol(self, existingSymbols):
+        """Symbol for a class the layer did not have before: a copy of one it already has.
+
+        A default symbol is a bare marker or line, and on result layers everything that
+        makes the style work lives in the existing ones — the data-defined size expressions
+        that tell tanks and reservoirs apart from junctions, the pump and valve icons, the
+        flow arrows. Building a new class from scratch dropped all of it. Colour and size
+        are overwritten from the table straight after, so only the structure is inherited.
+        """
+        for symbol in reversed(existingSymbols):
+            if symbol is not None:
+                return symbol.clone()
+        return QgsSymbol.defaultSymbol(self.currentLayer.geometryType())
+
     def applySizeToSymbol(self, symbol, size):
         """Applies size to a symbol, preserving its structure."""
         isLine = self.currentLayer.geometryType() == WKB_LINE_GEOMETRY
@@ -3514,11 +3528,11 @@ class QGISRedLegendsDialog(QDialog, formClass):
             checkbox = checkboxContainer.findChild(QCheckBox) if checkboxContainer else None
             colorWidget = colorContainer.findChild(QGISRedSymbolColorSelector) if colorContainer else None
 
-            # Clone existing symbol to preserve complex structure, fallback to default
+            # Clone existing symbol to preserve complex structure
             if row < len(existingRanges) and existingRanges[row].symbol():
                 symbol = existingRanges[row].symbol().clone()
             else:
-                symbol = QgsSymbol.defaultSymbol(self.currentLayer.geometryType())
+                symbol = self.templateSymbol([r.symbol() for r in existingRanges])
 
             if colorWidget:
                 self.applyColorToSymbol(symbol, colorWidget.activeColor)
@@ -3593,12 +3607,12 @@ class QGISRedLegendsDialog(QDialog, formClass):
 
             realValue = self.determineRealCategoricalValue(value, label)
 
-            # Clone existing symbol to preserve complex structure, fallback to default
+            # Clone existing symbol to preserve complex structure
             lookupKey = value if value not in [self.tr("Other Values"), "Other Values"] else ""
             if lookupKey in existingSymbolMap and existingSymbolMap[lookupKey]:
                 symbol = existingSymbolMap[lookupKey].clone()
             else:
-                symbol = QgsSymbol.defaultSymbol(self.currentLayer.geometryType())
+                symbol = self.templateSymbol(list(existingSymbolMap.values()))
 
             if colorWidget:
                 self.applyColorToSymbol(symbol, colorWidget.activeColor)
