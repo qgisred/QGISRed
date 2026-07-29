@@ -173,23 +173,29 @@ class QGISRedDemandSectorBuilderDialog(QDialog, FORM_CLASS):
         self.cbSectorization.blockSignals(True)
         self.cbSectorization.clear()
 
-        result = self._callBuilderMethod(
-            "GetDemandSectorizations",
-            projectDirectory=self.ProjectDirectory,
-            networkName=self.NetworkName
+        sectorizationsFolder = os.path.join(
+            self.ProjectDirectory,
+            "Auxiliary Layers",
+            "DemandSectors"
         )
 
-        sectorizations = self._extractCollection(
-            result,
-            (
-                "sectorizations",
-                "Sectorizations",
-                "items",
-                "Items",
-                "data",
-                "Data",
+        sectorizations = []
+
+        if os.path.isdir(sectorizationsFolder):
+
+            sectorizations = sorted(
+                [
+                    folderName
+                    for folderName in os.listdir(sectorizationsFolder)
+                    if os.path.isdir(
+                        os.path.join(
+                            sectorizationsFolder,
+                            folderName
+                        )
+                    )
+                ],
+                key=str.lower
             )
-        )
 
         names = []
 
