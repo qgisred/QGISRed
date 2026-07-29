@@ -3134,11 +3134,31 @@ class QGISRedLegendsDialog(QDialog, formClass):
         renderer = self.buildRendererFromDialog()
         if renderer is not None:
             self.currentLayer.setRenderer(renderer)
+            self.restoreResultNullClass()
 
         self.currentLayer.triggerRepaint()
         self.ensureLayerVisible(self.currentLayer)
         self.originalRenderer = self.currentLayer.renderer().clone() if self.currentLayer.renderer() else None
         self.hasAppliedChanges = True
+
+    def restoreResultNullClass(self):
+        """Put a result layer back into the rule-based form the results dock expects.
+
+        This dialog commits a graduated renderer, but a result layer is meant to carry the
+        NULL class applyNullStyle adds, and two things break at once without it: features
+        with no value stop being drawn at all — a graduated renderer skips NULLs outright,
+        which is the whole reason that function exists — and every Appearance factor turns
+        into a silent no-op, because applySymbolScaleFactors returns early on anything that
+        is not rule-based.
+
+        Same pair of steps the results dock runs itself after building a renderer.
+        """
+        if not self.isResultsLayer():
+            return
+        with suppress(Exception):
+            QGISRedStylingUtils(
+                self.projectDirectory, self.networkName, self.qgisInterface
+            ).applyNullStyle(self.currentLayer)
 
     def buildRendererFromDialog(self):
         """Build a renderer from the current dialog state without touching the live layer."""
