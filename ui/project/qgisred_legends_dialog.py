@@ -647,7 +647,6 @@ class QGISRedLegendsDialog(QDialog, formClass):
         self.populateLegendTable()
         self.updateButtonStates()
         self.updateInputLayerRestrictions()
-        self.restoreUiFromSavedStrategy()
 
     def updateFrameLegendLabel(self, layer):
         layerName = layer.name()
@@ -3603,18 +3602,6 @@ class QGISRedLegendsDialog(QDialog, formClass):
             return None
 
         return dialog.selectedParts()
-
-    def restoreUiFromSavedStrategy(self):
-        if not self.currentLayer:
-            return
-        rawStrategy = self.currentLayer.customProperty("qgisred_legend_strategy")
-        if not rawStrategy:
-            return
-        try:
-            strategy = json.loads(rawStrategy)
-        except Exception:
-            return
-        self.applyStrategyToDialog(strategy)
 
     def applyStrategyToDialog(self, strategy):
         if not isinstance(strategy, dict):
