@@ -35,7 +35,7 @@ _themeOrder = [
     "Frontiers",
     "Links",
     "Nodes",
-    "MultiLines",
+    "MultiLinks",
     "MultiNodes",
     "Polygons",
 ]
@@ -320,128 +320,45 @@ class QGISRedDemandSectorBuilderDialog(QDialog, FORM_CLASS):
 
         statuses = {}
 
-        themes = self._extractCollection(
-            result,
-            (
-                "themes",
-                "Themes",
-                "items",
-                "Items",
-                "data",
-                "Data",
-            )
-        )
+        if isinstance(result, str):
 
-        if isinstance(result, dict):
+            resultText = result.strip()
 
-            directThemeDictionary = all(
-                str(key).lower() in [
-                    theme.lower()
-                    for theme in _themeOrder
-                ]
-                for key in result.keys()
+            status, separator, payload = (
+                resultText.partition("^")
             )
 
-            if directThemeDictionary:
+            if (
+                separator and
+                status.strip().lower() == "success"
+            ):
 
-                for theme, status in result.items():
+                for item in payload.split("|"):
 
-                    statuses[
-                        str(theme).strip().lower()
-                    ] = self._normaliseThemeStatus(
-                        status
+                    item = item.strip()
+
+                    if not item:
+                        continue
+
+                    themeName, hasStatus, themeStatus = (
+                        item.partition("=")
                     )
+
+                    if not themeName:
+                        continue
+
+                    if hasStatus:
+                        statuses[
+                            themeName.strip().lower()
+                        ] = self._normaliseThemeStatus(
+                            themeStatus.strip()
+                        )
+                    else:
+                        statuses[
+                            themeName.strip().lower()
+                        ] = "filled"
 
                 return statuses
-
-        for themeData in themes:
-
-            if isinstance(themeData, str):
-
-                statuses[
-                    themeData.strip().lower()
-                ] = "filled"
-
-                continue
-
-            if isinstance(themeData, dict):
-
-                name = themeData.get(
-                    "themeType",
-                    themeData.get(
-                        "ThemeType",
-                        themeData.get(
-                            "name",
-                            themeData.get(
-                                "Name",
-                                ""
-                            )
-                        )
-                    )
-                )
-
-                status = themeData.get(
-                    "status",
-                    themeData.get(
-                        "Status",
-                        themeData.get(
-                            "state",
-                            themeData.get(
-                                "State",
-                                "missing"
-                            )
-                        )
-                    )
-                )
-
-            else:
-
-                name = getattr(
-                    themeData,
-                    "ThemeType",
-                    getattr(
-                        themeData,
-                        "themeType",
-                        getattr(
-                            themeData,
-                            "Name",
-                            getattr(
-                                themeData,
-                                "name",
-                                ""
-                            )
-                        )
-                    )
-                )
-
-                status = getattr(
-                    themeData,
-                    "Status",
-                    getattr(
-                        themeData,
-                        "status",
-                        getattr(
-                            themeData,
-                            "State",
-                            getattr(
-                                themeData,
-                                "state",
-                                "missing"
-                            )
-                        )
-                    )
-                )
-
-            name = str(name or "").strip()
-
-            if not name:
-                continue
-
-            statuses[name.lower()] = (
-                self._normaliseThemeStatus(status)
-            )
-
-        return statuses
 
     def _refreshCombos(
             self,
