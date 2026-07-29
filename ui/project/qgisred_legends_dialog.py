@@ -1588,6 +1588,57 @@ class QGISRedLegendsDialog(QDialog, formClass):
         else:
             self.cbLegendsType.addItem(self.tr("Single Symbol"), "singleSymbol")
 
+    # Range filters as applyNullStyle leaves them, by way of convertFromRenderer. Two
+    # things vary and neither can be assumed: the classified column arrives spelled
+    # however the conversion produced it — (Velocity), "Velocity", Velocity, abs(Flow) —
+    # and the outer classes carry a single bound, because the conversion drops the
+    # redundant one ('<0.1' is just "(Velocity) <= 0.1"). So each side is read on its own
+    # instead of matching one fixed shape.
+    _NUMBER = r'[-+]?(?:\d+\.?\d*|\.\d+)(?:[eE][-+]?\d+)?'
+    _RANGE_ATTRIBUTE = re.compile(r'^\s*(.+?)\s*(?:>=?|<=?)\s*' + _NUMBER)
+    _RANGE_LOWER = re.compile(r'>=?\s*(' + _NUMBER + r')')
+    _RANGE_UPPER = re.compile(r'<=?\s*(' + _NUMBER + r')')
+
+    # Stands in for the bound the conversion left out. It is the sentinel the plugin's own
+    # styles already use for their open-ended first and last classes, so applying the table
+    # untouched writes back exactly the values the style file had.
+    OPEN_RANGE_BOUND = 1e10
+
+    def parseRangeFilter(self, expression):
+        """(column, lower, upper) of a range rule, or None when the rule is not a range."""
+        expression = expression or ""
+        attribute = self._RANGE_ATTRIBUTE.match(expression)
+        if not attribute:
+            return None
+        lower = self._RANGE_LOWER.search(expression)
+        upper = self._RANGE_UPPER.search(expression)
+        if not lower and not upper:
+            return None
+        return (
+            self.unwrapClassAttribute(attribute.group(1)),
+            float(lower.group(1)) if lower else -self.OPEN_RANGE_BOUND,
+            float(upper.group(1)) if upper else self.OPEN_RANGE_BOUND,
+        )
+
+    @staticmethod
+    def unwrapClassAttribute(attr):
+        """Strip the quotes or the wrapping parentheses a filter may carry around a column.
+
+        abs(Flow) also ends in ")" without being wrapped, so the parentheses are only
+        removed when they really enclose the whole string.
+        """
+        attr = attr.strip()
+        if len(attr) > 1 and attr[0] == '"' and attr[-1] == '"':
+            return attr[1:-1]
+        if len(attr) > 1 and attr[0] == "(" and attr[-1] == ")":
+            depth = 0
+            for char in attr[1:-1]:
+                depth += (char == "(") - (char == ")")
+                if depth < 0:
+                    return attr
+            return attr[1:-1]
+        return attr
+
     def ruleBasedAsGraduated(self, renderer):
         """Convert a QgsRuleBasedRenderer (created by applyNullStyle) back to QgsGraduatedSymbolRenderer."""
         if not isinstance(renderer, QgsRuleBasedRenderer):
@@ -1595,17 +1646,18 @@ class QGISRedLegendsDialog(QDialog, formClass):
         rules = [r for r in renderer.rootRule().children() if _NULL_RULE_LABEL not in r.label()]
         if not rules:
             return None
-        match = re.match(r'\((.+?)\)\s*>=', rules[0].filterExpression())
-        if not match:
-            return None
-        classAttr = match.group(1)
+
+        classAttr = None
         ranges = []
         for rule in rules:
-            nums = re.findall(r'[-+]?\d*\.?\d+(?:[eE][-+]?\d+)?', rule.filterExpression())
-            if len(nums) >= 2:
-                lo, hi = float(nums[0]), float(nums[1])
-                ranges.append(QgsRendererRange(lo, hi, rule.symbol().clone(), rule.label()))
-        if not ranges:
+            parsed = self.parseRangeFilter(rule.filterExpression())
+            if parsed is None:
+                continue
+            attribute, lower, upper = parsed
+            if classAttr is None:
+                classAttr = attribute
+            ranges.append(QgsRendererRange(lower, upper, rule.symbol().clone(), rule.label()))
+        if classAttr is None or not ranges:
             return None
         return QgsGraduatedSymbolRenderer(classAttr, ranges)
 
