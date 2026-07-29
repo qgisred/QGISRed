@@ -897,3 +897,108 @@ class TestLabelStyleCallersMatchSignature:
 
             # setLayerLabels ran for real for both Node and Link.
             assert MockLabeling.call_count == 2
+
+
+# Regression test: a rule whose symbol does not match the layer geometry (e.g. a marker
+# symbol left on the link layer by a mismatched style) used to crash applySymbolScaleFactors
+# with "'QgsMarkerSymbol' object has no attribute 'setWidth'" while toggling the Appearance
+# options. Such rules must simply be skipped.
+class _MarkerSymbol:
+    """Marker symbol: has setSize, no setWidth (like QgsMarkerSymbol)."""
+
+    def __init__(self):
+        self.symbolLayerCount = MagicMock(return_value=0)
+
+    def setSize(self, size):
+        pass
+
+
+class _LineSymbol:
+    """Line symbol: has setWidth, no setSize (like QgsLineSymbol)."""
+
+    def __init__(self):
+        self.width = None
+
+    def setWidth(self, width):
+        self.width = width
+
+    def symbolLayer(self, index):
+        return None
+
+
+class _SymbolRule:
+    def __init__(self, symbol):
+        self._symbol = symbol
+
+    def symbol(self):
+        return self._symbol
+
+
+class _RootRule:
+    def __init__(self, rules):
+        self._rules = rules
+
+    def children(self):
+        return self._rules
+
+
+class _CloneableRuleRenderer:
+    def __init__(self, rules):
+        self._rules = rules
+
+    def rootRule(self):
+        return _RootRule(self._rules)
+
+    def clone(self):
+        return self
+
+
+class TestApplySymbolScaleFactorsSymbolTypeMismatch:
+    def _dock(self):
+        dock = MockDock()
+        dock._pipeFactor = 2.0
+        dock._symbolFactor = 1.0
+        dock._specialFactor = 1.0
+        dock._valvePumpFactor = 1.0
+        dock._arrowFactor = 1.0
+        dock._proportional = False
+        dock.displayingNodeField = "Pressure"
+        dock.displayingLinkField = "Flow"
+        dock.iface = None
+        return dock
+
+    def _run(self, geometry_type, rules):
+        dock = self._dock()
+        layer = MagicMock()
+        layer.name.return_value = "Net_Base_Link"
+        layer.geometryType.return_value = geometry_type
+        layer.renderer.return_value = _CloneableRuleRenderer(rules)
+        with patch("QGISRed.ui.analysis.qgisred_results_rendering.QgsRuleBasedRenderer",
+                   _CloneableRuleRenderer), \
+             patch("QGISRed.ui.analysis.qgisred_results_rendering.QgsMessageLog") as MockLog:
+            dock.applySymbolScaleFactors(layer)
+        return layer, MockLog
+
+    def test_marker_symbol_on_a_line_layer_is_skipped(self):
+        marker, line = _MarkerSymbol(), _LineSymbol()
+
+        layer, MockLog = self._run(1, [_SymbolRule(marker), _SymbolRule(line)])
+
+        # No crash, the well-formed rule is still resized, and the mismatch is logged.
+        assert line.width == pytest.approx(0.26 * 2.0)
+        assert MockLog.logMessage.call_count == 1
+        layer.setRenderer.assert_called_once()
+
+    def test_matching_symbols_log_nothing(self):
+        line = _LineSymbol()
+
+        _, MockLog = self._run(1, [_SymbolRule(line)])
+
+        assert MockLog.logMessage.call_count == 0
+
+    def test_line_symbol_on_a_point_layer_is_skipped(self):
+        marker, line = _MarkerSymbol(), _LineSymbol()
+
+        self._run(0, [_SymbolRule(marker), _SymbolRule(line)])
+
+        assert line.width is None  # the line symbol was never touched on a point layer

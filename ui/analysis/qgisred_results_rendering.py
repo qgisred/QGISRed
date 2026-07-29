@@ -696,10 +696,16 @@ class _ResultsRenderingMixin:
         if not isinstance(renderer, QgsRuleBasedRenderer):
             return  # result layers are always rule-based after applyNullStyle
 
+        sizing_method = "setWidth" if is_line else "setSize"
+
         new_renderer = renderer.clone()
+        mismatched = 0
         for rule in new_renderer.rootRule().children():
             sym = rule.symbol()
             if sym is None:
+                continue
+            if not hasattr(sym, sizing_method):
+                mismatched += 1
                 continue
             if is_line:
                 # Pipe width — direct absolute assignment
@@ -809,6 +815,14 @@ class _ResultsRenderingMixin:
                             else:
                                 sl.setDataDefinedProperty(
                                     SL_PROP_STROKE_COLOR, QgsProperty())
+
+        if mismatched:
+            QgsMessageLog.logMessage(
+                self.tr("%1 symbols of layer %2 do not match its geometry and were not resized")
+                    .replace("%1", str(mismatched)).replace("%2", layer.name()),
+                "QGISRed",
+                QGIS_WARNING,
+            )
 
         layer.setRenderer(new_renderer)
         layer.triggerRepaint()
