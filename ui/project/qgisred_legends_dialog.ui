@@ -695,12 +695,22 @@
       </spacer>
      </item>
      <item>
+      <widget class="QPushButton" name="btAcceptLegend">
+       <property name="text">
+        <string>Accept</string>
+       </property>
+       <property name="default">
+        <bool>true</bool>
+       </property>
+      </widget>
+     </item>
+     <item>
       <widget class="QPushButton" name="btApplyLegend">
        <property name="text">
         <string>Apply</string>
        </property>
-       <property name="default">
-        <bool>true</bool>
+       <property name="autoDefault">
+        <bool>false</bool>
        </property>
       </widget>
      </item>
@@ -754,6 +764,7 @@
   <tabstop>btClassMinus</tabstop>
   <tabstop>btLoadMenu</tabstop>
   <tabstop>btSaveMenu</tabstop>
+  <tabstop>btAcceptLegend</tabstop>
   <tabstop>btApplyLegend</tabstop>
   <tabstop>btCancelLegend</tabstop>
  </tabstops>

@@ -19,7 +19,7 @@ from qgis.core import QgsProject, QgsVectorLayer, QgsMessageLog, Qgis, QgsGradua
 from qgis.core import QgsCategorizedSymbolRenderer, QgsRendererRange, QgsRendererCategory, QgsSymbol
 from qgis.core import QgsLayerTreeGroup, QgsLayerTreeLayer, QgsGradientColorRamp, QgsClassificationJenks
 from qgis.core import QgsClassificationPrettyBreaks, QgsStyle, QgsPresetSchemeColorRamp, QgsProperty, QgsSymbolLayer
-from qgis.core import QgsRuleBasedRenderer, QgsFillSymbolLayer, NULL
+from qgis.core import QgsRuleBasedRenderer, QgsFillSymbolLayer, QgsMapLayerStyle, NULL
 from qgis.utils import iface
 
 from ...compat import WKB_LINE_GEOMETRY, WKB_POINT_GEOMETRY
@@ -112,6 +112,7 @@ class QGISRedLegendsDialog(QDialog, formClass):
         self.lastValidLayerId = None
         self.initialRenderers = {}
         self.isClosing = False
+        self.hasAppliedChanges = False
 
         self.parentPlugin = None
         self.qgisInterface = None
@@ -447,7 +448,7 @@ class QGISRedLegendsDialog(QDialog, formClass):
         loadMenu.addAction(self.tr("Project Style"), self.loadProjectStyle)
         loadMenu.addSeparator()
         self.actionRevertOriginal = loadMenu.addAction(self.tr("Revert to Original Legend"), self.revertToOriginalStyle)
-        self.actionRevertOriginal.setToolTip(self.tr("Restore the legend the layer had when this dialog was opened"))
+        self.actionRevertOriginal.setToolTip(self.tr("Show the legend the layer had when this dialog was opened; press Apply to update the layer"))
         self.btLoadMenu.setMenu(loadMenu)
 
         saveMenu = QMenu(self)
@@ -470,6 +471,7 @@ class QGISRedLegendsDialog(QDialog, formClass):
 
         self.btLoadMenu.setToolTip(self.tr("Load a saved style or revert to the original legend"))
         self.btSaveMenu.setToolTip(self.tr("Save the current legend as a style"))
+        self.btAcceptLegend.setToolTip(self.tr("Apply changes to layer and close"))
         self.btApplyLegend.setToolTip(self.tr("Apply changes to layer"))
         self.btCancelLegend.setToolTip(self.tr("Close and restore the legend the layer had when this dialog was opened"))
 
@@ -512,6 +514,7 @@ class QGISRedLegendsDialog(QDialog, formClass):
     def connectSignals(self):
         self.cbGroups.currentIndexChanged.connect(self.onGroupChanged)
         self.cbLegendLayer.layerChanged.connect(self.onLayerChanged)
+        self.btAcceptLegend.clicked.connect(self.acceptAndClose)
         self.btApplyLegend.clicked.connect(self.applyLegend)
         self.btCancelLegend.clicked.connect(self.cancelAndClose)
         self.cbMode.currentIndexChanged.connect(self.onModeChanged)
@@ -657,8 +660,9 @@ class QGISRedLegendsDialog(QDialog, formClass):
         else:
             self.labelFrameLegends.setText(f"{prefix} {boldLayer}")
 
-    def syncLegendTypeComboBox(self, layer):
-        rendererType = layer.renderer().type()
+    def syncLegendTypeComboBox(self, layer, renderer=None):
+        renderer = renderer if renderer is not None else layer.renderer()
+        rendererType = renderer.type()
         if rendererType == "RuleRenderer":
             rendererType = "graduatedSymbol"
         index = self.cbLegendsType.findData(rendererType)
@@ -1601,8 +1605,8 @@ class QGISRedLegendsDialog(QDialog, formClass):
             return None
         return QgsGraduatedSymbolRenderer(classAttr, ranges)
 
-    def detectFieldType(self, layer):
-        renderer = layer.renderer()
+    def detectFieldType(self, layer, renderer=None):
+        renderer = renderer if renderer is not None else layer.renderer()
 
         if isinstance(renderer, QgsGraduatedSymbolRenderer):
             return self.FIELD_TYPE_NUMERIC, renderer.classAttribute()
@@ -1745,7 +1749,8 @@ class QGISRedLegendsDialog(QDialog, formClass):
         if not self.currentLayer:
             return
 
-        renderer = self.currentLayer.renderer()
+        renderer = self._workingRenderer or self.currentLayer.renderer()
+        self._workingRenderer = None
         self.clearTable()
 
         if not renderer or renderer.type() != "singleSymbol":
@@ -3059,22 +3064,27 @@ class QGISRedLegendsDialog(QDialog, formClass):
         if not self.currentLayer:
             return
 
-        if self.currentFieldType == self.FIELD_TYPE_NUMERIC:
-            self.applyNumericLegend()
-        elif self.currentFieldType == self.FIELD_TYPE_CATEGORICAL:
-            self.applyCategoricalLegend()
-        elif self.currentFieldType == self.FIELD_TYPE_SINGLE:
-            self.applySingleSymbolLegend()
+        # setRenderer already rebuilds the layer's legend in the Layers Panel;
+        # an extra refreshLayerSymbology here would rebuild the nodes twice in
+        # one event-loop turn and can crash the panel's deferred repaint.
+        renderer = self.buildRendererFromDialog()
+        if renderer is not None:
+            self.currentLayer.setRenderer(renderer)
 
         self.currentLayer.triggerRepaint()
-        self.refreshLayerTreeSymbology(self.currentLayer)
         self.ensureLayerVisible(self.currentLayer)
         self.originalRenderer = self.currentLayer.renderer().clone() if self.currentLayer.renderer() else None
+        self.hasAppliedChanges = True
 
-    def refreshLayerTreeSymbology(self, layer):
-        """Rebuild the layer's entry in the Layers Panel; triggerRepaint only refreshes the canvas."""
-        if iface and iface.layerTreeView():
-            iface.layerTreeView().refreshLayerSymbology(layer.id())
+    def buildRendererFromDialog(self):
+        """Build a renderer from the current dialog state without touching the live layer."""
+        if self.currentFieldType == self.FIELD_TYPE_NUMERIC:
+            return self.buildNumericRenderer()
+        if self.currentFieldType == self.FIELD_TYPE_CATEGORICAL:
+            return self.buildCategoricalRenderer()
+        if self.currentFieldType == self.FIELD_TYPE_SINGLE:
+            return self.buildSingleSymbolRenderer()
+        return None
 
     def ensureLayerVisible(self, layer):
         """Make the layer (and any hidden ancestor group) visible so applied changes can be seen."""
@@ -3093,14 +3103,18 @@ class QGISRedLegendsDialog(QDialog, formClass):
     SERVICE_CONNECTION_DEFAULT_DOT_SIZE = 1.5
     SERVICE_CONNECTION_LIGHTEN_FRACTION = 0.10
 
-    def applySingleSymbolLegend(self):
-        renderer = self.currentLayer.renderer()
-        if not renderer or renderer.type() != "singleSymbol":
-            return
+    def buildSingleSymbolRenderer(self):
+        # Mutate a clone, never the live renderer's symbol: the canvas render
+        # jobs and the Layers Panel legend nodes share state with the live
+        # symbol, and editing it in place is a use-after-free crash risk.
+        liveRenderer = self.currentLayer.renderer()
+        if not liveRenderer or liveRenderer.type() != "singleSymbol":
+            return None
 
+        renderer = liveRenderer.clone()
         symbol = renderer.symbol()
         if not symbol:
-            return
+            return None
 
         identifier = self.currentLayer.customProperty("qgisred_identifier")
         colorContainer = self.tableView.cellWidget(0, 1)
@@ -3130,12 +3144,13 @@ class QGISRedLegendsDialog(QDialog, formClass):
         applier = inputAppliers.get(identifier)
         if applier:
             applier(symbol, newColor, newSize)
-            return
+            return renderer
 
         if newColor is not None:
             self.applyColorToSymbol(symbol, newColor)
         if newSize is not None:
             self.applySizeToSymbol(symbol, newSize)
+        return renderer
 
     def _setExpressionOnLayers(self, symbol, propertyKey, expression):
         """Set the data-defined expression on every symbol layer (recursive) that already has one for propertyKey."""
@@ -3344,7 +3359,7 @@ class QGISRedLegendsDialog(QDialog, formClass):
             )
             self._setExpressionOnLayers(symbol, QgsSymbolLayer.PropertySize, sizeExpr)
 
-    def applyNumericLegend(self):
+    def buildNumericRenderer(self):
         ranges = []
         isProportionalMode = self.cbSizes.currentText() == "Proportional to Value"
 
@@ -3390,7 +3405,8 @@ class QGISRedLegendsDialog(QDialog, formClass):
             ranges.append(rangeObj)
 
         if ranges:
-            self.currentLayer.setRenderer(QgsGraduatedSymbolRenderer(self.currentFieldName, ranges))
+            return QgsGraduatedSymbolRenderer(self.currentFieldName, ranges)
+        return None
 
     def applyProportionalSizeExpression(self, symbol):
         minSize = self.spinSizeMin.value()
@@ -3417,7 +3433,7 @@ class QGISRedLegendsDialog(QDialog, formClass):
             else:
                 symbolLayer.setDataDefinedProperty(QgsSymbolLayer.PropertySize, sizeProperty)
 
-    def applyCategoricalLegend(self):
+    def buildCategoricalRenderer(self):
         categories = []
 
         # Get existing renderer to clone symbols from (preserving complex symbol structures)
@@ -3464,7 +3480,8 @@ class QGISRedLegendsDialog(QDialog, formClass):
             categories.append(category)
 
         if categories:
-            self.currentLayer.setRenderer(QgsCategorizedSymbolRenderer(self.currentFieldName, categories))
+            return QgsCategorizedSymbolRenderer(self.currentFieldName, categories)
+        return None
 
     def determineRealCategoricalValue(self, value, label):
         if value == "NULL":
@@ -3538,27 +3555,32 @@ class QGISRedLegendsDialog(QDialog, formClass):
         QMessageBox.information(self, self.tr("Saved"), message.replace("%1", filename))
 
     def saveDialogLegendToFile(self, path, selectedParts):
-        """Write the legend shown in the dialog to a QML without changing the live layer (only Apply does that)."""
-        rendererSnapshot = self.currentLayer.renderer().clone() if self.currentLayer.renderer() else None
-        strategySnapshot = self.currentLayer.customProperty("qgisred_legend_strategy")
+        """Write the legend shown in the dialog to a QML via a detached copy of the layer.
 
-        if self.currentFieldType == self.FIELD_TYPE_NUMERIC:
-            self.applyNumericLegend()
-        elif self.currentFieldType == self.FIELD_TYPE_CATEGORICAL:
-            self.applyCategoricalLegend()
-        elif self.currentFieldType == self.FIELD_TYPE_SINGLE:
-            self.applySingleSymbolLegend()
-        self.updateStrategyCustomProperty(selectedParts)
-        self.currentLayer.saveNamedStyle(path)
+        The live layer must stay untouched (only Apply changes it): temporarily
+        applying and restoring its renderer swaps the Layers Panel legend twice
+        per save and can crash its deferred repaint.
+        """
+        tempLayer = QgsVectorLayer(self.currentLayer.source(), self.currentLayer.name(), self.currentLayer.providerType())
+        if not tempLayer.isValid():
+            return
 
-        if rendererSnapshot is not None:
-            self.currentLayer.setRenderer(rendererSnapshot)
-        if strategySnapshot:
-            self.currentLayer.setCustomProperty("qgisred_legend_strategy", strategySnapshot)
+        # Carry over the full live style (labeling, custom properties, ...) so the
+        # saved QML only differs in what the dialog edits.
+        style = QgsMapLayerStyle()
+        style.readFromLayer(self.currentLayer)
+        style.writeToLayer(tempLayer)
+
+        renderer = self.buildRendererFromDialog()
+        if renderer is not None:
+            tempLayer.setRenderer(renderer)
+
+        strategy = self.buildStrategyFromCurrentUi(selectedParts) if selectedParts else None
+        if strategy is not None:
+            tempLayer.setCustomProperty("qgisred_legend_strategy", json.dumps(strategy))
         else:
-            self.currentLayer.removeCustomProperty("qgisred_legend_strategy")
-        self.currentLayer.triggerRepaint()
-        self.refreshLayerTreeSymbology(self.currentLayer)
+            tempLayer.removeCustomProperty("qgisred_legend_strategy")
+        tempLayer.saveNamedStyle(path)
 
     def promptForStrategyParts(self, globalStyle):
         applicableParts = self.getBuildableStrategyParts()
@@ -3581,16 +3603,6 @@ class QGISRedLegendsDialog(QDialog, formClass):
             return None
 
         return dialog.selectedParts()
-
-    def updateStrategyCustomProperty(self, parts):
-        if not parts:
-            self.currentLayer.removeCustomProperty("qgisred_legend_strategy")
-            return
-        strategy = self.buildStrategyFromCurrentUi(parts)
-        if strategy is None:
-            self.currentLayer.removeCustomProperty("qgisred_legend_strategy")
-            return
-        self.currentLayer.setCustomProperty("qgisred_legend_strategy", json.dumps(strategy))
 
     def restoreUiFromSavedStrategy(self):
         if not self.currentLayer:
@@ -3709,12 +3721,27 @@ class QGISRedLegendsDialog(QDialog, formClass):
         return parts == ["allClasses"]
 
     def loadLiteralStyleIntoDialog(self, path):
-        # Keep the pre-load renderer so Cancel can still revert; Apply commits the loaded one.
-        preservedOriginal = self.originalRenderer
-        self.currentLayer.loadNamedStyle(path)
-        self.currentLayer.removeCustomProperty("qgisred_legend_strategy")
-        self.onLayerChanged(self.currentLayer)
-        self.originalRenderer = preservedOriginal
+        # Load the style into a detached copy of the layer so the live layer
+        # stays untouched; the dialog previews the legend and only Apply commits it.
+        tempLayer = QgsVectorLayer(self.currentLayer.source(), self.currentLayer.name(), self.currentLayer.providerType())
+        if not tempLayer.isValid():
+            return
+        tempLayer.loadNamedStyle(path)
+        renderer = tempLayer.renderer().clone() if tempLayer.renderer() else None
+        if renderer is None:
+            return
+        self.populateDialogFromRenderer(renderer)
+
+    def populateDialogFromRenderer(self, renderer):
+        """Show the given renderer in the dialog without touching the live layer."""
+        self.currentFieldType, self.currentFieldName = self.detectFieldType(self.currentLayer, renderer)
+        self.syncLegendTypeComboBox(self.currentLayer, renderer)
+        self.resetAllModesToManual()
+        self.updateUiBasedOnFieldType()
+        self._workingRenderer = renderer
+        self.populateLegendTable()
+        self.updateButtonStates()
+        self.updateInputLayerRestrictions()
 
     def loadDefaultStyle(self):
         self.loadStyle(isDefault=True)
@@ -3761,7 +3788,7 @@ class QGISRedLegendsDialog(QDialog, formClass):
         strategy = self.readStrategyFromStyleFile(path)
         if self.isLiteralStyle(strategy):
             self.loadLiteralStyleIntoDialog(path)
-            message = self.tr("Legend loaded from %1.").replace("%1", filename)
+            message = self.tr("Legend loaded into the dialog from %1. Press Apply to update the layer.").replace("%1", filename)
         else:
             self.applyStrategyToDialog(strategy)
             message = self.tr("Strategy loaded into the dialog from %1. Press Apply to update the layer.").replace("%1", filename)
@@ -3801,7 +3828,7 @@ class QGISRedLegendsDialog(QDialog, formClass):
         strategy = self.readStrategyFromStyleFile(path)
         if self.isLiteralStyle(strategy):
             self.loadLiteralStyleIntoDialog(path)
-            message = self.tr("Legend loaded from %1.").replace("%1", filename)
+            message = self.tr("Legend loaded into the dialog from %1. Press Apply to update the layer.").replace("%1", filename)
         else:
             self.applyStrategyToDialog(strategy)
             message = self.tr("Strategy loaded into the dialog from %1. Press Apply to update the layer.").replace("%1", filename)
@@ -4535,9 +4562,26 @@ class QGISRedLegendsDialog(QDialog, formClass):
     # DIALOG LIFECYCLE
     # ============================================================
 
+    def acceptAndClose(self):
+        if self.isClosing:
+            return
+        self.applyLegend()
+        self.isClosing = True
+        self.close()
+
     def cancelAndClose(self):
         if self.isClosing:
             return
+        if self.hasAppliedChanges:
+            reply = QMessageBox.question(
+                self,
+                self.tr("Discard Applied Changes"),
+                self.tr("The changes already applied to the layer will be lost.\nDo you want to proceed?"),
+                QMessageBox.StandardButton.Yes | QMessageBox.StandardButton.No,
+                QMessageBox.StandardButton.No,
+            )
+            if reply != QMessageBox.StandardButton.Yes:
+                return
         self.isClosing = True
         # Cancel behaves like "Revert to Original Legend": restore the pristine
         # snapshot taken when the layer was first selected, even after Apply.
@@ -4546,13 +4590,16 @@ class QGISRedLegendsDialog(QDialog, formClass):
             if snapshot is not None:
                 self.currentLayer.setRenderer(snapshot.clone())
                 self.currentLayer.triggerRepaint()
-                self.refreshLayerTreeSymbology(self.currentLayer)
         self.close()
 
     def reject(self):
-        # Esc must behave exactly like the Close button: discard unapplied edits
-        # and run closeEvent cleanup instead of just hiding the dialog.
-        self.cancelAndClose()
+        # Esc and the window close button just close the dialog: the layer keeps
+        # whatever was applied. Only the Cancel button reverts to the snapshot.
+        # close() (guarded by isClosing) makes sure closeEvent cleanup runs
+        # instead of just hiding the dialog.
+        if not self.isClosing:
+            self.isClosing = True
+            self.close()
         super().reject()
 
     def revertToOriginalStyle(self):
@@ -4561,10 +4608,8 @@ class QGISRedLegendsDialog(QDialog, formClass):
         snapshot = self.initialRenderers.get(self.currentLayer.id())
         if snapshot is None:
             return
-        self.currentLayer.setRenderer(snapshot.clone())
-        self.currentLayer.triggerRepaint()
-        self.refreshLayerTreeSymbology(self.currentLayer)
-        self.handleValidLayerSelection(self.currentLayer)
+        # Preview only: the layer itself changes when Apply is pressed.
+        self.populateDialogFromRenderer(snapshot.clone())
 
     def eventFilter(self, obj, event):
         if obj == self.btClassPlus and event.type() == QEvent.Type.MouseButtonPress:
