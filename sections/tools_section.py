@@ -15,6 +15,8 @@ from ..tools.qgisred_dependencies import QGISRedDependencies as GISRed
 from ..tools.map_tools.qgisred_selectPoint import QGISRedSelectPointTool, SelectPointType
 from ..compat import LAYER_TYPE_VECTOR, PAL_PROPERTY_COLOR, PAL_PLACEMENT_LINE
 
+from ..ui.tools.qgisred_demandsectorbuilder_dialog import (QGISRedDemandSectorBuilderDialog)
+
 
 class ToolsSection:
     """Calculate lengths, set/convert roughness, interpolate elevation, demand sectors, scenario/demands manager."""
@@ -427,6 +429,34 @@ class ToolsSection:
 
         if resMessage:
             QMessageBox.warning(None, "QGISRed", resMessage)
+
+    def runDemandSectorBuilderPython(self):
+
+        if not self.checkDependencies():
+            return
+
+        self.defineCurrentProject()
+
+        if not self.isValidProject():
+            return
+
+        if self.isLayerOnEdition():
+            return
+
+        self.demandSectorBuilderPythonDialog = (
+            QGISRedDemandSectorBuilderDialog(
+                self.iface.mainWindow()
+            )
+        )
+
+        self.demandSectorBuilderPythonDialog.config(
+            self.iface,
+            self.ProjectDirectory,
+            self.NetworkName
+        )
+
+        self.demandSectorBuilderPythonDialog.exec()
+
 
     """Isolated Segments"""
 

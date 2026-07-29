@@ -721,10 +721,20 @@ class MenuSection:
 
         action = self._make_action(
             ":/images/iconDemandSectors.svg",
-            self.tr("Demand sector builder..."),
+            self.tr("Demand sector builder (to be removed in future)..."),
             self.runDemandSectorBuilder,
             parent=self.iface.mainWindow(),
         )
+        self.add_to_group(action, self.toolsMenu, self.toolsToolbar)
+        self.add_to_dropdown(action, toolDropButton)
+
+        action = self._make_action(
+            ":/images/iconDemandSectors.svg",
+            "Demand sector builder (Python)...",
+            self.runDemandSectorBuilderPython,
+            parent=self.iface.mainWindow(),
+        )
+
         self.add_to_group(action, self.toolsMenu, self.toolsToolbar)
         self.add_to_dropdown(action, toolDropButton)
 

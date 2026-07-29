@@ -89,23 +89,37 @@ class QGISRedDigitalTwinMixin:
         return _to_string(b)
 
     @staticmethod
-    def CreateRemoveDemandSectorTheme(projectFolder, networkName, sectorizationName, themeName, create):
+    def CreateRemoveDemandSectorTheme(
+            projectFolder,
+            networkName,
+            sectorizationName,
+            themeName):
+
         projectFolder = _encode(projectFolder)
         networkName = _encode(networkName)
         sectorizationName = _encode(sectorizationName)
         themeName = _encode(themeName)
-        create = _encode(create)
 
         mydll = _load_dll()
 
-        mydll.CreateRemoveDemandSectorTheme.argtypes = (c_char_p, c_char_p, c_char_p, c_char_p, c_char_p)
+        mydll.CreateRemoveDemandSectorTheme.argtypes = (
+            c_char_p,
+            c_char_p,
+            c_char_p,
+            c_char_p
+        )
 
         mydll.CreateRemoveDemandSectorTheme.restype = c_char_p
 
-        b = mydll.CreateRemoveDemandSectorTheme(projectFolder, networkName,
-            sectorizationName, themeName, create)
+        b = mydll.CreateRemoveDemandSectorTheme(
+            projectFolder,
+            networkName,
+            sectorizationName,
+            themeName
+        )
 
         return _to_string(b)
+
 
     @staticmethod
     def GetDemandSectorThemes(projectFolder, networkName, sectorizationName):
@@ -161,19 +175,34 @@ class QGISRedDigitalTwinMixin:
         return _to_string(b)
 
     @staticmethod
-    def UpdateDemandSectorTheme(projectFolder, networkName, sectorizationName, themeName):
+    def UpdateDemandSectorThemesFromSource(
+            projectFolder,
+            networkName,
+            sectorizationName,
+            sourceTheme):
+
         projectFolder = _encode(projectFolder)
         networkName = _encode(networkName)
         sectorizationName = _encode(sectorizationName)
-        themeName = _encode(themeName)
+        sourceTheme = _encode(sourceTheme)
 
         mydll = _load_dll()
 
-        mydll.UpdateDemandSectorTheme.argtypes = (c_char_p, c_char_p, c_char_p, c_char_p)
+        mydll.UpdateDemandSectorThemesFromSource.argtypes = (
+            c_char_p,
+            c_char_p,
+            c_char_p,
+            c_char_p
+        )
 
-        mydll.UpdateDemandSectorTheme.restype = c_char_p
+        mydll.UpdateDemandSectorThemesFromSource.restype = c_char_p
 
-        b = mydll.UpdateDemandSectorTheme(projectFolder, networkName, sectorizationName, themeName)
+        b = mydll.UpdateDemandSectorThemesFromSource(
+            projectFolder,
+            networkName,
+            sectorizationName,
+            sourceTheme
+        )
 
         return _to_string(b)
 
