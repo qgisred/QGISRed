@@ -2919,7 +2919,7 @@ Voulez-vous également supprimer les fichiers de résultats du disque ?</transla
     <message>
         <location filename="../ui/general/qgisred_cloneproject_dialog.py" line="38"/>
         <source>Not valid New Project Name</source>
-        <translation type="unfinished">Nom du nouveau projet non valide</translation>
+        <translation type="unfinished">Nouveau nom de projet non valide</translation>
     </message>
     <message>
         <location filename="../ui/general/qgisred_cloneproject_dialog.py" line="41"/>
@@ -3176,7 +3176,7 @@ Voulez-vous également supprimer les fichiers de résultats du disque ?</transla
     <message>
         <location filename="../ui/general/qgisred_createproject_dialog.py" line="121"/>
         <source>The selected folder has some files with the same project name.</source>
-        <translation type="unfinished">Le dossier sélectionné contient des fichiers portant le même nom que le projet.</translation>
+        <translation type="unfinished">Le dossier sélectionné contient des fichiers portant le même nom de projet.</translation>
     </message>
     <message>
         <location filename="../ui/general/qgisred_createproject_dialog.py" line="149"/>
@@ -5636,7 +5636,7 @@ Clic gauche : Ajouter un nouvel élément en dessous de la sélection actuelle</
     <message>
         <location filename="../ui/queries/qgisred_queriesbyproperties_dock.py" line="1646"/>
         <source>All</source>
-        <translation type="unfinished">Tout</translation>
+        <translation type="unfinished">Tous</translation>
     </message>
     <message>
         <location filename="../ui/queries/qgisred_queriesbyproperties_dock.py" line="2025"/>
@@ -6032,7 +6032,7 @@ Clic gauche : Ajouter un nouvel élément en dessous de la sélection actuelle</
     <message>
         <location filename="../ui/analysis/qgisred_results_dock.py" line="88"/>
         <source>Range</source>
-        <translation type="unfinished">Étendue</translation>
+        <translation type="unfinished">Plage</translation>
     </message>
     <message>
         <location filename="../ui/analysis/qgisred_results_dock.py" line="89"/>
@@ -6719,7 +6719,7 @@ Clic gauche : Ajouter un nouvel élément en dessous de la sélection actuelle</
     <message>
         <location filename="../ui/queries/qgisred_statisticsandgraphs_dock.py" line="3064"/>
         <source>StdD</source>
-        <translation type="unfinished">É.-T.</translation>
+        <translation type="unfinished">Éc.type</translation>
     </message>
     <message>
         <location filename="../ui/queries/qgisred_statisticsandgraphs_dock.py" line="3064"/>
