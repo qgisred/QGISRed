@@ -508,6 +508,11 @@
         <translation>QGISRed Editor de Leyendas</translation>
     </message>
     <message>
+        <location filename="../ui/project/qgisred_legends_dialog.ui" line="167"/>
+        <source>The Appearance tab of the Results panel is changing this layer's symbols. Sizes shown here ignore those settings, so editing them may leave the style inconsistent: reset Appearance first.</source>
+        <translation>La pestaña Apariencia del panel de Resultados está modificando los símbolos de esta capa. Los tamaños que se muestran aquí no tienen en cuenta esos ajustes, así que editarlos puede dejar el estilo inconsistente: restaura antes Apariencia.</translation>
+    </message>
+    <message>
         <location filename="../ui/project/qgisred_legends_dialog.ui" line="88"/>
         <source>Group</source>
         <translation>Grupo</translation>

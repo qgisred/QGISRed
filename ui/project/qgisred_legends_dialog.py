@@ -7,8 +7,9 @@ import json
 import random
 import math
 import statistics
+import xml.etree.ElementTree as ET  # nosec B405 — parses a local settings file written by this plugin
 
-from qgis.PyQt.QtGui import QIcon, QColor
+from qgis.PyQt.QtGui import QIcon, QColor, QPixmap
 from qgis.PyQt.QtWidgets import QDialog, QMessageBox, QHeaderView, QLineEdit, QAbstractItemView
 from qgis.PyQt.QtWidgets import QCheckBox, QSpinBox, QApplication, QProgressDialog, QWidget, QHBoxLayout, QMenu
 from qgis.PyQt.QtCore import Qt, QTimer, QEvent
@@ -292,6 +293,7 @@ class QGISRedLegendsDialog(QDialog, formClass):
 
     def initializeUi(self):
         self.configureWindow()
+        self.setupAppearanceWarning()
         self.setupTableView()
         self.populateClassificationModes()
         self.populateLegendTypes()
@@ -306,6 +308,12 @@ class QGISRedLegendsDialog(QDialog, formClass):
         self.hideIntervalControls()
         self.installEventFilter(self)
         self.btClassPlus.installEventFilter(self)
+
+    def setupAppearanceWarning(self):
+        icon = QPixmap(":/images/iconWarning.svg").scaled(
+            16, 16, Qt.AspectRatioMode.KeepAspectRatio, Qt.TransformationMode.SmoothTransformation)
+        self.lbAppearanceWarnIcon.setPixmap(icon)
+        self.appearanceWarningWidget.setVisible(False)
 
     def configureWindow(self):
         self.setWindowIcon(QIcon(":/images/iconThematicMaps.svg"))
@@ -652,6 +660,7 @@ class QGISRedLegendsDialog(QDialog, formClass):
         self.populateLegendTable()
         self.updateButtonStates()
         self.updateInputLayerRestrictions()
+        self.updateAppearanceWarning()
 
     def updateFrameLegendLabel(self, layer):
         layerName = layer.name()
@@ -3927,6 +3936,60 @@ class QGISRedLegendsDialog(QDialog, formClass):
 
         # The dock only ever works on the Base scenario (see its Scenario assignments).
         return QgsProject.instance().readEntry("QGISRed", "results_Base_" + element)[0] or None
+
+    # Appearance settings that rewrite a result layer's symbols, with the value that means
+    # "untouched". Decimals and labels also live in that file but change nothing here, so
+    # they must not raise the warning — see hasAppearanceOverrides.
+    _APPEARANCE_SYMBOL_SETTINGS = (
+        ("Symbols", "pipeFactor", "1.0"),
+        ("Symbols", "symbolFactor", "1.0"),
+        ("Symbols", "arrowFactor", "1.0"),
+        ("Symbols", "proportional", "false"),
+        ("Symbols", "nodeBorder", "false"),
+    )
+
+    def appearanceConfigPath(self):
+        """The results dock's appearance file for this network, or None without a project."""
+        if not self.projectDirectory or not self.networkName:
+            return None
+        return os.path.join(self.projectDirectory, DIR_RESULTS,
+                            self.networkName + "_Results_Config.cfg")
+
+    def hasAppearanceOverrides(self):
+        """True when the Appearance tab is currently rewriting the result symbols.
+
+        Read from the file rather than from the dock so the dialog stays independent of it.
+        The mere presence of the file means nothing: it is also written when only decimals
+        or labels change, and warning about those would train the user to ignore this.
+        """
+        path = self.appearanceConfigPath()
+        if not path or not os.path.isfile(path):
+            return False
+        try:
+            root = ET.parse(path).getroot()  # nosec B314 — local file written by this plugin
+        except Exception:
+            return False
+        for section, attribute, default in self._APPEARANCE_SYMBOL_SETTINGS:
+            element = root.find(section)
+            if element is None:
+                continue
+            value = element.get(attribute, default).strip().lower()
+            if value == default:
+                continue
+            if default in ("true", "false"):
+                return True
+            try:
+                # 1, 1.0 and 1.000000 all mean the factor was left alone.
+                if float(value) != float(default):
+                    return True
+            except ValueError:
+                return True
+        return False
+
+    def updateAppearanceWarning(self):
+        """Show the banner only on result layers whose symbols Appearance is rewriting."""
+        isResult = bool(self.currentLayer) and self.isResultsLayer()
+        self.appearanceWarningWidget.setVisible(isResult and self.hasAppearanceOverrides())
 
     def getStyleNameForIdentifier(self, identifier):
         """Style name the plugin loads for this layer, or None when it has no file style.
