@@ -4,6 +4,8 @@ import os
 
 from qgis.PyQt import uic
 from qgis.PyQt.QtCore import Qt
+from qgis.core import QgsProject
+from ...tools.utils.qgisred_layer_utils import QGISRedLayerUtils
 from qgis.PyQt.QtGui import QColor, QIcon
 from ...tools.qgisred_dependencies import (
     QGISRedDependencies as GISRed
@@ -15,7 +17,6 @@ from qgis.PyQt.QtWidgets import (
     QTreeWidgetItem,
 )
 
-from qgis.core import QgsProject
 from ...tools.utils.qgisred_ui_utils import (
     QGISRedBanner,
     QGISRED_COMBO_STYLE,
@@ -632,21 +633,40 @@ class QGISRedDemandSectorBuilderDialog(QDialog, FORM_CLASS):
             sectorizationName=name
         )
 
-        if not self._operationSucceeded(result):
-            self._showOperationResult(
+        resultText = str(result or "").strip()
+
+        status, separator, payload = resultText.partition("^")
+
+        if status.strip().lower() != "success":
+
+            errorMessage = (
+                payload.strip()
+                if separator
+                else resultText
+            )
+
+            self._showError(
                 self.tr("Create demand sectorization"),
-                result,
-                errorByDefault=True
+                errorMessage
             )
             return
 
-        self._showOperationResult(
-            self.tr("Create demand sectorization"),
-            result
-        )
+        createdSectorizationName = payload.strip()
+
+        if not createdSectorizationName:
+            createdSectorizationName = name
 
         self._loadSectorizations()
-        self._selectComboText(self.cbSectorization, name)
+
+        self._selectComboText(
+            self.cbSectorization,
+            createdSectorizationName
+        )
+
+        self._openSectorizationGroup(
+            createdSectorizationName
+        )
+
         self._refreshCurrentThemes()
 
     # ----------------------------------------------------------
@@ -1725,3 +1745,70 @@ class QGISRedDemandSectorBuilderDialog(QDialog, FORM_CLASS):
                 "success": False,
                 "message": str(exception),
             }
+
+    def _openSectorizationGroup(self, sectorizationName):
+
+        sectorizationName = str(
+            sectorizationName or ""
+        ).strip()
+
+        if not sectorizationName:
+            return
+
+        sectorizationGroup = self.getDemandSectorizationGroup(
+            sectorizationName
+        )
+
+        sectorizationGroup.setExpanded(True)
+
+        parentGroup = sectorizationGroup.parent()
+
+        while parentGroup is not None:
+
+            if hasattr(parentGroup, "setExpanded"):
+                parentGroup.setExpanded(True)
+
+            parentGroup = parentGroup.parent()
+
+        if self.iface is not None:
+
+            layerTreeView = self.iface.layerTreeView()
+
+            layerTreeView.setCurrentNode(
+                sectorizationGroup
+            )
+
+    def getDemandSectorsGroup(self):
+
+        utils = QGISRedLayerUtils(
+            self.ProjectDirectory,
+            self.NetworkName,
+            self.iface
+        )
+
+        return utils.getOrCreateNestedGroup(
+            [
+                self.NetworkName,
+                "Auxiliary Layers",
+                "DemandSectors"
+            ]
+        )
+
+    def getDemandSectorizationGroup(self, sectorizationName):
+        demandSectorsGroup = self.getDemandSectorsGroup()
+
+        sectorizationGroup = (
+            demandSectorsGroup.findGroup(
+                sectorizationName
+            )
+        )
+
+        if sectorizationGroup is None:
+
+            sectorizationGroup = (
+                demandSectorsGroup.addGroup(
+                    sectorizationName
+                )
+            )
+
+        return sectorizationGroup
