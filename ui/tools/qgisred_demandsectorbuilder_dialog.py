@@ -2,6 +2,7 @@
 
 import os
 import shutil
+import gc
 
 from qgis.PyQt import uic
 from qgis.PyQt.QtCore import Qt
@@ -16,6 +17,7 @@ from qgis.PyQt.QtWidgets import (
     QInputDialog,
     QMessageBox,
     QTreeWidgetItem,
+    QApplication
 )
 
 from ...tools.utils.qgisred_ui_utils import (
@@ -909,14 +911,98 @@ class QGISRedDemandSectorBuilderDialog(QDialog, FORM_CLASS):
             )
             return
 
-        self._showOperationResult(
-            self.tr("Delete demand sector theme"),
-            result
+        resultText = str(result or "").strip()
+
+        status, separator, payload = resultText.partition("^")
+        action, actionSeparator, basePath = payload.partition("^")
+
+        basePath = basePath.strip()
+
+        if (
+            status.strip().lower() != "success" or
+            action.strip().lower() != "remove" or
+            not actionSeparator or
+            not basePath
+        ):
+            self._showError(
+                self.tr("Delete demand sector theme"),
+                self.tr(
+                    "The sector theme could not be deleted because "
+                    "its file path could not be obtained."
+                )
+            )
+            return
+
+        project = QgsProject.instance()
+
+        normalisedBasePath = os.path.normcase(
+            os.path.abspath(basePath)
         )
 
-        self._refreshProjectLayers()
+        layerIdsToRemove = []
+
+        for projectLayer in project.mapLayers().values():
+
+            layerSource = (
+                projectLayer.source().split("|")[0]
+            )
+
+            layerBasePath = os.path.splitext(
+                layerSource
+            )[0]
+
+            normalisedLayerBasePath = os.path.normcase(
+                os.path.abspath(layerBasePath)
+            )
+
+            if normalisedLayerBasePath == normalisedBasePath:
+                layerIdsToRemove.append(
+                    projectLayer.id()
+                )
+
+        if layerIdsToRemove:
+            project.removeMapLayers(
+                layerIdsToRemove
+            )
+
+        project.removeMapLayers(layerIdsToRemove)
+
+        QApplication.processEvents()
+        gc.collect()
+
+        try:
+            folder = os.path.dirname(basePath)
+            fileName = os.path.basename(basePath)
+
+            matchingFiles = [
+                os.path.join(folder, currentFileName)
+                for currentFileName in os.listdir(folder)
+                if os.path.splitext(currentFileName)[0].lower() ==
+                fileName.lower()
+            ]
+
+            for filePath in matchingFiles:
+                os.remove(filePath)
+
+        except Exception as exception:
+            self._showError(
+                self.tr("Delete demand sector theme"),
+                str(exception)
+            )
+            return
+
+        self._showInfo(
+            self.tr("Delete demand sector theme"),
+            self.tr(
+                'The theme "%s" was deleted successfully.'
+            ) % theme
+        )
+
         self._refreshCurrentThemes()
         self._selectTreeTheme(theme)
+
+        if self.canvas is not None:
+            self.canvas.refresh()
 
     # ----------------------------------------------------------
     # Create / Complete
