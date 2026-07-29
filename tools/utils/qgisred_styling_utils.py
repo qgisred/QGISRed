@@ -774,31 +774,41 @@ class QGISRedStylingUtils:
                 layer.setRenderer(renderer.clone())
 
         elif isinstance(renderer, QgsGraduatedSymbolRenderer):
-            # QgsGraduatedSymbolRenderer skips NULL features entirely, so we
-            # must convert to rule-based. We build the rules manually instead of
-            # using convertFromRenderer() because convertFromRenderer wraps the
-            # classAttribute in double quotes (treating it as a field name), which
-            # breaks when classAttribute is an expression like abs(Flow).
+            # QgsGraduatedSymbolRenderer skips NULL features entirely, so we need an
+            # explicit rule-based renderer with a catch-all NULL rule.
+            #
+            # Converted with QGIS's own convertFromRenderer() -- the exact code path
+            # QGIS's "Convert to... > Rule-based" panel action uses -- rather than
+            # rebuilding the rule tree by hand (cloning every range's symbol, building
+            # Rule objects and appendChild()ing them one by one, as this used to do):
+            # that manual reconstruction was isolated as the source of intermittent
+            # native access-violation crashes in QGIS's own legend-preview code,
+            # reproduced reliably right after the first simulate on a small network.
+            # convertFromRenderer is exercised by every QGIS user who has ever used
+            # that panel button, so it is far less likely to carry this kind of bug.
             class_attr = renderer.classAttribute()
-            ranges = renderer.ranges()
-            root_rule = QgsRuleBasedRenderer.Rule(None)
+            new_renderer = QgsRuleBasedRenderer.convertFromRenderer(renderer)
+            if new_renderer is None:
+                return  # conversion failed for some reason; leave the graduated renderer as-is
 
-            for i, r in enumerate(ranges):
-                rule = QgsRuleBasedRenderer.Rule(r.symbol().clone())
-                rule.setLabel(r.label())
-                lo, hi = r.lowerValue(), r.upperValue()
-                # First range: inclusive lower bound; subsequent: exclusive lower bound
-                lo_op = ">=" if i == 0 else ">"
-                expr = f"({class_attr}) {lo_op} {lo} AND ({class_attr}) <= {hi}"
-                rule.setFilterExpression(expr)
-                root_rule.appendChild(rule)
+            # convertFromRenderer() quotes classAttribute as if it were a plain field
+            # name (the original reason this function avoided it), which breaks when
+            # it is actually an expression like abs(Flow): the generated filter ends
+            # up comparing against a field literally named "abs(Flow)". Patch the
+            # quoted literal back into a parenthesized expression in every rule --
+            # string-only, no renderer/symbol object manipulation involved.
+            quoted_attr = '"' + class_attr + '"'
+            if quoted_attr != class_attr:
+                for rule in new_renderer.rootRule().children():
+                    expr = rule.filterExpression()
+                    if quoted_attr in expr:
+                        rule.setFilterExpression(expr.replace(quoted_attr, "(" + class_attr + ")"))
 
             null_rule = QgsRuleBasedRenderer.Rule(null_symbol.clone())
             null_rule.setIsElse(True)
             null_rule.setLabel(_NULL_RULE_LABEL)
-            root_rule.appendChild(null_rule)
+            new_renderer.rootRule().appendChild(null_rule)
 
-            new_renderer = QgsRuleBasedRenderer(root_rule)
             layer.setRenderer(new_renderer)
 
             # Hide the NULL rule from the legend.
