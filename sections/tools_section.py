@@ -452,7 +452,8 @@ class ToolsSection:
         self.demandSectorBuilderPythonDialog.config(
             self.iface,
             self.ProjectDirectory,
-            self.NetworkName
+            self.NetworkName,
+            self._applyDemandSectorBuilderStyle
         )
 
         self.demandSectorBuilderPythonDialog.exec()

@@ -64,6 +64,7 @@ class QGISRedDemandSectorBuilderDialog(QDialog, FORM_CLASS):
 
         self.ProjectDirectory = ""
         self.NetworkName = ""
+        self.applyThemeStyle = None
 
         self.banner = QGISRedBanner.inject(self, self.rootLayout)
 
@@ -76,16 +77,18 @@ class QGISRedDemandSectorBuilderDialog(QDialog, FORM_CLASS):
     # ----------------------------------------------------------
 
     def config(
-            self,
-            iface,
-            projectDirectory,
-            networkName):
+        self,
+        iface,
+        projectDirectory,
+        networkName,
+        applyThemeStyle=None):
 
         self.iface = iface
         self.canvas = iface.mapCanvas()
 
         self.ProjectDirectory = projectDirectory
         self.NetworkName = networkName
+        self.applyThemeStyle = applyThemeStyle
 
         self._loadSectorizations()
 
@@ -1073,14 +1076,91 @@ class QGISRedDemandSectorBuilderDialog(QDialog, FORM_CLASS):
             )
             return
 
-        self._showOperationResult(
-            self.tr("Create or complete demand sector theme"),
-            result
+        resultText = str(result or "").strip()
+
+        status, separator, shpPath = resultText.partition("^")
+
+        shpPath = shpPath.strip()
+
+        if (
+            not separator or
+            status.strip().lower() != "success" or
+            not shpPath
+        ):
+            self._showError(
+                self.tr("Create or complete demand sector theme"),
+                self.tr(
+                    "The sector theme was generated, but its file path "
+                    "could not be obtained."
+                )
+            )
+            return
+
+        project = QgsProject.instance()
+
+        normalisedShpPath = os.path.normcase(
+            os.path.abspath(shpPath)
         )
 
-        self._refreshProjectLayers()
+        layerIdsToRemove = []
+
+        for projectLayer in project.mapLayers().values():
+
+            layerSource = projectLayer.source().split("|")[0]
+
+            normalisedLayerSource = os.path.normcase(
+                os.path.abspath(layerSource)
+            )
+
+            if normalisedLayerSource == normalisedShpPath:
+                layerIdsToRemove.append(
+                    projectLayer.id()
+                )
+
+        if layerIdsToRemove:
+            project.removeMapLayers(layerIdsToRemove)
+
+            QApplication.processEvents()
+            gc.collect()
+
+        layer = self.openDemandSectorTheme(
+            sectorization,
+            toTheme,
+            shpPath
+        )
+
+        if layer is None:
+            self._showError(
+                self.tr(
+                    "Create or complete demand sector theme"
+                ),
+                self.tr(
+                    'The theme "%s" was generated, but it could not '
+                    "be loaded into the QGIS project."
+                ) % toTheme
+            )
+
+            self._refreshCurrentThemes()
+            self._selectTreeTheme(toTheme)
+            return
+
+        if self.iface is not None:
+            self.iface.layerTreeView().setCurrentLayer(
+                layer
+            )
+
+        self._showInfo(
+            self.tr("Create or complete demand sector theme"),
+            self.tr(
+                'The theme "%s" was created or completed successfully.'
+            ) % toTheme
+        )
+
         self._refreshCurrentThemes()
         self._selectTreeTheme(toTheme)
+
+        if self.canvas is not None:
+            self.canvas.refresh()
 
     # ----------------------------------------------------------
     # Check theme
@@ -1937,6 +2017,56 @@ class QGISRedDemandSectorBuilderDialog(QDialog, FORM_CLASS):
                 "DemandSectors"
             ]
         )
+
+    def openDemandSectorTheme(
+        self,
+        sectorizationName,
+        themeName,
+        shpPath):
+
+        shpPath = str(shpPath or "").strip()
+
+        if not shpPath or not os.path.isfile(shpPath):
+            return None
+
+        layerName = (
+            f"{sectorizationName}_{themeName}"
+        )
+
+        layer = QgsVectorLayer(
+            shpPath,
+            layerName,
+            "ogr"
+        )
+
+        if not layer.isValid():
+            return None
+
+        project = QgsProject.instance()
+
+        project.addMapLayer(
+            layer,
+            False
+        )
+
+        sectorizationGroup = (
+            self.getDemandSectorizationGroup(
+                sectorizationName
+            )
+        )
+
+        sectorizationGroup.addLayer(layer)
+        sectorizationGroup.setExpanded(True)
+
+        if callable(self.applyThemeStyle):
+            self.applyThemeStyle(
+                layer,
+                themeName
+            )
+
+        layer.triggerRepaint()
+
+        return layer
 
     def getDemandSectorizationGroup(self, sectorizationName):
         demandSectorsGroup = self.getDemandSectorsGroup()
