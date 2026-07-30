@@ -31,7 +31,10 @@
         <file>images/iconComment.svg</file>
         <file>images/iconIncorporateConnectionsToModel.svg</file>
         <file>images/iconDeleteIsolatedAreas.svg</file>
-        <file>images/iconCheckConnectivity.svg</file> 
+        <file>images/iconCheckConnectivity.svg</file>
+        <file>images/iconClassAdd.svg</file>
+        <file>images/iconClassRemove.svg</file>
+        <file>images/iconClassifyAll.svg</file>
         <file>images/iconCreateProject.svg</file>
         <file>images/iconCreateRemoveCrossings.svg</file>
         <file>images/iconCreateRemoveTConnections.svg</file>

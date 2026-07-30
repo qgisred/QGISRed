@@ -7,42 +7,175 @@ import json
 import random
 import math
 import statistics
-import xml.etree.ElementTree as ET  # nosec B405 — parses a local settings file written by this plugin
 
-from qgis.PyQt.QtGui import QIcon, QColor, QPixmap
+from qgis.PyQt.QtGui import QIcon, QColor
 from qgis.PyQt.QtWidgets import QDialog, QMessageBox, QHeaderView, QLineEdit, QAbstractItemView
 from qgis.PyQt.QtWidgets import QCheckBox, QSpinBox, QApplication, QProgressDialog, QWidget, QHBoxLayout, QMenu
 from qgis.PyQt.QtCore import Qt, QTimer, QEvent
 from qgis.PyQt import uic
-from ...compat import (
-    QVariantInt, QVariantDouble, QVariantLongLong,
-    QGIS_INFO, QGIS_WARNING,
-    SL_PROP_SIZE, SL_PROP_WIDTH, SL_PROP_FILL_COLOR, SL_PROP_STROKE_COLOR, SL_PROP_STROKE_WIDTH,
-)
+from ...compat import QVariantInt, QVariantDouble, QVariantLongLong
 
-from qgis.core import QgsProject, QgsVectorLayer, QgsMessageLog, QgsGraduatedSymbolRenderer
+from qgis.core import QgsProject, QgsVectorLayer, QgsMessageLog, Qgis, QgsGraduatedSymbolRenderer
 from qgis.core import QgsCategorizedSymbolRenderer, QgsRendererRange, QgsRendererCategory, QgsSymbol
 from qgis.core import QgsLayerTreeGroup, QgsLayerTreeLayer, QgsGradientColorRamp, QgsClassificationJenks
-from qgis.core import QgsClassificationPrettyBreaks, QgsStyle, QgsPresetSchemeColorRamp, QgsProperty
+from qgis.core import QgsClassificationPrettyBreaks, QgsStyle, QgsPresetSchemeColorRamp, QgsProperty, QgsSymbolLayer
 from qgis.core import QgsRuleBasedRenderer, QgsFillSymbolLayer, QgsMapLayerStyle, NULL
 from qgis.utils import iface
 
 from ...compat import WKB_LINE_GEOMETRY, WKB_POINT_GEOMETRY
-from ...tools.utils.qgisred_styling_utils import _NULL_RULE_LABEL, QGISRedStylingUtils
+from ...tools.utils.qgisred_styling_utils import _NULL_RULE_LABEL
 from ...tools.utils.qgisred_ui_utils import QGISRedUIUtils
 from ...tools.utils.qgisred_identifier_utils import QGISRedIdentifierUtils
 from ...tools.utils.qgisred_field_utils import QGISRedFieldUtils, resolve_layer_id
 from ...tools.utils.qgisred_layer_utils import QGISRedLayerUtils
 from ...tools.utils.qgisred_project_utils import QGISRedProjectUtils
 from ...tools.utils.qgisred_filesystem_utils import QGISRedFileSystemUtils, DIR_RESULTS
-from ..analysis.qgisred_results_data import resultStyleName
-from ..analysis.qgisred_results_rendering import apply_junction_size, read_node_base_sizes
 from .qgisred_custom_dialogs import QGISRedRangeEditDialog, QGISRedSymbolColorSelector
 from .qgisred_custom_dialogs import QGISRedColorRampSelector, QGISRedRowSelectionFilter
 from .qgisred_custom_dialogs import QGISRedPaletteEmulator, QGISRedSizePaletteEmulator
 from .qgisred_custom_dialogs import QGISRedSaveStrategyDialog
 
 formClass, _ = uic.loadUiType(os.path.join(os.path.dirname(__file__), "qgisred_legends_dialog.ui"))
+
+
+def formatExpressionNumber(value, precision=3):
+    """Format a number for use inside a QGIS expression, trimming trailing zeros."""
+    rounded = round(float(value), precision)
+    if rounded == int(rounded):
+        return str(int(rounded))
+    return repr(rounded)
+
+
+def substituteCapturedGroup(expr, pattern, newText):
+    """Replace group 1 of every match of pattern inside expr with newText.
+
+    Leaves the rest of the expression untouched, so wrapper constructs like
+    coalesce(...) or with_variable(...) survive. Returns (newExpr, changed).
+    """
+    if not expr:
+        return expr, False
+    compiled = re.compile(pattern) if isinstance(pattern, str) else pattern
+    parts = []
+    last = 0
+    changed = False
+    for match in compiled.finditer(expr):
+        start, end = match.span(1)
+        if start < 0:
+            continue
+        parts.append(expr[last:start])
+        parts.append(newText)
+        last = end
+        changed = True
+    if not changed:
+        return expr, False
+    parts.append(expr[last:])
+    return "".join(parts), True
+
+
+_NUMERIC_LITERAL_PATTERN = re.compile(r"(?<![\w.'])\d+(?:\.\d+)?(?![\w.'])")
+
+
+def scaleNumericLiterals(expr, scale, precision=3):
+    """Scale every bare numeric literal in a size expression, keeping its structure.
+
+    Zeros stay zero, so branches that hide a symbol layer are preserved.
+    """
+    def replaceLiteral(match):
+        return formatExpressionNumber(float(match.group(0)) * scale, precision)
+
+    return _NUMERIC_LITERAL_PATTERN.sub(replaceLiteral, expr)
+
+
+_METER_TYPE_PATTERN = re.compile(r"(?:@mt|\"?Type\"?)\s*=\s*'([^']+)'")
+_METER_TYPE_SIZE_PATTERN = re.compile(r"((?:@mt|\"?Type\"?)\s*=\s*'[^']+'\s*,\s*)(\d+(?:\.\d+)?)")
+_METER_NULL_SIZE_PATTERN = re.compile(r"((?:@mt|\"?Type\"?)\s+is\s+NULL\s*,\s*)(\d+(?:\.\d+)?)")
+
+
+def extractMeterTypeFromExpression(expr):
+    """Return the meter type gating a Meters size/width expression, or None."""
+    match = _METER_TYPE_PATTERN.search(expr or "")
+    return match.group(1) if match else None
+
+
+def rewriteMeterSizeExpression(expr, newSize, onlyType=None):
+    """Rewrite the visible-size literals of a Meters type-gate expression in place.
+
+    Handles both the legacy flat form (if (Type = 'X', 5, 0)) and the shipped
+    with_variable('mt', coalesce("MeterType", "Type"), ...) form without
+    touching the wrapper. Zero literals (the "hide this layer" branches) are
+    preserved; the non-zero NULL branch (Manometer default) follows the new
+    size. Returns (newExpr, meterType); expr is returned unchanged when the
+    layer's type does not match onlyType.
+    """
+    meterType = extractMeterTypeFromExpression(expr)
+    if meterType is None:
+        return expr, None
+    if onlyType is not None and meterType != onlyType:
+        return expr, meterType
+    sizeText = formatExpressionNumber(newSize)
+
+    def replaceTypeBranch(match):
+        return match.group(1) + sizeText
+
+    def replaceNullBranch(match):
+        if float(match.group(2)) == 0:
+            return match.group(0)
+        return match.group(1) + sizeText
+
+    newExpr = _METER_TYPE_SIZE_PATTERN.sub(replaceTypeBranch, expr)
+    newExpr = _METER_NULL_SIZE_PATTERN.sub(replaceNullBranch, newExpr)
+    return newExpr, meterType
+
+
+# Substitution targets inside the shipped style expressions. Each pattern captures
+# exactly the color/size literal to replace as group 1; everything around it stays.
+SERVICE_CONNECTION_ACTIVE_STROKE_PATTERNS = (
+    re.compile(r"IsActive\s+is\s+NULL\s*,\s*'(#[0-9a-fA-F]{3,6})'"),
+    re.compile(r"IsActive\s*>\s*0\s*,\s*'(#[0-9a-fA-F]{3,6})'"),
+)
+SERVICE_CONNECTION_ACTIVE_FILL_PATTERN = re.compile(
+    r"IsActive\s+is\s+NULL\s+or\s+IsActive\s*>\s*0\s*,\s*'(#[0-9a-fA-F]{3,6})'"
+)
+ISOLATION_VALVE_GREEN_PATTERN = re.compile(
+    r"\"?LossCoeff\"?\s*=\s*0\s*,\s*(color_rgb\(\s*\d+\s*,\s*\d+\s*,\s*\d+\s*\))"
+)
+# The two '#ffffff' branches of the Multiple Demands fill expression: the NULL
+# branch and the final else. The demand colors (positive/negative) stay fixed.
+DEMAND_BASE_FILL_PATTERNS = (
+    re.compile(r"(?:@bd|\"?Base(?:Value|Demand|Dem)\"?)\s+is\s+NULL\s*,\s*'(#[0-9a-fA-F]{3,6})'"),
+    re.compile(
+        r"(?:@bd|\"?Base(?:Value|Demand|Dem)\"?)\s*<\s*0\s*,\s*'#[0-9a-fA-F]{3,6}'\s*,\s*'(#[0-9a-fA-F]{3,6})'"
+    ),
+)
+METER_ACTIVE_FILL_PATTERNS = (
+    re.compile(r"IsActive\s+is\s+NULL\s*,\s*'(#[0-9a-fA-F]{3,6})'"),
+    re.compile(r"IsActive\s*!=\s*0\s*,\s*'(#[0-9a-fA-F]{3,6})'"),
+)
+
+_SIMPLE_RULE_FILTER_PATTERN = re.compile(r"^\s*\"([^\"]+)\"\s*=\s*'([^']*)'\s*$")
+_COMPOSITE_RULE_FILTER_PATTERN = re.compile(
+    r"^\s*\"([^\"]+)\"\s*=\s*'([^']*)'\s*AND\s*\"([^\"]+)\"\s*(=|<>)\s*'([^']*)'\s*$",
+    re.IGNORECASE,
+)
+
+
+def parseCategoricalRuleFilter(filterExpr):
+    """Parse a categorical rule filter into (field, value), or None if not categorical.
+
+    Supports "Field" = 'value' and the Hydraulic Sectors split pair
+    "Class" = 'nH-nQ' AND "SubNet" =/<> 'ClosedLinks' (the '=' clause names the
+    displayed value, the '<>' clause keeps the main class value).
+    """
+    if not filterExpr:
+        return None
+    match = _SIMPLE_RULE_FILTER_PATTERN.match(filterExpr)
+    if match:
+        return match.group(1), match.group(2)
+    match = _COMPOSITE_RULE_FILTER_PATTERN.match(filterExpr)
+    if match:
+        field, value, _secondField, op, secondValue = match.groups()
+        return field, secondValue if op == "=" else value
+    return None
 
 
 class QGISRedLegendsDialog(QDialog, formClass):
@@ -64,19 +197,71 @@ class QGISRedLegendsDialog(QDialog, formClass):
         "qgisred_connectivity",
         "qgisred_hydraulicsectors",
         "qgisred_demandsectors",
-        "qgisred_isolatedsegments"
+        "qgisred_isolatedsegments",
+        "qgisred_demandsbuilder"
     ]
+
+    # Only these Demand Builder layers are editable in the Legend Editor
+    DEMANDS_BUILDER_EDITABLE_IDENTIFIERS = {
+        "qgisred_demandsbuilder_consumptionpoints",
+        "qgisred_demandsbuilder_demandlinks",
+    }
 
     QUERIES_GROUP_PREFIXES = (
         "qgisred_connectivity",
         "qgisred_hydraulicsectors",
         "qgisred_demandsectors",
         "qgisred_isolatedsegments",
-        "qgisred_tree",
     )
 
-    # Query layers editable as a single symbol but restricted to size changes only
-    SIZE_ONLY_QUERY_IDENTIFIERS = {"qgisred_connectivity_links"}
+    # Query layers editable as a single symbol but restricted to size changes only.
+    # Their colors are driven by data-defined expressions (Status/ElemType/...),
+    # so a generic color edit would be invisible yet destructive.
+    SIZE_ONLY_QUERY_IDENTIFIERS = {
+        "qgisred_tree_nodes",
+        "qgisred_isolatedsegments_links",
+        "qgisred_isolatedsegments_nodes",
+        "qgisred_isolatedsegments_isolateddemands",
+        "qgisred_hydraulicsectors_isolateddemands",
+    }
+
+    # Query layers editable as a single symbol (color and size)
+    SINGLE_EDITABLE_QUERY_IDENTIFIERS = {"qgisred_connectivity_links"}
+
+    # Every singleSymbol query layer the dialog can edit. The layers-panel gate and
+    # detectFieldType must accept exactly what the group enumeration lists.
+    EDITABLE_QUERY_IDENTIFIERS = SIZE_ONLY_QUERY_IDENTIFIERS | SINGLE_EDITABLE_QUERY_IDENTIFIERS
+
+    # Layer-identifier prefixes of every query family the dialog handles
+    QUERY_LAYER_IDENTIFIER_PREFIXES = (
+        "qgisred_connectivity",
+        "qgisred_hydraulicsectors",
+        "qgisred_demandsectors",
+        "qgisred_isolatedsegments",
+        "qgisred_tree",
+        "qgisred_demandsbuilder",
+    )
+
+    # Meter types gating the stacked SvgMarker layers in the Meters style
+    METER_TYPES = (
+        "Countermeter",
+        "DifferentialManometer",
+        "EnergySensor",
+        "Flowmeter",
+        "LevelSensor",
+        "Manometer",
+        "QualitySensor",
+        "StatusSensor",
+        "Tachometer",
+        "ValveOpening",
+    )
+
+    INPUT_LAYER_IDENTIFIERS = frozenset({
+        "qgisred_pipes", "qgisred_pumps", "qgisred_valves",
+        "qgisred_junctions", "qgisred_reservoirs", "qgisred_tanks",
+        "qgisred_sources", "qgisred_serviceconnections",
+        "qgisred_isolationvalves", "qgisred_meters", "qgisred_demands"
+    })
 
     # ============================================================
     # INITIALIZATION
@@ -109,6 +294,8 @@ class QGISRedLegendsDialog(QDialog, formClass):
         self.isEditing = True
         self.originalRenderer = None
         self._workingRenderer = None
+        self._sourceRuleRenderer = None
+        self._syncedSiblingIds = set()
         self.availableUniqueValues = []
         self.usedUniqueValues = []
         self.addClassClickTimer = None
@@ -167,13 +354,7 @@ class QGISRedLegendsDialog(QDialog, formClass):
         identifier = self.currentLayer.customProperty("qgisred_identifier")
         if not identifier:
             return False
-        INPUT_IDENTIFIERS = {
-            "qgisred_pipes", "qgisred_pumps", "qgisred_valves",
-            "qgisred_junctions", "qgisred_reservoirs", "qgisred_tanks",
-            "qgisred_sources", "qgisred_serviceconnections",
-            "qgisred_isolationvalves", "qgisred_meters", "qgisred_demands"
-        }
-        return identifier in INPUT_IDENTIFIERS
+        return identifier in self.INPUT_LAYER_IDENTIFIERS
 
     def isSizeOnlyQueryLayer(self):
         """Check if the current layer is a query layer editable for size only."""
@@ -181,6 +362,18 @@ class QGISRedLegendsDialog(QDialog, formClass):
             return False
         identifier = self.currentLayer.customProperty("qgisred_identifier")
         return identifier in self.SIZE_ONLY_QUERY_IDENTIFIERS
+
+    def isSingleEditableQueryLayer(self):
+        """Check if the current layer is a query layer editable as a single symbol (color and size)."""
+        if not self.currentLayer:
+            return False
+        identifier = self.currentLayer.customProperty("qgisred_identifier")
+        return identifier in self.SINGLE_EDITABLE_QUERY_IDENTIFIERS
+
+    def isQueryLayer(self, layer):
+        """Check whether the layer belongs to one of the query families by identifier prefix."""
+        identifier = layer.customProperty("qgisred_identifier") if layer else None
+        return bool(identifier) and identifier.startswith(self.QUERY_LAYER_IDENTIFIER_PREFIXES)
 
     def getResultFieldMapping(self):
         """Map layer identifier to field name in the 'All' shapefile."""
@@ -294,13 +487,13 @@ class QGISRedLegendsDialog(QDialog, formClass):
 
     def initializeUi(self):
         self.configureWindow()
-        self.setupAppearanceWarning()
         self.setupTableView()
         self.populateClassificationModes()
         self.populateLegendTypes()
         self.populateGroups()
         self.setupClassCountField()
         self.setupClassifyAllButton()
+        self.setupMeterTypeCombo()
         self.setupAdvancedUi()
         self.loadStyleDatabase()
         self.applyConsistentStyling()
@@ -310,18 +503,12 @@ class QGISRedLegendsDialog(QDialog, formClass):
         self.installEventFilter(self)
         self.btClassPlus.installEventFilter(self)
 
-    def setupAppearanceWarning(self):
-        icon = QPixmap(":/images/iconWarning.svg").scaled(
-            16, 16, Qt.AspectRatioMode.KeepAspectRatio, Qt.TransformationMode.SmoothTransformation)
-        self.lbAppearanceWarnIcon.setPixmap(icon)
-        self.appearanceWarningWidget.setVisible(False)
-
     def configureWindow(self):
         self.setWindowIcon(QIcon(":/images/iconThematicMaps.svg"))
         self.setWindowTitle(self.tr("QGISRed: Legend Editor"))
         self.setWindowFlags(Qt.WindowType.Window | Qt.WindowType.WindowStaysOnTopHint | Qt.WindowType.WindowCloseButtonHint)
-        self.btClassPlus.setIcon(QIcon(":/images/themes/default/symbologyAdd.svg"))
-        self.btClassMinus.setIcon(QIcon(":/images/themes/default/symbologyRemove.svg"))
+        self.btClassPlus.setIcon(QIcon(":/images/iconClassAdd.svg"))
+        self.btClassMinus.setIcon(QIcon(":/images/iconClassRemove.svg"))
 
     def setupTableView(self):
         self.tableView.setColumnCount(5)
@@ -374,6 +561,35 @@ class QGISRedLegendsDialog(QDialog, formClass):
         self.btClassifyAll.setIcon(QIcon(":/images/iconClassifyAll.svg"))
         self.btClassifyAll.setToolTip(self.tr("Classify All Unique Values"))
         self.btClassifyAll.clicked.connect(self.classifyAllUniqueValues)
+
+    def setupMeterTypeCombo(self):
+        self.cbMeterType.addItem(self.tr("All types"), None)
+        for meterType in self.METER_TYPES:
+            self.cbMeterType.addItem(meterType, meterType)
+        self.cbMeterType.currentIndexChanged.connect(self.onMeterTypeChanged)
+        self.labelMeterType.setVisible(False)
+        self.cbMeterType.setVisible(False)
+
+    def getSelectedMeterType(self):
+        """Return the meter type selected in the dropdown, or None for 'All types'."""
+        if not hasattr(self, "cbMeterType"):
+            return None
+        return self.cbMeterType.currentData()
+
+    def updateMeterTypeControls(self, identifier=None):
+        if not hasattr(self, "cbMeterType"):
+            return
+        isMeters = identifier == "qgisred_meters"
+        self.labelMeterType.setVisible(isMeters)
+        self.cbMeterType.setVisible(isMeters)
+        if not isMeters and self.cbMeterType.currentIndex() != 0:
+            self.cbMeterType.blockSignals(True)
+            self.cbMeterType.setCurrentIndex(0)
+            self.cbMeterType.blockSignals(False)
+
+    def onMeterTypeChanged(self):
+        if self.currentLayer and self.currentLayer.customProperty("qgisred_identifier") == "qgisred_meters":
+            self.populateLegendTable()
 
     def setupAdvancedUi(self):
         self.setupSizeControls()
@@ -506,19 +722,19 @@ class QGISRedLegendsDialog(QDialog, formClass):
                     QgsMessageLog.logMessage(
                         f"Failed to load style database: {dbPath}",
                         "QGISRed",
-                        QGIS_WARNING,
+                        Qgis.Warning,
                     )
             except Exception as e:
                 QgsMessageLog.logMessage(
                     f"Error loading style database: {str(e)}",
                     "QGISRed",
-                    QGIS_WARNING,
+                    Qgis.Warning,
                 )
         else:
             QgsMessageLog.logMessage(
                 f"Style database not found: {dbPath}",
                 "QGISRed",
-                QGIS_INFO,
+                Qgis.Info,
             )
 
     # ============================================================
@@ -547,14 +763,11 @@ class QGISRedLegendsDialog(QDialog, formClass):
             self.layerTreeViewConnection = iface.layerTreeView().currentLayerChanged.connect(self.onQgisLayerSelectionChanged)
 
     def loadInitialState(self):
+        self.labelFrameLegends.setText(self.tr("Legend"))
+        # preselectGroupAndLayer -> onGroupChanged already runs the full layer
+        # selection (populate, legend types, label) exactly once.
         self.preselectGroupAndLayer()
         self.frameLegends.setEnabled(bool(self.cbLegendLayer.currentLayer()))
-        self.labelFrameLegends.setText(self.tr("Legend"))
-
-        if self.cbLegendLayer.currentLayer():
-            self.onLayerChanged(self.cbLegendLayer.currentLayer())
-            self.populateLegendTypes(self.cbLegendLayer.currentLayer())
-
         self.updateClassCount()
 
     # ============================================================
@@ -579,13 +792,9 @@ class QGISRedLegendsDialog(QDialog, formClass):
                 return
             identifier = layer.customProperty("qgisred_identifier") or ""
             isResultLayer = identifier.startswith("qgisred_link") or identifier.startswith("qgisred_node")
-            isInputLayer = identifier in {
-                "qgisred_pipes", "qgisred_pumps", "qgisred_valves",
-                "qgisred_junctions", "qgisred_reservoirs", "qgisred_tanks",
-                "qgisred_sources", "qgisred_serviceconnections",
-                "qgisred_isolationvalves", "qgisred_meters", "qgisred_demands"
-            }
-            if not isResultLayer and not isInputLayer and identifier not in self.SIZE_ONLY_QUERY_IDENTIFIERS:
+            isInputLayer = identifier in self.INPUT_LAYER_IDENTIFIERS
+            isEditableQuery = identifier in self.EDITABLE_QUERY_IDENTIFIERS
+            if not isResultLayer and not isInputLayer and not isEditableQuery:
                 return
 
         currentGroupPath = self.cbGroups.currentData()
@@ -604,8 +813,10 @@ class QGISRedLegendsDialog(QDialog, formClass):
         targetLayer = self.determineTargetLayer(allowedLayers)
 
         self.cbLegendLayer.blockSignals(True)
-        self.cbLegendLayer.setCurrentIndex(-1)
+        # Filter first: setExceptedLayerList resets the combo's model, and clearing
+        # the index afterwards keeps the combo blank when the group has no target.
         self.cbLegendLayer.setExceptedLayerList(exceptedLayers)
+        self.cbLegendLayer.setCurrentIndex(-1)
         if targetLayer:
             self.cbLegendLayer.setLayer(targetLayer)
         self.cbLegendLayer.blockSignals(False)
@@ -653,6 +864,7 @@ class QGISRedLegendsDialog(QDialog, formClass):
         self.currentFieldType, self.currentFieldName = self.detectFieldType(layer)
         self.frameLegends.setEnabled(True)
 
+        self.updateMeterTypeControls(layer.customProperty("qgisred_identifier"))
         self.updateFrameLegendLabel(layer)
         self.populateLegendTypes(layer)
         self.syncLegendTypeComboBox(layer)
@@ -661,7 +873,6 @@ class QGISRedLegendsDialog(QDialog, formClass):
         self.populateLegendTable()
         self.updateButtonStates()
         self.updateInputLayerRestrictions()
-        self.updateAppearanceWarning()
 
     def updateFrameLegendLabel(self, layer):
         layerName = layer.name()
@@ -678,7 +889,7 @@ class QGISRedLegendsDialog(QDialog, formClass):
         renderer = renderer if renderer is not None else layer.renderer()
         rendererType = renderer.type()
         if rendererType == "RuleRenderer":
-            rendererType = "graduatedSymbol"
+            rendererType = "categorizedSymbol" if self.ruleBasedAsCategories(renderer) else "graduatedSymbol"
         index = self.cbLegendsType.findData(rendererType)
 
         if index != -1:
@@ -737,7 +948,7 @@ class QGISRedLegendsDialog(QDialog, formClass):
             self.applyClassificationMethod("FixedInterval")
 
     def onLegendTypeChanged(self):
-        if not self.currentLayer or not self.currentFieldName:
+        if not self.currentLayer:
             return
 
         newType = self.cbLegendsType.currentData()
@@ -747,6 +958,11 @@ class QGISRedLegendsDialog(QDialog, formClass):
             return
 
         field = self.currentFieldName
+        # Single-symbol query layers (e.g. Connectivity) have no field yet: pick one.
+        if not field and newType == "categorizedSymbol" and self.isSingleEditableQueryLayer():
+            field = self._detectQueryClassField()
+        if not field and newType in ("categorizedSymbol", "graduatedSymbol"):
+            return
 
         if newType == "categorizedSymbol":
             if not self.validateCategorizedConversion(field, currentType):
@@ -761,6 +977,9 @@ class QGISRedLegendsDialog(QDialog, formClass):
             self.currentFieldType, self.currentFieldName = self.detectFieldType(
                 self.currentLayer
             )
+        elif newType == "singleSymbol" and self.isSingleEditableQueryLayer():
+            self.restoreOriginalSingleSymbolRenderer()
+            self.currentFieldType, self.currentFieldName = self.FIELD_TYPE_SINGLE, None
         else:
             self.currentFieldType, self.currentFieldName = self.detectFieldType(
                 self.currentLayer
@@ -774,6 +993,34 @@ class QGISRedLegendsDialog(QDialog, formClass):
             self.classifyAllUniqueValues()
 
         self.updateButtonStates()
+        self.updateInputLayerRestrictions()
+
+    def _detectQueryClassField(self):
+        """Pick a classification field for query layers styled as a single symbol.
+
+        Prefers 'Class', then 'SubNet', then the first field that is not an id.
+        """
+        if not self.currentLayer:
+            return None
+        fields = self.currentLayer.fields()
+        for preferred in ("Class", "SubNet"):
+            if fields.indexOf(preferred) >= 0:
+                return preferred
+        for field in fields:
+            if field.name().lower() not in ("id", "fid"):
+                return field.name()
+        return None
+
+    def restoreOriginalSingleSymbolRenderer(self):
+        """Preview the pristine single-symbol renderer again after a categorized detour."""
+        snapshot = self.initialRenderers.get(self.currentLayer.id()) if self.currentLayer else None
+        candidate = None
+        if snapshot is not None and snapshot.type() == "singleSymbol":
+            candidate = snapshot
+        elif self.originalRenderer is not None and self.originalRenderer.type() == "singleSymbol":
+            candidate = self.originalRenderer
+        if candidate is not None:
+            self._workingRenderer = candidate.clone()
 
     def validateCategorizedConversion(self, field, currentType):
         """Validates if conversion to categorized renderer is allowed based on unique value count."""
@@ -1407,6 +1654,15 @@ class QGISRedLegendsDialog(QDialog, formClass):
                 currentPath = pathParts + [child.name()]
                 identifier = child.customProperty("qgisred_identifier") or ""
 
+                # The Trees parent group is never listed itself: each tree's own
+                # subgroup becomes an entry, labeled with the tree name.
+                if identifier == "qgisred_trees":
+                    for sub in child.children():
+                        if isinstance(sub, QgsLayerTreeGroup) and self.groupHasRenderableLayers(sub):
+                            subPath = currentPath + [sub.name()]
+                            results.append((sub.name(), " / ".join(subPath), sub))
+                    continue
+
                 isAllowed = identifier in self.ALLOWED_GROUP_IDENTIFIERS or self.isQueriesGroup(identifier)
                 if isAllowed and self.groupHasRenderableLayers(child):
                     results.append((currentPath[-1], " / ".join(currentPath), child))
@@ -1416,13 +1672,20 @@ class QGISRedLegendsDialog(QDialog, formClass):
     def isQueriesGroup(self, identifier):
         return any(identifier.startswith(prefix) for prefix in self.QUERIES_GROUP_PREFIXES)
 
+    def isTreeChildGroup(self, group):
+        """Check whether the group is one tree's own subgroup under the Trees parent group."""
+        parent = group.parent() if group else None
+        if not isinstance(parent, QgsLayerTreeGroup):
+            return False
+        return (parent.customProperty("qgisred_identifier") or "") == "qgisred_trees"
+
     def groupHasAnyLayers(self, group):
         return any(isinstance(child, QgsLayerTreeLayer) for child in group.children())
 
     def groupHasRenderableLayers(self, group):
         identifier = group.customProperty("qgisred_identifier") or ""
-        recurseIntoSubgroups = identifier == "qgisred_results" or self.isQueriesGroup(identifier)
-        isQueriesGroup = self.isQueriesGroup(identifier)
+        isQueriesGroup = self.isQueriesGroup(identifier) or self.isTreeChildGroup(group)
+        recurseIntoSubgroups = identifier == "qgisred_results" or isQueriesGroup
         layers = []
         self.collectRenderableLayersRecursive(group, layers, recurseIntoSubgroups, isQueriesGroup)
         return len(layers) > 0
@@ -1437,8 +1700,8 @@ class QGISRedLegendsDialog(QDialog, formClass):
             return []
 
         identifier = group.customProperty("qgisred_identifier") or ""
-        recurseIntoSubgroups = identifier == "qgisred_results" or self.isQueriesGroup(identifier)
-        isQueriesGroup = self.isQueriesGroup(identifier)
+        isQueriesGroup = self.isQueriesGroup(identifier) or self.isTreeChildGroup(group)
+        recurseIntoSubgroups = identifier == "qgisred_results" or isQueriesGroup
 
         layers = []
         self.collectRenderableLayersRecursive(group, layers, recurseIntoSubgroups, isQueriesGroup)
@@ -1450,17 +1713,22 @@ class QGISRedLegendsDialog(QDialog, formClass):
         groupIdentifier = group.customProperty("qgisred_identifier") or ""
         isInputGroup = groupIdentifier == "qgisred_inputs"
 
+        isDemandsBuilderGroup = groupIdentifier == "qgisred_demandsbuilder"
+
         for child in group.children():
             if isinstance(child, QgsLayerTreeLayer):
                 layer = child.layer()
                 if layer and isinstance(layer, QgsVectorLayer):
+                    if isDemandsBuilderGroup and (
+                        layer.customProperty("qgisred_identifier")
+                        not in self.DEMANDS_BUILDER_EDITABLE_IDENTIFIERS
+                    ):
+                        continue
                     rendererType = layer.renderer().type() if layer.renderer() else ""
-                    isInputLayer = isInputGroup or layer.customProperty("qgisred_identifier") in {
-                        "qgisred_pipes", "qgisred_pumps", "qgisred_valves",
-                        "qgisred_junctions", "qgisred_reservoirs", "qgisred_tanks",
-                        "qgisred_sources", "qgisred_serviceconnections",
-                        "qgisred_isolationvalves", "qgisred_meters", "qgisred_demands"
-                    }
+                    isInputLayer = (
+                        isInputGroup
+                        or layer.customProperty("qgisred_identifier") in self.INPUT_LAYER_IDENTIFIERS
+                    )
                     if rendererType in ("graduatedSymbol", "categorizedSymbol", "RuleRenderer") or (
                         rendererType == "singleSymbol" and (isInputLayer or recurseIntoSubgroups or isQueriesGroup)
                     ):
@@ -1494,14 +1762,12 @@ class QGISRedLegendsDialog(QDialog, formClass):
             targetGroup = self.cbGroups.itemData(0)
 
         self.setGroupByPath(targetGroup)
+        # Runs the whole selection once: determineTargetLayer already prefers the
+        # panel's active layer and falls back to the group's first layer.
         self.onGroupChanged()
 
-        if targetLayer:
+        if targetLayer and self.cbLegendLayer.currentLayer() != targetLayer:
             self.cbLegendLayer.setLayer(targetLayer)
-        else:
-            layers = self.getRenderableLayersInSelectedGroup()
-            if layers:
-                self.cbLegendLayer.setLayer(layers[0])
 
     def getActiveLayerFromTree(self):
         if iface and iface.layerTreeView():
@@ -1532,9 +1798,13 @@ class QGISRedLegendsDialog(QDialog, formClass):
         return " / ".join(parts)
 
     def setGroupByPath(self, path):
+        # Signals are blocked: every caller invokes onGroupChanged() explicitly,
+        # otherwise the currentIndexChanged connection would run it a second time.
         for i in range(self.cbGroups.count()):
             if self.cbGroups.itemData(i) == path:
+                self.cbGroups.blockSignals(True)
                 self.cbGroups.setCurrentIndex(i)
+                self.cbGroups.blockSignals(False)
                 break
 
     # ============================================================
@@ -1584,7 +1854,12 @@ class QGISRedLegendsDialog(QDialog, formClass):
         if self.utils:
             supportsCategorized = QGISRedLayerUtils.getLayerSupportsCategorized(layerIdentifier)
 
-        if supportsCategorized:
+        if layerIdentifier in self.SINGLE_EDITABLE_QUERY_IDENTIFIERS:
+            self.cbLegendsType.addItem(self.tr("Single Symbol"), "singleSymbol")
+            self.cbLegendsType.addItem(
+                self.tr("Categorized"), "categorizedSymbol"
+            )
+        elif supportsCategorized:
             self.cbLegendsType.addItem(self.tr("Graduated"), "graduatedSymbol")
             self.cbLegendsType.addItem(
                 self.tr("Categorized"), "categorizedSymbol"
@@ -1593,61 +1868,14 @@ class QGISRedLegendsDialog(QDialog, formClass):
             self.cbLegendsType.addItem(
                 self.tr("Categorized"), "categorizedSymbol"
             )
+        elif currentRendererType == "RuleRenderer" and self.ruleBasedAsCategories(layer.renderer()):
+            self.cbLegendsType.addItem(
+                self.tr("Categorized"), "categorizedSymbol"
+            )
         elif currentRendererType in ("graduatedSymbol", "RuleRenderer"):
             self.cbLegendsType.addItem(self.tr("Graduated"), "graduatedSymbol")
         else:
             self.cbLegendsType.addItem(self.tr("Single Symbol"), "singleSymbol")
-
-    # Range filters as applyNullStyle leaves them, by way of convertFromRenderer. Two
-    # things vary and neither can be assumed: the classified column arrives spelled
-    # however the conversion produced it — (Velocity), "Velocity", Velocity, abs(Flow) —
-    # and the outer classes carry a single bound, because the conversion drops the
-    # redundant one ('<0.1' is just "(Velocity) <= 0.1"). So each side is read on its own
-    # instead of matching one fixed shape.
-    _NUMBER = r'[-+]?(?:\d+\.?\d*|\.\d+)(?:[eE][-+]?\d+)?'
-    _RANGE_ATTRIBUTE = re.compile(r'^\s*(.+?)\s*(?:>=?|<=?)\s*' + _NUMBER)
-    _RANGE_LOWER = re.compile(r'>=?\s*(' + _NUMBER + r')')
-    _RANGE_UPPER = re.compile(r'<=?\s*(' + _NUMBER + r')')
-
-    # Stands in for the bound the conversion left out. It is the sentinel the plugin's own
-    # styles already use for their open-ended first and last classes, so applying the table
-    # untouched writes back exactly the values the style file had.
-    OPEN_RANGE_BOUND = 1e10
-
-    def parseRangeFilter(self, expression):
-        """(column, lower, upper) of a range rule, or None when the rule is not a range."""
-        expression = expression or ""
-        attribute = self._RANGE_ATTRIBUTE.match(expression)
-        if not attribute:
-            return None
-        lower = self._RANGE_LOWER.search(expression)
-        upper = self._RANGE_UPPER.search(expression)
-        if not lower and not upper:
-            return None
-        return (
-            self.unwrapClassAttribute(attribute.group(1)),
-            float(lower.group(1)) if lower else -self.OPEN_RANGE_BOUND,
-            float(upper.group(1)) if upper else self.OPEN_RANGE_BOUND,
-        )
-
-    @staticmethod
-    def unwrapClassAttribute(attr):
-        """Strip the quotes or the wrapping parentheses a filter may carry around a column.
-
-        abs(Flow) also ends in ")" without being wrapped, so the parentheses are only
-        removed when they really enclose the whole string.
-        """
-        attr = attr.strip()
-        if len(attr) > 1 and attr[0] == '"' and attr[-1] == '"':
-            return attr[1:-1]
-        if len(attr) > 1 and attr[0] == "(" and attr[-1] == ")":
-            depth = 0
-            for char in attr[1:-1]:
-                depth += (char == "(") - (char == ")")
-                if depth < 0:
-                    return attr
-            return attr[1:-1]
-        return attr
 
     def ruleBasedAsGraduated(self, renderer):
         """Convert a QgsRuleBasedRenderer (created by applyNullStyle) back to QgsGraduatedSymbolRenderer."""
@@ -1656,20 +1884,49 @@ class QGISRedLegendsDialog(QDialog, formClass):
         rules = [r for r in renderer.rootRule().children() if _NULL_RULE_LABEL not in r.label()]
         if not rules:
             return None
-
-        classAttr = None
+        match = re.match(r'\((.+?)\)\s*>=', rules[0].filterExpression())
+        if not match:
+            return None
+        classAttr = match.group(1)
         ranges = []
         for rule in rules:
-            parsed = self.parseRangeFilter(rule.filterExpression())
-            if parsed is None:
-                continue
-            attribute, lower, upper = parsed
-            if classAttr is None:
-                classAttr = attribute
-            ranges.append(QgsRendererRange(lower, upper, rule.symbol().clone(), rule.label()))
-        if classAttr is None or not ranges:
+            nums = re.findall(r'[-+]?\d*\.?\d+(?:[eE][-+]?\d+)?', rule.filterExpression())
+            if len(nums) >= 2:
+                lo, hi = float(nums[0]), float(nums[1])
+                ranges.append(QgsRendererRange(lo, hi, rule.symbol().clone(), rule.label()))
+        if not ranges:
             return None
         return QgsGraduatedSymbolRenderer(classAttr, ranges)
+
+    def ruleBasedAsCategories(self, renderer):
+        """Parse a QgsRuleBasedRenderer with categorical filters into (field, entries).
+
+        Returns None unless every non-NULL rule is a "Field" = 'value' filter
+        (or the Hydraulic Sectors ClosedLinks composite) on the same field.
+        """
+        if not isinstance(renderer, QgsRuleBasedRenderer):
+            return None
+        rules = [r for r in renderer.rootRule().children() if _NULL_RULE_LABEL not in (r.label() or "")]
+        if not rules:
+            return None
+        field = None
+        entries = []
+        for rule in rules:
+            parsed = parseCategoricalRuleFilter(rule.filterExpression())
+            if not parsed:
+                return None
+            ruleField, value = parsed
+            if field is None:
+                field = ruleField
+            elif ruleField != field:
+                return None
+            entries.append({
+                "value": value,
+                "label": rule.label(),
+                "symbol": rule.symbol(),
+                "renderState": rule.active(),
+            })
+        return field, entries
 
     def detectFieldType(self, layer, renderer=None):
         renderer = renderer if renderer is not None else layer.renderer()
@@ -1681,12 +1938,17 @@ class QGISRedLegendsDialog(QDialog, formClass):
             graduated = self.ruleBasedAsGraduated(renderer)
             if graduated:
                 return self.FIELD_TYPE_NUMERIC, graduated.classAttribute()
+            categorical = self.ruleBasedAsCategories(renderer)
+            if categorical:
+                return self.FIELD_TYPE_CATEGORICAL, categorical[0]
 
         if isinstance(renderer, QgsCategorizedSymbolRenderer):
             fieldName = renderer.classAttribute()
             fieldIdx = layer.fields().indexOf(fieldName)
 
-            if fieldIdx >= 0 and layer.fields().field(fieldIdx).type() in [
+            # Query layers stay categorical even when the class field is numeric
+            # (e.g. Connectivity component ids or integer sector ids).
+            if fieldIdx >= 0 and not self.isQueryLayer(layer) and layer.fields().field(fieldIdx).type() in [
                 QVariantInt,
                 QVariantDouble,
                 QVariantLongLong,
@@ -1695,8 +1957,10 @@ class QGISRedLegendsDialog(QDialog, formClass):
 
             return self.FIELD_TYPE_CATEGORICAL, fieldName
 
-        # singleSymbol renderer for input and size-only query layers gets its own field type
-        if renderer and renderer.type() == "singleSymbol" and (self.isInputLayer() or self.isSizeOnlyQueryLayer()):
+        # singleSymbol renderer for input and single/size-only query layers gets its own field type
+        if renderer and renderer.type() == "singleSymbol" and (
+            self.isInputLayer() or self.isSizeOnlyQueryLayer() or self.isSingleEditableQueryLayer()
+        ):
             return self.FIELD_TYPE_SINGLE, None
 
         return self.FIELD_TYPE_UNKNOWN, None
@@ -1713,6 +1977,7 @@ class QGISRedLegendsDialog(QDialog, formClass):
     def resetToEmptyState(self):
         self.frameLegends.setEnabled(False)
         self.labelFrameLegends.setVisible(False)
+        self.updateMeterTypeControls(None)
         self.currentLayer = None
         self.currentFieldType = self.FIELD_TYPE_UNKNOWN
         self.clearTable()
@@ -1761,6 +2026,31 @@ class QGISRedLegendsDialog(QDialog, formClass):
 
         self.usedUniqueValues = []
         self.availableUniqueValues = self.getUniqueValuesFromLayer()
+
+        # Categorical rule-based renderers (e.g. Hydraulic Sectors links) keep their
+        # rule structure: remember the source so Apply rebuilds rules, not categories.
+        self._sourceRuleRenderer = None
+        if isinstance(renderer, QgsRuleBasedRenderer):
+            categorical = self.ruleBasedAsCategories(renderer)
+            if categorical:
+                self._sourceRuleRenderer = renderer.clone()
+                geometryHint = self.getGeometryHint()
+                for entry in categorical[1]:
+                    if entry["symbol"] is None:
+                        continue
+                    if entry["value"] in self.availableUniqueValues:
+                        self.usedUniqueValues.append(entry["value"])
+                    row = self.tableView.rowCount()
+                    self.tableView.insertRow(row)
+                    self.setRowWidgets(
+                        row,
+                        entry["symbol"],
+                        entry["renderState"],
+                        entry["value"],
+                        entry["label"],
+                        geometryHint,
+                        isReadOnlyValue=True,
+                    )
 
         if isinstance(renderer, QgsCategorizedSymbolRenderer):
             categories = renderer.categories()
@@ -1886,7 +2176,7 @@ class QGISRedLegendsDialog(QDialog, formClass):
         colorSelector.setEnabled(self.isEditing)
         colorSelector.colorChanged.connect(self.onRowColorChanged)
 
-        size = self._getLineWidth(symbol) if geometryHint == "line" else self._getNodeSize(symbol)
+        size = self._getLineWidth(symbol) if geometryHint == "line" else symbol.size()
         colorSelector.updateSymbolSize(size, geometryHint == "line")
         colorSelector.setAutoFillBackground(False)
         colorSelector.setFixedSize(30, 20)
@@ -1905,7 +2195,10 @@ class QGISRedLegendsDialog(QDialog, formClass):
         self.tableView.setCellWidget(row, 1, container)
 
     def setSizeWidget(self, row, symbol, geometryHint):
-        size = self._getLineWidth(symbol) if geometryHint == "line" else self._getNodeSize(symbol)
+        size = self._getLineWidth(symbol) if geometryHint == "line" else symbol.size()
+        meterTypeSize = self._readSelectedMeterTypeSize(symbol)
+        if meterTypeSize is not None:
+            size = meterTypeSize
         sizeWidget = QLineEdit(str(size))
         sizeWidget.setEnabled(self.isEditing)
         sizeWidget.setAlignment(Qt.AlignmentFlag.AlignCenter)
@@ -1981,18 +2274,41 @@ class QGISRedLegendsDialog(QDialog, formClass):
         # Original implementation for non-results layers
         fieldIdx = self.currentLayer.fields().indexOf(self.currentFieldName)
         if fieldIdx < 0:
-            return []
-
-        values = set()
-        for feature in self.currentLayer.getFeatures():
-            value = feature[self.currentFieldName]
-            values.add(str(value) if value is not None else "NULL")
+            # The class attribute can be an expression (e.g. the Demand Builder
+            # CASE over "Category"): evaluate it per feature instead.
+            values = self.getUniqueValuesFromExpression()
+        else:
+            values = set()
+            for feature in self.currentLayer.getFeatures():
+                value = feature[self.currentFieldName]
+                values.add(str(value) if value is not None else "NULL")
 
         specialValues = ["NULL", "#NA"]
         regularValues = [v for v in values if v not in specialValues]
         foundSpecials = [v for v in specialValues if v in values]
 
         return sorted(regularValues) + foundSpecials
+
+    def getUniqueValuesFromExpression(self):
+        """Evaluate currentFieldName as an expression over every feature and collect the results."""
+        values = set()
+        try:
+            from qgis.core import QgsExpression, QgsExpressionContext, QgsExpressionContextUtils
+
+            expression = QgsExpression(self.currentFieldName)
+            if expression.hasParserError():
+                return values
+            context = QgsExpressionContext()
+            context.appendScopes(QgsExpressionContextUtils.globalProjectLayerScopes(self.currentLayer))
+            for feature in self.currentLayer.getFeatures():
+                context.setFeature(feature)
+                value = expression.evaluate(context)
+                if value == NULL:
+                    value = None
+                values.add(str(value) if value is not None else "NULL")
+        except Exception:
+            return values
+        return values
 
     # ============================================================
     # CLASS MANIPULATION - ADD
@@ -3049,20 +3365,6 @@ class QGISRedLegendsDialog(QDialog, formClass):
             if hasattr(symbolLayer, 'subSymbol') and symbolLayer.subSymbol():
                 self.applyColorToSymbol(symbolLayer.subSymbol(), color)
 
-    def templateSymbol(self, existingSymbols):
-        """Symbol for a class the layer did not have before: a copy of one it already has.
-
-        A default symbol is a bare marker or line, and on result layers everything that
-        makes the style work lives in the existing ones — the data-defined size expressions
-        that tell tanks and reservoirs apart from junctions, the pump and valve icons, the
-        flow arrows. Building a new class from scratch dropped all of it. Colour and size
-        are overwritten from the table straight after, so only the structure is inherited.
-        """
-        for symbol in reversed(existingSymbols):
-            if symbol is not None:
-                return symbol.clone()
-        return QgsSymbol.defaultSymbol(self.currentLayer.geometryType())
-
     def applySizeToSymbol(self, symbol, size):
         """Applies size to a symbol, preserving its structure."""
         isLine = self.currentLayer.geometryType() == WKB_LINE_GEOMETRY
@@ -3070,51 +3372,6 @@ class QGISRedLegendsDialog(QDialog, formClass):
             symbol.setWidth(size)
         else:
             symbol.setSize(size)
-            self.applyNodeSizeExpressions(symbol, size)
-
-    def applyNodeSizeExpressions(self, symbol, size):
-        """Write the size into the data-defined expressions that actually draw the markers.
-
-        On result layers the marker size comes from a per-symbol-layer expression, and a
-        data-defined property always beats setSize(). Writing only the latter is why the
-        size used to change in the legend — drawn with no feature, so the expression cannot
-        evaluate and QGIS falls back to the static size — and not on the map.
-
-        Tanks and reservoirs keep their own size: apply_junction_size leaves their
-        expressions alone, and Appearance scales them with a factor of their own.
-        """
-        for index in range(symbol.symbolLayerCount()):
-            with suppress(Exception):
-                symbolLayer = symbol.symbolLayer(index)
-                properties = symbolLayer.dataDefinedProperties()
-                sizeProperty = properties.property(SL_PROP_SIZE)
-                if not sizeProperty.isActive():
-                    continue
-                expression = sizeProperty.expressionString()
-                updated = apply_junction_size(expression, size)
-                if updated != expression:
-                    properties.setProperty(SL_PROP_SIZE, QgsProperty.fromExpression(updated))
-                    symbolLayer.setDataDefinedProperties(properties)
-
-    def _getNodeSize(self, symbol):
-        """Return the junction size actually drawn; falls back to symbol.size().
-
-        Mirror of applyNodeSizeExpressions: the drawn size lives in a data-defined
-        expression that beats setSize(), so reading the static size showed the value last
-        typed here while the map drew another one — the Appearance factor writes only the
-        expression. Line symbols never had this problem, because _getLineWidth reads the
-        very property the factor writes.
-        """
-        for index in range(symbol.symbolLayerCount()):
-            with suppress(Exception):
-                properties = symbol.symbolLayer(index).dataDefinedProperties()
-                sizeProperty = properties.property(SL_PROP_SIZE)
-                if not sizeProperty.isActive():
-                    continue
-                junction, _ = read_node_base_sizes(sizeProperty.expressionString())
-                if junction is not None:
-                    return junction
-        return symbol.size()
 
     def _getLineWidth(self, symbol):
         """Return the width of the first SimpleLine layer; falls back to symbol.width()."""
@@ -3132,21 +3389,25 @@ class QGISRedLegendsDialog(QDialog, formClass):
                 sl.setWidth(newWidth)
 
     INPUT_COLOR_READERS = {
-        "qgisred_junctions": (SL_PROP_FILL_COLOR, r"BaseDem\s*>\s*0\s*,\s*'(#[0-9a-fA-F]{6})'"),
-        "qgisred_demands": (SL_PROP_FILL_COLOR, r"BaseValue\s*>\s*0\s*,\s*'(#[0-9a-fA-F]{6})'"),
-        "qgisred_pipes": (SL_PROP_STROKE_COLOR, r"IniStatus is NULL\s*,\s*'(#[0-9a-fA-F]{6})'"),
-        "qgisred_valves": (SL_PROP_STROKE_COLOR, r"IniStatus is NULL\s*,\s*'(#[0-9a-fA-F]{6})'"),
-        "qgisred_pumps": (SL_PROP_STROKE_COLOR, r"IniStatus is NULL\s*,\s*'(#[0-9a-fA-F]{6})'"),
-        "qgisred_meters": (SL_PROP_FILL_COLOR, r"IsActive is NULL\s*,\s*'(#[0-9a-fA-F]{6})'"),
-        "qgisred_serviceconnections": (SL_PROP_STROKE_COLOR, r"IsActive is NULL\s*,\s*'(#[0-9a-fA-F]{6})'"),
-        "qgisred_isolationvalves": (SL_PROP_FILL_COLOR, r'LossCoeff"\s*=\s*0\s*,\s*color_rgb\((\d+)\s*,\s*(\d+)\s*,\s*(\d+)\)'),
+        "qgisred_junctions": ("PropertyFillColor", r"BaseDem\s*>\s*0\s*,\s*'(#[0-9a-fA-F]{6})'"),
+        "qgisred_demands": (
+            "PropertyFillColor",
+            r"(?:@bd|\"?Base(?:Value|Demand|Dem)\"?)\s+is\s+NULL\s*,\s*'(#[0-9a-fA-F]{3,6})'",
+        ),
+        "qgisred_pipes": ("PropertyStrokeColor", r"IniStatus is NULL\s*,\s*'(#[0-9a-fA-F]{6})'"),
+        "qgisred_valves": ("PropertyStrokeColor", r"IniStatus is NULL\s*,\s*'(#[0-9a-fA-F]{6})'"),
+        "qgisred_pumps": ("PropertyStrokeColor", r"IniStatus is NULL\s*,\s*'(#[0-9a-fA-F]{6})'"),
+        "qgisred_meters": ("PropertyFillColor", r"IsActive is NULL\s*,\s*'(#[0-9a-fA-F]{6})'"),
+        "qgisred_serviceconnections": ("PropertyStrokeColor", r"IsActive is NULL\s*,\s*'(#[0-9a-fA-F]{6})'"),
+        "qgisred_isolationvalves": ("PropertyFillColor", r'LossCoeff"\s*=\s*0\s*,\s*color_rgb\((\d+)\s*,\s*(\d+)\s*,\s*(\d+)\)'),
     }
 
     def _readInputLayerColor(self, symbol, identifier):
         entry = self.INPUT_COLOR_READERS.get(identifier)
         if not entry:
             return None
-        propertyKey, regex = entry
+        propertyName, regex = entry
+        propertyKey = getattr(QgsSymbolLayer, propertyName)
         match = self._findExpressionMatch(symbol, propertyKey, re.compile(regex))
         if not match:
             return None
@@ -3194,31 +3455,106 @@ class QGISRedLegendsDialog(QDialog, formClass):
         renderer = self.buildRendererFromDialog()
         if renderer is not None:
             self.currentLayer.setRenderer(renderer)
-            self.restoreResultNullClass()
+            self._syncHydraulicSectorSibling(renderer)
 
         self.currentLayer.triggerRepaint()
         self.ensureLayerVisible(self.currentLayer)
         self.originalRenderer = self.currentLayer.renderer().clone() if self.currentLayer.renderer() else None
         self.hasAppliedChanges = True
 
-    def restoreResultNullClass(self):
-        """Put a result layer back into the rule-based form the results dock expects.
+    HYDRAULIC_SECTOR_SIBLINGS = {
+        "qgisred_hydraulicsectors_links": "qgisred_hydraulicsectors_nodes",
+        "qgisred_hydraulicsectors_nodes": "qgisred_hydraulicsectors_links",
+    }
 
-        This dialog commits a graduated renderer, but a result layer is meant to carry the
-        NULL class applyNullStyle adds, and two things break at once without it: features
-        with no value stop being drawn at all — a graduated renderer skips NULLs outright,
-        which is the whole reason that function exists — and every Appearance factor turns
-        into a silent no-op, because applySymbolScaleFactors returns early on anything that
-        is not rule-based.
+    def _syncHydraulicSectorSibling(self, appliedRenderer):
+        """Recolor matching classes in the sibling Hydraulic Sectors layer after Apply.
 
-        Same pair of steps the results dock runs itself after building a renderer.
+        Lines and nodes with the same class value always end up with the same
+        color. The sibling's pristine renderer is snapshotted so Cancel can
+        restore it too.
         """
-        if not self.isResultsLayer():
+        identifier = self.currentLayer.customProperty("qgisred_identifier") if self.currentLayer else None
+        siblingIdentifier = self.HYDRAULIC_SECTOR_SIBLINGS.get(identifier or "")
+        if not siblingIdentifier:
             return
-        with suppress(Exception):
-            QGISRedStylingUtils(
-                self.projectDirectory, self.networkName, self.qgisInterface
-            ).applyNullStyle(self.currentLayer)
+        sibling = self._findSiblingLayerInGroup(siblingIdentifier)
+        if sibling is None or sibling.renderer() is None:
+            return
+        colorByValue = self._rendererValueColors(appliedRenderer)
+        if not colorByValue:
+            return
+        newRenderer = self._recolorRendererByValue(sibling.renderer(), colorByValue)
+        if newRenderer is None:
+            return
+        if sibling.id() not in self.initialRenderers:
+            self.initialRenderers[sibling.id()] = sibling.renderer().clone()
+        self._syncedSiblingIds.add(sibling.id())
+        sibling.setRenderer(newRenderer)
+        sibling.triggerRepaint()
+
+    def _findSiblingLayerInGroup(self, siblingIdentifier):
+        """Find a layer with the given identifier inside the current layer's tree group."""
+        node = QgsProject.instance().layerTreeRoot().findLayer(self.currentLayer.id())
+        parent = node.parent() if node else None
+        if parent is None:
+            return None
+        for child in parent.children():
+            if isinstance(child, QgsLayerTreeLayer):
+                layer = child.layer()
+                if layer and layer.customProperty("qgisred_identifier") == siblingIdentifier:
+                    return layer
+        return None
+
+    def _rendererValueColors(self, renderer):
+        """Map class value -> color for categorized or categorical rule-based renderers."""
+        colors = {}
+        if isinstance(renderer, QgsCategorizedSymbolRenderer):
+            for category in renderer.categories():
+                if category.symbol() is not None and category.value() not in (None, ""):
+                    colors[str(category.value())] = QColor(category.symbol().color())
+        elif isinstance(renderer, QgsRuleBasedRenderer):
+            for rule in renderer.rootRule().children():
+                if _NULL_RULE_LABEL in (rule.label() or ""):
+                    continue
+                parsed = parseCategoricalRuleFilter(rule.filterExpression())
+                if parsed and rule.symbol() is not None:
+                    colors[parsed[1]] = QColor(rule.symbol().color())
+        return colors
+
+    def _recolorRendererByValue(self, renderer, colorByValue):
+        """Return a recolored clone of renderer, or None when nothing matches."""
+        if isinstance(renderer, QgsCategorizedSymbolRenderer):
+            newRenderer = renderer.clone()
+            changed = False
+            for index, category in enumerate(newRenderer.categories()):
+                value = str(category.value()) if category.value() is not None else "NULL"
+                color = colorByValue.get(value)
+                if color is None or category.symbol() is None:
+                    continue
+                symbol = category.symbol().clone()
+                self.applyColorToSymbol(symbol, QColor(color))
+                newRenderer.updateCategorySymbol(index, symbol)
+                changed = True
+            return newRenderer if changed else None
+        if isinstance(renderer, QgsRuleBasedRenderer):
+            newRenderer = renderer.clone()
+            changed = False
+            for rule in newRenderer.rootRule().children():
+                if _NULL_RULE_LABEL in (rule.label() or ""):
+                    continue
+                parsed = parseCategoricalRuleFilter(rule.filterExpression())
+                if not parsed or rule.symbol() is None:
+                    continue
+                color = colorByValue.get(parsed[1])
+                if color is None:
+                    continue
+                symbol = rule.symbol().clone()
+                self.applyColorToSymbol(symbol, QColor(color))
+                rule.setSymbol(symbol)
+                changed = True
+            return newRenderer if changed else None
+        return None
 
     def buildRendererFromDialog(self):
         """Build a renderer from the current dialog state without touching the live layer."""
@@ -3284,6 +3620,8 @@ class QGISRedLegendsDialog(QDialog, formClass):
             "qgisred_sources": self._applySourcesLegend,
             "qgisred_demands": self._applyDemandsLegend,
         }
+        for sizeOnlyIdentifier in self.SIZE_ONLY_QUERY_IDENTIFIERS:
+            inputAppliers[sizeOnlyIdentifier] = self._applySizeOnlyQueryLegend
 
         applier = inputAppliers.get(identifier)
         if applier:
@@ -3307,6 +3645,22 @@ class QGISRedLegendsDialog(QDialog, formClass):
             if hasattr(sl, 'subSymbol') and sl.subSymbol():
                 self._setExpressionOnLayers(sl.subSymbol(), propertyKey, expression)
 
+    def _substituteExpressionOnLayers(self, symbol, propertyKey, pattern, newText):
+        """Substitute group 1 of pattern inside each layer's existing expression for propertyKey.
+
+        Unlike _setExpressionOnLayers this keeps the rest of the expression
+        (coalesce/with_variable retro-compat wrappers) untouched.
+        """
+        for i in range(symbol.symbolLayerCount()):
+            sl = symbol.symbolLayer(i)
+            existing = sl.dataDefinedProperties().property(propertyKey)
+            if existing and existing.propertyType() == QgsProperty.ExpressionBasedProperty:
+                newExpr, changed = substituteCapturedGroup(existing.expressionString(), pattern, newText)
+                if changed:
+                    sl.setDataDefinedProperty(propertyKey, QgsProperty.fromExpression(newExpr))
+            if hasattr(sl, 'subSymbol') and sl.subSymbol():
+                self._substituteExpressionOnLayers(sl.subSymbol(), propertyKey, pattern, newText)
+
     def _lightenColor(self, color, fraction):
         red = int(color.red() + (255 - color.red()) * fraction)
         green = int(color.green() + (255 - color.green()) * fraction)
@@ -3326,7 +3680,7 @@ class QGISRedLegendsDialog(QDialog, formClass):
                     for j in range(markerSymbol.symbolLayerCount()):
                         ml = markerSymbol.symbolLayer(j)
                         expr = f"if(IniStatus is NULL, 0,if(IniStatus !='CV', 0,{newCvSize}))"
-                        ml.setDataDefinedProperty(SL_PROP_SIZE, QgsProperty.fromExpression(expr))
+                        ml.setDataDefinedProperty(QgsSymbolLayer.PropertySize, QgsProperty.fromExpression(expr))
 
     def _scaleMarkerLineMarkerSize(self, symbol, defaultMarkerSize, newWidth, defaultWidth):
         """Scale every marker layer inside a MarkerLine proportionally to the line width."""
@@ -3350,7 +3704,7 @@ class QGISRedLegendsDialog(QDialog, formClass):
                 f"if (BaseDem is NULL, '#ffffff', if( BaseDem >0, '{userHex}', "
                 f"if (BaseDem <0 , '#a6cee3', '#ffffff')))"
             )
-            self._setExpressionOnLayers(symbol, SL_PROP_FILL_COLOR, fillExpr)
+            self._setExpressionOnLayers(symbol, QgsSymbolLayer.PropertyFillColor, fillExpr)
         if size is not None:
             scale = size / self.JUNCTION_DEFAULT_SIZE
             self._rebuildJunctionSize(symbol, scale)
@@ -3370,14 +3724,14 @@ class QGISRedLegendsDialog(QDialog, formClass):
         )
         for i in range(symbol.symbolLayerCount()):
             sl = symbol.symbolLayer(i)
-            existing = sl.dataDefinedProperties().property(SL_PROP_SIZE)
+            existing = sl.dataDefinedProperties().property(QgsSymbolLayer.PropertySize)
             if existing and existing.propertyType() == QgsProperty.ExpressionBasedProperty:
                 expr = existing.expressionString()
                 if re.search(r'EmittCoef\s*>\s*0\s*,\s*0\s*,', expr):
                     newExpr = noEmitterExpr
                 else:
                     newExpr = emitterExpr
-                sl.setDataDefinedProperty(SL_PROP_SIZE, QgsProperty.fromExpression(newExpr))
+                sl.setDataDefinedProperty(QgsSymbolLayer.PropertySize, QgsProperty.fromExpression(newExpr))
             if hasattr(sl, 'subSymbol') and sl.subSymbol():
                 self._rebuildJunctionSize(sl.subSymbol(), scale)
 
@@ -3385,9 +3739,9 @@ class QGISRedLegendsDialog(QDialog, formClass):
         if color is not None:
             userHex = color.name().lower()
             strokeExpr = f"if(IniStatus is NULL, '{userHex}',if(IniStatus !='CLOSED', '{userHex}','#ff0f13'))"
-            self._setExpressionOnLayers(symbol, SL_PROP_STROKE_COLOR, strokeExpr)
+            self._setExpressionOnLayers(symbol, QgsSymbolLayer.PropertyStrokeColor, strokeExpr)
             # The CV SvgMarker carries the same color rule on its fill — keep it in sync
-            self._setExpressionOnLayers(symbol, SL_PROP_FILL_COLOR, strokeExpr)
+            self._setExpressionOnLayers(symbol, QgsSymbolLayer.PropertyFillColor, strokeExpr)
         if size is not None:
             self._setLineWidth(symbol, size)
             self._scalePipeCvMarker(symbol, size)
@@ -3400,8 +3754,8 @@ class QGISRedLegendsDialog(QDialog, formClass):
                 f"if(IniStatus is 'CLOSED', '#ff0f13', "
                 f"if(IniStatus !='ACTIVE', '{userHex}','#ff9900')))"
             )
-            self._setExpressionOnLayers(symbol, SL_PROP_STROKE_COLOR, colorExpr)
-            self._setExpressionOnLayers(symbol, SL_PROP_FILL_COLOR, colorExpr)
+            self._setExpressionOnLayers(symbol, QgsSymbolLayer.PropertyStrokeColor, colorExpr)
+            self._setExpressionOnLayers(symbol, QgsSymbolLayer.PropertyFillColor, colorExpr)
         if size is not None:
             self._setLineWidth(symbol, size)
             self._scaleMarkerLineMarkerSize(
@@ -3412,8 +3766,8 @@ class QGISRedLegendsDialog(QDialog, formClass):
         if color is not None:
             userHex = color.name().lower()
             colorExpr = f"if(IniStatus is NULL, '{userHex}',if(IniStatus !='CLOSED', '{userHex}','#ff0f13'))"
-            self._setExpressionOnLayers(symbol, SL_PROP_STROKE_COLOR, colorExpr)
-            self._setExpressionOnLayers(symbol, SL_PROP_FILL_COLOR, colorExpr)
+            self._setExpressionOnLayers(symbol, QgsSymbolLayer.PropertyStrokeColor, colorExpr)
+            self._setExpressionOnLayers(symbol, QgsSymbolLayer.PropertyFillColor, colorExpr)
         if size is not None:
             self._setLineWidth(symbol, size)
             self._scaleMarkerLineMarkerSize(
@@ -3421,19 +3775,46 @@ class QGISRedLegendsDialog(QDialog, formClass):
             )
 
     def _applyMetersLegend(self, symbol, color, size):
+        selectedType = self.getSelectedMeterType()
         if color is not None:
             userHex = color.name().lower()
-            fillExpr = f"if(IsActive is NULL, '{userHex}',if(IsActive !=0, '{userHex}','#cccccc'))"
-            self._setExpressionOnLayers(symbol, SL_PROP_FILL_COLOR, fillExpr)
+            self._applyMeterFill(symbol, userHex, selectedType)
         if size is not None:
-            self._rebuildMeterSizes(symbol, size)
+            self._rebuildMeterSizes(symbol, size, selectedType)
 
-    def _rebuildMeterSizes(self, symbol, newSize):
-        typeRegex = re.compile(r"Type\s*=\s*'([^']+)'")
-        nullBranchRegex = re.compile(r"Type\s+is\s+NULL\s*,\s*(\d+(?:\.\d+)?)")
+    def _meterLayerType(self, sl):
+        """Return the meter type gating this symbol layer's size/width expression, or None."""
+        for propertyKey in (QgsSymbolLayer.PropertySize, QgsSymbolLayer.PropertyWidth):
+            prop = sl.dataDefinedProperties().property(propertyKey)
+            if prop and prop.propertyType() == QgsProperty.ExpressionBasedProperty:
+                meterType = extractMeterTypeFromExpression(prop.expressionString())
+                if meterType:
+                    return meterType
+        return None
+
+    def _applyMeterFill(self, symbol, userHex, onlyType=None):
+        """Substitute the active-branch fill colors in place, optionally for one meter type only."""
+        for i in range(symbol.symbolLayerCount()):
+            sl = symbol.symbolLayer(i)
+            if onlyType is None or self._meterLayerType(sl) == onlyType:
+                existing = sl.dataDefinedProperties().property(QgsSymbolLayer.PropertyFillColor)
+                if existing and existing.propertyType() == QgsProperty.ExpressionBasedProperty:
+                    expr = existing.expressionString()
+                    changedAny = False
+                    for pattern in METER_ACTIVE_FILL_PATTERNS:
+                        expr, changed = substituteCapturedGroup(expr, pattern, userHex)
+                        changedAny = changedAny or changed
+                    if changedAny:
+                        sl.setDataDefinedProperty(
+                            QgsSymbolLayer.PropertyFillColor, QgsProperty.fromExpression(expr)
+                        )
+            if hasattr(sl, 'subSymbol') and sl.subSymbol():
+                self._applyMeterFill(sl.subSymbol(), userHex, onlyType)
+
+    def _rebuildMeterSizes(self, symbol, newSize, onlyType=None):
         # The Meters QML binds the size expression to "width" on SvgMarker layers,
         # so probe both keys and write back to whichever holds the rule.
-        sizeKeys = (SL_PROP_SIZE, SL_PROP_WIDTH)
+        sizeKeys = (QgsSymbolLayer.PropertySize, QgsSymbolLayer.PropertyWidth)
         for i in range(symbol.symbolLayerCount()):
             sl = symbol.symbolLayer(i)
             for propertyKey in sizeKeys:
@@ -3441,27 +3822,42 @@ class QGISRedLegendsDialog(QDialog, formClass):
                 if not existing or existing.propertyType() != QgsProperty.ExpressionBasedProperty:
                     continue
                 expr = existing.expressionString()
-                typeMatch = typeRegex.search(expr)
-                if typeMatch:
-                    meterType = typeMatch.group(1)
-                    nullMatch = nullBranchRegex.search(expr)
-                    nullSize = newSize if (nullMatch and float(nullMatch.group(1)) != 0) else 0
-                    newExpr = f"if (Type is NULL, {nullSize}, if (Type = '{meterType}', {newSize}, 0))"
+                newExpr, meterType = rewriteMeterSizeExpression(expr, newSize, onlyType)
+                if meterType is not None and newExpr != expr:
                     sl.setDataDefinedProperty(propertyKey, QgsProperty.fromExpression(newExpr))
             if hasattr(sl, 'subSymbol') and sl.subSymbol():
-                self._rebuildMeterSizes(sl.subSymbol(), newSize)
+                self._rebuildMeterSizes(sl.subSymbol(), newSize, onlyType)
+
+    def _readSelectedMeterTypeSize(self, symbol):
+        """Current visible size of the selected meter type, or None when not applicable."""
+        if not self.currentLayer or self.currentLayer.customProperty("qgisred_identifier") != "qgisred_meters":
+            return None
+        meterType = self.getSelectedMeterType()
+        if not meterType:
+            return None
+        pattern = re.compile(
+            r"(?:@mt|\"?Type\"?)\s*=\s*'" + re.escape(meterType) + r"'\s*,\s*(\d+(?:\.\d+)?)"
+        )
+        for propertyKey in (QgsSymbolLayer.PropertySize, QgsSymbolLayer.PropertyWidth):
+            match = self._findExpressionMatch(symbol, propertyKey, pattern)
+            if match:
+                return float(match.group(1))
+        return None
 
     def _applyServiceConnectionsLegend(self, symbol, color, size):
         if color is not None:
             userHex = color.name().lower()
-            lighterHex = self._lightenColor(color, self.SERVICE_CONNECTION_LIGHTEN_FRACTION).name().lower()
-            strokeExpr = f"if(IsActive is NULL, '{userHex}',if(IsActive >0, '{userHex}','#ff0f13'))"
-            fillExpr = (
-                f"if(coalesce(attribute($currentfeature,'BaseDem'),attribute($currentfeature,'BaseDemand'))>0,"
-                f"if(IsActive is NULL or IsActive >0,'{lighterHex}','#c7cbc5'),'#fff')"
+            lighterColor = self._lightenColor(color, self.SERVICE_CONNECTION_LIGHTEN_FRACTION)
+            lighterHex = lighterColor.name().lower()
+            for pattern in SERVICE_CONNECTION_ACTIVE_STROKE_PATTERNS:
+                self._substituteExpressionOnLayers(
+                    symbol, QgsSymbolLayer.PropertyStrokeColor, pattern, userHex
+                )
+            self._substituteExpressionOnLayers(
+                symbol, QgsSymbolLayer.PropertyFillColor,
+                SERVICE_CONNECTION_ACTIVE_FILL_PATTERN, lighterHex
             )
-            self._setExpressionOnLayers(symbol, SL_PROP_STROKE_COLOR, strokeExpr)
-            self._setExpressionOnLayers(symbol, SL_PROP_FILL_COLOR, fillExpr)
+            self._recolorServiceConnectionBaseLayers(symbol, color, lighterColor)
         if size is not None:
             self._setLineWidth(symbol, size)
             self._scaleMarkerLineMarkerSize(
@@ -3469,17 +3865,28 @@ class QGISRedLegendsDialog(QDialog, formClass):
                 size, self.SERVICE_CONNECTION_DEFAULT_LINE_WIDTH
             )
 
+    def _recolorServiceConnectionBaseLayers(self, symbol, userColor, lighterColor):
+        """Recolor the base (non-expression) colors so the legend swatch matches the user pick."""
+        for i in range(symbol.symbolLayerCount()):
+            sl = symbol.symbolLayer(i)
+            if sl.layerType() == "SimpleLine":
+                sl.setColor(userColor)
+            elif sl.layerType() == "MarkerLine" and sl.subSymbol():
+                markerSymbol = sl.subSymbol()
+                for j in range(markerSymbol.symbolLayerCount()):
+                    ml = markerSymbol.symbolLayer(j)
+                    ml.setColor(lighterColor)
+                    if hasattr(ml, "setStrokeColor"):
+                        ml.setStrokeColor(userColor)
+
     def _applyIsolationValvesLegend(self, symbol, color, size):
         if color is not None:
             rgb = f"color_rgb({color.red()},{color.green()},{color.blue()})"
-            fillExpr = (
-                f"if( \"Available\"!=0,"
-                f"if( coalesce(attribute($currentfeature,'IniStatus'),attribute($currentfeature,'Status'))='CLOSED',"
-                f"color_rgb(255,19,19), "
-                f"if(\"LossCoeff\" = 0, {rgb},color_rgb(246,185,18))),"
-                f"color_rgb(125,139,143))"
+            # Only the "LossCoeff" = 0 green branch changes; the closed/loss/unavailable
+            # colors and any coalesce() retro-compat wrapper stay as they are.
+            self._substituteExpressionOnLayers(
+                symbol, QgsSymbolLayer.PropertyFillColor, ISOLATION_VALVE_GREEN_PATTERN, rgb
             )
-            self._setExpressionOnLayers(symbol, SL_PROP_FILL_COLOR, fillExpr)
         if size is not None:
             self.applySizeToSymbol(symbol, size)
 
@@ -3487,23 +3894,79 @@ class QGISRedLegendsDialog(QDialog, formClass):
         if size is not None:
             self.applySizeToSymbol(symbol, size)
 
+    def _applySizeOnlyQueryLegend(self, symbol, color, size):
+        """Proportionally rescale a size-only query layer (tree nodes, isolated segments...).
+
+        These styles gate sub-layer visibility with data-defined size/width
+        expressions, so everything is scaled by one factor: zeros stay zero and
+        the per-layer proportions survive. The factor is anchored on the value
+        the size cell displays, so an untouched cell is a strict no-op. Color is
+        ignored: the color column is locked for these layers.
+        """
+        if size is None or size <= 0:
+            return
+        isLine = self.currentLayer and self.currentLayer.geometryType() == WKB_LINE_GEOMETRY
+        currentSize = None
+        with suppress(Exception):
+            currentSize = float(self._getLineWidth(symbol) if isLine else symbol.size())
+        if not currentSize or currentSize <= 0 or abs(size - currentSize) < 1e-9:
+            return
+        factor = size / currentSize
+        for propertyKey in (
+            QgsSymbolLayer.PropertySize,
+            QgsSymbolLayer.PropertyWidth,
+            QgsSymbolLayer.PropertyStrokeWidth,
+        ):
+            self._scaleSizeExpressionsOnLayers(symbol, propertyKey, factor)
+        if isLine:
+            self._scaleBaseSizes(symbol, factor)
+        else:
+            with suppress(Exception):
+                symbol.setSize(size)
+
+    def _scaleBaseSizes(self, symbol, factor):
+        """Scale every layer's base width/size by factor, preserving per-layer ratios."""
+        for i in range(symbol.symbolLayerCount()):
+            sl = symbol.symbolLayer(i)
+            if sl.layerType() == "SimpleLine":
+                sl.setWidth(sl.width() * factor)
+            elif hasattr(sl, "size") and hasattr(sl, "setSize"):
+                with suppress(Exception):
+                    sl.setSize(sl.size() * factor)
+            if hasattr(sl, 'subSymbol') and sl.subSymbol():
+                self._scaleBaseSizes(sl.subSymbol(), factor)
+
     def _applyDemandsLegend(self, symbol, color, size):
         if color is not None:
             userHex = color.name().lower()
-            fillExpr = (
-                f"if (BaseValue is NULL, '#ffffff', if( BaseValue >0, '{userHex}', "
-                f"if (BaseValue <0 , '#a6cee3', '#ffffff')))"
-            )
-            self._setExpressionOnLayers(symbol, SL_PROP_FILL_COLOR, fillExpr)
-        if size is not None:
-            scale = size / self.DEMANDS_DEFAULT_SIZE
-            smallSize = round(1.6 * scale, 3)
-            bigSize = round(3.5 * scale, 3)
-            sizeExpr = (
-                f"if (BaseValue is NULL, {smallSize}, if( BaseValue >0, {smallSize}, "
-                f"if (BaseValue <0 , {bigSize}, {smallSize})))"
-            )
-            self._setExpressionOnLayers(symbol, SL_PROP_SIZE, sizeExpr)
+            # Only the inner marker carries the fill expression, and only its white
+            # base branches (NULL and else) take the new color; the demand colors
+            # (positive/negative), strokes and the outer marker stay untouched.
+            for pattern in DEMAND_BASE_FILL_PATTERNS:
+                self._substituteExpressionOnLayers(
+                    symbol, QgsSymbolLayer.PropertyFillColor, pattern, userHex
+                )
+        if size is not None and size > 0:
+            # The size cell shows the overall symbol size, so an untouched cell must
+            # be a strict no-op: scale expressions and base sizes only on a real change.
+            currentSize = None
+            with suppress(Exception):
+                currentSize = float(symbol.size())
+            if currentSize and currentSize > 0 and abs(size - currentSize) > 1e-9:
+                self._scaleSizeExpressionsOnLayers(symbol, QgsSymbolLayer.PropertySize, size / currentSize)
+                with suppress(Exception):
+                    symbol.setSize(size)
+
+    def _scaleSizeExpressionsOnLayers(self, symbol, propertyKey, factor):
+        """Scale every numeric literal of each layer's size expression by factor (recursive)."""
+        for i in range(symbol.symbolLayerCount()):
+            sl = symbol.symbolLayer(i)
+            existing = sl.dataDefinedProperties().property(propertyKey)
+            if existing and existing.propertyType() == QgsProperty.ExpressionBasedProperty:
+                newExpr = scaleNumericLiterals(existing.expressionString(), factor)
+                sl.setDataDefinedProperty(propertyKey, QgsProperty.fromExpression(newExpr))
+            if hasattr(sl, 'subSymbol') and sl.subSymbol():
+                self._scaleSizeExpressionsOnLayers(sl.subSymbol(), propertyKey, factor)
 
     def buildNumericRenderer(self):
         ranges = []
@@ -3528,11 +3991,11 @@ class QGISRedLegendsDialog(QDialog, formClass):
             checkbox = checkboxContainer.findChild(QCheckBox) if checkboxContainer else None
             colorWidget = colorContainer.findChild(QGISRedSymbolColorSelector) if colorContainer else None
 
-            # Clone existing symbol to preserve complex structure
+            # Clone existing symbol to preserve complex structure, fallback to default
             if row < len(existingRanges) and existingRanges[row].symbol():
                 symbol = existingRanges[row].symbol().clone()
             else:
-                symbol = self.templateSymbol([r.symbol() for r in existingRanges])
+                symbol = QgsSymbol.defaultSymbol(self.currentLayer.geometryType())
 
             if colorWidget:
                 self.applyColorToSymbol(symbol, colorWidget.activeColor)
@@ -3575,11 +4038,14 @@ class QGISRedLegendsDialog(QDialog, formClass):
         for i in range(symbol.symbolLayerCount()):
             symbolLayer = symbol.symbolLayer(i)
             if isLine:
-                symbolLayer.setDataDefinedProperty(SL_PROP_STROKE_WIDTH, sizeProperty)
+                symbolLayer.setDataDefinedProperty(QgsSymbolLayer.PropertyStrokeWidth, sizeProperty)
             else:
-                symbolLayer.setDataDefinedProperty(SL_PROP_SIZE, sizeProperty)
+                symbolLayer.setDataDefinedProperty(QgsSymbolLayer.PropertySize, sizeProperty)
 
     def buildCategoricalRenderer(self):
+        if self._sourceRuleRenderer is not None:
+            return self.buildRuleBasedCategoricalRenderer()
+
         categories = []
 
         # Get existing renderer to clone symbols from (preserving complex symbol structures)
@@ -3607,12 +4073,12 @@ class QGISRedLegendsDialog(QDialog, formClass):
 
             realValue = self.determineRealCategoricalValue(value, label)
 
-            # Clone existing symbol to preserve complex structure
+            # Clone existing symbol to preserve complex structure, fallback to default
             lookupKey = value if value not in [self.tr("Other Values"), "Other Values"] else ""
             if lookupKey in existingSymbolMap and existingSymbolMap[lookupKey]:
                 symbol = existingSymbolMap[lookupKey].clone()
             else:
-                symbol = self.templateSymbol(list(existingSymbolMap.values()))
+                symbol = QgsSymbol.defaultSymbol(self.currentLayer.geometryType())
 
             if colorWidget:
                 self.applyColorToSymbol(symbol, colorWidget.activeColor)
@@ -3628,6 +4094,73 @@ class QGISRedLegendsDialog(QDialog, formClass):
         if categories:
             return QgsCategorizedSymbolRenderer(self.currentFieldName, categories)
         return None
+
+    def buildRuleBasedCategoricalRenderer(self):
+        """Rebuild the source rule-based renderer with the table's colors, sizes, labels and visibility.
+
+        Rule filters are kept as they are (including composite ones like the
+        Hydraulic Sectors ClosedLinks split and the hidden NULL rules), so the
+        renderer is never flattened into a categorized one.
+        """
+        renderer = self._sourceRuleRenderer.clone()
+        rootRule = renderer.rootRule()
+
+        ruleByValue = {}
+        for rule in rootRule.children():
+            if _NULL_RULE_LABEL in (rule.label() or ""):
+                continue
+            parsed = parseCategoricalRuleFilter(rule.filterExpression())
+            if parsed:
+                ruleByValue[parsed[1]] = rule
+
+        matchedValues = set()
+        for row in range(self.tableView.rowCount()):
+            checkboxContainer = self.tableView.cellWidget(row, 0)
+            colorContainer = self.tableView.cellWidget(row, 1)
+            sizeWidget = self.tableView.cellWidget(row, 2)
+            valueWidget = self.tableView.cellWidget(row, 3)
+            legendWidget = self.tableView.cellWidget(row, 4)
+
+            checkbox = checkboxContainer.findChild(QCheckBox) if checkboxContainer else None
+            colorWidget = colorContainer.findChild(QGISRedSymbolColorSelector) if colorContainer else None
+
+            value = valueWidget.text() if isinstance(valueWidget, QLineEdit) else ""
+            label = legendWidget.text()
+            checked = checkbox.isChecked() if checkbox else True
+            matchedValues.add(value)
+
+            rule = ruleByValue.get(value)
+            if rule is not None:
+                symbol = rule.symbol().clone() if rule.symbol() else QgsSymbol.defaultSymbol(
+                    self.currentLayer.geometryType()
+                )
+            else:
+                symbol = QgsSymbol.defaultSymbol(self.currentLayer.geometryType())
+
+            if colorWidget:
+                self.applyColorToSymbol(symbol, colorWidget.activeColor)
+            with suppress(Exception):
+                size = float(sizeWidget.text())
+                self.applySizeToSymbol(symbol, size)
+
+            if rule is not None:
+                rule.setSymbol(symbol)
+                rule.setLabel(label)
+                rule.setActive(checked)
+            else:
+                if value == "" or label in [self.tr("Other Values"), "Other Values"]:
+                    filterExpr = "ELSE"
+                else:
+                    filterExpr = f"\"{self.currentFieldName}\" = '{value}'"
+                newRule = QgsRuleBasedRenderer.Rule(symbol, 0, 0, filterExpr, label)
+                newRule.setActive(checked)
+                rootRule.appendChild(newRule)
+
+        for value, rule in ruleByValue.items():
+            if value not in matchedValues:
+                rootRule.removeChild(rule)
+
+        return renderer
 
     def determineRealCategoricalValue(self, value, label):
         if value == "NULL":
@@ -3913,12 +4446,10 @@ class QGISRedLegendsDialog(QDialog, formClass):
             return
 
         folder = os.path.join(projectDir, "layerStyles")
-        # Same lookup setStyle uses, so this finds whatever it would load.
-        path = QGISRedStylingUtils.findStyleFile(folder, [filename])
+        path = os.path.join(folder, filename)
 
-        if not path:
-            QMessageBox.warning(self, self.tr("Not Found"),
-                                self.tr("Style file not found: %1").replace("%1", os.path.join(folder, filename)))
+        if not os.path.exists(path):
+            QMessageBox.warning(self, self.tr("Not Found"), self.tr("Style file not found: %1").replace("%1", path))
             return
 
         strategy = self.readStrategyFromStyleFile(path)
@@ -3954,13 +4485,11 @@ class QGISRedLegendsDialog(QDialog, formClass):
 
         filename = self.getStyleBasename(name) + ".qml" + (".bak" if isDefault else "")
         subfolder = os.path.join("defaults", "layerStyles") if isDefault else "layerStyles"
-        folder = os.path.join(self.pluginFolder if isDefault else self.getQGISRedDirectoryFromUtils(), subfolder)
-        # Same lookup setStyle uses, so this finds whatever it would load.
-        path = QGISRedStylingUtils.findStyleFile(folder, [filename])
+        folder = self.pluginFolder if isDefault else self.getQGISRedDirectoryFromUtils()
+        path = os.path.join(folder, subfolder, filename)
 
-        if not path:
-            QMessageBox.warning(self, self.tr("Not Found"),
-                                self.tr("Style file not found: %1").replace("%1", os.path.join(folder, filename)))
+        if not os.path.exists(path):
+            QMessageBox.warning(self, self.tr("Not Found"), self.tr("Style file not found: %1").replace("%1", path))
             return
 
         strategy = self.readStrategyFromStyleFile(path)
@@ -3984,118 +4513,14 @@ class QGISRedLegendsDialog(QDialog, formClass):
                 return basename
         return name.replace(" ", "")
 
-    def getResultStyleName(self, identifier):
-        """QML name the results dock loads for this layer, e.g. "NodePressure".
-
-        None when the layer is not a result layer. Never derived from layer.name(), which
-        is translated and would yield a different file name in every language.
-        """
-        if identifier.startswith("qgisred_node_"):
-            element = "Node"
-        elif identifier.startswith("qgisred_link_"):
-            element = "Link"
-        else:
-            return None
-        return resultStyleName(element, self.getResultStyleVariable(element)) or None
-
-    def getResultStyleVariable(self, element):
-        """Result variable the layer displays, in English, or None.
-
-        The column the renderer classifies is read straight from the layer being edited,
-        so it cannot go stale. Status is the exception: it classifies through rule filters
-        and exposes no class attribute, and there the project entry answers — the dock
-        rewrites it on every restyle, and so does the metadata reader when reopening.
-        """
-        field = (self.currentFieldName or "").strip()
-        # Flow is classified through abs("Flow"); every other variable is a bare column.
-        match = re.fullmatch(r'abs\(\s*"?(\w+)"?\s*\)', field)
-        if match:
-            field = match.group(1)
-        if re.fullmatch(r'\w+', field):
-            return field
-
-        # The dock only ever works on the Base scenario (see its Scenario assignments).
-        return QgsProject.instance().readEntry("QGISRed", "results_Base_" + element)[0] or None
-
-    # Appearance settings that rewrite a result layer's symbols, with the value that means
-    # "untouched". Decimals and labels also live in that file but change nothing here, so
-    # they must not raise the warning — see hasAppearanceOverrides.
-    _APPEARANCE_SYMBOL_SETTINGS = (
-        ("Symbols", "pipeFactor", "1.0"),
-        ("Symbols", "symbolFactor", "1.0"),
-        ("Symbols", "arrowFactor", "1.0"),
-        ("Symbols", "proportional", "false"),
-        ("Symbols", "nodeBorder", "false"),
-    )
-
-    def appearanceConfigPath(self):
-        """The results dock's appearance file for this network, or None without a project."""
-        if not self.projectDirectory or not self.networkName:
-            return None
-        return os.path.join(self.projectDirectory, DIR_RESULTS,
-                            self.networkName + "_Results_Config.cfg")
-
-    def hasAppearanceOverrides(self):
-        """True when the Appearance tab is currently rewriting the result symbols.
-
-        Read from the file rather than from the dock so the dialog stays independent of it.
-        The mere presence of the file means nothing: it is also written when only decimals
-        or labels change, and warning about those would train the user to ignore this.
-        """
-        path = self.appearanceConfigPath()
-        if not path or not os.path.isfile(path):
-            return False
-        try:
-            root = ET.parse(path).getroot()  # nosec B314 — local file written by this plugin
-        except Exception:
-            return False
-        for section, attribute, default in self._APPEARANCE_SYMBOL_SETTINGS:
-            element = root.find(section)
-            if element is None:
-                continue
-            value = element.get(attribute, default).strip().lower()
-            if value == default:
-                continue
-            if default in ("true", "false"):
-                return True
-            try:
-                # 1, 1.0 and 1.000000 all mean the factor was left alone.
-                if float(value) != float(default):
-                    return True
-            except ValueError:
-                return True
-        return False
-
-    def updateAppearanceWarning(self):
-        """Show the banner only on result layers whose symbols Appearance is rewriting."""
-        isResult = bool(self.currentLayer) and self.isResultsLayer()
-        self.appearanceWarningWidget.setVisible(isResult and self.hasAppearanceOverrides())
-
-    def getStyleNameForIdentifier(self, identifier):
-        """Style name the plugin loads for this layer, or None when it has no file style.
-
-        setStyle() is called with the identifier minus its "qgisred_" prefix for input
-        layers, and with names that reduce to the same thing for sectors, trees and
-        isolated segments ("HydraulicSectors_Links" → HydraulicSectorsLinks.qml). Deriving
-        it the same way here is what makes a style saved from this dialog findable later.
-        Underscores have to go, because setStyle strips them before looking the file up;
-        case does not matter, findStyleFile compares in lowercase.
-
-        Thematic maps are left out on purpose: their styles follow a different scheme
-        (pipe_roughness.qml) resolved by the thematic maps dialog, not by setStyle.
-        """
-        prefix = "qgisred_"
-        if not identifier.startswith(prefix) or identifier.startswith(prefix + "query_"):
-            return None
-        return identifier[len(prefix):].replace("_", "") or None
-
     def getElementNameForIdentifier(self, identifier):
-        resultName = self.getResultStyleName(identifier or "")
-        if resultName:
-            return resultName
-        styleName = self.getStyleNameForIdentifier(identifier or "")
-        if styleName:
-            return styleName
+        utils = self.utils or QGISRedIdentifierUtils()
+        name = utils.identifierToElementName.get(identifier)
+        if name:
+            return name
+        name = utils.identifierToLegendName.get(identifier)
+        if name:
+            return name
         if self.currentLayer:
             return self.currentLayer.name()
         return None
@@ -4470,7 +4895,9 @@ class QGISRedLegendsDialog(QDialog, formClass):
 
     def updateInputLayerRestrictions(self):
         """Disable right-panel batch controls for input layers; apply per-element column rules."""
-        isInput = self.isInputLayer() or self.isSizeOnlyQueryLayer()
+        isInput = self.isInputLayer() or self.isSizeOnlyQueryLayer() or (
+            self.isSingleEditableQueryLayer() and self.currentFieldType == self.FIELD_TYPE_SINGLE
+        )
 
         # Classification panel
         self.cbMode.setEnabled(not isInput)
@@ -4832,6 +5259,13 @@ class QGISRedLegendsDialog(QDialog, formClass):
             if snapshot is not None:
                 self.currentLayer.setRenderer(snapshot.clone())
                 self.currentLayer.triggerRepaint()
+        # Sibling layers recolored by the Hydraulic Sectors sync revert as well.
+        for siblingId in self._syncedSiblingIds:
+            snapshot = self.initialRenderers.get(siblingId)
+            layer = QgsProject.instance().mapLayer(siblingId)
+            if snapshot is not None and layer is not None:
+                layer.setRenderer(snapshot.clone())
+                layer.triggerRepaint()
         self.close()
 
     def reject(self):
