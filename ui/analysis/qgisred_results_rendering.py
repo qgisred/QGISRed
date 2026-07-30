@@ -525,7 +525,16 @@ class _ResultsRenderingMixin:
 
                     self._setMagnitudeLabel(nameLayer, selected_variable_text, unit, field)
 
-                    value_expr = 'abs("Flow")' if field == "Flow" else '"' + field + '"'
+                    if field == "Flow":
+                        value_expr = 'abs("Flow")'
+                    elif field == "Status":
+                        # The map label groups the states into Closed/Active; the tooltip
+                        # shows all 13 as stored. The map tip is HTML, so the comparison
+                        # signs in 'Closed (Q<0)' would be read as a tag and swallow the
+                        # rest of the line — they have to travel as entities.
+                        value_expr = 'replace("Status", array(\'<\', \'>\'), array(\'&lt;\', \'&gt;\'))'
+                    else:
+                        value_expr = '"' + field + '"'
 
                     # NodeType/LinkType and NodeID/LinkID on layers written by a recent DLL;
                     # Type/Id on projects that have not been simulated since the rename.

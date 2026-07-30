@@ -500,6 +500,16 @@ class TestMapTipOccurrenceTime:
         value_line = self._value_line(tip)
         assert value_line.startswith("[%")
 
+    def test_status_tooltip_escapes_the_comparison_signs(self):
+        """The map tip is HTML: a raw '<' in 'Closed (Q<0)' opens a tag and swallows the
+        rest of the line, so the tooltip showed a truncated 'Closed (Q'."""
+        dock = self._make_dock(stats_mode=False)
+        dock.cbLinks.currentText.return_value = "Status"
+        dock._link_field_map = {"Status": "Status"}
+        tip = self._paint_and_get_tip(dock)
+        value_line = next(line for line in tip.split("<br>") if line.startswith('[% replace('))
+        assert "'&lt;'" in value_line and "'&gt;'" in value_line
+
 
 # Regression test for a bug where switching a result variable to/from a rule-based
 # renderer (Status) silently kept the previous style. Root cause: paintIntervalTimeResults
