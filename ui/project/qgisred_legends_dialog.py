@@ -19,7 +19,7 @@ from qgis.core import QgsProject, QgsVectorLayer, QgsMessageLog, Qgis, QgsGradua
 from qgis.core import QgsCategorizedSymbolRenderer, QgsRendererRange, QgsRendererCategory, QgsSymbol
 from qgis.core import QgsLayerTreeGroup, QgsLayerTreeLayer, QgsGradientColorRamp, QgsClassificationJenks
 from qgis.core import QgsClassificationPrettyBreaks, QgsStyle, QgsPresetSchemeColorRamp, QgsProperty, QgsSymbolLayer
-from qgis.core import QgsRuleBasedRenderer, QgsFillSymbolLayer, QgsMapLayerStyle, NULL
+from qgis.core import QgsRuleBasedRenderer, QgsFillSymbolLayer, QgsMapLayerStyle, QgsRandomColorRamp, NULL
 from qgis.utils import iface
 
 from ...compat import WKB_LINE_GEOMETRY, WKB_POINT_GEOMETRY
@@ -1344,11 +1344,11 @@ class QGISRedLegendsDialog(QDialog, formClass):
         if mode == "Palette":
             return self.calculatePaletteColors(rows)
 
-        return [self.generateRandomColor() for _ in range(rows)]
+        return self.generateShuffledRandomColors(rows)
 
     def calculateRandomColors(self, rows, forceRefresh):
         if forceRefresh:
-            return [self.generateRandomColor() for _ in range(rows)]
+            return self.generateShuffledRandomColors(rows)
 
         colors = []
         for row in range(rows):
@@ -1358,6 +1358,13 @@ class QGISRedLegendsDialog(QDialog, formClass):
             else:
                 colors.append(self.generateRandomColor())
         return colors
+
+    def generateShuffledRandomColors(self, count):
+        """N visually distinct colors, QGIS "Shuffle Random Colors" style:
+        evenly spaced hues from a random offset, pleasant sat/val, shuffled."""
+        ramp = QgsRandomColorRamp()
+        ramp.setTotalColorCount(count)
+        return [ramp.color(0.0 if count <= 1 else i / (count - 1)) for i in range(count)]
 
     def calculateRampColors(self, rows):
         ramp = self.btnColorRamp.getActiveRampClone()
