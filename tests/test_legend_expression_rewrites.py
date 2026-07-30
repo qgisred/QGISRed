@@ -9,8 +9,10 @@ import re
 
 import pytest
 
+import QGISRed.ui.project.qgisred_legends_dialog as legendsModule
 from QGISRed.ui.project.qgisred_legends_dialog import (
     DEMAND_POSITIVE_FILL_PATTERN,
+    ISOLATION_VALVE_FILL_TEMPLATE,
     ISOLATION_VALVE_GREEN_PATTERN,
     METER_ACTIVE_FILL_PATTERNS,
     SERVICE_CONNECTION_ACTIVE_FILL_PATTERN,
@@ -102,6 +104,114 @@ class TestIsolationValves:
         _prop, regex = QGISRedLegendsDialog.INPUT_COLOR_READERS["qgisred_isolationvalves"]
         match = re.compile(regex).search(ISOLATION_VALVE_FILL)
         assert match and match.groups() == ("18", "180", "37")
+
+    def test_restore_template_round_trips_with_pattern_and_reader(self):
+        restored = ISOLATION_VALVE_FILL_TEMPLATE.format(green="color_rgb(10,20,30)")
+        # All four status branches are present
+        assert "color_rgb(255,19,19)" in restored
+        assert "color_rgb(246,185,18)" in restored
+        assert "color_rgb(125,139,143)" in restored
+        # The reader finds the green slot again...
+        _prop, regex = QGISRedLegendsDialog.INPUT_COLOR_READERS["qgisred_isolationvalves"]
+        match = re.compile(regex).search(restored)
+        assert match and match.groups() == ("10", "20", "30")
+        # ...and later color edits go back through the normal substitution
+        expr, changed = substituteCapturedGroup(restored, ISOLATION_VALVE_GREEN_PATTERN, "color_rgb(1,2,3)")
+        assert changed and "color_rgb(1,2,3)" in expr and "color_rgb(10,20,30)" not in expr
+
+
+class FakeQgsProperty:
+    ExpressionBasedProperty = object()
+
+    def __init__(self, expr):
+        self.expr = expr
+
+    @classmethod
+    def fromExpression(cls, expr):
+        return cls(expr)
+
+    def propertyType(self):
+        return type(self).ExpressionBasedProperty
+
+    def expressionString(self):
+        return self.expr
+
+
+class FakeSymbolLayer:
+    def __init__(self, expr=None):
+        self._props = {}
+        if expr is not None:
+            self._props[FILL_KEY] = FakeQgsProperty(expr)
+
+    def dataDefinedProperties(self):
+        layer = self
+
+        class _Collection:
+            def property(self, key):
+                return layer._props.get(key)
+
+        return _Collection()
+
+    def setDataDefinedProperty(self, key, prop):
+        self._props[key] = prop
+
+    def fillExpression(self):
+        prop = self._props.get(FILL_KEY)
+        return prop.expr if prop else None
+
+
+class FakeSymbol:
+    def __init__(self, layers):
+        self._layers = layers
+        self.baseColor = None
+
+    def symbolLayerCount(self):
+        return len(self._layers)
+
+    def symbolLayer(self, i):
+        return self._layers[i]
+
+    def setColor(self, color):
+        self.baseColor = color
+
+
+class FakeColor:
+    def red(self):
+        return 10
+
+    def green(self):
+        return 20
+
+    def blue(self):
+        return 30
+
+
+FILL_KEY = legendsModule.QgsSymbolLayer.PropertyFillColor
+
+
+class TestIsolationValvesApplier:
+    def _apply(self, monkeypatch, layer):
+        monkeypatch.setattr(legendsModule, "QgsProperty", FakeQgsProperty)
+        dialog = QGISRedLegendsDialog.__new__(QGISRedLegendsDialog)
+        symbol = FakeSymbol([layer])
+        dialog._applyIsolationValvesLegend(symbol, FakeColor(), None)
+        return symbol
+
+    def test_intact_expression_only_changes_the_green_branch(self, monkeypatch):
+        layer = FakeSymbolLayer(ISOLATION_VALVE_FILL)
+        symbol = self._apply(monkeypatch, layer)
+        assert "color_rgb(10,20,30)" in layer.fillExpression()
+        assert "color_rgb(255,19,19)" in layer.fillExpression()
+        assert "color_rgb(125,139,143)" in layer.fillExpression()
+        assert symbol.baseColor is not None  # panel icon follows the picked color
+
+    def test_lost_expression_is_restored_with_the_picked_color(self, monkeypatch):
+        layer = FakeSymbolLayer(expr=None)
+        self._apply(monkeypatch, layer)
+        restored = layer.fillExpression()
+        assert restored == ISOLATION_VALVE_FILL_TEMPLATE.format(green="color_rgb(10,20,30)")
+        # The status branches are back, so closed/unavailable valves recolor again
+        assert "'CLOSED'" in restored and '"Available"!=0' in restored
 
 
 class TestMultipleDemands:

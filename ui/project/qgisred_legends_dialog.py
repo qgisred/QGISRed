@@ -139,6 +139,16 @@ SERVICE_CONNECTION_ACTIVE_FILL_PATTERN = re.compile(
 ISOLATION_VALVE_GREEN_PATTERN = re.compile(
     r"\"?LossCoeff\"?\s*=\s*0\s*,\s*(color_rgb\(\s*\d+\s*,\s*\d+\s*,\s*\d+\s*\))"
 )
+# The shipped Isolation Valves fill expression (defaults/layerStyles/IsolationValves.qml.bak):
+# red when closed, {green} when open without loss, amber with loss, grey when
+# not available. Used to restore the expression on symbols that lost it.
+ISOLATION_VALVE_FILL_TEMPLATE = (
+    'if( "Available"!=0,'
+    "if( coalesce(attribute($currentfeature,'IniStatus'),attribute($currentfeature,'Status'))='CLOSED',"
+    "color_rgb(255,19,19),"
+    ' if("LossCoeff" = 0, {green},color_rgb(246,185,18))),'
+    "color_rgb(125,139,143))"
+)
 # The positive-demand branch of the Multiple Demands fill expression (the
 # '#fdbf6f' slot, like Junctions). The negative color and white base stay fixed.
 DEMAND_POSITIVE_FILL_PATTERN = re.compile(
@@ -3654,7 +3664,9 @@ class QGISRedLegendsDialog(QDialog, formClass):
 
         Unlike _setExpressionOnLayers this keeps the rest of the expression
         (coalesce/with_variable retro-compat wrappers) untouched.
+        Returns True when at least one expression changed.
         """
+        anyChanged = False
         for i in range(symbol.symbolLayerCount()):
             sl = symbol.symbolLayer(i)
             existing = sl.dataDefinedProperties().property(propertyKey)
@@ -3662,8 +3674,25 @@ class QGISRedLegendsDialog(QDialog, formClass):
                 newExpr, changed = substituteCapturedGroup(existing.expressionString(), pattern, newText)
                 if changed:
                     sl.setDataDefinedProperty(propertyKey, QgsProperty.fromExpression(newExpr))
+                    anyChanged = True
             if hasattr(sl, 'subSymbol') and sl.subSymbol():
-                self._substituteExpressionOnLayers(sl.subSymbol(), propertyKey, pattern, newText)
+                if self._substituteExpressionOnLayers(sl.subSymbol(), propertyKey, pattern, newText):
+                    anyChanged = True
+        return anyChanged
+
+    def _forceExpressionOnLayers(self, symbol, propertyKey, expression):
+        """Set the data-defined expression on every symbol layer (recursive), creating it when missing.
+
+        Repair path for symbols that lost their expression (older builds
+        applied flat colors over it): _setExpressionOnLayers and
+        _substituteExpressionOnLayers only touch existing expressions.
+        """
+        newProp = QgsProperty.fromExpression(expression)
+        for i in range(symbol.symbolLayerCount()):
+            sl = symbol.symbolLayer(i)
+            sl.setDataDefinedProperty(propertyKey, newProp)
+            if hasattr(sl, 'subSymbol') and sl.subSymbol():
+                self._forceExpressionOnLayers(sl.subSymbol(), propertyKey, expression)
 
     def _lightenColor(self, color, fraction):
         red = int(color.red() + (255 - color.red()) * fraction)
@@ -3888,9 +3917,22 @@ class QGISRedLegendsDialog(QDialog, formClass):
             rgb = f"color_rgb({color.red()},{color.green()},{color.blue()})"
             # Only the "LossCoeff" = 0 green branch changes; the closed/loss/unavailable
             # colors and any coalesce() retro-compat wrapper stay as they are.
-            self._substituteExpressionOnLayers(
+            changed = self._substituteExpressionOnLayers(
                 symbol, QgsSymbolLayer.PropertyFillColor, ISOLATION_VALVE_GREEN_PATTERN, rgb
             )
+            if not changed:
+                # The status expression is gone (older builds applied flat colors
+                # over it, freezing every valve on one color): restore the shipped
+                # expression with the picked color in the green slot so closed /
+                # with-loss / unavailable valves get their status colors back.
+                self._forceExpressionOnLayers(
+                    symbol,
+                    QgsSymbolLayer.PropertyFillColor,
+                    ISOLATION_VALVE_FILL_TEMPLATE.format(green=rgb),
+                )
+            # Keep the base color in sync: the Layers Panel icon shows it, and
+            # QGIS falls back to it if the expression ever fails to evaluate.
+            symbol.setColor(color)
         if size is not None:
             self.applySizeToSymbol(symbol, size)
 
