@@ -1,7 +1,6 @@
 # -*- coding: utf-8 -*-
 from contextlib import suppress
 import os
-import datetime
 import json
 import shutil
 import tempfile
@@ -19,7 +18,7 @@ from qgis.core import (
 )
 from .qgisred_ui_utils import QGISRedUIUtils
 from .qgisred_filesystem_utils import (
-    DIR_ISSUES, DIR_QUERIES, DIR_RESULTS, DIR_BACKUPS,
+    DIR_ISSUES, DIR_QUERIES, DIR_RESULTS,
     LAYER_TYPE_CONFIG,
 )
 
@@ -708,20 +707,6 @@ class QGISRedProjectIO:
 
     """Zip"""
 
-    def saveFilesInZip(self, zipPath):
-        fs = self._fs()
-        filePaths = []
-        for f in os.listdir(self.ProjectDirectory):
-            filepath = os.path.join(self.ProjectDirectory, f)
-            if os.path.isfile(filepath):
-                filePaths.append(fs.getUniformedPath(filepath))
-
-        with ZipFile(zipPath, "w", ZIP_DEFLATED) as zipFile:
-            for file in filePaths:
-                if self._fs().getUniformedPath(self.ProjectDirectory) + os.sep + self.NetworkName + "_" in file:
-                    relPath = os.path.relpath(file, self.ProjectDirectory)
-                    zipFile.write(file, relPath)
-
     def exportProjectToZip(self, zipPath, includeExternal=True, includeGroups=None):
         """Comprehensive export of the project to a ZIP file. Returns (ok, reason, manifest).
 
@@ -788,18 +773,6 @@ class QGISRedProjectIO:
         except Exception:
             if os.path.exists(temp_path):
                 os.remove(temp_path)
-
-    def saveBackup(self):
-        dirpath = os.path.join(self.ProjectDirectory, DIR_BACKUPS)
-        if not os.path.exists(dirpath):
-            with suppress(Exception):
-                os.mkdir(dirpath)
-
-        timeString = datetime.datetime.now().timestamp()
-        zipPath = os.path.join(dirpath, self.NetworkName + "_" + str(timeString) + ".zip")
-
-        self.saveFilesInZip(zipPath)
-        return zipPath
 
     """QLR Operations"""
 

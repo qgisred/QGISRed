@@ -452,7 +452,7 @@ class QGISRedProjectManagerDialog(QDialog, FORM_CLASS):
             return
         # Single orchestration lives in ProjectManagementSection so the menu command and this
         # button behave identically. Messages go to this dialog's banner, since it stays modal.
-        self.parent.runExportProjectFor(project, name, pushMessage=self._pushExportMessage, parent=self)
+        self.parent.runExportProjectFor(project, name, report=self._pushExportMessage, parent=self)
 
     def _pushExportMessage(self, text, level=0, duration=5):
         titles = {0: "QGISRed", 1: self.tr("Warning"), 2: self.tr("Error"), 3: "QGISRed"}

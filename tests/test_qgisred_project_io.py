@@ -52,30 +52,12 @@ class TestProjectIO:
         assert lines[1] == "OldNet;C:/old"
         assert lines[2] == "OtherNet;C:/other"
 
-    def test_saveFilesInZip(self, io_utils, temp_project_dir):
-        # Create some files in project dir
-        with open(os.path.join(temp_project_dir, "testNet_data.shp"), "w") as f:
-            f.write("data")
-        with open(os.path.join(temp_project_dir, "other.txt"), "w") as f:
-            f.write("other")
-            
-        zip_path = os.path.join(temp_project_dir, "backup.zip")
-        
-        # We need to mock _fs() to return a mock that handles getUniformedPath
-        mock_fs = MagicMock()
-        mock_fs.getUniformedPath.side_effect = lambda x: x.replace("/", os.sep)
-        
-        with patch.object(QGISRedProjectIO, '_fs', return_value=mock_fs):
-            io_utils.saveFilesInZip(zip_path)
-        
-        assert os.path.exists(zip_path)
-        with ZipFile(zip_path, "r") as z:
-            names = z.namelist()
-            # Only files starting with NetworkName_ should be included
-            # Check the logic in saveFilesInZip:
-            # if fs.getUniformedPath(self.ProjectDirectory) + "\\" + self.NetworkName + "_" in file:
-            assert any("testNet_data.shp" in n for n in names)
-            assert not any("other.txt" in n for n in names)
+    def test_backup_helpers_are_gone(self, io_utils):
+        """The "Project backup" command was removed: it only zipped the loose files at the root of
+        the project folder (no .qgz, no Issues/Queries/Results, no complementary data) and there was
+        no way to restore it. Export covers all of that, and restoring is importing the ZIP back."""
+        assert not hasattr(io_utils, "saveBackup")
+        assert not hasattr(io_utils, "saveFilesInZip")
 
     def test_unzipFile(self, io_utils, temp_project_dir):
         # Create a zip

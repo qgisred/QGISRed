@@ -868,6 +868,31 @@ class TestImportTabWiring:
             assert forbidden not in source
 
 
+class TestBackupIsGone:
+    """"Project backup" was removed and Export does not take its place in the menu: exporting lives
+    only in the Project Manager. The menu is built in initGui() and needs a live iface, so its
+    contents are checked statically."""
+
+    def _sectionsFolder(self):
+        return os.path.join(os.path.dirname(os.path.dirname(os.path.abspath(__file__))), "sections")
+
+    def test_the_backup_command_is_gone(self):
+        from QGISRed.sections.project_management_section import ProjectManagementSection
+        assert not hasattr(ProjectManagementSection, "runCreateBackup")
+        assert hasattr(ProjectManagementSection, "runExportProjectFor")
+
+    def test_the_project_menu_offers_neither_backup_nor_export(self):
+        with open(os.path.join(self._sectionsFolder(), "menu_section.py"), encoding="utf-8") as f:
+            source = f.read()
+        assert "runCreateBackup" not in source
+        assert "Project backup" not in source
+        assert "runExportProject" not in source
+
+    def test_the_project_manager_is_the_only_entry_point(self):
+        from QGISRed.ui.general.qgisred_projectmanager_dialog import QGISRedProjectManagerDialog
+        assert "runExportProjectFor" in QGISRedProjectManagerDialog.exportData.__code__.co_names
+
+
 class TestFileSystemHelpers:
     def test_downloads_folder_falls_back_to_an_existing_folder(self):
         from QGISRed.tools.utils.qgisred_filesystem_utils import QGISRedFileSystemUtils

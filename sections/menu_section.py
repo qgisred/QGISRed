@@ -235,15 +235,6 @@ class MenuSection:
         self.add_to_dropdown(action, projectDropButton)
 
         action = self._make_action(
-            ":/images/iconBackUpProject.svg",
-            self.tr("Project backup"),
-            self.runCreateBackup,
-            parent=self.iface.mainWindow(),
-        )
-        self.add_to_group(action, self.projectMenu, self.projectToolbar)
-        self.add_to_dropdown(action, projectDropButton)
-
-        action = self._make_action(
             ":/images/iconCloseProject.svg",
             self.tr("Close project"),
             self.runCloseProject,

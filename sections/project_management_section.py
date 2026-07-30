@@ -662,30 +662,17 @@ class ProjectManagementSection:
         else:
             self.iface.mainWindow().findChild(QAction, "mActionSaveProject").trigger()
 
-    def runCreateBackup(self):
-        self.defineCurrentProject()
-        if not self.isValidProject():
-            return
-        if self.isLayerOnEdition():
-            return
-
-        io = QGISRedProjectIO(self.ProjectDirectory, self.NetworkName, self.iface)
-        path = io.saveBackup()
-        self.pushMessage(self.tr("Backup stored in:") + " " + path, level=3, duration=5)
-
-    def runExportProjectFor(self, projectDirectory, networkName, pushMessage=None, parent=None):
-        """Exports one project to a portable ZIP. Single entry point for every Export command.
+    def runExportProjectFor(self, projectDirectory, networkName, report, parent):
+        """Exports one project to a portable ZIP. Invoked from the Project Manager's Export button.
 
         projectDirectory/networkName let this run on any project in the Project Manager list, not
-        only the open one. pushMessage receives (text, level, duration) — pass the dialog's own
-        reporter when called from a modal dialog so the message is visible.
+        only the open one. report(text, level, duration) and parent are required because the caller
+        is a modal dialog: messages have to go to its own banner and the sub-dialogs have to be
+        parented to it, or they would appear behind it.
         """
         from ..tools.utils.qgisred_project_export import QGISRedProjectPackage, REASON_QGZ_OUTSIDE
         from ..ui.general.qgisred_exportproject_dialog import QGISRedExportProjectDialog
         from ..compat import DIALOG_ACCEPTED
-
-        report = pushMessage or (lambda text, level=0, duration=5: self.pushMessage(text, level, duration))
-        parent = parent or self.iface.mainWindow()
 
         package = QGISRedProjectPackage(projectDirectory, networkName, self.iface)
         plan = package.inspectForExport()
