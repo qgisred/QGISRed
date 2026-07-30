@@ -1,5 +1,5 @@
 # -*- coding: utf-8 -*-
-from qgis.PyQt.QtWidgets import QFileDialog, QDialog, QApplication
+from qgis.PyQt.QtWidgets import QFileDialog, QDialog, QApplication, QMessageBox
 from qgis.PyQt.QtCore import Qt
 from qgis.PyQt.QtGui import QIcon
 from qgis.core import QgsVectorLayer, QgsCoordinateReferenceSystem
@@ -9,11 +9,14 @@ from qgis.gui import QgsProjectionSelectionDialog as QgsGenericProjectionSelecto
 from ...tools.utils.qgisred_layer_utils import QGISRedLayerUtils
 from ...tools.utils.qgisred_filesystem_utils import QGISRedFileSystemUtils
 from ...tools.utils.qgisred_project_io import QGISRedProjectIO
+from ...tools.utils.qgisred_project_export import (
+    QGISRedProjectPackage,
+    REASON_NO_PIPES_IN_ZIP, REASON_SCHEMA_TOO_NEW, REASON_UNSAFE_MEMBER,
+)
 from ...tools.utils.qgisred_identifier_utils import QGISRedIdentifierUtils
 from ...tools.utils.qgisred_ui_utils import QGISRedBanner, QGISRedUIUtils
 from ...tools.qgisred_dependencies import QGISRedDependencies as GISRed
 import os
-import tempfile
 
 
 FORM_CLASS, _ = uic.loadUiType(os.path.join(os.path.dirname(__file__), "qgisred_import_dialog.ui"))
@@ -27,6 +30,7 @@ class QGISRedImportDialog(QDialog, FORM_CLASS):
     ProjectDirectory = ""
     InpFile = ""
     ZipFile = ""
+    ZipInspection = None
     gplFile = ""
     ownMainLayers = ["Pipes", "Valves", "Pumps", "Junctions", "Tanks", "Reservoirs", "Demands", "Sources"]
     ownFiles = ["DefaultValues", "Options", "Rules", "Controls", "Curves", "Patterns"]
@@ -60,6 +64,8 @@ class QGISRedImportDialog(QDialog, FORM_CLASS):
         # QGISRed project
         self.btSelectZip.clicked.connect(self.selectZIP)
         self.btImportProject.clicked.connect(self.importProject)
+        # Nothing is known about the archive until one is picked
+        self.cbImportExternalData.setVisible(False)
         # Hide project name/CRS fields when the QGISRed Project (ZIP) tab is active
         self._addDataMode = False
         self.tabWidget.currentChanged.connect(self.onTabChanged)
@@ -1256,76 +1262,156 @@ class QGISRedImportDialog(QDialog, FORM_CLASS):
     """QGISRED PROJECT SECTION"""
 
     def selectZIP(self):
-        qfd = QFileDialog()
-        path = ""
-        filter = "zip(*.zip)"
-        f = QFileDialog.getOpenFileName(qfd, "Select ZIP file", path, filter)
-        f = f[0]
-        if not f == "":
-            self.ZipFile = f
-            self.tbZipFile.setText(f)
-            # self.tbZipFile.setCursorPosition(0)
+        path = self.tbZipFile.text() or ""
+        f, _ = QFileDialog.getOpenFileName(self, self.tr("Select ZIP file"), path, "zip(*.zip)")
+        if not f:
+            return
+        self.ZipFile = f
+        self.tbZipFile.setText(f)
+        self.inspectZipFile()
 
-    def importProject(self):
-        pass
-        # Common validations
-        isValid = self.validationsCreateProject(False)
-        if isValid:
-            # Validations ZIP
-            self.ZipFile = self.tbZipFile.text()
-            if len(self.ZipFile) == 0:
-                self.pushMessage(self.tr("Validations"), self.tr("ZIP file is not valid"), level=1)
-                return
-            else:
-                if not os.path.exists(self.ZipFile):
-                    self.pushMessage(self.tr("Validations"), self.tr("ZIP file does not exist"), level=1)
-                    return
-
-            # Unzip (dialog kept open so validation messages remain visible)
-            QApplication.setOverrideCursor(Qt.CursorShape.WaitCursor)
-            tempFolder = tempfile._get_default_tempdir() + "\\" + next(tempfile._get_candidate_names())
-            QGISRedProjectIO().unzipFile(self.ZipFile, tempFolder)
+    def inspectZipFile(self):
+        """Reads the ZIP index (without extracting) and reports what it holds."""
+        QApplication.setOverrideCursor(Qt.CursorShape.WaitCursor)
+        try:
+            self.ZipInspection = QGISRedProjectPackage.inspectZip(self.ZipFile)
+        finally:
             QApplication.restoreOverrideCursor()
 
-            validProject = False
-            for f in os.listdir(tempFolder):
-                filepath = os.path.join(tempFolder, f)
-                if "_Pipes.shp" in filepath:
-                    validProject = True
-                    self.NetworkName = f.replace("_Pipes.shp", "")
-                    break
+        inspection = self.ZipInspection
+        if not inspection.isValid:
+            self.lbZipInfo.setText("")
+            self.cbImportExternalData.setVisible(False)
+            self.pushMessage(self.tr("Warning"), self.zipReasonMessage(inspection.reason), level=1)
+            return
 
-            if not validProject:
-                QGISRedFileSystemUtils().removeFolder(tempFolder)
-                self.pushMessage(self.tr("Warning"), self.tr("ZIP file does not contain a valid QGISRed project"), level=1)
-                return
+        self.lbZipInfo.setText(self.describeZip(inspection))
+        self.cbImportExternalData.setVisible(inspection.hasExternalData)
+        self.cbImportExternalData.setChecked(inspection.hasExternalData)
 
-            # Create a subfolder named after the network stored in the ZIP
-            if self.cbCreateSubfolder.isChecked():
-                subFolder = os.path.join(self.ProjectDirectory, self.NetworkName)
-                if os.path.exists(subFolder):
-                    dirList = os.listdir(subFolder)
-                    for name in self.ownMainLayers:
-                        if self.NetworkName + "_" + name + ".shp" in dirList:
-                            QGISRedFileSystemUtils().removeFolder(tempFolder)
-                            message = self.tr("The selected folder has some files with the same project name.")
-                            self.pushMessage(self.tr("Validations"), message, level=1)
-                            return
-                os.makedirs(subFolder, exist_ok=True)
-                self.ProjectDirectory = subFolder
+        # A ZIP that already carries its own project folder must not be nested inside another one,
+        # or the project would end up at <folder>/<Net>/<Net>.
+        if inspection.hasOwnRootFolder:
+            self.cbCreateSubfolder.setChecked(False)
+            self.cbCreateSubfolder.setEnabled(False)
+            self.cbCreateSubfolder.setToolTip(
+                self.tr("The ZIP file already contains its own project folder.")
+            )
+        else:
+            self.cbCreateSubfolder.setEnabled(True)
+            self.cbCreateSubfolder.setToolTip("")
 
-            self.close()
-            # Process
-            self.parent.zoomToFullExtent = True
-            QGISRedFileSystemUtils().copyFolderFiles(tempFolder, self.ProjectDirectory)
-            QGISRedFileSystemUtils().removeFolder(tempFolder)
-            self.parent.ProjectDirectory = self.ProjectDirectory
-            self.parent.NetworkName = self.NetworkName
+    def zipReasonMessage(self, reason):
+        if reason == REASON_NO_PIPES_IN_ZIP:
+            return self.tr("ZIP file does not contain a valid QGISRed project")
+        if reason == REASON_SCHEMA_TOO_NEW:
+            return self.tr("This ZIP file was created with a newer version of QGISRed. Please update the plugin.")
+        if reason == REASON_UNSAFE_MEMBER:
+            return self.tr("The ZIP file contains unsafe file paths and will not be imported.")
+        return self.tr("The ZIP file could not be read:") + " " + str(reason)
 
-            # Write .gql file
-            QGISRedProjectIO().addProjectToGplFile(self.gplFile, self.NetworkName, self.ProjectDirectory)
+    def describeZip(self, inspection):
+        """Rich-text summary of the archive, shown under the file picker."""
+        lines = [self.tr("Project: <b>%1</b>").replace("%1", inspection.networkName)]
+        if inspection.hasQgisProject:
+            lines.append(self.tr("Includes the QGIS map project (%1)").replace("%1", inspection.qgisProjectRel))
+        else:
+            lines.append(self.tr("Does not include a QGIS map project: only the data will be imported."))
+        if inspection.hasExternalData:
+            lines.append(
+                self.tr("Complementary data: %1 item(s), %2")
+                .replace("%1", str(len(inspection.externalRel)))
+                .replace("%2", QGISRedUIUtils.formatSize(inspection.externalSizeBytes))
+            )
+        return "<br>".join(lines)
 
-            # Open files
-            io = QGISRedProjectIO(self.ProjectDirectory, self.NetworkName, self.iface)
-            io.openProjectInQgis()
-            QGISRedIdentifierUtils(self.ProjectDirectory, self.NetworkName, self.iface).enforceAllIdentifiers()
+    def importProject(self):
+        # Common validations
+        if not self.validationsCreateProject(False):
+            return
+
+        self.ZipFile = self.tbZipFile.text()
+        if len(self.ZipFile) == 0:
+            self.pushMessage(self.tr("Validations"), self.tr("ZIP file is not valid"), level=1)
+            return
+        if not os.path.exists(self.ZipFile):
+            self.pushMessage(self.tr("Validations"), self.tr("ZIP file does not exist"), level=1)
+            return
+
+        if self.ZipInspection is None:
+            self.inspectZipFile()
+        inspection = self.ZipInspection
+        if inspection is None or not inspection.isValid:
+            return  # inspectZipFile already reported why
+
+        self.NetworkName = inspection.networkName
+        destinationRoot = self.ProjectDirectory
+        if self.cbCreateSubfolder.isChecked() and not inspection.hasOwnRootFolder:
+            destinationRoot = os.path.join(destinationRoot, self.NetworkName)
+        includeExternal = inspection.hasExternalData and self.cbImportExternalData.isChecked()
+
+        if not self.confirmOverwrite(inspection, destinationRoot, includeExternal):
+            return
+
+        self.close()
+        # Process
+        self.parent.zoomToFullExtent = True
+        QApplication.setOverrideCursor(Qt.CursorShape.WaitCursor)
+        try:
+            self.ProjectDirectory = QGISRedProjectPackage.extractZip(
+                self.ZipFile, destinationRoot, inspection, includeExternal=includeExternal
+            )
+        finally:
+            QApplication.restoreOverrideCursor()
+
+        self.parent.ProjectDirectory = self.ProjectDirectory
+        self.parent.NetworkName = self.NetworkName
+
+        # Write .gql file
+        QGISRedProjectIO().addProjectToGplFile(self.gplFile, self.NetworkName, self.ProjectDirectory)
+
+        # Open files
+        io = QGISRedProjectIO(self.ProjectDirectory, self.NetworkName, self.iface)
+        io.openProjectInQgis()
+        QGISRedIdentifierUtils(self.ProjectDirectory, self.NetworkName, self.iface).enforceAllIdentifiers()
+
+        if inspection.hasQgisProject and not includeExternal:
+            # Hand over to QGIS's own "Handle unavailable layers" dialog rather than trying to
+            # repair paths we deliberately did not bring along.
+            QGISRedUIUtils.showGlobalMessage(
+                self.iface,
+                self.tr("Some background layers are not in this file. QGIS will ask you to locate them."),
+                level=1,
+                duration=10,
+            )
+
+    def confirmOverwrite(self, inspection, destinationRoot, includeExternal):
+        """Asks once about the files that already exist. Nothing is written if the user declines."""
+        _targets, conflicts = QGISRedProjectPackage.planExtraction(
+            inspection, destinationRoot, includeExternal
+        )
+        if not conflicts:
+            return True
+
+        projectExists = os.path.exists(
+            os.path.join(destinationRoot, inspection.projectFolderRel.replace("/", os.sep),
+                         inspection.networkName + "_Pipes.shp")
+        )
+        if projectExists:
+            question = self.tr("A project named '%1' already exists in the destination folder. "
+                               "Do you want to overwrite it?").replace("%1", inspection.networkName)
+        else:
+            shown = conflicts[:5]
+            question = self.tr("These files already exist in the destination folder:") + "\n\n"
+            question += "\n".join(shown)
+            if len(conflicts) > len(shown):
+                question += "\n" + self.tr("and %1 more").replace("%1", str(len(conflicts) - len(shown)))
+            question += "\n\n" + self.tr("Do you want to overwrite them?")
+
+        request = QMessageBox.question(
+            self,
+            self.tr("QGISRed"),
+            question,
+            QMessageBox.StandardButtons(QMessageBox.StandardButton.Yes | QMessageBox.StandardButton.No),
+        )
+        return request == QMessageBox.StandardButton.Yes

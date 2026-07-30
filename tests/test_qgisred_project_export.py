@@ -17,6 +17,7 @@ from QGISRed.tools.utils.qgisred_project_export import (
     STRUCTURE_PROJECT, STRUCTURE_PARENT,
     SCOPE_PROJECT, SCOPE_SIBLING, SCOPE_OUTSIDE,
     REASON_QGZ_OUTSIDE, REASON_EXTERNAL_OUTSIDE, REASON_EXTERNAL_EXCLUDED,
+    REASON_NO_PIPES_IN_ZIP, REASON_SCHEMA_TOO_NEW, REASON_UNSAFE_MEMBER,
     MANIFEST_NAME, SCHEMA_VERSION,
 )
 
@@ -589,6 +590,221 @@ class TestPerLayerExternalSelection:
             shutil.rmtree(other, ignore_errors=True)
 
 
+def _writeZip(path, entries):
+    """entries: {memberName: content}"""
+    os.makedirs(os.path.dirname(path), exist_ok=True)
+    with ZipFile(path, "w", ZIP_DEFLATED) as zout:
+        for name, content in entries.items():
+            zout.writestr(name, content)
+    return path
+
+
+class TestInspectZip:
+    def test_a_manifest_makes_the_layout_explicit(self, workspace):
+        projectDir, _ = _makeProject(workspace, qgzAt="parent")
+        zipPath = os.path.join(workspace, "out", "export.zip")
+        ok, reason, manifest = QGISRedProjectPackage(projectDir, NET).exportToZip(zipPath)
+        assert ok, reason
+
+        inspection = QGISRedProjectPackage.inspectZip(zipPath)
+        assert inspection.isValid
+        assert inspection.manifest is not None
+        assert inspection.structure == STRUCTURE_PARENT
+        assert inspection.projectFolderRel == NET
+        assert inspection.networkName == NET
+        assert inspection.qgisProjectRel == NET + ".qgz"
+        assert inspection.rootPrefix == ""
+        assert manifest["structure"] == inspection.structure
+
+    def test_external_data_is_listed_with_its_size(self, workspace):
+        _touch(os.path.join(workspace, "DTM", "mdt.tif"), "x" * 500)
+        projectDir, _ = _makeProject(workspace, qgzAt="project",
+                                     datasources=[("../DTM/mdt.tif", "MDT")])
+        zipPath = os.path.join(workspace, "out", "export.zip")
+        assert QGISRedProjectPackage(projectDir, NET).exportToZip(zipPath)[0]
+
+        inspection = QGISRedProjectPackage.inspectZip(zipPath)
+        assert inspection.hasExternalData
+        assert inspection.externalRel == ["DTM/mdt.tif"]
+        assert inspection.externalSizeBytes == 500
+        assert inspection.projectSizeBytes > 0
+
+    def test_a_legacy_flat_zip_is_read_as_structure_a(self, workspace):
+        """What older versions produced: a flat archive, no manifest, ExternalLayers inside."""
+        zipPath = _writeZip(os.path.join(workspace, "legacy.zip"), {
+            NET + "_Pipes.shp": "x",
+            NET + "_Metadata.txt": METADATA_TEMPLATE.format(qgis=NET + ".qgz"),
+            NET + ".qgz": "x",
+            "ExternalLayers/ortho.tif": "x",
+        })
+        inspection = QGISRedProjectPackage.inspectZip(zipPath)
+
+        assert inspection.isValid
+        assert inspection.manifest is None
+        assert inspection.structure == STRUCTURE_PROJECT
+        assert inspection.projectFolderRel == ""
+        assert inspection.networkName == NET
+        assert inspection.qgisProjectRel == NET + ".qgz"
+        # ExternalLayers is part of the project folder in a flat archive, not separate data
+        assert inspection.externalRel == []
+
+    def test_a_rooted_zip_without_a_manifest_is_read_as_structure_b(self, workspace):
+        zipPath = _writeZip(os.path.join(workspace, "rooted.zip"), {
+            NET + "/" + NET + "_Pipes.shp": "x",
+            NET + "/" + NET + "_Metadata.txt": METADATA_TEMPLATE.format(qgis="../" + NET + ".qgz"),
+            NET + ".qgz": "x",
+            "DTM/mdt.tif": "x",
+        })
+        inspection = QGISRedProjectPackage.inspectZip(zipPath)
+
+        assert inspection.isValid
+        assert inspection.structure == STRUCTURE_PARENT
+        assert inspection.projectFolderRel == NET
+        assert inspection.qgisProjectRel == NET + ".qgz"
+        assert inspection.externalRel == ["DTM"]
+
+    def test_a_re_wrapped_archive_keeps_its_internal_layout(self, workspace):
+        """Someone extracted an export and zipped the folder again, so everything sits one level
+        deeper. The relative layout is intact, so the paths just gain the wrapper prefix."""
+        projectDir, _ = _makeProject(workspace, qgzAt="parent")
+        plain = os.path.join(workspace, "out", "export.zip")
+        assert QGISRedProjectPackage(projectDir, NET).exportToZip(plain)[0]
+        with ZipFile(plain, "r") as zin:
+            entries = {"wrapper/" + name: zin.read(name) for name in zin.namelist()}
+        rewrapped = _writeZip(os.path.join(workspace, "out", "rewrapped.zip"), entries)
+
+        inspection = QGISRedProjectPackage.inspectZip(rewrapped)
+        assert inspection.isValid
+        assert inspection.rootPrefix == "wrapper/"
+        assert inspection.projectFolderRel == "wrapper/" + NET
+        assert inspection.qgisProjectRel == "wrapper/" + NET + ".qgz"
+
+    def test_an_archive_without_a_project_is_rejected(self, workspace):
+        zipPath = _writeZip(os.path.join(workspace, "junk.zip"), {"readme.txt": "nothing here"})
+        inspection = QGISRedProjectPackage.inspectZip(zipPath)
+        assert not inspection.isValid
+        assert inspection.reason == REASON_NO_PIPES_IN_ZIP
+
+    def test_a_future_schema_is_refused_rather_than_guessed(self, workspace):
+        zipPath = _writeZip(os.path.join(workspace, "future.zip"), {
+            NET + "_Pipes.shp": "x",
+            MANIFEST_NAME: json.dumps({"schema": SCHEMA_VERSION + 1, "networkName": NET}),
+        })
+        inspection = QGISRedProjectPackage.inspectZip(zipPath)
+        assert not inspection.isValid
+        assert inspection.reason == REASON_SCHEMA_TOO_NEW
+
+    @pytest.mark.parametrize("member", ["../evil.txt", "a/../../evil.txt", "/etc/evil"])
+    def test_an_escaping_member_rejects_the_whole_archive(self, workspace, member):
+        zipPath = _writeZip(os.path.join(workspace, "evil.zip"), {
+            NET + "_Pipes.shp": "x",
+            member: "pwned",
+        })
+        inspection = QGISRedProjectPackage.inspectZip(zipPath)
+        assert not inspection.isValid
+        assert inspection.reason == REASON_UNSAFE_MEMBER
+
+    def test_a_missing_file_is_reported_not_raised(self, workspace):
+        inspection = QGISRedProjectPackage.inspectZip(os.path.join(workspace, "nope.zip"))
+        assert not inspection.isValid
+        assert inspection.reason
+
+
+class TestExtractZip:
+    def _exported(self, workspace, qgzAt, datasources=(), groups=()):
+        projectDir, _ = _makeProject(workspace, qgzAt=qgzAt, datasources=datasources, groups=groups)
+        zipPath = os.path.join(workspace, "out", "export.zip")
+        ok, reason, _manifest = QGISRedProjectPackage(projectDir, NET).exportToZip(zipPath)
+        assert ok, reason
+        return zipPath
+
+    def test_structure_a_lands_directly_in_the_destination(self, workspace):
+        zipPath = self._exported(workspace, "project")
+        dest = os.path.join(workspace, "dest")
+        inspection = QGISRedProjectPackage.inspectZip(zipPath)
+
+        projectDir = QGISRedProjectPackage.extractZip(zipPath, dest, inspection)
+
+        assert norm(projectDir) == norm(dest)
+        assert os.path.isfile(os.path.join(dest, NET + "_Pipes.shp"))
+        assert os.path.isfile(os.path.join(dest, NET + ".qgz"))
+        assert not os.path.exists(os.path.join(dest, MANIFEST_NAME))
+
+    def test_structure_b_rebuilds_the_sibling_folders(self, workspace):
+        _touch(os.path.join(workspace, "DTM", "mdt.tif"))
+        # The .qgz sits in the parent folder, so its datasources are relative to it
+        zipPath = self._exported(workspace, "parent", datasources=[("DTM/mdt.tif", "MDT")])
+        dest = os.path.join(workspace, "dest")
+        inspection = QGISRedProjectPackage.inspectZip(zipPath)
+
+        projectDir = QGISRedProjectPackage.extractZip(zipPath, dest, inspection)
+
+        assert norm(projectDir) == norm(os.path.join(dest, NET))
+        assert os.path.isfile(os.path.join(dest, NET, NET + "_Pipes.shp"))
+        assert os.path.isfile(os.path.join(dest, NET + ".qgz"))
+        assert os.path.isfile(os.path.join(dest, "DTM", "mdt.tif"))
+
+    def test_external_data_can_be_left_out_without_touching_the_project(self, workspace):
+        _touch(os.path.join(workspace, "DTM", "mdt.tif"))
+        # The .qgz sits in the parent folder, so its datasources are relative to it
+        zipPath = self._exported(workspace, "parent", datasources=[("DTM/mdt.tif", "MDT")])
+        dest = os.path.join(workspace, "dest")
+        inspection = QGISRedProjectPackage.inspectZip(zipPath)
+
+        QGISRedProjectPackage.extractZip(zipPath, dest, inspection, includeExternal=False)
+
+        assert not os.path.exists(os.path.join(dest, "DTM"))
+        assert os.path.isfile(os.path.join(dest, NET, NET + "_Pipes.shp"))
+        assert os.path.isfile(os.path.join(dest, NET + ".qgz"))
+
+    def test_the_round_trip_leaves_the_project_openable(self, workspace):
+        """The whole point: after extracting, the metadata must resolve its own .qgz."""
+        from QGISRed.tools.utils.qgisred_project_io import QGISRedProjectIO
+        zipPath = self._exported(workspace, "parent", groups=["Results"])
+        dest = os.path.join(workspace, "dest")
+        inspection = QGISRedProjectPackage.inspectZip(zipPath)
+
+        projectDir = QGISRedProjectPackage.extractZip(zipPath, dest, inspection)
+
+        io = QGISRedProjectIO(projectDir, NET)
+        base = io.getQGisProjectBase(projectDir, NET)
+        assert norm(io.findQGisProjectFile(base)) == norm(os.path.join(dest, NET + ".qgz"))
+        assert os.path.isfile(os.path.join(projectDir, "Results", NET + "_Results.shp"))
+
+    def test_conflicts_are_reported_before_anything_is_written(self, workspace):
+        zipPath = self._exported(workspace, "project")
+        dest = os.path.join(workspace, "dest")
+        existing = _touch(os.path.join(dest, NET + "_Pipes.shp"), "do not lose me")
+
+        inspection = QGISRedProjectPackage.inspectZip(zipPath)
+        _targets, conflicts = QGISRedProjectPackage.planExtraction(inspection, dest)
+
+        assert NET + "_Pipes.shp" in conflicts
+        with open(existing, encoding="utf-8") as f:
+            assert f.read() == "do not lose me"  # planning must not write
+
+    def test_no_conflicts_in_a_clean_destination(self, workspace):
+        zipPath = self._exported(workspace, "project")
+        inspection = QGISRedProjectPackage.inspectZip(zipPath)
+        _targets, conflicts = QGISRedProjectPackage.planExtraction(
+            inspection, os.path.join(workspace, "clean"))
+        assert conflicts == []
+
+    def test_omitted_external_data_is_not_reported_as_a_conflict(self, workspace):
+        _touch(os.path.join(workspace, "DTM", "mdt.tif"))
+        # The .qgz sits in the parent folder, so its datasources are relative to it
+        zipPath = self._exported(workspace, "parent", datasources=[("DTM/mdt.tif", "MDT")])
+        dest = os.path.join(workspace, "dest")
+        _touch(os.path.join(dest, "DTM", "mdt.tif"))
+        inspection = QGISRedProjectPackage.inspectZip(zipPath)
+
+        _targets, withExternal = QGISRedProjectPackage.planExtraction(inspection, dest, True)
+        _targets, without = QGISRedProjectPackage.planExtraction(inspection, dest, False)
+
+        assert "DTM/mdt.tif" in withExternal
+        assert without == []
+
+
 class TestExportDialogWiring:
     """The dialog itself cannot be instantiated (conftest stubs loadUiType, so every widget is a
     MagicMock and any assertion would be vacuous). These check the two invariants that would
@@ -614,6 +830,44 @@ class TestExportDialogWiring:
         assert not needed - declared
 
 
+class TestImportTabWiring:
+    """The import dialog cannot be instantiated either (stubbed loadUiType), so pin the two things
+    that would only fail at runtime: the .ui widget names and the reason-to-message mapping."""
+
+    def test_the_ui_declares_every_widget_the_zip_tab_uses(self):
+        import re
+        uiPath = os.path.join(os.path.dirname(os.path.dirname(os.path.abspath(__file__))),
+                              "ui", "general", "qgisred_import_dialog.ui")
+        with open(uiPath, encoding="utf-8") as f:
+            declared = set(re.findall(r'name="(\w+)"', f.read()))
+        needed = {"tbZipFile", "btSelectZip", "btImportProject", "lbZipInfo",
+                  "cbImportExternalData", "cbCreateSubfolder"}
+        assert not needed - declared
+
+    def test_every_invalid_reason_has_its_own_message(self):
+        from QGISRed.ui.general.qgisred_import_dialog import QGISRedImportDialog
+        dialog = QGISRedImportDialog.__new__(QGISRedImportDialog)
+        dialog.tr = lambda text: text
+        messages = {
+            reason: QGISRedImportDialog.zipReasonMessage(dialog, reason)
+            for reason in (REASON_NO_PIPES_IN_ZIP, REASON_SCHEMA_TOO_NEW, REASON_UNSAFE_MEMBER)
+        }
+        assert len(set(messages.values())) == 3       # no reason falls through to another's text
+        assert all(messages.values())
+        # An unknown reason still says something useful rather than crashing
+        assert "boom" in QGISRedImportDialog.zipReasonMessage(dialog, "boom")
+
+    def test_the_old_fragile_import_path_is_gone(self):
+        """The rewrite dropped the extract-to-temp-then-copy round trip and the two private
+        tempfile APIs it relied on."""
+        path = os.path.join(os.path.dirname(os.path.dirname(os.path.abspath(__file__))),
+                            "ui", "general", "qgisred_import_dialog.py")
+        with open(path, encoding="utf-8") as f:
+            source = f.read()
+        for forbidden in ("_get_default_tempdir", "_get_candidate_names", "copyFolderFiles"):
+            assert forbidden not in source
+
+
 class TestFileSystemHelpers:
     def test_downloads_folder_falls_back_to_an_existing_folder(self):
         from QGISRed.tools.utils.qgisred_filesystem_utils import QGISRedFileSystemUtils
@@ -624,3 +878,16 @@ class TestFileSystemHelpers:
         QGISRedFileSystemUtils._pluginVersion = None
         version = QGISRedFileSystemUtils().getPluginVersion()
         assert version and version[0].isdigit()
+
+    @pytest.mark.parametrize("size,expected", [
+        (0, "0 B"),
+        (512, "512 B"),
+        (1024, "1.0 KB"),
+        (1536, "1.5 KB"),
+        (5 * 1024 * 1024, "5.0 MB"),
+        (3 * 1024 ** 3, "3.0 GB"),
+        (4096 * 1024 ** 3, "4096.0 GB"),  # never overflows past GB
+    ])
+    def test_format_size(self, size, expected):
+        from QGISRed.tools.utils.qgisred_ui_utils import QGISRedUIUtils
+        assert QGISRedUIUtils.formatSize(size) == expected

@@ -5,7 +5,7 @@ from qgis.PyQt.QtWidgets import QDialog, QFileDialog, QMessageBox, QTableWidgetI
 from qgis.PyQt.QtCore import Qt
 from qgis.PyQt import uic
 
-from ...tools.utils.qgisred_ui_utils import QGISRedBanner
+from ...tools.utils.qgisred_ui_utils import QGISRedBanner, QGISRedUIUtils
 from ...tools.utils.qgisred_filesystem_utils import QGISRedFileSystemUtils
 from ...tools.utils.qgisred_project_export import (
     QGISRedProjectPackage, STRUCTURE_PARENT, SCOPE_OUTSIDE, SCOPE_REMOTE,
@@ -108,11 +108,7 @@ class QGISRedExportProjectDialog(QDialog, FORM_CLASS):
         self.messageBar.pushMessage(title, text, level, duration)
 
     def _formatSize(self, sizeBytes):
-        size = float(sizeBytes)
-        for unit in ("B", "KB", "MB", "GB"):
-            if size < 1024 or unit == "GB":
-                return ("%.0f %s" if unit == "B" else "%.1f %s") % (size, unit)
-            size /= 1024.0
+        return QGISRedUIUtils.formatSize(sizeBytes)
 
     def _fillContentGroups(self):
         self.lbBaseLayers.setText(

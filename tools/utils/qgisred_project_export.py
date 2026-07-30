@@ -71,6 +71,11 @@ REASON_EXTERNAL_OUTSIDE = "external_out_of_scope"
 REASON_EXTERNAL_EXCLUDED = "external_excluded_by_user"
 REASON_PROJECT_IS_ROOT = "project_dir_is_drive_root"
 REASON_UNSAFE_MEMBER = "unsafe_zip_member"
+REASON_NO_PIPES_IN_ZIP = "no_pipes_in_zip"
+REASON_SCHEMA_TOO_NEW = "manifest_schema_too_new"
+
+# Recognises the one file that makes an archive a QGISRed project, at any depth
+RE_PIPES_MEMBER = re.compile(r"^(?:(?P<folder>.*)/)?(?P<net>[^/]+)_Pipes\.shp$", re.IGNORECASE)
 
 # Optional content groups, in presentation order. Everything else under the project folder
 # (the base layers at its root) is always exported and has no checkbox.
@@ -213,6 +218,46 @@ class ExportPlan:
         total = self.baseSizeBytes
         total += sum(g.sizeBytes for g in self.contentGroups if g.key in self.includeGroups)
         return total + self.externalSizeBytes()
+
+
+class ZipInspection:
+    """What an exported ZIP holds, worked out without extracting anything."""
+
+    def __init__(self):
+        self.structure = STRUCTURE_PROJECT
+        # "" normally; "<folder>/" when the archive was re-wrapped around its own root folder
+        # (e.g. someone extracted it and zipped the folder again). Every relative path below
+        # already includes it, so extraction stays verbatim and the internal layout is preserved.
+        self.rootPrefix = ""
+        self.projectFolderRel = ""     # posix path of the project folder inside the ZIP
+        self.networkName = ""
+        self.qgisProjectRel = None     # posix path of the .qgz/.qgs, or None
+        self.externalRel = []          # posix paths/prefixes of the complementary data
+        self.manifest = None           # the parsed manifest, or None for a legacy/hand-made ZIP
+        self.members = []              # every file entry in the archive
+        self.projectSizeBytes = 0
+        self.externalSizeBytes = 0
+        self.isValid = False
+        self.reason = None
+
+    @property
+    def hasQgisProject(self):
+        return bool(self.qgisProjectRel)
+
+    @property
+    def hasExternalData(self):
+        return bool(self.externalRel)
+
+    @property
+    def hasOwnRootFolder(self):
+        """True when the ZIP already carries the folder the project must live in."""
+        return bool(self.projectFolderRel)
+
+    def isExternalMember(self, name):
+        for prefix in self.externalRel:
+            if name == prefix or name.startswith(prefix + "/"):
+                return True
+        return False
 
 
 class QGISRedProjectPackage:
@@ -702,6 +747,169 @@ class QGISRedProjectPackage:
                 with suppress(OSError):
                     os.remove(partPath)
             return False, str(exc) or exc.__class__.__name__, None
+
+    """Import side"""
+
+    @staticmethod
+    def inspectZip(zipPath):
+        """Works out the contents of an exported ZIP without extracting it.
+
+        Deterministic when the archive carries a manifest; otherwise it falls back to locating
+        `*_Pipes.shp` at any depth, which is what makes the ZIPs produced by older versions of the
+        plugin (and hand-made ones) still importable.
+        """
+        inspection = ZipInspection()
+        manifestName = None
+        sizes = {}
+        try:
+            with ZipFile(zipPath, "r") as zin:
+                infos = [info for info in zin.infolist() if not info.is_dir()]
+                sizes = {info.filename: info.file_size for info in infos}
+                inspection.members = [info.filename for info in infos]
+
+                # Refuse the whole archive if any entry could write outside the destination
+                with tempfile.TemporaryDirectory() as probeRoot:
+                    for name in inspection.members:
+                        try:
+                            safeJoin(probeRoot, name)
+                        except ValueError:
+                            inspection.reason = REASON_UNSAFE_MEMBER
+                            return inspection
+
+                manifestName = QGISRedProjectPackage._locateManifest(inspection.members)
+                if manifestName:
+                    inspection.rootPrefix = manifestName[:-len(MANIFEST_NAME)]
+                    manifest = json.loads(zin.read(manifestName).decode("utf-8"))
+                    if not QGISRedProjectPackage._applyManifest(inspection, manifest):
+                        return inspection
+                elif not QGISRedProjectPackage._applyHeuristics(inspection):
+                    return inspection
+        except Exception as exc:  # noqa: BLE001 — reported through the inspection, never swallowed
+            inspection.reason = str(exc) or exc.__class__.__name__
+            return inspection
+
+        for name, size in sizes.items():
+            if name == manifestName:
+                continue
+            if inspection.isExternalMember(name):
+                inspection.externalSizeBytes += size
+            else:
+                inspection.projectSizeBytes += size
+        inspection.isValid = True
+        return inspection
+
+    @staticmethod
+    def _locateManifest(members):
+        """The manifest at the ZIP root, or under a single wrapper folder. None if absent."""
+        if MANIFEST_NAME in members:
+            return MANIFEST_NAME
+        candidates = [
+            name for name in members
+            if name.endswith("/" + MANIFEST_NAME) and name.count("/") == 1
+        ]
+        return candidates[0] if len(candidates) == 1 else None
+
+    @staticmethod
+    def _applyManifest(inspection, manifest):
+        """Fills the inspection from the manifest. False (with a reason) if it cannot be trusted."""
+        if int(manifest.get("schema", 0)) > SCHEMA_VERSION:
+            inspection.reason = REASON_SCHEMA_TOO_NEW
+            return False
+
+        prefix = inspection.rootPrefix
+        inspection.manifest = manifest
+        inspection.structure = manifest.get("structure") or STRUCTURE_PROJECT
+        inspection.networkName = manifest.get("networkName") or ""
+        inspection.projectFolderRel = (prefix + (manifest.get("projectFolder") or "")).strip("/")
+        qgisProject = manifest.get("qgisProject")
+        inspection.qgisProjectRel = (prefix + qgisProject) if qgisProject else None
+        inspection.externalRel = [
+            prefix + entry["path"] for entry in manifest.get("externalData") or [] if entry.get("path")
+        ]
+        if not inspection.networkName:
+            inspection.reason = REASON_NO_PIPES_IN_ZIP
+            return False
+        return True
+
+    @staticmethod
+    def _applyHeuristics(inspection):
+        """Derives the layout from the file names alone, for archives without a manifest."""
+        pipes = None
+        for name in inspection.members:
+            match = RE_PIPES_MEMBER.match(name)
+            if match:
+                pipes = match
+                break
+        if not pipes:
+            inspection.reason = REASON_NO_PIPES_IN_ZIP
+            return False
+
+        inspection.networkName = pipes.group("net")
+        inspection.projectFolderRel = (pipes.group("folder") or "").strip("/")
+        inspection.structure = STRUCTURE_PARENT if inspection.projectFolderRel else STRUCTURE_PROJECT
+
+        projectPrefix = inspection.projectFolderRel + "/" if inspection.projectFolderRel else ""
+        for name in inspection.members:
+            lowered = name.lower()
+            if not (lowered.endswith(".qgz") or lowered.endswith(".qgs")):
+                continue
+            folder = posixpath.dirname(name)
+            if folder in ("", inspection.projectFolderRel):
+                inspection.qgisProjectRel = name
+                if lowered.endswith(".qgz"):
+                    break  # .qgz wins over .qgs, as it does everywhere else in the plugin
+
+        # Anything at the root that is not the project folder nor the map file is external data.
+        # For a flat (structure A) archive everything already lives in the project folder, which is
+        # what keeps the legacy `ExternalLayers/` subfolder travelling as part of the project.
+        if projectPrefix:
+            external = []
+            for name in inspection.members:
+                if name.startswith(projectPrefix) or name == inspection.qgisProjectRel:
+                    continue
+                top = name.split("/")[0]
+                if top not in external:
+                    external.append(top)
+            inspection.externalRel = external
+        return True
+
+    @staticmethod
+    def membersToExtract(inspection, includeExternal=True):
+        """Entry names to pull out of the archive: everything but the manifest, minus the
+        complementary data when the user chose to leave it behind."""
+        members = []
+        for name in inspection.members:
+            if name == inspection.rootPrefix + MANIFEST_NAME:
+                continue
+            if not includeExternal and inspection.isExternalMember(name):
+                continue
+            members.append(name)
+        return members
+
+    @staticmethod
+    def planExtraction(inspection, destinationRoot, includeExternal=True):
+        """Returns (targets, conflicts): what would be written, and what already exists there."""
+        targets = []
+        conflicts = []
+        for name in QGISRedProjectPackage.membersToExtract(inspection, includeExternal):
+            target = safeJoin(destinationRoot, name)
+            targets.append(target)
+            if os.path.exists(target):
+                conflicts.append(name)
+        return targets, conflicts
+
+    @staticmethod
+    def extractZip(zipPath, destinationRoot, inspection, includeExternal=True):
+        """Recreates the archive's tree under destinationRoot and returns the project folder.
+
+        No path rewriting happens here: because everything kept its position relative to the export
+        root, the datasources inside the .qgz are still correct once the tree is back on disk.
+        """
+        members = QGISRedProjectPackage.membersToExtract(inspection, includeExternal)
+        QGISRedProjectIO().unzipFile(zipPath, destinationRoot, members=members)
+        if inspection.projectFolderRel:
+            return os.path.normpath(safeJoin(destinationRoot, inspection.projectFolderRel))
+        return os.path.normpath(os.path.realpath(destinationRoot))
 
     """Helpers shared with the dialogs"""
 

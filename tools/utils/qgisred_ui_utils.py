@@ -108,6 +108,15 @@ class QGISRedBanner(QFrame):
 
 class QGISRedUIUtils:
     @staticmethod
+    def formatSize(sizeBytes):
+        """Human-readable file size, e.g. '45.3 MB'."""
+        size = float(sizeBytes or 0)
+        for unit in ("B", "KB", "MB", "GB"):
+            if size < 1024 or unit == "GB":
+                return ("%.0f %s" if unit == "B" else "%.1f %s") % (size, unit)
+            size /= 1024.0
+
+    @staticmethod
     def arrangeDockOrder(mainWindow, resultsDock, explorerDock, queriesDock, statisticsDock):
         """Enforce dock vertical order: Results > Element Explorer > Queries by Properties > Statistics.
 

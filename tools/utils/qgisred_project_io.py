@@ -732,9 +732,32 @@ class QGISRedProjectIO:
         package = QGISRedProjectPackage(self.ProjectDirectory, self.NetworkName, self.iface)
         return package.exportToZip(zipPath, includeExternal=includeExternal, includeGroups=includeGroups)
 
-    def unzipFile(self, zipfile, directory):
+    def unzipFile(self, zipfile, directory, members=None):
+        """Extracts a ZIP into directory, refusing any member that would escape it.
+
+        extractall() is not used because a crafted archive can write outside the destination
+        ('zip slip'): entries may hold '..', absolute paths or symlinks. members, when given, is the
+        set of entry names to extract — the importer uses it to leave complementary data out.
+        """
+        from .qgisred_project_export import safeJoin  # lazy: that module imports this one
+
+        destRoot = os.path.realpath(directory)
+        os.makedirs(destRoot, exist_ok=True)
         with ZipFile(zipfile, "r") as zipRef:
-            zipRef.extractall(directory)
+            for info in zipRef.infolist():
+                name = info.filename
+                if members is not None and name not in members:
+                    continue
+                # Symlink entries would let the archive point anywhere on disk
+                if (info.external_attr >> 16) & 0o170000 == 0o120000:
+                    continue
+                target = safeJoin(destRoot, name)
+                if info.is_dir():
+                    os.makedirs(target, exist_ok=True)
+                    continue
+                os.makedirs(os.path.dirname(target), exist_ok=True)
+                with zipRef.open(info) as source, open(target, "wb") as dest:
+                    shutil.copyfileobj(source, dest)
 
     def renameFilesInZip(self, zipPath, oldPrefix, newPrefix):
         """Renames files inside a ZIP archive that start with oldPrefix to start with newPrefix."""

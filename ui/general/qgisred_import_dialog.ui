@@ -4103,6 +4103,33 @@
              </item>
             </layout>
            </item>
+           <item row="2" column="0">
+            <layout class="QVBoxLayout" name="zipInfoLayout">
+             <item>
+              <widget class="QLabel" name="lbZipInfo">
+               <property name="text">
+                <string/>
+               </property>
+               <property name="wordWrap">
+                <bool>true</bool>
+               </property>
+               <property name="textFormat">
+                <enum>Qt::RichText</enum>
+               </property>
+              </widget>
+             </item>
+             <item>
+              <widget class="QCheckBox" name="cbImportExternalData">
+               <property name="text">
+                <string>Import the complementary data included in the ZIP file</string>
+               </property>
+               <property name="checked">
+                <bool>true</bool>
+               </property>
+              </widget>
+             </item>
+            </layout>
+           </item>
            <item row="3" column="0">
             <spacer name="verticalSpacer_8">
              <property name="orientation">
