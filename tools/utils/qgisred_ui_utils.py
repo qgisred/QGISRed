@@ -53,6 +53,9 @@ class QGISRedBanner(QFrame):
         self.layout = QHBoxLayout(self)
         self.layout.setContentsMargins(10, 5, 10, 5)
         self.lblMessage = QLabel(self)
+        # Without wrapping, a long message reports a single-line sizeHint and stretches the whole
+        # dialog sideways; wrapped, it grows downwards inside whatever width the dialog already has.
+        self.lblMessage.setWordWrap(True)
         self.layout.addWidget(self.lblMessage)
         self.btClose = QPushButton("X", self)
         self.btClose.setFixedSize(20, 20)

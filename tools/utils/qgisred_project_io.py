@@ -19,9 +19,31 @@ from qgis.core import (
 )
 from .qgisred_ui_utils import QGISRedUIUtils
 from .qgisred_filesystem_utils import (
-    DIR_ISSUES, DIR_QUERIES, DIR_RESULTS,
+    DIR_ISSUES, DIR_QUERIES, DIR_RESULTS, DIR_BACKUPS,
     LAYER_TYPE_CONFIG,
 )
+
+# What counts as a datasource in the QGIS project XML. Single source of truth, shared by the
+# rewriter below and by the enumerator in qgisred_project_export, so the two can never disagree
+# about which values are paths.
+RE_DATASOURCE_ATTR_DQ = re.compile(r'(source|url|filename)(=)(")([^"]+)(")')
+RE_DATASOURCE_ATTR_SQ = re.compile(r"(source|url|filename)(=)(')([^']+)(')")
+RE_DATASOURCE_ELEMENT = re.compile(r'(<datasource>)([^<]+)(</datasource>)')
+
+# Markers that identify a connection string (WMS, XYZ, postgres…) rather than a local path.
+REMOTE_MARKERS = ("url=", "crs=", "type=", "service=", "request=")
+REMOTE_PREFIXES = ("http://", "https://")
+
+# Suffix QGIS appends to a file datasource, e.g. "roads.shp|layername=roads"
+URI_SUFFIX_SEPARATOR = "|"
+
+
+def isRemoteDatasource(value):
+    """True when the datasource is a connection string rather than a local file path."""
+    lowered = (value or "").lower()
+    if lowered.startswith(REMOTE_PREFIXES):
+        return True
+    return any(marker in lowered for marker in REMOTE_MARKERS)
 
 
 class QGISRedProjectIO:
@@ -273,12 +295,41 @@ class QGISRedProjectIO:
                             child.setName(new_name)
             self._renameGroupsRecursive(child, utils_cls)
 
-    def _applyQGisReplacements(self, content, oldName, newName, oldFolder, newFolder, oldQgisDir=None, newQgisDir=None, collectExternal=False):
+    def _applyQGisReplacements(self, content, oldName, newName, oldFolder, newFolder,
+                               oldQgisDir=None, newQgisDir=None,
+                               relativizeUnder=None, pathMap=None):
         """Standard path replacement in QGIS project XML.
-        If collectExternal is True, it will also copy external layers to newFolder/ExternalLayers."""
+
+        pathMap maps a *resolved* absolute source path to the absolute path it now lives at (used by
+        the exporter for staged external data). relativizeUnder is a folder under which resulting
+        paths are emitted relative to newQgisDir (the staging root when exporting), which is what
+        makes the exported project portable. With both left as None the behaviour is identical to
+        the rename / move / clone flows.
+        """
         oldFolderNorm = os.path.normcase(os.path.normpath(oldFolder))
         newFolderNorm = os.path.normpath(newFolder)
-        externalLayersDir = os.path.join(newFolderNorm, "ExternalLayers")
+        relativizeUnderNorm = os.path.normcase(os.path.normpath(relativizeUnder)) if relativizeUnder else None
+
+        def emitPath(absPath, protocol, wasRelative):
+            """Renders a resolved absolute path back into a datasource value.
+
+            Exporting (relativizeUnder set): everything that ended up inside the staging tree is
+            emitted relative to the .qgz, which is what makes the ZIP portable; anything that was
+            left behind is emitted absolute, so the receiver's "Handle unavailable layers" dialog
+            shows a path they can recognise. Otherwise (rename / move / clone): relative iff the
+            original value was relative.
+            """
+            targetQgisDir = newQgisDir if newQgisDir else oldQgisDir
+            if relativizeUnderNorm:
+                probe = os.path.normcase(os.path.normpath(absPath))
+                shouldRelativize = probe == relativizeUnderNorm or probe.startswith(relativizeUnderNorm + os.sep)
+            else:
+                shouldRelativize = wasRelative
+            if shouldRelativize and targetQgisDir:
+                with suppress(ValueError):
+                    rel = os.path.relpath(absPath, targetQgisDir)
+                    return protocol + rel.replace('\\', '/')
+            return protocol + absPath.replace('\\', '/')
 
         def replacePathInValue(val):
             # XML entities (like &amp;) need to be unescaped for comparison
@@ -286,8 +337,7 @@ class QGISRedProjectIO:
             logical_val = xml.sax.saxutils.unescape(val)
 
             # If it's a connection string (XYZ, WMS, etc.), don't treat it as a local path
-            # Detection: url=, crs=, type= (common in datasource), service=, request=, OR starts with http
-            if any(marker in logical_val.lower() for marker in ["url=", "crs=", "type=", "service=", "request="]) or logical_val.lower().startswith(("http://", "https://")):
+            if isRemoteDatasource(logical_val):
                 return logical_val
 
             # QGIS paths in XML can also be URL-encoded and might start with file://
@@ -300,18 +350,36 @@ class QGISRedProjectIO:
                 protocol = 'file://'
                 val = val[7:]
 
-            # Normalize to absolute for comparison
+            # Normalize to absolute. Comparisons use the normcased form; the value we emit keeps the
+            # original capitalisation, so a path handed back to the user stays readable (and valid
+            # if the project is ever opened on a case-sensitive filesystem).
             if os.path.isabs(val):
-                absPath = os.path.normcase(os.path.normpath(val))
+                absPath = os.path.normpath(val)
                 wasRelative = False
             elif oldQgisDir:
-                absPath = os.path.normcase(os.path.normpath(os.path.join(oldQgisDir, val)))
+                absPath = os.path.normpath(os.path.join(oldQgisDir, val))
                 wasRelative = True
             else:
                 return logical_val
+            # normpath already unified the separators, so normcase cannot change the length and the
+            # index arithmetic on absPath below stays valid.
+            absPathCmp = os.path.normcase(absPath)
+
+            # Explicitly remapped by the caller (the exporter, for staged external data).
+            # Keyed on the *resolved* path, so a folder name containing '&' or '|' cannot fool it.
+            if pathMap:
+                cleanPath = absPath
+                uriSuffix = ""
+                if URI_SUFFIX_SEPARATOR in cleanPath:
+                    index = cleanPath.find(URI_SUFFIX_SEPARATOR)
+                    uriSuffix = cleanPath[index:]
+                    cleanPath = cleanPath[:index]
+                mapped = pathMap.get(os.path.normcase(os.path.realpath(cleanPath)))
+                if mapped:
+                    return emitPath(mapped + uriSuffix, protocol, wasRelative)
 
             # Check if this path is inside the old project folder
-            if absPath.startswith(oldFolderNorm):
+            if absPathCmp.startswith(oldFolderNorm):
                 suffix = absPath[len(oldFolderNorm):]
                 newAbsPath = newFolderNorm + suffix
                 head, tail = os.path.split(newAbsPath)
@@ -328,65 +396,27 @@ class QGISRedProjectIO:
                     tail = tail.replace(oldNamePrefix, newNamePrefix)
 
                 newAbsPath = os.path.join(head, tail)
+                return emitPath(newAbsPath, protocol, wasRelative)
 
-                # Use relative path if the original was relative OR if we are exporting (collectExternal=True)
-                if wasRelative or collectExternal:
-                    rel = os.path.relpath(newAbsPath, newQgisDir if newQgisDir else oldQgisDir)
-                    return protocol + rel.replace('\\', '/')
-                else:
-                    return protocol + newAbsPath.replace('\\', '/')
-
-            # If it's external and we want to collect it:
-            if collectExternal:
-                # Check if it's a local file
-                cleanPath = absPath
-                if '|' in cleanPath:
-                    cleanPath = cleanPath.split('|')[0]
-
-                if os.path.isfile(cleanPath):
-                    os.makedirs(externalLayersDir, exist_ok=True)
-                    basePath = self.stripAllExtensions(cleanPath)
-                    parent = os.path.dirname(cleanPath)
-                    with suppress(Exception):
-                        for f in os.listdir(parent):
-                            current_file_path = os.path.join(parent, f)
-                            if os.path.normcase(self.stripAllExtensions(current_file_path)) == os.path.normcase(basePath):
-                                shutil.copy2(current_file_path, os.path.join(externalLayersDir, f))
-
-                    suffix = ""
-                    if '|' in absPath:
-                        suffix = absPath[absPath.find('|'):]
-
-                    newExternalPath = os.path.join(externalLayersDir, os.path.basename(cleanPath)) + suffix
-
-                    # When collecting external layers (export), the path MUST be relative to the project
-                    # to ensure the ZIP is portable.
-                    rel = os.path.relpath(newExternalPath, newQgisDir if newQgisDir else oldQgisDir)
-                    return rel.replace('\\', '/')
-
-            # If it's external and we don't want to collect it, we might still
-            # need to update the relative path if the original was relative.
-            if not collectExternal and wasRelative:
-                targetQgisDir = newQgisDir if newQgisDir else oldQgisDir
-                with suppress(ValueError):
-                    rel = os.path.relpath(absPath, targetQgisDir)
-                    return protocol + rel.replace('\\', '/')
+            # Outside the project folder and not remapped: it was not part of this operation.
+            if wasRelative or relativizeUnderNorm:
+                return emitPath(absPath, protocol, wasRelative)
 
             return logical_val
 
         # Replace path values in XML attributes (source="..." url="..." filename="...")
         # We re-escape the result since attributes need proper XML escaping
-        content = re.sub(r'(source|url|filename)(=)(")([^"]+)(")',
-                         lambda m: m.group(1) + m.group(2) + m.group(3) + xml.sax.saxutils.escape(replacePathInValue(m.group(4))) + m.group(5),
-                         content)
-        content = re.sub(r"(source|url|filename)(=)(')([^']+)(')",
-                         lambda m: m.group(1) + m.group(2) + m.group(3) + xml.sax.saxutils.escape(replacePathInValue(m.group(4))) + m.group(5),
-                         content)
+        content = RE_DATASOURCE_ATTR_DQ.sub(
+            lambda m: m.group(1) + m.group(2) + m.group(3) + xml.sax.saxutils.escape(replacePathInValue(m.group(4))) + m.group(5),
+            content)
+        content = RE_DATASOURCE_ATTR_SQ.sub(
+            lambda m: m.group(1) + m.group(2) + m.group(3) + xml.sax.saxutils.escape(replacePathInValue(m.group(4))) + m.group(5),
+            content)
 
         # Replace path values in <datasource>...</datasource> element content
-        content = re.sub(r'(<datasource>)([^<]+)(</datasource>)',
-                         lambda m: m.group(1) + xml.sax.saxutils.escape(replacePathInValue(m.group(2))) + m.group(3),
-                         content)
+        content = RE_DATASOURCE_ELEMENT.sub(
+            lambda m: m.group(1) + xml.sax.saxutils.escape(replacePathInValue(m.group(2))) + m.group(3),
+            content)
 
         if oldName != newName:
             # We must handle both the raw name and its XML-escaped version
@@ -523,9 +553,16 @@ class QGISRedProjectIO:
                         os.rmdir(parentDir)
         return newQgisPath
 
-    def updateQGisProjectContent(self, qgisPath, oldName, newName, oldFolder, newFolder, oldQgisDir=None, newQgisDir=None, collectExternal=False):
-        """Updates internal project references."""
-        with suppress(Exception):
+    def updateQGisProjectContent(self, qgisPath, oldName, newName, oldFolder, newFolder,
+                                 oldQgisDir=None, newQgisDir=None,
+                                 relativizeUnder=None, pathMap=None, raiseErrors=False):
+        """Updates internal project references. See _applyQGisReplacements for the parameters.
+
+        Failures are swallowed by default to preserve the behaviour the rename / move / clone flows
+        rely on; the exporter passes raiseErrors=True because a silently broken .qgz inside a ZIP is
+        the worst possible outcome.
+        """
+        def run():
             if qgisPath.endswith('.qgz'):
                 files = {}
                 with ZipFile(qgisPath, 'r') as zin:
@@ -534,7 +571,8 @@ class QGISRedProjectIO:
                 for name in list(files.keys()):
                     if name.endswith('.qgs'):
                         xml = files[name].decode('utf-8')
-                        xml = self._applyQGisReplacements(xml, oldName, newName, oldFolder, newFolder, oldQgisDir, newQgisDir, collectExternal)
+                        xml = self._applyQGisReplacements(xml, oldName, newName, oldFolder, newFolder,
+                                                          oldQgisDir, newQgisDir, relativizeUnder, pathMap)
                         files[name] = xml.encode('utf-8')
                 with ZipFile(qgisPath, 'w', ZIP_DEFLATED) as zout:
                     for name, data in files.items():
@@ -542,9 +580,16 @@ class QGISRedProjectIO:
             elif qgisPath.endswith('.qgs'):
                 with open(qgisPath, 'r', encoding='utf-8') as f:
                     content = f.read()
-                content = self._applyQGisReplacements(content, oldName, newName, oldFolder, newFolder, oldQgisDir, newQgisDir, collectExternal)
+                content = self._applyQGisReplacements(content, oldName, newName, oldFolder, newFolder,
+                                                      oldQgisDir, newQgisDir, relativizeUnder, pathMap)
                 with open(qgisPath, 'w', encoding='utf-8') as f:
                     f.write(content)
+
+        if raiseErrors:
+            run()
+        else:
+            with suppress(Exception):
+                run()
 
     """Methods"""
 
@@ -560,7 +605,9 @@ class QGISRedProjectIO:
             updated = False
             for node in xmlRoot.findall("./ThirdParty/QGISRed/QGisProject"):
                 if node.text and (".qgs" in node.text or ".qgz" in node.text):
-                    node.text = os.path.relpath(newQgisPath, projectPath)
+                    # Forward slashes: an exported project may be opened on another platform, and
+                    # Windows accepts '/' too (getQGisProjectBase normpath's it on the way back in).
+                    node.text = os.path.relpath(newQgisPath, projectPath).replace(os.sep, "/")
                     updated = True
             if updated:
                 with open(metadataFile, "w", encoding="latin-1") as mf:
@@ -675,41 +722,15 @@ class QGISRedProjectIO:
                     relPath = os.path.relpath(file, self.ProjectDirectory)
                     zipFile.write(file, relPath)
 
-    def exportProjectToZip(self, zipPath):
-        """Comprehensive export of the project to a ZIP file."""
-        with tempfile.TemporaryDirectory() as tempDir:
-            # 1. Copy project files (no rename, no delete)
-            self.processProjectFiles(self.ProjectDirectory, self.NetworkName, self.NetworkName, tempDir, deleteSource=False)
+    def exportProjectToZip(self, zipPath, includeExternal=True, includeGroups=None):
+        """Comprehensive export of the project to a ZIP file. Returns (ok, reason, manifest).
 
-            # 2. Handle QGIS project
-            qgisBase = self.getQGisProjectBase(self.ProjectDirectory, self.NetworkName)
-            if qgisBase:
-                oldQgisDir = os.path.dirname(qgisBase)
-                relQgisDir = os.path.relpath(oldQgisDir, self.ProjectDirectory)
-                targetQgisDir = os.path.normpath(os.path.join(tempDir, relQgisDir))
-                os.makedirs(targetQgisDir, exist_ok=True)
-
-                newQgisPath = self.processQGisProjectFiles(qgisBase, self.NetworkName, targetQgisDir, deleteSource=False)
-                if newQgisPath:
-                    self.updateQGisProjectContent(
-                        newQgisPath, self.NetworkName, self.NetworkName,
-                        self.ProjectDirectory, tempDir,
-                        oldQgisDir, targetQgisDir,
-                        collectExternal=True
-                    )
-                    self.updateMetadataQGisProject(tempDir, self.NetworkName, newQgisPath)
-
-            # 3. ZIP everything in tempDir
-            zipDir = os.path.dirname(zipPath)
-            if not os.path.exists(zipDir):
-                os.makedirs(zipDir, exist_ok=True)
-
-            with ZipFile(zipPath, "w", ZIP_DEFLATED) as zout:
-                for root, dirs, files in os.walk(tempDir):
-                    for file in files:
-                        full_path = os.path.join(root, file)
-                        rel_path = os.path.relpath(full_path, tempDir)
-                        zout.write(full_path, rel_path)
+        Thin delegator; the packaging logic lives in qgisred_project_export so it can be unit
+        tested without QGIS. Imported lazily because that module imports this one.
+        """
+        from .qgisred_project_export import QGISRedProjectPackage
+        package = QGISRedProjectPackage(self.ProjectDirectory, self.NetworkName, self.iface)
+        return package.exportToZip(zipPath, includeExternal=includeExternal, includeGroups=includeGroups)
 
     def unzipFile(self, zipfile, directory):
         with ZipFile(zipfile, "r") as zipRef:
@@ -746,7 +767,7 @@ class QGISRedProjectIO:
                 os.remove(temp_path)
 
     def saveBackup(self):
-        dirpath = os.path.join(self.ProjectDirectory, "backups")
+        dirpath = os.path.join(self.ProjectDirectory, DIR_BACKUPS)
         if not os.path.exists(dirpath):
             with suppress(Exception):
                 os.mkdir(dirpath)

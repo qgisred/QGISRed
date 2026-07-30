@@ -18,6 +18,10 @@ DIR_DEMAND_SECTORS    = "DemandSectors"
 DIR_ISOLATED_SEGMENTS = "IsolatedSegments"
 DIR_AUXILIARY_LAYERS  = "Auxiliary Layers"
 DIR_DEMANDS_BUILDER    = "DemandsBuilder"
+# Legacy folder of the removed "Project backup" command. Kept as a constant because existing
+# installations still have it on disk: it must keep being renamed with the project, and it must
+# never be copied into an export.
+DIR_BACKUPS           = "backups"
 
 # Single source of truth: layer-type key → {subdir, tree_path, flags}
 # subdir:    relative path from ProjectDirectory to the layer files
@@ -54,6 +58,7 @@ LAYER_TYPE_CONFIG = {
 
 class QGISRedFileSystemUtils:
     DllTempoFolder = None
+    _pluginVersion = None
 
     def __init__(self, directory="", networkName="", iface=None):
         self.iface = iface
@@ -110,6 +115,37 @@ class QGISRedFileSystemUtils:
             machine = platform.machine()
             subdir = "arm64" if machine in ("aarch64", "arm64") else "x64"
         return os.path.join(self.getQGISRedFolder(), "dlls", subdir)
+
+    def getDownloadsFolder(self):
+        """Returns the user's Downloads folder (cross-platform), falling back to the home folder."""
+        with suppress(Exception):
+            from qgis.PyQt.QtCore import QStandardPaths
+            from ...compat import STD_LOCATION_DOWNLOAD
+            if STD_LOCATION_DOWNLOAD is not None:
+                path = QStandardPaths.writableLocation(STD_LOCATION_DOWNLOAD)
+                if path and os.path.isdir(path):
+                    return os.path.normpath(path)
+        home = os.path.expanduser("~")
+        fallback = os.path.join(home, "Downloads")
+        return fallback if os.path.isdir(fallback) else home
+
+    def getPluginVersion(self):
+        """Reads the plugin version from metadata.txt at the plugin root. Returns '' if unavailable."""
+        cached = QGISRedFileSystemUtils._pluginVersion
+        if cached is not None:
+            return cached
+        version = ""
+        # this file is <plugin>/tools/utils/qgisred_filesystem_utils.py
+        pluginRoot = os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
+        metadata = os.path.join(pluginRoot, "metadata.txt")
+        with suppress(Exception):
+            with open(metadata, "r") as f:
+                for line in f:
+                    if line.startswith("version="):
+                        version = line.replace("version=", "").strip()
+                        break
+        QGISRedFileSystemUtils._pluginVersion = version
+        return version
 
     def getUserFolder(self):
         userRoot = os.path.join(os.path.expanduser("~"), "QGISRed")

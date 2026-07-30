@@ -8,8 +8,8 @@ import unicodedata
 
 from qgis.core import QgsProject, QgsVectorLayer, QgsLayerTreeGroup, QgsLayerTreeLayer, QgsDataProvider
 from qgis.PyQt.QtWidgets import QApplication, QMessageBox
-from qgis.PyQt.QtGui import QIcon
-from qgis.PyQt.QtCore import Qt, QTimer
+from qgis.PyQt.QtGui import QIcon, QDesktopServices
+from qgis.PyQt.QtCore import Qt, QTimer, QUrl
 from ..compat import QAction
 
 from ..tools.utils.qgisred_layer_utils import QGISRedLayerUtils
@@ -18,6 +18,7 @@ from ..tools.utils.qgisred_filesystem_utils import (
     DIR_CONNECTIVITY, DIR_HYDRAULIC_SECTORS,
     DIR_DEMAND_SECTORS, DIR_ISOLATED_SEGMENTS,
     DIR_AUXILIARY_LAYERS, DIR_DEMANDS_BUILDER,
+    QGISRedFileSystemUtils,
 )
 from ..tools.utils.qgisred_identifier_utils import QGISRedIdentifierUtils
 from ..tools.utils.qgisred_project_io import QGISRedProjectIO
@@ -672,15 +673,97 @@ class ProjectManagementSection:
         path = io.saveBackup()
         self.pushMessage(self.tr("Backup stored in:") + " " + path, level=3, duration=5)
 
+    def runExportProjectFor(self, projectDirectory, networkName, pushMessage=None, parent=None):
+        """Exports one project to a portable ZIP. Single entry point for every Export command.
+
+        projectDirectory/networkName let this run on any project in the Project Manager list, not
+        only the open one. pushMessage receives (text, level, duration) — pass the dialog's own
+        reporter when called from a modal dialog so the message is visible.
+        """
+        from ..tools.utils.qgisred_project_export import QGISRedProjectPackage, REASON_QGZ_OUTSIDE
+        from ..ui.general.qgisred_exportproject_dialog import QGISRedExportProjectDialog
+        from ..compat import DIALOG_ACCEPTED
+
+        report = pushMessage or (lambda text, level=0, duration=5: self.pushMessage(text, level, duration))
+        parent = parent or self.iface.mainWindow()
+
+        package = QGISRedProjectPackage(projectDirectory, networkName, self.iface)
+        plan = package.inspectForExport()
+
+        if REASON_QGZ_OUTSIDE in plan.blockingReasons:
+            report(
+                self.tr(
+                    "The QGIS project file is not in the project folder nor in its parent folder (%1). "
+                    "Use the Move option to relocate it before exporting."
+                ).replace("%1", plan.qgisPath or ""),
+                2, 10,
+            )
+            return False
+
+        # A missing .qgz is not worth a modal question: the dialog says so in its banner.
+        if plan.qgisPath is not None:
+            proceed, wasSaved = self._saveOpenProjectBeforeExport(plan, parent)
+            if not proceed:
+                return False
+            if wasSaved:
+                plan = package.inspectForExport()  # the .qgz changed on disk
+
+        dlg = QGISRedExportProjectDialog(plan, package, parent)
+        if dlg.exec() != DIALOG_ACCEPTED:
+            return False
+
+        zipPath = dlg.zipPath
+        QApplication.setOverrideCursor(Qt.CursorShape.WaitCursor)
+        try:
+            ok, reason, _manifest = package.exportToZip(
+                zipPath, includeExternal=dlg.includeExternalData,
+                includeGroups=dlg.includeGroups, plan=plan,
+                externalSources=dlg.externalSources,
+            )
+        finally:
+            QApplication.restoreOverrideCursor()
+
+        if not ok:
+            report(self.tr("The project could not be exported:") + " " + str(reason), 2, 10)
+            return False
+
+        if dlg.openFolder:
+            QDesktopServices.openUrl(QUrl.fromLocalFile(os.path.dirname(zipPath)))
+        report(self.tr("Zip file stored in:") + " " + zipPath, 3, 5)
+        return True
+
+    def _saveOpenProjectBeforeExport(self, plan, parent):
+        """Offers to save the QGIS project when the one being exported is open and dirty.
+
+        Returns (proceed, wasSaved). Without this the export would silently package the last saved
+        state of the map, which is the likeliest source of "my layers are missing".
+        """
+        openedFile = QgsProject.instance().fileName()
+        if not openedFile or not plan.qgisPath:
+            return True, False
+        if os.path.normcase(os.path.realpath(openedFile)) != os.path.normcase(os.path.realpath(plan.qgisPath)):
+            return True, False
+        if not QgsProject.instance().isDirty():
+            return True, False
+
+        request = QMessageBox.question(
+            parent,
+            self.tr("QGISRed"),
+            self.tr("The QGIS project has unsaved changes. Do you want to save it before exporting?"),
+            QMessageBox.StandardButtons(
+                QMessageBox.StandardButton.Yes | QMessageBox.StandardButton.No | QMessageBox.StandardButton.Cancel
+            ),
+        )
+        if request == QMessageBox.StandardButton.Cancel:
+            return False, False
+        if request == QMessageBox.StandardButton.Yes:
+            QgsProject.instance().write()
+            return True, True
+        return True, False
+
     def _getPluginVersion(self):
         """Read the plugin version from metadata.txt."""
-        metadata = os.path.join(os.path.dirname(os.path.dirname(__file__)), "metadata.txt")
-        if os.path.exists(metadata):
-            with open(metadata, "r") as f:
-                for line in f:
-                    if line.startswith("version="):
-                        return line.replace("version=", "").strip()
-        return ""
+        return QGISRedFileSystemUtils().getPluginVersion()
 
     def _writePluginVersionToProject(self):
         """Persist the current plugin version in the QGIS project file."""

@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
 from contextlib import suppress
-from qgis.PyQt.QtWidgets import QTableWidgetItem, QDialog, QFileDialog, QMessageBox, QApplication
+from qgis.PyQt.QtWidgets import QTableWidgetItem, QDialog, QMessageBox, QApplication
 from qgis.PyQt.QtCore import Qt, QDateTime
 from qgis.PyQt.QtGui import QFont
 from qgis.core import QgsProject
@@ -14,7 +14,7 @@ from .qgisred_loadproject_dialog import QGISRedImportProjectDialog
 from .qgisred_cloneproject_dialog import QGISRedCloneProjectDialog
 from .qgisred_renameproject_dialog import QGISRedRenameProjectDialog
 from .qgisred_moveproject_dialog import QGISRedMoveProjectDialog
-from ...tools.utils.qgisred_filesystem_utils import QGISRedFileSystemUtils
+from ...tools.utils.qgisred_filesystem_utils import QGISRedFileSystemUtils, DIR_BACKUPS
 from ...tools.utils.qgisred_layer_utils import QGISRedLayerUtils
 from ...tools.utils.qgisred_project_io import QGISRedProjectIO
 from ...tools.utils.qgisred_identifier_utils import QGISRedIdentifierUtils
@@ -447,22 +447,16 @@ class QGISRedProjectManagerDialog(QDialog, FORM_CLASS):
 
     def exportData(self):
         ok, name, project, _ = self._getSelectedRowInfo()
-        if ok:
-            # Ask for a zip file
-            qfd = QFileDialog()
-            path = ""
-            filter = "zip(*.zip)"
-            f = QFileDialog.getSaveFileName(qfd, "Zip file to export project", path, filter)
-            zipPath = f[0]
-            if zipPath == "":
-                return
-
-            io = QGISRedProjectIO(project, name, self.iface)
-            io.exportProjectToZip(zipPath)
-            self.pushMessage("QGISRed", self.tr("Zip file stored in: ") + zipPath, level=0, duration=5)
-            return
-        else:
+        if not ok:
             self.pushMessage(self.tr("Warning"), self.tr("You need to select a project to export it."), level=1, duration=5)
+            return
+        # Single orchestration lives in ProjectManagementSection so the menu command and this
+        # button behave identically. Messages go to this dialog's banner, since it stays modal.
+        self.parent.runExportProjectFor(project, name, pushMessage=self._pushExportMessage, parent=self)
+
+    def _pushExportMessage(self, text, level=0, duration=5):
+        titles = {0: "QGISRed", 1: self.tr("Warning"), 2: self.tr("Error"), 3: "QGISRed"}
+        self.pushMessage(titles.get(level, "QGISRed"), text, level=level, duration=duration)
 
     def loadProject(self):
         dlg = QGISRedImportProjectDialog()
@@ -589,7 +583,7 @@ class QGISRedProjectManagerDialog(QDialog, FORM_CLASS):
                 parentDir = os.path.dirname(qgisBase)
                 newQgisPath = io.processQGisProjectFiles(qgisBase, newQgisBasename, parentDir, deleteSource=True)
             if dlg.RenameBackups:
-                backupsFolder = os.path.join(projectPath, "backups")
+                backupsFolder = os.path.join(projectPath, DIR_BACKUPS)
                 if os.path.isdir(backupsFolder):
                     oldPrefix = projectNetwork + "_"
                     newPrefix = (newProjectName or projectNetwork) + "_"
@@ -604,7 +598,7 @@ class QGISRedProjectManagerDialog(QDialog, FORM_CLASS):
                             with suppress(Exception):
                                 os.rename(zipPath, newZipPath)
             if newProjectName:
-                io.processProjectFiles(projectPath, projectNetwork, newProjectName, projectPath, deleteSource=True, excludeDirs=['backups'])
+                io.processProjectFiles(projectPath, projectNetwork, newProjectName, projectPath, deleteSource=True, excludeDirs=[DIR_BACKUPS])
             if newQgisPath:
                 io.updateMetadataQGisProject(projectPath, newProjectName or projectNetwork, newQgisPath)
             if newProjectName and canRenameFolder:

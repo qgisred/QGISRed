@@ -185,6 +185,17 @@ except AttributeError:
     LINEEDIT_TRAILING_POSITION = _QLineEdit.ActionPosition.TrailingPosition
 
 # ---------------------------------------------------------------------------
+# QStandardPaths standard location constants.
+# QGIS 3 / Qt5: QStandardPaths.DownloadLocation (flat)
+# QGIS 4 / Qt6: QStandardPaths.StandardLocation.DownloadLocation (scoped)
+# ---------------------------------------------------------------------------
+from qgis.PyQt.QtCore import QStandardPaths as _QStandardPaths
+
+_std_location_ns = getattr(_QStandardPaths, 'StandardLocation', _QStandardPaths)
+STD_LOCATION_DOWNLOAD = getattr(_std_location_ns, 'DownloadLocation', None)
+STD_LOCATION_HOME     = getattr(_std_location_ns, 'HomeLocation', None)
+
+# ---------------------------------------------------------------------------
 # QgsVertexMarker icon type constants.
 # QGIS 3: QgsVertexMarker.ICON_TRIANGLE / ICON_CROSS / … (flat)
 # QGIS 4: QgsVertexMarker.IconType.ICON_TRIANGLE / … (scoped)

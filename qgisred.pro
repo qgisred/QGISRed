@@ -24,6 +24,7 @@ SOURCES = qgisred.py \
           tools/utils/qgisred_styling_utils.py \
           tools/utils/qgisred_identifier_utils.py \
           tools/utils/qgisred_layer_utils.py \
+          tools/utils/qgisred_project_export.py \
           tools/utils/qgisred_project_io.py \
           tools/utils/qgisred_project_utils.py \
           tools/utils/qgisred_stale_layer_manager.py \
@@ -37,6 +38,7 @@ SOURCES = qgisred.py \
           ui/general/qgisred_news_dialog.py \
           ui/general/qgisred_cloneproject_dialog.py \
           ui/general/qgisred_createproject_dialog.py \
+          ui/general/qgisred_exportproject_dialog.py \
           ui/general/qgisred_import_dialog.py \
           ui/general/qgisred_loadproject_dialog.py \
           ui/general/qgisred_projectmanager_dialog.py \
@@ -69,6 +71,7 @@ SOURCES = qgisred.py \
 FORMS = ui/general/qgisred_about_dialog.ui \
         ui/general/qgisred_cloneproject_dialog.ui \
         ui/general/qgisred_createproject_dialog.ui \
+        ui/general/qgisred_exportproject_dialog.ui \
         ui/general/qgisred_import_dialog.ui \
         ui/general/qgisred_loadproject_dialog.ui \
         ui/general/qgisred_projectmanager_dialog.ui \

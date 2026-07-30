@@ -2,6 +2,7 @@
 from qgis.PyQt.QtWidgets import QDialog
 from qgis.PyQt import uic
 from ...tools.utils.qgisred_ui_utils import QGISRedBanner
+from ...tools.utils.qgisred_filesystem_utils import DIR_BACKUPS
 import os
 
 FORM_CLASS, _ = uic.loadUiType(os.path.join(os.path.dirname(__file__), "qgisred_renameproject_dialog.ui"))
@@ -36,7 +37,7 @@ class QGISRedRenameProjectDialog(QDialog, FORM_CLASS):
             self.tbQGISName.setText(os.path.basename(qgisProjectBase))
 
         # Backups detection
-        backupsFolder = os.path.join(self.ProjectDirectory, "backups")
+        backupsFolder = os.path.join(self.ProjectDirectory, DIR_BACKUPS)
         hasBackups = False
         if os.path.isdir(backupsFolder):
             for f in os.listdir(backupsFolder):

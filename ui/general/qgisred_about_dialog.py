@@ -3,6 +3,7 @@ from qgis.PyQt.QtWidgets import QDialog
 from qgis.core import QgsApplication
 
 from qgis.PyQt import uic
+from ...tools.utils.qgisred_filesystem_utils import QGISRedFileSystemUtils
 import os
 import webbrowser
 
@@ -31,14 +32,9 @@ class QGISRedAboutDialog(QDialog, FORM_CLASS):
             self.bid_url = "https://www.iadb.org/en"
 
         # version
-        metadata = os.path.join(os.path.dirname(os.path.dirname(os.path.dirname(__file__))), "metadata.txt")
-        if os.path.exists(metadata):
-            with open(metadata, "r") as f:
-                lines = f.readlines()
-                for line in lines:
-                    if "version=" in line:
-                        self.versionLabel.setText("v." + line.replace("version=", ""))
-                        return
+        version = QGISRedFileSystemUtils().getPluginVersion()
+        if version:
+            self.versionLabel.setText("v." + version)
 
     def linkQgisred(self, event):
         webbrowser.open("https://qgisred.upv.es")
