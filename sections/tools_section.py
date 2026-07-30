@@ -654,7 +654,7 @@ class ToolsSection:
 
     """Demand Sectors"""
 
-    def _colorForSectorId(self, sector_id):
+    def _colorForSectorId(self, sector_id, pastel=False):
         text = "" if sector_id is None else str(sector_id).strip()
 
         if text == "" or text.lower() in ("null", "undefined"):
@@ -670,7 +670,10 @@ class ToolsSection:
         hue = int(digest[:8], 16) % 360
 
         color = QColor()
-        color.setHsv(hue, 180, 220)
+        if pastel:
+            color.setHsv(hue, 70, 250)
+        else:
+            color.setHsv(hue, 180, 220)
 
         return color
 
@@ -766,7 +769,7 @@ class ToolsSection:
             )
 
             symbol.setColor(
-                self._colorForSectorId(sector_id)
+                self._colorForSectorId(sector_id, pastel=True)
             )
 
             categories.append(
