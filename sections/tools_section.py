@@ -1035,9 +1035,9 @@ class ToolsSection:
         categories = []
 
         styles = {
-            "OPEN": QColor("green"),
+            "OPEN": QColor(60, 170, 210),
             "CLOSED": QColor("red"),
-            "IGNORE": QColor("gray")
+            "IGNORE": QColor(210, 210, 210)
         }
 
         for status, color in styles.items():
