@@ -240,6 +240,10 @@ class QGISRedLegendsDialog(QDialog, formClass):
         "qgisred_hydraulicsectors_isolateddemands",
     }
 
+    # Exception among the size-only layers: Tree nodes also take a color, applied
+    # to the outer circle's stroke only (the star and element icons keep theirs).
+    TREE_NODES_IDENTIFIER = "qgisred_tree_nodes"
+
     # Query layers editable as a single symbol (color and size)
     SINGLE_EDITABLE_QUERY_IDENTIFIERS = {"qgisred_connectivity_links"}
 
@@ -2258,8 +2262,18 @@ class QGISRedLegendsDialog(QDialog, formClass):
         identifier = self.currentLayer.customProperty("qgisred_identifier") if self.currentLayer else ""
         # For input layers, the visible color is set via a data-defined expression — read it from there.
         color = None
+        previewSymbol = symbol
+        strokeColorOnly = False
         if self.isInputLayer():
             color = self._readInputLayerColor(symbol, identifier)
+        if identifier == self.TREE_NODES_IDENTIFIER:
+            # The edited color is the outer circle's stroke; preview the circle
+            # alone so the swatch does not show the star on top of it.
+            circles = self._circleMarkerLayers(symbol)
+            if circles:
+                color = circles[0].strokeColor()
+                previewSymbol = self._circleOnlySymbol(symbol)
+                strokeColorOnly = True
         if color is None:
             if symbol.symbolLayerCount() > 0:
                 color = symbol.symbolLayer(0).color()
@@ -2273,10 +2287,11 @@ class QGISRedLegendsDialog(QDialog, formClass):
             True,
             "Pick color",
             doubleClickOnly=True,
-            actualSymbol=symbol,
+            actualSymbol=previewSymbol,
             # Multiple Demands: preview the picked color on the inner circle
             # (the expression-driven layer) and keep the outer circle as is.
             colorExpressionLayersOnly=(identifier == "qgisred_demands"),
+            strokeColorOnly=strokeColorOnly,
         )
         colorSelector.setEnabled(self.isEditing)
         colorSelector.colorChanged.connect(self.onRowColorChanged)
@@ -3813,6 +3828,7 @@ class QGISRedLegendsDialog(QDialog, formClass):
         }
         for sizeOnlyIdentifier in self.SIZE_ONLY_QUERY_IDENTIFIERS:
             inputAppliers[sizeOnlyIdentifier] = self._applySizeOnlyQueryLegend
+        inputAppliers[self.TREE_NODES_IDENTIFIER] = self._applyTreeNodesLegend
 
         applier = inputAppliers.get(identifier)
         if applier:
@@ -4116,6 +4132,35 @@ class QGISRedLegendsDialog(QDialog, formClass):
     def _applySourcesLegend(self, symbol, color, size):
         if size is not None:
             self.applySizeToSymbol(symbol, size)
+
+    @staticmethod
+    def _circleMarkerLayers(symbol):
+        """The SimpleMarker circle layers of a stacked marker symbol (e.g. the
+        Tree nodes outer circle, drawn under the star and the element icons)."""
+        return [
+            symbol.symbolLayer(i)
+            for i in range(symbol.symbolLayerCount())
+            if symbol.symbolLayer(i).layerType() == "SimpleMarker"
+            and symbol.symbolLayer(i).properties().get("name") == "circle"
+        ]
+
+    def _circleOnlySymbol(self, symbol):
+        """A clone of symbol keeping only its SimpleMarker circle layers."""
+        preview = symbol.clone()
+        for i in range(preview.symbolLayerCount() - 1, -1, -1):
+            symbolLayer = preview.symbolLayer(i)
+            if not (symbolLayer.layerType() == "SimpleMarker" and symbolLayer.properties().get("name") == "circle"):
+                preview.deleteSymbolLayer(i)
+        return preview
+
+    def _applyTreeNodesLegend(self, symbol, color, size):
+        """Tree nodes: the color goes to the outer circle's stroke only (the star
+        and the element icons keep theirs); size rescales like the other
+        size-only query layers."""
+        if color is not None:
+            for circle in self._circleMarkerLayers(symbol):
+                circle.setStrokeColor(color)
+        self._applySizeOnlyQueryLegend(symbol, None, size)
 
     def _applySizeOnlyQueryLegend(self, symbol, color, size):
         """Proportionally rescale a size-only query layer (tree nodes, isolated segments...).
@@ -5304,7 +5349,9 @@ class QGISRedLegendsDialog(QDialog, formClass):
         """Apply per-element-type color/size column restrictions for input layers."""
         identifier = self.currentLayer.customProperty("qgisred_identifier") if self.currentLayer else ""
 
-        COLOR_LOCKED = {"qgisred_reservoirs", "qgisred_tanks", "qgisred_sources"} | self.SIZE_ONLY_QUERY_IDENTIFIERS
+        COLOR_LOCKED = {"qgisred_reservoirs", "qgisred_tanks", "qgisred_sources"} | (
+            self.SIZE_ONLY_QUERY_IDENTIFIERS - {self.TREE_NODES_IDENTIFIER}
+        )
 
         if identifier in COLOR_LOCKED:
             self._disableColorColumnInTable()

@@ -125,7 +125,7 @@ class QGISRedSymbolColorSelector(QgsSymbolButton):
 
     def __init__(self, parent=None, geometryHint="fill", initialColor=None,
                  allowAlpha=True, dialogTitle="Pick color", doubleClickOnly=False,
-                 actualSymbol=None, colorExpressionLayersOnly=False):
+                 actualSymbol=None, colorExpressionLayersOnly=False, strokeColorOnly=False):
         super().__init__(parent)
 
         self.geometryType = self.normalizeGeometryHint(geometryHint)
@@ -136,6 +136,7 @@ class QGISRedSymbolColorSelector(QgsSymbolButton):
         self.currentSymbolSize = 0.0
         self._actualSymbol = actualSymbol.clone() if actualSymbol else None
         self.colorExpressionLayersOnly = bool(colorExpressionLayersOnly)
+        self.strokeColorOnly = bool(strokeColorOnly)
 
         self.configureWidgetStyle()
         self.refreshSymbolDisplay()
@@ -167,7 +168,9 @@ class QGISRedSymbolColorSelector(QgsSymbolButton):
     def refreshSymbolDisplay(self):
         if self._actualSymbol:
             symbol = self._actualSymbol.clone()
-            if not self.colorExpressionLayersOnly or not self.applyColorToExpressionLayers(symbol, self.activeColor):
+            if self.strokeColorOnly:
+                self.applyStrokeColorToLayers(symbol, self.activeColor)
+            elif not self.colorExpressionLayersOnly or not self.applyColorToExpressionLayers(symbol, self.activeColor):
                 symbol.setColor(self.activeColor)
             if self.currentSymbolSize > 0:
                 self.applySizeScaling(symbol)
@@ -177,6 +180,15 @@ class QGISRedSymbolColorSelector(QgsSymbolButton):
                 self.applySizeScaling(symbol)
 
         self.setSymbol(symbol)
+
+    def applyStrokeColorToLayers(self, symbol, color):
+        """Color only the strokes (e.g. the Tree nodes outer circle); fills stay."""
+        for i in range(symbol.symbolLayerCount()):
+            symbolLayer = symbol.symbolLayer(i)
+            if hasattr(symbolLayer, "setStrokeColor"):
+                symbolLayer.setStrokeColor(color)
+            if hasattr(symbolLayer, "subSymbol") and symbolLayer.subSymbol():
+                self.applyStrokeColorToLayers(symbolLayer.subSymbol(), color)
 
     def applyColorToExpressionLayers(self, symbol, color):
         """Color only the layers whose fill is expression-driven (e.g. the inner
