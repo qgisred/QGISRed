@@ -1638,7 +1638,14 @@ class QGISRedDemandSectorBuilderDialog(QDialog, FORM_CLASS):
             return ""
 
         if isinstance(result, str):
-            return result.strip()
+            text = result.strip()
+
+            _, separator, message = text.partition("^")
+
+            if separator:
+                return message.strip()
+
+            return text
 
         if isinstance(result, dict):
 
