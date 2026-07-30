@@ -1326,20 +1326,13 @@ class QGISRedLegendsDialog(QDialog, formClass):
         return sizes
 
     def applySizesToTable(self, sizes):
-        isLine = self.getGeometryHint() == "line"
-
         for row in range(self.tableView.rowCount()):
             sizeWidget = self.tableView.cellWidget(row, 2)
-            colorContainer = self.tableView.cellWidget(row, 1)
-            colorWidget = colorContainer.findChild(QGISRedSymbolColorSelector) if colorContainer else None
 
             if sizeWidget:
                 sizeWidget.blockSignals(True)
                 sizeWidget.setText(f"{sizes[row]:.2f}")
                 sizeWidget.blockSignals(False)
-
-            if colorWidget:
-                colorWidget.updateSymbolSize(sizes[row], isLine)
 
     # ============================================================
     # COLOR LOGIC
@@ -2298,9 +2291,6 @@ class QGISRedLegendsDialog(QDialog, formClass):
         )
         colorSelector.setEnabled(self.isEditing)
         colorSelector.colorChanged.connect(self.onRowColorChanged)
-
-        size = self._getLineWidth(symbol) if geometryHint == "line" else self._getNodeSize(symbol)
-        colorSelector.updateSymbolSize(size, geometryHint == "line")
         colorSelector.setAutoFillBackground(False)
         colorSelector.setFixedSize(30, 20)
 
@@ -2819,10 +2809,11 @@ class QGISRedLegendsDialog(QDialog, formClass):
         if widget:
             colorSelector = widget.findChild(QGISRedSymbolColorSelector)
             if colorSelector:
+                # Index 2 kept as a placeholder: the preview no longer tracks a size
                 return (
                     "cs",
                     colorSelector.activeColor,
-                    colorSelector.currentSymbolSize,
+                    None,
                     colorSelector.geometryType,
                 )
         return None
@@ -2857,7 +2848,6 @@ class QGISRedLegendsDialog(QDialog, formClass):
 
     def recreateColorSelectorWidget(self, row, column, data):
         color = data[1]
-        symbolSize = data[2]
         geometryHint = data[3]
 
         colorSelector = QGISRedSymbolColorSelector(
@@ -2869,7 +2859,6 @@ class QGISRedLegendsDialog(QDialog, formClass):
             doubleClickOnly=True,
         )
         colorSelector.setEnabled(self.isEditing)
-        colorSelector.updateSymbolSize(symbolSize, geometryHint == "line")
         colorSelector.setAutoFillBackground(False)
         colorSelector.setFixedSize(30, 20)
 
@@ -3360,11 +3349,7 @@ class QGISRedLegendsDialog(QDialog, formClass):
 
     def onSizeChanged(self, row, text):
         with suppress(Exception):
-            size = float(text)
-            colorContainer = self.tableView.cellWidget(row, 1)
-            colorWidget = colorContainer.findChild(QGISRedSymbolColorSelector) if colorContainer else None
-            if colorWidget:
-                colorWidget.updateSymbolSize(size, self.currentLayer.geometryType() == WKB_LINE_GEOMETRY)
+            float(text)
 
             # Update size palette when in automatic interval mode with manual sizes
             sizeMode = self.cbSizes.currentText() if hasattr(self, "cbSizes") else "Manual"
@@ -5441,11 +5426,6 @@ class QGISRedLegendsDialog(QDialog, formClass):
             sizeWidget.blockSignals(True)
             sizeWidget.setText(f"{size:.2f}")
             sizeWidget.blockSignals(False)
-
-            colorContainer = self.tableView.cellWidget(row, 1)
-            colorWidget = colorContainer.findChild(QGISRedSymbolColorSelector) if colorContainer else None
-            if colorWidget:
-                colorWidget.updateSymbolSize(size, self.getGeometryHint() == "line")
 
     def getDefaultSize(self):
         """Returns the default size based on geometry type."""

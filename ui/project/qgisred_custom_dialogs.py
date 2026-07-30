@@ -2,6 +2,7 @@
 
 from qgis.PyQt.QtGui import QColor, QPixmap, QPainter, QIcon
 from ...compat import PAINTER_ANTIALIASING, STYLE_CC_COMBOBOX, STYLE_CE_COMBOBOXLABEL, SL_PROP_FILL_COLOR
+from ...compat import SL_PROP_SIZE, SL_PROP_WIDTH, SL_PROP_STROKE_WIDTH, RENDER_UNIT_MILLIMETERS
 from qgis.PyQt.QtWidgets import QDialog, QDialogButtonBox, QDoubleSpinBox, QLabel, QVBoxLayout
 from qgis.PyQt.QtWidgets import QToolButton, QComboBox, QApplication, QStylePainter, QStyleOptionComboBox, QSizePolicy
 from qgis.PyQt.QtWidgets import QCheckBox
@@ -133,7 +134,6 @@ class QGISRedSymbolColorSelector(QgsSymbolButton):
         self.dialogTitle = dialogTitle
         self.useDoubleClick = doubleClickOnly
         self.activeColor = self.parseInitialColor(initialColor)
-        self.currentSymbolSize = 0.0
         self._actualSymbol = actualSymbol.clone() if actualSymbol else None
         self.colorExpressionLayersOnly = bool(colorExpressionLayersOnly)
         self.strokeColorOnly = bool(strokeColorOnly)
@@ -172,12 +172,10 @@ class QGISRedSymbolColorSelector(QgsSymbolButton):
                 self.applyStrokeColorToLayers(symbol, self.activeColor)
             elif not self.colorExpressionLayersOnly or not self.applyColorToExpressionLayers(symbol, self.activeColor):
                 symbol.setColor(self.activeColor)
-            if self.currentSymbolSize > 0:
-                self.applySizeScaling(symbol)
+            self.applySizeScaling(symbol)
         else:
             symbol = self.createGeometrySpecificSymbol()
-            if self.currentSymbolSize > 0:
-                self.applySizeScaling(symbol)
+            self.applySizeScaling(symbol)
 
         self.setSymbol(symbol)
 
@@ -238,21 +236,35 @@ class QGISRedSymbolColorSelector(QgsSymbolButton):
             "color": rgba, "outline_color": "60,60,60,255", "outline_width": "0.3"
         })
 
-    def applySizeScaling(self, symbol):
-        if self.geometryType == self.lineType:
-            symbol.setWidth(self.currentSymbolSize)
-        elif self.geometryType == self.markerType:
-            symbol.setSize(self.currentSymbolSize)
+    # Fixed preview sizes (mm): the swatch is 30x20 px, so the drawn symbol must
+    # not follow the user-entered size or it overflows/vanishes. The preview is
+    # decoupled from the size cell entirely: it is normalized once and never
+    # updated afterwards.
+    previewMarkerSize = 2.0
+    previewLineWidth = 0.6
 
-    def updateSymbolSize(self, newSize, isLine=False):
-        if newSize > 0:
-            self.currentSymbolSize = newSize
-            if self._actualSymbol:
-                if isLine or self.geometryType == self.lineType:
-                    self._actualSymbol.setWidth(newSize)
-                else:
-                    self._actualSymbol.setSize(newSize)
-            self.refreshSymbolDisplay()
+    def applySizeScaling(self, symbol):
+        # An active data-defined size/width beats setSize/setWidth when the
+        # preview renders, so the swatch would still follow the layer's size
+        # expression (e.g. Tree nodes). Preview clone only: drop them first.
+        self._clearSizeExpressions(symbol)
+        # Styles mix Pixel and MM width units (query links are in pixels), so the
+        # same number would draw different thicknesses: normalize the unit first.
+        symbol.setOutputUnit(RENDER_UNIT_MILLIMETERS)
+        if self.geometryType == self.lineType:
+            symbol.setWidth(self.previewLineWidth)
+        elif self.geometryType == self.markerType:
+            symbol.setSize(self.previewMarkerSize)
+
+    def _clearSizeExpressions(self, symbol):
+        for i in range(symbol.symbolLayerCount()):
+            symbolLayer = symbol.symbolLayer(i)
+            for propertyKey in (SL_PROP_SIZE, SL_PROP_WIDTH, SL_PROP_STROKE_WIDTH):
+                prop = symbolLayer.dataDefinedProperties().property(propertyKey)
+                if prop and prop.isActive():
+                    symbolLayer.setDataDefinedProperty(propertyKey, QgsProperty())
+            if hasattr(symbolLayer, "subSymbol") and symbolLayer.subSymbol():
+                self._clearSizeExpressions(symbolLayer.subSymbol())
 
     def setSelectorColor(self, newColor):
         if self.isValidNewColor(newColor):
