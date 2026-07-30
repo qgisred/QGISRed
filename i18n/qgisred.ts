@@ -6406,7 +6406,7 @@ Do you want to proceed?</source>
     </message>
     <message>
         <location filename="../ui/general/qgisred_renameproject_dialog.ui" line="28"/>
-        <source>Rename project:</source>
+        <source>Rename project data:</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
@@ -6416,7 +6416,7 @@ Do you want to proceed?</source>
     </message>
     <message>
         <location filename="../ui/general/qgisred_renameproject_dialog.ui" line="106"/>
-        <source>Rename QGIS file:</source>
+        <source>Rename project map file:</source>
         <translation type="unfinished"></translation>
     </message>
     <message>

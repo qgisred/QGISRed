@@ -6792,8 +6792,8 @@ Voulez-vous continuer ?</translation>
     </message>
     <message>
         <location filename="../ui/general/qgisred_renameproject_dialog.ui" line="28"/>
-        <source>Rename project:</source>
-        <translation type="unfinished">Renommer le projet :</translation>
+        <source>Rename project data:</source>
+        <translation type="unfinished">Renommer les données du projet :</translation>
     </message>
     <message>
         <location filename="../ui/general/qgisred_renameproject_dialog.ui" line="78"/>
@@ -6802,8 +6802,8 @@ Voulez-vous continuer ?</translation>
     </message>
     <message>
         <location filename="../ui/general/qgisred_renameproject_dialog.ui" line="106"/>
-        <source>Rename QGIS file:</source>
-        <translation type="unfinished">Renommer le fichier QGIS :</translation>
+        <source>Rename project map file:</source>
+        <translation type="unfinished">Renommer le fichier de carte du projet :</translation>
     </message>
     <message>
         <location filename="../ui/general/qgisred_renameproject_dialog.py" line="63"/>

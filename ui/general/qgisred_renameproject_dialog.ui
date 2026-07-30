@@ -25,7 +25,7 @@
        <item>
         <widget class="QCheckBox" name="cbRenameProject">
          <property name="text">
-          <string>Rename project:</string>
+          <string>Rename project data:</string>
          </property>
          <property name="checked">
           <bool>true</bool>
@@ -103,7 +103,7 @@
         <item>
          <widget class="QCheckBox" name="cbRenameQGISProject">
           <property name="text">
-           <string>Rename QGIS file:</string>
+           <string>Rename project map file:</string>
           </property>
           <property name="checked">
            <bool>true</bool>
