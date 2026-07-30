@@ -176,6 +176,8 @@ class QGISRedResultsDock(
         self.btLabelBgColor.colorChanged.connect(self._onLabelBgColorChanged)
         self.btClearLabelBgColor.clicked.connect(self._onClearLabelBgColor)
         self.btLockLabelBgColor.toggled.connect(self._onLockLabelBgColor)
+        self.btLabelBufferColor.colorChanged.connect(self._onLabelBufferColorChanged)
+        self.btClearLabelBufferColor.clicked.connect(self._onClearLabelBufferColor)
         self.dspPipeFactor.valueChanged.connect(self._onSymbolFactorChanged)
         self.dspSymbolFactor.valueChanged.connect(self._onSymbolFactorChanged)
         self.dspSpecialFactor.valueChanged.connect(self._onSymbolFactorChanged)
@@ -199,6 +201,7 @@ class QGISRedResultsDock(
         resetIcon = self._makeGlyphIcon("↺")
         self.btClearBgColor.setIcon(resetIcon)
         self.btClearLabelBgColor.setIcon(resetIcon)
+        self.btClearLabelBufferColor.setIcon(resetIcon)
         self.btResetAppearance.setIcon(resetIcon)
 
         self._iconLockOpen = QIcon(":/images/iconResultsLockOpen.svg")
@@ -223,6 +226,7 @@ class QGISRedResultsDock(
         self._labelShowLinkId = False
         self._labelBgColor = None
         self._labelBgColorLocked = False   # when True, labels use the map background color
+        self._labelBufferColor = None      # halo around the label text; not linked to anything
         self._pipeFactor = 1.0
         self._symbolFactor = 1.0
         self._specialFactor = 1.0     # tanks/reservoirs, independent of the junction factor

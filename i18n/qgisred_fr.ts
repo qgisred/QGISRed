@@ -6410,6 +6410,21 @@ Clic gauche : Ajouter un nouvel élément en dessous de la sélection actuelle</
         <translation>Le fond des étiquettes suit la couleur de fond de la carte</translation>
     </message>
     <message>
+        <location filename="../ui/analysis/qgisred_results_dock.ui" line="1552"/>
+        <source>Buffer:</source>
+        <translation>Tampon :</translation>
+    </message>
+    <message>
+        <location filename="../ui/analysis/qgisred_results_dock.ui" line="1571"/>
+        <source>Clear label buffer color</source>
+        <translation>Effacer la couleur du tampon des étiquettes</translation>
+    </message>
+    <message>
+        <location filename="../ui/analysis/qgisred_results_appearance.py" line="64"/>
+        <source>Label buffer color</source>
+        <translation>Couleur du tampon des étiquettes</translation>
+    </message>
+    <message>
         <location filename="../ui/analysis/qgisred_results_dock.ui" line="536"/>
         <source>Constant playback rate</source>
         <translation type="unfinished">Vitesse de lecture constante</translation>

@@ -1545,6 +1545,62 @@
                  </item>
                 </layout>
                </item>
+               <item row="8" column="0" colspan="2">
+                <widget class="QLabel" name="lbLabelBufferColorText">
+                 <property name="text">
+                  <string>Buffer:</string>
+                 </property>
+                </widget>
+               </item>
+               <item row="9" column="0" colspan="2">
+                <layout class="QHBoxLayout" name="horizontalLayout_labelBufferColor">
+                 <item>
+                  <widget class="QgsColorButton" name="btLabelBufferColor">
+                   <property name="sizePolicy">
+                    <sizepolicy hsizetype="Expanding" vsizetype="Fixed">
+                     <horstretch>0</horstretch>
+                     <verstretch>0</verstretch>
+                    </sizepolicy>
+                   </property>
+                   <property name="minimumHeight">
+                    <number>24</number>
+                   </property>
+                  </widget>
+                 </item>
+                 <item>
+                  <widget class="QPushButton" name="btClearLabelBufferColor">
+                   <property name="text">
+                    <string/>
+                   </property>
+                   <property name="toolTip">
+                    <string>Clear label buffer color</string>
+                   </property>
+                   <property name="maximumWidth">
+                    <number>24</number>
+                   </property>
+                   <property name="enabled">
+                    <bool>false</bool>
+                   </property>
+                  </widget>
+                 </item>
+                 <item>
+                  <spacer name="horizontalSpacer_labelBufferLock">
+                   <property name="orientation">
+                    <enum>Qt::Horizontal</enum>
+                   </property>
+                   <property name="sizeType">
+                    <enum>QSizePolicy::Fixed</enum>
+                   </property>
+                   <property name="sizeHint" stdset="0">
+                    <size>
+                     <width>24</width>
+                     <height>0</height>
+                    </size>
+                   </property>
+                  </spacer>
+                 </item>
+                </layout>
+               </item>
               </layout>
              </widget>
             </item>

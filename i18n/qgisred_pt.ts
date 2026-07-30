@@ -6475,6 +6475,21 @@ Clique esquerdo: Adicionar um novo item abaixo da seleção atual</translation>
         <translation>O fundo das etiquetas segue a cor de fundo do mapa</translation>
     </message>
     <message>
+        <location filename="../ui/analysis/qgisred_results_dock.ui" line="1552"/>
+        <source>Buffer:</source>
+        <translation>Buffer:</translation>
+    </message>
+    <message>
+        <location filename="../ui/analysis/qgisred_results_dock.ui" line="1571"/>
+        <source>Clear label buffer color</source>
+        <translation>Limpar a cor do buffer das etiquetas</translation>
+    </message>
+    <message>
+        <location filename="../ui/analysis/qgisred_results_appearance.py" line="64"/>
+        <source>Label buffer color</source>
+        <translation>Cor do buffer das etiquetas</translation>
+    </message>
+    <message>
         <location filename="../ui/analysis/qgisred_results_dock.ui" line="536"/>
         <source>Constant playback rate</source>
         <translation type="unfinished">Velocidade de reprodução constante</translation>

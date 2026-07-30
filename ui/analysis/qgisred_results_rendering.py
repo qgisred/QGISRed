@@ -4,7 +4,7 @@ import re
 
 from qgis.core import (
     QgsPalLayerSettings, QgsVectorLayerSimpleLabeling, QgsTextFormat,
-    QgsTextBackgroundSettings,
+    QgsTextBackgroundSettings, QgsTextBufferSettings,
     QgsProperty, QgsRenderContext,
     QgsGraduatedSymbolRenderer,
     QgsRuleBasedRenderer,
@@ -16,6 +16,7 @@ from qgis.PyQt.QtGui import QColor, QFont
 from ...compat import (
     RENDER_UNIT_POINTS, RENDER_UNIT_MILLIMETERS,
     TEXT_BG_SHAPE_RECTANGLE, TEXT_BG_SIZE_BUFFER,
+    PEN_JOIN_ROUND,
     PAL_PROPERTY_COLOR, PAL_PROPERTY_LABEL_DISTANCE,
     PAL_PLACEMENT_LINE, PAL_PLACEMENT_AROUND_POINT,
     SL_PROP_SIZE, SL_PROP_STROKE_COLOR, SL_PROP_STROKE_WIDTH,
@@ -45,6 +46,7 @@ _BASE_VALVE_PUMP_SIZE  = 6.0   # mm — SvgMarker for pumps/valves in LinkFlow.q
 # a larger distance than pipes because their SVG icon is much bigger than a flow arrow.
 _LABEL_CLEARANCE       = 1.0   # mm — gap between the symbol edge and the label box
 _LABEL_BG_BUFFER       = 1.0   # mm — must match the QgsTextBackgroundSettings buffer size
+_LABEL_BUFFER_SIZE     = 0.8   # mm — halo (QgsTextBufferSettings) drawn around the glyphs
 
 
 def _build_node_size_expr(expr, junction_str, special_str, type_field="Type"):
@@ -649,6 +651,22 @@ class _ResultsRenderingMixin:
             bg_settings.setFillColor(label_bg_color)
             text_format.setBackground(bg_settings)
 
+        # Optional halo ("buffer" in the QGIS label properties) that frames the glyphs.
+        # Everything but the color is fixed here: size, unit, full opacity and a round join
+        # so the outline follows the letters smoothly. Unlike the background, it is never
+        # linked to the map background color.
+        label_buffer_color = getattr(self, '_labelBufferColor', None)
+        if label_buffer_color:
+            buffer_settings = QgsTextBufferSettings()
+            buffer_settings.setEnabled(True)
+            buffer_settings.setSize(_LABEL_BUFFER_SIZE)
+            buffer_settings.setSizeUnit(RENDER_UNIT_MILLIMETERS)
+            buffer_settings.setColor(label_buffer_color)
+            buffer_settings.setOpacity(1.0)
+            buffer_settings.setJoinStyle(PEN_JOIN_ROUND)
+            buffer_settings.setFillBufferInterior(False)
+            text_format.setBuffer(buffer_settings)
+
         # Status is a categorical string field, not a numeric range — skip the
         # graduated "By range" color expression, which assumes numeric ranges.
         is_status_field = fieldName == "Status"
@@ -769,8 +787,15 @@ class _ResultsRenderingMixin:
         layer.triggerRepaint()
 
     def _labelMargin(self, has_background):
-        """Gap (mm) to leave between the symbol edge and the label, background included."""
-        return _LABEL_CLEARANCE + (_LABEL_BG_BUFFER if has_background else 0.0)
+        """Gap (mm) to leave between the symbol edge and the label, background included.
+
+        The optional text buffer widens the label footprint too, so it adds to the margin
+        (it is read from the dock rather than passed in, since every caller would only
+        forward the same state)."""
+        margin = _LABEL_CLEARANCE + (_LABEL_BG_BUFFER if has_background else 0.0)
+        if getattr(self, '_labelBufferColor', None):
+            margin += _LABEL_BUFFER_SIZE
+        return margin
 
     def _linkLabelDistances(self, has_background):
         """Perpendicular label offsets (mm) for pipes and for pumps/valves.

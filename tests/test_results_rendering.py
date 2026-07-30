@@ -904,6 +904,104 @@ class TestRenamedResultColumns:
             assert all(e.startswith("if({}='PIPE'".format(expected)) for e in exprs)
 
 
+class TestLabelBuffer:
+    """The Appearance tab can frame the labels with a colored halo (the "buffer" of the
+    QGIS label properties). Every buffer option but the color is fixed in code."""
+
+    def _applyLabels(self, buffer_color, geometry_type=0, field="Pressure"):
+        dock = MockDock()
+        dock.cbNodeLabels.isChecked.return_value = True
+        dock.cbLinkLabels.isChecked.return_value = True
+        dock.spNodeDecimals.value.return_value = 2
+        dock.spLinkDecimals.value.return_value = 2
+        dock.cbFlowDirections = MagicMock()
+        dock.cbFlowDirections.isChecked.return_value = False
+        dock._labelBufferColor = buffer_color
+        layer = MagicMock()
+        layer.geometryType.return_value = geometry_type
+        with patch("QGISRed.tools.utils.qgisred_project_utils.QgsProject") as MockProj, \
+             patch("QGISRed.ui.analysis.qgisred_results_rendering.QgsVectorLayerSimpleLabeling"), \
+             patch("QGISRed.ui.analysis.qgisred_results_rendering.QgsTextFormat") as MockFormat, \
+             patch("QGISRed.ui.analysis.qgisred_results_rendering.QgsTextBufferSettings") as MockBuffer:
+            MockProj.instance.return_value = _make_project("LPS")
+            dock.setLayerLabels(layer, field)
+            return MockBuffer, MockFormat.return_value
+
+    def test_no_buffer_when_no_color_is_picked(self):
+        MockBuffer, text_format = self._applyLabels(None)
+        assert MockBuffer.call_count == 0
+        assert text_format.setBuffer.call_count == 0
+
+    def test_buffer_uses_the_picked_color(self):
+        color = MagicMock()
+        MockBuffer, text_format = self._applyLabels(color)
+        settings = MockBuffer.return_value
+        settings.setEnabled.assert_called_once_with(True)
+        settings.setColor.assert_called_once_with(color)
+        text_format.setBuffer.assert_called_once_with(settings)
+
+    def test_every_option_but_the_color_is_fixed(self):
+        MockBuffer, _ = self._applyLabels(MagicMock())
+        settings = MockBuffer.return_value
+        assert settings.setSize.call_args[0][0] > 0
+        assert settings.setSizeUnit.call_count == 1
+        settings.setOpacity.assert_called_once_with(1.0)
+        settings.setFillBufferInterior.assert_called_once_with(False)
+        assert settings.setJoinStyle.call_count == 1
+
+    def test_buffer_is_applied_to_link_labels_too(self):
+        MockBuffer, text_format = self._applyLabels(MagicMock(), geometry_type=1, field="Flow")
+        assert MockBuffer.call_count == 1
+        assert text_format.setBuffer.call_count == 1
+
+    def test_buffer_widens_the_label_offsets(self):
+        # The halo grows the label footprint, so the label has to sit further from the symbol.
+        plain = MockDock()
+        plain.cbFlowDirections = MagicMock(); plain.cbFlowDirections.isChecked.return_value = True
+        plain._labelBufferColor = None
+        buffered = MockDock()
+        buffered.cbFlowDirections = MagicMock(); buffered.cbFlowDirections.isChecked.return_value = True
+        buffered._labelBufferColor = MagicMock()
+        assert buffered._linkLabelDistances(False)[0] > plain._linkLabelDistances(False)[0]
+        assert buffered._nodeLabelDistances(False)[0] > plain._nodeLabelDistances(False)[0]
+
+
+class TestLabelBufferSettingsPersistence:
+    def _dock(self, tmp_path, buffer_color=None):
+        dock = _AppearanceDock()
+        dock.btLabelBufferColor = MagicMock()
+        dock.btClearLabelBufferColor = MagicMock()
+        dock._labelBufferColor = buffer_color
+        dock._varDecimals = {}
+        dock._pipeFactor = dock._symbolFactor = dock._specialFactor = 1.0
+        dock._valvePumpFactor = dock._arrowFactor = 1.0
+        dock._proportional = False
+        dock._nodeBorder = False
+        dock._bgColor = None
+        dock._appearanceFilePath = lambda: str(tmp_path / "Net_Results_Config.cfg")
+        return dock
+
+    def test_buffer_color_survives_a_save_load_round_trip(self, tmp_path):
+        from QGISRed.ui.analysis.qgisred_results_appearance import _ResultsAppearanceMixin
+        color = MagicMock()
+        color.name.return_value = "#ff0000"
+        saver = self._dock(tmp_path, buffer_color=color)
+        _ResultsAppearanceMixin._saveAppearanceSettings(saver)
+
+        import xml.etree.ElementTree as ET
+        labels = ET.parse(saver._appearanceFilePath()).getroot().find("Labels")
+        assert labels.get("bufferColor") == "#ff0000"
+
+    def test_missing_buffer_color_loads_as_none(self, tmp_path):
+        from QGISRed.ui.analysis.qgisred_results_appearance import _ResultsAppearanceMixin
+        dock = self._dock(tmp_path)
+        _ResultsAppearanceMixin._saveAppearanceSettings(dock)
+
+        import xml.etree.ElementTree as ET
+        labels = ET.parse(dock._appearanceFilePath()).getroot().find("Labels")
+        assert labels.get("bufferColor") == ""
+
+
 class TestLabelStyleCallersMatchSignature:
     @pytest.mark.parametrize("show_id", [False, True])
     def test_on_label_style_changed_calls_real_setLayerLabels(self, show_id):

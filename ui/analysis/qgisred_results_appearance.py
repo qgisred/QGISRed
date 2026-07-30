@@ -62,6 +62,24 @@ class _ResultsAppearanceMixin:
         """Show the given color (or the null state) on btLabelBgColor."""
         self._setColorButton(self.btLabelBgColor, color)
 
+    def _onLabelBufferColorChanged(self, color):
+        """btLabelBufferColor.colorChanged handler. Also covers the button's own "Clear color"
+        menu entry, which arrives here as an invalid color."""
+        self._applyLabelBufferSelection(color if color.isValid() else None)
+
+    def _applyLabelBufferSelection(self, color):
+        """Store a new label buffer (halo) color (None = no buffer), persist it and repaint
+        labels. Unlike the background, this color is never linked to the map background."""
+        self._labelBufferColor = color
+        self.btClearLabelBufferColor.setEnabled(color is not None)
+        self._saveAppearanceSettings()
+        self._refreshLabelsIfShowing("Node")
+        self._refreshLabelsIfShowing("Link")
+
+    def _onClearLabelBufferColor(self):
+        self._setColorButton(self.btLabelBufferColor, None)
+        self._applyLabelBufferSelection(None)
+
     def _onLockLabelBgColor(self, checked):
         """Toggle linking the label background to the map background color. When locked,
         labels use self._bgColor and the label-color buttons are disabled."""
@@ -279,12 +297,13 @@ class _ResultsAppearanceMixin:
     # ------------------------------------------------------------------
 
     def _setupColorButtons(self):
-        """Configure the two QgsColorButtons. The dropdown's project / recent / standard
+        """Configure the QgsColorButtons. The dropdown's project / recent / standard
         color palettes are provided and persisted by QGIS itself, so nothing to wire here.
         Opacity is disabled because the settings file stores a plain hex string."""
         for button, title in (
             (self.btBgColor, QCoreApplication.translate("QGISRedResultsDock", "Map background color")),
             (self.btLabelBgColor, QCoreApplication.translate("QGISRedResultsDock", "Label background color")),
+            (self.btLabelBufferColor, QCoreApplication.translate("QGISRedResultsDock", "Label buffer color")),
         ):
             button.setAllowOpacity(False)
             button.setShowNull(True)
@@ -368,6 +387,7 @@ class _ResultsAppearanceMixin:
         self._labelShowLinkId = False
         self._labelBgColor = None
         self._labelBgColorLocked = False
+        self._labelBufferColor = None
         self._pipeFactor = 1.0
         self._symbolFactor = 1.0
         self._specialFactor = 1.0
@@ -389,6 +409,8 @@ class _ResultsAppearanceMixin:
         self.cbShowLinkId.setChecked(False)
         self._setColorButton(self.btLabelBgColor, None)
         self.btClearLabelBgColor.setEnabled(False)
+        self._setColorButton(self.btLabelBufferColor, None)
+        self.btClearLabelBufferColor.setEnabled(False)
         self._updateLabelBgLockUI()
         self._syncFactorWidgets()
         self.cbProportional.blockSignals(True)
@@ -430,7 +452,8 @@ class _ResultsAppearanceMixin:
                       showNodeId="true" if self._labelShowNodeId else "false",
                       showLinkId="true" if self._labelShowLinkId else "false",
                       bgColor=self._labelBgColor.name() if self._labelBgColor else "",
-                      lockBgToMap="true" if self._labelBgColorLocked else "false")
+                      lockBgToMap="true" if self._labelBgColorLocked else "false",
+                      bufferColor=self._labelBufferColor.name() if self._labelBufferColor else "")
         dec_elem = ET.SubElement(root, "Decimals")
         for var_name, val in self._varDecimals.items():
             ET.SubElement(dec_elem, "Var", name=var_name, value=str(val))
@@ -467,6 +490,8 @@ class _ResultsAppearanceMixin:
                     bg_hex = labels.get("bgColor", "")
                     self._labelBgColor = QColor(bg_hex) if bg_hex else None
                     self._labelBgColorLocked = labels.get("lockBgToMap", "false") == "true"
+                    buffer_hex = labels.get("bufferColor", "")
+                    self._labelBufferColor = QColor(buffer_hex) if buffer_hex else None
 
                 dec_elem = root.find("Decimals")
                 if dec_elem is not None:
@@ -507,6 +532,8 @@ class _ResultsAppearanceMixin:
         self.cbShowLinkId.setChecked(self._labelShowLinkId)
         self.btClearLabelBgColor.setEnabled(self._labelBgColor is not None)
         self._setColorButton(self.btLabelBgColor, self._labelBgColor)
+        self.btClearLabelBufferColor.setEnabled(self._labelBufferColor is not None)
+        self._setColorButton(self.btLabelBufferColor, self._labelBufferColor)
         self._updateLabelBgLockUI()
         node_field = self._node_field_map.get(self.cbNodes.currentText(), "")
         self._resetDecimalsForVariable(node_field, "Nodes", "Node")

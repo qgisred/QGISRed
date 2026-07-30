@@ -252,6 +252,18 @@ except AttributeError:
     TEXT_BG_SIZE_BUFFER     = _QgsTextBackgroundSettings.SizeType.SizeBuffer
 
 # ---------------------------------------------------------------------------
+# Qt pen join style (used for the label buffer outline).
+# Qt5: Qt.RoundJoin (flat)
+# Qt6: Qt.PenJoinStyle.RoundJoin (scoped)
+# ---------------------------------------------------------------------------
+from qgis.PyQt.QtCore import Qt as _Qt
+
+try:
+    PEN_JOIN_ROUND = _Qt.PenJoinStyle.RoundJoin
+except AttributeError:
+    PEN_JOIN_ROUND = _Qt.RoundJoin
+
+# ---------------------------------------------------------------------------
 # QgsPalLayerSettings property and placement constants.
 # QGIS 3: QgsPalLayerSettings.Color / Line / AroundPoint / OverPoint (flat)
 # QGIS 4: QgsPalLayerSettings.Property.Color /

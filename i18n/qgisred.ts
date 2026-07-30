@@ -6105,6 +6105,21 @@ Left-click: Add a new item below the current selection</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
+        <location filename="../ui/analysis/qgisred_results_dock.ui" line="1552"/>
+        <source>Buffer:</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="../ui/analysis/qgisred_results_dock.ui" line="1571"/>
+        <source>Clear label buffer color</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="../ui/analysis/qgisred_results_appearance.py" line="64"/>
+        <source>Label buffer color</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
         <location filename="../ui/analysis/qgisred_results_dock.ui" line="536"/>
         <source>Constant playback rate</source>
         <translation type="unfinished"></translation>
