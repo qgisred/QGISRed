@@ -9,7 +9,7 @@ import math
 import statistics
 import xml.etree.ElementTree as ET  # nosec B405 — parses a local settings file written by this plugin
 
-from qgis.PyQt.QtGui import QIcon, QColor, QPixmap
+from qgis.PyQt.QtGui import QIcon, QColor
 from qgis.PyQt.QtWidgets import QDialog, QMessageBox, QHeaderView, QLineEdit, QAbstractItemView
 from qgis.PyQt.QtWidgets import QCheckBox, QSpinBox, QApplication, QProgressDialog, QWidget, QHBoxLayout, QMenu
 from qgis.PyQt.QtCore import Qt, QTimer, QEvent
@@ -29,7 +29,7 @@ from qgis.utils import iface
 
 from ...compat import WKB_LINE_GEOMETRY, WKB_POINT_GEOMETRY
 from ...tools.utils.qgisred_styling_utils import _NULL_RULE_LABEL, QGISRedStylingUtils
-from ...tools.utils.qgisred_ui_utils import QGISRedUIUtils
+from ...tools.utils.qgisred_ui_utils import QGISRedUIUtils, QGISRedBanner
 from ...tools.utils.qgisred_identifier_utils import QGISRedIdentifierUtils
 from ...tools.utils.qgisred_field_utils import QGISRedFieldUtils, resolve_layer_id
 from ...tools.utils.qgisred_layer_utils import QGISRedLayerUtils
@@ -518,11 +518,14 @@ class QGISRedLegendsDialog(QDialog, formClass):
         self.installEventFilter(self)
         self.btClassPlus.installEventFilter(self)
 
+    # Row 3 of dialogLayout: right below the caption and above the classes table, which is where
+    # the warning has always been shown.
+    APPEARANCE_WARNING_ROW = 3
+
     def setupAppearanceWarning(self):
-        icon = QPixmap(":/images/iconWarning.svg").scaled(
-            16, 16, Qt.AspectRatioMode.KeepAspectRatio, Qt.TransformationMode.SmoothTransformation)
-        self.lbAppearanceWarnIcon.setPixmap(icon)
-        self.appearanceWarningWidget.setVisible(False)
+        """Places the shared QGISRedBanner where the hand-built warning widget used to live."""
+        self.appearanceWarningBanner = QGISRedBanner(self)
+        self.dialogLayout.insertWidget(self.APPEARANCE_WARNING_ROW, self.appearanceWarningBanner)
 
     def configureWindow(self):
         self.setWindowIcon(QIcon(":/images/iconThematicMaps.svg"))
@@ -4763,7 +4766,20 @@ class QGISRedLegendsDialog(QDialog, formClass):
     def updateAppearanceWarning(self):
         """Show the banner only on result layers whose symbols Appearance is rewriting."""
         isResult = bool(self.currentLayer) and self.isResultsLayer()
-        self.appearanceWarningWidget.setVisible(isResult and self.hasAppearanceOverrides())
+        if isResult and self.hasAppearanceOverrides():
+            # duration=0: it reflects a state, so it must stay up until the state changes
+            self.appearanceWarningBanner.pushMessage(
+                self.tr("Warning"),
+                self.tr(
+                    "The Appearance tab of the Results panel is changing this layer's symbols. Sizes "
+                    "shown here ignore those settings, so editing them may leave the style "
+                    "inconsistent: reset Appearance first."
+                ),
+                level=1,
+                duration=0,
+            )
+        else:
+            self.appearanceWarningBanner.hide()
 
     def getStyleBasename(self, name):
         styleURI = self.currentLayer.customProperty("styleURI") if self.currentLayer else None

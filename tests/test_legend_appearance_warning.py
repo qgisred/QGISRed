@@ -85,10 +85,14 @@ class TestHasAppearanceOverrides:
 
 
 class TestUpdateAppearanceWarning:
+    """The warning is shown through the shared QGISRedBanner, so a state that warrants it must end
+    up in pushMessage() and any other state must hide the banner."""
+
     def _dialogWithBanner(self, tmp_path, identifier):
         dialog = _dialog(tmp_path)
         dialog.currentLayer.customProperty.return_value = identifier
-        dialog.appearanceWarningWidget = MagicMock()
+        dialog.appearanceWarningBanner = MagicMock()
+        dialog.tr = lambda text: text
         return dialog
 
     def test_shown_on_a_result_layer_being_rewritten(self, tmp_path):
@@ -98,7 +102,12 @@ class TestUpdateAppearanceWarning:
 
         dialog.updateAppearanceWarning()
 
-        dialog.appearanceWarningWidget.setVisible.assert_called_once_with(True)
+        dialog.appearanceWarningBanner.hide.assert_not_called()
+        assert dialog.appearanceWarningBanner.pushMessage.call_count == 1
+        _args, kwargs = dialog.appearanceWarningBanner.pushMessage.call_args
+        # Yellow, and staying up: it reflects a state, not a transient notification
+        assert kwargs["level"] == 1
+        assert kwargs["duration"] == 0
 
     def test_hidden_on_a_layer_appearance_does_not_touch(self, tmp_path):
         # Appearance only rewrites result layers, so a pipe layer must never warn.
@@ -108,7 +117,8 @@ class TestUpdateAppearanceWarning:
 
         dialog.updateAppearanceWarning()
 
-        dialog.appearanceWarningWidget.setVisible.assert_called_once_with(False)
+        dialog.appearanceWarningBanner.hide.assert_called_once_with()
+        dialog.appearanceWarningBanner.pushMessage.assert_not_called()
 
     def test_hidden_once_appearance_has_been_reset(self, tmp_path):
         # Resetting deletes the file, which is what puts the banner away.
@@ -116,4 +126,5 @@ class TestUpdateAppearanceWarning:
 
         dialog.updateAppearanceWarning()
 
-        dialog.appearanceWarningWidget.setVisible.assert_called_once_with(False)
+        dialog.appearanceWarningBanner.hide.assert_called_once_with()
+        dialog.appearanceWarningBanner.pushMessage.assert_not_called()
