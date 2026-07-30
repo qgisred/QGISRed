@@ -7,7 +7,7 @@ from qgis.PyQt.QtGui import QCursor
 from qgis.PyQt.QtWidgets import QApplication, QLabel, QWidget
 from qgis.PyQt.QtCore import Qt, QEvent, QObject, QTimer, QPoint
 
-from ...compat import WKB_POINT_GEOMETRY
+from ...compat import sip, WKB_POINT_GEOMETRY
 
 # The native map tip renders its HTML in a web view (a plain text browser on builds
 # without WebKit). That descendant is what tells it apart from the canvas' other child
@@ -64,6 +64,8 @@ class QGISRedMapTip(QObject):
         super().__init__(None)
         self._iface = iface
         self._hoverPoint = None
+        # Every widget this instance filters, so stop() can let go of all of them
+        self._watched = []
 
         self._showTimer = QTimer()
         self._showTimer.setSingleShot(True)
@@ -90,11 +92,11 @@ class QGISRedMapTip(QObject):
 
         iface.mapCanvas().xyCoordinates.connect(self._onMove)
         # Hide when mouse leaves the canvas area
-        iface.mapCanvas().viewport().installEventFilter(self)
+        self._watch(iface.mapCanvas().viewport())
         # QGIS builds its own tip as a canvas child and shows it a while after ours.
         # Watching the canvas for new children lets us catch that widget the moment it
         # asks to be shown, which is the only way to suppress it without a flash.
-        iface.mapCanvas().installEventFilter(self)
+        self._watch(iface.mapCanvas())
         self._watchExistingChildren()
         # Hide when the user switches to another application (Alt+Tab, click elsewhere)
         QApplication.instance().applicationStateChanged.connect(self._onAppState)
@@ -111,22 +113,38 @@ class QGISRedMapTip(QObject):
             self._hideLabel()
 
     def stop(self):
-        """Disconnect signals and destroy the floating widget."""
+        """Disconnect signals, stop filtering and destroy the floating widget.
+
+        Every step is guarded on its own: the canvas and its children outlive the plugin,
+        so a filter still installed on one of them would go on calling back into this
+        instance long after its widget is gone, and one failed disconnect must not be
+        what leaves it there.
+        """
         with suppress(Exception):
             self._showTimer.stop()
+        with suppress(Exception):
             self._hideTimer.stop()
+        with suppress(Exception):
             self._iface.mapCanvas().xyCoordinates.disconnect(self._onMove)
-            self._iface.mapCanvas().viewport().removeEventFilter(self)
-            self._iface.mapCanvas().removeEventFilter(self)
+        with suppress(Exception):
             QApplication.instance().applicationStateChanged.disconnect(self._onAppState)
+        for widget in self._watched:
+            with suppress(Exception):
+                if not sip.isdeleted(widget):
+                    widget.removeEventFilter(self)
+        self._watched = []
+        with suppress(Exception):
             self._label.hide()
             self._label.deleteLater()
+        self._label = None
 
     # ------------------------------------------------------------------
     # Internal
     # ------------------------------------------------------------------
 
     def eventFilter(self, obj, event):
+        if not self._labelAlive():
+            return False   # stopped instance whose filter outlived it on a canvas child
         etype = event.type()
         if etype == QEvent.Type.Leave:
             self._showTimer.stop()
@@ -145,14 +163,26 @@ class QGISRedMapTip(QObject):
                 return True
         return False   # never consume anything else
 
+    def _labelAlive(self):
+        """False once stop() has destroyed the widget.
+
+        Restoring the QGIS window sends a show event to every child of the canvas, so an
+        instance that was stopped but is still filtering — after a plugin reload, say —
+        gets called with its QLabel already deleted underneath the Python wrapper.
+        """
+        return self._label is not None and not sip.isdeleted(self._label)
+
     def _hideLabel(self):
-        self._label.hide()
+        if self._labelAlive():
+            self._label.hide()
 
     def _watch(self, child):
         """Follow a new canvas child so its show event reaches our filter."""
         with suppress(Exception):
             if child is not None and child.isWidgetType():
                 child.installEventFilter(self)
+                if not any(watched is child for watched in self._watched):
+                    self._watched.append(child)
 
     def _watchExistingChildren(self):
         """Catch a tip widget QGIS built before the plugin was loaded.
@@ -172,12 +202,16 @@ class QGISRedMapTip(QObject):
             self._hideLabel()
 
     def _onMove(self, point):
+        if not self._labelAlive():
+            return
         self._hoverPoint = point
         self._showTimer.start()
         if self._label.isVisible() and not self._hideTimer.isActive():
             self._hideTimer.start()
 
     def _query(self):
+        if not self._labelAlive():
+            return
         if not self._iface.actionMapTips().isChecked():
             return
         if self._hoverPoint is None:
