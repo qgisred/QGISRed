@@ -9,7 +9,7 @@ from qgis.PyQt.QtGui import QColor, QPixmap, QIcon, QPainter
 
 from ...compat import PAINTER_ANTIALIASING
 from ...tools.utils.qgisred_field_utils import QGISRedFieldUtils
-from .qgisred_results_data import NODE_RESULT_FIELDS, LINK_RESULT_FIELDS
+from .qgisred_results_data import NODE_RESULT_FIELDS, LINK_RESULT_FIELDS, _STAT_VAR_ALIASES
 
 
 class _ResultsAppearanceMixin:
@@ -119,9 +119,40 @@ class _ResultsAppearanceMixin:
         self._refreshLabelsIfShowing("Node")
         self._refreshLabelsIfShowing("Link")
 
+    def _resultFieldsMatchDecimals(self):
+        """True when every Double result field already carries the precision the current
+        decimals settings would give it, so a rebuild would only re-read the results to
+        write back the very same values."""
+        field_utils = QGISRedFieldUtils()
+        for layerName, fields_def, element in (("Node", NODE_RESULT_FIELDS, "Nodes"),
+                                               ("Link", LINK_RESULT_FIELDS, "Links")):
+            layer = self._findResultLayer(layerName)
+            if not layer:
+                continue
+            fields = layer.fields()
+            for name, type_str, *_ in fields_def:
+                if type_str != "Double":
+                    continue
+                index = fields.indexOf(name)
+                if index < 0:
+                    return False  # missing field: it has to be created
+                csv_name = _STAT_VAR_ALIASES.get(name, name)
+                user_dec = self._varDecimals.get(csv_name)
+                try:
+                    dec = user_dec if user_dec is not None else field_utils.getDecimals(element, csv_name)
+                except Exception:
+                    return False  # unknown target precision: rebuild rather than guess
+                if fields.at(index).precision() != dec:
+                    return False
+        return True
+
     def _reloadResultsWithNewDecimals(self):
         """Delete and recreate Double result fields so shapefile precision matches the new decimal count."""
         if not self._findResultLayer("Node") and not self._findResultLayer("Link"):
+            return
+        # Callers such as reset-all fire unconditionally, so skip the (expensive) rebuild
+        # and results re-read when the stored decimals already match the layers.
+        if self._resultFieldsMatchDecimals():
             return
         if self._deferIfBusyReading(self._reloadResultsWithNewDecimals):
             return
