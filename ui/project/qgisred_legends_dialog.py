@@ -139,13 +139,10 @@ SERVICE_CONNECTION_ACTIVE_FILL_PATTERN = re.compile(
 ISOLATION_VALVE_GREEN_PATTERN = re.compile(
     r"\"?LossCoeff\"?\s*=\s*0\s*,\s*(color_rgb\(\s*\d+\s*,\s*\d+\s*,\s*\d+\s*\))"
 )
-# The two '#ffffff' branches of the Multiple Demands fill expression: the NULL
-# branch and the final else. The demand colors (positive/negative) stay fixed.
-DEMAND_BASE_FILL_PATTERNS = (
-    re.compile(r"(?:@bd|\"?Base(?:Value|Demand|Dem)\"?)\s+is\s+NULL\s*,\s*'(#[0-9a-fA-F]{3,6})'"),
-    re.compile(
-        r"(?:@bd|\"?Base(?:Value|Demand|Dem)\"?)\s*<\s*0\s*,\s*'#[0-9a-fA-F]{3,6}'\s*,\s*'(#[0-9a-fA-F]{3,6})'"
-    ),
+# The positive-demand branch of the Multiple Demands fill expression (the
+# '#fdbf6f' slot, like Junctions). The negative color and white base stay fixed.
+DEMAND_POSITIVE_FILL_PATTERN = re.compile(
+    r"(?:@bd|\"?Base(?:Value|Demand|Dem)\"?)\s*>\s*0\s*,\s*'(#[0-9a-fA-F]{3,6})'"
 )
 METER_ACTIVE_FILL_PATTERNS = (
     re.compile(r"IsActive\s+is\s+NULL\s*,\s*'(#[0-9a-fA-F]{3,6})'"),
@@ -3399,7 +3396,7 @@ class QGISRedLegendsDialog(QDialog, formClass):
         "qgisred_junctions": ("PropertyFillColor", r"BaseDem\s*>\s*0\s*,\s*'(#[0-9a-fA-F]{6})'"),
         "qgisred_demands": (
             "PropertyFillColor",
-            r"(?:@bd|\"?Base(?:Value|Demand|Dem)\"?)\s+is\s+NULL\s*,\s*'(#[0-9a-fA-F]{3,6})'",
+            r"(?:@bd|\"?Base(?:Value|Demand|Dem)\"?)\s*>\s*0\s*,\s*'(#[0-9a-fA-F]{3,6})'",
         ),
         "qgisred_pipes": ("PropertyStrokeColor", r"IniStatus is NULL\s*,\s*'(#[0-9a-fA-F]{6})'"),
         "qgisred_valves": ("PropertyStrokeColor", r"IniStatus is NULL\s*,\s*'(#[0-9a-fA-F]{6})'"),
@@ -3946,13 +3943,13 @@ class QGISRedLegendsDialog(QDialog, formClass):
     def _applyDemandsLegend(self, symbol, color, size):
         if color is not None:
             userHex = color.name().lower()
-            # Only the inner marker carries the fill expression, and only its white
-            # base branches (NULL and else) take the new color; the demand colors
-            # (positive/negative), strokes and the outer marker stay untouched.
-            for pattern in DEMAND_BASE_FILL_PATTERNS:
-                self._substituteExpressionOnLayers(
-                    symbol, QgsSymbolLayer.PropertyFillColor, pattern, userHex
-                )
+            # Only the inner marker carries the fill expression, and only its
+            # positive-demand branch takes the new color (like Junctions); the
+            # negative color, the white base branches, strokes and the outer
+            # marker stay untouched.
+            self._substituteExpressionOnLayers(
+                symbol, QgsSymbolLayer.PropertyFillColor, DEMAND_POSITIVE_FILL_PATTERN, userHex
+            )
         if size is not None and size > 0:
             # The size cell shows the overall symbol size, so an untouched cell must
             # be a strict no-op: scale expressions and base sizes only on a real change.

@@ -10,7 +10,7 @@ import re
 import pytest
 
 from QGISRed.ui.project.qgisred_legends_dialog import (
-    DEMAND_BASE_FILL_PATTERNS,
+    DEMAND_POSITIVE_FILL_PATTERN,
     ISOLATION_VALVE_GREEN_PATTERN,
     METER_ACTIVE_FILL_PATTERNS,
     SERVICE_CONNECTION_ACTIVE_FILL_PATTERN,
@@ -106,37 +106,34 @@ class TestIsolationValves:
 
 class TestMultipleDemands:
     @staticmethod
-    def _substituteBase(expr, newHex):
-        changedAny = False
-        for pattern in DEMAND_BASE_FILL_PATTERNS:
-            expr, changed = substituteCapturedGroup(expr, pattern, newHex)
-            changedAny = changedAny or changed
-        return expr, changedAny
+    def _substitutePositive(expr, newHex):
+        return substituteCapturedGroup(expr, DEMAND_POSITIVE_FILL_PATTERN, newHex)
 
     @pytest.mark.parametrize("expr", [DEMANDS_FILL, DEMANDS_FILL_LEGACY])
-    def test_only_the_white_base_branches_change(self, expr):
-        newExpr, changed = self._substituteBase(expr, "#123456")
+    def test_only_the_positive_demand_branch_changes(self, expr):
+        newExpr, changed = self._substitutePositive(expr, "#123456")
         assert changed
-        assert newExpr.count("'#123456'") == 2
-        assert "#ffffff" not in newExpr
-        # The demand colors stay fixed
-        assert "'#fdbf6f'" in newExpr and "'#a6cee3'" in newExpr
+        assert newExpr.count("'#123456'") == 1
+        assert "#fdbf6f" not in newExpr
+        # The negative color and the white base branches stay fixed
+        assert "'#a6cee3'" in newExpr
+        assert newExpr.count("'#ffffff'") == 2
 
     def test_with_variable_wrapper_survives(self):
-        newExpr, _ = self._substituteBase(DEMANDS_FILL, "#123456")
+        newExpr, _ = self._substitutePositive(DEMANDS_FILL, "#123456")
         assert newExpr.startswith("with_variable('bd',coalesce(")
 
     @pytest.mark.parametrize("expr", [DEMANDS_FILL, DEMANDS_FILL_LEGACY])
-    def test_reader_regex_reads_the_base_color(self, expr):
+    def test_reader_regex_reads_the_positive_demand_color(self, expr):
         _prop, regex = QGISRedLegendsDialog.INPUT_COLOR_READERS["qgisred_demands"]
         match = re.compile(regex).search(expr)
-        assert match and match.group(1) == "#ffffff"
+        assert match and match.group(1) == "#fdbf6f"
 
     def test_substitution_is_idempotent_after_a_first_apply(self):
-        once, _ = self._substituteBase(DEMANDS_FILL, "#123456")
-        twice, changed = self._substituteBase(once, "#abcdef")
+        once, _ = self._substitutePositive(DEMANDS_FILL, "#123456")
+        twice, changed = self._substitutePositive(once, "#abcdef")
         assert changed
-        assert twice.count("'#abcdef'") == 2 and "#123456" not in twice
+        assert twice.count("'#abcdef'") == 1 and "#123456" not in twice
 
     def test_size_scaling_keeps_wrapper_and_ratio(self):
         scaled = scaleNumericLiterals(DEMANDS_SIZE, 2.0)
