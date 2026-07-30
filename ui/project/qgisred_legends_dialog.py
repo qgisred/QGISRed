@@ -25,6 +25,7 @@ from qgis.core import QgsCategorizedSymbolRenderer, QgsRendererRange, QgsRendere
 from qgis.core import QgsLayerTreeGroup, QgsLayerTreeLayer, QgsGradientColorRamp, QgsClassificationJenks
 from qgis.core import QgsClassificationPrettyBreaks, QgsStyle, QgsPresetSchemeColorRamp, QgsProperty
 from qgis.core import QgsRuleBasedRenderer, QgsFillSymbolLayer, QgsMapLayerStyle, QgsRandomColorRamp, NULL
+from qgis.core import QgsLineSymbol, QgsMarkerSymbol, QgsFillSymbol
 from qgis.utils import iface
 
 from ...compat import WKB_LINE_GEOMETRY, WKB_POINT_GEOMETRY
@@ -2217,10 +2218,27 @@ class QGISRedLegendsDialog(QDialog, formClass):
         isReadOnlyValue=False,
     ):
         self.setCheckboxWidget(row, visible)
+        geometryHint = self.effectiveGeometryHint(symbol, geometryHint)
         self.setColorWidget(row, symbol, geometryHint)
         self.setSizeWidget(row, symbol, geometryHint)
         self.setValueWidget(row, valueText, isReadOnlyValue)
         self.setLegendWidget(row, legendText)
+
+    @staticmethod
+    def effectiveGeometryHint(symbol, geometryHint):
+        """Trust the symbol class over the layer geometry.
+
+        An invalid or reloading layer reports Unknown geometry while its renderer
+        still holds line or marker symbols; reading a marker size from a line
+        symbol then raises AttributeError.
+        """
+        if isinstance(symbol, QgsLineSymbol):
+            return "line"
+        if isinstance(symbol, QgsMarkerSymbol):
+            return "marker"
+        if isinstance(symbol, QgsFillSymbol):
+            return "fill"
+        return geometryHint
 
     def setCheckboxWidget(self, row, visible):
         checkbox = QCheckBox(self.tableView)
@@ -2567,12 +2585,13 @@ class QGISRedLegendsDialog(QDialog, formClass):
         return insertionRow
 
     def setDefaultSymbolSize(self, symbol):
-        geometryType = self.currentLayer.geometryType()
-        if geometryType == WKB_POINT_GEOMETRY:
-            symbol.setSize(3)
-        elif geometryType == WKB_LINE_GEOMETRY:
+        # The symbol class decides, not the layer geometry: an invalid layer can
+        # report a geometry that does not match the symbols its renderer holds.
+        if isinstance(symbol, QgsLineSymbol):
             symbol.setWidth(0.4)
-        else:
+        elif isinstance(symbol, QgsMarkerSymbol):
+            symbol.setSize(3)
+        elif hasattr(symbol, "setSize"):
             symbol.setSize(1.5)
 
     def classifyAllUniqueValues(self):
@@ -3361,7 +3380,7 @@ class QGISRedLegendsDialog(QDialog, formClass):
             symbol = QgsSymbol.defaultSymbol(layer.geometryType())
             color = self.generateRandomHsvColor()
             symbol.setColor(color)
-            self.setSymbolSizeForGeometry(symbol, layer.geometryType())
+            self.setSymbolSizeForGeometry(symbol)
 
             label = str(value)
             if unitAbbr:
@@ -3373,7 +3392,7 @@ class QGISRedLegendsDialog(QDialog, formClass):
         if hasNull:
             symbol = QgsSymbol.defaultSymbol(layer.geometryType())
             symbol.setColor(self.generateRandomHsvColor())
-            self.setSymbolSizeForGeometry(symbol, layer.geometryType())
+            self.setSymbolSizeForGeometry(symbol)
             categories.append(QgsRendererCategory(None, symbol, "NULL"))
 
         renderer = QgsCategorizedSymbolRenderer(field, categories)
@@ -3417,7 +3436,7 @@ class QGISRedLegendsDialog(QDialog, formClass):
 
             symbol = QgsSymbol.defaultSymbol(layer.geometryType())
             symbol.setColor(color)
-            self.setSymbolSizeForGeometry(symbol, layer.geometryType())
+            self.setSymbolSizeForGeometry(symbol)
 
             label = f"{lower:.1f} - {upper:.1f}"
             rangeObj = QgsRendererRange(lower, upper, symbol, label)
@@ -3434,10 +3453,12 @@ class QGISRedLegendsDialog(QDialog, formClass):
             int(startColor.blue() + t * (endColor.blue() - startColor.blue())),
         )
 
-    def setSymbolSizeForGeometry(self, symbol, geometryType):
-        if geometryType == WKB_LINE_GEOMETRY:
+    def setSymbolSizeForGeometry(self, symbol):
+        # The symbol class decides, not the layer geometry: an invalid layer can
+        # report a geometry that does not match the symbols its renderer holds.
+        if isinstance(symbol, QgsLineSymbol):
             symbol.setWidth(0.6)
-        else:
+        elif hasattr(symbol, "setSize"):
             symbol.setSize(2.5)
 
     def applyColorToSymbol(self, symbol, color):
@@ -3468,10 +3489,10 @@ class QGISRedLegendsDialog(QDialog, formClass):
 
     def applySizeToSymbol(self, symbol, size):
         """Applies size to a symbol, preserving its structure."""
-        isLine = self.currentLayer.geometryType() == WKB_LINE_GEOMETRY
-        if isLine:
+        hint = self.effectiveGeometryHint(symbol, self.getGeometryHint())
+        if hint == "line":
             symbol.setWidth(size)
-        else:
+        elif hasattr(symbol, "setSize"):
             symbol.setSize(size)
             self.applyNodeSizeExpressions(symbol, size)
 
@@ -3517,7 +3538,10 @@ class QGISRedLegendsDialog(QDialog, formClass):
                 junction, _ = read_node_base_sizes(sizeProperty.expressionString())
                 if junction is not None:
                     return junction
-        return symbol.size()
+        if hasattr(symbol, "size"):
+            return symbol.size()
+        # Line and fill symbols have no size(); fall back to a width read.
+        return self._getLineWidth(symbol)
 
     def _getLineWidth(self, symbol):
         """Return the width of the first SimpleLine layer; falls back to symbol.width()."""
@@ -5103,6 +5127,10 @@ class QGISRedLegendsDialog(QDialog, formClass):
             self.setClassCountEditable(False)
             self.updateClassCountLimits()
         elif isNumeric:
+            # Drop the tight limit a categorical layer may have left behind.
+            self.leClassCount.blockSignals(True)
+            self.leClassCount.setMaximum(self.MAX_CLASSES)
+            self.leClassCount.blockSignals(False)
             self.setClassCountEditable(not isManualNumeric and self.modeHasVariableClassCount())
         else:
             self.setClassCountEditable(False)
@@ -5219,7 +5247,14 @@ class QGISRedLegendsDialog(QDialog, formClass):
             self.btClassPlus.setEnabled(len(self.availableUniqueValues) > 0 or not self.hasOtherValuesCategory())
 
     def updateClassCount(self):
-        self.leClassCount.setValue(self.tableView.rowCount())
+        # The maximum may still belong to the previously selected layer; setValue
+        # would clamp to it and the valueChanged handler would delete table rows.
+        rowCount = self.tableView.rowCount()
+        self.leClassCount.blockSignals(True)
+        if self.leClassCount.maximum() < rowCount:
+            self.leClassCount.setMaximum(rowCount)
+        self.leClassCount.setValue(rowCount)
+        self.leClassCount.blockSignals(False)
 
     # ============================================================
     # INPUT LAYER RESTRICTIONS
