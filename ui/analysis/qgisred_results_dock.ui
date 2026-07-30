@@ -1490,9 +1490,15 @@
                <item row="7" column="0" colspan="2">
                 <layout class="QHBoxLayout" name="horizontalLayout_labelBgColor">
                  <item>
-                  <widget class="QPushButton" name="btLabelBgColor">
-                   <property name="text">
-                    <string>No color</string>
+                  <widget class="QgsColorButton" name="btLabelBgColor">
+                   <property name="sizePolicy">
+                    <sizepolicy hsizetype="Expanding" vsizetype="Fixed">
+                     <horstretch>0</horstretch>
+                     <verstretch>0</verstretch>
+                    </sizepolicy>
+                   </property>
+                   <property name="minimumHeight">
+                    <number>24</number>
                    </property>
                   </widget>
                  </item>
@@ -1814,9 +1820,15 @@
                <item>
                 <layout class="QHBoxLayout" name="horizontalLayout_bgColor">
                  <item>
-                  <widget class="QPushButton" name="btBgColor">
-                   <property name="text">
-                    <string>No color</string>
+                  <widget class="QgsColorButton" name="btBgColor">
+                   <property name="sizePolicy">
+                    <sizepolicy hsizetype="Expanding" vsizetype="Fixed">
+                     <horstretch>0</horstretch>
+                     <verstretch>0</verstretch>
+                    </sizepolicy>
+                   </property>
+                   <property name="minimumHeight">
+                    <number>24</number>
                    </property>
                   </widget>
                  </item>
@@ -1872,6 +1884,13 @@
    </layout>
   </widget>
  </widget>
+ <customwidgets>
+  <customwidget>
+   <class>QgsColorButton</class>
+   <extends>QToolButton</extends>
+   <header>qgscolorbutton.h</header>
+  </customwidget>
+ </customwidgets>
  <resources/>
  <connections/>
 </ui>

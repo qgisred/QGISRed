@@ -163,6 +163,9 @@ class QGISRedResultsDock(
         self.lbValvePumpFactor.setText(self.tr("Pumps and valves") + ":")
         self.lbArrowFactor.setText(self.tr("Arrows") + ":")
 
+        # Must run before the connections below and before loadAppearanceSettings
+        self._setupColorButtons()
+
         # Appearance tab connections
         self.spFontSize.valueChanged.connect(self._onLabelStyleChanged)
         self.spNodeDecimals.valueChanged.connect(self._onDecimalsChanged)
@@ -170,7 +173,7 @@ class QGISRedResultsDock(
         self.rbColorByRange.toggled.connect(self._onLabelStyleChanged)
         self.cbShowNodeId.clicked.connect(self._onLabelStyleChanged)
         self.cbShowLinkId.clicked.connect(self._onLabelStyleChanged)
-        self.btLabelBgColor.clicked.connect(self._onLabelBgColorClicked)
+        self.btLabelBgColor.colorChanged.connect(self._onLabelBgColorChanged)
         self.btClearLabelBgColor.clicked.connect(self._onClearLabelBgColor)
         self.btLockLabelBgColor.toggled.connect(self._onLockLabelBgColor)
         self.dspPipeFactor.valueChanged.connect(self._onSymbolFactorChanged)
@@ -180,7 +183,7 @@ class QGISRedResultsDock(
         self.dspArrowFactor.valueChanged.connect(self._onSymbolFactorChanged)
         self.cbProportional.toggled.connect(self._onSymbolFactorChanged)
         self.cbNodeBorder.toggled.connect(self._onSymbolFactorChanged)
-        self.btBgColor.clicked.connect(self._onBgColorClicked)
+        self.btBgColor.colorChanged.connect(self._onBgColorChanged)
         self.btClearBgColor.clicked.connect(self._onClearBgColor)
         self.btResetAppearance.clicked.connect(self._onResetAppearance)
         self.btResetFontSize.clicked.connect(lambda: self.spFontSize.setValue(8))

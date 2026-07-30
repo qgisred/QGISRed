@@ -3,7 +3,7 @@ from contextlib import suppress
 import os
 import xml.etree.ElementTree as ET  # nosec B405 — parses a local appearance settings file written by this plugin, no external input
 
-from qgis.PyQt.QtWidgets import QApplication, QColorDialog
+from qgis.PyQt.QtWidgets import QApplication
 from qgis.PyQt.QtCore import Qt, QCoreApplication
 from qgis.PyQt.QtGui import QColor, QPixmap, QIcon, QPainter
 
@@ -41,33 +41,26 @@ class _ResultsAppearanceMixin:
         self._refreshLabelsIfShowing("Node")
         self._refreshLabelsIfShowing("Link")
 
-    def _onLabelBgColorClicked(self):
-        initial = self._labelBgColor if self._labelBgColor else QColor("white")
-        color = QColorDialog.getColor(initial, self, QCoreApplication.translate("QGISRedResultsDock", "Label background color"))
-        if color.isValid():
-            self._labelBgColor = color
-            self._setLabelBgButtonDisplay(color)
-            self.btClearLabelBgColor.setEnabled(True)
-            self._saveAppearanceSettings()
-            self._refreshLabelsIfShowing("Node")
-            self._refreshLabelsIfShowing("Link")
+    def _onLabelBgColorChanged(self, color):
+        """btLabelBgColor.colorChanged handler. Also covers the button's own "Clear color"
+        menu entry, which arrives here as an invalid color."""
+        self._applyLabelBgSelection(color if color.isValid() else None)
 
-    def _onClearLabelBgColor(self):
-        self._labelBgColor = None
-        self._setLabelBgButtonDisplay(None)
-        self.btClearLabelBgColor.setEnabled(False)
+    def _applyLabelBgSelection(self, color):
+        """Store a new label background color (None = none), persist it and repaint labels."""
+        self._labelBgColor = color
+        self.btClearLabelBgColor.setEnabled(color is not None)
         self._saveAppearanceSettings()
         self._refreshLabelsIfShowing("Node")
         self._refreshLabelsIfShowing("Link")
 
+    def _onClearLabelBgColor(self):
+        self._setLabelBgButtonDisplay(None)
+        self._applyLabelBgSelection(None)
+
     def _setLabelBgButtonDisplay(self, color):
-        """Paint btLabelBgColor to show the given color (hex swatch + label), or 'No color'."""
-        if color:
-            self.btLabelBgColor.setStyleSheet(f"background-color: {color.name()};")
-            self.btLabelBgColor.setText(color.name())
-        else:
-            self.btLabelBgColor.setStyleSheet("")
-            self.btLabelBgColor.setText(QCoreApplication.translate("QGISRedResultsDock", "No color"))
+        """Show the given color (or the null state) on btLabelBgColor."""
+        self._setColorButton(self.btLabelBgColor, color)
 
     def _onLockLabelBgColor(self, checked):
         """Toggle linking the label background to the map background color. When locked,
@@ -251,35 +244,58 @@ class _ResultsAppearanceMixin:
             self._refreshLabelsIfShowing("Link")
 
     # ------------------------------------------------------------------
+    # Color buttons
+    # ------------------------------------------------------------------
+
+    def _setupColorButtons(self):
+        """Configure the two QgsColorButtons. The dropdown's project / recent / standard
+        color palettes are provided and persisted by QGIS itself, so nothing to wire here.
+        Opacity is disabled because the settings file stores a plain hex string."""
+        for button, title in (
+            (self.btBgColor, QCoreApplication.translate("QGISRedResultsDock", "Map background color")),
+            (self.btLabelBgColor, QCoreApplication.translate("QGISRedResultsDock", "Label background color")),
+        ):
+            button.setAllowOpacity(False)
+            button.setShowNull(True)
+            button.setColorDialogTitle(title)
+            self._setColorButton(button, None)
+
+    def _setColorButton(self, button, color):
+        """Show a color (or None → the null state) on a QgsColorButton without re-triggering
+        colorChanged, mirroring the hex in the tooltip since the swatch carries no text."""
+        button.blockSignals(True)
+        if color:
+            button.setColor(color)
+        else:
+            button.setToNull()
+        button.blockSignals(False)
+        button.setToolTip(color.name() if color
+                          else QCoreApplication.translate("QGISRedResultsDock", "No color"))
+
+    # ------------------------------------------------------------------
     # Background color
     # ------------------------------------------------------------------
 
-    def _onBgColorClicked(self):
-        initial = self._bgColor if self._bgColor else QColor("white")
-        color = QColorDialog.getColor(initial, self, QCoreApplication.translate("QGISRedResultsDock", "Map background color"))
-        if color.isValid():
-            self._bgColor = color
-            self.btBgColor.setStyleSheet(f"background-color: {color.name()};")
-            self.btBgColor.setText(color.name())
-            self.btClearBgColor.setEnabled(True)
-            self._applyBgColor()
-            self._saveAppearanceSettings()
-            if self._labelBgColorLocked:
-                self._setLabelBgButtonDisplay(self._bgColor)
-                self._refreshLabelsIfShowing("Node")
-                self._refreshLabelsIfShowing("Link")
+    def _onBgColorChanged(self, color):
+        """btBgColor.colorChanged handler. Also covers the button's own "Clear color"
+        menu entry, which arrives here as an invalid color."""
+        self._applyBgSelection(color if color.isValid() else None)
 
-    def _onClearBgColor(self):
-        self._bgColor = None
-        self.btBgColor.setStyleSheet("")
-        self.btBgColor.setText(QCoreApplication.translate("QGISRedResultsDock", "No color"))
-        self.btClearBgColor.setEnabled(False)
+    def _applyBgSelection(self, color):
+        """Store a new map background color (None = restore the canvas color), persist it,
+        and drag the label background along when it is locked to the map."""
+        self._bgColor = color
+        self.btClearBgColor.setEnabled(color is not None)
         self._applyBgColor()
         self._saveAppearanceSettings()
         if self._labelBgColorLocked:
-            self._setLabelBgButtonDisplay(None)
+            self._setLabelBgButtonDisplay(color)
             self._refreshLabelsIfShowing("Node")
             self._refreshLabelsIfShowing("Link")
+
+    def _onClearBgColor(self):
+        self._setColorButton(self.btBgColor, None)
+        self._applyBgSelection(None)
 
     def _applyBgColor(self):
         canvas = self.iface.mapCanvas()
@@ -340,8 +356,7 @@ class _ResultsAppearanceMixin:
         self.rbColorBlack.setChecked(True)
         self.cbShowNodeId.setChecked(False)
         self.cbShowLinkId.setChecked(False)
-        self.btLabelBgColor.setStyleSheet("")
-        self.btLabelBgColor.setText(QCoreApplication.translate("QGISRedResultsDock", "No color"))
+        self._setColorButton(self.btLabelBgColor, None)
         self.btClearLabelBgColor.setEnabled(False)
         self._updateLabelBgLockUI()
         self._syncFactorWidgets()
@@ -351,8 +366,7 @@ class _ResultsAppearanceMixin:
         self.cbNodeBorder.blockSignals(True)
         self.cbNodeBorder.setChecked(False)
         self.cbNodeBorder.blockSignals(False)
-        self.btBgColor.setStyleSheet("")
-        self.btBgColor.setText(QCoreApplication.translate("QGISRedResultsDock", "No color"))
+        self._setColorButton(self.btBgColor, None)
         self.btClearBgColor.setEnabled(False)
 
         self._applyBgColor()
@@ -461,9 +475,7 @@ class _ResultsAppearanceMixin:
         self.cbShowNodeId.setChecked(self._labelShowNodeId)
         self.cbShowLinkId.setChecked(self._labelShowLinkId)
         self.btClearLabelBgColor.setEnabled(self._labelBgColor is not None)
-        if self._labelBgColor:
-            self.btLabelBgColor.setStyleSheet(f"background-color: {self._labelBgColor.name()};")
-            self.btLabelBgColor.setText(self._labelBgColor.name())
+        self._setColorButton(self.btLabelBgColor, self._labelBgColor)
         self._updateLabelBgLockUI()
         node_field = self._node_field_map.get(self.cbNodes.currentText(), "")
         self._resetDecimalsForVariable(node_field, "Nodes", "Node")
@@ -477,8 +489,7 @@ class _ResultsAppearanceMixin:
         self.cbNodeBorder.setChecked(self._nodeBorder)
         self.cbNodeBorder.blockSignals(False)
         if self._bgColor:
-            self.btBgColor.setStyleSheet(f"background-color: {self._bgColor.name()};")
-            self.btBgColor.setText(self._bgColor.name())
+            self._setColorButton(self.btBgColor, self._bgColor)
             self.btClearBgColor.setEnabled(True)
             self._applyBgColor()
 
