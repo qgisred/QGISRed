@@ -587,6 +587,191 @@
         <source>Save</source>
         <translation type="unfinished"></translation>
     </message>
+    <message>
+        <location filename="../ui/edition/qgisred_groupedit_dialog.ui" line="20"/>
+        <source>QGISRed: Edit Properties by Group</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="../ui/edition/qgisred_groupedit_dialog.ui" line="28"/>
+        <source>Select Elements</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="../ui/edition/qgisred_groupedit_dialog.ui" line="34"/>
+        <source>Element type</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="../ui/edition/qgisred_groupedit_dialog.ui" line="60"/>
+        <source>Filter</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="../ui/edition/qgisred_groupedit_dialog.ui" line="67"/>
+        <source>Only selected features</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="../ui/edition/qgisred_groupedit_dialog.ui" line="76"/>
+        <source>Attribute</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="../ui/edition/qgisred_groupedit_dialog.ui" line="86"/>
+        <source>Condition</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="../ui/edition/qgisred_groupedit_dialog.ui" line="146"/>
+        <source>Preview on map</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="../ui/edition/qgisred_groupedit_dialog.ui" line="169"/>
+        <source>0 selected elements</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="../ui/edition/qgisred_groupedit_dialog.ui" line="181"/>
+        <source>Change</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="../ui/edition/qgisred_groupedit_dialog.ui" line="187"/>
+        <source>Property</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="../ui/edition/qgisred_groupedit_dialog.ui" line="207"/>
+        <source>Action</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="../ui/edition/qgisred_groupedit_dialog.ui" line="346"/>
+        <source>Find</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="../ui/edition/qgisred_groupedit_dialog.ui" line="356"/>
+        <source>Replace with</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="../ui/queries/qgisred_statistics_manual_breaks_dialog.ui" line="14"/>
+        <source>Manual breaks</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="../ui/queries/qgisred_statistics_manual_breaks_dialog.ui" line="22"/>
+        <source># Classes</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="../ui/queries/qgisred_statistics_manual_breaks_dialog.ui" line="45"/>
+        <source>Reset to Equal Interval</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="../ui/tools/qgisred_demandsectorbuilder_dialog.ui" line="20"/>
+        <source>QGISRed: Demand Sector Builder</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="../ui/tools/qgisred_demandsectorbuilder_dialog.ui" line="49"/>
+        <source>Demand sectorization</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="../ui/tools/qgisred_demandsectorbuilder_dialog.ui" line="61"/>
+        <source>Sectorization</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="../ui/tools/qgisred_demandsectorbuilder_dialog.ui" line="90"/>
+        <source>Create</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="../ui/tools/qgisred_demandsectorbuilder_dialog.ui" line="103"/>
+        <source>Delete</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="../ui/tools/qgisred_demandsectorbuilder_dialog.ui" line="113"/>
+        <source>Current themes</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="../ui/tools/qgisred_demandsectorbuilder_dialog.ui" line="291"/>
+        <source>Theme</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="../ui/tools/qgisred_demandsectorbuilder_dialog.ui" line="152"/>
+        <source>Status</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="../ui/tools/qgisred_demandsectorbuilder_dialog.ui" line="175"/>
+        <source>Create empty theme</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="../ui/tools/qgisred_demandsectorbuilder_dialog.ui" line="182"/>
+        <source>Delete theme</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="../ui/tools/qgisred_demandsectorbuilder_dialog.ui" line="194"/>
+        <source>Create / Complete theme</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="../ui/tools/qgisred_demandsectorbuilder_dialog.ui" line="206"/>
+        <source>From theme</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="../ui/tools/qgisred_demandsectorbuilder_dialog.ui" line="226"/>
+        <source>To theme</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="../ui/tools/qgisred_demandsectorbuilder_dialog.ui" line="267"/>
+        <source>Create / Complete</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="../ui/tools/qgisred_demandsectorbuilder_dialog.ui" line="279"/>
+        <source>Check theme</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="../ui/tools/qgisred_demandsectorbuilder_dialog.ui" line="317"/>
+        <source>Check</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="../ui/tools/qgisred_demandsectorbuilder_dialog.ui" line="327"/>
+        <source>Update themes</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="../ui/tools/qgisred_demandsectorbuilder_dialog.ui" line="339"/>
+        <source>Source theme</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="../ui/tools/qgisred_demandsectorbuilder_dialog.ui" line="365"/>
+        <source>Update remaining themes</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="../ui/tools/qgisred_demandsectorbuilder_dialog.ui" line="409"/>
+        <source>Close</source>
+        <translation type="unfinished"></translation>
+    </message>
 </context>
 <context>
     <name>DigitalTwinSection</name>
@@ -3133,6 +3318,214 @@ Do you also want to delete the result files from disk?</source>
     </message>
 </context>
 <context>
+    <name>QGISRedDemandSectorBuilderDialog</name>
+    <message>
+        <location filename="../ui/tools/qgisred_demandsectorbuilder_dialog.py" line="577"/>
+        <source>Create demand sectorization</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="../ui/tools/qgisred_demandsectorbuilder_dialog.py" line="525"/>
+        <source>Sectorization name:</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="../ui/tools/qgisred_demandsectorbuilder_dialog.py" line="537"/>
+        <source>The sectorization name cannot be empty.</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="../ui/tools/qgisred_demandsectorbuilder_dialog.py" line="552"/>
+        <source>A demand sectorization with this name already exists.</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="../ui/tools/qgisred_demandsectorbuilder_dialog.py" line="693"/>
+        <source>Delete demand sectorization</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="../ui/tools/qgisred_demandsectorbuilder_dialog.py" line="1220"/>
+        <source>Select a demand sectorization first.</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="../ui/tools/qgisred_demandsectorbuilder_dialog.py" line="616"/>
+        <source>The demand sectorization &quot;%s&quot; and all its themes will be deleted.
+
+Continue?</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="../ui/tools/qgisred_demandsectorbuilder_dialog.py" line="650"/>
+        <source>Invalid sectorization folder.</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="../ui/tools/qgisred_demandsectorbuilder_dialog.py" line="678"/>
+        <source>The sectorization folder &quot;%s&quot; does not exist.</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="../ui/tools/qgisred_demandsectorbuilder_dialog.py" line="693"/>
+        <source>The demand sectorization &quot;%s&quot; was deleted successfully.</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="../ui/tools/qgisred_demandsectorbuilder_dialog.py" line="839"/>
+        <source>Create demand sector theme</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="../ui/tools/qgisred_demandsectorbuilder_dialog.py" line="869"/>
+        <source>Select a theme in the current themes list.</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="../ui/tools/qgisred_demandsectorbuilder_dialog.py" line="728"/>
+        <source>The theme &quot;%s&quot; already exists in the selected sectorization.</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="../ui/tools/qgisred_demandsectorbuilder_dialog.py" line="765"/>
+        <source>The sector theme was created, but its file path could not be obtained.</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="../ui/tools/qgisred_demandsectorbuilder_dialog.py" line="809"/>
+        <source>The theme &quot;%s&quot; was created, but it could not be loaded into the QGIS project.</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="../ui/tools/qgisred_demandsectorbuilder_dialog.py" line="839"/>
+        <source>The theme &quot;%s&quot; was created successfully.</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="../ui/tools/qgisred_demandsectorbuilder_dialog.py" line="997"/>
+        <source>Delete demand sector theme</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="../ui/tools/qgisred_demandsectorbuilder_dialog.py" line="878"/>
+        <source>The theme &quot;%s&quot; does not exist in the selected sectorization.</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="../ui/tools/qgisred_demandsectorbuilder_dialog.py" line="887"/>
+        <source>The theme &quot;%s&quot; will be removed from the demand sectorization &quot;%s&quot;.
+
+Continue?</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="../ui/tools/qgisred_demandsectorbuilder_dialog.py" line="930"/>
+        <source>The sector theme could not be deleted because its file path could not be obtained.</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="../ui/tools/qgisred_demandsectorbuilder_dialog.py" line="997"/>
+        <source>The theme &quot;%s&quot; was deleted successfully.</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="../ui/tools/qgisred_demandsectorbuilder_dialog.py" line="1152"/>
+        <source>Create or complete demand sector theme</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="../ui/tools/qgisred_demandsectorbuilder_dialog.py" line="1034"/>
+        <source>Select both the source and destination themes.</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="../ui/tools/qgisred_demandsectorbuilder_dialog.py" line="1041"/>
+        <source>The source and destination themes must be different.</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="../ui/tools/qgisred_demandsectorbuilder_dialog.py" line="1049"/>
+        <source>The theme &quot;%s&quot; will be created or completed using &quot;%s&quot; as the source theme.
+
+Continue?</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="../ui/tools/qgisred_demandsectorbuilder_dialog.py" line="1090"/>
+        <source>The sector theme was generated, but its file path could not be obtained.</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="../ui/tools/qgisred_demandsectorbuilder_dialog.py" line="1133"/>
+        <source>The theme &quot;%s&quot; was generated, but it could not be loaded into the QGIS project.</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="../ui/tools/qgisred_demandsectorbuilder_dialog.py" line="1152"/>
+        <source>The theme &quot;%s&quot; was created or completed successfully.</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="../ui/tools/qgisred_demandsectorbuilder_dialog.py" line="1197"/>
+        <source>Check demand sector theme</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="../ui/tools/qgisred_demandsectorbuilder_dialog.py" line="1185"/>
+        <source>Select a theme to check.</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="../ui/tools/qgisred_demandsectorbuilder_dialog.py" line="1264"/>
+        <source>Update demand sector themes</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="../ui/tools/qgisred_demandsectorbuilder_dialog.py" line="1227"/>
+        <source>Select a source theme.</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="../ui/tools/qgisred_demandsectorbuilder_dialog.py" line="1233"/>
+        <source>The remaining demand sector themes will be updated using &quot;%s&quot; as the source theme.
+
+Existing sector information may be replaced.
+
+Continue?</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="../ui/tools/qgisred_demandsectorbuilder_dialog.py" line="1504"/>
+        <source>Filled</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="../ui/tools/qgisred_demandsectorbuilder_dialog.py" line="1507"/>
+        <source>Empty</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="../ui/tools/qgisred_demandsectorbuilder_dialog.py" line="1510"/>
+        <source>Missing</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="../ui/tools/qgisred_demandsectorbuilder_dialog.py" line="1699"/>
+        <source>The operation was completed successfully.</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="../ui/tools/qgisred_demandsectorbuilder_dialog.py" line="1704"/>
+        <source>The operation could not be completed.</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="../ui/tools/qgisred_demandsectorbuilder_dialog.py" line="1967"/>
+        <source>The Demand Sector Builder method &quot;%s&quot; is not available.</source>
+        <translation type="unfinished"></translation>
+    </message>
+</context>
+<context>
     <name>QGISRedEditLinksGeometryTool</name>
     <message>
         <location filename="../tools/map_tools/qgisred_editLinksGeometry.py" line="218"/>
@@ -3556,6 +3949,184 @@ Do you also want to delete the result files from disk?</source>
     <message>
         <location filename="../ui/general/qgisred_exportproject_dialog.py" line="205"/>
         <source>Whoever imports the project is expected to have it already.</source>
+        <translation type="unfinished"></translation>
+    </message>
+</context>
+<context>
+    <name>QGISRedGroupEditDialog</name>
+    <message>
+        <location filename="../ui/edition/qgisred_groupedit_dialog.py" line="1501"/>
+        <source>Edit Properties by Group</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="../ui/edition/qgisred_groupedit_dialog.py" line="278"/>
+        <source>All temporary changes will be ignored. Continue?</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="../ui/edition/qgisred_groupedit_dialog.py" line="379"/>
+        <source>No layers</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="../ui/edition/qgisred_groupedit_dialog.py" line="379"/>
+        <source>No QGISRed network layers found in the project.</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="../ui/edition/qgisred_groupedit_dialog.py" line="393"/>
+        <source>Junctions</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="../ui/edition/qgisred_groupedit_dialog.py" line="394"/>
+        <source>Multiple Demands</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="../ui/edition/qgisred_groupedit_dialog.py" line="395"/>
+        <source>Pipes</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="../ui/edition/qgisred_groupedit_dialog.py" line="396"/>
+        <source>Tanks</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="../ui/edition/qgisred_groupedit_dialog.py" line="397"/>
+        <source>Reservoirs</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="../ui/edition/qgisred_groupedit_dialog.py" line="398"/>
+        <source>Pumps</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="../ui/edition/qgisred_groupedit_dialog.py" line="399"/>
+        <source>Valves</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="../ui/edition/qgisred_groupedit_dialog.py" line="400"/>
+        <source>Sources</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="../ui/edition/qgisred_groupedit_dialog.py" line="401"/>
+        <source>Service Connections</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="../ui/edition/qgisred_groupedit_dialog.py" line="402"/>
+        <source>Isolation Valves</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="../ui/edition/qgisred_groupedit_dialog.py" line="403"/>
+        <source>Meters</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="../ui/edition/qgisred_groupedit_dialog.py" line="448"/>
+        <source>No Filter</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="../ui/edition/qgisred_groupedit_dialog.py" line="579"/>
+        <source>Pick a date from a calendar</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="../ui/edition/qgisred_groupedit_dialog.py" line="1041"/>
+        <source>0 selected elements</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="../ui/edition/qgisred_groupedit_dialog.py" line="1048"/>
+        <source>%d selected elements</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="../ui/edition/qgisred_groupedit_dialog.py" line="1344"/>
+        <source>Apply</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="../ui/edition/qgisred_groupedit_dialog.py" line="1201"/>
+        <source>No elements match the current target and filter.</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="../ui/edition/qgisred_groupedit_dialog.py" line="1214"/>
+        <source>The following changes will be applied temporarily until Accept is pressed:</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="../ui/edition/qgisred_groupedit_dialog.py" line="1229"/>
+        <source>Invalid numeric value.</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="../ui/edition/qgisred_groupedit_dialog.py" line="1231"/>
+        <source>Divide by zero is not allowed.</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="../ui/edition/qgisred_groupedit_dialog.py" line="1255"/>
+        <source>Find text cannot be empty.</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="../ui/edition/qgisred_groupedit_dialog.py" line="1314"/>
+        <source>Warning: %d value(s) fall outside the typical range for this field.</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="../ui/edition/qgisred_groupedit_dialog.py" line="1323"/>
+        <source>Field not found in layer.</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="../ui/edition/qgisred_groupedit_dialog.py" line="1328"/>
+        <source>Could not start editing the layer.</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="../ui/edition/qgisred_groupedit_dialog.py" line="1344"/>
+        <source>Changing %d elements.</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="../ui/edition/qgisred_groupedit_dialog.py" line="1431"/>
+        <source>All provisional changes will be applied permanently. Continue?</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="../ui/edition/qgisred_groupedit_dialog.py" line="1479"/>
+        <source>Accept</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="../ui/edition/qgisred_groupedit_dialog.py" line="1444"/>
+        <source>Failed to commit changes: %s</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="../ui/edition/qgisred_groupedit_dialog.py" line="1483"/>
+        <source>The following changes will be applied permanently:</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="../ui/edition/qgisred_groupedit_dialog.py" line="1493"/>
+        <source>elements</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="../ui/edition/qgisred_groupedit_dialog.py" line="1500"/>
+        <source>Continue?</source>
         <translation type="unfinished"></translation>
     </message>
 </context>
@@ -4842,6 +5413,64 @@ Do you want to proceed?</source>
     <message>
         <location filename="../ui/debug/qgisred_toolLength_dialog.py" line="35"/>
         <source>Validations</source>
+        <translation type="unfinished"></translation>
+    </message>
+</context>
+<context>
+    <name>QGISRedMoveProjectDialog</name>
+    <message>
+        <location filename="../ui/general/qgisred_moveproject_dialog.ui" line="14"/>
+        <source>QGISRed: Move project</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="../ui/general/qgisred_moveproject_dialog.ui" line="28"/>
+        <source>Target folder:</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="../ui/general/qgisred_moveproject_dialog.ui" line="57"/>
+        <source>...</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="../ui/general/qgisred_moveproject_dialog.ui" line="66"/>
+        <source>Move project files</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="../ui/general/qgisred_moveproject_dialog.ui" line="76"/>
+        <source>Move QGIS project file</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="../ui/general/qgisred_moveproject_dialog.ui" line="114"/>
+        <source>Accept</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="../ui/general/qgisred_moveproject_dialog.py" line="64"/>
+        <source>Validations</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="../ui/general/qgisred_moveproject_dialog.py" line="53"/>
+        <source>Not valid Target Folder</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="../ui/general/qgisred_moveproject_dialog.py" line="57"/>
+        <source>Cannot move to the same directory.</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="../ui/general/qgisred_moveproject_dialog.py" line="61"/>
+        <source>There is already a project with this name in the target folder.</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="../ui/general/qgisred_moveproject_dialog.py" line="64"/>
+        <source>Select at least one option.</source>
         <translation type="unfinished"></translation>
     </message>
 </context>
@@ -6864,6 +7493,34 @@ Do you want to proceed?</source>
     </message>
 </context>
 <context>
+    <name>QGISRedStatisticsManualBreaksDialog</name>
+    <message>
+        <location filename="../ui/queries/qgisred_statistics_manual_breaks_dialog.py" line="27"/>
+        <source>Lower</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="../ui/queries/qgisred_statistics_manual_breaks_dialog.py" line="27"/>
+        <source>Upper</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="../ui/queries/qgisred_statistics_manual_breaks_dialog.py" line="132"/>
+        <source>Invalid breaks</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="../ui/queries/qgisred_statistics_manual_breaks_dialog.py" line="128"/>
+        <source>Each row must contain numeric Lower and Upper values.</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="../ui/queries/qgisred_statistics_manual_breaks_dialog.py" line="132"/>
+        <source>Class edges must be in non-decreasing order.</source>
+        <translation type="unfinished"></translation>
+    </message>
+</context>
+<context>
     <name>QGISRedStylingUtils</name>
     <message>
         <location filename="../tools/utils/qgisred_styling_utils.py" line="730"/>
@@ -8110,6 +8767,92 @@ Do you want to proceed?</source>
     </message>
 </context>
 <context>
+    <name>_ResultsDistributionMixin</name>
+    <message>
+        <location filename="../ui/analysis/qgisred_results_distribution.py" line="507"/>
+        <source>Absolute</source>
+        <translation type="unfinished">Absolute</translation>
+    </message>
+    <message>
+        <location filename="../ui/analysis/qgisred_results_distribution.py" line="508"/>
+        <source>Relative</source>
+        <translation type="unfinished">Relative</translation>
+    </message>
+    <message>
+        <location filename="../ui/analysis/qgisred_results_distribution.py" line="509"/>
+        <source>Count</source>
+        <translation type="unfinished">Count</translation>
+    </message>
+    <message>
+        <location filename="../ui/analysis/qgisred_results_distribution.py" line="511"/>
+        <source>None</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="../ui/analysis/qgisred_results_distribution.py" line="553"/>
+        <source>Freq</source>
+        <translation type="unfinished">Freq</translation>
+    </message>
+    <message>
+        <location filename="../ui/analysis/qgisred_results_distribution.py" line="554"/>
+        <source>Cumul</source>
+        <translation type="unfinished">Cumul</translation>
+    </message>
+    <message>
+        <location filename="../ui/analysis/qgisred_results_distribution.py" line="754"/>
+        <source>Expand histogram to a floating window</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="../ui/analysis/qgisred_results_distribution.py" line="666"/>
+        <source>Show Node Histogram</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="../ui/analysis/qgisred_results_distribution.py" line="667"/>
+        <source>Show Link Histogram</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="../ui/analysis/qgisred_results_distribution.py" line="754"/>
+        <source>Collapse histogram back to the panel</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="../ui/analysis/qgisred_results_distribution.py" line="789"/>
+        <source>Histogram</source>
+        <translation type="unfinished"></translation>
+    </message>
+</context>
+<context>
+    <name>_ResultsEvolutionMixin</name>
+    <message>
+        <location filename="../ui/analysis/qgisred_results_evolution.py" line="189"/>
+        <source>Show Node Evolution</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="../ui/analysis/qgisred_results_evolution.py" line="190"/>
+        <source>Show Link Evolution</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="../ui/analysis/qgisred_results_evolution.py" line="340"/>
+        <source>Expand chart to a floating window</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="../ui/analysis/qgisred_results_evolution.py" line="341"/>
+        <source>Collapse chart back to the panel</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="../ui/analysis/qgisred_results_evolution.py" line="384"/>
+        <source>Evolution</source>
+        <translation type="unfinished"></translation>
+    </message>
+</context>
+<context>
     <name>_ResultsRenderingMixin</name>
     <message>
         <location filename="../ui/analysis/qgisred_results_rendering.py" line="470"/>
@@ -8191,6 +8934,44 @@ Do you want to proceed?</source>
         <location filename="../sections/analysis_section.py" line="963"/>
         <source>Show overflow flow instead</source>
         <translation type="unfinished"></translation>
+    </message>
+</context>
+<context>
+    <name>widget</name>
+    <message>
+        <location filename="../ui/queries/statistics_histogram_renderer.py" line="104"/>
+        <source>No data</source>
+        <translation type="unfinished">No data</translation>
+    </message>
+    <message>
+        <location filename="../ui/queries/statistics_histogram_renderer.py" line="333"/>
+        <source>Total</source>
+        <translation type="unfinished">Total</translation>
+    </message>
+    <message>
+        <location filename="../ui/queries/statistics_histogram_renderer.py" line="372"/>
+        <source>Avg</source>
+        <translation type="unfinished">Avg</translation>
+    </message>
+    <message>
+        <location filename="../ui/analysis/results_distribution_renderer.py" line="435"/>
+        <source>Count</source>
+        <translation type="unfinished">Count</translation>
+    </message>
+    <message>
+        <location filename="../ui/queries/statistics_histogram_renderer.py" line="366"/>
+        <source>Sum</source>
+        <translation type="unfinished">Sum</translation>
+    </message>
+    <message>
+        <location filename="../ui/analysis/results_distribution_renderer.py" line="380"/>
+        <source>Value</source>
+        <translation type="unfinished">Value</translation>
+    </message>
+    <message>
+        <location filename="../ui/analysis/results_distribution_renderer.py" line="429"/>
+        <source>Cumulative</source>
+        <translation type="unfinished">Cumulative</translation>
     </message>
 </context>
 </TS>

@@ -89,7 +89,12 @@ class ResultsDistributionWidget(QWidget):
     _TICK_CHAR_WIDTH = 6.0
 
     def tr(self, message):
-        return QCoreApplication.translate("ResultsDistributionWidget", message)
+        # The renderer calls widget.tr(), so pylupdate5 files those strings under the
+        # "widget" context; fall back to it before giving up.
+        result = QCoreApplication.translate("ResultsDistributionWidget", message)
+        if result != message:
+            return result
+        return QCoreApplication.translate("widget", message)
 
     def __init__(self, parent=None):
         super(ResultsDistributionWidget, self).__init__(parent)

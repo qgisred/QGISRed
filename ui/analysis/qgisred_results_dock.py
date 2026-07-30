@@ -61,10 +61,17 @@ class QGISRedResultsDock(
     _canvasFreezeDepth = 0
     _frozenCanvases = None
     _pendingResultsCall = None
+    # pylupdate5 files every string under the class (or the variable name) it saw at the
+    # call site, so every mixin and every helper that receives the dock needs its own entry
+    # here; otherwise the string is extracted but never found at runtime.
     _RESULTS_CONTEXTS = [
         "QGISRedResultsDock",
         "_ResultsRenderingMixin",
         "_ResultsDataMixin",
+        "_ResultsDistributionMixin",
+        "_ResultsEvolutionMixin",
+        "_ResultsAppearanceMixin",
+        "dock",
         "QGISRed",
         "AnalysisSection",
     ]

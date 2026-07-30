@@ -163,7 +163,7 @@
        <item>
         <widget class="QLabel" name="lblAffectedCount">
          <property name="styleSheet">
-          <string>color: #155724; font-weight: bold;</string>
+          <string notr="true">color: #155724; font-weight: bold;</string>
          </property>
          <property name="text">
           <string>0 selected elements</string>
@@ -272,7 +272,7 @@
             <item>
              <widget class="QLabel" name="lblUnit">
               <property name="styleSheet">
-               <string>color: #555;</string>
+               <string notr="true">color: #555;</string>
               </property>
               <property name="text">
                <string/>

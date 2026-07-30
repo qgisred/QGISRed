@@ -41,19 +41,27 @@ SOURCES = qgisred.py \
           ui/general/qgisred_exportproject_dialog.py \
           ui/general/qgisred_import_dialog.py \
           ui/general/qgisred_loadproject_dialog.py \
+          ui/general/qgisred_moveproject_dialog.py \
           ui/general/qgisred_projectmanager_dialog.py \
           ui/general/qgisred_renameproject_dialog.py \
+          ui/edition/qgisred_groupedit_dialog.py \
           ui/project/qgisred_custom_dialogs.py \
           ui/project/qgisred_layermanagement_dialog.py \
           ui/project/qgisred_legends_dialog.py \
           ui/queries/qgisred_element_explorer_dock.py \
           ui/queries/qgisred_queriesbyproperties_dock.py \
           ui/queries/qgisred_statisticsandgraphs_dock.py \
+          ui/queries/qgisred_statistics_manual_breaks_dialog.py \
+          ui/queries/statistics_histogram_renderer.py \
           ui/queries/qgisred_thematicmaps_dialog.py \
+          ui/tools/qgisred_demandsectorbuilder_dialog.py \
           ui/analysis/qgisred_results_dock.py \
           ui/analysis/qgisred_results_data.py \
           ui/analysis/qgisred_results_appearance.py \
           ui/analysis/qgisred_results_rendering.py \
+          ui/analysis/qgisred_results_distribution.py \
+          ui/analysis/results_distribution_renderer.py \
+          ui/analysis/qgisred_results_evolution.py \
           ui/analysis/qgisred_timeseries_dock.py \
           ui/analysis/qgisred_timeseries_axis_dialog.py \
           ui/analysis/timeseries_axis_settings.py \
@@ -74,14 +82,18 @@ FORMS = ui/general/qgisred_about_dialog.ui \
         ui/general/qgisred_exportproject_dialog.ui \
         ui/general/qgisred_import_dialog.ui \
         ui/general/qgisred_loadproject_dialog.ui \
+        ui/general/qgisred_moveproject_dialog.ui \
         ui/general/qgisred_projectmanager_dialog.ui \
         ui/general/qgisred_renameproject_dialog.ui \
+        ui/edition/qgisred_groupedit_dialog.ui \
         ui/project/qgisred_layermanagement_dialog.ui \
         ui/project/qgisred_legends_dialog.ui \
         ui/queries/qgisred_element_explorer_dock.ui \
         ui/queries/qgisred_queriesbyproperties_dock.ui \
         ui/queries/qgisred_statisticsandgraphs_dock.ui \
+        ui/queries/qgisred_statistics_manual_breaks_dialog.ui \
         ui/queries/qgisred_thematicmaps_dialog.ui \
+        ui/tools/qgisred_demandsectorbuilder_dialog.ui \
         ui/analysis/qgisred_results_dock.ui \
         ui/analysis/qgisred_timeseries_dock.ui \
         ui/analysis/qgisred_export_csv_dialog.ui \
