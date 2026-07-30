@@ -9,7 +9,9 @@ import re
 
 import pytest
 
+import QGISRed.ui.project.qgisred_custom_dialogs as customDialogsModule
 import QGISRed.ui.project.qgisred_legends_dialog as legendsModule
+from QGISRed.ui.project.qgisred_custom_dialogs import QGISRedSymbolColorSelector
 from QGISRed.ui.project.qgisred_legends_dialog import (
     DEMAND_POSITIVE_FILL_PATTERN,
     ISOLATION_VALVE_FILL_TEMPLATE,
@@ -123,8 +125,12 @@ class TestIsolationValves:
 class FakeQgsProperty:
     ExpressionBasedProperty = object()
 
-    def __init__(self, expr):
+    def __init__(self, expr=None):
         self.expr = expr
+
+    def __bool__(self):
+        # Mirrors the real QgsProperty: a default-constructed one is falsy.
+        return self.expr is not None
 
     @classmethod
     def fromExpression(cls, expr):
@@ -142,6 +148,7 @@ class FakeSymbolLayer:
         self._props = {}
         if expr is not None:
             self._props[FILL_KEY] = FakeQgsProperty(expr)
+        self.colorCalls = []
 
     def dataDefinedProperties(self):
         layer = self
@@ -154,6 +161,9 @@ class FakeSymbolLayer:
 
     def setDataDefinedProperty(self, key, prop):
         self._props[key] = prop
+
+    def setColor(self, color):
+        self.colorCalls.append(color)
 
     def fillExpression(self):
         prop = self._props.get(FILL_KEY)
@@ -212,6 +222,34 @@ class TestIsolationValvesApplier:
         assert restored == ISOLATION_VALVE_FILL_TEMPLATE.format(green="color_rgb(10,20,30)")
         # The status branches are back, so closed/unavailable valves recolor again
         assert "'CLOSED'" in restored and '"Available"!=0' in restored
+
+
+class TestDemandsSwatchPreview:
+    """The Multiple Demands swatch colors only the inner (expression-driven)
+    circle; the decorative outer circle keeps its own color."""
+
+    def _selector(self, monkeypatch):
+        monkeypatch.setattr(customDialogsModule, "QgsProperty", FakeQgsProperty)
+        monkeypatch.setattr(
+            customDialogsModule, "QgsSymbolLayer", type("K", (), {"PropertyFillColor": FILL_KEY})
+        )
+        return QGISRedSymbolColorSelector.__new__(QGISRedSymbolColorSelector)
+
+    def test_only_the_inner_expression_layer_takes_the_color(self, monkeypatch):
+        selector = self._selector(monkeypatch)
+        outer = FakeSymbolLayer(expr=None)
+        inner = FakeSymbolLayer(DEMANDS_FILL)
+        colored = selector.applyColorToExpressionLayers(FakeSymbol([outer, inner]), "PICKED")
+        assert colored
+        assert inner.colorCalls == ["PICKED"]
+        assert outer.colorCalls == []
+        # The preview clone drops the expression so the picked color is visible
+        assert inner.fillExpression() is None
+
+    def test_reports_when_no_layer_carries_an_expression(self, monkeypatch):
+        selector = self._selector(monkeypatch)
+        symbol = FakeSymbol([FakeSymbolLayer(expr=None)])
+        assert selector.applyColorToExpressionLayers(symbol, "PICKED") is False
 
 
 class TestMultipleDemands:

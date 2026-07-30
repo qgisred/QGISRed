@@ -78,6 +78,11 @@ def _apply_qt_mock_config():
     if _qtw is not None:
         for _name in _QT_WIDGET_STUBS:
             setattr(_qtw, _name, _qt_stub(_name))
+    _qgis_gui = sys.modules.get('qgis.gui')
+    if _qgis_gui is not None:
+        # QgsSymbolButton is subclassed (QGISRedSymbolColorSelector); it must be
+        # a real type so the subclass keeps its methods instead of becoming a mock.
+        _qgis_gui.QgsSymbolButton = _qt_stub("QgsSymbolButton")
 
 
 _apply_qt_mock_config()

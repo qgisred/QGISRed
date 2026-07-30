@@ -8,7 +8,7 @@ from qgis.PyQt.QtWidgets import QCheckBox
 from qgis.PyQt.QtCore import pyqtSignal, Qt, QEvent, QSize, QObject, QPoint, QItemSelectionModel, QItemSelection
 
 from qgis.gui import QgsSymbolButton, QgsColorDialog
-from qgis.core import QgsMarkerSymbol, QgsLineSymbol, QgsFillSymbol, QgsColorRamp
+from qgis.core import QgsMarkerSymbol, QgsLineSymbol, QgsFillSymbol, QgsColorRamp, QgsProperty, QgsSymbolLayer
 from typing import List, Tuple
 
 
@@ -125,7 +125,7 @@ class QGISRedSymbolColorSelector(QgsSymbolButton):
 
     def __init__(self, parent=None, geometryHint="fill", initialColor=None,
                  allowAlpha=True, dialogTitle="Pick color", doubleClickOnly=False,
-                 actualSymbol=None):
+                 actualSymbol=None, colorExpressionLayersOnly=False):
         super().__init__(parent)
 
         self.geometryType = self.normalizeGeometryHint(geometryHint)
@@ -135,6 +135,7 @@ class QGISRedSymbolColorSelector(QgsSymbolButton):
         self.activeColor = self.parseInitialColor(initialColor)
         self.currentSymbolSize = 0.0
         self._actualSymbol = actualSymbol.clone() if actualSymbol else None
+        self.colorExpressionLayersOnly = bool(colorExpressionLayersOnly)
 
         self.configureWidgetStyle()
         self.refreshSymbolDisplay()
@@ -166,7 +167,8 @@ class QGISRedSymbolColorSelector(QgsSymbolButton):
     def refreshSymbolDisplay(self):
         if self._actualSymbol:
             symbol = self._actualSymbol.clone()
-            symbol.setColor(self.activeColor)
+            if not self.colorExpressionLayersOnly or not self.applyColorToExpressionLayers(symbol, self.activeColor):
+                symbol.setColor(self.activeColor)
             if self.currentSymbolSize > 0:
                 self.applySizeScaling(symbol)
         else:
@@ -175,6 +177,27 @@ class QGISRedSymbolColorSelector(QgsSymbolButton):
                 self.applySizeScaling(symbol)
 
         self.setSymbol(symbol)
+
+    def applyColorToExpressionLayers(self, symbol, color):
+        """Color only the layers whose fill is expression-driven (e.g. the inner
+        circle of Multiple Demands); decorative outer layers keep their colors.
+
+        Preview only: the expression is dropped from the clone so the picked
+        color is visible (with no feature it would render its NULL branch).
+        Returns True when at least one layer took the color.
+        """
+        colored = False
+        for i in range(symbol.symbolLayerCount()):
+            symbolLayer = symbol.symbolLayer(i)
+            prop = symbolLayer.dataDefinedProperties().property(QgsSymbolLayer.PropertyFillColor)
+            if prop and prop.propertyType() == QgsProperty.ExpressionBasedProperty:
+                symbolLayer.setDataDefinedProperty(QgsSymbolLayer.PropertyFillColor, QgsProperty())
+                symbolLayer.setColor(color)
+                colored = True
+            if hasattr(symbolLayer, "subSymbol") and symbolLayer.subSymbol():
+                if self.applyColorToExpressionLayers(symbolLayer.subSymbol(), color):
+                    colored = True
+        return colored
 
     def createGeometrySpecificSymbol(self):
         rgbaString = self.getColorRgbaString()

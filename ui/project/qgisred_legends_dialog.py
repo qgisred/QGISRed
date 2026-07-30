@@ -2167,10 +2167,10 @@ class QGISRedLegendsDialog(QDialog, formClass):
         self.tableView.setCellWidget(row, 0, container)
 
     def setColorWidget(self, row, symbol, geometryHint):
+        identifier = self.currentLayer.customProperty("qgisred_identifier") if self.currentLayer else ""
         # For input layers, the visible color is set via a data-defined expression — read it from there.
         color = None
         if self.isInputLayer():
-            identifier = self.currentLayer.customProperty("qgisred_identifier") if self.currentLayer else ""
             color = self._readInputLayerColor(symbol, identifier)
         if color is None:
             if symbol.symbolLayerCount() > 0:
@@ -2186,6 +2186,9 @@ class QGISRedLegendsDialog(QDialog, formClass):
             "Pick color",
             doubleClickOnly=True,
             actualSymbol=symbol,
+            # Multiple Demands: preview the picked color on the inner circle
+            # (the expression-driven layer) and keep the outer circle as is.
+            colorExpressionLayersOnly=(identifier == "qgisred_demands"),
         )
         colorSelector.setEnabled(self.isEditing)
         colorSelector.colorChanged.connect(self.onRowColorChanged)
