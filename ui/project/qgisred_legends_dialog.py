@@ -793,6 +793,9 @@ class QGISRedLegendsDialog(QDialog, formClass):
 
     def loadInitialState(self):
         self.labelFrameLegends.setText(self.tr("Legend"))
+        # Projects saved by older builds carry doubled Tree layer identifiers
+        # (qgisred_qgisred_...), which none of the identifier gates recognize.
+        QGISRedIdentifierUtils.repairDoubledIdentifiers()
         # preselectGroupAndLayer -> onGroupChanged already runs the full layer
         # selection (populate, legend types, label) exactly once.
         self.preselectGroupAndLayer()

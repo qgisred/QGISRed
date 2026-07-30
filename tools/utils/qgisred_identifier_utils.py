@@ -107,7 +107,11 @@ class QGISRedIdentifierUtils:
 
     def setLayerIdentifier(self, layer, layerType):
         normalizedType = self._normalizeDemandsBuilderLayerType(layerType)
-        identifier = f"qgisred_{normalizedType.lower()}"
+        identifier = normalizedType.lower()
+        # Accept a full identifier as layerType without doubling the prefix
+        while identifier.startswith("qgisred_"):
+            identifier = identifier[len("qgisred_"):]
+        identifier = f"qgisred_{identifier}"
         layer.setCustomProperty("qgisred_identifier", identifier)
         layerMeta = QgsLayerMetadata()
         layerMeta.setIdentifier(identifier)
@@ -176,6 +180,17 @@ class QGISRedIdentifierUtils:
     def enforceAllIdentifiers(self):
         self.enforceGroupIdentifiers()
         self.enforceLayerIdentifiers()
+
+    @staticmethod
+    def repairDoubledIdentifiers():
+        """Collapse 'qgisred_qgisred_...' identifiers written by older builds that
+        passed a full identifier to setLayerIdentifier (e.g. the Tree layers)."""
+        for layer in QgsProject.instance().mapLayers().values():
+            identifier = layer.customProperty("qgisred_identifier")
+            if isinstance(identifier, str) and identifier.startswith("qgisred_qgisred_"):
+                while identifier.startswith("qgisred_qgisred_"):
+                    identifier = identifier[len("qgisred_"):]
+                layer.setCustomProperty("qgisred_identifier", identifier)
 
     def getTranslatedNameForIdentifier(self, identifier):
         """Returns the translated legend name for a qgisred_identifier, or None if unknown."""

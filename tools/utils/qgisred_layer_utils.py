@@ -570,7 +570,7 @@ class QGISRedLayerUtils:
         else:
             self._styling().setStyle(vlayer, "Tree_Nodes")
         QgsProject.instance().addMapLayer(vlayer, group is None)
-        identifiers.setLayerIdentifier(vlayer, identifier)
+        identifiers.setLayerIdentifier(vlayer, identifierKey)
         if group is not None:
             group.insertChildNode(0, QgsLayerTreeLayer(vlayer))
         del vlayer
