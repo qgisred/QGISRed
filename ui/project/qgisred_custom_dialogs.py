@@ -68,17 +68,11 @@ class QGISRedSaveStrategyDialog(QDialog):
         self.layerName = layerName
         self.isGlobal = isGlobal
         self.isCategorical = isCategorical
-        self.sizesApplicable = sizesApplicable
-        self.colorsApplicable = colorsApplicable
 
         structuralLabel = self.tr("Save strategy for All Classes") if isCategorical else self.tr("Save strategy for Intervals")
         self.ckStructural = self.createPartCheckBox(structuralLabel, structuralApplicable, initialStructural)
         self.ckSizes = self.createPartCheckBox(self.tr("Save strategy for Sizes"), sizesApplicable, initialSizes)
         self.ckColors = self.createPartCheckBox(self.tr("Save strategy for Colors"), colorsApplicable, initialColors)
-
-        if isCategorical:
-            self.ckStructural.toggled.connect(self.onStructuralToggled)
-            self.onStructuralToggled(self.ckStructural.isChecked())
 
         self.initializeInterface()
 
@@ -92,11 +86,6 @@ class QGISRedSaveStrategyDialog(QDialog):
         checkBox.setEnabled(bool(applicable))
         checkBox.setChecked(bool(applicable) and bool(initialChecked))
         return checkBox
-
-    def onStructuralToggled(self, checked):
-        # The full class snapshot already includes sizes and colors.
-        self.ckSizes.setEnabled(bool(self.sizesApplicable) and not checked)
-        self.ckColors.setEnabled(bool(self.colorsApplicable) and not checked)
 
     def setupLayout(self):
         layout = QVBoxLayout(self)

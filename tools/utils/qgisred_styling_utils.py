@@ -4,6 +4,7 @@ import math
 import os
 import json
 import random
+import zlib
 from random import randrange
 
 from qgis.PyQt.QtCore import QCoreApplication
@@ -303,10 +304,15 @@ class QGISRedStylingUtils:
 
         if "colors" in parts:
             colorsBlock = self.resolveColorsBlock(strategy)
-            # Categorized colouring reads unique values through the field index, so it
-            # only applies to real columns (fieldIndex == -1 means an expression here).
-            if mode == "categorized" and fieldIndex != -1:
-                self.applyCategorizedColors(layer, field, fieldIndex, colorsBlock)
+            if mode == "categorized":
+                if "allClasses" in parts:
+                    # Classes are pinned by the snapshot: recolor them in place
+                    # instead of rebuilding the renderer from the data.
+                    self.applyCategorizedColorsInPlace(layer, colorsBlock)
+                elif fieldIndex != -1:
+                    # The rebuild reads unique values through the field index, so it
+                    # only applies to real columns (fieldIndex == -1 means an expression here).
+                    self.applyCategorizedColors(layer, field, fieldIndex, colorsBlock)
             elif mode == "graduated":
                 self.applyGraduatedColors(layer, colorsBlock)
 
@@ -465,6 +471,50 @@ class QGISRedStylingUtils:
 
         layer.setRenderer(QgsCategorizedSymbolRenderer(field, categories))
 
+    def applyCategorizedColorsInPlace(self, layer, colorsBlock):
+        """Recolor the existing categories without rebuilding the renderer.
+
+        Used when the classes are pinned by an allClasses snapshot: values,
+        labels, order and render states must survive, only colors change. NULL
+        categories keep the grey #NA convention and the '' catch-all keeps its
+        saved color; ramp positions are computed over the real categories only.
+        """
+        renderer = layer.renderer()
+        if not isinstance(renderer, QgsCategorizedSymbolRenderer):
+            return
+
+        source = colorsBlock.get("source") or "random"
+        rampName = colorsBlock.get("rampName")
+        invertRamp = colorsBlock.get("invertRamp", False)
+
+        ramp = None
+        if source == "ramp" and rampName:
+            ramp = QgsStyle.defaultStyle().colorRamp(rampName)
+            if ramp is None:
+                QgsMessageLog.logMessage(
+                    self.tr("Color ramp '%1' not found; falling back to random colors")
+                        .replace("%1", rampName),
+                    "QGISRed",
+                    Qgis.MessageLevel.Warning,
+                )
+
+        categories = renderer.categories()
+        realIndexes = [
+            index for index, category in enumerate(categories)
+            if category.value() != NULL and category.value() != ""
+        ]
+        realCount = max(len(realIndexes), 1)
+        for position, index in enumerate(realIndexes):
+            category = categories[index]
+            symbol = category.symbol().clone()
+            symbol.setColor(self.resolveCategoryColor(category.value(), position, realCount, ramp, invertRamp))
+            renderer.updateCategorySymbol(index, symbol)
+        for index, category in enumerate(categories):
+            if category.value() == NULL:
+                symbol = category.symbol().clone()
+                symbol.setColor(QColor.fromRgb(192, 192, 192))
+                renderer.updateCategorySymbol(index, symbol)
+
     def applyGraduatedColors(self, layer, colorsBlock):
         renderer = layer.renderer()
         if not isinstance(renderer, QgsGraduatedSymbolRenderer):
@@ -558,7 +608,10 @@ class QGISRedStylingUtils:
             if invertRamp:
                 position = 1.0 - position
             return ramp.color(position)
-        seededRandom = random.Random(hash(str(value)))  # nosec B311 — cosmetic category color, not security-sensitive
+        # crc32, not hash(): str hashes are salted per process, and the color
+        # must stay the same for a given value across QGIS restarts.
+        seed = zlib.crc32(str(value).encode("utf-8"))
+        seededRandom = random.Random(seed)  # nosec B311 — cosmetic category color, not security-sensitive
         return QColor.fromRgb(
             seededRandom.randint(0, 255),
             seededRandom.randint(0, 255),
@@ -579,15 +632,15 @@ class QGISRedStylingUtils:
             return
 
         if isinstance(renderer, QgsCategorizedSymbolRenderer):
+            # Only translate the special values; custom labels and per-class
+            # visibility must survive (pinned allClasses snapshots rely on it).
             categories = []
             for category in renderer.categories():
-                categories.append(
-                    QgsRendererCategory(
-                        category.value(),
-                        category.symbol().clone(),
-                        self._translateCategoryLabel(category.value()),
-                    )
-                )
+                translated = self._translateCategoryLabel(category.value())
+                label = translated if translated != str(category.value()) else category.label()
+                rebuilt = QgsRendererCategory(category.value(), category.symbol().clone(), label)
+                rebuilt.setRenderState(category.renderState())
+                categories.append(rebuilt)
             layer.setRenderer(QgsCategorizedSymbolRenderer(renderer.classAttribute(), categories))
 
         elif isinstance(renderer, QgsRuleBasedRenderer):

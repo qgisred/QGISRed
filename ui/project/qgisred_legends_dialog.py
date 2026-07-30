@@ -4254,7 +4254,7 @@ class QGISRedLegendsDialog(QDialog, formClass):
         if renderer is not None:
             tempLayer.setRenderer(renderer)
 
-        strategy = self.buildStrategyFromCurrentUi(selectedParts) if selectedParts else None
+        strategy = self.buildStrategyFromCurrentUi(selectedParts, renderer) if selectedParts else None
         if strategy is not None:
             tempLayer.setCustomProperty("qgisred_legend_strategy", json.dumps(strategy))
         else:
@@ -4283,13 +4283,19 @@ class QGISRedLegendsDialog(QDialog, formClass):
 
         return dialog.selectedParts()
 
+    def strategyParts(self, strategy):
+        if not isinstance(strategy, dict):
+            return []
+        parts = strategy.get("parts")
+        if not isinstance(parts, list):
+            parts = self.inferLegacyParts(strategy)
+        return parts
+
     def applyStrategyToDialog(self, strategy):
         if not isinstance(strategy, dict):
             return
 
-        parts = strategy.get("parts")
-        if not isinstance(parts, list):
-            parts = self.inferLegacyParts(strategy)
+        parts = self.strategyParts(strategy)
 
         mode = strategy.get("mode")
         desiredType = {"graduated": "graduatedSymbol", "categorized": "categorizedSymbol"}.get(mode)
@@ -4299,7 +4305,8 @@ class QGISRedLegendsDialog(QDialog, formClass):
                 self.cbLegendsType.setCurrentIndex(index)
 
         if mode == "categorized" and self.currentFieldType == self.FIELD_TYPE_CATEGORICAL:
-            if any(part in parts for part in ("intervals", "sizes", "colors")):
+            # With pinned classes (allClasses) the class list must not be re-derived from data.
+            if "allClasses" not in parts and any(part in parts for part in ("intervals", "sizes", "colors")):
                 self.classifyMissingUniqueValues()
 
         if "intervals" in parts:
@@ -4382,10 +4389,7 @@ class QGISRedLegendsDialog(QDialog, formClass):
     def isLiteralStyle(self, strategy):
         if not isinstance(strategy, dict):
             return True
-        parts = strategy.get("parts")
-        if not isinstance(parts, list):
-            parts = self.inferLegacyParts(strategy)
-        return parts == ["allClasses"]
+        return self.strategyParts(strategy) == ["allClasses"]
 
     def loadLiteralStyleIntoDialog(self, path):
         # Load the style into a detached copy of the layer so the live layer
@@ -4457,6 +4461,9 @@ class QGISRedLegendsDialog(QDialog, formClass):
             self.loadLiteralStyleIntoDialog(path)
             message = self.tr("Legend loaded into the dialog from %1. Press Apply to update the layer.").replace("%1", filename)
         else:
+            if "allClasses" in self.strategyParts(strategy):
+                # Pin the saved classes from the QML, then regenerate colors/sizes on top.
+                self.loadLiteralStyleIntoDialog(path)
             self.applyStrategyToDialog(strategy)
             message = self.tr("Strategy loaded into the dialog from %1. Press Apply to update the layer.").replace("%1", filename)
         QMessageBox.information(self, self.tr("Loaded"), message)
@@ -4497,6 +4504,9 @@ class QGISRedLegendsDialog(QDialog, formClass):
             self.loadLiteralStyleIntoDialog(path)
             message = self.tr("Legend loaded into the dialog from %1. Press Apply to update the layer.").replace("%1", filename)
         else:
+            if "allClasses" in self.strategyParts(strategy):
+                # Pin the saved classes from the QML, then regenerate colors/sizes on top.
+                self.loadLiteralStyleIntoDialog(path)
             self.applyStrategyToDialog(strategy)
             message = self.tr("Strategy loaded into the dialog from %1. Press Apply to update the layer.").replace("%1", filename)
         QMessageBox.information(self, self.tr("Loaded"), message)
@@ -4598,7 +4608,11 @@ class QGISRedLegendsDialog(QDialog, formClass):
         if not self.currentFieldName:
             return []
         parts = []
-        if self.currentFieldType == self.FIELD_TYPE_CATEGORICAL and self.tableView.rowCount() > 0:
+        if (
+            self.currentFieldType == self.FIELD_TYPE_CATEGORICAL
+            and self.tableView.rowCount() > 0
+            and self._sourceRuleRenderer is None  # rule-based classes cannot be snapshotted
+        ):
             parts.append("allClasses")
         if self.canBuildIntervalsPart():
             parts.append("intervals")
@@ -4623,28 +4637,18 @@ class QGISRedLegendsDialog(QDialog, formClass):
             return False
         return self.cbColors.currentText() in ("Random", "Ramp", "Palette")
 
-    def buildStrategyFromCurrentUi(self, parts):
+    def buildStrategyFromCurrentUi(self, parts, renderer=None):
         if not parts or not self.currentFieldName:
             return None
         if self.currentFieldType == self.FIELD_TYPE_CATEGORICAL:
-            return self.buildCategoricalStrategy(parts)
+            return self.buildCategoricalStrategy(parts, renderer)
         if self.currentFieldType == self.FIELD_TYPE_NUMERIC:
             return self.buildGraduatedStrategy(parts)
         return None
 
-    def buildCategoricalStrategy(self, parts):
-        if "allClasses" in parts:
-            allClassesPart = self.buildAllClassesPart()
-            if allClassesPart is None:
-                return None
-            return {
-                "schema": "qgisred.legendStrategy.v2",
-                "mode": "categorized",
-                "field": self.currentFieldName,
-                "parts": ["allClasses"],
-                "allClasses": allClassesPart,
-            }
-        # Categorical layers never persist intervals.
+    def buildCategoricalStrategy(self, parts, renderer=None):
+        # Categorical layers never persist intervals. The parts are independent:
+        # allClasses pins the classes, colors/sizes regenerate on top of them.
         retainedParts = [part for part in parts if part != "intervals"]
         if not retainedParts:
             return None
@@ -4654,6 +4658,11 @@ class QGISRedLegendsDialog(QDialog, formClass):
             "field": self.currentFieldName,
             "parts": retainedParts,
         }
+        if "allClasses" in retainedParts:
+            allClassesPart = self.buildAllClassesPart(renderer)
+            if allClassesPart is None:
+                return None
+            strategy["allClasses"] = allClassesPart
         if "sizes" in retainedParts:
             strategy["sizes"] = self.buildSizesPart()
         if "colors" in retainedParts:
@@ -4719,8 +4728,11 @@ class QGISRedLegendsDialog(QDialog, formClass):
             }
         return None
 
-    def buildAllClassesPart(self):
-        renderer = self.currentLayer.renderer()
+    def buildAllClassesPart(self, renderer=None):
+        # Snapshot the renderer built from the dialog, so the strategy matches
+        # the QML saved next to it even when the user did not press Apply.
+        if renderer is None:
+            renderer = self.currentLayer.renderer()
         if not isinstance(renderer, QgsCategorizedSymbolRenderer):
             return None
         geometryType = self.currentLayer.geometryType()
