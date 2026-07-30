@@ -1,14 +1,14 @@
 # -*- coding: utf-8 -*-
 
 from qgis.PyQt.QtGui import QColor, QPixmap, QPainter, QIcon
-from ...compat import PAINTER_ANTIALIASING, STYLE_CC_COMBOBOX, STYLE_CE_COMBOBOXLABEL
+from ...compat import PAINTER_ANTIALIASING, STYLE_CC_COMBOBOX, STYLE_CE_COMBOBOXLABEL, SL_PROP_FILL_COLOR
 from qgis.PyQt.QtWidgets import QDialog, QDialogButtonBox, QDoubleSpinBox, QLabel, QVBoxLayout
 from qgis.PyQt.QtWidgets import QToolButton, QComboBox, QApplication, QStylePainter, QStyleOptionComboBox, QSizePolicy
 from qgis.PyQt.QtWidgets import QCheckBox
 from qgis.PyQt.QtCore import pyqtSignal, Qt, QEvent, QSize, QObject, QPoint, QItemSelectionModel, QItemSelection
 
 from qgis.gui import QgsSymbolButton, QgsColorDialog
-from qgis.core import QgsMarkerSymbol, QgsLineSymbol, QgsFillSymbol, QgsColorRamp, QgsProperty, QgsSymbolLayer
+from qgis.core import QgsMarkerSymbol, QgsLineSymbol, QgsFillSymbol, QgsColorRamp, QgsProperty
 from typing import List, Tuple
 
 
@@ -189,9 +189,9 @@ class QGISRedSymbolColorSelector(QgsSymbolButton):
         colored = False
         for i in range(symbol.symbolLayerCount()):
             symbolLayer = symbol.symbolLayer(i)
-            prop = symbolLayer.dataDefinedProperties().property(QgsSymbolLayer.PropertyFillColor)
+            prop = symbolLayer.dataDefinedProperties().property(SL_PROP_FILL_COLOR)
             if prop and prop.propertyType() == QgsProperty.ExpressionBasedProperty:
-                symbolLayer.setDataDefinedProperty(QgsSymbolLayer.PropertyFillColor, QgsProperty())
+                symbolLayer.setDataDefinedProperty(SL_PROP_FILL_COLOR, QgsProperty())
                 symbolLayer.setColor(color)
                 colored = True
             if hasattr(symbolLayer, "subSymbol") and symbolLayer.subSymbol():

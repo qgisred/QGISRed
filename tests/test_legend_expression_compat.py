@@ -10,42 +10,15 @@ import re
 
 import pytest
 
-from QGISRed.ui.project.qgisred_legends_dialog import QGISRedLegendsDialog
+from QGISRed.ui.project.qgisred_legends_dialog import (
+    substituteCapturedGroup,
+    SERVICE_CONNECTION_ACTIVE_FILL_PATTERN,
+    ISOLATION_VALVE_GREEN_PATTERN,
+    ISOLATION_VALVE_FILL_TEMPLATE,
+    DEMAND_POSITIVE_FILL_PATTERN,
+)
 
 PLUGIN_ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
-
-
-class _Color:
-    """Minimal QColor stand-in: the real one is a MagicMock under the test env."""
-
-    def __init__(self, hexName="#1f78b4", rgb=(31, 120, 180)):
-        self._hex = hexName
-        self._rgb = rgb
-
-    def name(self):
-        return self._hex
-
-    def red(self):
-        return self._rgb[0]
-
-    def green(self):
-        return self._rgb[1]
-
-    def blue(self):
-        return self._rgb[2]
-
-
-def _dialogCapturingExpressions():
-    """Bare dialog that records what it would write, instead of touching symbols."""
-    dialog = QGISRedLegendsDialog.__new__(QGISRedLegendsDialog)
-    captured = {}
-    dialog._setExpressionOnLayers = lambda symbol, key, expression: captured.setdefault(key, []).append(expression)
-    dialog._lightenColor = lambda color, fraction: _Color("#8fc4e0")
-    return dialog, captured
-
-
-def _allExpressions(captured):
-    return [expression for perKey in captured.values() for expression in perKey]
 
 
 def _coalescePattern(oldField, newField):
@@ -62,41 +35,71 @@ class TestFieldRetrocompatInExpressions:
     Layers exist in the wild with either spelling, so the legend expressions must
     read both. `attribute($currentfeature, 'X')` returns NULL for a missing field,
     while a direct "X" reference makes the whole expression fail to evaluate.
+
+    The editor no longer writes these expressions from scratch: it substitutes the
+    picked color into the one the shipped style already carries (so a user color does
+    not wipe the status branches). That moves the retro-compat into two places, and
+    both are guarded here — the .qml.bak defaults, which are now the only source of
+    the coalesce, and the template used when a symbol lost its expression entirely.
     """
 
-    def test_service_connections_fill_reads_both_demand_field_names(self):
-        dialog, captured = _dialogCapturingExpressions()
+    # The color literal each substitution replaces, and the field pair the surrounding
+    # expression must keep reading.
+    SHIPPED_STYLES = [
+        ("ServiceConnections.qml.bak", "BaseDem", "BaseDemand"),
+        ("IsolationValves.qml.bak", "IniStatus", "Status"),
+    ]
 
-        dialog._applyServiceConnectionsLegend(symbol=None, color=_Color(), size=None)
+    @pytest.mark.parametrize("styleFile, oldField, newField", SHIPPED_STYLES)
+    def test_the_shipped_style_reads_both_field_names(self, styleFile, oldField, newField):
+        path = os.path.join(PLUGIN_ROOT, "defaults", "layerStyles", styleFile)
+        source = open(path, encoding="utf-8").read()
 
-        demandExpressions = [e for e in _allExpressions(captured) if "BaseDem" in e]
-        assert demandExpressions, "the fill expression no longer classifies on the demand field"
-        for expression in demandExpressions:
-            assert _coalescePattern("BaseDem", "BaseDemand").search(expression), expression
+        assert _coalescePattern(oldField, newField).search(source), (
+            f"{styleFile} lost the null-safe {oldField}/{newField} pair; the editor only "
+            "substitutes colors into this expression, so nothing would put it back"
+        )
 
-    def test_isolation_valves_fill_reads_both_status_field_names(self):
-        dialog, captured = _dialogCapturingExpressions()
-
-        dialog._applyIsolationValvesLegend(symbol=None, color=_Color(), size=None)
-
-        statusExpressions = [e for e in _allExpressions(captured) if "Status" in e]
-        assert statusExpressions, "the fill expression no longer classifies on the status field"
-        for expression in statusExpressions:
-            assert _coalescePattern("IniStatus", "Status").search(expression), expression
-
-    @pytest.mark.parametrize("method, marker", [
-        ("_applyServiceConnectionsLegend", "BaseDemand"),
-        ("_applyIsolationValvesLegend", "Status"),
+    @pytest.mark.parametrize("pattern, expression, oldField, newField", [
+        (
+            SERVICE_CONNECTION_ACTIVE_FILL_PATTERN,
+            "if(coalesce(attribute($currentfeature,'BaseDem'),attribute($currentfeature,'BaseDemand'))>0,"
+            "if(IsActive is NULL or IsActive >0,'#b7dfa3','#c7cbc5'),'#fff')",
+            "BaseDem", "BaseDemand",
+        ),
+        (
+            ISOLATION_VALVE_GREEN_PATTERN,
+            'if( "Available"!=0,'
+            "if( coalesce(attribute($currentfeature,'IniStatus'),attribute($currentfeature,'Status'))='CLOSED',"
+            'color_rgb(255,19,19), if("LossCoeff" = 0, color_rgb(18,180,37),color_rgb(246,185,18))),'
+            "color_rgb(125,139,143))",
+            "IniStatus", "Status",
+        ),
     ])
-    def test_the_renamed_field_is_never_referenced_directly(self, method, marker):
-        dialog, captured = _dialogCapturingExpressions()
+    def test_substituting_a_color_keeps_the_coalesce(self, pattern, expression, oldField, newField):
+        # Group 1 of every pattern is the color literal alone; anything else being
+        # rewritten would take the retro-compat wrapper with it.
+        updated, changed = substituteCapturedGroup(expression, pattern, "#123456")
 
-        getattr(dialog, method)(symbol=None, color=_Color(), size=None)
+        assert changed, "the picked color no longer reaches the shipped expression"
+        assert _coalescePattern(oldField, newField).search(updated), updated
 
-        for expression in _allExpressions(captured):
-            withoutCoalesce = re.sub(r"coalesce\([^)]*\)[^)]*\)", "", expression)
-            assert f'"{marker}"' not in withoutCoalesce, expression
-            assert not re.search(r"(?<![\w'])%s(?![\w'])" % marker, withoutCoalesce), expression
+    def test_the_isolation_valve_template_reads_both_status_names(self):
+        # Written when the symbol lost its expression, so it is a from-scratch
+        # expression and carries the retro-compat itself.
+        expression = ISOLATION_VALVE_FILL_TEMPLATE.format(green="color_rgb(18,180,37)")
+
+        assert _coalescePattern("IniStatus", "Status").search(expression), expression
+        withoutCoalesce = re.sub(r"coalesce\([^)]*\)[^)]*\)", "", expression)
+        assert not re.search(r"(?<![\w'])Status(?![\w'])", withoutCoalesce), expression
+
+    def test_the_demand_color_pattern_accepts_every_field_spelling(self):
+        # Same rename, seen from the substitution side: a pattern anchored on one
+        # spelling silently stops matching on layers written by the other DLL.
+        for field in ('"BaseDem"', '"BaseDemand"', '"BaseValue"', "@bd"):
+            expression = f"if({field} > 0, '#fdbf6f', '#ffffff')"
+            _, changed = substituteCapturedGroup(expression, DEMAND_POSITIVE_FILL_PATTERN, "#123456")
+            assert changed, expression
 
 
 # QGIS 4 removed or rescoped these enums; compat.py picks the right spelling at

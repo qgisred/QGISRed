@@ -223,7 +223,9 @@ class TestLoadBranching:
         dialog.readStrategyFromStyleFile = lambda path: strategy
         dialog.loadLiteralStyleIntoDialog = lambda path: dialog.calls.append("literal")
         dialog.applyStrategyToDialog = lambda s: dialog.calls.append("strategy")
-        monkeypatch.setattr(os.path, "exists", lambda path: True)
+        # The loader resolves the file through QGISRedStylingUtils.findStyleFile, which
+        # lists the folder and matches in lowercase — so the stub is listdir, not exists.
+        monkeypatch.setattr(os, "listdir", lambda folder: ["Net_Pipes.qml"])
         return dialog
 
     def _strategy(self, parts):

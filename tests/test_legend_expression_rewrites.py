@@ -196,7 +196,9 @@ class FakeColor:
         return 30
 
 
-FILL_KEY = legendsModule.QgsSymbolLayer.PropertyFillColor
+# The shim, not QgsSymbolLayer.PropertyFillColor: that spelling is QGIS 3 only and
+# the modules under test read the key from compat.py (see test_legend_expression_compat).
+FILL_KEY = legendsModule.SL_PROP_FILL_COLOR
 
 
 class TestIsolationValvesApplier:
@@ -230,9 +232,8 @@ class TestDemandsSwatchPreview:
 
     def _selector(self, monkeypatch):
         monkeypatch.setattr(customDialogsModule, "QgsProperty", FakeQgsProperty)
-        monkeypatch.setattr(
-            customDialogsModule, "QgsSymbolLayer", type("K", (), {"PropertyFillColor": FILL_KEY})
-        )
+        # No fill-key patch needed: both modules read the same SL_PROP_FILL_COLOR shim.
+        assert customDialogsModule.SL_PROP_FILL_COLOR == FILL_KEY
         return QGISRedSymbolColorSelector.__new__(QGISRedSymbolColorSelector)
 
     def test_only_the_inner_expression_layer_takes_the_color(self, monkeypatch):
