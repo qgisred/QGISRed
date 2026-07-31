@@ -3449,7 +3449,7 @@ Deseja também excluir os arquivos de resultados do disco?</translation>
         <translation>Criar Projeto</translation>
     </message>
     <message>
-        <location filename="../ui/general/qgisred_createproject_dialog.py" line="122"/>
+        <location filename="../ui/general/qgisred_createproject_dialog.py" line="105"/>
         <source>Validations</source>
         <translation>Validações</translation>
     </message>
@@ -3469,27 +3469,27 @@ Deseja também excluir os arquivos de resultados do disco?</translation>
         <translation>A pasta do projeto não existe</translation>
     </message>
     <message>
-        <location filename="../ui/general/qgisred_createproject_dialog.py" line="121"/>
+        <location filename="../ui/general/qgisred_createproject_dialog.py" line="104"/>
         <source>The selected folder has some files with the same project name.</source>
         <translation>A pasta selecionada possui arquivos com o mesmo nome de projeto.</translation>
     </message>
     <message>
-        <location filename="../ui/general/qgisred_createproject_dialog.py" line="149"/>
+        <location filename="../ui/general/qgisred_createproject_dialog.py" line="132"/>
         <source>Process successfully completed</source>
         <translation>Processo concluído com sucesso</translation>
     </message>
     <message>
-        <location filename="../ui/general/qgisred_createproject_dialog.py" line="155"/>
+        <location filename="../ui/general/qgisred_createproject_dialog.py" line="138"/>
         <source>Warning</source>
         <translation>Aviso</translation>
     </message>
     <message>
-        <location filename="../ui/general/qgisred_createproject_dialog.py" line="155"/>
+        <location filename="../ui/general/qgisred_createproject_dialog.py" line="138"/>
         <source>Some issues occurred in the process</source>
         <translation>Ocorreram alguns problemas no processo</translation>
     </message>
     <message>
-        <location filename="../ui/general/qgisred_createproject_dialog.py" line="157"/>
+        <location filename="../ui/general/qgisred_createproject_dialog.py" line="140"/>
         <source>Error</source>
         <translation>Erro</translation>
     </message>
@@ -4596,7 +4596,7 @@ Continuar?</translation>
         <translation>Camada de Tubulações</translation>
     </message>
     <message>
-        <location filename="../ui/general/qgisred_import_dialog.py" line="334"/>
+        <location filename="../ui/general/qgisred_import_dialog.py" line="317"/>
         <source>None</source>
         <translation>Nenhum</translation>
     </message>
@@ -4946,37 +4946,37 @@ Continuar?</translation>
         <translation>QGISRed: Adicionar dados</translation>
     </message>
     <message>
-        <location filename="../ui/general/qgisred_import_dialog.py" line="1197"/>
+        <location filename="../ui/general/qgisred_import_dialog.py" line="1180"/>
         <source>The SHPs folder is not valid or does not exist</source>
         <translation>A pasta de SHPs não é válida ou não existe</translation>
     </message>
     <message>
-        <location filename="../ui/general/qgisred_import_dialog.py" line="1338"/>
+        <location filename="../ui/general/qgisred_import_dialog.py" line="1321"/>
         <source>Validations</source>
         <translation>Validações</translation>
     </message>
     <message>
-        <location filename="../ui/general/qgisred_import_dialog.py" line="1204"/>
+        <location filename="../ui/general/qgisred_import_dialog.py" line="1187"/>
         <source>Not valid Tolerance</source>
         <translation>Tolerância inválida</translation>
     </message>
     <message>
-        <location filename="../ui/general/qgisred_import_dialog.py" line="1207"/>
+        <location filename="../ui/general/qgisred_import_dialog.py" line="1190"/>
         <source>Not numeric Tolerance</source>
         <translation>Tolerância não numérica</translation>
     </message>
     <message>
-        <location filename="../ui/general/qgisred_import_dialog.py" line="1215"/>
+        <location filename="../ui/general/qgisred_import_dialog.py" line="1198"/>
         <source>Not valid Service Connection Length</source>
         <translation>Comprimento de Ligação de Serviço inválido</translation>
     </message>
     <message>
-        <location filename="../ui/general/qgisred_import_dialog.py" line="1218"/>
+        <location filename="../ui/general/qgisred_import_dialog.py" line="1201"/>
         <source>Not numeric Service Connection Length</source>
         <translation>Comprimento de Ligação de Serviço não numérico</translation>
     </message>
     <message>
-        <location filename="../ui/general/qgisred_import_dialog.py" line="1223"/>
+        <location filename="../ui/general/qgisred_import_dialog.py" line="1206"/>
         <source>Any SHP selected for importing</source>
         <translation>Nenhum SHP selecionado para importação</translation>
     </message>
@@ -4986,27 +4986,27 @@ Continuar?</translation>
         <translation>Graus</translation>
     </message>
     <message>
-        <location filename="../ui/general/qgisred_import_dialog.py" line="233"/>
+        <location filename="../ui/general/qgisred_import_dialog.py" line="216"/>
         <source>The selected folder has some files with the same project name.</source>
         <translation>A pasta selecionada possui arquivos com o mesmo nome de projeto.</translation>
     </message>
     <message>
-        <location filename="../ui/general/qgisred_import_dialog.py" line="1335"/>
+        <location filename="../ui/general/qgisred_import_dialog.py" line="1318"/>
         <source>ZIP file is not valid</source>
         <translation>O arquivo ZIP não é válido</translation>
     </message>
     <message>
-        <location filename="../ui/general/qgisred_import_dialog.py" line="1338"/>
+        <location filename="../ui/general/qgisred_import_dialog.py" line="1321"/>
         <source>ZIP file does not exist</source>
         <translation>O arquivo ZIP não existe</translation>
     </message>
     <message>
-        <location filename="../ui/general/qgisred_import_dialog.py" line="1285"/>
+        <location filename="../ui/general/qgisred_import_dialog.py" line="1268"/>
         <source>Warning</source>
         <translation>Aviso</translation>
     </message>
     <message>
-        <location filename="../ui/general/qgisred_import_dialog.py" line="1306"/>
+        <location filename="../ui/general/qgisred_import_dialog.py" line="1289"/>
         <source>ZIP file does not contain a valid QGISRed project</source>
         <translation>O arquivo ZIP não contém um projeto QGISRed válido</translation>
     </message>
@@ -5031,77 +5031,77 @@ Continuar?</translation>
         <translation>Importar os dados complementares incluídos no arquivo ZIP</translation>
     </message>
     <message>
-        <location filename="../ui/general/qgisred_import_dialog.py" line="1266"/>
+        <location filename="../ui/general/qgisred_import_dialog.py" line="1249"/>
         <source>Select ZIP file</source>
         <translation>Selecionar arquivo ZIP</translation>
     </message>
     <message>
-        <location filename="../ui/general/qgisred_import_dialog.py" line="1297"/>
+        <location filename="../ui/general/qgisred_import_dialog.py" line="1280"/>
         <source>The ZIP file already contains its own project folder.</source>
         <translation>O arquivo ZIP já contém a sua própria pasta de projeto.</translation>
     </message>
     <message>
-        <location filename="../ui/general/qgisred_import_dialog.py" line="1308"/>
+        <location filename="../ui/general/qgisred_import_dialog.py" line="1291"/>
         <source>This ZIP file was created with a newer version of QGISRed. Please update the plugin.</source>
         <translation>Este arquivo ZIP foi criado com uma versão mais recente do QGISRed. Atualize o plugin.</translation>
     </message>
     <message>
-        <location filename="../ui/general/qgisred_import_dialog.py" line="1310"/>
+        <location filename="../ui/general/qgisred_import_dialog.py" line="1293"/>
         <source>The ZIP file contains unsafe file paths and will not be imported.</source>
         <translation>O arquivo ZIP contém caminhos de arquivo não seguros e não será importado.</translation>
     </message>
     <message>
-        <location filename="../ui/general/qgisred_import_dialog.py" line="1311"/>
+        <location filename="../ui/general/qgisred_import_dialog.py" line="1294"/>
         <source>The ZIP file could not be read:</source>
         <translation>Não foi possível ler o arquivo ZIP:</translation>
     </message>
     <message>
-        <location filename="../ui/general/qgisred_import_dialog.py" line="1315"/>
+        <location filename="../ui/general/qgisred_import_dialog.py" line="1298"/>
         <source>Project: &lt;b&gt;%1&lt;/b&gt;</source>
         <translation>Projeto: &lt;b&gt;%1&lt;/b&gt;</translation>
     </message>
     <message>
-        <location filename="../ui/general/qgisred_import_dialog.py" line="1317"/>
+        <location filename="../ui/general/qgisred_import_dialog.py" line="1300"/>
         <source>Includes the QGIS map project (%1)</source>
         <translation>Inclui o projeto de mapa do QGIS (%1)</translation>
     </message>
     <message>
-        <location filename="../ui/general/qgisred_import_dialog.py" line="1319"/>
+        <location filename="../ui/general/qgisred_import_dialog.py" line="1302"/>
         <source>Does not include a QGIS map project: only the data will be imported.</source>
         <translation>Não inclui projeto de mapa do QGIS: apenas os dados serão importados.</translation>
     </message>
     <message>
-        <location filename="../ui/general/qgisred_import_dialog.py" line="1321"/>
+        <location filename="../ui/general/qgisred_import_dialog.py" line="1304"/>
         <source>Complementary data: %1 item(s), %2</source>
         <translation>Dados complementares: %1 item(ns), %2</translation>
     </message>
     <message>
-        <location filename="../ui/general/qgisred_import_dialog.py" line="1381"/>
+        <location filename="../ui/general/qgisred_import_dialog.py" line="1364"/>
         <source>Some background layers are not in this file. QGIS will ask you to locate them.</source>
         <translation>Algumas camadas de fundo não estão neste arquivo. O QGIS pedirá que você as localize.</translation>
     </message>
     <message>
-        <location filename="../ui/general/qgisred_import_dialog.py" line="1401"/>
+        <location filename="../ui/general/qgisred_import_dialog.py" line="1384"/>
         <source>A project named &apos;%1&apos; already exists in the destination folder. Do you want to overwrite it?</source>
         <translation>Já existe um projeto chamado '%1' na pasta de destino. Deseja substituí-lo?</translation>
     </message>
     <message>
-        <location filename="../ui/general/qgisred_import_dialog.py" line="1405"/>
+        <location filename="../ui/general/qgisred_import_dialog.py" line="1388"/>
         <source>These files already exist in the destination folder:</source>
         <translation>Estes arquivos já existem na pasta de destino:</translation>
     </message>
     <message>
-        <location filename="../ui/general/qgisred_import_dialog.py" line="1408"/>
+        <location filename="../ui/general/qgisred_import_dialog.py" line="1391"/>
         <source>and %1 more</source>
         <translation>e %1 mais</translation>
     </message>
     <message>
-        <location filename="../ui/general/qgisred_import_dialog.py" line="1409"/>
+        <location filename="../ui/general/qgisred_import_dialog.py" line="1392"/>
         <source>Do you want to overwrite them?</source>
         <translation>Deseja substituí-los?</translation>
     </message>
     <message>
-        <location filename="../ui/general/qgisred_import_dialog.py" line="1411"/>
+        <location filename="../ui/general/qgisred_import_dialog.py" line="1394"/>
         <source>QGISRed</source>
         <translation type="unfinished">QGISRed</translation>
     </message>
@@ -5172,139 +5172,139 @@ Continuar?</translation>
         <translation>...</translation>
     </message>
     <message>
-        <location filename="../ui/project/qgisred_layermanagement_dialog.ui" line="100"/>
+        <location filename="../ui/project/qgisred_layermanagement_dialog.ui" line="104"/>
         <source>Pipes</source>
         <translation>Tubulações</translation>
     </message>
     <message>
-        <location filename="../ui/project/qgisred_layermanagement_dialog.ui" line="128"/>
+        <location filename="../ui/project/qgisred_layermanagement_dialog.ui" line="132"/>
         <source>Create Pipes Layer</source>
         <translation>Criar Camada de Tubulações</translation>
     </message>
     <message>
-        <location filename="../ui/project/qgisred_layermanagement_dialog.ui" line="658"/>
+        <location filename="../ui/project/qgisred_layermanagement_dialog.ui" line="654"/>
         <source>+</source>
         <translation>+</translation>
     </message>
     <message>
-        <location filename="../ui/project/qgisred_layermanagement_dialog.ui" line="154"/>
+        <location filename="../ui/project/qgisred_layermanagement_dialog.ui" line="158"/>
         <source>Valves</source>
         <translation>Válvulas</translation>
     </message>
     <message>
-        <location filename="../ui/project/qgisred_layermanagement_dialog.ui" line="179"/>
+        <location filename="../ui/project/qgisred_layermanagement_dialog.ui" line="183"/>
         <source>Create Valves Layer</source>
         <translation>Criar Camada de Válvulas</translation>
     </message>
     <message>
-        <location filename="../ui/project/qgisred_layermanagement_dialog.ui" line="196"/>
+        <location filename="../ui/project/qgisred_layermanagement_dialog.ui" line="200"/>
         <source>Pumps</source>
         <translation>Bombas</translation>
     </message>
     <message>
-        <location filename="../ui/project/qgisred_layermanagement_dialog.ui" line="221"/>
+        <location filename="../ui/project/qgisred_layermanagement_dialog.ui" line="225"/>
         <source>Create Pumps Layer</source>
         <translation>Criar Camada de Bombas</translation>
     </message>
     <message>
-        <location filename="../ui/project/qgisred_layermanagement_dialog.ui" line="264"/>
+        <location filename="../ui/project/qgisred_layermanagement_dialog.ui" line="268"/>
         <source>Junctions</source>
         <translation>Junções</translation>
     </message>
     <message>
-        <location filename="../ui/project/qgisred_layermanagement_dialog.ui" line="289"/>
+        <location filename="../ui/project/qgisred_layermanagement_dialog.ui" line="293"/>
         <source>Create Junction Layer</source>
         <translation>Criar Camada de Junções</translation>
     </message>
     <message>
-        <location filename="../ui/project/qgisred_layermanagement_dialog.ui" line="306"/>
+        <location filename="../ui/project/qgisred_layermanagement_dialog.ui" line="310"/>
         <source>Reservoirs</source>
         <translation>Reservatórios</translation>
     </message>
     <message>
-        <location filename="../ui/project/qgisred_layermanagement_dialog.ui" line="331"/>
+        <location filename="../ui/project/qgisred_layermanagement_dialog.ui" line="335"/>
         <source>Create Reservoirs Layer</source>
         <translation>Criar Camada de Reservatórios</translation>
     </message>
     <message>
-        <location filename="../ui/project/qgisred_layermanagement_dialog.ui" line="348"/>
+        <location filename="../ui/project/qgisred_layermanagement_dialog.ui" line="352"/>
         <source>Tanks</source>
         <translation>Tanques</translation>
     </message>
     <message>
-        <location filename="../ui/project/qgisred_layermanagement_dialog.ui" line="373"/>
+        <location filename="../ui/project/qgisred_layermanagement_dialog.ui" line="377"/>
         <source>Create Tanks Layer</source>
         <translation>Criar Camada de Tanques</translation>
     </message>
     <message>
-        <location filename="../ui/project/qgisred_layermanagement_dialog.ui" line="416"/>
+        <location filename="../ui/project/qgisred_layermanagement_dialog.ui" line="420"/>
         <source>Multiple Demands</source>
         <translation>Consumos Múltiplos</translation>
     </message>
     <message>
-        <location filename="../ui/project/qgisred_layermanagement_dialog.ui" line="441"/>
+        <location filename="../ui/project/qgisred_layermanagement_dialog.ui" line="445"/>
         <source>Create Demands Layer</source>
         <translation>Criar Camada de Consumos</translation>
     </message>
     <message>
-        <location filename="../ui/project/qgisred_layermanagement_dialog.ui" line="458"/>
+        <location filename="../ui/project/qgisred_layermanagement_dialog.ui" line="462"/>
         <source>Sources</source>
         <translation>Fontes</translation>
     </message>
     <message>
-        <location filename="../ui/project/qgisred_layermanagement_dialog.ui" line="483"/>
+        <location filename="../ui/project/qgisred_layermanagement_dialog.ui" line="487"/>
         <source>Create Sources Layer</source>
         <translation>Criar Camada de Fontes</translation>
     </message>
     <message>
-        <location filename="../ui/project/qgisred_layermanagement_dialog.ui" line="552"/>
+        <location filename="../ui/project/qgisred_layermanagement_dialog.ui" line="548"/>
         <source>Service Connections</source>
         <translation>Ligações de Serviço</translation>
     </message>
     <message>
-        <location filename="../ui/project/qgisred_layermanagement_dialog.ui" line="574"/>
+        <location filename="../ui/project/qgisred_layermanagement_dialog.ui" line="570"/>
         <source>Create Service Connections Layer</source>
         <translation>Criar Camada de Ligações de Serviço</translation>
     </message>
     <message>
-        <location filename="../ui/project/qgisred_layermanagement_dialog.ui" line="591"/>
+        <location filename="../ui/project/qgisred_layermanagement_dialog.ui" line="587"/>
         <source>Isolation Valves</source>
         <translation>Válvulas de Isolamento</translation>
     </message>
     <message>
-        <location filename="../ui/project/qgisred_layermanagement_dialog.ui" line="613"/>
+        <location filename="../ui/project/qgisred_layermanagement_dialog.ui" line="609"/>
         <source>Create Isolation Valves Layer</source>
         <translation>Criar Camada de Válvulas de Isolamento</translation>
     </message>
     <message>
-        <location filename="../ui/project/qgisred_layermanagement_dialog.ui" line="630"/>
+        <location filename="../ui/project/qgisred_layermanagement_dialog.ui" line="626"/>
         <source>Meters</source>
         <translation>Medidores</translation>
     </message>
     <message>
-        <location filename="../ui/project/qgisred_layermanagement_dialog.ui" line="655"/>
+        <location filename="../ui/project/qgisred_layermanagement_dialog.ui" line="651"/>
         <source>Create Manometers Layer</source>
         <translation>Criar Camada de Manômetros</translation>
     </message>
     <message>
-        <location filename="../ui/project/qgisred_layermanagement_dialog.ui" line="753"/>
+        <location filename="../ui/project/qgisred_layermanagement_dialog.ui" line="721"/>
         <source>Accept</source>
         <translation>Aceitar</translation>
     </message>
     <message>
-        <location filename="../ui/project/qgisred_layermanagement_dialog.ui" line="760"/>
+        <location filename="../ui/project/qgisred_layermanagement_dialog.ui" line="728"/>
         <source>Cancel</source>
         <translation>Cancelar</translation>
     </message>
     <message>
         <location filename="../ui/project/qgisred_layermanagement_dialog.ui" line="75"/>
         <source>Load/Unload basic elements in legend</source>
-        <translation>Carregar/Descarregar elementos básicos na legenda</translation>
+        <translation type="obsolete">Carregar/Descarregar elementos básicos na legenda</translation>
     </message>
     <message>
         <location filename="../ui/project/qgisred_layermanagement_dialog.ui" line="537"/>
         <source>Load/Unload Digital Twin elements in legend</source>
-        <translation>Carregar/Descarregar elementos do Gêmeo Digital na legenda</translation>
+        <translation type="obsolete">Carregar/Descarregar elementos do Gêmeo Digital na legenda</translation>
     </message>
     <message>
         <location filename="../ui/project/qgisred_layermanagement_dialog.py" line="146"/>
@@ -5325,6 +5325,16 @@ Continuar?</translation>
         <location filename="../ui/project/qgisred_layermanagement_dialog.py" line="148"/>
         <source>Error</source>
         <translation type="unfinished">Erro</translation>
+    </message>
+    <message>
+        <location filename="../ui/project/qgisred_layermanagement_dialog.ui" line="79"/>
+        <source>Basic elements</source>
+        <translation type="unfinished">Elementos básicos</translation>
+    </message>
+    <message>
+        <location filename="../ui/project/qgisred_layermanagement_dialog.ui" line="533"/>
+        <source>Digital Twin</source>
+        <translation type="unfinished">Gémeo Digital</translation>
     </message>
 </context>
 <context>

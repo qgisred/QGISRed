@@ -1,5 +1,5 @@
 # -*- coding: utf-8 -*-
-from qgis.PyQt.QtWidgets import QDialog, QApplication
+from qgis.PyQt.QtWidgets import QDialog, QApplication, QLayout
 from qgis.PyQt.QtCore import Qt
 from qgis.PyQt import uic
 from qgis.gui import QgsProjectionSelectionDialog as QgsGenericProjectionSelector
@@ -60,6 +60,11 @@ class QGISRedLayerManagementDialog(QDialog, FORM_CLASS):
         self.btSelectCRS.clicked.connect(self.selectCRS)
 
         self.messageBar = QGISRedBanner.inject(self, self.gridLayout)
+        # Every row is a fixed-height checkbox, so there is nothing worth resizing. This
+        # also keeps the dialog honest when the banner appears: SetFixedSize re-reads the
+        # layout's hint, so the window grows to fit the message instead of squashing the
+        # tabs, and shrinks back when it hides.
+        self.gridLayout.setSizeConstraint(QLayout.SizeConstraint.SetFixedSize)
 
         self.elements = [
             _Element(name, getattr(self, checkBox), getattr(self, button), complementary)
