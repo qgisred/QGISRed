@@ -1,13 +1,10 @@
 # -*- coding: utf-8 -*-
 from qgis.PyQt.QtWidgets import QDialog, QApplication
 from qgis.PyQt.QtCore import Qt
-from qgis.core import QgsCoordinateReferenceSystem
 from qgis.PyQt import uic
 from qgis.gui import QgsProjectionSelectionDialog as QgsGenericProjectionSelector
 
 from ...tools.utils.qgisred_layer_utils import QGISRedLayerUtils
-from ...tools.utils.qgisred_filesystem_utils import QGISRedFileSystemUtils
-from ...tools.utils.qgisred_identifier_utils import QGISRedIdentifierUtils
 from ...tools.utils.qgisred_ui_utils import QGISRedBanner
 from ...tools.qgisred_dependencies import QGISRedDependencies as GISRed
 
@@ -16,321 +13,150 @@ import os
 
 FORM_CLASS, _ = uic.loadUiType(os.path.join(os.path.dirname(__file__), "qgisred_layermanagement_dialog.ui"))
 
+# Element name, checkbox, create button, and which GISRed.CreateLayer argument the
+# element travels in. The name doubles as the shapefile suffix and, lowercased, as the
+# qgisred_identifier suffix, so it must stay free of spaces.
+_ELEMENTS = (
+    ("Pipes", "cbPipes", "btPipes", False),
+    ("Junctions", "cbJunctions", "btJunctions", False),
+    ("Tanks", "cbTanks", "btTanks", False),
+    ("Reservoirs", "cbReservoirs", "btReservoirs", False),
+    ("Valves", "cbValves", "btValves", False),
+    ("Pumps", "cbPumps", "btPumps", False),
+    ("Demands", "cbDemands", "btDemands", True),
+    ("Sources", "cbSources", "btSources", True),
+    ("IsolationValves", "cbIsolatedValves", "btIsolatedValves", True),
+    ("ServiceConnections", "cbConnections", "btConnections", True),
+    ("Meters", "cbMeters", "btMeters", True),
+)
+
+
+class _Element:
+    """One managed element type and the widgets that stand for it in the dialog."""
+
+    def __init__(self, name, checkBox, createButton, complementary):
+        self.name = name
+        self.identifier = "qgisred_" + name.lower()
+        self.checkBox = checkBox
+        self.createButton = createButton
+        self.complementary = complementary
+        # The .ui text, already translated by setupUi. Used whenever the layer is not
+        # open and there is no real layer name to show instead.
+        self.defaultText = checkBox.text()
+
 
 class QGISRedLayerManagementDialog(QDialog, FORM_CLASS):
-    # Common variables
-    iface = None
-    NetworkName = ""
-    ProjectDirectory = ""
-
     def __init__(self, parent=None):
         """Constructor."""
         super(QGISRedLayerManagementDialog, self).__init__(parent)
         self.setupUi(self)
+
+        self.iface = None
+        self.NetworkName = ""
+        self.ProjectDirectory = ""
+
         self.btAccept.clicked.connect(self.accept)
         self.btCancel.clicked.connect(self.reject)
         self.btSelectCRS.clicked.connect(self.selectCRS)
 
         self.messageBar = QGISRedBanner.inject(self, self.gridLayout)
 
-        self.btPipes.clicked.connect(lambda: self.createElement("Pipes"))
-        self.btJunctions.clicked.connect(lambda: self.createElement("Junctions"))
-        self.btTanks.clicked.connect(lambda: self.createElement("Tanks"))
-        self.btReservoirs.clicked.connect(lambda: self.createElement("Reservoirs"))
-        self.btValves.clicked.connect(lambda: self.createElement("Valves"))
-        self.btPumps.clicked.connect(lambda: self.createElement("Pumps"))
-        self.btDemands.clicked.connect(lambda: self.createElement("Demands", True))
-        self.btSources.clicked.connect(lambda: self.createElement("Sources", True))
-        self.btIsolatedValves.clicked.connect(lambda: self.createElement("IsolationValves", True))
-        self.btConnections.clicked.connect(lambda: self.createElement("ServiceConnections", True))
-        self.btMeters.clicked.connect(lambda: self.createElement("Meters", True))
-
-        # Initialize layer name mapping
-        self.layerNameMapping = {}
-        self.elementToDisplayName = {}
-
-        self.elements = {
-            'Pipes': ('qgisred_pipes', self.cbPipes),
-            'Junctions': ('qgisred_junctions', self.cbJunctions),
-            'Tanks': ('qgisred_tanks', self.cbTanks),
-            'Reservoirs': ('qgisred_reservoirs', self.cbReservoirs),
-            'Valves': ('qgisred_valves', self.cbValves),
-            'Pumps': ('qgisred_pumps', self.cbPumps),
-            'Demands': ('qgisred_demands', self.cbDemands),
-            'Sources': ('qgisred_sources', self.cbSources),
-            'IsolationValves': ('qgisred_isolationvalves', self.cbIsolatedValves),
-            'ServiceConnections': ('qgisred_serviceconnections', self.cbConnections),
-            'Meters': ('qgisred_meters', self.cbMeters)
-        }
+        self.elements = [
+            _Element(name, getattr(self, checkBox), getattr(self, button), complementary)
+            for name, checkBox, button, complementary in _ELEMENTS
+        ]
+        for element in self.elements:
+            element.createButton.clicked.connect(lambda _checked=False, e=element: self.createElement(e))
 
     def config(self, ifac, direct, netw, parent):
         self.iface = ifac
         self.parent = parent
+        self.NetworkName = netw
+        self.ProjectDirectory = direct
 
         self.utils = QGISRedLayerUtils(direct, netw, ifac)
         self.crs = self.utils.getProjectCrs()
         self.originalCrs = self.crs
         self.tbCRS.setText(self.crs.description())
 
-        self.NetworkName = netw
-        self.ProjectDirectory = direct
-
-        # Map display name with QGISRed processing names
-        self.buildLayerNameMapping()
-
-        # Set properties with updated names
         self.setProperties()
 
-    def processInputGroupLayers(self, action):
-        inputGroup = self.utils.getInputGroup()
-        if not inputGroup:
-            return
+    """Element rows"""
 
-        for child in inputGroup.children():
-            if hasattr(child, 'layer') and child.layer():
-                layer = child.layer()
-                layerIdentifier = layer.customProperty("qgisred_identifier")
-
-                if not layerIdentifier:
-                    continue
-
-                for elementType, (identifier, _) in self.elements.items():
-                    if identifier == layerIdentifier:
-                        action(layer, elementType)
-                        break
-
-    def buildLayerNameMapping(self):
-        self.layerNameMapping.clear()
-        self.elementToDisplayName.clear()
-
-        # Set default display names from checkbox text
-        for elementType, (_, checkbox) in self.elements.items():
-            checkboxText = checkbox.text().split("Id:")[0].strip()
-            self.elementToDisplayName[elementType] = checkboxText
-
-        def updateMappings(layer, element_type):
-            actual_name = layer.name()
-            self.layerNameMapping[element_type] = actual_name
-            self.elementToDisplayName[element_type] = actual_name
-
-        self.processInputGroupLayers(updateMappings)
-
-    def updateCheckboxText(self, checkbox, elementType):
-        # Only update the text if the element type is in the layerNameMapping (i.e., the layer exists)
-        if elementType not in self.layerNameMapping:
-            return
-
-        displayName = self.elementToDisplayName.get(elementType, self.getLayerNameToLegend(elementType))
-        # Preserve the ID format if it exists in the original text
-        currentText = checkbox.text()
-        if "Id:" in currentText:
-            # Extract ID part and combine with new name
-            idPart = currentText.split("Id:")[1].strip() if "Id:" in currentText else ""
-            if idPart:
-                checkbox.setText(f"{displayName} Id: {idPart}")
-            else:
-                checkbox.setText(displayName)
-        else:
-            checkbox.setText(displayName)
+    def getOpenLayersByIdentifier(self):
+        """Map qgisred_identifier -> open layer for everything currently in the project."""
+        found = {}
+        for layer in self.utils.getLayers():
+            identifier = layer.customProperty("qgisred_identifier")
+            if identifier and identifier not in found:
+                found[identifier] = layer
+        return found
 
     def setProperties(self):
-        dirList = os.listdir(self.ProjectDirectory)
+        """Refresh every row against what is on disk and what is open in QGIS."""
+        existingFiles = set(os.listdir(self.ProjectDirectory))
+        openLayers = self.getOpenLayersByIdentifier()
 
-        # Update checkbox texts with actual layer names
-        self.updateCheckboxText(self.cbPipes, "Pipes")
-        self.updateCheckboxText(self.cbJunctions, "Junctions")
-        self.updateCheckboxText(self.cbTanks, "Tanks")
-        self.updateCheckboxText(self.cbReservoirs, "Reservoirs")
-        self.updateCheckboxText(self.cbValves, "Valves")
-        self.updateCheckboxText(self.cbPumps, "Pumps")
-        self.updateCheckboxText(self.cbDemands, "Demands")
-        self.updateCheckboxText(self.cbSources, "Sources")
-        self.updateCheckboxText(self.cbIsolatedValves, "IsolationValves")
-        self.updateCheckboxText(self.cbConnections, "ServiceConnections")
-        self.updateCheckboxText(self.cbMeters, "Meters")
+        for element in self.elements:
+            onDisk = self.NetworkName + "_" + element.name + ".shp" in existingFiles
+            layer = openLayers.get(element.identifier)
+            # Projects saved before identifiers existed can only be matched by path.
+            isOpen = layer is not None or self.utils.isLayerOpened(element.name)
 
-        # Visibilities
-        self.btPipes.setVisible(not self.NetworkName + "_Pipes.shp" in dirList)
-        self.btJunctions.setVisible(not self.NetworkName + "_Junctions.shp" in dirList)
-        self.btTanks.setVisible(not self.NetworkName + "_Tanks.shp" in dirList)
-        self.btReservoirs.setVisible(not self.NetworkName + "_Reservoirs.shp" in dirList)
-        self.btValves.setVisible(not self.NetworkName + "_Valves.shp" in dirList)
-        self.btPumps.setVisible(not self.NetworkName + "_Pumps.shp" in dirList)
-        self.btDemands.setVisible(not self.NetworkName + "_Demands.shp" in dirList)
-        self.btSources.setVisible(not self.NetworkName + "_Sources.shp" in dirList)
-        self.btIsolatedValves.setVisible(not self.NetworkName + "_IsolationValves.shp" in dirList)
-        self.btConnections.setVisible(not self.NetworkName + "_ServiceConnections.shp" in dirList)
-        self.btMeters.setVisible(not self.NetworkName + "_Meters.shp" in dirList)
+            # The create button and the checkbox are exclusive: the button materialises
+            # the missing shapefile, the checkbox decides whether an existing one loads.
+            element.createButton.setVisible(not onDisk)
+            element.checkBox.setChecked(isOpen)
+            element.checkBox.setText(layer.name() if layer is not None else element.defaultText)
+            # Pipes carry the network: once loaded they may not be unloaded.
+            locked = element.name == "Pipes" and isOpen
+            element.checkBox.setEnabled(onDisk and not locked)
 
-        # Enables
-        self.cbIsolatedValves.setEnabled(self.NetworkName + "_IsolationValves.shp" in dirList)
-        self.cbConnections.setEnabled(self.NetworkName + "_ServiceConnections.shp" in dirList)
-        self.cbMeters.setEnabled(self.NetworkName + "_Meters.shp" in dirList)
-
-        # Check if layers are opened using their identifiers
-        # Pipes remains exception: cannot be deselected
-        hasLayer = self.isLayerOpenedByIdentifier("Pipes")
-        self.cbPipes.setChecked(hasLayer)
-        self.cbPipes.setEnabled(self.NetworkName + "_Pipes.shp" in dirList and not hasLayer)
-
-        # For all other basic elements, always enable the checkbox (allowing the user to deselect to remove the layer)
-        hasLayer = self.isLayerOpenedByIdentifier("Junctions")
-        self.cbJunctions.setChecked(hasLayer)
-        self.cbJunctions.setEnabled(self.NetworkName + "_Junctions.shp" in dirList)
-
-        hasLayer = self.isLayerOpenedByIdentifier("Tanks")
-        self.cbTanks.setChecked(hasLayer)
-        self.cbTanks.setEnabled(self.NetworkName + "_Tanks.shp" in dirList)
-
-        hasLayer = self.isLayerOpenedByIdentifier("Reservoirs")
-        self.cbReservoirs.setChecked(hasLayer)
-        self.cbReservoirs.setEnabled(self.NetworkName + "_Reservoirs.shp" in dirList)
-
-        hasLayer = self.isLayerOpenedByIdentifier("Valves")
-        self.cbValves.setChecked(hasLayer)
-        self.cbValves.setEnabled(self.NetworkName + "_Valves.shp" in dirList)
-
-        hasLayer = self.isLayerOpenedByIdentifier("Pumps")
-        self.cbPumps.setChecked(hasLayer)
-        self.cbPumps.setEnabled(self.NetworkName + "_Pumps.shp" in dirList)
-
-        hasLayer = self.isLayerOpenedByIdentifier("Demands")
-        self.cbDemands.setChecked(hasLayer)
-        self.cbDemands.setEnabled(self.NetworkName + "_Demands.shp" in dirList)
-
-        hasLayer = self.isLayerOpenedByIdentifier("Sources")
-        self.cbSources.setChecked(hasLayer)
-        self.cbSources.setEnabled(self.NetworkName + "_Sources.shp" in dirList)
-
-        # Checked
-        self.cbIsolatedValves.setChecked(self.isLayerOpenedByIdentifier("IsolationValves"))
-        self.cbConnections.setChecked(self.isLayerOpenedByIdentifier("ServiceConnections"))
-        self.cbMeters.setChecked(self.isLayerOpenedByIdentifier("Meters"))
-
-    def isLayerOpenedByIdentifier(self, elementType):
-        # Get the identifier for this element type
-        if elementType not in self.elements:
-            return False
-
-        targetIdentifier = self.elements[elementType][0]
-
-        # Check all layers for the identifier
-        layers = self.utils.getLayers()
-        for layer in layers:
-            layerIdentifier = layer.customProperty("qgisred_identifier")
-            if layerIdentifier == targetIdentifier:
-                return True
-
-        # Fallback to checking by path for backward compatibility
-        return self.utils.isLayerOpened(elementType)
+    """Actions"""
 
     def selectCRS(self):
         projSelector = QgsGenericProjectionSelector()
-        if projSelector.exec():
-            crsId = projSelector.crs().srsid()
-            if not crsId == 0:
-                self.crs = QgsCoordinateReferenceSystem()
-                self.crs.createFromId(crsId, QgsCoordinateReferenceSystem.InternalCrsId)
-                self.tbCRS.setText(self.crs.description())
+        if not projSelector.exec():
+            return
+        crs = projSelector.crs()
+        if not crs.isValid():
+            return
+        # The DLL reprojects from an EPSG code alone. A custom CRS reaches it as a
+        # "USER:xxxxx" identifier it cannot resolve, so refuse it here instead.
+        if not crs.authid().startswith("EPSG:"):
+            self.pushMessage(self.tr("Warning"), self.tr("Only coordinate systems with an EPSG code are supported"), level=1)
+            return
+        self.crs = crs
+        self.tbCRS.setText(self.crs.description())
 
-    def getLayerPath(self, layer):
-        return QGISRedFileSystemUtils().getLayerPath(layer)
-
-    def generatePath(self, folder, fileName):
-        return QGISRedFileSystemUtils().generatePath(folder, fileName)
-
-    def getLayers(self):
-        return self.utils.getLayers()
-
-    def getLayerNameToLegend(self, original):
-        upperIndex = []
-        for x in range(len(original)):
-            if original[x].isupper():
-                upperIndex.append(x)
-        upperIndex = upperIndex[::-1]
-        for ind in upperIndex:
-            if ind != 0:
-                original = original[:ind] + " " + original[ind:]
-
-        if "Demands" in original:
-            original = "Multiple Demands"
-        return original
-
-    def isInLegend(self, layerName):
-        openedLayers = self.getLayers()
-
-        for layer in openedLayers:
-            # Should translate here
-            originalName = QGISRedIdentifierUtils(self.ProjectDirectory, self.NetworkName, self.iface).getOriginalNameFromLayerName(layerName)
-            layerPath = self.generatePath(self.ProjectDirectory, self.NetworkName + "_" + originalName + ".shp")
-            if self.getLayerPath(layer) == layerPath:
-                return True
-        return False
-
-    def createElementsList(self):
-        if self.cbPipes.isChecked():
-            self.layers.append("Pipes")
-        if self.cbJunctions.isChecked():
-            self.layers.append("Junctions")
-        if self.cbTanks.isChecked():
-            self.layers.append("Tanks")
-        if self.cbReservoirs.isChecked():
-            self.layers.append("Reservoirs")
-        if self.cbValves.isChecked():
-            self.layers.append("Valves")
-        if self.cbPumps.isChecked():
-            self.layers.append("Pumps")
-
-    def createComplementaryList(self):
-        if self.cbDemands.isChecked():
-            self.layers.append("Demands")
-        if self.cbSources.isChecked():
-            self.layers.append("Sources")
-
-        if self.cbIsolatedValves.isChecked():
-            self.layers.append("Isolation Valves")
-        if self.cbConnections.isChecked():
-            self.layers.append("Service Connections")
-        if self.cbMeters.isChecked():
-            self.layers.append("Meters")
-
-    def createElement(self, layerName, complementary=False):
-        layer = "" if complementary else layerName
-        complLayer = layerName if complementary else ""
+    def createElement(self, element):
+        layer = "" if element.complementary else element.name
+        complLayer = element.name if element.complementary else ""
         # Process
         QApplication.setOverrideCursor(Qt.CursorShape.WaitCursor)
         resMessage = GISRed.CreateLayer(self.ProjectDirectory, self.NetworkName, layer, complLayer)
         QApplication.restoreOverrideCursor()
 
         if resMessage == "True":
-            self.parent.openElementLayer(layerName)
+            self.parent.openElementLayer(element.name)
+            # The row now has a shapefile and an open layer. Redraw it and stay open, so
+            # several elements can be created in one visit and any message stays readable.
+            self.setProperties()
         elif resMessage == "False":
-            self.pushMessage("Warning", "Some issues occurred in the process", level=1, duration=5)
+            self.pushMessage(self.tr("Warning"), self.tr("Some issues occurred in the process"), level=1)
         else:
-            self.pushMessage("Error", resMessage, level=2, duration=5)
-        self.close()
+            self.pushMessage(self.tr("Error"), resMessage, level=2)
 
     def pushMessage(self, title, text, level=0, duration=5):
         self.messageBar.pushMessage(title, text, level, duration)
 
-    def renameLayersInInputsGroup(self):
-        def renameAction(layer, element_type):
-            if element_type in self.elementToDisplayName:
-                newName = self.elementToDisplayName[element_type]
-                if layer.name() != newName:
-                    layer.setName(newName)
-
-        self.processInputGroupLayers(renameAction)
-
     def accept(self):
-        self.layers = []
-        self.createElementsList()
-        self.createComplementaryList()
+        selected = [element.name for element in self.elements if element.checkBox.isChecked()]
+        managed = [element.name for element in self.elements]
 
         epsg = None
-        if not self.crs.srsid() == self.originalCrs.srsid():
+        if self.crs != self.originalCrs:
             epsg = self.crs.authid().replace("EPSG:", "")
-        self.parent.openRemoveSpecificLayers(self.layers, epsg)
+        self.parent.applyInputLayerSelection(selected, managed, epsg)
 
-        self.renameLayersInInputsGroup()
-        self.close()
+        super(QGISRedLayerManagementDialog, self).accept()

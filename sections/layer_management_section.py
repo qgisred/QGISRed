@@ -79,15 +79,36 @@ class LayerManagementSection:
 
     """Open Layers"""
 
-    def openRemoveSpecificLayers(self, layers, epsg):
-        self.especificComplementaryLayers = self.complementaryLayers
+    def applyInputLayerSelection(self, selectedLayers, managedLayers, epsg):
+        """Apply the selection made in the layer-management dialog to the Inputs group.
+
+        Only the difference is applied: an element that was checked and stays checked is
+        never closed, so it keeps its style, visibility and selection, and `orderLayers`
+        slots whatever is newly opened into the canonical position. `managedLayers` bounds
+        what may be closed, so anything else sitting in the Inputs group is left alone.
+
+        A CRS change is the exception: the DLL rewrites every shapefile, so nothing may
+        stay open across it and every managed element is closed first.
+        """
         self.specificEpsg = epsg
-        self.specificLayers = layers
+        self.specificLayers = list(selectedLayers)
         self.layerOperationInProgress = True
-        QGISRedLayerUtils().runTask(self.removeLayers, self.openSpecificLayers)
+
+        if epsg is None:
+            selected = set(selectedLayers)
+            self.layersToClose = [name for name in managedLayers if name not in selected]
+        else:
+            self.layersToClose = list(managedLayers)
+
+        QGISRedLayerUtils().runTask(self.closeUnselectedInputLayers, self.openSpecificLayers)
+
+    def closeUnselectedInputLayers(self):
+        utils = QGISRedLayerUtils(self.ProjectDirectory, self.NetworkName, self.iface)
+        utils.removeLayers(self.layersToClose)
+        if self.specificEpsg is not None:
+            utils.removeLayers(self.ownFiles, ".dbf")
 
     def openSpecificLayers(self):
-        self.especificComplementaryLayers = []
         if self.specificEpsg is not None:
             self.runChangeCrs()
 
@@ -106,10 +127,12 @@ class LayerManagementSection:
 
     def openElementLayer(self, nameLayer):
         # Open layers
+        self.layerOperationInProgress = True
         utils = QGISRedLayerUtils(self.ProjectDirectory, self.NetworkName, self.iface)
         inputGroup = self.getInputGroup()
         utils.openElementsLayers(inputGroup, [nameLayer])
         self.updateMetadata()
+        self.layerOperationInProgress = False
 
     def openElementLayers(self, net="", folder=""):
         # Allow overriding project/network if provided

@@ -23,6 +23,23 @@ DIR_DEMANDS_BUILDER    = "DemandsBuilder"
 # never be copied into an export.
 DIR_BACKUPS           = "backups"
 
+# The element layers QGISRed generates, named after their shapefile suffix
+# ({NetworkName}_{name}.shp). Single source of truth for "which files make up a network":
+# lowercased, each one is also its qgisred_identifier suffix.
+ELEMENT_LAYERS = [
+    "Pipes",
+    "Junctions",
+    "Tanks",
+    "Reservoirs",
+    "Valves",
+    "Pumps",
+    "Demands",
+    "Sources",
+    "IsolationValves",
+    "ServiceConnections",
+    "Meters",
+]
+
 # Single source of truth: layer-type key → {subdir, tree_path, flags}
 # subdir:    relative path from ProjectDirectory to the layer files
 # tree_path: QGIS group path (without the NetworkName root)

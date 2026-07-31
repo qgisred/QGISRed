@@ -39,7 +39,7 @@ class QGISRed(
     ownMainLayers = ["Pipes", "Junctions", "Demands", "Valves", "Pumps", "Tanks", "Reservoirs", "Sources"]
     ownFiles = ["DefaultValues", "Options", "Rules", "Controls", "Curves", "Patterns", "Materials", "Signals"]
     especificComplementaryLayers = []
-    complementaryLayers = ["IsolationValves", "Hydrants", "WashoutValves", "AirReleaseValves", "ServiceConnections", "Meters"]
+    complementaryLayers = ["IsolationValves", "ServiceConnections", "Meters"]
     TemporalFolder = "Temporal folder"
     DependenciesVersion = "1.0.18.1"
     gisredDll = None

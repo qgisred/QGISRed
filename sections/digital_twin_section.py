@@ -13,7 +13,7 @@ from ..ui.digitaltwin.qgisred_toolConnections_dialog import QGISRedServiceConnec
 
 
 class DigitalTwinSection:
-    """Service connections, isolation valves, meters, hydrants, washout valves."""
+    """Service connections, isolation valves and meters."""
 
     def runPaintServiceConnection(self):
         # Validations

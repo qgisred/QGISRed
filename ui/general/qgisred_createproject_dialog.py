@@ -6,7 +6,7 @@ from qgis.PyQt import uic
 from qgis.gui import QgsProjectionSelectionDialog as QgsGenericProjectionSelector
 
 from ...tools.utils.qgisred_layer_utils import QGISRedLayerUtils
-from ...tools.utils.qgisred_filesystem_utils import QGISRedFileSystemUtils
+from ...tools.utils.qgisred_filesystem_utils import QGISRedFileSystemUtils, ELEMENT_LAYERS
 from ...tools.utils.qgisred_project_io import QGISRedProjectIO
 from ...tools.utils.qgisred_ui_utils import QGISRedBanner, QGISRedUIUtils
 from ...tools.qgisred_dependencies import QGISRedDependencies as GISRed
@@ -99,24 +99,7 @@ class QGISRedCreateProjectDialog(QDialog, FORM_CLASS):
                     self.ProjectDirectory = os.path.join(self.ProjectDirectory, self.NetworkName)
                 if os.path.exists(self.ProjectDirectory):
                     dirList = os.listdir(self.ProjectDirectory)
-                    layers = [
-                        "Pipes",
-                        "Junctions",
-                        "Tanks",
-                        "Reservoirs",
-                        "Valves",
-                        "Pumps",
-                        "IsolationValves",
-                        "Hydrants",
-                        "WashoutValves",
-                        "AirReleaseValves",
-                        "ServiceConnections",
-                        "Manometers",
-                        "Flowmeters",
-                        "Countermeters",
-                        "LevelSensors",
-                    ]
-                    for layer in layers:
+                    for layer in ELEMENT_LAYERS:
                         if self.NetworkName + "_" + layer + ".shp" in dirList:
                             message = self.tr("The selected folder has some files with the same project name.")
                             self.pushMessage(self.tr("Validations"), message, level=1)

@@ -3,6 +3,8 @@ import os
 from qgis.PyQt.QtCore import QCoreApplication
 from qgis.core import QgsProject, QgsLayerTreeGroup, QgsLayerMetadata
 
+from .qgisred_filesystem_utils import ELEMENT_LAYERS
+
 
 class QGISRedIdentifierUtils:
     def __init__(self, directory="", networkName="", iface=None):
@@ -13,19 +15,8 @@ class QGISRedIdentifierUtils:
         from .qgisred_field_utils import IDENTIFIER_TO_ELEMENT
         self.identifierToElementName = IDENTIFIER_TO_ELEMENT
 
-        self.elementIdentifiers = {
-            'Pipes': 'pipes',
-            'Junctions': 'junctions',
-            'Tanks': 'tanks',
-            'Reservoirs': 'reservoirs',
-            'Valves': 'valves',
-            'Pumps': 'pumps',
-            'Demands': 'demands',
-            'Sources': 'sources',
-            'IsolationValves': 'isolationvalves',
-            'ServiceConnections': 'serviceconnections',
-            'Meters': 'meters'
-        }
+        # Element name -> identifier suffix, which is just the name lowercased.
+        self.elementIdentifiers = {name: name.lower() for name in ELEMENT_LAYERS}
 
         self.identifierToGroupName = {
             'qgisred_inputs': 'Inputs',

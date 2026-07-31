@@ -9,7 +9,7 @@ Terminology — "external data"
 Here, "external data" means layers in the QGIS project that do NOT belong to QGISRed: background
 cartography, DTM rasters, orthophotos, etc. Do not confuse it with
 ``LayerManagementSection.getComplementaryLayersOpened()``, which is an unrelated concept (QGISRed's
-own *optional* element layers such as Hydrants or Meters, that live inside the Inputs group).
+own *optional* element layers such as Isolation Valves or Meters, that live inside the Inputs group).
 
 The export root
 ---------------

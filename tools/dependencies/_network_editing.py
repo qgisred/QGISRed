@@ -30,18 +30,6 @@ class QGISRedNetworkEditingMixin:
         return _to_string(b)
 
     @staticmethod
-    def AddHydrants(projectFolder, networkName, tempFolder):
-        projectFolder = _encode(projectFolder)
-        networkName = _encode(networkName)
-        tempFolder = _encode(tempFolder)
-
-        mydll = _load_dll()
-        mydll.AddHydrants.argtypes = (c_char_p, c_char_p, c_char_p)
-        mydll.AddHydrants.restype = c_char_p
-        b = mydll.AddHydrants(projectFolder, networkName, tempFolder)
-        return _to_string(b)
-
-    @staticmethod
     def AddIsolationValve(projectFolder, networkName, tempFolder, point):
         projectFolder = _encode(projectFolder)
         networkName = _encode(networkName)
@@ -105,18 +93,6 @@ class QGISRedNetworkEditingMixin:
         mydll.AddTank.argtypes = (c_char_p, c_char_p, c_char_p, c_char_p)
         mydll.AddTank.restype = c_char_p
         b = mydll.AddTank(projectFolder, networkName, tempFolder, point)
-        return _to_string(b)
-
-    @staticmethod
-    def AddWashoutValves(projectFolder, networkName, tempFolder):
-        projectFolder = _encode(projectFolder)
-        networkName = _encode(networkName)
-        tempFolder = _encode(tempFolder)
-
-        mydll = _load_dll()
-        mydll.AddWashoutValves.argtypes = (c_char_p, c_char_p, c_char_p)
-        mydll.AddWashoutValves.restype = c_char_p
-        b = mydll.AddWashoutValves(projectFolder, networkName, tempFolder)
         return _to_string(b)
 
     @staticmethod
