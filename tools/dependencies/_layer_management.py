@@ -17,6 +17,20 @@ class QGISRedLayerManagementMixin:
         return _to_string(b)
 
     @staticmethod
+    def CreateAuxiliaryLayer(projectFolder, networkName, themeType, filePath, baseDemandFieldName):
+        projectFolder = _encode(projectFolder)
+        networkName = _encode(networkName)
+        themeType = _encode(themeType)
+        filePath = _encode(filePath)
+        baseDemandFieldName = _encode(baseDemandFieldName)
+
+        mydll = _load_dll()
+        mydll.CreateAuxiliaryLayer.argtypes = (c_char_p, c_char_p, c_char_p, c_char_p, c_char_p)
+        mydll.CreateAuxiliaryLayer.restype = c_char_p
+        b = mydll.CreateAuxiliaryLayer(projectFolder, networkName, themeType, filePath, baseDemandFieldName)
+        return _to_string(b)
+
+    @staticmethod
     def UpdateMetadata(projectFolder, networkName, layersNames):
         projectFolder = _encode(projectFolder)
         networkName = _encode(networkName)

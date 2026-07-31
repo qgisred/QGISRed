@@ -13,7 +13,7 @@ from ..tools.utils.qgisred_layer_utils import QGISRedLayerUtils
 from ..tools.utils.qgisred_identifier_utils import QGISRedIdentifierUtils
 from ..tools.utils.qgisred_filesystem_utils import (
     DIR_ISSUES, DIR_QUERIES,
-    LAYER_TYPE_CONFIG,
+    LAYER_TYPE_CONFIG, QGISRedFileSystemUtils,
 )
 from ..tools.qgisred_dependencies import QGISRedDependencies as GISRed
 
@@ -201,6 +201,84 @@ class LayerManagementSection:
     def getDemandsBuilderGroup(self):
         utils = QGISRedLayerUtils(self.ProjectDirectory, self.NetworkName, self.iface)
         return utils.getOrCreateNestedGroup([self.NetworkName] + LAYER_TYPE_CONFIG["DemandsBuilder"]["tree_path"])
+
+    """Demand Builder auxiliary themes"""
+
+    def getAuxiliaryThemesFolder(self):
+        return os.path.join(self.ProjectDirectory, LAYER_TYPE_CONFIG["DemandsBuilder"]["subdir"])
+
+    def applyAuxiliaryLayerSelection(self, selectedPaths, managedPaths):
+        """Load/unload auxiliary themes to match the layer-management table.
+
+        Same difference-only rule as the input layers: a theme that was and stays checked
+        is left alone. `managedPaths` bounds what may be closed, so anything else the
+        Demands Manager put in that group survives.
+        """
+        self.layerOperationInProgress = True
+        try:
+            selected = {os.path.normcase(path) for path in selectedPaths}
+            self.closeAuxiliaryThemes([p for p in managedPaths if os.path.normcase(p) not in selected])
+            self.openAuxiliaryThemes(selectedPaths)
+        finally:
+            self.layerOperationInProgress = False
+
+    def uniformedPaths(self, paths):
+        """Put paths in the same shape getLayerPath returns, so lookups can match.
+
+        _findLayerByPath compares against getUniformedPath(), which resolves the real path;
+        a path built with os.path.join is spelled differently on Windows and would never
+        match — leaving the layer open and its shapefile locked.
+        """
+        fs = QGISRedFileSystemUtils(self.ProjectDirectory, self.NetworkName, self.iface)
+        return [fs.getUniformedPath(path) for path in paths if path]
+
+    def openAuxiliaryThemes(self, paths):
+        """Open each theme in the Demand Builder group, identified by its *type*.
+
+        Several themes share one identifier on purpose: they are the same kind of layer, so
+        they take the same style and the legend editor treats them alike.
+        """
+        from ..tools.utils.qgisred_auxiliary_layers import parseBaseName
+
+        paths = [path for path in self.uniformedPaths(paths) if os.path.exists(path)]
+        if not paths:
+            return
+
+        utils = QGISRedLayerUtils(self.ProjectDirectory, self.NetworkName, self.iface)
+        identifiers = QGISRedIdentifierUtils(self.ProjectDirectory, self.NetworkName, self.iface)
+        group = self.getDemandsBuilderGroup()
+
+        for path in paths:
+            if utils._tryReloadExistingLayer(path):
+                continue
+
+            baseName = os.path.splitext(os.path.basename(path))[0]
+            layerType, themeName = parseBaseName(baseName, self.NetworkName)
+
+            vlayer = QgsVectorLayer(path, baseName, "ogr")
+            if not vlayer.isValid():
+                continue
+
+            self._applyDemandsBuilderStyle(vlayer)
+
+            if layerType is not None:
+                identifiers.setLayerIdentifier(vlayer, layerType.token)
+                translated = identifiers.getTranslatedNameForIdentifier(layerType.identifier)
+                if translated:
+                    vlayer.setName(translated + ": " + themeName if themeName else translated)
+
+            QgsProject.instance().addMapLayer(vlayer, False)
+            group.addChildNode(QgsLayerTreeLayer(vlayer))
+
+    def closeAuxiliaryThemes(self, paths):
+        if not paths:
+            return
+        utils = QGISRedLayerUtils(self.ProjectDirectory, self.NetworkName, self.iface)
+        utils.stopRenderingForRemoval(self.iface)
+        for path in self.uniformedPaths(paths):
+            layer = utils._findLayerByPath(path)
+            if layer is not None:
+                QgsProject.instance().removeMapLayer(layer.id())
 
     def openDemandsBuilderLayers(self):
         cfg = LAYER_TYPE_CONFIG["DemandsBuilder"]
@@ -695,7 +773,10 @@ class LayerManagementSection:
             os.makedirs(isoFolder, exist_ok=True)
             auxFolder = os.path.join(self.ProjectDirectory, "_aux_DemandsBuilder")
             if os.path.isdir(auxFolder):
-                extraByName = {os.path.splitext(os.path.basename(p))[0]: os.path.dirname(p) for p in self._demandsBuilderExtraPaths}
+                extraByName = {
+                    os.path.splitext(os.path.basename(p))[0]: os.path.dirname(p)
+                    for p in self._demandsBuilderExtraPaths
+                }
                 for fi in os.listdir(auxFolder):
                     dstDir = extraByName.get(os.path.splitext(fi)[0])
                     if dstDir:

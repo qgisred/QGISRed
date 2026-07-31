@@ -62,17 +62,26 @@ class QGISRedIdentifierUtils:
         return QCoreApplication.translate("InputLayerNames", message)
 
     def _normalizeDemandsBuilderLayerType(self, layerType):
+        """Collapse a Demand Builder file name onto the identifier of its *type*.
+
+        There can be several themes of each type, named by the user, so the token is
+        matched anywhere in the name rather than at its end: both
+        "Net_DemandsBuilder_Sectors" and "Net_DemandsBuilder_Sectors_Barrios" are sectors.
+        The longest tokens are tried first, so IsolatedDemandsServiceConnections is not
+        mistaken for something shorter it happens to contain.
+        """
         if not isinstance(layerType, str):
             return layerType
         lower = layerType.lower()
-        if lower.endswith("_demandsbuilder_demandlinks"):
-            return "demandsbuilder_demandlinks"
-        if lower.endswith("_demandsbuilder_consumptionpoints"):
-            return "demandsbuilder_consumptionpoints"
-        if lower.endswith("_demandsbuilder_isolateddemandsserviceconnections"):
-            return "demandsbuilder_isolateddemandsserviceconnections"
-        if lower.endswith("_demandsbuilder_sectors"):
-            return "demandsbuilder_sectors"
+        tokens = (
+            "demandsbuilder_isolateddemandsserviceconnections",
+            "demandsbuilder_consumptionpoints",
+            "demandsbuilder_demandlinks",
+            "demandsbuilder_sectors",
+        )
+        for token in tokens:
+            if token in lower:
+                return token
         return layerType
 
     def _getLayerPath(self, layer):
@@ -84,7 +93,8 @@ class QGISRedIdentifierUtils:
 
     def _generatePath(self, folder, fileName):
         from .qgisred_filesystem_utils import QGISRedFileSystemUtils
-        return QGISRedFileSystemUtils(self.ProjectDirectory, self.NetworkName, self.iface).generatePath(folder, fileName)
+        fs = QGISRedFileSystemUtils(self.ProjectDirectory, self.NetworkName, self.iface)
+        return fs.generatePath(folder, fileName)
 
     def _findGroupRecursive(self, parent, groupName):
         for child in parent.children():
