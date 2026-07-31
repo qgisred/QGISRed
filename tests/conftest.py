@@ -63,6 +63,13 @@ def _qt_stub(name):
 _FORM_STUB = _qt_stub("FORM_CLASS")
 _QT_WIDGET_STUBS = ("QDialog", "QDockWidget", "QWidget", "QMainWindow", "QFrame", "QTableView")
 
+# Symbol classes the legend editor feeds to isinstance() to tell a marker from a
+# line (see effectiveGeometryHint).  A MagicMock attribute is an instance, not a
+# type, so isinstance() raises TypeError against it.  Test symbols are plain
+# MagicMocks and match none of these stubs, so those checks come out False and
+# the caller falls back to the layer's geometry hint.
+_QGIS_SYMBOL_STUBS = ("QgsLineSymbol", "QgsMarkerSymbol", "QgsFillSymbol")
+
 
 def _apply_qt_mock_config():
     """Apply uic.loadUiType and Qt widget stub configuration.
@@ -78,6 +85,10 @@ def _apply_qt_mock_config():
     if _qtw is not None:
         for _name in _QT_WIDGET_STUBS:
             setattr(_qtw, _name, _qt_stub(_name))
+    _qgis_core = sys.modules.get('qgis.core')
+    if _qgis_core is not None:
+        for _name in _QGIS_SYMBOL_STUBS:
+            setattr(_qgis_core, _name, _qt_stub(_name))
     _qgis_gui = sys.modules.get('qgis.gui')
     if _qgis_gui is not None:
         # QgsSymbolButton is subclassed (QGISRedSymbolColorSelector); it must be
