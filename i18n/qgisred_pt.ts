@@ -99,7 +99,7 @@
     <message>
         <location filename="../sections/analysis_section.py" line="2001"/>
         <source>Junction</source>
-        <translation>Junção</translation>
+        <translation>Nó de demanda</translation>
     </message>
     <message>
         <location filename="../sections/analysis_section.py" line="2002"/>
@@ -378,7 +378,7 @@
     <message>
         <location filename="../ui/queries/qgisred_thematicmaps_dialog.ui" line="167"/>
         <source>Junctions ranged by</source>
-        <translation>Junções classificadas por</translation>
+        <translation>Nós de demanda classificados por</translation>
     </message>
     <message>
         <location filename="../ui/queries/qgisred_thematicmaps_dialog.ui" line="173"/>
@@ -1187,7 +1187,7 @@
     <message>
         <location filename="../tools/qgisred_translatable_strings.py" line="22"/>
         <source>Loss Coefficient</source>
-        <translation>Coeficiente de Perda Singular</translation>
+        <translation>Coeficiente de Perda de Carga Singular</translation>
     </message>
     <message>
         <location filename="../tools/qgisred_translatable_strings.py" line="23"/>
@@ -1817,7 +1817,7 @@
     <message>
         <location filename="../tools/qgisred_translatable_strings.py" line="193"/>
         <source>Loss Coefficients</source>
-        <translation>Coeficientes de Perda Singular</translation>
+        <translation>Coeficientes de Perda de Carga Singular</translation>
     </message>
     <message>
         <location filename="../tools/qgisred_translatable_strings.py" line="194"/>
@@ -2005,7 +2005,7 @@
     <message>
         <location filename="../tools/qgisred_translatable_strings.py" line="291"/>
         <source>Junctions</source>
-        <translation>Junções</translation>
+        <translation>Nós de demanda</translation>
     </message>
     <message>
         <location filename="../tools/qgisred_translatable_strings.py" line="292"/>
@@ -3004,7 +3004,7 @@
     <message>
         <location filename="../sections/profile_section.py" line="784"/>
         <source>The saved profile does not match the current network.</source>
-        <translation>O perfil guardado não corresponde à rede atual.</translation>
+        <translation>O perfil salvo não corresponde à rede atual.</translation>
     </message>
     <message>
         <location filename="../sections/profile_section.py" line="816"/>
@@ -3270,7 +3270,7 @@ Deseja também excluir os arquivos de resultados do disco?</translation>
     <message>
         <location filename="../ui/digitaltwin/qgisred_toolConnections_dialog.ui" line="65"/>
         <source>Junctions</source>
-        <translation>Junções</translation>
+        <translation>Nós de demanda</translation>
     </message>
     <message>
         <location filename="../ui/digitaltwin/qgisred_toolConnections_dialog.ui" line="102"/>
@@ -3753,7 +3753,7 @@ Continuar?</translation>
     <message>
         <location filename="../ui/queries/qgisred_element_explorer_dock.py" line="110"/>
         <source>Junction</source>
-        <translation>Junção</translation>
+        <translation>Nó de demanda</translation>
     </message>
     <message>
         <location filename="../ui/queries/qgisred_element_explorer_dock.py" line="112"/>
@@ -4195,7 +4195,7 @@ Continuar?</translation>
     <message>
         <location filename="../ui/edition/qgisred_groupedit_dialog.py" line="393"/>
         <source>Junctions</source>
-        <translation type="unfinished">Junções</translation>
+        <translation type="unfinished">Nós de demanda</translation>
     </message>
     <message>
         <location filename="../ui/edition/qgisred_groupedit_dialog.py" line="394"/>
@@ -4686,12 +4686,12 @@ Continuar?</translation>
     <message>
         <location filename="../ui/general/qgisred_import_dialog.ui" line="1081"/>
         <source>Junctions</source>
-        <translation>Junções</translation>
+        <translation>Nós de demanda</translation>
     </message>
     <message>
         <location filename="../ui/general/qgisred_import_dialog.ui" line="1091"/>
         <source>Junction Layer</source>
-        <translation>Camada de Junções</translation>
+        <translation>Camada de Nós de demanda</translation>
     </message>
     <message>
         <location filename="../ui/general/qgisred_import_dialog.ui" line="3111"/>
@@ -4861,7 +4861,7 @@ Continuar?</translation>
     <message>
         <location filename="../ui/general/qgisred_import_dialog.ui" line="3491"/>
         <source>Loss Coeff.</source>
-        <translation>Coef. de Perda</translation>
+        <translation>Coef. de Perda Singular</translation>
     </message>
     <message>
         <location filename="../ui/general/qgisred_import_dialog.ui" line="3527"/>
@@ -5227,12 +5227,12 @@ Continuar?</translation>
     <message>
         <location filename="../ui/project/qgisred_layermanagement_dialog.ui" line="268"/>
         <source>Junctions</source>
-        <translation>Junções</translation>
+        <translation>Nós de demanda</translation>
     </message>
     <message>
         <location filename="../ui/project/qgisred_layermanagement_dialog.ui" line="293"/>
         <source>Create Junction Layer</source>
-        <translation>Criar Camada de Junções</translation>
+        <translation>Criar Camada de Nós de demanda</translation>
     </message>
     <message>
         <location filename="../ui/project/qgisred_layermanagement_dialog.ui" line="310"/>
@@ -5412,7 +5412,7 @@ Continuar?</translation>
     <message>
         <location filename="../ui/project/qgisred_layermanagement_dialog.py" line="299"/>
         <source>The theme and its files will be deleted. Continue?</source>
-        <translation type="unfinished">O tema e os seus ficheiros serão eliminados. Continuar?</translation>
+        <translation type="unfinished">O tema e os seus arquivos serão eliminados. Continuar?</translation>
     </message>
     <message>
         <location filename="../ui/project/qgisred_layermanagement_dialog.py" line="300"/>
@@ -6166,7 +6166,7 @@ Deseja continuar?</translation>
     <message>
         <location filename="../ui/analysis/qgisred_profile_dock.py" line="656"/>
         <source>Mouse shortcuts</source>
-        <translation>Atalhos de rato</translation>
+        <translation>Atalhos do mouse</translation>
     </message>
     <message>
         <location filename="../ui/analysis/qgisred_profile_dock.py" line="658"/>
@@ -6471,7 +6471,7 @@ Deseja continuar?</translation>
     <message>
         <location filename="../ui/analysis/qgisred_profile_dock.py" line="561"/>
         <source>Save chart as image</source>
-        <translation>Guardar o gráfico como imagem</translation>
+        <translation>Salvar o gráfico como imagem</translation>
     </message>
     <message>
         <location filename="../ui/analysis/qgisred_profile_dock.py" line="177"/>
@@ -6481,7 +6481,7 @@ Deseja continuar?</translation>
     <message>
         <location filename="../ui/analysis/qgisred_profile_dock.py" line="524"/>
         <source>CSV file (*.csv)</source>
-        <translation>Ficheiro CSV (*.csv)</translation>
+        <translation>Arquivo CSV (*.csv)</translation>
     </message>
     <message>
         <location filename="../ui/analysis/qgisred_profile_dock.py" line="559"/>
@@ -6516,12 +6516,12 @@ Deseja continuar?</translation>
     <message>
         <location filename="../ui/analysis/qgisred_profile_dock.py" line="573"/>
         <source>The chart image could not be saved</source>
-        <translation>Não foi possível guardar a imagem do gráfico</translation>
+        <translation>Não foi possível salvar a imagem do gráfico</translation>
     </message>
     <message>
         <location filename="../ui/analysis/qgisred_profile_dock.py" line="575"/>
         <source>Chart image saved</source>
-        <translation>Imagem do gráfico guardada</translation>
+        <translation>Imagem do gráfico salva</translation>
     </message>
     <message>
         <location filename="../ui/analysis/qgisred_profile_dock.py" line="724"/>
@@ -6541,7 +6541,7 @@ Deseja continuar?</translation>
     <message>
         <location filename="../ui/analysis/qgisred_profile_dock.py" line="737"/>
         <source>Configuration file (*.cfg)</source>
-        <translation>Ficheiro de configuração (*.cfg)</translation>
+        <translation>Arquivo de configuração (*.cfg)</translation>
     </message>
     <message>
         <location filename="../ui/analysis/qgisred_profile_dock.py" line="747"/>
@@ -7084,7 +7084,7 @@ Deseja continuar?</translation>
     <message>
         <location filename="../tools/qgisred_translatable_strings.py" line="352"/>
         <source>Overflow</source>
-        <translation>Transbordamento</translation>
+        <translation>Extravasamento</translation>
     </message>
     <message>
         <location filename="../tools/qgisred_translatable_strings.py" line="353"/>
@@ -7094,7 +7094,7 @@ Deseja continuar?</translation>
     <message>
         <location filename="../tools/qgisred_translatable_strings.py" line="354"/>
         <source>Show overflow flow instead</source>
-        <translation>Mostrar antes o caudal transbordado</translation>
+        <translation>Mostrar antes a vazão de extravasamento</translation>
     </message>
     <message>
         <location filename="../tools/qgisred_translatable_strings.py" line="355"/>
@@ -7119,7 +7119,7 @@ Deseja continuar?</translation>
     <message>
         <location filename="../ui/analysis/qgisred_results_dock.py" line="130"/>
         <source>Overflow Flow</source>
-        <translation>Vazão de transbordamento</translation>
+        <translation>Vazão de extravasamento</translation>
     </message>
     <message>
         <location filename="../ui/analysis/qgisred_results_dock.ui" line="20"/>
@@ -7519,7 +7519,7 @@ Deseja continuar?</translation>
     <message>
         <location filename="../ui/analysis/qgisred_results_dock.ui" line="1640"/>
         <source>Junctions:</source>
-        <translation>Junções:</translation>
+        <translation>Nós de demanda:</translation>
     </message>
     <message>
         <location filename="../ui/analysis/qgisred_results_dock.ui" line="1732"/>
@@ -7594,7 +7594,7 @@ Deseja continuar?</translation>
     <message>
         <location filename="../ui/analysis/qgisred_results_dock.py" line="165"/>
         <source>Junctions</source>
-        <translation>Junções</translation>
+        <translation>Nós de demanda</translation>
     </message>
     <message>
         <location filename="../ui/analysis/qgisred_results_dock.py" line="171"/>
@@ -7828,7 +7828,7 @@ Deseja continuar?</translation>
     <message>
         <location filename="../ui/queries/qgisred_statisticsandgraphs_dock.py" line="108"/>
         <source>Junctions</source>
-        <translation type="obsolete">Junções</translation>
+        <translation type="obsolete">Nós de demanda</translation>
     </message>
     <message>
         <location filename="../ui/queries/qgisred_statisticsandgraphs_dock.py" line="109"/>
@@ -8246,7 +8246,7 @@ Deseja continuar?</translation>
     <message>
         <location filename="../ui/queries/qgisred_statisticsandgraphs_dock.py" line="1685"/>
         <source>Junction</source>
-        <translation type="unfinished">Junção</translation>
+        <translation type="unfinished">Nó de demanda</translation>
     </message>
     <message>
         <location filename="../ui/queries/qgisred_statisticsandgraphs_dock.py" line="1686"/>
@@ -8591,7 +8591,7 @@ Deseja continuar?</translation>
     <message>
         <location filename="../ui/analysis/qgisred_timeseries_dock.py" line="2291"/>
         <source>Junction</source>
-        <translation>Junção</translation>
+        <translation>Nó de demanda</translation>
     </message>
     <message>
         <location filename="../ui/analysis/qgisred_timeseries_dock.py" line="2292"/>
@@ -9356,12 +9356,12 @@ Deseja continuar?</translation>
     <message>
         <location filename="../tools/qgisred_translatable_strings.py" line="47"/>
         <source>Total Water Supply</source>
-        <translation>Caudal total produzido</translation>
+        <translation>Vazão total produzida</translation>
     </message>
     <message>
         <location filename="../tools/qgisred_translatable_strings.py" line="48"/>
         <source>Total Water Demand</source>
-        <translation>Caudal total demandado</translation>
+        <translation>Vazão total demandada</translation>
     </message>
     <message>
         <location filename="../tools/qgisred_translatable_strings.py" line="49"/>
@@ -9959,7 +9959,7 @@ Deseja continuar?</translation>
     <message>
         <location filename="../sections/analysis_section.py" line="963"/>
         <source>Overflow</source>
-        <translation type="unfinished">Transbordamento</translation>
+        <translation type="unfinished">Extravasamento</translation>
     </message>
     <message>
         <location filename="../sections/analysis_section.py" line="963"/>
