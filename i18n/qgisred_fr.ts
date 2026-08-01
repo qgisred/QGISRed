@@ -99,7 +99,7 @@
     <message>
         <location filename="../sections/analysis_section.py" line="2001"/>
         <source>Junction</source>
-        <translation type="unfinished">Jonction</translation>
+        <translation type="unfinished">Nœud de demande</translation>
     </message>
     <message>
         <location filename="../sections/analysis_section.py" line="2002"/>
@@ -109,7 +109,7 @@
     <message>
         <location filename="../sections/analysis_section.py" line="2003"/>
         <source>Reservoir</source>
-        <translation type="unfinished">Source</translation>
+        <translation type="unfinished">Bâche</translation>
     </message>
     <message>
         <location filename="../sections/analysis_section.py" line="2004"/>
@@ -378,7 +378,7 @@
     <message>
         <location filename="../ui/queries/qgisred_thematicmaps_dialog.ui" line="167"/>
         <source>Junctions ranged by</source>
-        <translation>Jonctions classées par</translation>
+        <translation>Nœuds de demande classés par</translation>
     </message>
     <message>
         <location filename="../ui/queries/qgisred_thematicmaps_dialog.ui" line="173"/>
@@ -388,7 +388,7 @@
     <message>
         <location filename="../ui/queries/qgisred_thematicmaps_dialog.ui" line="180"/>
         <source>Pattern demand</source>
-        <translation>Profil de demande</translation>
+        <translation>Modulation de demande</translation>
     </message>
     <message>
         <location filename="../ui/queries/qgisred_thematicmaps_dialog.ui" line="359"/>
@@ -483,7 +483,7 @@
     <message>
         <location filename="../ui/queries/qgisred_thematicmaps_dialog.ui" line="423"/>
         <source>Head Pattern</source>
-        <translation>Profil de charge</translation>
+        <translation>Modulation de charge</translation>
     </message>
     <message>
         <location filename="../ui/queries/qgisred_thematicmaps_dialog.ui" line="437"/>
@@ -1157,7 +1157,7 @@
     <message>
         <location filename="../tools/qgisred_translatable_strings.py" line="22"/>
         <source>Loss Coefficient</source>
-        <translation type="unfinished">Coefficient de perte</translation>
+        <translation type="unfinished">Coefficient de perte de charge singulière</translation>
     </message>
     <message>
         <location filename="../tools/qgisred_translatable_strings.py" line="23"/>
@@ -1212,7 +1212,7 @@
     <message>
         <location filename="../tools/qgisred_translatable_strings.py" line="43"/>
         <source>Maximum Level</source>
-        <translation type="unfinished">Niveau maximum</translation>
+        <translation type="unfinished">Niveau maximal</translation>
     </message>
     <message>
         <location filename="../tools/qgisred_translatable_strings.py" line="46"/>
@@ -1237,7 +1237,7 @@
     <message>
         <location filename="../tools/qgisred_translatable_strings.py" line="64"/>
         <source>Head Pattern</source>
-        <translation type="unfinished">Profil de charge</translation>
+        <translation type="unfinished">Modulation de charge</translation>
     </message>
     <message>
         <location filename="../tools/qgisred_translatable_strings.py" line="14"/>
@@ -1272,7 +1272,7 @@
     <message>
         <location filename="../tools/qgisred_translatable_strings.py" line="76"/>
         <source>Speed Pattern</source>
-        <translation type="unfinished">Profil de vitesse</translation>
+        <translation type="unfinished">Modulation de vitesse</translation>
     </message>
     <message>
         <location filename="../tools/qgisred_translatable_strings.py" line="77"/>
@@ -1287,7 +1287,7 @@
     <message>
         <location filename="../tools/qgisred_translatable_strings.py" line="79"/>
         <source>Price Pattern</source>
-        <translation type="unfinished">Profil de prix</translation>
+        <translation type="unfinished">Modulation de prix</translation>
     </message>
     <message>
         <location filename="../tools/qgisred_translatable_strings.py" line="106"/>
@@ -1337,7 +1337,7 @@
     <message>
         <location filename="../tools/qgisred_translatable_strings.py" line="32"/>
         <source>Pattern Demand</source>
-        <translation type="unfinished">Demande du profil</translation>
+        <translation type="unfinished">Demande de la modulation</translation>
     </message>
     <message>
         <location filename="../tools/qgisred_translatable_strings.py" line="44"/>
@@ -1367,7 +1367,7 @@
     <message>
         <location filename="../tools/qgisred_translatable_strings.py" line="98"/>
         <source>Source Pattern</source>
-        <translation type="unfinished">Profil de la source</translation>
+        <translation type="unfinished">Modulation de la source</translation>
     </message>
     <message>
         <location filename="../tools/qgisred_translatable_strings.py" line="112"/>
@@ -1542,7 +1542,7 @@
     <message>
         <location filename="../tools/qgisred_translatable_strings.py" line="33"/>
         <source>Demand Pattern</source>
-        <translation type="unfinished">Profil de demande</translation>
+        <translation type="unfinished">Modulation de demande</translation>
     </message>
     <message>
         <location filename="../tools/qgisred_translatable_strings.py" line="93"/>
@@ -1562,7 +1562,7 @@
     <message>
         <location filename="../tools/qgisred_translatable_strings.py" line="45"/>
         <source>Minimum Volume</source>
-        <translation type="unfinished">Volume minimum</translation>
+        <translation type="unfinished">Volume minimal</translation>
     </message>
     <message>
         <location filename="../tools/qgisred_translatable_strings.py" line="88"/>
@@ -1577,7 +1577,7 @@
     <message>
         <location filename="../tools/qgisred_translatable_strings.py" line="89"/>
         <source>Pattern Type</source>
-        <translation type="unfinished">Type de profil</translation>
+        <translation type="unfinished">Type de modulation</translation>
     </message>
     <message>
         <location filename="../tools/qgisred_translatable_strings.py" line="73"/>
@@ -1587,7 +1587,7 @@
     <message>
         <location filename="../tools/qgisred_translatable_strings.py" line="99"/>
         <source>Quality Pattern</source>
-        <translation type="unfinished">Profil de qualité</translation>
+        <translation type="unfinished">Modulation de qualité</translation>
     </message>
     <message>
         <location filename="../tools/qgisred_translatable_strings.py" line="92"/>
@@ -1837,12 +1837,12 @@
     <message>
         <location filename="../tools/qgisred_translatable_strings.py" line="203"/>
         <source>Pattern Demands</source>
-        <translation type="unfinished">Demandes du profil</translation>
+        <translation type="unfinished">Demandes de la modulation</translation>
     </message>
     <message>
         <location filename="../tools/qgisred_translatable_strings.py" line="204"/>
         <source>Pattern Types</source>
-        <translation type="unfinished">Types de profil</translation>
+        <translation type="unfinished">Types de modulation</translation>
     </message>
     <message>
         <location filename="../tools/qgisred_translatable_strings.py" line="205"/>
@@ -1975,7 +1975,7 @@
     <message>
         <location filename="../tools/qgisred_translatable_strings.py" line="291"/>
         <source>Junctions</source>
-        <translation type="unfinished">Jonctions</translation>
+        <translation type="unfinished">Nœuds de demande</translation>
     </message>
     <message>
         <location filename="../tools/qgisred_translatable_strings.py" line="292"/>
@@ -2291,7 +2291,7 @@
     <message>
         <location filename="../sections/menu_section.py" line="285"/>
         <source>Add reservoir</source>
-        <translation type="unfinished">Ajouter une source</translation>
+        <translation type="unfinished">Ajouter une bâche</translation>
     </message>
     <message>
         <location filename="../sections/menu_section.py" line="295"/>
@@ -2864,7 +2864,7 @@
     <message>
         <location filename="../sections/profile_section.py" line="1828"/>
         <source>Elevation</source>
-        <translation>Cotes</translation>
+        <translation>Altitude</translation>
     </message>
     <message>
         <location filename="../sections/analysis_section.py" line="936"/>
@@ -3225,7 +3225,7 @@ Voulez-vous également supprimer les fichiers de résultats du disque ?</transla
     <message>
         <location filename="../ui/digitaltwin/qgisred_toolConnections_dialog.ui" line="65"/>
         <source>Junctions</source>
-        <translation>Jonctions</translation>
+        <translation>Nœuds de demande</translation>
     </message>
     <message>
         <location filename="../ui/digitaltwin/qgisred_toolConnections_dialog.ui" line="102"/>
@@ -3708,7 +3708,7 @@ Continuer ?</translation>
     <message>
         <location filename="../ui/queries/qgisred_element_explorer_dock.py" line="110"/>
         <source>Junction</source>
-        <translation>Jonction</translation>
+        <translation>Nœud de demande</translation>
     </message>
     <message>
         <location filename="../ui/queries/qgisred_element_explorer_dock.py" line="112"/>
@@ -4150,7 +4150,7 @@ Continuer ?</translation>
     <message>
         <location filename="../ui/edition/qgisred_groupedit_dialog.py" line="393"/>
         <source>Junctions</source>
-        <translation type="unfinished">Jonctions</translation>
+        <translation type="unfinished">Nœuds de demande</translation>
     </message>
     <message>
         <location filename="../ui/edition/qgisred_groupedit_dialog.py" line="394"/>
@@ -4601,7 +4601,7 @@ Continuer ?</translation>
     <message>
         <location filename="../ui/general/qgisred_import_dialog.ui" line="813"/>
         <source>Minor Loss Coeff.</source>
-        <translation>Coef. de pertes mineures</translation>
+        <translation>Coef. de perte de charge singulière</translation>
     </message>
     <message>
         <location filename="../ui/general/qgisred_import_dialog.ui" line="3768"/>
@@ -4641,7 +4641,7 @@ Continuer ?</translation>
     <message>
         <location filename="../ui/general/qgisred_import_dialog.ui" line="1081"/>
         <source>Junctions</source>
-        <translation>Jonctions</translation>
+        <translation>Nœuds de demande</translation>
     </message>
     <message>
         <location filename="../ui/general/qgisred_import_dialog.ui" line="1091"/>
@@ -4661,7 +4661,7 @@ Continuer ?</translation>
     <message>
         <location filename="../ui/general/qgisred_import_dialog.ui" line="1320"/>
         <source>Demand Pattern Id</source>
-        <translation>ID du profil de demande</translation>
+        <translation>ID de la modulation de demande</translation>
     </message>
     <message>
         <location filename="../ui/general/qgisred_import_dialog.ui" line="1361"/>
@@ -4681,7 +4681,7 @@ Continuer ?</translation>
     <message>
         <location filename="../ui/general/qgisred_import_dialog.ui" line="1561"/>
         <source>Id Head Pattern</source>
-        <translation>ID du profil de charge</translation>
+        <translation>ID de la modulation de charge</translation>
     </message>
     <message>
         <location filename="../ui/general/qgisred_import_dialog.ui" line="1615"/>
@@ -4796,7 +4796,7 @@ Continuer ?</translation>
     <message>
         <location filename="../ui/general/qgisred_import_dialog.ui" line="3137"/>
         <source>Id Demand Pattern</source>
-        <translation>ID du profil de demande</translation>
+        <translation>ID de la modulation de demande</translation>
     </message>
     <message>
         <location filename="../ui/general/qgisred_import_dialog.ui" line="3875"/>
@@ -5182,7 +5182,7 @@ Continuer ?</translation>
     <message>
         <location filename="../ui/project/qgisred_layermanagement_dialog.ui" line="268"/>
         <source>Junctions</source>
-        <translation>Jonctions</translation>
+        <translation>Nœuds de demande</translation>
     </message>
     <message>
         <location filename="../ui/project/qgisred_layermanagement_dialog.ui" line="293"/>
@@ -6346,7 +6346,7 @@ Voulez-vous continuer ?</translation>
     <message>
         <location filename="../sections/analysis_section.py" line="936"/>
         <source>Elevation</source>
-        <translation type="obsolete">Cotes</translation>
+        <translation type="obsolete">Altitude</translation>
     </message>
     <message>
         <location filename="../sections/analysis_section.py" line="936"/>
@@ -7459,7 +7459,7 @@ Voulez-vous continuer ?</translation>
     <message>
         <location filename="../ui/analysis/qgisred_results_dock.ui" line="1640"/>
         <source>Junctions:</source>
-        <translation type="unfinished">Jonctions :</translation>
+        <translation type="unfinished">Nœuds de demande :</translation>
     </message>
     <message>
         <location filename="../ui/analysis/qgisred_results_dock.ui" line="1732"/>
@@ -7529,7 +7529,7 @@ Voulez-vous continuer ?</translation>
     <message>
         <location filename="../ui/analysis/qgisred_results_dock.py" line="165"/>
         <source>Junctions</source>
-        <translation type="unfinished">Jonctions</translation>
+        <translation type="unfinished">Nœuds de demande</translation>
     </message>
     <message>
         <location filename="../ui/analysis/qgisred_results_dock.py" line="171"/>
@@ -7753,7 +7753,7 @@ Voulez-vous continuer ?</translation>
     <message>
         <location filename="../ui/queries/qgisred_statisticsandgraphs_dock.py" line="108"/>
         <source>Junctions</source>
-        <translation type="obsolete">Jonctions</translation>
+        <translation type="obsolete">Nœuds de demande</translation>
     </message>
     <message>
         <location filename="../ui/queries/qgisred_statisticsandgraphs_dock.py" line="109"/>
@@ -8141,7 +8141,7 @@ Voulez-vous continuer ?</translation>
     <message>
         <location filename="../ui/queries/qgisred_statisticsandgraphs_dock.py" line="1685"/>
         <source>Junction</source>
-        <translation type="unfinished">Jonction</translation>
+        <translation type="unfinished">Nœud de demande</translation>
     </message>
     <message>
         <location filename="../ui/queries/qgisred_statisticsandgraphs_dock.py" line="1686"/>
@@ -8476,7 +8476,7 @@ Voulez-vous continuer ?</translation>
     <message>
         <location filename="../ui/analysis/qgisred_timeseries_dock.py" line="2291"/>
         <source>Junction</source>
-        <translation>Jonction</translation>
+        <translation>Nœud de demande</translation>
     </message>
     <message>
         <location filename="../ui/analysis/qgisred_timeseries_dock.py" line="2292"/>
@@ -8486,7 +8486,7 @@ Voulez-vous continuer ?</translation>
     <message>
         <location filename="../ui/analysis/qgisred_timeseries_dock.py" line="2293"/>
         <source>Reservoir</source>
-        <translation>Source</translation>
+        <translation>Bâche</translation>
     </message>
     <message>
         <location filename="../ui/analysis/qgisred_timeseries_dock.py" line="2294"/>
@@ -9332,7 +9332,7 @@ Voulez-vous continuer ?</translation>
     <message>
         <location filename="../sections/tools_section.py" line="74"/>
         <source>Any elevation has been estimated</source>
-        <translation type="unfinished">Aucune cote n'a été estimée</translation>
+        <translation type="unfinished">Aucune altitude n'a été estimée</translation>
     </message>
 </context>
 <context>
