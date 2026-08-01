@@ -165,6 +165,147 @@ class TestIdentifierNormalisation:
         assert self._normalize("Net_Pipes") == "Net_Pipes"
 
 
+class TestGroupConfigLookup:
+    """The metadata round trip drops spaces at both ends; the lookup must too.
+
+    `_buildGroupsString` strips them to keep the XML tags ASCII, and `_openGroupsNode`
+    strips them again on the way back, so a two-word group arrives as one word. While the
+    keys were matched literally, nothing under Auxiliary Layers reopened.
+    """
+
+    def _config(self, groupName):
+        from QGISRed.tools.utils.qgisred_project_io import QGISRedProjectIO
+        return QGISRedProjectIO._groupConfig(groupName)
+
+    def test_the_demands_builder_group_is_found_without_its_space(self):
+        from QGISRed.tools.utils.qgisred_filesystem_utils import LAYER_TYPE_CONFIG
+        assert self._config("AuxiliaryLayers/DemandsBuilder") is LAYER_TYPE_CONFIG["DemandsBuilder"]
+
+    def test_the_demand_sectors_group_is_found_without_its_space(self):
+        from QGISRed.tools.utils.qgisred_filesystem_utils import LAYER_TYPE_CONFIG
+        assert self._config("AuxiliaryLayers/DemandSectors") is LAYER_TYPE_CONFIG["DemandSectors"]
+
+    def test_the_spelled_out_key_still_resolves(self):
+        from QGISRed.tools.utils.qgisred_filesystem_utils import LAYER_TYPE_CONFIG
+        assert self._config("Auxiliary Layers/DemandsBuilder") is LAYER_TYPE_CONFIG["DemandsBuilder"]
+
+    def test_groups_without_spaces_are_unaffected(self):
+        assert self._config("Inputs") is not None
+        assert self._config("Issues/HydraulicSectors") is not None
+
+    def test_an_unknown_group_is_still_unknown(self):
+        assert self._config("Whatever/Else") is None
+
+    def test_an_empty_name_is_not_a_match(self):
+        assert self._config("") is None
+
+    def test_a_localised_parent_tag_still_resolves(self):
+        """Projects written before the parent group carried its identifier have its
+        translated name in the metadata: <CapasAuxiliares>, <CouchesAuxiliaires>…"""
+        from QGISRed.tools.utils.qgisred_filesystem_utils import LAYER_TYPE_CONFIG
+        assert self._config("CapasAuxiliares/DemandsBuilder") is LAYER_TYPE_CONFIG["DemandsBuilder"]
+        assert self._config("CouchesAuxiliaires/DemandSectors") is LAYER_TYPE_CONFIG["DemandSectors"]
+
+    def test_a_dynamic_subgroup_is_not_swallowed_by_the_fallback(self):
+        """Results/Base must keep reaching the top-level branch that handles sub-paths."""
+        assert self._config("Results/Base") is None
+
+    def test_the_fallback_needs_a_nested_key(self):
+        assert self._config("Whatever/Inputs") is None
+
+
+class TestGroupIdentifierAssignment:
+    def test_the_declared_identifier_wins_over_the_derived_one(self):
+        """qgisred_auxiliarylayers is not in _IDENTIFIER_TO_CANONICAL, so deriving it made
+        the group fall back to its localised name when the metadata was written."""
+        from QGISRed.tools.utils.qgisred_layer_utils import QGISRedLayerUtils
+
+        group = MagicMock()
+        group.customProperty.return_value = None
+        QGISRedLayerUtils.setGroupIdentifier(group, "Auxiliary Layers")
+
+        group.setCustomProperty.assert_called_once_with("qgisred_identifier", "qgisred_auxiliary")
+
+    def test_a_group_without_a_declared_identifier_still_derives_one(self):
+        from QGISRed.tools.utils.qgisred_layer_utils import QGISRedLayerUtils
+
+        # setGroupIdentifier registers what it derives into the class dictionaries, so an
+        # unknown name has to be rolled back or it leaks into every later test.
+        declared = dict(QGISRedLayerUtils.groupIdentifiers)
+        byIdentifier = dict(QGISRedLayerUtils.identifierToGroupName)
+        try:
+            group = MagicMock()
+            group.customProperty.return_value = None
+            QGISRedLayerUtils.setGroupIdentifier(group, "Some New Group")
+
+            group.setCustomProperty.assert_called_once_with("qgisred_identifier", "qgisred_somenewgroup")
+        finally:
+            QGISRedLayerUtils.groupIdentifiers = declared
+            QGISRedLayerUtils.identifierToGroupName = byIdentifier
+
+    def test_every_declared_identifier_has_a_canonical_name(self):
+        """Otherwise getCanonicalGroupName falls back to the localised name and the
+        metadata gets a tag nothing can read back."""
+        from QGISRed.tools.utils.qgisred_layer_utils import QGISRedLayerUtils
+
+        missing = [
+            identifier for identifier in QGISRedLayerUtils.groupIdentifiers.values()
+            if identifier not in QGISRedLayerUtils._IDENTIFIER_TO_CANONICAL
+        ]
+        assert missing == []
+
+
+class TestDemandsBuilderStyleFlag:
+    """The look is computed, not shipped as a QML, so openLayer must apply it.
+
+    Demand sectors already work this way. Doing it here too is what removed the need for a
+    "restyle after the project loaded" special case on the metadata-only path.
+    """
+
+    def test_the_group_config_carries_the_flag(self):
+        from QGISRed.tools.utils.qgisred_filesystem_utils import LAYER_TYPE_CONFIG
+        assert LAYER_TYPE_CONFIG["DemandsBuilder"]["flags"] == {"demandsBuilder": True}
+
+    def test_open_layer_accepts_it(self):
+        import inspect
+        from QGISRed.tools.utils.qgisred_layer_utils import QGISRedLayerUtils
+        assert "demandsBuilder" in inspect.signature(QGISRedLayerUtils.openLayer).parameters
+
+    def test_the_styling_utils_own_the_look(self):
+        from QGISRed.tools.utils.qgisred_styling_utils import QGISRedStylingUtils
+        assert hasattr(QGISRedStylingUtils, "setDemandsBuilderStyle")
+
+    def test_the_isolated_demands_connections_keep_their_qml(self):
+        """They are told apart by file name, not by the display name they end up with."""
+        from QGISRed.tools.utils.qgisred_styling_utils import QGISRedStylingUtils
+
+        styling = object.__new__(QGISRedStylingUtils)
+        styling.setStyle = MagicMock()
+        layer = MagicMock()
+        layer.name.return_value = "DemBuil_Isolated Demands Connections"
+
+        styling.setDemandsBuilderStyle(layer, "DemandsBuilder_IsolatedDemandsServiceConnections")
+
+        styling.setStyle.assert_called_once_with(
+            layer, "DemandsBuilderIsolatedDemandsServiceConnections")
+
+    def test_a_theme_does_not_take_that_qml(self):
+        from QGISRed.tools.utils.qgisred_styling_utils import QGISRedStylingUtils
+
+        styling = object.__new__(QGISRedStylingUtils)
+        styling.setStyle = MagicMock()
+        styling.translateRendererLabels = MagicMock()
+        layer = MagicMock()
+        layer.name.return_value = "DemBuil_Sectors"
+        layer.fields.return_value.indexFromName.return_value = -1
+        layer.geometryType.return_value = 2
+
+        styling.setDemandsBuilderStyle(layer, "DemandsBuilder_Sectors_Barrios")
+
+        styling.setStyle.assert_not_called()
+        layer.setRenderer.assert_called_once()
+
+
 class TestApplyAuxiliaryLayerSelection:
     def _makeSection(self):
         from QGISRed.sections.layer_management_section import LayerManagementSection
@@ -496,7 +637,7 @@ class TestCreateAuxiliaryTheme:
         self._run(dialog, SECTORS, "Barrios")
 
         expected = os.path.join(_auxFolder(tmp_path), "Net_DemandsBuilder_Sectors_Barrios.shp")
-        dialog.parent.openAuxiliaryThemes.assert_called_once_with([expected])
+        dialog.parent.syncAuxiliaryThemes.assert_called_once_with([expected], load=True)
 
     def test_the_new_row_shows_up_in_the_table(self, tmp_path):
         _auxFolder(tmp_path)
@@ -512,7 +653,7 @@ class TestCreateAuxiliaryTheme:
 
         self._run(dialog, SECTORS, "Barrios", resMessage="Unknown auxiliary theme type")
 
-        dialog.parent.openAuxiliaryThemes.assert_not_called()
+        dialog.parent.syncAuxiliaryThemes.assert_not_called()
         assert dialog.messageBar.pushMessage.call_args[0][2] == 2
 
     def test_a_dll_warning_is_reported_and_nothing_is_loaded(self, tmp_path):
@@ -521,7 +662,7 @@ class TestCreateAuxiliaryTheme:
 
         self._run(dialog, SECTORS, "Barrios", resMessage="False")
 
-        dialog.parent.openAuxiliaryThemes.assert_not_called()
+        dialog.parent.syncAuxiliaryThemes.assert_not_called()
         assert dialog.messageBar.pushMessage.call_args[0][2] == 1
 
     def test_an_existing_name_is_refused_before_calling_the_dll(self, tmp_path):
@@ -585,8 +726,8 @@ class TestDeleteAuxiliaryTheme:
         """Deleting a shapefile QGIS still holds leaves a handle pointing at nothing."""
         dialog, path = self._dialog(tmp_path)
         order = []
-        dialog.parent.closeAuxiliaryThemes.side_effect = \
-            lambda paths: order.append(("close", os.path.exists(path)))
+        dialog.parent.syncAuxiliaryThemes.side_effect = \
+            lambda paths, load: order.append(("close", os.path.exists(path)))
 
         self._confirm(dialog)
         order.append(("deleted", not os.path.exists(path)))
@@ -599,7 +740,7 @@ class TestDeleteAuxiliaryTheme:
         self._confirm(dialog, accepted=False)
 
         assert os.path.exists(path)
-        dialog.parent.closeAuxiliaryThemes.assert_not_called()
+        dialog.parent.syncAuxiliaryThemes.assert_not_called()
 
     def test_deleting_with_no_row_selected_only_warns(self, tmp_path):
         dialog, path = self._dialog(tmp_path)

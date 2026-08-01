@@ -1,5 +1,6 @@
 # -*- coding: utf-8 -*-
 from contextlib import suppress
+import hashlib
 import math
 import os
 import json
@@ -8,14 +9,16 @@ import zlib
 from random import randrange
 
 from qgis.PyQt.QtCore import QCoreApplication
-from ...compat import PAINTER_ANTIALIASING
+from ...compat import PAINTER_ANTIALIASING, PAL_PROPERTY_COLOR, PAL_PLACEMENT_LINE
 from qgis.PyQt.QtGui import QColor
 from qgis.core import (
     QgsVectorLayer, QgsSymbol, Qgis,
     QgsLineSymbol, QgsSimpleLineSymbolLayer, QgsSimpleMarkerSymbolLayer,
     QgsRendererCategory, QgsCategorizedSymbolRenderer, QgsVectorLayerCache, NULL,
     QgsGraduatedSymbolRenderer, QgsRuleBasedRenderer, QgsRenderContext,
-    QgsMapLayerLegend, QgsMessageLog, QgsStyle, QgsExpression
+    QgsMapLayerLegend, QgsMessageLog, QgsStyle, QgsExpression,
+    QgsSingleSymbolRenderer, QgsPalLayerSettings, QgsTextFormat, QgsProperty,
+    QgsVectorLayerSimpleLabeling
 )
 from qgis.gui import QgsAttributeTableFilterModel, QgsAttributeTableModel, QgsAttributeTableView
 from qgis.utils import iface as _iface
@@ -664,6 +667,123 @@ class QGISRedStylingUtils:
             "Pretty": QgsGraduatedSymbolRenderer.Pretty,
         }
         return mapping.get(classificationMode)
+
+    def _colorForDemandCategory(self, category):
+        text = "" if category is None else str(category).strip()
+
+        if text == "" or text.lower() in ("null", "undefined"):
+            return QColor("orange")
+
+        digest = hashlib.md5(text.lower().encode("utf-8"), usedforsecurity=False).hexdigest()
+        color = QColor()
+        color.setHsv(int(digest[:8], 16) % 360, 180, 220)
+        return color
+
+    def setDemandsBuilderStyle(self, layer, sourceName="", baseDemandField="BaseDemand"):
+        """Paint a Demand Builder auxiliary layer: a colour per Category, plus labels.
+
+        Like the demand sectors', this look is computed from the layer's own values rather
+        than loaded from a QML, so it has to be reapplied every time the layer is opened —
+        which is why openLayer carries a flag for it instead of the callers remembering.
+
+        `sourceName` is the file's own name: by the time a layer reaches here its display
+        name may already be the translated one, and the isolated-demands connections are
+        told apart by their file name.
+        """
+        name = sourceName or layer.name()
+        if "IsolatedDemandsServiceConnections" in name:
+            self.setStyle(layer, "DemandsBuilderIsolatedDemandsServiceConnections")
+            layer.triggerRepaint()
+            return
+
+        geomType = layer.geometryType()
+        fieldIndex = layer.fields().indexFromName("Category")
+
+        uniqueCats = set()
+        hasUncategorized = False
+
+        if fieldIndex != -1:
+            for feature in layer.getFeatures():
+                rawCat = feature[fieldIndex]
+                text = "" if rawCat is None else str(rawCat).strip()
+                if text == "" or text.lower() in ("null", "undefined"):
+                    hasUncategorized = True
+                else:
+                    uniqueCats.add(text)
+
+            categories = []
+            if hasUncategorized:
+                uncategorized = QgsSymbol.defaultSymbol(geomType)
+                uncategorized.setColor(QColor("orange"))
+                categories.append(QgsRendererCategory("Uncategorized", uncategorized, "Uncategorized"))
+
+            for cat in sorted(uniqueCats):
+                symbol = QgsSymbol.defaultSymbol(geomType)
+                symbol.setColor(self._colorForDemandCategory(cat))
+                categories.append(QgsRendererCategory(cat, symbol, cat))
+
+            categoryExpression = (
+                "CASE "
+                "WHEN \"Category\" IS NULL "
+                "OR trim(\"Category\") = '' "
+                "OR lower(trim(\"Category\")) IN ('null', 'undefined') "
+                "THEN 'Uncategorized' "
+                "ELSE trim(\"Category\") "
+                "END"
+            )
+            layer.setRenderer(QgsCategorizedSymbolRenderer(categoryExpression, categories))
+            self.translateRendererLabels(layer)
+        else:
+            symbol = QgsSymbol.defaultSymbol(geomType)
+            if geomType == 0:
+                symbol.setColor(QColor("orange"))
+            elif geomType == 1:
+                symbol.setColor(QColor("blue"))
+            layer.setRenderer(QgsSingleSymbolRenderer(symbol))
+
+        labelSettings = QgsPalLayerSettings()
+        textFormat = QgsTextFormat()
+        textFormat.setSize(10)
+        labelSettings.setFormat(textFormat)
+
+        # Labels take the colour of their category, so they read against their own symbol.
+        if fieldIndex != -1:
+            colorExpression = "CASE "
+            if hasUncategorized:
+                colorExpression += (
+                    "WHEN \"Category\" IS NULL OR trim(\"Category\") = '' "
+                    "OR lower(trim(\"Category\")) IN ('null', 'undefined') THEN 'orange' "
+                )
+            for cat in sorted(uniqueCats):
+                safeCat = cat.replace("'", "''")
+                hexColor = self._colorForDemandCategory(cat).name()
+                colorExpression += f"WHEN trim(\"Category\") = '{safeCat}' THEN '{hexColor}' "
+            colorExpression += "ELSE 'gray' END"
+            labelSettings.dataDefinedProperties().setProperty(
+                PAL_PROPERTY_COLOR, QgsProperty.fromExpression(colorExpression)
+            )
+
+        if geomType == 1:
+            if layer.fields().indexFromName("%Dem") != -1:
+                labelSettings.fieldName = '"%Dem" || \' %\''
+                labelSettings.isExpression = True
+                labelSettings.enabled = True
+                labelSettings.placement = PAL_PLACEMENT_LINE
+                layer.setLabelsEnabled(True)
+                layer.setLabeling(QgsVectorLayerSimpleLabeling(labelSettings))
+        elif geomType == 0:
+            if baseDemandField and layer.fields().indexFromName(baseDemandField) != -1:
+                pointTextFormat = QgsTextFormat()
+                pointTextFormat.setSize(12)
+                pointTextFormat.setColor(QColor("black"))
+                labelSettings.setFormat(pointTextFormat)
+                labelSettings.fieldName = f'"{baseDemandField}"'
+                labelSettings.isExpression = True
+                labelSettings.enabled = True
+                layer.setLabelsEnabled(True)
+                layer.setLabeling(QgsVectorLayerSimpleLabeling(labelSettings))
+
+        layer.triggerRepaint()
 
     def setSectorsStyle(self, layer):
         # get unique values

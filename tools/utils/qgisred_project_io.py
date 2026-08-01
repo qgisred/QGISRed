@@ -79,6 +79,37 @@ class QGISRedProjectIO:
         "Auxiliary Layers/DemandsBuilder": LAYER_TYPE_CONFIG["DemandsBuilder"],
     }
 
+    @classmethod
+    def _groupConfig(cls, groupName):
+        """Config for a group path, matched with spaces removed.
+
+        Both ends of the round trip drop them: `_buildGroupsString` strips spaces to keep
+        the XML tags ASCII and locale-independent, and `_openGroupsNode` strips them again
+        when reading the tag back. So the two-word keys above ("Auxiliary Layers/...")
+        arrive here as "AuxiliaryLayers/..." and would never match a literal lookup —
+        which is why nothing under Auxiliary Layers used to come back on a project with
+        no .qgs.
+        """
+        if not groupName:
+            return None
+        compact = groupName.replace(" ", "")
+        for key, cfg in cls._GROUP_CONFIG.items():
+            if key.replace(" ", "") == compact:
+                return cfg
+
+        # Fall back to the last segment. Projects written before the Auxiliary Layers group
+        # carried its identifier have the parent's *translated* name in the metadata
+        # (<CapasAuxiliares>, <CouchesAuxiliaires>…), which matches nothing. The child tag
+        # is canonical, and no two nested keys end alike, so it identifies the group on its
+        # own.
+        if "/" in compact:
+            lastSegment = compact.rsplit("/", 1)[1]
+            for key, cfg in cls._GROUP_CONFIG.items():
+                compactKey = key.replace(" ", "")
+                if "/" in compactKey and compactKey.rsplit("/", 1)[1] == lastSegment:
+                    return cfg
+        return None
+
     def _openGroupByName(self, groupName, layerNames):
         from .qgisred_layer_utils import QGISRedLayerUtils
         from .qgisred_styling_utils import QGISRedStylingUtils
@@ -143,7 +174,7 @@ class QGISRedProjectIO:
             return
 
         # Try full path as key (e.g. "Issues/HydraulicSectors", or legacy "HydraulicSectors")
-        cfg = self._GROUP_CONFIG.get(groupName)
+        cfg = self._groupConfig(groupName)
         if cfg is not None:
             tree_path = cfg["tree_path"]
             subdir = cfg["subdir"]
@@ -154,7 +185,7 @@ class QGISRedProjectIO:
             parts = groupName.split("/")
             top = parts[0]
             sub_parts = parts[1:]
-            cfg = self._GROUP_CONFIG.get(top)
+            cfg = self._groupConfig(top)
             if cfg is None:
                 return  # unknown group — skip silently
             tree_path = cfg["tree_path"]

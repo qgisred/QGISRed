@@ -55,6 +55,9 @@ class QGISRedLayerUtils:
         'qgisred_isolatedsegments': 'Isolated Segments',
         'qgisred_demandsbuilder':    'Demands Builder',
         'qgisred_trees':            'Trees',
+        # Written by builds where setGroupIdentifier derived the identifier from the name
+        # instead of reading it from groupIdentifiers. Existing projects still carry it.
+        'qgisred_auxiliarylayers':  'Auxiliary Layers',
     }
 
     MAIN_GROUP_ORDER = ["Results", "Queries", "Issues", "Auxiliary Layers", "Inputs"]
@@ -249,8 +252,14 @@ class QGISRedLayerUtils:
     def setGroupIdentifier(cls, group, keyOrName):
         if group is None:
             return
-        normalizedName = keyOrName.lower().replace(" ", "")
-        identifier = f"qgisred_{normalizedName}"
+        # The declared mapping wins over deriving one from the name. "Auxiliary Layers"
+        # is declared as qgisred_auxiliary but derives as qgisred_auxiliarylayers, which
+        # _IDENTIFIER_TO_CANONICAL does not know — so the group fell back to its localised
+        # name and the metadata ended up with tags like <CapasAuxiliares>, which nothing
+        # could read back.
+        identifier = cls.groupIdentifiers.get(keyOrName)
+        if not identifier:
+            identifier = "qgisred_" + keyOrName.lower().replace(" ", "")
         existingId = group.customProperty("qgisred_identifier")
         if existingId != identifier:
             group.setCustomProperty("qgisred_identifier", identifier)
@@ -499,7 +508,8 @@ class QGISRedLayerUtils:
         elif not styling.setSavedStyle(layer, originalName):
             styling.setSectorsStyle(layer)
 
-    def openLayer(self, group, name, ext=".shp", results=False, toEnd=False, sectors=False, issues=False):
+    def openLayer(self, group, name, ext=".shp", results=False, toEnd=False, sectors=False, issues=False,
+                  demandsBuilder=False):
         styling = self._styling()
         identifiers = self._identifiers()
         name = name.replace(" ", "")
@@ -518,10 +528,15 @@ class QGISRedLayerUtils:
             # If the layer is already open, reload its data in-place (no duplicate added)
             reloaded = self._tryReloadExistingLayer(layerPath)
             if reloaded:
-                if sectors:
+                # Styles computed from the layer's own values must be rebuilt on every
+                # reload: the values may have changed under them.
+                if sectors or demandsBuilder:
                     existingLayer = self._findLayerByPath(layerPath)
                     if existingLayer is not None:
-                        self._applySectorStyle(styling, existingLayer, originalName)
+                        if sectors:
+                            self._applySectorStyle(styling, existingLayer, originalName)
+                        else:
+                            styling.setDemandsBuilderStyle(existingLayer, originalName)
                 return
             vlayer = QgsVectorLayer(layerPath, showName, "ogr")
             if not ext == ".dbf":
@@ -529,6 +544,8 @@ class QGISRedLayerUtils:
                     styling.setStyle(vlayer, originalName)
                 elif sectors:
                     self._applySectorStyle(styling, vlayer, originalName)
+                elif demandsBuilder:
+                    styling.setDemandsBuilderStyle(vlayer, originalName)
                 elif issues:
                     pass
                 else:

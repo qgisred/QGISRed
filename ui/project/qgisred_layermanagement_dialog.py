@@ -285,7 +285,7 @@ class QGISRedLayerManagementDialog(QDialog, FORM_CLASS):
             return
 
         # Created themes come back loaded, like the create button of the other tabs.
-        self.parent.openAuxiliaryThemes([path])
+        self.parent.syncAuxiliaryThemes([path], load=True)
         self.fillAuxiliaryTable()
 
     def deleteAuxiliaryTheme(self):
@@ -301,7 +301,7 @@ class QGISRedLayerManagementDialog(QDialog, FORM_CLASS):
             return
 
         # Unload first: on Windows a shapefile QGIS still holds cannot be removed.
-        self.parent.closeAuxiliaryThemes([path])
+        self.parent.syncAuxiliaryThemes([path], load=False)
         error = deleteTheme(path)
         if error:
             self.pushMessage(self.tr("Error"), error, level=2)

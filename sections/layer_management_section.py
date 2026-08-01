@@ -222,6 +222,23 @@ class LayerManagementSection:
         finally:
             self.layerOperationInProgress = False
 
+    def syncAuxiliaryThemes(self, paths, load):
+        """Load or unload themes and record the result, for the live create/delete buttons.
+
+        Writing the metadata here rather than leaving it to runLegendChanged is what lets a
+        project with no .qgs find these layers again: the guard flag silences that signal
+        during the operation, so nothing else would write it.
+        """
+        self.layerOperationInProgress = True
+        try:
+            if load:
+                self.openAuxiliaryThemes(paths)
+            else:
+                self.closeAuxiliaryThemes(paths)
+        finally:
+            self.layerOperationInProgress = False
+        self.updateMetadata()
+
     def uniformedPaths(self, paths):
         """Put paths in the same shape getLayerPath returns, so lookups can match.
 

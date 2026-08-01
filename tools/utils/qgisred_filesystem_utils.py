@@ -68,7 +68,7 @@ LAYER_TYPE_CONFIG = {
     "DemandsBuilder": {
         "subdir":    os.path.join(DIR_AUXILIARY_LAYERS, DIR_DEMANDS_BUILDER),
         "tree_path": ["Auxiliary Layers", "DemandsBuilder"],
-        "flags":     {},
+        "flags":     {"demandsBuilder": True},
     },
 }
 

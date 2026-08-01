@@ -4,8 +4,10 @@
 from qgis.PyQt.QtWidgets import QApplication, QFileDialog, QMessageBox
 from qgis.PyQt.QtCore import Qt
 from qgis.PyQt.QtGui import QColor
-from qgis.core import QgsProject, QgsLayerTreeGroup, QgsSingleSymbolRenderer, QgsSymbol, QgsCategorizedSymbolRenderer, QgsRendererCategory
-from qgis.core import QgsPalLayerSettings, QgsVectorLayerSimpleLabeling, QgsTextFormat, QgsProperty, Qgis
+from qgis.core import (
+    QgsProject, QgsLayerTreeGroup, QgsSymbol, QgsCategorizedSymbolRenderer,
+    QgsRendererCategory, Qgis,
+)
 import hashlib
 import os
 
@@ -13,7 +15,7 @@ from ..tools.utils.qgisred_layer_utils import QGISRedLayerUtils
 from ..tools.utils.qgisred_styling_utils import QGISRedStylingUtils
 from ..tools.qgisred_dependencies import QGISRedDependencies as GISRed
 from ..tools.map_tools.qgisred_selectPoint import QGISRedSelectPointTool, SelectPointType
-from ..compat import LAYER_TYPE_VECTOR, PAL_PROPERTY_COLOR, PAL_PLACEMENT_LINE
+from ..compat import LAYER_TYPE_VECTOR
 
 from ..ui.tools.qgisred_demandsectorbuilder_dialog import (QGISRedDemandSectorBuilderDialog)
 
@@ -458,7 +460,6 @@ class ToolsSection:
 
         self.demandSectorBuilderPythonDialog.exec()
 
-
     """Isolated Segments"""
 
     def runIsolatedSegments(self, point):
@@ -502,155 +503,19 @@ class ToolsSection:
         self.blockLayers(False)
         self.processCsharpResult(resMessage, "", layerType="isolatedSegments")
 
-    def _colorForDemandCategory(self, category):
-        text = "" if category is None else str(category).strip()
+    def _applyDemandsBuilderStyle(self, vlayer, sourceName=""):
+        """Paint a Demand Builder auxiliary layer.
 
-        if text == "" or text.lower() in ("null", "undefined"):
-            return QColor("orange")
-
-        normalized = text.lower()
-        digest = hashlib.md5(normalized.encode("utf-8"), usedforsecurity=False).hexdigest()
-        hue = int(digest[:8], 16) % 360
-
-        color = QColor()
-        color.setHsv(hue, 180, 220)
-        return color
-
-    def _applyDemandsBuilderStyle(self, vlayer):
+        The look itself lives in QGISRedStylingUtils next to the demand sectors', the other
+        family drawn from its own values instead of from a QML, so that openLayer can apply
+        it when a layer is opened rather than every caller remembering to.
+        """
         from ..tools.utils.qgisred_styling_utils import QGISRedStylingUtils
 
-        if "IsolatedDemandsServiceConnections" in vlayer.name():
-            QGISRedStylingUtils(
-                self.ProjectDirectory,
-                self.NetworkName,
-                self.iface
-            ).setStyle(vlayer, "DemandsBuilderIsolatedDemandsServiceConnections")
-            vlayer.triggerRepaint()
-            return
-
-        geom_type = vlayer.geometryType()
-        field_index = vlayer.fields().indexFromName("Category")
-
-        if field_index != -1:
-            unique_cats = set()
-            has_uncategorized = False
-
-            for feature in vlayer.getFeatures():
-                raw_cat = feature[field_index]
-                text = "" if raw_cat is None else str(raw_cat).strip()
-
-                if text == "" or text.lower() in ("null", "undefined"):
-                    has_uncategorized = True
-                else:
-                    unique_cats.add(text)
-
-            categories = []
-
-            if has_uncategorized:
-                symbol_uncategorized = QgsSymbol.defaultSymbol(geom_type)
-                symbol_uncategorized.setColor(QColor("orange"))
-                categories.append(
-                    QgsRendererCategory("Uncategorized", symbol_uncategorized, "Uncategorized")
-                )
-
-            for cat in sorted(unique_cats):
-                color = self._colorForDemandCategory(cat)
-
-                symbol = QgsSymbol.defaultSymbol(geom_type)
-                symbol.setColor(color)
-
-                categories.append(
-                    QgsRendererCategory(cat, symbol, cat)
-                )
-
-            category_expression = (
-                "CASE "
-                "WHEN \"Category\" IS NULL "
-                "OR trim(\"Category\") = '' "
-                "OR lower(trim(\"Category\")) IN ('null', 'undefined') "
-                "THEN 'Uncategorized' "
-                "ELSE trim(\"Category\") "
-                "END"
-            )
-
-            renderer = QgsCategorizedSymbolRenderer(
-                category_expression,
-                categories
-            )
-
-            vlayer.setRenderer(renderer)
-            from ..tools.utils.qgisred_styling_utils import QGISRedStylingUtils
-            QGISRedStylingUtils(self.ProjectDirectory, self.NetworkName, self.iface).translateRendererLabels(vlayer)
-
-        else:
-            symbol = QgsSymbol.defaultSymbol(geom_type)
-
-            if geom_type == 0:
-                symbol.setColor(QColor("orange"))
-            elif geom_type == 1:
-                symbol.setColor(QColor("blue"))
-
-            renderer = QgsSingleSymbolRenderer(symbol)
-            vlayer.setRenderer(renderer)
-
-        # Labels
-        label_settings = QgsPalLayerSettings()
-
-        text_format = QgsTextFormat()
-        text_format.setSize(10)
-
-        label_settings.setFormat(text_format)
-
-        # Build color expression for labels based on category colors
-        if field_index != -1:
-            color_expression = "CASE "
-            if has_uncategorized:
-                color_expression += "WHEN \"Category\" IS NULL OR trim(\"Category\") = '' OR lower(trim(\"Category\")) IN ('null', 'undefined') THEN 'orange' "
-            for cat in sorted(unique_cats):
-                safe_cat = cat.replace("'", "''")
-                hex_color = self._colorForDemandCategory(cat).name()
-
-                color_expression += (
-                    f"WHEN trim(\"Category\") = '{safe_cat}' "
-                    f"THEN '{hex_color}' "
-                )
-            color_expression += "ELSE 'gray' END"
-
-            label_settings.dataDefinedProperties().setProperty(PAL_PROPERTY_COLOR, QgsProperty.fromExpression(color_expression))
-
-        if geom_type == 1:
-            if vlayer.fields().indexFromName("%Dem") != -1:
-
-                label_settings.fieldName = '"%Dem" || \' %\''
-                label_settings.isExpression = True
-                label_settings.enabled = True
-                label_settings.placement = PAL_PLACEMENT_LINE
-
-                vlayer.setLabelsEnabled(True)
-                vlayer.setLabeling(
-                    QgsVectorLayerSimpleLabeling(label_settings)
-                )
-
-        elif geom_type == 0:
-            base_demand_field = getattr(self, "_demandsBuilderNewBaseDemandFieldName", "BaseDemand")
-            if base_demand_field and vlayer.fields().indexFromName(base_demand_field) != -1:
-
-                # Create new text format for point labels with larger size
-                point_text_format = QgsTextFormat()
-                point_text_format.setSize(12)
-                point_text_format.setColor(QColor("black"))
-                label_settings.setFormat(point_text_format)
-
-                label_settings.fieldName = f'"{base_demand_field}"'
-                label_settings.isExpression = True
-                label_settings.enabled = True
-
-                vlayer.setLabelsEnabled(True)
-                vlayer.setLabeling(
-                    QgsVectorLayerSimpleLabeling(label_settings)
-                )
-
-        vlayer.triggerRepaint()
+        baseDemandField = getattr(self, "_demandsBuilderNewBaseDemandFieldName", "BaseDemand")
+        QGISRedStylingUtils(self.ProjectDirectory, self.NetworkName, self.iface).setDemandsBuilderStyle(
+            vlayer, sourceName, baseDemandField
+        )
 
     """Demand Sectors"""
 
