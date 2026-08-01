@@ -458,7 +458,7 @@
     <message>
         <location filename="../ui/queries/qgisred_thematicmaps_dialog.ui" line="346"/>
         <source>Tanks ranged by</source>
-        <translation>Châteaux d’eau classés par</translation>
+        <translation>Réservoirs classés par</translation>
     </message>
     <message>
         <location filename="../ui/queries/qgisred_thematicmaps_dialog.ui" line="352"/>
@@ -478,7 +478,7 @@
     <message>
         <location filename="../ui/queries/qgisred_thematicmaps_dialog.ui" line="417"/>
         <source>Reservoirs ranged by</source>
-        <translation>Réservoirs classés par</translation>
+        <translation>Bâches classées par</translation>
     </message>
     <message>
         <location filename="../ui/queries/qgisred_thematicmaps_dialog.ui" line="423"/>
@@ -1985,7 +1985,7 @@
     <message>
         <location filename="../tools/qgisred_translatable_strings.py" line="293"/>
         <source>Reservoirs</source>
-        <translation type="unfinished">Sources</translation>
+        <translation>Bâches</translation>
     </message>
     <message>
         <location filename="../tools/qgisred_translatable_strings.py" line="294"/>
@@ -3713,12 +3713,12 @@ Continuer ?</translation>
     <message>
         <location filename="../ui/queries/qgisred_element_explorer_dock.py" line="112"/>
         <source>Reservoir</source>
-        <translation>Réservoir</translation>
+        <translation>Bâche</translation>
     </message>
     <message>
         <location filename="../ui/queries/qgisred_element_explorer_dock.py" line="113"/>
         <source>Tank</source>
-        <translation>Château d’eau</translation>
+        <translation>Réservoir</translation>
     </message>
     <message>
         <location filename="../ui/queries/qgisred_element_explorer_dock.py" line="114"/>
@@ -4165,12 +4165,12 @@ Continuer ?</translation>
     <message>
         <location filename="../ui/edition/qgisred_groupedit_dialog.py" line="396"/>
         <source>Tanks</source>
-        <translation type="unfinished">Châteaux d’eau</translation>
+        <translation>Réservoirs</translation>
     </message>
     <message>
         <location filename="../ui/edition/qgisred_groupedit_dialog.py" line="397"/>
         <source>Reservoirs</source>
-        <translation type="unfinished">Réservoirs</translation>
+        <translation>Bâches</translation>
     </message>
     <message>
         <location filename="../ui/edition/qgisred_groupedit_dialog.py" line="398"/>
@@ -4666,12 +4666,12 @@ Continuer ?</translation>
     <message>
         <location filename="../ui/general/qgisred_import_dialog.ui" line="1361"/>
         <source>Reservoirs</source>
-        <translation>Réservoirs</translation>
+        <translation>Bâches</translation>
     </message>
     <message>
         <location filename="../ui/general/qgisred_import_dialog.ui" line="1371"/>
         <source>Reservoir Layer</source>
-        <translation>Couche de réservoirs</translation>
+        <translation>Couche de bâches</translation>
     </message>
     <message>
         <location filename="../ui/general/qgisred_import_dialog.ui" line="1535"/>
@@ -4686,12 +4686,12 @@ Continuer ?</translation>
     <message>
         <location filename="../ui/general/qgisred_import_dialog.ui" line="1615"/>
         <source>Tanks</source>
-        <translation>Châteaux d’eau</translation>
+        <translation>Réservoirs</translation>
     </message>
     <message>
         <location filename="../ui/general/qgisred_import_dialog.ui" line="1625"/>
         <source>Tank Layer</source>
-        <translation>Couche de châteaux d’eau</translation>
+        <translation>Couche de réservoirs</translation>
     </message>
     <message>
         <location filename="../ui/general/qgisred_import_dialog.ui" line="1698"/>
@@ -5192,22 +5192,22 @@ Continuer ?</translation>
     <message>
         <location filename="../ui/project/qgisred_layermanagement_dialog.ui" line="310"/>
         <source>Reservoirs</source>
-        <translation>Réservoirs</translation>
+        <translation>Bâches</translation>
     </message>
     <message>
         <location filename="../ui/project/qgisred_layermanagement_dialog.ui" line="335"/>
         <source>Create Reservoirs Layer</source>
-        <translation>Créer la couche de réservoirs</translation>
+        <translation>Créer la couche de bâches</translation>
     </message>
     <message>
         <location filename="../ui/project/qgisred_layermanagement_dialog.ui" line="352"/>
         <source>Tanks</source>
-        <translation>Châteaux d’eau</translation>
+        <translation>Réservoirs</translation>
     </message>
     <message>
         <location filename="../ui/project/qgisred_layermanagement_dialog.ui" line="377"/>
         <source>Create Tanks Layer</source>
-        <translation>Créer la couche de châteaux d’eau</translation>
+        <translation>Créer la couche de réservoirs</translation>
     </message>
     <message>
         <location filename="../ui/project/qgisred_layermanagement_dialog.ui" line="420"/>
@@ -7469,7 +7469,7 @@ Voulez-vous continuer ?</translation>
     <message>
         <location filename="../ui/analysis/qgisred_results_dock.ui" line="1686"/>
         <source>Tanks and reservoirs:</source>
-        <translation type="unfinished">Réservoirs et sources :</translation>
+        <translation>Réservoirs et bâches :</translation>
     </message>
     <message>
         <location filename="../ui/analysis/qgisred_results_dock.ui" line="1778"/>
@@ -7539,7 +7539,7 @@ Voulez-vous continuer ?</translation>
     <message>
         <location filename="../ui/analysis/qgisred_results_dock.py" line="166"/>
         <source>Tanks and reservoirs</source>
-        <translation type="unfinished">Réservoirs et sources</translation>
+        <translation>Réservoirs et bâches</translation>
     </message>
     <message>
         <location filename="../ui/analysis/qgisred_results_dock.py" line="170"/>
@@ -7758,12 +7758,12 @@ Voulez-vous continuer ?</translation>
     <message>
         <location filename="../ui/queries/qgisred_statisticsandgraphs_dock.py" line="109"/>
         <source>Tanks</source>
-        <translation type="obsolete">Châteaux d’eau</translation>
+        <translation type="obsolete">Réservoirs</translation>
     </message>
     <message>
         <location filename="../ui/queries/qgisred_statisticsandgraphs_dock.py" line="110"/>
         <source>Reservoirs</source>
-        <translation type="obsolete">Réservoirs</translation>
+        <translation type="obsolete">Bâches</translation>
     </message>
     <message>
         <location filename="../ui/queries/qgisred_statisticsandgraphs_dock.py" line="111"/>
@@ -8146,7 +8146,7 @@ Voulez-vous continuer ?</translation>
     <message>
         <location filename="../ui/queries/qgisred_statisticsandgraphs_dock.py" line="1686"/>
         <source>Reservoir</source>
-        <translation type="unfinished">Source</translation>
+        <translation>Bâche</translation>
     </message>
     <message>
         <location filename="../ui/queries/qgisred_statisticsandgraphs_dock.py" line="1687"/>
