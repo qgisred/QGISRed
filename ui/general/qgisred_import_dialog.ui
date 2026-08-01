@@ -3213,7 +3213,7 @@
                      <item>
                       <widget class="QLabel" name="label_98">
                        <property name="text">
-                        <string>Sevice Connection Length</string>
+                        <string>Service Connection Length</string>
                        </property>
                       </widget>
                      </item>

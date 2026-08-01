@@ -39,7 +39,7 @@ QCoreApplication.translate('FieldPrettyNames', "Base Demand")
 
 # Tanks
 QCoreApplication.translate('FieldPrettyNames', "Initial Level")
-QCoreApplication.translate('FieldPrettyNames', "MinimumLevel")
+QCoreApplication.translate('FieldPrettyNames', "Minimum Level")
 QCoreApplication.translate('FieldPrettyNames', "Maximum Level")
 QCoreApplication.translate('FieldPrettyNames', "Volume")
 QCoreApplication.translate('FieldPrettyNames', "Minimum Volume")

@@ -1231,7 +1231,7 @@
     </message>
     <message>
         <location filename="../tools/qgisred_translatable_strings.py" line="42"/>
-        <source>MinimumLevel</source>
+        <source>Minimum Level</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
@@ -4625,7 +4625,7 @@ Continue?</source>
     </message>
     <message>
         <location filename="../ui/general/qgisred_import_dialog.ui" line="3216"/>
-        <source>Sevice Connection Length</source>
+        <source>Service Connection Length</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
