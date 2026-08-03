@@ -193,6 +193,26 @@ class QGISRedIdentifierUtils:
                     identifier = identifier[len("qgisred_"):]
                 layer.setCustomProperty("qgisred_identifier", identifier)
 
+    def getAuxiliaryThemeName(self, baseName, networkName=""):
+        """Legend name for a Demand Builder theme file: its family, then its own name.
+
+        Both the layer manager and the metadata reopen go through here, so a theme is
+        called the same however it got loaded. Deriving it from the file name instead
+        would go through getLayerNameToLegend, whose "Demands" rule turns every one of
+        these — DemandsBuilder is in all their names — into "Multiple Demands".
+
+        Returns "" when the file is not a recognised theme, so callers can fall back.
+        """
+        from .qgisred_auxiliary_layers import parseBaseName
+
+        layerType, themeName = parseBaseName(baseName, networkName or self.NetworkName)
+        if layerType is None:
+            return ""
+        family = self.getTranslatedNameForIdentifier(layerType.identifier)
+        if not family:
+            return ""
+        return family + ": " + themeName if themeName else family
+
     def getTranslatedNameForIdentifier(self, identifier):
         """Returns the translated legend name for a qgisred_identifier, or None if unknown."""
         source = self.identifierToLegendName.get(identifier)

@@ -274,19 +274,19 @@ class LayerManagementSection:
                 continue
 
             baseName = os.path.splitext(os.path.basename(path))[0]
-            layerType, themeName = parseBaseName(baseName, self.NetworkName)
+            layerType, _themeName = parseBaseName(baseName, self.NetworkName)
 
             vlayer = QgsVectorLayer(path, baseName, "ogr")
             if not vlayer.isValid():
                 continue
 
-            self._applyDemandsBuilderStyle(vlayer)
+            self._applyDemandsBuilderStyle(vlayer, baseName)
 
             if layerType is not None:
                 identifiers.setLayerIdentifier(vlayer, layerType.token)
-                translated = identifiers.getTranslatedNameForIdentifier(layerType.identifier)
-                if translated:
-                    vlayer.setName(translated + ": " + themeName if themeName else translated)
+                showName = identifiers.getAuxiliaryThemeName(baseName, self.NetworkName)
+                if showName:
+                    vlayer.setName(showName)
 
             QgsProject.instance().addMapLayer(vlayer, False)
             group.addChildNode(QgsLayerTreeLayer(vlayer))

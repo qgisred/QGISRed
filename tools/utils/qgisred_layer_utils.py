@@ -526,6 +526,8 @@ class QGISRedLayerUtils:
             baseIdentifier = f"qgisred_{baseName.lower()}"
             translatedBase = identifiers.getTranslatedNameForIdentifier(baseIdentifier) or self.tr(self.getLayerNameToLegend(baseName))
             showName = self.tr("%1 I").replace("%1", translatedBase)
+        elif demandsBuilder:
+            showName = identifiers.getAuxiliaryThemeName(name, self.NetworkName) or name
         else:
             showName = identifiers.getTranslatedNameForIdentifier(identifier) or self.tr(self.getLayerNameToLegend(name))
         originalName = identifiers.getOriginalNameFromLayerName(name)

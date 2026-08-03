@@ -353,6 +353,59 @@ class TestApplyAuxiliaryLayerSelection:
         assert section.layerOperationInProgress is False
 
 
+class TestAuxiliaryThemeName:
+    """A theme must read the same whether the layer manager or the metadata loaded it."""
+
+    def _identifiers(self, families=None):
+        from QGISRed.tools.utils.qgisred_identifier_utils import QGISRedIdentifierUtils
+
+        utils = object.__new__(QGISRedIdentifierUtils)
+        utils.NetworkName = "Net"
+        known = families if families is not None else {
+            "qgisred_demandsbuilder_consumptionpoints": "DemBuil_Consumption Points",
+            "qgisred_demandsbuilder_demandlinks": "DemBuil_Demand Links",
+            "qgisred_demandsbuilder_sectors": "DemBuil_Sectors",
+        }
+        utils.getTranslatedNameForIdentifier = lambda identifier: known.get(identifier)
+        return utils
+
+    def test_a_named_theme_shows_its_family_and_its_name(self):
+        utils = self._identifiers()
+        assert utils.getAuxiliaryThemeName("Net_DemandsBuilder_ConsumptionPoints_pr1") == \
+            "DemBuil_Consumption Points: pr1"
+
+    def test_the_demands_manager_theme_shows_only_its_family(self):
+        utils = self._identifiers()
+        assert utils.getAuxiliaryThemeName("Net_DemandsBuilder_Sectors") == "DemBuil_Sectors"
+
+    def test_each_family_keeps_its_own_name(self):
+        """They all used to collapse onto 'Multiple Demands': getLayerNameToLegend rewrites
+        anything containing 'Demands', and DemandsBuilder is in every one of these."""
+        utils = self._identifiers()
+        names = [
+            utils.getAuxiliaryThemeName("Net_DemandsBuilder_ConsumptionPoints_pr1"),
+            utils.getAuxiliaryThemeName("Net_DemandsBuilder_DemandLinks_en2"),
+            utils.getAuxiliaryThemeName("Net_DemandsBuilder_Sectors_sec1"),
+        ]
+        assert len(set(names)) == 3
+        assert not any("Multiple Demands" in name for name in names)
+
+    def test_two_themes_of_one_family_are_told_apart(self):
+        utils = self._identifiers()
+        first = utils.getAuxiliaryThemeName("Net_DemandsBuilder_ConsumptionPoints_pr1")
+        second = utils.getAuxiliaryThemeName("Net_DemandsBuilder_ConsumptionPoints_consumPuntual")
+        assert first != second
+
+    def test_a_file_that_is_not_a_theme_gets_no_name(self):
+        utils = self._identifiers()
+        assert utils.getAuxiliaryThemeName("Net_Pipes") == ""
+
+    def test_an_unknown_family_gets_no_name(self):
+        """The caller falls back rather than showing half a name."""
+        utils = self._identifiers(families={})
+        assert utils.getAuxiliaryThemeName("Net_DemandsBuilder_Sectors_sec1") == ""
+
+
 class TestGroupVisibility:
     """The layer manager loads and unloads on request; it does not retick the legend.
 
