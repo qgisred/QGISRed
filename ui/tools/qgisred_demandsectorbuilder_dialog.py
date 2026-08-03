@@ -22,7 +22,7 @@ from qgis.PyQt.QtWidgets import (
 
 from ...tools.utils.qgisred_ui_utils import (
     QGISRedBanner,
-    QGISRED_COMBO_STYLE,
+    QGISRedUIUtils,
 )
 
 
@@ -116,7 +116,7 @@ class QGISRedDemandSectorBuilderDialog(QDialog, FORM_CLASS):
             self.cbCheckTheme,
             self.cbSourceTheme,
         ):
-            combo.setStyleSheet(QGISRED_COMBO_STYLE)
+            QGISRedUIUtils.applyComboStyle(combo)
 
     # ----------------------------------------------------------
     # Loading

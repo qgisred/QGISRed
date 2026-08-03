@@ -174,22 +174,39 @@ class QGISRedUIUtils:
         from qgis.PyQt.QtCore import Qt
         combo.setStyleSheet(QGISRED_COMBO_STYLE)
         combo.view().setVerticalScrollBarPolicy(Qt.ScrollBarPolicy.ScrollBarAsNeeded)
+        QGISRedUIUtils.installAutoWidenPopup(combo)
 
     @staticmethod
-    def widenPopupToContents(combo, extraPadding=40):
-        """Widen a combobox's dropdown popup so its longest item shows in full.
+    def installAutoWidenPopup(combo, extraPadding=40):
+        """Make a combobox's dropdown popup always fit its widest item.
 
         QGISRED_COMBO_STYLE sets `combobox-popup: 0`, which makes Qt render the
         popup with a plain QListView clamped to the combo's own (often narrow)
-        width instead of auto-sizing to the widest item — the default behaviour
-        without that style. Call this after (re)populating a combo whose items
-        can be longer than the field itself, e.g. translated valve type names.
+        width instead of auto-sizing to the widest item — the default Qt
+        behaviour without that style. applyComboStyle() calls this
+        automatically, so any combo styled the normal way gets it for free;
+        call it directly only for a combo styled by hand (composing
+        QGISRED_COMBO_STYLE with an extra per-item override, e.g. a row
+        background color).
+
+        Installed once per combo (idempotent) as a showPopup() override, so it
+        keeps working after the combo is cleared and repopulated — no need to
+        call anything again each time the item list changes.
         """
-        from qgis.PyQt.QtGui import QFontMetrics
-        fm = QFontMetrics(combo.font())
-        widest = max((fm.horizontalAdvance(combo.itemText(i)) for i in range(combo.count())), default=0)
-        if widest:
-            combo.view().setMinimumWidth(widest + extraPadding)
+        if getattr(combo, "_qgisredAutoWidenPopup", False):
+            return
+        combo._qgisredAutoWidenPopup = True
+        originalShowPopup = combo.showPopup
+
+        def showPopup():
+            from qgis.PyQt.QtGui import QFontMetrics
+            fm = QFontMetrics(combo.font())
+            widest = max((fm.horizontalAdvance(combo.itemText(i)) for i in range(combo.count())), default=0)
+            if widest:
+                combo.view().setMinimumWidth(widest + extraPadding)
+            originalShowPopup()
+
+        combo.showPopup = showPopup
 
     @staticmethod
     def showGlobalMessage(iface, text, level=0, duration=5):

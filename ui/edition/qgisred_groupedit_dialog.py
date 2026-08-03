@@ -356,6 +356,7 @@ class QGISRedGroupEditDialog(QGISRedHighlightOwnerMixin, QDialog, FORM_CLASS):
             QGISRED_COMBO_STYLE + _comboSelectionOverride + "QComboBox { background-color: %s; }" % background
         )
         combo.setView(QListView(combo))
+        QGISRedUIUtils.installAutoWidenPopup(combo)
 
     def _connectSignals(self):
         self.cbElementType.currentIndexChanged.connect(self._onElementTypeChanged)
@@ -574,9 +575,6 @@ class QGISRedGroupEditDialog(QGISRedHighlightOwnerMixin, QDialog, FORM_CLASS):
             for code in values:
                 self.cbEnum.addItem(getValveTypeName(code), code)
             index = self.cbEnum.findData(previous)
-            # QGISRED_COMBO_STYLE clamps the popup to the combo's own width;
-            # long translated names need it widened or they show elided.
-            QGISRedUIUtils.widenPopupToContents(self.cbEnum)
         else:
             self.cbEnum.addItems(values)
             index = self.cbEnum.findText(previous)
