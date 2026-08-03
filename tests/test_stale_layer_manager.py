@@ -132,7 +132,9 @@ def harness(project):
         return item
 
     yield build
-    for item in made:
+    # Reverse order: mock.patch restores the value it saw at start(), so unwinding out of
+    # order would leave one test's mock behind in the module.
+    for item in reversed(made):
         item.close()
 
 
@@ -278,7 +280,7 @@ class TestRefresh:
 
         item.view.viewport().update.assert_not_called()
 
-    def test_tree_changes_schedule_a_debounced_check(self, project, harness):
+    def test_new_layers_schedule_a_debounced_check(self, project, harness):
         """A rebuilt group gives the layer a new node with no indicator on it; waiting for
         the 5 s tick to put it back is what looked like a slow refresh."""
         _projDir, paths = project
@@ -286,6 +288,46 @@ class TestRefresh:
         # QTimer is mocked at class level, so every instance shares one recorder.
         item.manager._pending.start.reset_mock()
 
-        item.manager._onTreeChanged(None, 0, 0)
+        item.manager._onLayersAdded([])
 
         item.manager._pending.start.assert_called_once()
+
+
+class TestPluginReload:
+    """A reloaded plugin leaves the previous manager connected and ticking unless it is
+    found and shut down: it closes over the old plugin's blank project info, so its idea of
+    what is stale is 'nothing', and it strips every warning the new manager adds."""
+
+    def test_a_new_manager_stops_the_previous_one(self, project, harness):
+        _projDir, paths = project
+        first = harness([_FakeLayer("results", paths["results"])])
+        second = harness([_FakeLayer("results", paths["results"])])
+
+        assert first.manager._stopped is True
+        assert second.manager._stopped is False
+
+    def test_a_superseded_manager_touches_nothing(self, project, harness):
+        _projDir, paths = project
+        first = harness([_FakeLayer("results", paths["results"])])
+        first.manager._check()
+        harness([_FakeLayer("results", paths["results"])])
+
+        # The zombie's own view still shows what it put there; what matters is that
+        # another pass neither adds nor removes anything.
+        first.view.viewport().update.reset_mock()
+        first.manager._check()
+        first.manager._onLayersWillBeRemoved(["results"])
+
+        first.view.viewport().update.assert_not_called()
+
+    def test_stop_disconnects_even_if_clearing_fails(self, project, harness):
+        """stop() runs inside unload()'s blanket suppress: a failure while clearing the
+        icons must not leave the manager connected."""
+        _projDir, paths = project
+        item = harness([_FakeLayer("results", paths["results"])])
+        item.manager._clearAll = MagicMock(side_effect=RuntimeError("view already gone"))
+
+        item.manager.stop()
+
+        assert item.manager._stopped is True
+        assert item.manager._isActive() is False

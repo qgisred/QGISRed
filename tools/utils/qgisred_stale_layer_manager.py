@@ -38,6 +38,28 @@ EXCLUDED_SUBDIRS = (DIR_AUXILIARY_LAYERS,)
 # Demands Manager can add layers to the group from outside the project folder).
 EXCLUDED_IDENTIFIER_PREFIXES = ("qgisred_demandsbuilder", "qgisred_demandsectors")
 
+# Where the running manager is published so the *next* plugin load can find it.
+#
+# Reloading the plugin re-imports this module, so a module-level global would come back
+# empty and the previous manager — still connected to QgsProject, still holding a running
+# timer, and still closing over the unloaded plugin's now-blank NetworkName — would keep
+# sweeping the tree and stripping the warnings the new manager had just put there.
+# qgis.utils is never reloaded, which makes it the one place the two loads share.
+_REGISTRY_ATTRIBUTE = "_qgisredStaleLayerManager"
+
+
+def _activeInstance():
+    with suppress(Exception):
+        import qgis.utils
+        return getattr(qgis.utils, _REGISTRY_ATTRIBUTE, None)
+    return None
+
+
+def _setActiveInstance(manager):
+    with suppress(Exception):
+        import qgis.utils
+        setattr(qgis.utils, _REGISTRY_ATTRIBUTE, manager)
+
 
 class StaleLayerManager:
     """Polls every 5 s and marks Issues/Queries/Results layers whose files are older than
@@ -54,22 +76,28 @@ class StaleLayerManager:
         self._owned = set()        # every indicator this manager created and has not removed
         self._indicators = {}      # layer_id → the indicator currently on its node
         self._dirty = False        # an indicator was added or removed since the last repaint
+        self._stopped = False
+
+        previous = _activeInstance()
+        if previous is not None and previous is not self:
+            with suppress(Exception):
+                previous.stop()
+        _setActiveInstance(self)
 
         # Strip the indicator while the node is still alive. The sweep would catch the
         # leftover eventually, but only once something else surfaced it.
         QgsProject.instance().layersWillBeRemoved.connect(self._onLayersWillBeRemoved)
 
-        # The poll only notices a file whose mtime moved. A group being rebuilt gives the
-        # layer brand new nodes that carry no indicator at all, and waiting up to five
-        # seconds for the next tick to put it back is what read as "it takes a while".
+        # The poll only notices a file whose mtime moved. Opening a group gives its layers
+        # brand new nodes that carry no indicator at all, and waiting up to five seconds
+        # for the next tick to put it back is what read as "it takes a while".
+        # legendLayersAdded fires once per batch — the layer tree's own addedChildren
+        # fires per node, which is far too hot a signal to hang plugin code off.
         self._pending = QTimer()
         self._pending.setSingleShot(True)
         self._pending.setInterval(200)
         self._pending.timeout.connect(self._check)
-        with suppress(Exception):
-            root = QgsProject.instance().layerTreeRoot()
-            root.addedChildren.connect(self._onTreeChanged)
-            root.removedChildren.connect(self._onTreeChanged)
+        QgsProject.instance().legendLayersAdded.connect(self._onLayersAdded)
 
         self._timer = QTimer()
         self._timer.setInterval(5000)
@@ -145,7 +173,21 @@ class StaleLayerManager:
 
         return stale
 
+    def _isActive(self):
+        """False for a manager the plugin has moved on from.
+
+        stop() is the normal way out, but it runs inside unload()'s blanket suppress and a
+        single failure there used to leave the whole object connected and ticking. Checking
+        the registry means a superseded manager does nothing even if it was never stopped.
+        """
+        if self._stopped:
+            return False
+        active = _activeInstance()
+        return active is None or active is self
+
     def _check(self):
+        if not self._isActive():
+            return
         self._syncIndicators(self._staleLayerIds())
 
     # ------------------------------------------------------------------
@@ -248,6 +290,8 @@ class StaleLayerManager:
 
     def _onLayersWillBeRemoved(self, layers):
         """Take the indicator off the node before the node is destroyed."""
+        if not self._isActive():
+            return
         view = self._view()
         root = QgsProject.instance().layerTreeRoot()
         for item in layers:
@@ -262,12 +306,14 @@ class StaleLayerManager:
                 self._clearNode(view, node)
         self._repaint(view)
 
-    def _onTreeChanged(self, *_args):
-        """Re-check shortly after the tree settles.
+    def _onLayersAdded(self, _layers):
+        """Re-check shortly after the new nodes are in place.
 
-        Debounced because opening a project emits this per node: one sweep once the whole
-        group is in place, not one per layer.
+        Debounced rather than immediate: opening a group emits this once per call, and the
+        plugin opens several in a row.
         """
+        if not self._isActive():
+            return
         self._pending.start()
 
     # ------------------------------------------------------------------
@@ -279,12 +325,24 @@ class StaleLayerManager:
         self._check()
 
     def stop(self):
-        self._timer.stop()
-        self._pending.stop()
-        self._clearAll()
-        with suppress(Exception):
-            QgsProject.instance().layersWillBeRemoved.disconnect(self._onLayersWillBeRemoved)
-        with suppress(Exception):
-            root = QgsProject.instance().layerTreeRoot()
-            root.addedChildren.disconnect(self._onTreeChanged)
-            root.removedChildren.disconnect(self._onTreeChanged)
+        """Disconnect and clean up. Safe to call twice, and never leaves half a manager.
+
+        unload() calls this inside a blanket suppress, so the order matters: everything
+        that keeps the object reachable from Qt goes first, and the flag is set in a
+        finally, so a failure while clearing the icons cannot resurrect the manager.
+        """
+        try:
+            with suppress(Exception):
+                QgsProject.instance().layersWillBeRemoved.disconnect(self._onLayersWillBeRemoved)
+            with suppress(Exception):
+                QgsProject.instance().legendLayersAdded.disconnect(self._onLayersAdded)
+            with suppress(Exception):
+                self._timer.stop()
+            with suppress(Exception):
+                self._pending.stop()
+            with suppress(Exception):
+                self._clearAll()
+        finally:
+            self._stopped = True
+            if _activeInstance() is self:
+                _setActiveInstance(None)

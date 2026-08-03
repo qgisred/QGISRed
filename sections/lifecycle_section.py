@@ -11,7 +11,7 @@ import urllib.request
 import urllib.parse
 import ssl
 
-from qgis.core import QgsProject, QgsMessageLog, QgsApplication
+from qgis.core import QgsProject, QgsMessageLog, QgsApplication, QgsTask
 from qgis.PyQt.QtGui import QIcon
 from qgis.PyQt.QtWidgets import QMessageBox, QMenu, QToolButton
 from qgis.PyQt.QtCore import Qt, QTranslator, qVersion, QCoreApplication, QTimer
@@ -81,6 +81,7 @@ class LifecycleSection:
         self._latestNewsId = None
         self._latestNewsTitle = None
         self._latestNewsHtml = None
+        self._newsTask = None
 
     # All contexts that pylupdate5 assigns to section classes (since they are not QObject
     # subclasses, self.tr() always resolves here via MRO instead of using the class name).
@@ -223,6 +224,10 @@ class LifecycleSection:
         self.layerOperationInProgress = False
         self._loading_project = False
 
+        with suppress(Exception):
+            if QgsProject.instance().mapLayers():
+                self.defineCurrentProject()
+
         self._staleLayerManager = StaleLayerManager(
             self.iface,
             lambda: (getattr(self, "NetworkName", ""), getattr(self, "ProjectDirectory", ""))
@@ -358,6 +363,11 @@ class LifecycleSection:
 
         with suppress(Exception):
             self._mapTip.stop()
+
+        with suppress(Exception):
+            if self._newsTask is not None:
+                task, self._newsTask = self._newsTask, None
+                task.cancel()
 
         # Disconnect signal handlers to prevent callbacks during cleanup
         with suppress(Exception):
@@ -525,41 +535,84 @@ class LifecycleSection:
 
         return valid
 
-    def checkForNews(self, force=False):
-        """Fetch language-specific news from the server; show the dialog if the id is new."""
+    def _fetchNews(self, force):
+        """Download the news, or None if there is nothing new to show. Runs off the GUI thread."""
         language = "es" if QgsApplication.locale()[0:2] == "es" else "en"
         news_url = "https://qgisred.upv.es/files/news/" + language + "/news.json"
         _ctx = ssl.create_default_context()
-        with suppress(Exception):
-            with urllib.request.urlopen(news_url, timeout=10, context=_ctx) as response:  # nosec B310 — news_url is a hardcoded https:// constant
-                data = json.loads(response.read().decode("utf-8"))
-            news_id = data.get("id", "")
-            title = data.get("title", self.tr("QGISRed News"))
-            html_url = data.get("html_url", "")
-            if not news_id or not html_url:
+
+        with urllib.request.urlopen(news_url, timeout=10, context=_ctx) as response:  # nosec B310 — news_url is a hardcoded https:// constant
+            data = json.loads(response.read().decode("utf-8"))
+        news_id = data.get("id", "")
+        title = data.get("title", self.tr("QGISRed News"))
+        html_url = data.get("html_url", "")
+        if not news_id or not html_url:
+            return None
+
+        # Check if this id was already seen (skip when forced from toolbar)
+        if not force:
+            seen_file = os.path.join(QGISRedFileSystemUtils().getQGISRedFolder(), "seenNews.dat")
+            seen_ids = []
+            if os.path.exists(seen_file):
+                with open(seen_file, "r", encoding="utf-8") as f:
+                    seen_ids = [line.strip() for line in f if line.strip()]
+            if news_id in seen_ids:
+                return None
+
+        # Resolve html_url relative to the news JSON URL
+        resolved_html_url = urllib.parse.urljoin(news_url, html_url)
+        if not resolved_html_url.startswith("https://"):
+            return None
+        with urllib.request.urlopen(resolved_html_url, timeout=10, context=_ctx) as response:  # nosec B310 — validated startswith("https://") above
+            html_content = response.read().decode("utf-8")
+
+        return news_id, title, html_content
+
+    def checkForNews(self, force=False):
+        """Fetch the news in a task, then show the dialog if the id is new.
+
+        The download must not run on the GUI thread. It fires two seconds after every
+        plugin load, and when the server cannot be reached the socket blocks for the whole
+        timeout — which froze the entire QGIS window for ten seconds on each refresh.
+        """
+        if self._newsTask is not None:
+            if force:
+                self.pushMessage(self.tr("Checking for QGISRed news…"), level=0, duration=3)
+            return
+
+        def fetch(_task):
+            # Never let the task raise: QGIS reports a failed task with a banner. The
+            # outcome is reported back instead, because a forced check has to tell the user
+            # why nothing opened, while the automatic one at startup stays quiet.
+            try:
+                return {"news": self._fetchNews(force)}
+            except Exception:
+                return {"unreachable": True}
+
+        def finished(exception, result=None):
+            task, self._newsTask = self._newsTask, None
+            if task is None:
+                return  # unload() dropped the task
+            if exception is not None or not result or result.get("unreachable"):
+                if force:
+                    self.pushMessage(
+                        self.tr("QGISRed news are not available: the server could not be reached."),
+                        level=1,
+                        duration=5,
+                    )
                 return
-
-            # Check if this id was already seen (skip when forced from toolbar)
-            if not force:
-                seen_file = os.path.join(QGISRedFileSystemUtils().getQGISRedFolder(), "seenNews.dat")
-                seen_ids = []
-                if os.path.exists(seen_file):
-                    with open(seen_file, "r", encoding="utf-8") as f:
-                        seen_ids = [line.strip() for line in f if line.strip()]
-                if news_id in seen_ids:
-                    return
-
-            # Resolve html_url relative to the news JSON URL
-            resolved_html_url = urllib.parse.urljoin(news_url, html_url)
-            if not resolved_html_url.startswith("https://"):
+            news = result.get("news")
+            if not news:
+                if force:
+                    self.pushMessage(self.tr("There are no QGISRed news to show."), level=0, duration=5)
                 return
-            with urllib.request.urlopen(resolved_html_url, timeout=10, context=_ctx) as response:  # nosec B310 — validated startswith("https://") above
-                html_content = response.read().decode("utf-8")
-
-            self._latestNewsId = news_id
-            self._latestNewsTitle = title
-            self._latestNewsHtml = html_content
+            self._latestNewsId, self._latestNewsTitle, self._latestNewsHtml = news
             self.runNewsDialog(force=force)
+
+        flags = QgsTask.Flag.Hidden | QgsTask.Flag.Silent
+        with suppress(Exception):
+            self._newsTask = QgsTask.fromFunction(self.tr("QGISRed News"), fetch, on_finished=finished, flags=flags)
+            QgsApplication.taskManager().addTask(self._newsTask)
 
     def runNewsDialog(self, force=False):
         """Open the news dialog. force=True: skip seen-ids check and hide the 'don't show' checkbox."""
