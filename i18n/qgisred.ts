@@ -9073,37 +9073,37 @@ Do you want to proceed?</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../ui/analysis/qgisred_results_distribution.py" line="553"/>
+        <location filename="../ui/analysis/qgisred_results_distribution.py" line="555"/>
         <source>Freq</source>
         <translation type="unfinished">Freq</translation>
     </message>
     <message>
-        <location filename="../ui/analysis/qgisred_results_distribution.py" line="554"/>
+        <location filename="../ui/analysis/qgisred_results_distribution.py" line="556"/>
         <source>Cumul</source>
         <translation type="unfinished">Cumul</translation>
     </message>
     <message>
-        <location filename="../ui/analysis/qgisred_results_distribution.py" line="754"/>
+        <location filename="../ui/analysis/qgisred_results_distribution.py" line="756"/>
         <source>Expand histogram to a floating window</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../ui/analysis/qgisred_results_distribution.py" line="666"/>
+        <location filename="../ui/analysis/qgisred_results_distribution.py" line="668"/>
         <source>Show Node Histogram</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../ui/analysis/qgisred_results_distribution.py" line="667"/>
+        <location filename="../ui/analysis/qgisred_results_distribution.py" line="669"/>
         <source>Show Link Histogram</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../ui/analysis/qgisred_results_distribution.py" line="754"/>
+        <location filename="../ui/analysis/qgisred_results_distribution.py" line="756"/>
         <source>Collapse histogram back to the panel</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../ui/analysis/qgisred_results_distribution.py" line="789"/>
+        <location filename="../ui/analysis/qgisred_results_distribution.py" line="791"/>
         <source>Histogram</source>
         <translation type="unfinished"></translation>
     </message>

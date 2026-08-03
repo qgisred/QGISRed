@@ -1,4 +1,6 @@
 # -*- coding: utf-8 -*-
+from unittest.mock import MagicMock, patch
+
 from QGISRed.ui.analysis.qgisred_results_distribution import (
     _ResultsDistributionMixin,
     _find_class_index,
@@ -236,17 +238,58 @@ class TestHoverBarAtGeometry:
 class TestDistributionChartTitleTemplate:
     def test_frequency_title_with_units(self):
         title = (
-            _ResultsDistributionMixin._DISTRIBUTION_TITLE_TEMPLATE.replace("%1", "Flow").replace(
+            _ResultsDistributionMixin._DISTRIBUTION_TITLE_TEMPLATE.replace("%1", "Flows").replace(
                 "%2", " (gpm)"
             )
         )
-        assert title == "Flow frequency (gpm)"
+        assert title == "Flows frequency (gpm)"
 
     def test_frequency_title_without_units(self):
-        title = _ResultsDistributionMixin._DISTRIBUTION_TITLE_TEMPLATE.replace("%1", "Pressure").replace(
+        title = _ResultsDistributionMixin._DISTRIBUTION_TITLE_TEMPLATE.replace("%1", "Pressures").replace(
             "%2", ""
         )
-        assert title == "Pressure frequency"
+        assert title == "Pressures frequency"
+
+
+class TestDistributionChartTitleUsesPlural:
+    """The histogram covers every element, so its title must read in plural."""
+
+    class _Dock(_ResultsDistributionMixin):
+        def __init__(self, field):
+            self._field = field
+
+        def _distributionFieldForLayer(self, layer_type):
+            return self._field
+
+        def _distributionMagnitudeLabel(self, layer_type):
+            return "fallback"
+
+        def tr(self, message):
+            return message
+
+    def _title(self, layer_type, field, plural, singular, unit):
+        fieldUtils = MagicMock()
+        fieldUtils.getPluralProperty.return_value = plural
+        fieldUtils.getProperty.return_value = singular
+        fieldUtils.getUnitAbbreviation.return_value = unit
+        with patch(
+            "QGISRed.ui.analysis.qgisred_results_distribution.QGISRedFieldUtils",
+            return_value=fieldUtils,
+        ):
+            return self._Dock(field)._distributionChartTitle(layer_type), fieldUtils
+
+    def test_title_uses_plural_name(self):
+        title, fieldUtils = self._title("Node", "Pressure", "Pressures", "Pressure", "m")
+        assert title == "Pressures frequency (m)"
+        fieldUtils.getPluralProperty.assert_called_once_with("Nodes", "Pressure")
+
+    def test_title_without_unit(self):
+        title, _ = self._title("Link", "Velocity", "Velocities", "Velocity", "")
+        assert title == "Velocities frequency"
+
+    def test_no_field_gives_empty_title(self):
+        title, _ = self._title("Node", "", "", "", "")
+        assert title == ""
 
 
 class _FakeHost:

@@ -529,14 +529,16 @@ class _ResultsDistributionMixin:
         self._syncDistributionPanelVisibility()
 
     def _distributionChartTitle(self, layer_type):
-        """Return a chart title including variable + units, e.g. 'Flow frequency (gpm)'."""
+        """Return a chart title including variable + units, e.g. 'Flows frequency (gpm)'."""
         field_name = self._distributionFieldForLayer(layer_type)
         if not field_name:
             return ""
 
         element = normalize_element(layer_type)  # 'Node' -> 'Nodes', 'Link' -> 'Links'
         fu = QGISRedFieldUtils()
-        prop = fu.getProperty(element, field_name, translate=True) or self._distributionMagnitudeLabel(layer_type)
+        # Plural: the histogram covers every element, not one ("Frecuencia de Presiones").
+        # Same wording as the statistics dock chart titles.
+        prop = fu.getPluralProperty(element, field_name) or self._distributionMagnitudeLabel(layer_type)
         unit = fu.getUnitAbbreviation(element, field_name) or ""
         unit_part = f" ({unit})" if unit else ""
         return self.tr(self._DISTRIBUTION_TITLE_TEMPLATE).replace("%1", prop).replace("%2", unit_part)
