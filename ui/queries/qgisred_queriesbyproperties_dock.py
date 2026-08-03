@@ -1112,6 +1112,9 @@ class QGISRedQueriesByPropertiesDock(QDockWidget, FORM_CLASS):
                 for code in strVals:
                     self.cbValueList.addItem(getValveTypeName(code), code)
                 i = self.cbValueList.findData(previous)
+                # QGISRED_COMBO_STYLE clamps the popup to the combo's own width;
+                # long translated names need it widened or they show elided.
+                QGISRedUIUtils.widenPopupToContents(self.cbValueList)
             else:
                 self.cbValueList.addItems(strVals)
                 i = self.cbValueList.findText(previous)

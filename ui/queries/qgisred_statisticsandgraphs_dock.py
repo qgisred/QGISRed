@@ -2948,7 +2948,7 @@ class QGISRedStatisticsDock(QDockWidget, formClass):
 
     def populateTable(self, bins, prettyClassify, prettyProperty, propertyUnit, elementIdentifier, propertyField, groupHeader=None, groupLabel=None, includeTotal=True):
         if self.isEnumeratedTarget:
-            self.populateEnumeratedTable(bins, prettyClassify, prettyProperty, includeTotal=includeTotal)
+            self.populateEnumeratedTable(bins, prettyClassify, prettyProperty, includeTotal=includeTotal, propertyField=propertyField)
         else:
             self.populateNumericTable(bins, prettyClassify, prettyProperty, propertyField, elementIdentifier, includeTotal=includeTotal)
         if groupHeader is not None and groupLabel is not None:
@@ -3154,16 +3154,26 @@ class QGISRedStatisticsDock(QDockWidget, formClass):
         self.captureTableBaseWidths()
         self.tbExcel.verticalHeader().setVisible(False)
 
-    def populateEnumeratedTable(self, bins, prettyClassify, prettyProperty, includeTotal=True):
+    def populateEnumeratedTable(self, bins, prettyClassify, prettyProperty, includeTotal=True, propertyField=None):
         headers = [prettyClassify, self.tr("Count"), prettyProperty]
         self.tbExcel.setColumnCount(len(headers))
         self.tbExcel.setHorizontalHeaderLabels(headers)
         self.tbExcel.setRowCount(len(bins) + (1 if includeTotal else 0))
 
+        # The Property column lists the distinct raw values found in each bin —
+        # translate them too when Property is itself the valve type field (most
+        # visible when "Classified by" is also ValveType: both columns are then
+        # the same field and must show the same abbreviation, not one translated
+        # and one raw).
+        isValvePropertyType = propertyField in ("Type", "ValveType")
+
+        def displayValue(value):
+            return getValveTypeAbbreviation(value) if isValvePropertyType else value
+
         totalCount = 0
         totalValues = set()
         for rowIndex, binData in enumerate(bins):
-            sortedValues = sorted(binData["values"], key=lambda item: str(item))
+            sortedValues = sorted({displayValue(v) for v in binData["values"]}, key=str)
             joinedFull = ", ".join(sortedValues)
             joinedDisplay = self.truncateEnumString(joinedFull)
             self.setTableItem(rowIndex, 0, binData.get("label", ""))
@@ -3173,7 +3183,7 @@ class QGISRedStatisticsDock(QDockWidget, formClass):
             item.setTextAlignment(Qt.AlignmentFlag.AlignCenter)
             self.tbExcel.setItem(rowIndex, 2, item)
             totalCount += binData["count"]
-            totalValues.update(binData["values"])
+            totalValues.update(displayValue(v) for v in binData["values"])
 
         if includeTotal:
             totalSorted = sorted(totalValues, key=lambda item: str(item))

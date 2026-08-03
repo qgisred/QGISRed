@@ -35,7 +35,7 @@ from ...compat import QAction, sip
 from ...tools.utils.qgisred_field_utils import QGISRedFieldUtils, normalize_element
 from ...tools.utils.qgisred_filesystem_utils import QGISRedFileSystemUtils
 from ...tools.utils.qgisred_project_utils import QGISRedProjectUtils
-from ...tools.utils.qgisred_ui_utils import QGISRedBanner, QGISRED_COMBO_STYLE
+from ...tools.utils.qgisred_ui_utils import QGISRedBanner, QGISRED_COMBO_STYLE, QGISRedUIUtils
 from ...tools.utils.qgisred_valve_types import getValveTypeName
 
 
@@ -558,6 +558,9 @@ class QGISRedGroupEditDialog(QDialog, FORM_CLASS):
             for code in values:
                 self.cbEnum.addItem(getValveTypeName(code), code)
             index = self.cbEnum.findData(previous)
+            # QGISRED_COMBO_STYLE clamps the popup to the combo's own width;
+            # long translated names need it widened or they show elided.
+            QGISRedUIUtils.widenPopupToContents(self.cbEnum)
         else:
             self.cbEnum.addItems(values)
             index = self.cbEnum.findText(previous)

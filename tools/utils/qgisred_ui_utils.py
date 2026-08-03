@@ -176,6 +176,22 @@ class QGISRedUIUtils:
         combo.view().setVerticalScrollBarPolicy(Qt.ScrollBarPolicy.ScrollBarAsNeeded)
 
     @staticmethod
+    def widenPopupToContents(combo, extraPadding=40):
+        """Widen a combobox's dropdown popup so its longest item shows in full.
+
+        QGISRED_COMBO_STYLE sets `combobox-popup: 0`, which makes Qt render the
+        popup with a plain QListView clamped to the combo's own (often narrow)
+        width instead of auto-sizing to the widest item — the default behaviour
+        without that style. Call this after (re)populating a combo whose items
+        can be longer than the field itself, e.g. translated valve type names.
+        """
+        from qgis.PyQt.QtGui import QFontMetrics
+        fm = QFontMetrics(combo.font())
+        widest = max((fm.horizontalAdvance(combo.itemText(i)) for i in range(combo.count())), default=0)
+        if widest:
+            combo.view().setMinimumWidth(widest + extraPadding)
+
+    @staticmethod
     def showGlobalMessage(iface, text, level=0, duration=5):
         """
         Standardized global QGIS message bar call for QGISRed.
