@@ -18,7 +18,7 @@ from ...tools.utils.qgisred_auxiliary_layers import (
 )
 from ...tools.utils.qgisred_base_demand_fields import (
     MAX_FIELD_NAME_LENGTH, NAME_DUPLICATE, NAME_INVALID, NAME_TOO_LONG,
-    applyFieldChanges, baseDemandFieldNames, planFieldChanges, validateRows,
+    applyFieldChanges, baseDemandFieldNames, planFieldChanges, suggestFieldName, validateRows,
 )
 from ...tools.qgisred_dependencies import QGISRedDependencies as GISRed
 
@@ -137,9 +137,12 @@ class _BaseDemandFieldsDialog(QDialog):
     rename from a delete plus an add — a rename keeps the column's values.
     """
 
+    MINIMUM_WIDTH = 350
+
     def __init__(self, fieldNames, parent=None):
         super(_BaseDemandFieldsDialog, self).__init__(parent)
         self.setWindowTitle(self.tr("Base demand fields"))
+        self.setMinimumWidth(self.MINIMUM_WIDTH)
 
         self.lstFields = QListWidget(self)
         for name in fieldNames:
@@ -178,6 +181,10 @@ class _BaseDemandFieldsDialog(QDialog):
         layout.addLayout(listRow)
         layout.addLayout(buttonRow)
 
+        # Names are checked when this dialog is accepted, so the complaint has to appear
+        # here: reporting it from the parent would mean the edits are already discarded.
+        self.messageBar = QGISRedBanner.inject(self, layout)
+
     def _appendRow(self, text, original=None):
         item = QListWidgetItem(text)
         item.setFlags(item.flags() | Qt.ItemFlag.ItemIsEditable)
@@ -187,7 +194,8 @@ class _BaseDemandFieldsDialog(QDialog):
         return item
 
     def addRow(self):
-        item = self._appendRow("")
+        # Offer the next free name in the family, still open for editing.
+        item = self._appendRow(suggestFieldName([name for _original, name in self.rows()]))
         self.lstFields.setCurrentItem(item)
         self.lstFields.editItem(item)
 
@@ -207,6 +215,24 @@ class _BaseDemandFieldsDialog(QDialog):
             item = self.lstFields.item(row)
             result.append((item.data(Qt.ItemDataRole.UserRole), item.text().strip()))
         return result
+
+    def fieldError(self, error, name):
+        if error == NAME_TOO_LONG:
+            return self.tr("Field names may hold at most %1 characters").replace(
+                "%1", str(MAX_FIELD_NAME_LENGTH))
+        if error == NAME_DUPLICATE:
+            return self.tr("There is already a field called %1").replace("%1", name)
+        if error == NAME_INVALID:
+            return self.tr("%1 is not a valid field name").replace("%1", name)
+        return self.tr("The theme needs at least one base demand field")
+
+    def accept(self):
+        """Refuse to close on a name that cannot be used, so the edits are not lost."""
+        error, name = validateRows(self.rows())
+        if error:
+            self.messageBar.pushMessage(self.tr("Warning"), self.fieldError(error, name), level=1)
+            return
+        super(_BaseDemandFieldsDialog, self).accept()
 
 
 class QGISRedLayerManagementDialog(QDialog, FORM_CLASS):
@@ -418,13 +444,8 @@ class QGISRedLayerManagementDialog(QDialog, FORM_CLASS):
         if not dialog.exec():
             return
 
-        rows = dialog.rows()
-        error, name = validateRows(rows)
-        if error:
-            self.pushMessage(self.tr("Warning"), self.baseDemandFieldError(error, name), level=1)
-            return
-
-        renames, additions, deletions = planFieldChanges(originalNames, rows)
+        # The dialog refuses to close on a name that cannot be used, so these rows are sound.
+        renames, additions, deletions = planFieldChanges(originalNames, dialog.rows())
         if not (renames or additions or deletions):
             return
 
@@ -446,16 +467,6 @@ class QGISRedLayerManagementDialog(QDialog, FORM_CLASS):
         if wasOpen:
             # Point labels are driven by a base demand field, so the style has to follow.
             self.parent.syncAuxiliaryThemes([path], load=True)
-
-    def baseDemandFieldError(self, error, name):
-        if error == NAME_TOO_LONG:
-            return self.tr("Field names may hold at most %1 characters").replace(
-                "%1", str(MAX_FIELD_NAME_LENGTH))
-        if error == NAME_DUPLICATE:
-            return self.tr("There is already a field called %1").replace("%1", name)
-        if error == NAME_INVALID:
-            return self.tr("%1 is not a valid field name").replace("%1", name)
-        return self.tr("The theme needs at least one base demand field")
 
     def deleteAuxiliaryTheme(self):
         row = self.tbAuxiliary.currentRow()

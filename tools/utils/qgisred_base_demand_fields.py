@@ -67,6 +67,30 @@ def validateRows(rows):
     return NAME_OK, ""
 
 
+def suggestFieldName(existingNames, stem=""):
+    """A free name in the family of the one the DLL writes: BaseDem, BaseDem2, BaseDem3…
+
+    Returns "" when no numbered name fits in MAX_FIELD_NAME_LENGTH, leaving the user to
+    type one rather than offering a name that would be rejected.
+    """
+    from .qgisred_auxiliary_layers import DEFAULT_BASE_DEMAND_FIELD
+
+    stem = stem or DEFAULT_BASE_DEMAND_FIELD
+    taken = {name.lower() for name in existingNames if name}
+
+    if stem.lower() not in taken and len(stem) <= MAX_FIELD_NAME_LENGTH:
+        return stem
+
+    index = 2
+    while True:
+        candidate = stem + str(index)
+        if len(candidate) > MAX_FIELD_NAME_LENGTH:
+            return ""
+        if candidate.lower() not in taken:
+            return candidate
+        index += 1
+
+
 def planFieldChanges(originalNames, rows):
     """(renames, additions, deletions) that turn `originalNames` into `rows`.
 

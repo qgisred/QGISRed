@@ -22,6 +22,7 @@ from QGISRed.tools.utils.qgisred_base_demand_fields import (
     applyFieldChanges,
     baseDemandFieldNames,
     planFieldChanges,
+    suggestFieldName,
     validateFieldName,
     validateRows,
 )
@@ -85,6 +86,38 @@ class TestValidateRows:
 
     def test_a_row_left_blank_is_refused(self):
         assert validateRows([("BaseDem", "")]) == (NAME_EMPTY, "")
+
+
+class TestSuggestFieldName:
+    """Adding a field offers the next free name in the family instead of a blank row."""
+
+    def test_the_first_suggestion_is_the_name_the_dll_writes(self):
+        from QGISRed.tools.utils.qgisred_auxiliary_layers import DEFAULT_BASE_DEMAND_FIELD
+        assert suggestFieldName([]) == DEFAULT_BASE_DEMAND_FIELD
+
+    def test_a_taken_stem_is_numbered_from_two(self):
+        assert suggestFieldName(["BaseDem"]) == "BaseDem2"
+
+    def test_the_number_skips_what_is_already_there(self):
+        assert suggestFieldName(["BaseDem", "BaseDem2", "BaseDem3"]) == "BaseDem4"
+
+    def test_a_gap_in_the_numbering_is_filled(self):
+        assert suggestFieldName(["BaseDem", "BaseDem3"]) == "BaseDem2"
+
+    def test_the_comparison_ignores_case(self):
+        assert suggestFieldName(["basedem"]) == "BaseDem2"
+
+    def test_the_suggestion_never_exceeds_the_dbf_limit(self):
+        taken = ["Field"] + ["Field%d" % n for n in range(2, 100000)]
+        suggested = suggestFieldName(taken, stem="Field")
+        assert suggested == "" or len(suggested) <= MAX_FIELD_NAME_LENGTH
+
+    def test_a_suggestion_is_always_a_valid_name(self):
+        suggested = suggestFieldName(["BaseDem", "BaseDem2"])
+        assert validateFieldName(suggested, ["BaseDem", "BaseDem2"]) == NAME_OK
+
+    def test_blank_rows_do_not_count_as_taken(self):
+        assert suggestFieldName(["", None]) == "BaseDem"
 
 
 class TestPlanFieldChanges:
@@ -187,3 +220,53 @@ class TestApplyFieldChanges:
         provider.deleteAttributes.return_value = False
         applyFieldChanges(layer, {"B": "C"}, [], ["A"])
         provider.renameAttributes.assert_not_called()
+
+
+class TestFieldsDialogValidation:
+    """A bad name must be caught before the dialog closes, or the edits are thrown away."""
+
+    def _dialog(self, rows):
+        from QGISRed.ui.project.qgisred_layermanagement_dialog import _BaseDemandFieldsDialog
+
+        dialog = _BaseDemandFieldsDialog.__new__(_BaseDemandFieldsDialog)
+        dialog.messageBar = MagicMock()
+        dialog.rows = lambda: rows
+        return dialog
+
+    def _accept(self, dialog):
+        from QGISRed.ui.project.qgisred_layermanagement_dialog import _BaseDemandFieldsDialog
+
+        base = _BaseDemandFieldsDialog.__mro__[1]
+        accepted = []
+        original = getattr(base, "accept", None)
+        base.accept = lambda self: accepted.append(True)
+        try:
+            _BaseDemandFieldsDialog.accept(dialog)
+        finally:
+            if original is None:
+                del base.accept
+            else:
+                base.accept = original
+        return bool(accepted)
+
+    def test_a_duplicate_keeps_the_dialog_open(self):
+        dialog = self._dialog([("BaseDem", "Fact"), (None, "Fact")])
+        assert self._accept(dialog) is False
+
+    def test_the_complaint_is_shown_in_this_dialog(self):
+        dialog = self._dialog([("BaseDem", "Fact"), (None, "Fact")])
+        self._accept(dialog)
+        assert dialog.messageBar.pushMessage.call_count == 1
+
+    def test_an_empty_row_keeps_the_dialog_open(self):
+        dialog = self._dialog([("BaseDem", "")])
+        assert self._accept(dialog) is False
+
+    def test_a_name_that_is_too_long_keeps_the_dialog_open(self):
+        dialog = self._dialog([(None, "A" * (MAX_FIELD_NAME_LENGTH + 1))])
+        assert self._accept(dialog) is False
+
+    def test_sound_rows_let_it_close(self):
+        dialog = self._dialog([("BaseDem", "BaseDem"), (None, "BaseDem2")])
+        assert self._accept(dialog) is True
+        dialog.messageBar.pushMessage.assert_not_called()

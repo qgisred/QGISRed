@@ -1322,7 +1322,7 @@
     <message>
         <location filename="../tools/qgisred_translatable_strings.py" line="42"/>
         <source>MinimumLevel</source>
-        <translation>Nivel Mínimo</translation>
+        <translation type="obsolete">Nivel Mínimo</translation>
     </message>
     <message>
         <location filename="../tools/qgisred_translatable_strings.py" line="11"/>
@@ -1978,6 +1978,11 @@
         <location filename="../tools/qgisred_translatable_strings.py" line="228"/>
         <source>Wall Coefficients</source>
         <translation>Coefs. de Reacción en Pared</translation>
+    </message>
+    <message>
+        <location filename="../tools/qgisred_translatable_strings.py" line="42"/>
+        <source>Minimum Level</source>
+        <translation type="unfinished"></translation>
     </message>
 </context>
 <context>
@@ -4818,7 +4823,7 @@ La información de sectores existente podría ser reemplazada.
     <message>
         <location filename="../ui/general/qgisred_import_dialog.ui" line="3216"/>
         <source>Sevice Connection Length</source>
-        <translation>Longitud de acometida</translation>
+        <translation type="obsolete">Longitud de acometida</translation>
     </message>
     <message>
         <location filename="../ui/general/qgisred_import_dialog.ui" line="3291"/>
@@ -5090,6 +5095,11 @@ La información de sectores existente podría ser reemplazada.
         <source>QGISRed</source>
         <translation type="unfinished">QGISRed</translation>
     </message>
+    <message>
+        <location filename="../ui/general/qgisred_import_dialog.ui" line="3216"/>
+        <source>Service Connection Length</source>
+        <translation type="unfinished"></translation>
+    </message>
 </context>
 <context>
     <name>QGISRedImportProjectDialog</name>
@@ -5292,22 +5302,22 @@ La información de sectores existente podría ser reemplazada.
         <translation type="obsolete">Cargar/Descargar elementos del Gemelo Digital en la leyenda</translation>
     </message>
     <message>
-        <location filename="../ui/project/qgisred_layermanagement_dialog.py" line="514"/>
+        <location filename="../ui/project/qgisred_layermanagement_dialog.py" line="522"/>
         <source>Warning</source>
         <translation type="unfinished">Advertencia</translation>
     </message>
     <message>
-        <location filename="../ui/project/qgisred_layermanagement_dialog.py" line="491"/>
+        <location filename="../ui/project/qgisred_layermanagement_dialog.py" line="499"/>
         <source>Only coordinate systems with an EPSG code are supported</source>
         <translation type="unfinished">Solo se admiten sistemas de coordenadas con código EPSG</translation>
     </message>
     <message>
-        <location filename="../ui/project/qgisred_layermanagement_dialog.py" line="514"/>
+        <location filename="../ui/project/qgisred_layermanagement_dialog.py" line="522"/>
         <source>Some issues occurred in the process</source>
         <translation type="unfinished">Ha habido algún error en el proceso</translation>
     </message>
     <message>
-        <location filename="../ui/project/qgisred_layermanagement_dialog.py" line="516"/>
+        <location filename="../ui/project/qgisred_layermanagement_dialog.py" line="524"/>
         <source>Error</source>
         <translation type="unfinished">Error</translation>
     </message>
@@ -5357,32 +5367,32 @@ La información de sectores existente podría ser reemplazada.
         <translation type="unfinished">-</translation>
     </message>
     <message>
-        <location filename="../ui/project/qgisred_layermanagement_dialog.py" line="334"/>
+        <location filename="../ui/project/qgisred_layermanagement_dialog.py" line="357"/>
         <source>(default)</source>
         <translation type="unfinished">(por defecto)</translation>
     </message>
     <message>
-        <location filename="../ui/project/qgisred_layermanagement_dialog.py" line="357"/>
+        <location filename="../ui/project/qgisred_layermanagement_dialog.py" line="380"/>
         <source>The theme name is not valid</source>
         <translation type="unfinished">El nombre del tema no es válido</translation>
     </message>
     <message>
-        <location filename="../ui/project/qgisred_layermanagement_dialog.py" line="365"/>
+        <location filename="../ui/project/qgisred_layermanagement_dialog.py" line="388"/>
         <source>A theme with that name already exists</source>
         <translation type="unfinished">Ya existe un tema con ese nombre</translation>
     </message>
     <message>
-        <location filename="../ui/project/qgisred_layermanagement_dialog.py" line="464"/>
+        <location filename="../ui/project/qgisred_layermanagement_dialog.py" line="472"/>
         <source>Select the theme to delete</source>
         <translation type="unfinished">Seleccione el tema a eliminar</translation>
     </message>
     <message>
-        <location filename="../ui/project/qgisred_layermanagement_dialog.py" line="468"/>
+        <location filename="../ui/project/qgisred_layermanagement_dialog.py" line="476"/>
         <source>The theme and its files will be deleted. Continue?</source>
         <translation type="unfinished">Se eliminarán el tema y sus ficheros. ¿Continuar?</translation>
     </message>
     <message>
-        <location filename="../ui/project/qgisred_layermanagement_dialog.py" line="469"/>
+        <location filename="../ui/project/qgisred_layermanagement_dialog.py" line="477"/>
         <source>Delete theme</source>
         <translation type="unfinished">Eliminar tema</translation>
     </message>
@@ -5397,50 +5407,50 @@ La información de sectores existente podría ser reemplazada.
         <translation type="unfinished">…</translation>
     </message>
     <message>
-        <location filename="../ui/project/qgisred_layermanagement_dialog.py" line="412"/>
+        <location filename="../ui/project/qgisred_layermanagement_dialog.py" line="435"/>
         <source>The theme could not be read</source>
         <translation type="unfinished">No se ha podido leer el tema</translation>
     </message>
     <message>
-        <location filename="../ui/project/qgisred_layermanagement_dialog.py" line="432"/>
+        <location filename="../ui/project/qgisred_layermanagement_dialog.py" line="450"/>
         <source>The selected fields and all their values will be deleted. Continue?</source>
         <translation type="unfinished">Se eliminarán los campos seleccionados y todos sus valores. ¿Continuar?</translation>
     </message>
     <message>
-        <location filename="../ui/project/qgisred_layermanagement_dialog.py" line="433"/>
+        <location filename="../ui/project/qgisred_layermanagement_dialog.py" line="451"/>
         <source>Delete fields</source>
         <translation type="unfinished">Eliminar campos</translation>
     </message>
     <message>
         <location filename="../ui/project/qgisred_layermanagement_dialog.py" line="452"/>
         <source>Field names may hold at most %1 characters</source>
-        <translation type="unfinished">Los nombres de campo admiten como máximo %1 caracteres</translation>
+        <translation type="obsolete">Los nombres de campo admiten como máximo %1 caracteres</translation>
     </message>
     <message>
         <location filename="../ui/project/qgisred_layermanagement_dialog.py" line="455"/>
         <source>There is already a field called %1</source>
-        <translation type="unfinished">Ya existe un campo llamado %1</translation>
+        <translation type="obsolete">Ya existe un campo llamado %1</translation>
     </message>
     <message>
         <location filename="../ui/project/qgisred_layermanagement_dialog.py" line="457"/>
         <source>%1 is not a valid field name</source>
-        <translation type="unfinished">%1 no es un nombre de campo válido</translation>
+        <translation type="obsolete">%1 no es un nombre de campo válido</translation>
     </message>
     <message>
         <location filename="../ui/project/qgisred_layermanagement_dialog.py" line="458"/>
         <source>The theme needs at least one base demand field</source>
-        <translation type="unfinished">El tema necesita al menos un campo de demanda base</translation>
+        <translation type="obsolete">El tema necesita al menos un campo de demanda base</translation>
     </message>
 </context>
 <context>
     <name>QGISRedLayerUtils</name>
     <message>
-        <location filename="../tools/utils/qgisred_layer_utils.py" line="701"/>
+        <location filename="../tools/utils/qgisred_layer_utils.py" line="710"/>
         <source>Pipes</source>
         <translation>Tuberías</translation>
     </message>
     <message>
-        <location filename="../tools/utils/qgisred_layer_utils.py" line="521"/>
+        <location filename="../tools/utils/qgisred_layer_utils.py" line="528"/>
         <source>%1 I</source>
         <translation>%1 I</translation>
     </message>
@@ -9880,6 +9890,31 @@ Do you want to proceed?</source>
         <location filename="../ui/project/qgisred_layermanagement_dialog.py" line="177"/>
         <source>Fields holding a base demand:</source>
         <translation type="unfinished">Campos que alojan una demanda base:</translation>
+    </message>
+    <message>
+        <location filename="../ui/project/qgisred_layermanagement_dialog.py" line="218"/>
+        <source>Field names may hold at most %1 characters</source>
+        <translation type="unfinished">Los nombres de campo admiten como máximo %1 caracteres</translation>
+    </message>
+    <message>
+        <location filename="../ui/project/qgisred_layermanagement_dialog.py" line="221"/>
+        <source>There is already a field called %1</source>
+        <translation type="unfinished">Ya existe un campo llamado %1</translation>
+    </message>
+    <message>
+        <location filename="../ui/project/qgisred_layermanagement_dialog.py" line="223"/>
+        <source>%1 is not a valid field name</source>
+        <translation type="unfinished">%1 no es un nombre de campo válido</translation>
+    </message>
+    <message>
+        <location filename="../ui/project/qgisred_layermanagement_dialog.py" line="224"/>
+        <source>The theme needs at least one base demand field</source>
+        <translation type="unfinished">El tema necesita al menos un campo de demanda base</translation>
+    </message>
+    <message>
+        <location filename="../ui/project/qgisred_layermanagement_dialog.py" line="230"/>
+        <source>Warning</source>
+        <translation type="unfinished">Advertencia</translation>
     </message>
 </context>
 <context>
