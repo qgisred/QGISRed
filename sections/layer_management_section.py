@@ -198,9 +198,11 @@ class LayerManagementSection:
         utils = QGISRedLayerUtils(self.ProjectDirectory, self.NetworkName, self.iface)
         return utils.getOrCreateNestedGroup([self.NetworkName] + LAYER_TYPE_CONFIG["IsolatedSegments"]["tree_path"])
 
-    def getDemandsBuilderGroup(self):
+    def getDemandsBuilderGroup(self, applyVisibility=True):
         utils = QGISRedLayerUtils(self.ProjectDirectory, self.NetworkName, self.iface)
-        return utils.getOrCreateNestedGroup([self.NetworkName] + LAYER_TYPE_CONFIG["DemandsBuilder"]["tree_path"])
+        return utils.getOrCreateNestedGroup(
+            [self.NetworkName] + LAYER_TYPE_CONFIG["DemandsBuilder"]["tree_path"], applyVisibility
+        )
 
     """Demand Builder auxiliary themes"""
 
@@ -263,7 +265,9 @@ class LayerManagementSection:
 
         utils = QGISRedLayerUtils(self.ProjectDirectory, self.NetworkName, self.iface)
         identifiers = QGISRedIdentifierUtils(self.ProjectDirectory, self.NetworkName, self.iface)
-        group = self.getDemandsBuilderGroup()
+        # The layer manager loads what was asked for and nothing else: which groups the
+        # user has ticked in the legend is theirs to decide.
+        group = self.getDemandsBuilderGroup(applyVisibility=False)
 
         for path in paths:
             if utils._tryReloadExistingLayer(path):

@@ -358,7 +358,14 @@ class QGISRedLayerUtils:
         self.setGroupIdentifier(newGroup, groupName)
         return newGroup
 
-    def getOrCreateNestedGroup(self, path):
+    def getOrCreateNestedGroup(self, path, applyVisibility=True):
+        """Find or create a nested group, bringing it to the front of its siblings.
+
+        `applyVisibility=False` leaves every group's checkbox exactly as the user left it.
+        A tool that opens layers as the result of running something is expected to show
+        what it produced, but the layer manager only loads and unloads on request: turning
+        the legend on and off underneath the user is not part of what they asked for.
+        """
         if not path or len(path) == 0:
             return QgsProject.instance().layerTreeRoot()
         root = QgsProject.instance().layerTreeRoot()
@@ -397,7 +404,7 @@ class QGISRedLayerUtils:
             # From index 1 onwards: show this group and hide its siblings within the
             # parent. Index 0 is either the network root or a top-level group we don't
             # own, so we never touch its siblings.
-            if i > 0:
+            if i > 0 and applyVisibility:
                 if i == 1:
                     # Top-level group under network root.
                     # Inputs: touch nothing at all (no visibility changes).

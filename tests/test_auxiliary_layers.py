@@ -353,6 +353,45 @@ class TestApplyAuxiliaryLayerSelection:
         assert section.layerOperationInProgress is False
 
 
+class TestGroupVisibility:
+    """The layer manager loads and unloads on request; it does not retick the legend.
+
+    Every other tool opens layers as the result of running something and is expected to
+    show what it produced, which is what getOrCreateNestedGroup does by default.
+    """
+
+    def _makeSection(self):
+        from QGISRed.sections.layer_management_section import LayerManagementSection
+
+        section = object.__new__(LayerManagementSection)
+        section.ProjectDirectory = "C:/proj"
+        section.NetworkName = "Net"
+        section.iface = MagicMock()
+        return section
+
+    def test_opening_a_theme_leaves_the_legend_alone(self):
+        section = self._makeSection()
+        with patch(_UTILS_CLS) as utilsCls:
+            section.getDemandsBuilderGroup(applyVisibility=False)
+        _path, applyVisibility = utilsCls.return_value.getOrCreateNestedGroup.call_args[0]
+        assert applyVisibility is False
+
+    def test_the_demands_manager_still_brings_its_group_forward(self):
+        section = self._makeSection()
+        with patch(_UTILS_CLS) as utilsCls:
+            section.getDemandsBuilderGroup()
+        _path, applyVisibility = utilsCls.return_value.getOrCreateNestedGroup.call_args[0]
+        assert applyVisibility is True
+
+    def test_the_auxiliary_loader_asks_for_no_visibility_changes(self):
+        section = self._makeSection()
+        section.getDemandsBuilderGroup = MagicMock()
+        with patch(_UTILS_CLS) as utilsCls:
+            utilsCls.return_value._tryReloadExistingLayer.return_value = True
+            section.openAuxiliaryThemes([__file__])
+        section.getDemandsBuilderGroup.assert_called_once_with(applyVisibility=False)
+
+
 class TestCloseAuxiliaryThemes:
     def test_the_layer_is_removed_from_the_project(self):
         from QGISRed.sections.layer_management_section import LayerManagementSection
