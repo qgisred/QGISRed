@@ -7,7 +7,11 @@ from QGISRed.ui.analysis.qgisred_results_distribution import (
     _format_range_label,
     _include_feature_for_distribution,
     _parse_category_from_filter,
+    build_distribution_bins,
+    extract_legend_classes,
 )
+from QGISRed.tools.utils.qgisred_legend_rule_utils import OPEN_RANGE_BOUND
+from QGISRed.tools.utils.qgisred_styling_utils import _NULL_RULE_LABEL
 from QGISRed.ui.analysis.results_distribution_renderer import (
     ResultsDistributionRenderer,
     format_distribution_hover_value,
@@ -438,6 +442,116 @@ class TestParseCategoryFromFilter:
     def test_reads_status_literal(self):
         expression = '"Status" = \'Open\''
         assert _parse_category_from_filter(expression, "Status") == "Open"
+
+
+class _FakeRule:
+    def __init__(self, expression, label="range"):
+        self._expression, self._label = expression, label
+
+    def filterExpression(self):
+        return self._expression
+
+    def label(self):
+        return self._label
+
+    def symbol(self):
+        symbol = MagicMock()
+        symbol.color.return_value = "color"
+        return symbol
+
+
+class _FakeRuleBasedRenderer:
+    def __init__(self, *rules):
+        root = MagicMock()
+        root.children.return_value = list(rules)
+        self._root = root
+
+    def rootRule(self):
+        return self._root
+
+
+class _FakeLayer:
+    def __init__(self, renderer, features=()):
+        self._renderer, self._features = renderer, list(features)
+
+    def renderer(self):
+        return self._renderer
+
+    def getFeatures(self):
+        return list(self._features)
+
+    def customProperty(self, _name):
+        return ""
+
+
+def _extract(renderer, field="Velocity"):
+    module = "QGISRed.ui.analysis.qgisred_results_distribution."
+    with patch(module + "QgsRuleBasedRenderer", _FakeRuleBasedRenderer), \
+         patch(module + "QgsGraduatedSymbolRenderer", type("_G", (), {})), \
+         patch(module + "QgsCategorizedSymbolRenderer", type("_C", (), {})):
+        return extract_legend_classes(_FakeLayer(renderer), field)
+
+
+class TestLegendClassesFromRules:
+    """The rules applyNullStyle leaves on a results layer, as QGIS 3.44 writes them.
+
+    The outer classes carry a single bound. Rejecting them dropped the whole numeric
+    read, the classes were then taken as categorical -their own labels as values- and
+    every bar came out at zero on the histogram.
+    """
+
+    RULES = [
+        ("<0.1", "(Velocity) <= 0.1000000000000000"),
+        ("0.1-0.5", "(Velocity) > 0.1000000000000000 AND (Velocity) <= 0.5000000000000000"),
+        ("0.5-1", "(Velocity) > 0.5000000000000000 AND (Velocity) <= 1.0000000000000000"),
+        (">1", "(Velocity) > 1.0000000000000000"),
+    ]
+
+    def _renderer(self):
+        rules = [_FakeRule(expression, label) for label, expression in self.RULES]
+        return _FakeRuleBasedRenderer(*rules, _FakeRule("ELSE", label=_NULL_RULE_LABEL))
+
+    def test_the_classes_are_read_as_numeric(self):
+        classes, mode = _extract(self._renderer())
+
+        assert mode == "numeric"
+        assert [c["label"] for c in classes] == ["<0.1", "0.1-0.5", "0.5-1", ">1"]
+
+    def test_the_open_ends_reach_the_sentinel_bound(self):
+        classes, _mode = _extract(self._renderer())
+
+        assert (classes[0]["lo"], classes[0]["hi"]) == (-OPEN_RANGE_BOUND, 0.1)
+        assert (classes[-1]["lo"], classes[-1]["hi"]) == (1.0, OPEN_RANGE_BOUND)
+
+    def test_a_column_quoted_the_other_way_is_read_too(self):
+        renderer = _FakeRuleBasedRenderer(_FakeRule('"Pressure" >= 10 AND "Pressure" <= 20'))
+
+        classes, mode = _extract(renderer, field="Pressure")
+
+        assert mode == "numeric"
+        assert (classes[0]["lo"], classes[0]["hi"]) == (10.0, 20.0)
+
+    def test_features_land_in_the_open_ended_classes(self):
+        module = "QGISRed.ui.analysis.qgisred_results_distribution."
+        layer = _FakeLayer(self._renderer(), [
+            _FakeFeature({"Velocity": 0.05}),   # <0.1
+            _FakeFeature({"Velocity": 0.3}),    # 0.1-0.5
+            _FakeFeature({"Velocity": 7.0}),    # >1
+            _FakeFeature({"Velocity": 9.0}),    # >1
+        ])
+        with patch(module + "QgsRuleBasedRenderer", _FakeRuleBasedRenderer), \
+             patch(module + "QgsGraduatedSymbolRenderer", type("_G", (), {})), \
+             patch(module + "QgsCategorizedSymbolRenderer", type("_C", (), {})):
+            bins, _x_label = build_distribution_bins(layer, "Velocity")
+
+        assert [b["count"] for b in bins] == [1, 1, 0, 2]
+
+    def test_rules_that_name_no_value_are_not_turned_into_empty_bars(self):
+        # Neither a range nor a "Field" = 'value' filter: no class can be counted, and
+        # saying so leaves the chart showing "No data" instead of bars stuck at zero.
+        renderer = _FakeRuleBasedRenderer(_FakeRule("\"Status\" LIKE '%Closed%'", label="Closed"))
+
+        assert _extract(renderer, field="Status") == ([], None)
 
 
 class TestFindClassIndex:

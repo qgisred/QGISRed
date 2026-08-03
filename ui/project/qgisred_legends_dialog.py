@@ -30,6 +30,12 @@ from qgis.utils import iface
 
 from ...compat import WKB_LINE_GEOMETRY, WKB_POINT_GEOMETRY
 from ...tools.utils.qgisred_styling_utils import _NULL_RULE_LABEL, QGISRedStylingUtils
+from ...tools.utils.qgisred_legend_rule_utils import (
+    OPEN_RANGE_BOUND as _OPEN_RANGE_BOUND,
+    parseCategoricalRuleFilter,
+    parseRangeFilter as _parseRangeFilter,
+    unwrapClassAttribute as _unwrapClassAttribute,
+)
 from ...tools.utils.qgisred_ui_utils import QGISRedUIUtils, QGISRedBanner
 from ...tools.utils.qgisred_identifier_utils import QGISRedIdentifierUtils
 from ...tools.utils.qgisred_field_utils import QGISRedFieldUtils, resolve_layer_id
@@ -166,31 +172,6 @@ METER_ACTIVE_FILL_PATTERNS = (
     re.compile(r"IsActive\s+is\s+NULL\s*,\s*'(#[0-9a-fA-F]{3,6})'"),
     re.compile(r"IsActive\s*!=\s*0\s*,\s*'(#[0-9a-fA-F]{3,6})'"),
 )
-
-_SIMPLE_RULE_FILTER_PATTERN = re.compile(r"^\s*\"([^\"]+)\"\s*=\s*'([^']*)'\s*$")
-_COMPOSITE_RULE_FILTER_PATTERN = re.compile(
-    r"^\s*\"([^\"]+)\"\s*=\s*'([^']*)'\s*AND\s*\"([^\"]+)\"\s*(=|<>)\s*'([^']*)'\s*$",
-    re.IGNORECASE,
-)
-
-
-def parseCategoricalRuleFilter(filterExpr):
-    """Parse a categorical rule filter into (field, value), or None if not categorical.
-
-    Supports "Field" = 'value' and the Hydraulic Sectors split pair
-    "Class" = 'nH-nQ' AND "SubNet" =/<> 'ClosedLinks' (the '=' clause names the
-    displayed value, the '<>' clause keeps the main class value).
-    """
-    if not filterExpr:
-        return None
-    match = _SIMPLE_RULE_FILTER_PATTERN.match(filterExpr)
-    if match:
-        return match.group(1), match.group(2)
-    match = _COMPOSITE_RULE_FILTER_PATTERN.match(filterExpr)
-    if match:
-        field, value, _secondField, op, secondValue = match.groups()
-        return field, secondValue if op == "=" else value
-    return None
 
 
 class QGISRedLegendsDialog(QDialog, formClass):
@@ -1910,56 +1891,13 @@ class QGISRedLegendsDialog(QDialog, formClass):
         else:
             self.cbLegendsType.addItem(self.tr("Single Symbol"), "singleSymbol")
 
-    # Range filters as applyNullStyle leaves them, by way of convertFromRenderer. Two
-    # things vary and neither can be assumed: the classified column arrives spelled
-    # however the conversion produced it — (Velocity), "Velocity", Velocity, abs(Flow) —
-    # and the outer classes carry a single bound, because the conversion drops the
-    # redundant one ('<0.1' is just "(Velocity) <= 0.1"). So each side is read on its own
-    # instead of matching one fixed shape.
-    _NUMBER = r'[-+]?(?:\d+\.?\d*|\.\d+)(?:[eE][-+]?\d+)?'
-    _RANGE_ATTRIBUTE = re.compile(r'^\s*(.+?)\s*(?:>=?|<=?)\s*' + _NUMBER)
-    _RANGE_LOWER = re.compile(r'>=?\s*(' + _NUMBER + r')')
-    _RANGE_UPPER = re.compile(r'<=?\s*(' + _NUMBER + r')')
-
-    # Stands in for the bound the conversion left out. It is the sentinel the plugin's own
-    # styles already use for their open-ended first and last classes, so applying the table
-    # untouched writes back exactly the values the style file had.
-    OPEN_RANGE_BOUND = 1e10
+    OPEN_RANGE_BOUND = _OPEN_RANGE_BOUND
 
     def parseRangeFilter(self, expression):
         """(column, lower, upper) of a range rule, or None when the rule is not a range."""
-        expression = expression or ""
-        attribute = self._RANGE_ATTRIBUTE.match(expression)
-        if not attribute:
-            return None
-        lower = self._RANGE_LOWER.search(expression)
-        upper = self._RANGE_UPPER.search(expression)
-        if not lower and not upper:
-            return None
-        return (
-            self.unwrapClassAttribute(attribute.group(1)),
-            float(lower.group(1)) if lower else -self.OPEN_RANGE_BOUND,
-            float(upper.group(1)) if upper else self.OPEN_RANGE_BOUND,
-        )
+        return _parseRangeFilter(expression, self.OPEN_RANGE_BOUND)
 
-    @staticmethod
-    def unwrapClassAttribute(attr):
-        """Strip the quotes or the wrapping parentheses a filter may carry around a column.
-
-        abs(Flow) also ends in ")" without being wrapped, so the parentheses are only
-        removed when they really enclose the whole string.
-        """
-        attr = attr.strip()
-        if len(attr) > 1 and attr[0] == '"' and attr[-1] == '"':
-            return attr[1:-1]
-        if len(attr) > 1 and attr[0] == "(" and attr[-1] == ")":
-            depth = 0
-            for char in attr[1:-1]:
-                depth += (char == "(") - (char == ")")
-                if depth < 0:
-                    return attr
-            return attr[1:-1]
-        return attr
+    unwrapClassAttribute = staticmethod(_unwrapClassAttribute)
 
     def ruleBasedAsGraduated(self, renderer):
         """Convert a QgsRuleBasedRenderer (created by applyNullStyle) back to QgsGraduatedSymbolRenderer."""

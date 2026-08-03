@@ -17,6 +17,7 @@ from qgis.core import (
 )
 
 from ...tools.utils.qgisred_styling_utils import _NULL_RULE_LABEL
+from ...tools.utils.qgisred_legend_rule_utils import parseCategoricalRuleFilter, parseRangeFilter
 from ...tools.utils.qgisred_field_utils import QGISRedFieldUtils, normalize_element
 from .qgisred_node_demand_utils import junction_positive_node_demand
 from .results_distribution_widget import ResultsDistributionWidget
@@ -70,34 +71,44 @@ def _finalize_bin(bin_data):
 
 
 def _rule_based_as_graduated(renderer):
+    """Read the range classes back from the rules applyNullStyle left behind.
+
+    Parsing is shared with the legend editor (parseRangeFilter): the classified column
+    arrives spelled in whatever way the conversion produced it, and the outer classes
+    carry a single bound. Reading only one fixed shape used to reject every rule, and
+    the histogram then fell through to the categorical branch and counted nothing.
+    """
     if not isinstance(renderer, QgsRuleBasedRenderer):
         return None
     rules = [rule for rule in renderer.rootRule().children() if _NULL_RULE_LABEL not in rule.label()]
     if not rules:
         return None
-    match = re.match(r'\((.+?)\)\s*>=', rules[0].filterExpression())
-    if not match:
-        return None
-    class_attr = match.group(1)
+    class_attr = None
     ranges = []
     for rule in rules:
-        numbers = re.findall(r'[-+]?\d*\.?\d+(?:[eE][-+]?\d+)?', rule.filterExpression())
-        if len(numbers) >= 2:
-            lower = float(numbers[0])
-            upper = float(numbers[1])
-            ranges.append({
-                "label": rule.label(),
-                "lo": lower,
-                "hi": upper,
-                "color": rule.symbol().color(),
-                "category": None,
-            })
-    if not ranges:
+        parsed = parseRangeFilter(rule.filterExpression())
+        if parsed is None:
+            continue
+        attribute, lower, upper = parsed
+        if class_attr is None:
+            class_attr = attribute
+        ranges.append({
+            "label": rule.label(),
+            "lo": lower,
+            "hi": upper,
+            "color": rule.symbol().color(),
+            "category": None,
+        })
+    if class_attr is None or not ranges:
         return None
     return class_attr, ranges
 
 
 def _parse_category_from_filter(expression, field_name):
+    """Value a categorical rule selects, or None when the rule is not categorical."""
+    parsed = parseCategoricalRuleFilter(expression)
+    if parsed is not None:
+        return parsed[1]
     if not expression:
         return None
     pattern = r'"' + re.escape(field_name) + r'"\s*=\s*\'([^\']*)\''
@@ -143,9 +154,11 @@ def extract_legend_classes(layer, field_name):
             if _NULL_RULE_LABEL in rule.label():
                 continue
             category = _parse_category_from_filter(rule.filterExpression(), field_name)
+            if category is None:
+                continue
             classes.append(_make_bin(
                 rule.label(),
-                category=category if category is not None else rule.label(),
+                category=category,
                 color=rule.symbol().color(),
             ))
         if classes:
