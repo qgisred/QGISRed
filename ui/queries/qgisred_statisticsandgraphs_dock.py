@@ -41,6 +41,7 @@ from ...tools.utils.qgisred_project_utils import QGISRedProjectUtils
 from ...tools.utils.qgisred_results_all_utils import QGISRedResultsAllUtils
 from ...tools.utils.qgisred_result_fields import resultTypeField
 from ...tools.utils.qgisred_ui_utils import QGISRED_COMBO_STYLE, QGISRedUIUtils
+from ...tools.utils.qgisred_valve_types import getValveTypeAbbreviation
 from .qgisred_statistics_manual_breaks_dialog import QGISRedStatisticsManualBreaksDialog
 from .statistics_histogram_widget import StatisticsHistogramWidget
 
@@ -2044,7 +2045,9 @@ class QGISRedStatisticsDock(QDockWidget, formClass):
                 return
 
         if secondBreaks is not None:
-            self._secondClassBins = self.initBins(secondBreaks, self.propertyDecimalsFor(elementIdentifier, secondField))
+            self._secondClassBins = self.initBins(
+                secondBreaks, self.propertyDecimalsFor(elementIdentifier, secondField), fieldName=secondField
+            )
         else:
             self._secondClassBins = []
         self.populateSecondClassValues(elementIdentifier, secondField)
@@ -2164,7 +2167,9 @@ class QGISRedStatisticsDock(QDockWidget, formClass):
                     return False
                 context["secondBreaks"] = secondBreaks
                 selectedSecondIndex = self.cbSecondClassValue.currentIndex()
-                self._secondClassBins = self.initBins(secondBreaks, self.propertyDecimalsFor(context["elementIdentifier"], secondField))
+                self._secondClassBins = self.initBins(
+                    secondBreaks, self.propertyDecimalsFor(context["elementIdentifier"], secondField), fieldName=secondField
+                )
                 self.populateSecondClassValues(context["elementIdentifier"], secondField)
                 if 0 <= selectedSecondIndex < self.cbSecondClassValue.count():
                     self.cbSecondClassValue.blockSignals(True)
@@ -2206,7 +2211,7 @@ class QGISRedStatisticsDock(QDockWidget, formClass):
             selectedSecondIndex = self.cbSecondClassValue.currentIndex() - 1
 
         self.isEnumeratedTarget = not self.isNumericField(propertyLayer, propertyField)
-        bins = self.initBins(breaks, self.propertyDecimalsFor(elementIdentifier, classifyField))
+        bins = self.initBins(breaks, self.propertyDecimalsFor(elementIdentifier, classifyField), fieldName=classifyField)
         self.lastNullCount = 0
         self.lastOutOfRangeCount = 0
 
@@ -2720,15 +2725,27 @@ class QGISRedStatisticsDock(QDockWidget, formClass):
             return None
         return [dataMin] + [cls.upperBound() for cls in classes]
 
-    def initBins(self, breaks, decimals=None):
+    def initBins(self, breaks, decimals=None, fieldName=None):
         bins = []
         if breaks["type"] == "null":
             bins.append(self.makeBin(label=self.tr("NULL"), lo=None, hi=None, category=None))
             return bins
         if breaks["type"] == "categorical":
+            isValveType = fieldName in ("Type", "ValveType")
             for value in breaks["values"]:
-                bins.append(self.makeBin(label=value if value != "" else self.tr("(empty)"),
-                                         lo=None, hi=None, category=value))
+                if value == "":
+                    label = self.tr("(empty)")
+                elif isValveType:
+                    # Abbreviation, not the long name: chart axis / breakdown table
+                    # rows are narrow and read-only, unlike the editable combos in
+                    # the Group Edit and Queries by Properties dialogs.
+                    label = getValveTypeAbbreviation(value)
+                else:
+                    label = value
+                # category keeps the raw code — findBinIndex() matches a feature's
+                # real stored value against it to count/place features into bins,
+                # so it must not become the translated label.
+                bins.append(self.makeBin(label=label, lo=None, hi=None, category=value))
             return bins
         edges = breaks["edges"]
         for i in range(len(edges) - 1):

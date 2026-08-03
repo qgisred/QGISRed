@@ -18,6 +18,7 @@ from ...tools.utils.qgisred_field_utils import QGISRedFieldUtils, normalize_elem
 from ...tools.utils.qgisred_layer_utils import QGISRedLayerUtils
 from ...tools.utils.qgisred_project_utils import QGISRedProjectUtils
 from ...tools.utils.qgisred_ui_utils import QGISRED_COMBO_STYLE, QGISRedUIUtils
+from ...tools.utils.qgisred_valve_types import getValveTypeName
 
 # load UI
 FORM_CLASS, _ = uic.loadUiType(os.path.join(os.path.dirname(__file__), "qgisred_queriesbyproperties_dock.ui"))
@@ -999,13 +1000,20 @@ class QGISRedQueriesByPropertiesDock(QDockWidget, FORM_CLASS):
 
     def currentValueText(self):
         if self.isValueListActive():
-            return self.cbValueList.currentText()
+            # cbValueList's data (not its displayed text) holds the raw value used
+            # for the actual query when items show a translated name — see
+            # updateValues(). Plain items (most properties) have no itemData, so
+            # currentData() is None there and this falls back unchanged.
+            data = self.cbValueList.currentData()
+            return data if data is not None else self.cbValueList.currentText()
         return self.cbValue.value()
 
     def setCurrentValueText(self, text):
         text = '' if text is None else str(text)
         if self.isValueListActive():
-            i = self.cbValueList.findText(text)
+            i = self.cbValueList.findData(text)
+            if i < 0:
+                i = self.cbValueList.findText(text)
             if i >= 0:
                 self.cbValueList.setCurrentIndex(i)
             else:
@@ -1072,6 +1080,7 @@ class QGISRedQueriesByPropertiesDock(QDockWidget, FORM_CLASS):
 
         useList = False
         strVals = []
+        isValveType = False
         if cond in ('=', '≠'):
             layer = self.resolveQueryLayer(prop)
             if layer:
@@ -1087,14 +1096,25 @@ class QGISRedQueriesByPropertiesDock(QDockWidget, FORM_CLASS):
                         uniqueVals = self.getUniqueFieldValues(layer, prop)
                         strVals = sorted({str(v) for v in uniqueVals if v is not None and str(v).strip()})
                         useList = bool(strVals)
+                        isValveType = (
+                            layer.customProperty("qgisred_identifier") == "qgisred_valves"
+                            and prop in ("Type", "ValveType")
+                        )
 
         if useList:
-            previous = self.cbValueList.currentText() if self.isValueListActive() else self.cbValue.value()
+            previous = self.currentValueText() if self.isValueListActive() else self.cbValue.value()
             self.cbValueList.blockSignals(True)
             self.cbValueList.clear()
             self.cbValueList.addItem('')
-            self.cbValueList.addItems(strVals)
-            i = self.cbValueList.findText(previous)
+            if isValveType:
+                # Items show the translated long name; the underlying query still
+                # filters on the raw code, kept as itemData — see currentValueText().
+                for code in strVals:
+                    self.cbValueList.addItem(getValveTypeName(code), code)
+                i = self.cbValueList.findData(previous)
+            else:
+                self.cbValueList.addItems(strVals)
+                i = self.cbValueList.findText(previous)
             self.cbValueList.setCurrentIndex(i if i >= 0 else 0)
             self.cbValueList.blockSignals(False)
             self.valueStack.setCurrentWidget(self.cbValueList)

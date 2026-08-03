@@ -24,6 +24,7 @@ from qgis.gui import QgsAttributeTableFilterModel, QgsAttributeTableModel, QgsAt
 from qgis.utils import iface as _iface
 
 from .qgisred_field_utils import QGISRedFieldUtils
+from .qgisred_valve_types import getValveTypeName
 
 
 def _plugin_root():
@@ -465,7 +466,7 @@ class QGISRedStylingUtils:
             symbol = templateSymbol.clone()
             color = self.resolveCategoryColor(value, index, valueCount, ramp, invertRamp)
             symbol.setColor(color)
-            categories.append(QgsRendererCategory(value, symbol, self._translateCategoryLabel(value)))
+            categories.append(QgsRendererCategory(value, symbol, self._translateCategoryLabel(value, field)))
 
         if nullValues:
             symbol = templateSymbol.clone()
@@ -621,12 +622,14 @@ class QGISRedStylingUtils:
             seededRandom.randint(0, 255),
         )
 
-    def _translateCategoryLabel(self, value):
+    def _translateCategoryLabel(self, value, field=None):
         if isinstance(value, str):
             if value == "Uncategorized":
                 return self.tr("Uncategorized")
             if value == "ClosedLinks":
                 return self.tr("Closed Links")
+            if field in ("Type", "ValveType"):
+                return getValveTypeName(value)
         return str(value)
 
     def translateRendererLabels(self, layer):
@@ -638,8 +641,9 @@ class QGISRedStylingUtils:
             # Only translate the special values; custom labels and per-class
             # visibility must survive (pinned allClasses snapshots rely on it).
             categories = []
+            classAttribute = renderer.classAttribute()
             for category in renderer.categories():
-                translated = self._translateCategoryLabel(category.value())
+                translated = self._translateCategoryLabel(category.value(), classAttribute)
                 label = translated if translated != str(category.value()) else category.label()
                 rebuilt = QgsRendererCategory(category.value(), category.symbol().clone(), label)
                 rebuilt.setRenderState(category.renderState())
@@ -835,7 +839,7 @@ class QGISRedStylingUtils:
             if symbolLayer is not None:
                 symbol.changeSymbolLayer(0, symbolLayer)
 
-            category = QgsRendererCategory(uniqueValue, symbol, self._translateCategoryLabel(uniqueValue))
+            category = QgsRendererCategory(uniqueValue, symbol, self._translateCategoryLabel(uniqueValue, field))
             categories.append(category)
 
         renderer = QgsCategorizedSymbolRenderer(field, categories)
@@ -873,7 +877,7 @@ class QGISRedStylingUtils:
                 randomColor = QColor.fromRgb(random.randint(0, 255), random.randint(0, 255), random.randint(0, 255))  # nosec B311 — cosmetic category color, not security-sensitive
                 symbol.setColor(randomColor)
             symbol.setWidth(0.6)
-            category = QgsRendererCategory(value, symbol, str(value))
+            category = QgsRendererCategory(value, symbol, self._translateCategoryLabel(value, field))
             categories.append(category)
 
         if nullValues:

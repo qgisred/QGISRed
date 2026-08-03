@@ -36,6 +36,7 @@ from ...tools.utils.qgisred_field_utils import QGISRedFieldUtils, normalize_elem
 from ...tools.utils.qgisred_filesystem_utils import QGISRedFileSystemUtils
 from ...tools.utils.qgisred_project_utils import QGISRedProjectUtils
 from ...tools.utils.qgisred_ui_utils import QGISRedBanner, QGISRED_COMBO_STYLE
+from ...tools.utils.qgisred_valve_types import getValveTypeName
 
 
 FORM_CLASS, _ = uic.loadUiType(os.path.join(os.path.dirname(__file__), "qgisred_groupedit_dialog.ui"))
@@ -544,11 +545,22 @@ class QGISRedGroupEditDialog(QDialog, FORM_CLASS):
             )
         else:
             values = []
-        previous = self.cbEnum.currentText()
+        # Valve type codes show their translated long name, but the combo's
+        # data (not its displayed text) stays the raw EPANET code — see
+        # _applyEnumEdits(), which reads currentData() first for this reason.
+        translateValveTypes = identifier == "qgisred_valves" and fieldName in ("Type", "ValveType")
+        previous = self.cbEnum.currentData()
+        if previous is None:
+            previous = self.cbEnum.currentText()
         self.cbEnum.blockSignals(True)
         self.cbEnum.clear()
-        self.cbEnum.addItems(values)
-        index = self.cbEnum.findText(previous)
+        if translateValveTypes:
+            for code in values:
+                self.cbEnum.addItem(getValveTypeName(code), code)
+            index = self.cbEnum.findData(previous)
+        else:
+            self.cbEnum.addItems(values)
+            index = self.cbEnum.findText(previous)
         if index >= 0:
             self.cbEnum.setCurrentIndex(index)
         self.cbEnum.blockSignals(False)
@@ -1259,7 +1271,9 @@ class QGISRedGroupEditDialog(QDialog, FORM_CLASS):
                 newVal = oldStr.replace(findText, replaceText)
                 edits.append((f.id(), oldRaw, newVal))
         elif actionKind == "enum":
-            newVal = self.cbEnum.currentText()
+            newVal = self.cbEnum.currentData()
+            if newVal is None:
+                newVal = self.cbEnum.currentText()
             for f in features:
                 oldRaw = f[fieldName]
                 edits.append((f.id(), oldRaw, newVal))

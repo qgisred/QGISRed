@@ -14,6 +14,7 @@ import os
 import pytest
 
 from QGISRed.tools.utils.qgisred_field_utils import PLURAL_PROPERTY_NAMES
+from QGISRed.tools.utils.qgisred_valve_types import VALVE_TYPE_LONG_NAMES
 
 _PLUGIN_ROOT = os.path.abspath(os.path.join(os.path.dirname(__file__), ".."))
 _STRINGS_FILE = os.path.join(_PLUGIN_ROOT, "tools", "qgisred_translatable_strings.py")
@@ -85,5 +86,25 @@ class TestCsvPrettyNamesAreTranslatable:
         assert not missing, (
             "Property display names in defaults/qgisred_properties_units_decimals.csv "
             "with no QCoreApplication.translate() call in "
+            "tools/qgisred_translatable_strings.py: {}".format(", ".join(missing))
+        )
+
+
+class TestValveTypeNamesAreTranslatable:
+    def test_every_long_name_is_mirrored(self):
+        literals = _translated_literals("ValveTypeNames")
+        missing = sorted(set(VALVE_TYPE_LONG_NAMES.values()) - literals)
+        assert not missing, (
+            "Valve type long names in VALVE_TYPE_LONG_NAMES with no "
+            "QCoreApplication.translate() call in tools/qgisred_translatable_strings.py: "
+            "{}".format(", ".join(missing))
+        )
+
+    def test_every_abbreviation_source_is_mirrored(self):
+        literals = _translated_literals("ValveTypeAbbreviations")
+        missing = sorted(set(VALVE_TYPE_LONG_NAMES.keys()) - literals)
+        assert not missing, (
+            "Valve type codes in VALVE_TYPE_LONG_NAMES with no "
+            "QCoreApplication.translate('ValveTypeAbbreviations', ...) call in "
             "tools/qgisred_translatable_strings.py: {}".format(", ".join(missing))
         )

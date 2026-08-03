@@ -360,3 +360,21 @@ QCoreApplication.translate('QGISRedResultsDock', "Evolution")
 QCoreApplication.translate('QGISRedStatisticsDock', "Mouse wheel: zoom · Drag: pan · Double-click: reset view")
 QCoreApplication.translate('QGISRedStatisticsDock', "by")
 QCoreApplication.translate('QGISRedStatisticsDock', "Count")
+
+# Valve type long names and abbreviations (see tools/utils/qgisred_valve_types.py —
+# VALVE_TYPE_LONG_NAMES keys mirrored here so pylupdate5 can see them; the module
+# itself only ever calls translate() with a variable, which pylupdate can't extract).
+QCoreApplication.translate('ValveTypeNames', "Pressure Reducing")
+QCoreApplication.translate('ValveTypeNames', "Pressure Sustaining")
+QCoreApplication.translate('ValveTypeNames', "Pressure Breaker")
+QCoreApplication.translate('ValveTypeNames', "Flow Control")
+QCoreApplication.translate('ValveTypeNames', "Throttle Control")
+QCoreApplication.translate('ValveTypeNames', "General Purpose")
+QCoreApplication.translate('ValveTypeNames', "Check")
+QCoreApplication.translate('ValveTypeAbbreviations', "PRV")
+QCoreApplication.translate('ValveTypeAbbreviations', "PSV")
+QCoreApplication.translate('ValveTypeAbbreviations', "PBV")
+QCoreApplication.translate('ValveTypeAbbreviations', "FCV")
+QCoreApplication.translate('ValveTypeAbbreviations', "TCV")
+QCoreApplication.translate('ValveTypeAbbreviations', "GPV")
+QCoreApplication.translate('ValveTypeAbbreviations', "CV")

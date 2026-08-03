@@ -9817,6 +9817,82 @@ Deseja continuar?</translation>
     </message>
 </context>
 <context>
+    <name>ValveTypeAbbreviations</name>
+    <message>
+        <location filename="../tools/qgisred_translatable_strings.py" line="374"/>
+        <source>PRV</source>
+        <translation>VRP</translation>
+    </message>
+    <message>
+        <location filename="../tools/qgisred_translatable_strings.py" line="375"/>
+        <source>PSV</source>
+        <translation>VSP</translation>
+    </message>
+    <message>
+        <location filename="../tools/qgisred_translatable_strings.py" line="376"/>
+        <source>PBV</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="../tools/qgisred_translatable_strings.py" line="377"/>
+        <source>FCV</source>
+        <translation>VRV</translation>
+    </message>
+    <message>
+        <location filename="../tools/qgisred_translatable_strings.py" line="378"/>
+        <source>TCV</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="../tools/qgisred_translatable_strings.py" line="379"/>
+        <source>GPV</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="../tools/qgisred_translatable_strings.py" line="380"/>
+        <source>CV</source>
+        <translation type="unfinished"></translation>
+    </message>
+</context>
+<context>
+    <name>ValveTypeNames</name>
+    <message>
+        <location filename="../tools/qgisred_translatable_strings.py" line="367"/>
+        <source>Pressure Reducing</source>
+        <translation>Redutora de Pressão</translation>
+    </message>
+    <message>
+        <location filename="../tools/qgisred_translatable_strings.py" line="368"/>
+        <source>Pressure Sustaining</source>
+        <translation>Sustentadora de Pressão</translation>
+    </message>
+    <message>
+        <location filename="../tools/qgisred_translatable_strings.py" line="369"/>
+        <source>Pressure Breaker</source>
+        <translation>Perda de Carga Fixa</translation>
+    </message>
+    <message>
+        <location filename="../tools/qgisred_translatable_strings.py" line="370"/>
+        <source>Flow Control</source>
+        <translation>Reguladora de Vazão</translation>
+    </message>
+    <message>
+        <location filename="../tools/qgisred_translatable_strings.py" line="371"/>
+        <source>Throttle Control</source>
+        <translation>Controle de Perda de Carga</translation>
+    </message>
+    <message>
+        <location filename="../tools/qgisred_translatable_strings.py" line="372"/>
+        <source>General Purpose</source>
+        <translation>Genérica</translation>
+    </message>
+    <message>
+        <location filename="../tools/qgisred_translatable_strings.py" line="373"/>
+        <source>Check</source>
+        <translation>Antirretorno</translation>
+    </message>
+</context>
+<context>
     <name>_BaseDemandFieldsDialog</name>
     <message>
         <location filename="../ui/project/qgisred_layermanagement_dialog.py" line="144"/>

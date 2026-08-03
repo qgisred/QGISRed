@@ -13,6 +13,7 @@ from ...tools.utils.qgisred_layer_utils import QGISRedLayerUtils
 from ...tools.utils.qgisred_project_utils import QGISRedProjectUtils
 from ...tools.utils.qgisred_filesystem_utils import DIR_RESULTS
 from ...tools.utils.qgisred_ui_utils import QGISRedUIUtils
+from ...tools.utils.qgisred_valve_types import getValveTypeName
 from ..analysis.qgisred_results_dock import QGISRedResultsDock
 from ...compat import LINEEDIT_LEADING_POSITION
 
@@ -1304,6 +1305,8 @@ class QGISRedElementExplorerDock(QDockWidget, FORM_CLASS):
             return ""
         if utils.isDateField(normalize_element(layerIdentifier), fieldName):
             return self.formatDateValue(rawValue)
+        if layerIdentifier == "qgisred_valves" and fieldName in ("Type", "ValveType"):
+            return getValveTypeName(str(rawValue))
         if utils.isTextField(normalize_element(layerIdentifier), fieldName):
             return str(rawValue)
         try:
