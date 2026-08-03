@@ -1,0 +1,124 @@
+# -*- coding: utf-8 -*-
+"""The base demand columns of a consumption points theme.
+
+One theme can hold several base demands side by side — one column per billing run, say —
+so everything from the third column onwards is one of them: IdDem and Category are the
+fixed head of the schema (see GISRed.ExtendedModel/Writers/ToShp.AuxiliaryLayers.cs).
+
+The planning half never touches QGIS, so the rules can be tested on their own;
+applyFieldChanges is the only part that reaches a layer.
+"""
+
+import re
+
+
+# IdDem and Category. Everything after them is a base demand.
+FIXED_FIELD_COUNT = 2
+
+# A DBF column name holds no more, and the file is the contract with the DLL.
+MAX_FIELD_NAME_LENGTH = 10
+
+# Why a name was rejected. The dialog turns these into translated sentences; keeping them
+# symbolic is what lets the rules live outside the UI.
+NAME_OK = ""
+NAME_EMPTY = "empty"
+NAME_TOO_LONG = "too_long"
+NAME_INVALID = "invalid"
+NAME_DUPLICATE = "duplicate"
+
+_VALID_NAME = re.compile(r"^[A-Za-z][A-Za-z0-9_]*$")
+
+
+def baseDemandFieldNames(fieldNames):
+    """The base demand columns out of a theme's full field list, in file order."""
+    return list(fieldNames[FIXED_FIELD_COUNT:])
+
+
+def validateFieldName(name, otherNames=()):
+    """NAME_OK, or why `name` cannot be used. Comparison is case-insensitive: a DBF
+    cannot tell BaseDem from basedem."""
+    if not name or not name.strip():
+        return NAME_EMPTY
+    if name != name.strip():
+        return NAME_INVALID
+    if len(name) > MAX_FIELD_NAME_LENGTH:
+        return NAME_TOO_LONG
+    if not _VALID_NAME.match(name):
+        return NAME_INVALID
+    if name.lower() in {other.lower() for other in otherNames}:
+        return NAME_DUPLICATE
+    return NAME_OK
+
+
+def validateRows(rows):
+    """(errorCode, name) for the first problem in `rows`, or (NAME_OK, "").
+
+    `rows` is the dialog's list of (originalName or None, newName), in display order. A
+    theme with no base demand at all is not a theme, so an empty list is rejected too.
+    """
+    if not rows:
+        return NAME_EMPTY, ""
+    seen = []
+    for _original, name in rows:
+        error = validateFieldName(name, seen)
+        if error:
+            return error, name or ""
+        seen.append(name)
+    return NAME_OK, ""
+
+
+def planFieldChanges(originalNames, rows):
+    """(renames, additions, deletions) that turn `originalNames` into `rows`.
+
+    Rows carry the name they started with, so a row whose text changed is a rename rather
+    than a delete plus an add — which matters: renaming keeps the column's values, and
+    the client asked for the values to go only when a field is actually removed.
+    """
+    kept = {original for original, _ in rows if original}
+    deletions = [name for name in originalNames if name not in kept]
+    renames = {original: name for original, name in rows if original and name != original}
+    additions = [name for original, name in rows if not original]
+    return renames, additions, deletions
+
+
+def applyFieldChanges(layer, renames, additions, deletions):
+    """Apply a plan to `layer`'s provider. Returns "" or the first error.
+
+    Deletions run first so renames and additions cannot collide with a name on its way
+    out. Indices are re-read between steps because every step shifts them, and the
+    provider is reloaded in between: OGR does not publish the new field list to the next
+    call otherwise, and the columns end up in the wrong order.
+    """
+    from qgis.core import QgsField
+    from ...compat import QVariantDouble
+
+    provider = layer.dataProvider()
+
+    def currentNames():
+        return [field.name() for field in layer.fields()]
+
+    if deletions:
+        names = currentNames()
+        indices = [names.index(name) for name in deletions if name in names]
+        if indices and not provider.deleteAttributes(sorted(indices, reverse=True)):
+            return "Could not delete the fields"
+        layer.updateFields()
+        provider.reloadData()
+
+    if renames:
+        names = currentNames()
+        mapping = {names.index(old): new for old, new in renames.items() if old in names}
+        if mapping and not provider.renameAttributes(mapping):
+            return "Could not rename the fields"
+        layer.updateFields()
+        provider.reloadData()
+
+    if additions:
+        # Same width and precision the DLL writes, so a field added here is
+        # indistinguishable from one that came with the theme.
+        fields = [QgsField(name, QVariantDouble, "Real", 17, 2) for name in additions]
+        if not provider.addAttributes(fields):
+            return "Could not add the fields"
+        layer.updateFields()
+
+    return ""

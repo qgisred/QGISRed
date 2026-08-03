@@ -154,6 +154,12 @@ def _makeDialog(projectDirectory, networkName="TestNet"):
     dialog.parent = MagicMock()
     dialog.messageBar = MagicMock()
     dialog.tbCRS = MagicMock()
+    # setProperties also refreshes the Auxiliary layers tab. These tests are about the
+    # element rows, so the table only has to answer "no rows, nothing selected".
+    dialog.tbAuxiliary = MagicMock()
+    dialog.tbAuxiliary.currentRow.return_value = -1
+    dialog.tbAuxiliary.rowCount.return_value = 0
+    dialog.btConfigAuxiliary = MagicMock()
     dialog.elements = []
     for name in MANAGED:
         checkBox, button = MagicMock(), MagicMock()

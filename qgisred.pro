@@ -20,6 +20,7 @@ SOURCES = qgisred.py \
           ui/analysis/qgisred_results_binary.py \
           tools/qgisred_translatable_strings.py \
           tools/utils/qgisred_auxiliary_layers.py \
+          tools/utils/qgisred_base_demand_fields.py \
           tools/utils/qgisred_filesystem_utils.py \
           tools/utils/qgisred_field_utils.py \
           tools/utils/qgisred_styling_utils.py \

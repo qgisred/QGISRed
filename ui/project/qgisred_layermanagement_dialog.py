@@ -2,17 +2,23 @@
 from qgis.PyQt.QtWidgets import (
     QDialog, QApplication, QLayout, QTableWidgetItem, QMessageBox,
     QComboBox, QLineEdit, QLabel, QPushButton, QVBoxLayout, QHBoxLayout,
+    QListWidget, QListWidgetItem,
 )
 from qgis.PyQt.QtCore import Qt, QCoreApplication
 from qgis.PyQt import uic
 from qgis.gui import QgsProjectionSelectionDialog as QgsGenericProjectionSelector
+from qgis.core import QgsVectorLayer
 
 from ...tools.utils.qgisred_layer_utils import QGISRedLayerUtils
 from ...tools.utils.qgisred_filesystem_utils import QGISRedFileSystemUtils, LAYER_TYPE_CONFIG
 from ...tools.utils.qgisred_ui_utils import QGISRedBanner
 from ...tools.utils.qgisred_auxiliary_layers import (
     AUXILIARY_LAYER_TYPES, DEFAULT_BASE_DEMAND_FIELD,
-    composeBaseName, deleteTheme, isValidThemeName, listThemes,
+    composeBaseName, deleteTheme, isValidThemeName, listThemes, parseBaseName,
+)
+from ...tools.utils.qgisred_base_demand_fields import (
+    MAX_FIELD_NAME_LENGTH, NAME_DUPLICATE, NAME_INVALID, NAME_TOO_LONG,
+    applyFieldChanges, baseDemandFieldNames, planFieldChanges, validateRows,
 )
 from ...tools.qgisred_dependencies import QGISRedDependencies as GISRed
 
@@ -52,6 +58,9 @@ class _Element:
         # open and there is no real layer name to show instead.
         self.defaultText = checkBox.text()
 
+
+# The only type whose base demand columns can be managed.
+CONSUMPTION_POINTS_KEY = "ConsumptionPoints"
 
 _AUXILIARY_TYPE_LABELS = {
     "ConsumptionPoints": "Consumption Points",
@@ -119,6 +128,87 @@ class _NewAuxiliaryThemeDialog(QDialog):
         return layerType, self.tbName.text().strip()
 
 
+class _BaseDemandFieldsDialog(QDialog):
+    """Lists a consumption points theme's base demand columns, and edits them.
+
+    Names are edited in place: the client described adding and renaming as two buttons,
+    but both come down to typing a name, so the list is editable and Accept applies
+    whatever changed. Each row remembers the name it arrived with, which is what tells a
+    rename from a delete plus an add — a rename keeps the column's values.
+    """
+
+    def __init__(self, fieldNames, parent=None):
+        super(_BaseDemandFieldsDialog, self).__init__(parent)
+        self.setWindowTitle(self.tr("Base demand fields"))
+
+        self.lstFields = QListWidget(self)
+        for name in fieldNames:
+            self._appendRow(name, original=name)
+
+        self.btAdd = QPushButton("+", self)
+        self.btRemove = QPushButton("-", self)
+        self.btAdd.setMaximumWidth(30)
+        self.btRemove.setMaximumWidth(30)
+        self.btAdd.setToolTip(self.tr("Add a base demand field"))
+        self.btRemove.setToolTip(self.tr("Delete the selected field"))
+        self.btAdd.clicked.connect(self.addRow)
+        self.btRemove.clicked.connect(self.removeRow)
+
+        self.btAccept = QPushButton(self.tr("Accept"), self)
+        self.btCancel = QPushButton(self.tr("Cancel"), self)
+        self.btAccept.clicked.connect(self.accept)
+        self.btCancel.clicked.connect(self.reject)
+
+        sideButtons = QVBoxLayout()
+        sideButtons.addWidget(self.btAdd)
+        sideButtons.addWidget(self.btRemove)
+        sideButtons.addStretch()
+
+        listRow = QHBoxLayout()
+        listRow.addWidget(self.lstFields)
+        listRow.addLayout(sideButtons)
+
+        buttonRow = QHBoxLayout()
+        buttonRow.addStretch()
+        buttonRow.addWidget(self.btAccept)
+        buttonRow.addWidget(self.btCancel)
+
+        layout = QVBoxLayout(self)
+        layout.addWidget(QLabel(self.tr("Fields holding a base demand:"), self))
+        layout.addLayout(listRow)
+        layout.addLayout(buttonRow)
+
+    def _appendRow(self, text, original=None):
+        item = QListWidgetItem(text)
+        item.setFlags(item.flags() | Qt.ItemFlag.ItemIsEditable)
+        # None marks a row that is not backed by a column yet.
+        item.setData(Qt.ItemDataRole.UserRole, original)
+        self.lstFields.addItem(item)
+        return item
+
+    def addRow(self):
+        item = self._appendRow("")
+        self.lstFields.setCurrentItem(item)
+        self.lstFields.editItem(item)
+
+    def removeRow(self):
+        row = self.lstFields.currentRow()
+        if row < 0:
+            return
+        if self.lstFields.count() <= 1:
+            # The theme would have nowhere left to hold a demand.
+            return
+        self.lstFields.takeItem(row)
+
+    def rows(self):
+        """(originalName or None, newName) per row, in display order."""
+        result = []
+        for row in range(self.lstFields.count()):
+            item = self.lstFields.item(row)
+            result.append((item.data(Qt.ItemDataRole.UserRole), item.text().strip()))
+        return result
+
+
 class QGISRedLayerManagementDialog(QDialog, FORM_CLASS):
     def __init__(self, parent=None):
         """Constructor."""
@@ -149,6 +239,8 @@ class QGISRedLayerManagementDialog(QDialog, FORM_CLASS):
 
         self.btAddAuxiliary.clicked.connect(self.createAuxiliaryTheme)
         self.btRemoveAuxiliary.clicked.connect(self.deleteAuxiliaryTheme)
+        self.btConfigAuxiliary.clicked.connect(self.configureBaseDemandFields)
+        self.tbAuxiliary.itemSelectionChanged.connect(self.updateAuxiliaryButtons)
         # The checkbox gets a column of its own, so the theme name starts where the header
         # says it does instead of behind a tick.
         self.tbAuxiliary.setColumnWidth(0, 26)
@@ -242,6 +334,8 @@ class QGISRedLayerManagementDialog(QDialog, FORM_CLASS):
             self.tbAuxiliary.setItem(row, 1, QTableWidgetItem(themeName or self.tr("(default)")))
             self.tbAuxiliary.setItem(row, 2, QTableWidgetItem(auxiliaryTypeLabel(layerType)))
 
+        self.updateAuxiliaryButtons()
+
     def auxiliaryRowPaths(self, onlyChecked=False):
         paths = []
         for row in range(self.tbAuxiliary.rowCount()):
@@ -287,6 +381,81 @@ class QGISRedLayerManagementDialog(QDialog, FORM_CLASS):
         # Created themes come back loaded, like the create button of the other tabs.
         self.parent.syncAuxiliaryThemes([path], load=True)
         self.fillAuxiliaryTable()
+
+    def selectedAuxiliaryRow(self):
+        """(item, path, layerType) of the selected row, or (None, "", None)."""
+        row = self.tbAuxiliary.currentRow()
+        item = self.tbAuxiliary.item(row, 0) if row >= 0 else None
+        if item is None:
+            return None, "", None
+        path = item.data(Qt.ItemDataRole.UserRole)
+        layerType, _ = parseBaseName(os.path.splitext(os.path.basename(path))[0], self.NetworkName)
+        return item, path, layerType
+
+    def updateAuxiliaryButtons(self):
+        """Base demand fields only exist on consumption points themes."""
+        _item, _path, layerType = self.selectedAuxiliaryRow()
+        self.btConfigAuxiliary.setEnabled(layerType is not None and layerType.key == CONSUMPTION_POINTS_KEY)
+
+    def configureBaseDemandFields(self):
+        _item, path, layerType = self.selectedAuxiliaryRow()
+        if layerType is None or layerType.key != CONSUMPTION_POINTS_KEY:
+            return
+
+        # Edit the open layer when there is one, so QGIS sees the new columns straight
+        # away; otherwise work on the file through a throwaway layer.
+        layer = self.utils._findLayerByPath(path)
+        wasOpen = layer is not None
+        if layer is None:
+            layer = QgsVectorLayer(path, os.path.basename(path), "ogr")
+            if not layer.isValid():
+                self.pushMessage(self.tr("Error"), self.tr("The theme could not be read"), level=2)
+                return
+
+        originalNames = baseDemandFieldNames([field.name() for field in layer.fields()])
+
+        dialog = _BaseDemandFieldsDialog(originalNames, self)
+        if not dialog.exec():
+            return
+
+        rows = dialog.rows()
+        error, name = validateRows(rows)
+        if error:
+            self.pushMessage(self.tr("Warning"), self.baseDemandFieldError(error, name), level=1)
+            return
+
+        renames, additions, deletions = planFieldChanges(originalNames, rows)
+        if not (renames or additions or deletions):
+            return
+
+        if deletions:
+            question = self.tr("The selected fields and all their values will be deleted. Continue?")
+            if QMessageBox.question(self, self.tr("Delete fields"), question) != QMessageBox.StandardButton.Yes:
+                return
+
+        # Rebuilding an OGR provider under a running render job crashes QGIS.
+        QGISRedLayerUtils().stopRenderingForRemoval(self.iface)
+        QApplication.setOverrideCursor(Qt.CursorShape.WaitCursor)
+        failure = applyFieldChanges(layer, renames, additions, deletions)
+        QApplication.restoreOverrideCursor()
+
+        if failure:
+            self.pushMessage(self.tr("Error"), failure, level=2)
+            return
+
+        if wasOpen:
+            # Point labels are driven by a base demand field, so the style has to follow.
+            self.parent.syncAuxiliaryThemes([path], load=True)
+
+    def baseDemandFieldError(self, error, name):
+        if error == NAME_TOO_LONG:
+            return self.tr("Field names may hold at most %1 characters").replace(
+                "%1", str(MAX_FIELD_NAME_LENGTH))
+        if error == NAME_DUPLICATE:
+            return self.tr("There is already a field called %1").replace("%1", name)
+        if error == NAME_INVALID:
+            return self.tr("%1 is not a valid field name").replace("%1", name)
+        return self.tr("The theme needs at least one base demand field")
 
     def deleteAuxiliaryTheme(self):
         row = self.tbAuxiliary.currentRow()

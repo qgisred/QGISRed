@@ -237,7 +237,7 @@
     <message>
         <location filename="../tools/qgisred_translatable_strings.py" line="303"/>
         <source>Demand Links</source>
-        <translation type="unfinished">Ligações de consumo</translation>
+        <translation type="unfinished">Trechos de Consumo</translation>
     </message>
     <message>
         <location filename="../tools/qgisred_translatable_strings.py" line="304"/>
@@ -4351,72 +4351,72 @@ Continuar?</translation>
 <context>
     <name>QGISRedGroups</name>
     <message>
-        <location filename="../tools/utils/qgisred_project_io.py" line="289"/>
+        <location filename="../tools/utils/qgisred_project_io.py" line="320"/>
         <source>Tree</source>
         <translation>Árvore</translation>
     </message>
     <message>
-        <location filename="../tools/utils/qgisred_layer_utils.py" line="109"/>
+        <location filename="../tools/utils/qgisred_layer_utils.py" line="112"/>
         <source>Trees</source>
         <translation>Árvores</translation>
     </message>
     <message>
-        <location filename="../tools/utils/qgisred_layer_utils.py" line="100"/>
+        <location filename="../tools/utils/qgisred_layer_utils.py" line="103"/>
         <source>Inputs</source>
         <translation>Entradas</translation>
     </message>
     <message>
-        <location filename="../tools/utils/qgisred_layer_utils.py" line="101"/>
+        <location filename="../tools/utils/qgisred_layer_utils.py" line="104"/>
         <source>Issues</source>
         <translation>Problemas</translation>
     </message>
     <message>
-        <location filename="../tools/utils/qgisred_layer_utils.py" line="102"/>
+        <location filename="../tools/utils/qgisred_layer_utils.py" line="105"/>
         <source>Results</source>
         <translation>Resultados</translation>
     </message>
     <message>
-        <location filename="../tools/utils/qgisred_layer_utils.py" line="103"/>
+        <location filename="../tools/utils/qgisred_layer_utils.py" line="106"/>
         <source>Queries</source>
         <translation>Consultas</translation>
     </message>
     <message>
-        <location filename="../tools/utils/qgisred_layer_utils.py" line="104"/>
+        <location filename="../tools/utils/qgisred_layer_utils.py" line="107"/>
         <source>Thematic Maps</source>
         <translation>Mapas Temáticos</translation>
     </message>
     <message>
-        <location filename="../tools/utils/qgisred_layer_utils.py" line="105"/>
+        <location filename="../tools/utils/qgisred_layer_utils.py" line="108"/>
         <source>Connectivity</source>
         <translation>Conectividade</translation>
     </message>
     <message>
-        <location filename="../tools/utils/qgisred_layer_utils.py" line="106"/>
+        <location filename="../tools/utils/qgisred_layer_utils.py" line="109"/>
         <source>Hydraulic Sectors</source>
         <translation>Setores Hidráulicos</translation>
     </message>
     <message>
-        <location filename="../tools/utils/qgisred_layer_utils.py" line="107"/>
+        <location filename="../tools/utils/qgisred_layer_utils.py" line="110"/>
         <source>Demand Sectors</source>
         <translation>Setores de Consumo</translation>
     </message>
     <message>
-        <location filename="../tools/utils/qgisred_layer_utils.py" line="108"/>
+        <location filename="../tools/utils/qgisred_layer_utils.py" line="111"/>
         <source>Isolated Segments</source>
         <translation>Segmentos Isolados</translation>
     </message>
     <message>
-        <location filename="../tools/utils/qgisred_layer_utils.py" line="112"/>
+        <location filename="../tools/utils/qgisred_layer_utils.py" line="115"/>
         <source>Auxiliary Layers</source>
         <translation>Camadas Auxiliares</translation>
     </message>
     <message>
-        <location filename="../tools/utils/qgisred_layer_utils.py" line="110"/>
+        <location filename="../tools/utils/qgisred_layer_utils.py" line="113"/>
         <source>DemandsBuilder</source>
         <translation>Construtor de Consumos</translation>
     </message>
     <message>
-        <location filename="../tools/utils/qgisred_layer_utils.py" line="111"/>
+        <location filename="../tools/utils/qgisred_layer_utils.py" line="114"/>
         <source>DemandSectors</source>
         <translation type="unfinished">Setores de Demanda</translation>
     </message>
@@ -5305,12 +5305,12 @@ Continuar?</translation>
         <translation>Criar Camada de Manômetros</translation>
     </message>
     <message>
-        <location filename="../ui/project/qgisred_layermanagement_dialog.ui" line="874"/>
+        <location filename="../ui/project/qgisred_layermanagement_dialog.ui" line="890"/>
         <source>Accept</source>
         <translation>Aceitar</translation>
     </message>
     <message>
-        <location filename="../ui/project/qgisred_layermanagement_dialog.ui" line="881"/>
+        <location filename="../ui/project/qgisred_layermanagement_dialog.ui" line="897"/>
         <source>Cancel</source>
         <translation>Cancelar</translation>
     </message>
@@ -5325,22 +5325,22 @@ Continuar?</translation>
         <translation type="obsolete">Carregar/Descarregar elementos do Gêmeo Digital na legenda</translation>
     </message>
     <message>
-        <location filename="../ui/project/qgisred_layermanagement_dialog.py" line="341"/>
+        <location filename="../ui/project/qgisred_layermanagement_dialog.py" line="514"/>
         <source>Warning</source>
         <translation type="unfinished">Aviso</translation>
     </message>
     <message>
-        <location filename="../ui/project/qgisred_layermanagement_dialog.py" line="322"/>
+        <location filename="../ui/project/qgisred_layermanagement_dialog.py" line="491"/>
         <source>Only coordinate systems with an EPSG code are supported</source>
         <translation type="unfinished">Apenas sistemas de coordenadas com código EPSG são suportados</translation>
     </message>
     <message>
-        <location filename="../ui/project/qgisred_layermanagement_dialog.py" line="341"/>
+        <location filename="../ui/project/qgisred_layermanagement_dialog.py" line="514"/>
         <source>Some issues occurred in the process</source>
         <translation type="unfinished">Ocorreram alguns problemas no processo</translation>
     </message>
     <message>
-        <location filename="../ui/project/qgisred_layermanagement_dialog.py" line="343"/>
+        <location filename="../ui/project/qgisred_layermanagement_dialog.py" line="516"/>
         <source>Error</source>
         <translation type="unfinished">Erro</translation>
     </message>
@@ -5390,45 +5390,90 @@ Continuar?</translation>
         <translation type="unfinished">-</translation>
     </message>
     <message>
-        <location filename="../ui/project/qgisred_layermanagement_dialog.py" line="242"/>
+        <location filename="../ui/project/qgisred_layermanagement_dialog.py" line="334"/>
         <source>(default)</source>
         <translation type="unfinished">(predefinido)</translation>
     </message>
     <message>
-        <location filename="../ui/project/qgisred_layermanagement_dialog.py" line="263"/>
+        <location filename="../ui/project/qgisred_layermanagement_dialog.py" line="357"/>
         <source>The theme name is not valid</source>
         <translation type="unfinished">O nome do tema não é válido</translation>
     </message>
     <message>
-        <location filename="../ui/project/qgisred_layermanagement_dialog.py" line="271"/>
+        <location filename="../ui/project/qgisred_layermanagement_dialog.py" line="365"/>
         <source>A theme with that name already exists</source>
         <translation type="unfinished">Já existe um tema com esse nome</translation>
     </message>
     <message>
-        <location filename="../ui/project/qgisred_layermanagement_dialog.py" line="295"/>
+        <location filename="../ui/project/qgisred_layermanagement_dialog.py" line="464"/>
         <source>Select the theme to delete</source>
         <translation type="unfinished">Selecione o tema a eliminar</translation>
     </message>
     <message>
-        <location filename="../ui/project/qgisred_layermanagement_dialog.py" line="299"/>
+        <location filename="../ui/project/qgisred_layermanagement_dialog.py" line="468"/>
         <source>The theme and its files will be deleted. Continue?</source>
         <translation type="unfinished">O tema e os seus arquivos serão eliminados. Continuar?</translation>
     </message>
     <message>
-        <location filename="../ui/project/qgisred_layermanagement_dialog.py" line="300"/>
+        <location filename="../ui/project/qgisred_layermanagement_dialog.py" line="469"/>
         <source>Delete theme</source>
         <translation type="unfinished">Excluir tema</translation>
+    </message>
+    <message>
+        <location filename="../ui/project/qgisred_layermanagement_dialog.ui" line="814"/>
+        <source>Base demand fields</source>
+        <translation type="unfinished">Campos de consumo base</translation>
+    </message>
+    <message>
+        <location filename="../ui/project/qgisred_layermanagement_dialog.ui" line="817"/>
+        <source>…</source>
+        <translation type="unfinished">…</translation>
+    </message>
+    <message>
+        <location filename="../ui/project/qgisred_layermanagement_dialog.py" line="412"/>
+        <source>The theme could not be read</source>
+        <translation type="unfinished">Não foi possível ler o tema</translation>
+    </message>
+    <message>
+        <location filename="../ui/project/qgisred_layermanagement_dialog.py" line="432"/>
+        <source>The selected fields and all their values will be deleted. Continue?</source>
+        <translation type="unfinished">Os campos selecionados e todos os seus valores serão eliminados. Continuar?</translation>
+    </message>
+    <message>
+        <location filename="../ui/project/qgisred_layermanagement_dialog.py" line="433"/>
+        <source>Delete fields</source>
+        <translation type="unfinished">Eliminar campos</translation>
+    </message>
+    <message>
+        <location filename="../ui/project/qgisred_layermanagement_dialog.py" line="452"/>
+        <source>Field names may hold at most %1 characters</source>
+        <translation type="unfinished">Os nomes de campo admitem no máximo %1 caracteres</translation>
+    </message>
+    <message>
+        <location filename="../ui/project/qgisred_layermanagement_dialog.py" line="455"/>
+        <source>There is already a field called %1</source>
+        <translation type="unfinished">Já existe um campo chamado %1</translation>
+    </message>
+    <message>
+        <location filename="../ui/project/qgisred_layermanagement_dialog.py" line="457"/>
+        <source>%1 is not a valid field name</source>
+        <translation type="unfinished">%1 não é um nome de campo válido</translation>
+    </message>
+    <message>
+        <location filename="../ui/project/qgisred_layermanagement_dialog.py" line="458"/>
+        <source>The theme needs at least one base demand field</source>
+        <translation type="unfinished">O tema precisa de pelo menos um campo de consumo base</translation>
     </message>
 </context>
 <context>
     <name>QGISRedLayerUtils</name>
     <message>
-        <location filename="../tools/utils/qgisred_layer_utils.py" line="684"/>
+        <location filename="../tools/utils/qgisred_layer_utils.py" line="701"/>
         <source>Pipes</source>
         <translation>Tubulações</translation>
     </message>
     <message>
-        <location filename="../tools/utils/qgisred_layer_utils.py" line="511"/>
+        <location filename="../tools/utils/qgisred_layer_utils.py" line="521"/>
         <source>%1 I</source>
         <translation>%1 I</translation>
     </message>
@@ -6597,12 +6642,12 @@ Deseja continuar?</translation>
 <context>
     <name>QGISRedProjectIO</name>
     <message>
-        <location filename="../tools/utils/qgisred_project_io.py" line="637"/>
+        <location filename="../tools/utils/qgisred_project_io.py" line="668"/>
         <source>QGISRed Project</source>
         <translation>Projeto QGISRed</translation>
     </message>
     <message>
-        <location filename="../tools/utils/qgisred_project_io.py" line="637"/>
+        <location filename="../tools/utils/qgisred_project_io.py" line="668"/>
         <source>We cannot find the QGIS project file. Do you want to find this file manually? If not, we will open only the layers from the Inputs group.</source>
         <translation>Não foi possível encontrar o arquivo de projeto do QGIS. Deseja localizar este arquivo manualmente? Caso contrário, abriremos apenas as camadas do grupo Entradas.</translation>
     </message>
@@ -8335,7 +8380,7 @@ Deseja continuar?</translation>
 <context>
     <name>QGISRedStylingUtils</name>
     <message>
-        <location filename="../tools/utils/qgisred_styling_utils.py" line="730"/>
+        <location filename="../tools/utils/qgisred_styling_utils.py" line="850"/>
         <source>%1 field not found in layer %2</source>
         <translation>Campo %1 não encontrado na camada %2</translation>
     </message>
@@ -8350,37 +8395,37 @@ Deseja continuar?</translation>
         <translation type="obsolete">Cordas</translation>
     </message>
     <message>
-        <location filename="../tools/utils/qgisred_styling_utils.py" line="240"/>
+        <location filename="../tools/utils/qgisred_styling_utils.py" line="243"/>
         <source>Failed to apply legend strategy for layer %1: %2</source>
         <translation>Falha ao aplicar a estratégia de legenda para a camada %1: %2</translation>
     </message>
     <message>
-        <location filename="../tools/utils/qgisred_styling_utils.py" line="272"/>
+        <location filename="../tools/utils/qgisred_styling_utils.py" line="275"/>
         <source>Unsupported legend strategy schema: %1</source>
         <translation>Esquema de estratégia de legenda não suportado: %1</translation>
     </message>
     <message>
-        <location filename="../tools/utils/qgisred_styling_utils.py" line="285"/>
+        <location filename="../tools/utils/qgisred_styling_utils.py" line="288"/>
         <source>Legend strategy field &apos;%1&apos; not found on layer &apos;%2&apos;</source>
         <translation>Campo da estratégia de legenda '%1' não encontrado na camada '%2'</translation>
     </message>
     <message>
-        <location filename="../tools/utils/qgisred_styling_utils.py" line="494"/>
+        <location filename="../tools/utils/qgisred_styling_utils.py" line="497"/>
         <source>Color ramp &apos;%1&apos; not found; falling back to random colors</source>
         <translation>Rampa de cores '%1' não encontrada; usando cores aleatórias</translation>
     </message>
     <message>
-        <location filename="../tools/utils/qgisred_styling_utils.py" line="366"/>
+        <location filename="../tools/utils/qgisred_styling_utils.py" line="369"/>
         <source>Unsupported classification mode: %1</source>
         <translation>Modo de classificação não suportado: %1</translation>
     </message>
     <message>
-        <location filename="../tools/utils/qgisred_styling_utils.py" line="528"/>
+        <location filename="../tools/utils/qgisred_styling_utils.py" line="531"/>
         <source>Color ramp &apos;%1&apos; not found; colors strategy skipped</source>
         <translation>Rampa de cores '%1' não encontrada; estratégia de cores ignorada</translation>
     </message>
     <message>
-        <location filename="../tools/utils/qgisred_styling_utils.py" line="626"/>
+        <location filename="../tools/utils/qgisred_styling_utils.py" line="629"/>
         <source>Closed Links</source>
         <translation>Trechos Fechados</translation>
     </message>
@@ -8390,7 +8435,7 @@ Deseja continuar?</translation>
         <translation type="obsolete">Indefinido</translation>
     </message>
     <message>
-        <location filename="../tools/utils/qgisred_styling_utils.py" line="624"/>
+        <location filename="../tools/utils/qgisred_styling_utils.py" line="627"/>
         <source>Uncategorized</source>
         <translation>Sem categoria</translation>
     </message>
@@ -8775,7 +8820,7 @@ Deseja continuar?</translation>
 <context>
     <name>StaleLayerManager</name>
     <message>
-        <location filename="../tools/utils/qgisred_stale_layer_manager.py" line="98"/>
+        <location filename="../tools/utils/qgisred_stale_layer_manager.py" line="159"/>
         <source>Layer may be outdated — inputs have changed since last generation</source>
         <translation>A camada pode estar desatualizada — as entradas mudaram desde a última geração</translation>
     </message>
@@ -9440,12 +9485,12 @@ Deseja continuar?</translation>
 <context>
     <name>ToolsSection</name>
     <message>
-        <location filename="../sections/tools_section.py" line="112"/>
+        <location filename="../sections/tools_section.py" line="114"/>
         <source>No issues ocurred</source>
         <translation>Nenhum problema ocorreu</translation>
     </message>
     <message>
-        <location filename="../sections/tools_section.py" line="74"/>
+        <location filename="../sections/tools_section.py" line="76"/>
         <source>Any elevation has been estimated</source>
         <translation>Nenhuma cota foi estimada</translation>
     </message>
@@ -9747,29 +9792,62 @@ Deseja continuar?</translation>
     </message>
 </context>
 <context>
-    <name>_NewAuxiliaryThemeDialog</name>
+    <name>_BaseDemandFieldsDialog</name>
     <message>
-        <location filename="../ui/project/qgisred_layermanagement_dialog.py" line="84"/>
-        <source>New auxiliary theme</source>
-        <translation type="unfinished">Novo tema auxiliar</translation>
+        <location filename="../ui/project/qgisred_layermanagement_dialog.py" line="142"/>
+        <source>Base demand fields</source>
+        <translation type="unfinished">Campos de consumo base</translation>
     </message>
     <message>
-        <location filename="../ui/project/qgisred_layermanagement_dialog.py" line="91"/>
+        <location filename="../ui/project/qgisred_layermanagement_dialog.py" line="152"/>
+        <source>Add a base demand field</source>
+        <translation type="unfinished">Adicionar um campo de consumo base</translation>
+    </message>
+    <message>
+        <location filename="../ui/project/qgisred_layermanagement_dialog.py" line="153"/>
+        <source>Delete the selected field</source>
+        <translation type="unfinished">Eliminar o campo selecionado</translation>
+    </message>
+    <message>
+        <location filename="../ui/project/qgisred_layermanagement_dialog.py" line="157"/>
         <source>Accept</source>
         <translation type="unfinished">Aceitar</translation>
     </message>
     <message>
-        <location filename="../ui/project/qgisred_layermanagement_dialog.py" line="92"/>
+        <location filename="../ui/project/qgisred_layermanagement_dialog.py" line="158"/>
         <source>Cancel</source>
         <translation type="unfinished">Cancelar</translation>
     </message>
     <message>
-        <location filename="../ui/project/qgisred_layermanagement_dialog.py" line="97"/>
+        <location filename="../ui/project/qgisred_layermanagement_dialog.py" line="177"/>
+        <source>Fields holding a base demand:</source>
+        <translation type="unfinished">Campos que contêm um consumo base:</translation>
+    </message>
+</context>
+<context>
+    <name>_NewAuxiliaryThemeDialog</name>
+    <message>
+        <location filename="../ui/project/qgisred_layermanagement_dialog.py" line="93"/>
+        <source>New auxiliary theme</source>
+        <translation type="unfinished">Novo tema auxiliar</translation>
+    </message>
+    <message>
+        <location filename="../ui/project/qgisred_layermanagement_dialog.py" line="100"/>
+        <source>Accept</source>
+        <translation type="unfinished">Aceitar</translation>
+    </message>
+    <message>
+        <location filename="../ui/project/qgisred_layermanagement_dialog.py" line="101"/>
+        <source>Cancel</source>
+        <translation type="unfinished">Cancelar</translation>
+    </message>
+    <message>
+        <location filename="../ui/project/qgisred_layermanagement_dialog.py" line="106"/>
         <source>Type:</source>
         <translation type="unfinished">Tipo:</translation>
     </message>
     <message>
-        <location filename="../ui/project/qgisred_layermanagement_dialog.py" line="101"/>
+        <location filename="../ui/project/qgisred_layermanagement_dialog.py" line="110"/>
         <source>Name:</source>
         <translation type="unfinished">Nome:</translation>
     </message>

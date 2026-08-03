@@ -803,6 +803,22 @@
                </widget>
               </item>
               <item>
+               <widget class="QPushButton" name="btConfigAuxiliary">
+                <property name="maximumSize">
+                 <size>
+                  <width>20</width>
+                  <height>20</height>
+                 </size>
+                </property>
+                <property name="toolTip">
+                 <string>Base demand fields</string>
+                </property>
+                <property name="text">
+                 <string>…</string>
+                </property>
+               </widget>
+              </item>
+              <item>
                <spacer name="verticalSpacer_4">
                 <property name="orientation">
                  <enum>Qt::Vertical</enum>
