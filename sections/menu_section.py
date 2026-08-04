@@ -1225,10 +1225,17 @@ class MenuSection:
     def runReportIssues(self):
         webbrowser.open("https://github.com/qgisred/QGISRed/issues")
 
+    # GitBook spaces per language; any locale not listed falls back to the English manual
+    _USER_MANUAL_URLS = {
+        "es": "https://qgisred.gitbook.io/manual-de-usuario",
+        "fr": "https://qgisred.gitbook.io/qgisred-manuel-dutilisation",
+        "pt": "https://qgisred.gitbook.io/qgisred-manual-do-utilizador",
+    }
+    _USER_MANUAL_DEFAULT_URL = "https://qgisred.gitbook.io/usermanual"
+
     def runUserManual(self):
         locale = QgsApplication.locale()[0:2]
-        url = "https://qgisred.gitbook.io/manual-de-usuario" if locale == "es" else "https://qgisred.gitbook.io/usermanual"
-        webbrowser.open(url)
+        webbrowser.open(self._USER_MANUAL_URLS.get(locale, self._USER_MANUAL_DEFAULT_URL))
 
     def runOfflineManual(self):
         locale = QgsApplication.locale()[0:2]
