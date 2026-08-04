@@ -41,6 +41,7 @@ from ...tools.utils.qgisred_project_utils import QGISRedProjectUtils
 from ...tools.utils.qgisred_results_all_utils import QGISRedResultsAllUtils
 from ...tools.utils.qgisred_result_fields import resultTypeField
 from ...tools.utils.qgisred_ui_utils import QGISRED_COMBO_STYLE, QGISRedUIUtils
+from ...tools.utils.qgisred_highlight_manager import QGISRedHighlightOwnerMixin
 from ...tools.utils.qgisred_valve_types import getValveTypeAbbreviation
 from .qgisred_statistics_manual_breaks_dialog import QGISRedStatisticsManualBreaksDialog
 from .statistics_histogram_widget import StatisticsHistogramWidget
@@ -165,7 +166,12 @@ class _StatisticsHistogramPopoutWindow(QWidget):
         super().closeEvent(event)
 
 
-class QGISRedStatisticsDock(QDockWidget, formClass):
+class QGISRedStatisticsDock(QGISRedHighlightOwnerMixin, QDockWidget, formClass):
+    highlightOwnerKey = "statistics"
+    highlightActiveAccent = "#388E3C"
+    # Class-level default: canActivate can be reached before __init__ finishes.
+    _lastPreviewMatchCount = 0
+
     def __init__(self, iface, parent=None):
         super(QGISRedStatisticsDock, self).__init__(parent or iface.mainWindow())
         self.setupUi(self)
@@ -213,6 +219,7 @@ class QGISRedStatisticsDock(QDockWidget, formClass):
         self.resultsDockPollTimer.setInterval(1500)
         self.resultsDockPollTimer.timeout.connect(self.pollForResultsDock)
         self.previewHighlights = []
+        self._lastPreviewMatchCount = 0
         self.filterPreviewTimer = QTimer()
         self.filterPreviewTimer.setSingleShot(True)
         self.filterPreviewTimer.setInterval(150)
@@ -240,10 +247,34 @@ class QGISRedStatisticsDock(QDockWidget, formClass):
         if self.resultsDock is None:
             self.resultsDockPollTimer.start()
 
+    # ------------------------------
+    # Highlight ownership protocol
+    # ------------------------------
+    def canActivate(self):
+        # The orange preview needs the checkbox on, the Filters section open and
+        # a filter that actually matches something. Without the last condition
+        # this dock would take the canvas from a profile and then draw nothing.
+        with suppress(Exception):
+            return bool(
+                self.chkPreview.isChecked()
+                and not self.mFiltersGroupBox.isCollapsed()
+                and self._lastPreviewMatchCount > 0
+            )
+        return False
+
+    def clearMapHighlights(self):
+        self.removeFilterPreviewHighlights()
+
+    def redrawMapHighlights(self):
+        self.refreshFilterPreview()
+
     def closeEvent(self, event):
+        manager = self.highlightManager()
+        if manager is not None:
+            manager.unregister(self)
         self._closeHistogramPopout()
         self.filterPreviewTimer.stop()
-        self.safeDisconnect(self.canvas.selectionChanged, self.scheduleFilterPreview)
+        self.safeDisconnect(self.canvas.selectionChanged, self.scheduleReactiveFilterPreview)
         self.removeFilterPreviewHighlights()
         self.resultsDockVisibilityTimer.stop()
         self.disconnectResultsDock()
@@ -473,7 +504,7 @@ class QGISRedStatisticsDock(QDockWidget, formClass):
         self.cbSelectedElements.toggled.connect(self.scheduleFilterPreview)
         # Canvas-level hook: per-layer connections depend on group discovery, which can
         # fail on QGIS 4 (layer-tree wrapper quirks), so also listen to the canvas itself
-        self.canvas.selectionChanged.connect(self.scheduleFilterPreview)
+        self.canvas.selectionChanged.connect(self.scheduleReactiveFilterPreview)
 
     def onCollapsibleGroupToggled(self, collapsed):
         if not collapsed:
@@ -533,7 +564,7 @@ class QGISRedStatisticsDock(QDockWidget, formClass):
                 layer.featureDeleted.connect(self.onLayerTreeChanged)
                 layer.attributeValueChanged.connect(self.onLayerTreeChanged)
                 layer.committedAttributeValuesChanges.connect(self.onLayerTreeChanged)
-                layer.selectionChanged.connect(self.scheduleFilterPreview)
+                layer.selectionChanged.connect(self.scheduleReactiveFilterPreview)
             self.connectedLayerNodes.append(layerNode)
 
     def disconnectLayerNode(self, layerNode):
@@ -546,7 +577,20 @@ class QGISRedStatisticsDock(QDockWidget, formClass):
                 self.safeDisconnect(layer.featureDeleted, self.onLayerTreeChanged)
                 self.safeDisconnect(layer.attributeValueChanged, self.onLayerTreeChanged)
                 self.safeDisconnect(layer.committedAttributeValuesChanges, self.onLayerTreeChanged)
-                self.safeDisconnect(layer.selectionChanged, self.scheduleFilterPreview)
+                self.safeDisconnect(layer.selectionChanged, self.scheduleReactiveFilterPreview)
+
+    def scheduleReactiveFilterPreview(self, *args):
+        """Recompute the preview after a change this dock did not initiate.
+
+        The Element Explorer selects the element it identifies, which lands
+        here through selectionChanged. Redrawing while suspended would claim
+        the canvas straight back, and the two docks would trade it every
+        150 ms. Edits the user makes in this dock go to scheduleFilterPreview
+        directly — those are a legitimate claim.
+        """
+        if self.isHighlightSuspended():
+            return
+        self.scheduleFilterPreview()
 
     def onLayerTreeChanged(self, *args):
         self.layerTreeChangeTimer.start()
@@ -572,7 +616,7 @@ class QGISRedStatisticsDock(QDockWidget, formClass):
             self.tbExcel.setRowCount(0)
             self.tbExcel.setColumnCount(0)
             self.labelTableFilter.hide()
-        self.scheduleFilterPreview()
+        self.scheduleReactiveFilterPreview()
 
     def onProjectChanged(self, *args):
         self.manualBreaks = []
@@ -1533,6 +1577,9 @@ class QGISRedStatisticsDock(QDockWidget, formClass):
         features = self.computeFilterMatchFeatures()
         if features is None:
             features = []
+        # Kept so canActivate can answer "would this dock draw anything?"
+        # without paying for the feature scan again.
+        self._lastPreviewMatchCount = len(features)
         self.lblMatchCount.setText(self.tr("%d elements match") % len(features))
         self.removeFilterPreviewHighlights()
         if not self.chkPreview.isChecked() or not features:
@@ -1549,6 +1596,8 @@ class QGISRedStatisticsDock(QDockWidget, formClass):
             highlight.setWidth(3)
             highlight.show()
             self.previewHighlights.append(highlight)
+        if self.previewHighlights:
+            self.notifyHighlightDrawn()
 
     def computeFilterMatchFeatures(self):
         # Features passing the Filters section (attribute condition + only selected); None = not evaluable

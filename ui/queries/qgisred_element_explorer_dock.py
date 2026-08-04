@@ -13,9 +13,10 @@ from ...tools.utils.qgisred_layer_utils import QGISRedLayerUtils
 from ...tools.utils.qgisred_project_utils import QGISRedProjectUtils
 from ...tools.utils.qgisred_filesystem_utils import DIR_RESULTS
 from ...tools.utils.qgisred_ui_utils import QGISRedUIUtils
+from ...tools.utils.qgisred_highlight_manager import QGISRedHighlightOwnerMixin
 from ...tools.utils.qgisred_valve_types import getValveTypeAbbreviation
 from ..analysis.qgisred_results_dock import QGISRedResultsDock
-from ...compat import LINEEDIT_LEADING_POSITION
+from ...compat import LINEEDIT_LEADING_POSITION, sip
 
 FORM_CLASS, _ = uic.loadUiType(os.path.join(os.path.dirname(__file__), "qgisred_element_explorer_dock.ui"))
 
@@ -50,8 +51,10 @@ class _ResultsTabStyle(QProxyStyle):
 # - List items carry identifier (UserRole), raw element id (UserRole+1) and
 #   suffix kinds (UserRole+2) so reverse parsing of translated text is avoided.
 
-class QGISRedElementExplorerDock(QDockWidget, FORM_CLASS):
+class QGISRedElementExplorerDock(QGISRedHighlightOwnerMixin, QDockWidget, FORM_CLASS):
     _instance = None
+    highlightOwnerKey = "elementExplorer"
+    highlightActiveAccent = "#E64A19"
     dockVisibilityChanged = pyqtSignal(bool)
     findElementsDockVisibilityChanged = pyqtSignal(bool)
     elementPropertiesDockVisibilityChanged = pyqtSignal(bool)
@@ -124,6 +127,10 @@ class QGISRedElementExplorerDock(QDockWidget, FORM_CLASS):
         self.adjacentHighlights = []
         self.mainHighlight = None
         self.currentSelectedHighlight = None
+        # Layers this dock selected features on. Kept so releasing the canvas
+        # only undoes our own selection: wiping every layer in the project used
+        # to take the time series selection down with it.
+        self._selectedLayers = []
         self.dictOfElementIds = {}
         self.currentLayer = None
         self.currentFeature = None
@@ -276,7 +283,8 @@ class QGISRedElementExplorerDock(QDockWidget, FORM_CLASS):
             highlight.setWidth(5)
             highlight.show()
             self.mainHighlight = highlight
-            self.currentLayer.selectByIds([self.currentFeature.id()])
+            self.selectOnLayer(self.currentLayer, [self.currentFeature.id()])
+            self.notifyHighlightDrawn()
             return True
         except Exception:
             return False
@@ -357,7 +365,7 @@ class QGISRedElementExplorerDock(QDockWidget, FORM_CLASS):
 
         if event.type() == QEvent.Type.FocusIn:
             if obj != self and self.isAncestorOf(obj):
-                self.reestablishIdentifyTool()
+                self.notifyHighlightActivated()
         return super(QGISRedElementExplorerDock, self).eventFilter(obj, event)
 
     def reestablishIdentifyTool(self):
@@ -365,6 +373,30 @@ class QGISRedElementExplorerDock(QDockWidget, FORM_CLASS):
         currentTool = self.canvas.mapTool()
         if not isinstance(currentTool, QGISRedIdentifyFeature):
             self.dockFocusChanged.emit(True)
+
+    # ------------------------------
+    # Highlight ownership protocol
+    # ------------------------------
+    def ownsMapTool(self, tool):
+        from ...tools.map_tools.qgisred_identifyFeature import QGISRedIdentifyFeature
+
+        return isinstance(tool, QGISRedIdentifyFeature)
+
+    def canActivate(self):
+        # Nothing identified yet: clicking around in the dock must not take the
+        # canvas from a profile or a query that is showing something.
+        return bool(self.mainHighlight or self.currentFeature or self.adjacentHighlights)
+
+    def clearMapHighlights(self):
+        # Only our own graphics. The layer selection is shared QGIS state that
+        # other docks read, and dropping it here would fire selectionChanged,
+        # making the Statistics preview recompute itself away. It is undone by
+        # this dock's own lifecycle instead (close, new search, project change).
+        self.clearHighlights()
+
+    def redrawMapHighlights(self):
+        self.reHighlightCurrentElement()
+        self.reestablishIdentifyTool()
 
     # ------------------------------
     # UI and Dock Styling Methods
@@ -571,10 +603,21 @@ class QGISRedElementExplorerDock(QDockWidget, FORM_CLASS):
             self.dataTableWidget.clearContents()
             self.dataTableWidget.setRowCount(0)
 
+    def selectOnLayer(self, layer, featureIds):
+        """Select features and remember the layer, so clearAllLayerSelections
+        can undo exactly what this dock did and nothing else."""
+        if layer is None:
+            return
+        layer.selectByIds(list(featureIds))
+        if not any(lyr is layer for lyr in self._selectedLayers):
+            self._selectedLayers.append(layer)
+
     def clearAllLayerSelections(self):
-        for lyr in QgsProject.instance().mapLayers().values():
-            if isinstance(lyr, QgsVectorLayer):
-                lyr.removeSelection()
+        for lyr in list(self._selectedLayers):
+            with suppress(Exception):
+                if isinstance(lyr, QgsVectorLayer) and not sip.isdeleted(lyr):
+                    lyr.removeSelection()
+        self._selectedLayers = []
 
     def clearHighlights(self):
         scene = iface.mapCanvas().scene()
@@ -590,6 +633,9 @@ class QGISRedElementExplorerDock(QDockWidget, FORM_CLASS):
 
     def closeEvent(self, event):
         try:
+            manager = self.highlightManager()
+            if manager is not None:
+                manager.unregister(self)
             self.dockVisibilityChanged.emit(False)
             self.dockClosed.emit(True)
 
@@ -789,13 +835,15 @@ class QGISRedElementExplorerDock(QDockWidget, FORM_CLASS):
         self.onLayerTreeChanged()
 
     def onMapToolSet(self, tool):
+        # Only re-run the search when *our* identify tool comes back. Losing the
+        # canvas to anything else is the highlight arbiter's business, and it is
+        # what tells pan and zoom (which must leave the highlight alone) apart
+        # from a native select (which must not).
         if not self.isVisible():
             return
         if type(tool).__name__ == "QGISRedIdentifyFeature":
             if self.isLayerValid(self.currentLayer) and self.currentFeature:
                 self.findElement()
-        else:
-            self.clearHighlights()
 
     # ------------------------------
     # Element Type and Identifier Initialization
@@ -1037,6 +1085,7 @@ class QGISRedElementExplorerDock(QDockWidget, FORM_CLASS):
         highlight.setWidth(5)
         highlight.show()
         self.mainHighlight = highlight
+        self.notifyHighlightDrawn()
         self.adjustMapView(foundFeature)
 
         self.refreshConnectedElements(foundFeature, foundFeatureLayer)
@@ -1098,6 +1147,7 @@ class QGISRedElementExplorerDock(QDockWidget, FORM_CLASS):
                     highlight.setWidth(5)
                     highlight.show()
                     self.currentSelectedHighlight = highlight
+                    self.notifyHighlightDrawn()
                     return
 
     def onListItemDoubleClicked(self, item):
@@ -1483,7 +1533,7 @@ class QGISRedElementExplorerDock(QDockWidget, FORM_CLASS):
         self.currentLayer = layer
         self.currentFeature = feature
         self.demandPageIndex = 0
-        layer.selectByIds([feature.id()])
+        self.selectOnLayer(layer, [feature.id()])
         self.populateDataTableWidget()
         self.updateResultsTabVisibility()
         self.populateResultsTable()
@@ -2347,6 +2397,7 @@ class QGISRedElementExplorerDock(QDockWidget, FORM_CLASS):
         highlight.setWidth(5)
         highlight.show()
         self.mainHighlight = highlight
+        self.notifyHighlightDrawn()
 
         self.adjustMapView(feature)
 

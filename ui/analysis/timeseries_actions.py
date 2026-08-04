@@ -82,10 +82,6 @@ def clear_all_timeseries(section, dock=None) -> None:
         dock.lastCategory = None
 
     with suppress(Exception):
-        if dock is getattr(section, "activeTimeSeriesDock", None):
-            section._clearTimeSeriesMapSelection()
-
-    with suppress(Exception):
         section._clearTimeSeriesHighlight(dock)
 
     with suppress(Exception):

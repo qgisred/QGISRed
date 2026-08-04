@@ -23,6 +23,7 @@ from ..tools.qgisred_dependencies import QGISRedDependencies as GISRed
 from ..ui.queries.qgisred_element_explorer_dock import QGISRedElementExplorerDock
 from ..ui.general.qgisred_news_dialog import QGISRedNewsDialog
 from ..tools.utils.qgisred_stale_layer_manager import StaleLayerManager
+from ..tools.utils.qgisred_highlight_manager import QGISRedHighlightManager
 from ..tools.utils.qgisred_maptip import QGISRedMapTip
 
 
@@ -233,6 +234,14 @@ class LifecycleSection:
             lambda: (getattr(self, "NetworkName", ""), getattr(self, "ProjectDirectory", ""))
         )
 
+        # Single arbiter of which dock may show highlights on the canvas. It
+        # needs the plugin's live map tools to tell an editing tool (which
+        # suspends every highlight) from a native pan/zoom (which does not).
+        self.highlightManager = QGISRedHighlightManager(
+            self.iface,
+            lambda: list((getattr(self, "myMapTools", None) or {}).values())
+        )
+
         self.setCulture()
         # QgsMessageLog.logMessage("Culture set to " + definedCulture, "QGISRed", level=0)
 
@@ -249,9 +258,10 @@ class LifecycleSection:
         """Disconnects signals and removes all plugin docks to ensure a clean state."""
         with suppress(Exception):
             self._resetResultsEvolutionMapState()
+        # Drops the focusChanged / mapToolSet connections and the whole owner
+        # registry in one go; the docks recreated afterwards register again.
         with suppress(Exception):
-            from qgis.PyQt.QtWidgets import QApplication
-            QApplication.instance().focusChanged.disconnect(self._onPickPanelFocusChanged)
+            self.highlightManager.shutdown()
         docks_to_clean = []
         if self.ResultDockwidget is not None:
             self.disconnectElementExplorerFromResultsDock()
@@ -300,10 +310,6 @@ class LifecycleSection:
         self._profiles = []
         self._activeProfile = None
         self._profileTimeConnected = False
-        with suppress(Exception):
-            from qgis.PyQt.QtWidgets import QApplication
-            QApplication.instance().focusChanged.disconnect(self._onProfilePanelFocusChanged)
-        self._profileFocusConnected = False
 
         if hasattr(self, 'statisticsDock') and self.statisticsDock is not None:
             docks_to_clean.append(('statisticsDock', self.statisticsDock))

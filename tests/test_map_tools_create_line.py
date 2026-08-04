@@ -117,6 +117,15 @@ sys.modules['qgis.PyQt.QtCore'] = _mock_qgis_pyqt_qtcore
 sys.modules['qgis.PyQt.QtGui'] = _mock_qgis_pyqt_qtgui
 sys.modules['qgis.PyQt.QtWidgets'] = _mock_qgis_pyqt_qtwidgets
 
+# The replacements above wiped the shared widget stubs, leaving QDockWidget as a
+# MagicMock *instance*. Any dock imported after this module would then fail with
+# a metaclass conflict as soon as it mixes a plain-Python mixin in before its Qt
+# base. Put the stub types back on the new mocks right away — the autouse
+# fixture in conftest only runs before each test, which is too late for the
+# imports other test modules do at collection time.
+from .conftest import _apply_qt_mock_config  # noqa: E402
+_apply_qt_mock_config()
+
 from QGISRed.tools.map_tools.qgisred_createLineTool import QGISRedCreateLineTool  # noqa: E402
 
 

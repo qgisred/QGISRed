@@ -72,7 +72,6 @@ class _SectionLike:
         self._timeSeriesResetSelection = MagicMock(
             side_effect=lambda d: (setattr(d, "selection", []), setattr(d, "selectionKey", None))
         )
-        self._clearTimeSeriesMapSelection = MagicMock()
         self._clearTimeSeriesHighlight = MagicMock()
 
 
@@ -90,7 +89,7 @@ class TestTimeSeriesActions:
         assert dock.lastCategory is None
 
         s._timeSeriesResetSelection.assert_called_once_with(dock)
-        s._clearTimeSeriesMapSelection.assert_called_once()
+        # No layer selection to undo: the time series draws highlights only.
         s._clearTimeSeriesHighlight.assert_called_once_with(dock)
         dock.updatePlotSeries.assert_called_once_with([], "", "", "")
         dock.resetGlobalVarCombos.assert_called_once()

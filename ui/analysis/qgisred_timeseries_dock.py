@@ -31,6 +31,7 @@ from qgis.PyQt.QtGui import QFont, QPainter, QFontMetrics, QIcon, QPixmap
 from qgis.PyQt import uic
 
 from ...compat import DIALOG_ACCEPTED
+from ...tools.utils.qgisred_highlight_manager import QGISRedDockActivationMixin
 from ...tools.utils.qgisred_ui_utils import QGISRedUIUtils
 
 from .qgisred_timeseries_axis_dialog import TimeSeriesAxisOptionsDialog
@@ -1133,7 +1134,7 @@ class TimeSeriesPlotWidget(QWidget):
                     self.cursorTimeChanged.emit(float(xs[best_idx]))
 
 
-class QGISRedTimeSeriesDock(QDockWidget, FORM_CLASS):
+class QGISRedTimeSeriesDock(QGISRedDockActivationMixin, QDockWidget, FORM_CLASS):
     seriesReordered = pyqtSignal(list)
     seriesRemoved = pyqtSignal(str)
     seriesEmphasisChanged = pyqtSignal(dict)
@@ -1219,27 +1220,6 @@ class QGISRedTimeSeriesDock(QDockWidget, FORM_CLASS):
             if event is not None and event.type() == QEvent.Type.WindowTitleChange:
                 self._updateMinimumWidthForDockTitle()
         return super(QGISRedTimeSeriesDock, self).event(event)
-
-    def eventFilter(self, obj, event):
-        with suppress(Exception):
-            if event is not None and event.type() == QEvent.Type.MouseButtonPress:
-                self.activated.emit()
-        return super(QGISRedTimeSeriesDock, self).eventFilter(obj, event)
-
-    def focusInEvent(self, event):
-        with suppress(Exception):
-            self.activated.emit()
-        super(QGISRedTimeSeriesDock, self).focusInEvent(event)
-
-    def mousePressEvent(self, event):
-        with suppress(Exception):
-            self.activated.emit()
-        super(QGISRedTimeSeriesDock, self).mousePressEvent(event)
-
-    def showEvent(self, event):
-        super(QGISRedTimeSeriesDock, self).showEvent(event)
-        with suppress(Exception):
-            self.activated.emit()
 
     def _initToolbar(self) -> None:
         try:

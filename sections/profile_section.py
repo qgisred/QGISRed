@@ -99,6 +99,9 @@ def _profile_state_property(field):
 
 
 class ProfileSection:
+    # Identifies the profile panels in the highlight arbiter.
+    PROFILE_HIGHLIGHT_KEY = "profile"
+
     def runProfile(self):
         button = getattr(self, "profileButton", None)
         if button is not None and not button.isChecked():
@@ -145,7 +148,6 @@ class ProfileSection:
     def _createProfilePanel(self, out_path):
         from ..ui.analysis.qgisred_profile_dock import QGISRedProfileDock
         from qgis.PyQt.QtCore import Qt
-        from qgis.PyQt.QtWidgets import QApplication
 
         if not isinstance(getattr(self, "_profiles", None), list):
             self._profiles = []
@@ -173,11 +175,7 @@ class ProfileSection:
                 with suppress(Exception):
                     self.ResultDockwidget.resultPropertyChanged.connect(self._onProfileTimeChanged)
                 self._profileTimeConnected = True
-        if not getattr(self, "_profileFocusConnected", False):
-            with suppress(Exception):
-                QApplication.instance().focusChanged.connect(self._onProfilePanelFocusChanged)
-                self._profileFocusConnected = True
-        self._ensureProfileMapToolSignal()
+        self._registerProfileHighlightOwner()
 
         self._setActiveProfileDock(dock)
         with suppress(Exception):
@@ -240,6 +238,12 @@ class ProfileSection:
         return False
 
     def _hideProfiles(self):
+        # Tell the arbiter first, so it stops considering profiles the owner of
+        # the canvas while the panels are away.
+        manager = getattr(self, "highlightManager", None)
+        if manager is not None:
+            with suppress(Exception):
+                manager.suspend(manager.ownerByKey(self.PROFILE_HIGHLIGHT_KEY))
         self._deactivateProfileMapTool()
         self._clearProfileMapHover()
         for state in list(getattr(self, "_profiles", []) or []):
@@ -251,30 +255,26 @@ class ProfileSection:
                     dock.hide()
         self._setProfileButtonChecked(False)
 
-    def _ensureProfileMapToolSignal(self):
-        if getattr(self, "_profileMapToolSignalConnected", False):
-            return
-        try:
-            self.iface.mapCanvas().mapToolSet.connect(self._onMapToolSetForProfile)
-            self._profileMapToolSignalConnected = True
-        except Exception:
-            self._profileMapToolSignalConnected = False
+    def _registerProfileHighlightOwner(self):
+        """Publish the profile panels to the highlight arbiter as one subject.
 
-    def _onMapToolSetForProfile(self, tool):
-        # The canvas map tool is the authoritative signal for "which analysis
-        # mode owns the canvas" — far more reliable than Qt focus events. Drive
-        # the profile button off it, but ignore neutral tools (zoom/pan/edit) so
-        # they don't toggle the button off.
-        tools = getattr(self, "myMapTools", {})
-        profile_tool = tools.get("Profile")
-        if profile_tool is not None and tool is profile_tool:
-            self._setProfileButtonChecked(True)
+        All open profile docks share the canvas: opening a second panel must not
+        erase the first one's path, so they register as a single family owner
+        rather than one owner per dock.
+        """
+        manager = getattr(self, "highlightManager", None)
+        if manager is None or manager.ownerByKey(self.PROFILE_HIGHLIGHT_KEY) is not None:
             return
-        ts_tool = tools.get("TimeSeries")
-        evo_tool = tools.get("ResultsEvolution")
-        if tool is not None and (tool is ts_tool or tool is evo_tool):
-            # A competing analysis mode took the canvas: profiles is no longer active.
-            self._cedeProfileFocus()
+        from ..tools.utils.qgisred_highlight_manager import QGISRedDelegatedHighlightOwner
+
+        manager.register(QGISRedDelegatedHighlightOwner(
+            self.PROFILE_HIGHLIGHT_KEY,
+            lambda: [s.dock for s in (getattr(self, "_profiles", None) or []) if s.dock is not None],
+            self._cedeProfileFocus,
+            self._reclaimProfileFocus,
+            ownedTools=lambda: [getattr(self, "myMapTools", {}).get("Profile")],
+            accent=lambda _active: self._restyleProfileDocks(),
+        ))
 
     def _syncActiveProfileToVisible(self):
         active = getattr(self, "_activeProfile", None)
@@ -305,44 +305,22 @@ class ProfileSection:
                 QGISRedUIUtils.applyDockStyle(dock, accent, backgroundColor="white")
 
     def _onProfileDockActivated(self, dock):
+        """The user clicked into a profile panel: make it the current one and
+        ask the arbiter to hand the canvas back to the profile family."""
         if dock is None:
             return
-        ceded = getattr(self, "_profileFocusCeded", False)
-        if self._activeDock() is dock and not ceded:
-            return
-        with suppress(Exception):
-            self._cedeTimeSeriesFocus()
         self._setActiveProfileDock(dock)
-        if ceded:
-            self._profileFocusCeded = False
-            self._restyleProfileDocks()
-            self._redrawAllProfileHighlights()
-        self._rearmProfileMapTool(dock)
-
-    def _widgetBelongsToProfileDock(self, widget, dock):
-        if widget is None or dock is None:
-            return False
-        try:
-            return widget is dock or dock.isAncestorOf(widget)
-        except Exception:
-            return False
-
-    def _onProfilePanelFocusChanged(self, old, now):
-        if now is None:
+        self._pendingProfileDock = dock
+        manager = getattr(self, "highlightManager", None)
+        owner = manager.ownerByKey(self.PROFILE_HIGHLIGHT_KEY) if manager is not None else None
+        if owner is None:
+            self._reclaimProfileFocus()
             return
-        for state in getattr(self, "_profiles", None) or []:
-            dock = state.dock
-            if dock is not None and self._widgetBelongsToProfileDock(now, dock):
-                self._onProfileDockActivated(dock)
-                return
-        if self._focusInTimeSeries(now):
-            self._cedeProfileFocus()
-
-    def _focusInTimeSeries(self, widget):
-        for dock in (getattr(self, "timeSeriesDocks", None) or []):
-            if dock is not None and self._widgetBelongsToProfileDock(widget, dock):
-                return True
-        return False
+        if manager.activeOwner() is owner and not manager.isSuspended(owner):
+            # Already ours — only the map tool has to follow the new dock.
+            self._rearmProfileMapTool(dock)
+            return
+        manager.activate(owner)
 
     def _cedeProfileFocus(self):
         if getattr(self, "_profileFocusCeded", False) or not getattr(self, "_profiles", None):
@@ -354,6 +332,20 @@ class ProfileSection:
             self._clearHighlightForState(state)
         self._restyleProfileDocks()
         self._setProfileButtonChecked(False)
+
+    def _reclaimProfileFocus(self):
+        if not getattr(self, "_profiles", None):
+            return
+        dock = getattr(self, "_pendingProfileDock", None) or self._activeDock()
+        self._pendingProfileDock = None
+        if dock is not None:
+            self._setActiveProfileDock(dock)
+        if getattr(self, "_profileFocusCeded", False):
+            self._profileFocusCeded = False
+            self._restyleProfileDocks()
+            self._redrawAllProfileHighlights()
+            self._setProfileButtonChecked(True)
+        self._rearmProfileMapTool(dock)
 
     def _redrawAllProfileHighlights(self):
         saved = getattr(self, "_activeProfile", None)

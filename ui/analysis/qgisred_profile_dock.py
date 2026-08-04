@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 from contextlib import suppress
 
-from qgis.PyQt.QtCore import Qt, QSize, QRect, QEvent, pyqtSignal
+from qgis.PyQt.QtCore import Qt, QSize, QRect, pyqtSignal
 from qgis.PyQt.QtGui import QIcon, QPixmap, QPainter
 from qgis.PyQt.QtWidgets import (
     QDockWidget, QWidget, QVBoxLayout, QHBoxLayout, QToolButton, QComboBox, QLabel, QFrame,
@@ -9,6 +9,7 @@ from qgis.PyQt.QtWidgets import (
     QDialog, QDialogButtonBox, QPlainTextEdit, QScrollArea
 )
 
+from ...tools.utils.qgisred_highlight_manager import QGISRedDockActivationMixin
 from .qgisred_profile_plot import ProfilePlotWidget
 
 _ACCENT = "#00838F"
@@ -51,7 +52,7 @@ _BTN_STYLE = (
 _MENU_BTN_STYLE = _BTN_STYLE + "QToolButton::menu-indicator { image: none; width: 0px; }"
 
 
-class QGISRedProfileDock(QDockWidget):
+class QGISRedProfileDock(QGISRedDockActivationMixin, QDockWidget):
     editModeToggled = pyqtSignal(bool)
     clearRequested = pyqtSignal()
     variableChanged = pyqtSignal(str)
@@ -306,27 +307,6 @@ class QGISRedProfileDock(QDockWidget):
             self.plot.installEventFilter(self)
             self.table.installEventFilter(self)
             self._toolbarBox.installEventFilter(self)
-
-    def eventFilter(self, obj, event):
-        with suppress(Exception):
-            if event is not None and event.type() == QEvent.Type.MouseButtonPress:
-                self.activated.emit()
-        return super(QGISRedProfileDock, self).eventFilter(obj, event)
-
-    def mousePressEvent(self, event):
-        with suppress(Exception):
-            self.activated.emit()
-        super(QGISRedProfileDock, self).mousePressEvent(event)
-
-    def focusInEvent(self, event):
-        with suppress(Exception):
-            self.activated.emit()
-        super(QGISRedProfileDock, self).focusInEvent(event)
-
-    def showEvent(self, event):
-        super(QGISRedProfileDock, self).showEvent(event)
-        with suppress(Exception):
-            self.activated.emit()
 
     def _makeIconButton(self, parent, icon_path, tooltip, checkable=False):
         button = QToolButton(parent)

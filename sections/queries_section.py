@@ -23,8 +23,27 @@ class QueriesSection:
             return True
         return False
 
+    def _onElementExplorerNeedsIdentifyTool(self, _focused=True):
+        """The Element Explorer got the canvas back: put its identify tool on.
+
+        The dock knows it needs the tool but not which of the two entry points
+        created it, so the key is remembered here when the tool is built.
+        """
+        toolKey = getattr(self, "_lastIdentifyToolKey", None)
+        tool = self.myMapTools.get(toolKey) if toolKey else None
+        if tool is not None and self.iface.mapCanvas().mapTool() is not tool:
+            self.iface.mapCanvas().setMapTool(tool)
+
     def switchToIdentifyTool(self, toolKey, action, useElementPropertiesDock, dock):
         # Cleans up old tool, creates a new QGISRedIdentifyFeature, and re-highlights on the dock
+        self._lastIdentifyToolKey = toolKey
+        if dock is not None:
+            with suppress(Exception):
+                self.highlightManager.register(dock)
+            with suppress(Exception):
+                dock.dockFocusChanged.disconnect(self._onElementExplorerNeedsIdentifyTool)
+            with suppress(Exception):
+                dock.dockFocusChanged.connect(self._onElementExplorerNeedsIdentifyTool)
         try:
             oldTool = self.myMapTools.get(toolKey)
             if oldTool:
@@ -231,6 +250,7 @@ class QueriesSection:
         self.queriesByPropertiesDock.destroyed.connect(
             lambda: setattr(self, 'queriesByPropertiesDock', None)
         )
+        self.highlightManager.register(self.queriesByPropertiesDock)
         self.iface.addDockWidget(Qt.DockWidgetArea.RightDockWidgetArea, self.queriesByPropertiesDock)
         QGISRedUIUtils.arrangeDockOrder(
             self.iface.mainWindow(),
@@ -257,6 +277,7 @@ class QueriesSection:
                 existing.deleteLater()
             self.statisticsDock = None
         self.statisticsDock = QGISRedStatisticsDock(self.iface)
+        self.highlightManager.register(self.statisticsDock)
         self.iface.addDockWidget(Qt.DockWidgetArea.RightDockWidgetArea, self.statisticsDock)
         QGISRedUIUtils.arrangeDockOrder(
             self.iface.mainWindow(),

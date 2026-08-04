@@ -18,13 +18,17 @@ from ...tools.utils.qgisred_field_utils import QGISRedFieldUtils, normalize_elem
 from ...tools.utils.qgisred_layer_utils import QGISRedLayerUtils
 from ...tools.utils.qgisred_project_utils import QGISRedProjectUtils
 from ...tools.utils.qgisred_ui_utils import QGISRED_COMBO_STYLE, QGISRedUIUtils
+from ...tools.utils.qgisred_highlight_manager import QGISRedHighlightOwnerMixin
 from ...tools.utils.qgisred_valve_types import getValveTypeName
 
 # load UI
 FORM_CLASS, _ = uic.loadUiType(os.path.join(os.path.dirname(__file__), "qgisred_queriesbyproperties_dock.ui"))
 
 
-class QGISRedQueriesByPropertiesDock(QDockWidget, FORM_CLASS):
+class QGISRedQueriesByPropertiesDock(QGISRedHighlightOwnerMixin, QDockWidget, FORM_CLASS):
+    highlightOwnerKey = "queriesByProperties"
+    highlightActiveAccent = "#7B1FA2"
+
     def __init__(self, iface, parent=None):
         super(QGISRedQueriesByPropertiesDock, self).__init__(parent or iface.mainWindow())
         self.setupUi(self)
@@ -37,7 +41,25 @@ class QGISRedQueriesByPropertiesDock(QDockWidget, FORM_CLASS):
         for combo in self.findChildren(QComboBox):
             QGISRedUIUtils.applyComboStyle(combo)
 
+    # ------------------------------
+    # Highlight ownership protocol
+    # ------------------------------
+    def canActivate(self):
+        # An empty query has nothing to put back on the map.
+        return bool(self.lastSelectedLayer is not None and self._lastHighlightExpression)
+
+    def clearMapHighlights(self):
+        self.clearHighlights()
+
+    def redrawMapHighlights(self):
+        if self.lastSelectedLayer is None or not self._lastHighlightExpression:
+            return
+        self.highlightFeatures(self.lastSelectedLayer, self._lastHighlightExpression)
+
     def closeEvent(self, event):
+        manager = self.highlightManager()
+        if manager is not None:
+            manager.unregister(self)
         self.resultsDockVisibilityTimer.stop()
         self.resultsDockPollTimer.stop()
         self.disconnectResultsDock()
@@ -63,10 +85,6 @@ class QGISRedQueriesByPropertiesDock(QDockWidget, FORM_CLASS):
         self.lastCombinedExpression = ""
         super().closeEvent(event)
 
-    def hideEvent(self, event):
-        self.clearHighlights()
-        super().hideEvent(event)
-
     def clearHighlights(self):
         for h in self.queryHighlights:
             self.canvas.scene().removeItem(h)
@@ -74,6 +92,10 @@ class QGISRedQueriesByPropertiesDock(QDockWidget, FORM_CLASS):
 
     def highlightFeatures(self, layer, expression):
         self.clearHighlights()
+        # Remembered verbatim so the dock can put the same magenta set back when
+        # it regains the canvas. The expression is not always
+        # lastCombinedExpression: querying a results layer constrains it by Id.
+        self._lastHighlightExpression = expression or ""
         if expression:
             featureReq = QgsFeatureRequest().setFilterExpression(expression)
             for feat in layer.getFeatures(featureReq):
@@ -86,6 +108,8 @@ class QGISRedQueriesByPropertiesDock(QDockWidget, FORM_CLASS):
         else:
             self.lastSelectedLayer = None
         self.canvas.refresh()
+        if self.queryHighlights:
+            self.notifyHighlightDrawn()
 
     def clearMapSelection(self):
         self.clearHighlights()
@@ -104,6 +128,7 @@ class QGISRedQueriesByPropertiesDock(QDockWidget, FORM_CLASS):
         self.currentResultsStatText = ""
         self.lastSelectedLayer = None
         self.lastCombinedExpression = ""
+        self._lastHighlightExpression = ""
         self.queryHighlights = []
         self.queryHasBeenSubmitted = False
 
@@ -1956,6 +1981,11 @@ class QGISRedQueriesByPropertiesDock(QDockWidget, FORM_CLASS):
         self.reapplySelection()
 
     def reapplySelection(self):
+        # Reactive: the Results dock changed time or property, not this dock.
+        # Redrawing while suspended would claim the canvas back from whoever
+        # holds it. It comes back through redrawMapHighlights on refocus.
+        if self.isHighlightSuspended():
+            return
         if not self.lastCombinedExpression or not self.isResultsMode:
             return
         selectedLayer = self.resolveLayer()
