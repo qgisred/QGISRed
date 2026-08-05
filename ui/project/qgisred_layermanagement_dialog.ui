@@ -771,6 +771,22 @@
             <item>
              <layout class="QVBoxLayout" name="verticalLayout_5">
               <item>
+               <spacer name="verticalSpacerAuxiliaryHeader">
+                <property name="orientation">
+                 <enum>Qt::Vertical</enum>
+                </property>
+                <property name="sizeType">
+                 <enum>QSizePolicy::Fixed</enum>
+                </property>
+                <property name="sizeHint" stdset="0">
+                 <size>
+                  <width>20</width>
+                  <height>24</height>
+                 </size>
+                </property>
+               </spacer>
+              </item>
+              <item>
                <widget class="QPushButton" name="btAddAuxiliary">
                 <property name="maximumSize">
                  <size>
