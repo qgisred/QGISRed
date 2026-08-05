@@ -23,6 +23,7 @@ from qgis.core import (
 from qgis.gui import QgsAttributeTableFilterModel, QgsAttributeTableModel, QgsAttributeTableView
 from qgis.utils import iface as _iface
 
+from .qgisred_base_demand_fields import resolveBaseDemandField
 from .qgisred_field_utils import QGISRedFieldUtils
 from .qgisred_valve_types import getValveTypeName
 
@@ -683,7 +684,7 @@ class QGISRedStylingUtils:
         color.setHsv(int(digest[:8], 16) % 360, 180, 220)
         return color
 
-    def setDemandBuilderStyle(self, layer, sourceName="", baseDemandField="BaseDemand"):
+    def setDemandBuilderStyle(self, layer, sourceName="", baseDemandField=""):
         """Paint a Demand Builder auxiliary layer: a colour per Category, plus labels.
 
         Like the demand sectors', this look is computed from the layer's own values rather
@@ -693,6 +694,10 @@ class QGISRedStylingUtils:
         `sourceName` is the file's own name: by the time a layer reaches here its display
         name may already be the translated one, and the isolated-demands connections are
         told apart by their file name.
+
+        `baseDemandField` is what the DLL just reported, when it reported anything. It is
+        only a hint: the column the point labels end up showing is resolved against the
+        layer itself.
         """
         name = sourceName or layer.name()
         if "IsolatedDemandsServiceConnections" in name:
@@ -776,12 +781,16 @@ class QGISRedStylingUtils:
                 layer.setLabelsEnabled(True)
                 layer.setLabeling(QgsVectorLayerSimpleLabeling(labelSettings))
         elif geomType == 0:
-            if baseDemandField and layer.fields().indexFromName(baseDemandField) != -1:
+            # Not the name the DLL reported unless the layer really carries it: a theme
+            # opened from the project or from the layer manager arrives with no name at
+            # all, and its columns are the user's to name (see resolveBaseDemandField).
+            labelField = resolveBaseDemandField([f.name() for f in layer.fields()], baseDemandField)
+            if labelField:
                 pointTextFormat = QgsTextFormat()
                 pointTextFormat.setSize(12)
                 pointTextFormat.setColor(QColor("black"))
                 labelSettings.setFormat(pointTextFormat)
-                labelSettings.fieldName = f'"{baseDemandField}"'
+                labelSettings.fieldName = f'"{labelField}"'
                 labelSettings.isExpression = True
                 labelSettings.enabled = True
                 layer.setLabelsEnabled(True)

@@ -21,7 +21,9 @@ from QGISRed.tools.utils.qgisred_base_demand_fields import (
     NAME_TOO_LONG,
     applyFieldChanges,
     baseDemandFieldNames,
+    hasConsumptionPointsSchema,
     planFieldChanges,
+    resolveBaseDemandField,
     suggestFieldName,
     validateFieldName,
     validateRows,
@@ -312,3 +314,59 @@ class TestFieldsDialogValidation:
         dialog = self._dialog([("BaseDem", "BaseDem"), (None, "BaseDem2")])
         assert self._accept(dialog) is True
         dialog.messageBar.pushMessage.assert_not_called()
+
+
+class TestResolveBaseDemandField:
+    """Which column the point labels show.
+
+    The name is not knowable in advance: the DLL writes the one it was asked for and the
+    field editor lets the user rename it, so the layer's own schema has to answer.
+    """
+
+    def test_the_reported_field_wins_when_the_layer_carries_it(self):
+        names = ["DemID", "Category", "BaseDem", "Fact2024"]
+        assert resolveBaseDemandField(names, "Fact2024") == "Fact2024"
+
+    def test_a_reported_field_that_is_not_there_is_ignored(self):
+        names = ["DemID", "Category", "BaseDem"]
+        assert resolveBaseDemandField(names, "BaseDemand") == "BaseDem"
+
+    def test_the_reported_field_is_matched_regardless_of_case(self):
+        names = ["DemID", "Category", "Fact2024"]
+        assert resolveBaseDemandField(names, "fact2024") == "Fact2024"
+
+    def test_the_first_base_demand_answers_when_nothing_was_reported(self):
+        names = ["DemID", "Category", "BaseDem", "Fact2024"]
+        assert resolveBaseDemandField(names) == "BaseDem"
+
+    def test_a_renamed_first_column_is_still_the_one(self):
+        names = ["DemID", "Category", "Padron", "Fact2024"]
+        assert resolveBaseDemandField(names) == "Padron"
+
+    def test_a_theme_with_no_base_demand_has_nothing_to_label(self):
+        assert resolveBaseDemandField(["DemID", "Category"]) == ""
+
+    def test_a_layer_without_the_head_falls_back_to_the_basedem_family(self):
+        names = ["Id", "Node", "BaseDemand"]
+        assert resolveBaseDemandField(names) == "BaseDemand"
+
+    def test_an_unrelated_point_layer_is_left_unlabelled(self):
+        names = ["Id", "Elevation", "Pressure"]
+        assert resolveBaseDemandField(names) == ""
+
+    def test_no_fields_at_all(self):
+        assert resolveBaseDemandField([], "BaseDem") == ""
+
+
+class TestHasConsumptionPointsSchema:
+    def test_the_head_the_dll_writes(self):
+        assert hasConsumptionPointsSchema(["DemID", "Category", "BaseDem"]) is True
+
+    def test_case_does_not_matter_in_a_dbf(self):
+        assert hasConsumptionPointsSchema(["demid", "CATEGORY", "BaseDem"]) is True
+
+    def test_another_layer_does_not_match(self):
+        assert hasConsumptionPointsSchema(["Id", "Category", "BaseDem"]) is False
+
+    def test_the_head_alone_is_enough(self):
+        assert hasConsumptionPointsSchema(["DemID", "Category"]) is True

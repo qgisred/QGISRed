@@ -509,10 +509,14 @@ class ToolsSection:
         The look itself lives in QGISRedStylingUtils next to the demand sectors', the other
         family drawn from its own values instead of from a QML, so that openLayer can apply
         it when a layer is opened rather than every caller remembering to.
+
+        The base demand column is passed on only when the DLL just named one: it is empty
+        on every other path — project open, layer manager — and the style resolves it from
+        the layer instead, which is the only thing that knows how the user named it.
         """
         from ..tools.utils.qgisred_styling_utils import QGISRedStylingUtils
 
-        baseDemandField = getattr(self, "_demandBuilderNewBaseDemandFieldName", "BaseDemand")
+        baseDemandField = getattr(self, "_demandBuilderNewBaseDemandFieldName", "")
         QGISRedStylingUtils(self.ProjectDirectory, self.NetworkName, self.iface).setDemandBuilderStyle(
             vlayer, sourceName, baseDemandField
         )

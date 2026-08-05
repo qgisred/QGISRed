@@ -13,7 +13,8 @@ import re
 
 
 # DemID and Category. Everything after them is a base demand.
-FIXED_FIELD_COUNT = 2
+FIXED_FIELD_NAMES = ("DemID", "Category")
+FIXED_FIELD_COUNT = len(FIXED_FIELD_NAMES)
 
 # A DBF column name holds no more, and the file is the contract with the DLL.
 MAX_FIELD_NAME_LENGTH = 10
@@ -32,6 +33,44 @@ _VALID_NAME = re.compile(r"^[A-Za-z][A-Za-z0-9_]*$")
 def baseDemandFieldNames(fieldNames):
     """The base demand columns out of a theme's full field list, in file order."""
     return list(fieldNames[FIXED_FIELD_COUNT:])
+
+
+def hasConsumptionPointsSchema(fieldNames):
+    """Whether `fieldNames` starts with the head the DLL writes for a consumption points
+    theme. That head is what says the rest of the columns are base demands."""
+    head = [name.lower() for name in fieldNames[:FIXED_FIELD_COUNT]]
+    return head == [name.lower() for name in FIXED_FIELD_NAMES]
+
+
+def resolveBaseDemandField(fieldNames, preferred=""):
+    """The base demand column to label a consumption points layer with, or "".
+
+    The name cannot be assumed: the DLL writes the one it was asked for, and the field
+    editor lets the user rename it or add more. So `preferred` — what the DLL just
+    reported — wins when it is really there, and otherwise the layer's own schema
+    answers: past DemID and Category everything is a base demand, whatever it is called.
+
+    The BaseDem* fallback is for layers that do not carry that head, which is where the
+    label used to come from before the columns became the user's to name.
+    """
+    from .qgisred_auxiliary_layers import DEFAULT_BASE_DEMAND_FIELD
+
+    byLower = {name.lower(): name for name in fieldNames}
+
+    if preferred and preferred.lower() in byLower:
+        return byLower[preferred.lower()]
+
+    if hasConsumptionPointsSchema(fieldNames):
+        demands = baseDemandFieldNames(fieldNames)
+        if demands:
+            return demands[0]
+
+    stem = DEFAULT_BASE_DEMAND_FIELD.lower()
+    for name in fieldNames:
+        if name.lower().startswith(stem):
+            return name
+
+    return ""
 
 
 def validateFieldName(name, otherNames=()):
