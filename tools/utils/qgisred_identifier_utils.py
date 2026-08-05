@@ -72,16 +72,23 @@ class QGISRedIdentifierUtils:
         """
         if not isinstance(layerType, str):
             return layerType
+
+        # Shares the folder with the managed themes but is not one of them.
+        isolated = "demandsbuilder_isolateddemandsserviceconnections"
+        if isolated in layerType.lower():
+            return isolated
+
+        # The file names were shortened (DemandBuilder_Consumptions) while the identifiers
+        # were not, so the tokens come from the naming rules instead of being repeated
+        # here. Matched anywhere in the string: callers pass file names with and without
+        # the network prefix, and both have to resolve.
+        from .qgisred_auxiliary_layers import AUXILIARY_LAYER_TYPES
+
         lower = layerType.lower()
-        tokens = (
-            "demandsbuilder_isolateddemandsserviceconnections",
-            "demandsbuilder_consumptionpoints",
-            "demandsbuilder_demandlinks",
-            "demandsbuilder_sectors",
-        )
-        for token in tokens:
-            if token in lower:
-                return token
+        for candidate in AUXILIARY_LAYER_TYPES:
+            for token in candidate.fileTokens:
+                if token.lower() in lower:
+                    return candidate.identifierToken.lower()
         return layerType
 
     def _getLayerPath(self, layer):

@@ -383,11 +383,18 @@ class QGISRedLayerManagementDialog(QDialog, FORM_CLASS):
             self.pushMessage(self.tr("Warning"), self.tr("The theme name is not valid"), level=1)
             return
 
+        # Compared against the themes on disk rather than against the composed path: the
+        # file names were shortened, so a theme created under the old convention lives at
+        # a different path yet is the same theme to the user.
+        existing = {
+            (existingType.key, existingName.lower())
+            for existingType, existingName, _path in listThemes(self.auxiliaryFolder(), self.NetworkName)
+        }
         path = os.path.join(
             self.auxiliaryFolder(),
             composeBaseName(self.NetworkName, layerType, themeName) + ".shp",
         )
-        if os.path.exists(path):
+        if (layerType.key, themeName.lower()) in existing or os.path.exists(path):
             self.pushMessage(self.tr("Warning"), self.tr("A theme with that name already exists"), level=1)
             return
 

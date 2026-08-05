@@ -34,10 +34,10 @@ SECTORS = AUXILIARY_TYPES_BY_KEY["Sectors"]
 class TestComposeBaseName:
     def test_a_named_theme_carries_network_type_and_name(self):
         assert composeBaseName("Net", CONSUMPTION, "Facturacion2024") == \
-            "Net_DemandsBuilder_ConsumptionPoints_Facturacion2024"
+            "Net_DemandBuilder_Consumptions_Facturacion2024"
 
     def test_the_demands_manager_theme_has_no_trailing_name(self):
-        assert composeBaseName("Net", SECTORS) == "Net_DemandsBuilder_Sectors"
+        assert composeBaseName("Net", SECTORS) == "Net_DemandBuilder_Sectors"
 
     def test_the_composed_name_parses_back(self):
         base = composeBaseName("Net", LINKS, "Enlaces")
@@ -75,6 +75,68 @@ class TestParseBaseName:
 
     def test_an_empty_name_is_rejected(self):
         assert parseBaseName("", "Net") == (None, "")
+
+
+class TestShortenedFileNames:
+    """New files carry DemandBuilder_{Type}; the long spelling is still read.
+
+    Themes created before the rename keep it, and so do the ones the Demands Manager
+    writes by itself, which the plugin does not name.
+    """
+
+    def test_new_files_use_the_short_token(self):
+        assert composeBaseName("Net", CONSUMPTION, "pr1") == "Net_DemandBuilder_Consumptions_pr1"
+        assert composeBaseName("Net", LINKS, "en2") == "Net_DemandBuilder_Links_en2"
+        assert composeBaseName("Net", SECTORS, "sec1") == "Net_DemandBuilder_Sectors_sec1"
+
+    @pytest.mark.parametrize("baseName,expected", [
+        ("Net_DemandBuilder_Consumptions_pr1", "ConsumptionPoints"),
+        ("Net_DemandBuilder_Links_en2", "DemandLinks"),
+        ("Net_DemandBuilder_Sectors_sec1", "Sectors"),
+    ])
+    def test_the_short_token_parses_back(self, baseName, expected):
+        layerType, _name = parseBaseName(baseName, "Net")
+        assert layerType.key == expected
+
+    @pytest.mark.parametrize("baseName,expected", [
+        ("Net_DemandsBuilder_ConsumptionPoints_pr1", "ConsumptionPoints"),
+        ("Net_DemandsBuilder_DemandLinks_en2", "DemandLinks"),
+        ("Net_DemandsBuilder_Sectors_sec1", "Sectors"),
+    ])
+    def test_files_written_before_the_rename_still_read(self, baseName, expected):
+        layerType, _name = parseBaseName(baseName, "Net")
+        assert layerType.key == expected
+
+    def test_the_short_and_long_spellings_are_the_same_type(self):
+        short, _ = parseBaseName("Net_DemandBuilder_Sectors_a", "Net")
+        long, _ = parseBaseName("Net_DemandsBuilder_Sectors_a", "Net")
+        assert short is long
+
+    def test_both_spellings_are_listed_together(self, tmp_path):
+        folder = str(tmp_path)
+        _touchTheme(folder, "Net_DemandBuilder_Sectors_nuevo")
+        _touchTheme(folder, "Net_DemandsBuilder_Sectors_viejo")
+
+        themes = listThemes(folder, "Net")
+
+        assert [name for _type, name, _path in themes] == ["nuevo", "viejo"]
+
+    def test_the_identifier_did_not_follow_the_rename(self):
+        """Legend names, saved styles and the legend editor are all keyed on it, and so
+        are the identifiers already written into existing .qgs projects."""
+        assert CONSUMPTION.identifier == "qgisred_demandsbuilder_consumptionpoints"
+        assert LINKS.identifier == "qgisred_demandsbuilder_demandlinks"
+        assert SECTORS.identifier == "qgisred_demandsbuilder_sectors"
+
+    def test_the_dll_contract_did_not_follow_the_rename_either(self):
+        assert {t.key for t in AUXILIARY_LAYER_TYPES} == {"ConsumptionPoints", "DemandLinks", "Sectors"}
+
+    def test_no_short_token_hides_inside_a_long_one(self):
+        """Otherwise a file would resolve to whichever type happened to be checked first."""
+        tokens = [token for t in AUXILIARY_LAYER_TYPES for token in t.fileTokens]
+        for token in tokens:
+            others = [other for other in tokens if other != token]
+            assert not any(token in other for other in others), token
 
 
 class TestIsValidThemeName:
@@ -148,7 +210,7 @@ class TestIdentifierNormalisation:
         return utils._normalizeDemandsBuilderLayerType(name)
 
     def test_a_named_theme_collapses_onto_its_type(self):
-        assert self._normalize("Net_DemandsBuilder_ConsumptionPoints_Facturacion2024") == \
+        assert self._normalize("Net_DemandBuilder_Consumptions_Facturacion2024") == \
             "demandsbuilder_consumptionpoints"
 
     def test_the_unnamed_theme_still_collapses(self):
@@ -718,7 +780,7 @@ class TestCreateAuxiliaryTheme:
 
         gisred = self._run(dialog, SECTORS, "Barrios")
 
-        expected = os.path.join(_auxFolder(tmp_path), "Net_DemandsBuilder_Sectors_Barrios.shp")
+        expected = os.path.join(_auxFolder(tmp_path), "Net_DemandBuilder_Sectors_Barrios.shp")
         assert gisred.CreateAuxiliaryLayer.call_args[0] == (
             dialog.ProjectDirectory, "Net", "Sectors", expected, DEFAULT_BASE_DEMAND_FIELD)
 
@@ -728,7 +790,7 @@ class TestCreateAuxiliaryTheme:
 
         self._run(dialog, SECTORS, "Barrios")
 
-        expected = os.path.join(_auxFolder(tmp_path), "Net_DemandsBuilder_Sectors_Barrios.shp")
+        expected = os.path.join(_auxFolder(tmp_path), "Net_DemandBuilder_Sectors_Barrios.shp")
         dialog.parent.syncAuxiliaryThemes.assert_called_once_with([expected], load=True)
 
     def test_the_new_row_shows_up_in_the_table(self, tmp_path):

@@ -16,8 +16,6 @@ themes the Demands Manager writes by itself carry no trailing name and parse jus
 import os
 
 
-DEMANDS_BUILDER_PREFIX = "DemandsBuilder"
-
 # Every file a theme is made of. Shapefiles are not one file, and a theme that leaves its
 # .dbf behind comes back as a broken row in the layer manager.
 THEME_EXTENSIONS = (
@@ -27,23 +25,46 @@ THEME_EXTENSIONS = (
 
 
 class AuxiliaryLayerType:
-    def __init__(self, key):
+    """A theme type, and the three names it answers to.
+
+    They are deliberately not the same string:
+
+    * `key` is what the DLL entry point expects as its themeType.
+    * `fileToken` is what new files carry. `legacyFileTokens` are still read, both for
+      themes created before the names were shortened and for the ones the Demands Manager
+      writes by itself, which keep the long spelling.
+    * `identifierToken` gives the loaded layer its qgisred_identifier, and does *not*
+      follow the file rename: legend names, styles saved by users and the legend editor's
+      allowlist are all keyed on it, and so are the identifiers already written into
+      existing .qgs projects.
+    """
+
+    def __init__(self, key, fileToken, identifierToken, legacyFileTokens=()):
         self.key = key
-        # What setLayerIdentifier is fed, and what it normalises into `identifier`.
-        self.token = DEMANDS_BUILDER_PREFIX + "_" + key
-        self.identifier = "qgisred_" + self.token.lower()
+        self.fileToken = fileToken
+        self.identifierToken = identifierToken
+        self.identifier = "qgisred_" + identifierToken.lower()
+        self.fileTokens = (fileToken,) + tuple(legacyFileTokens)
 
     def __repr__(self):
         return "AuxiliaryLayerType(%s)" % self.key
 
 
 # The theme types the layer manager offers. Their columns are declared in
-# GISRed.ExtendedModel/Writers/ToShp.AuxiliaryLayers.cs, which is what creates the files;
-# `key` is the themeType string that entry point expects.
+# GISRed.ExtendedModel/Writers/ToShp.AuxiliaryLayers.cs, which is what creates the files.
 AUXILIARY_LAYER_TYPES = (
-    AuxiliaryLayerType("ConsumptionPoints"),
-    AuxiliaryLayerType("DemandLinks"),
-    AuxiliaryLayerType("Sectors"),
+    AuxiliaryLayerType(
+        "ConsumptionPoints", "DemandBuilder_Consumptions",
+        "DemandsBuilder_ConsumptionPoints", ("DemandsBuilder_ConsumptionPoints",),
+    ),
+    AuxiliaryLayerType(
+        "DemandLinks", "DemandBuilder_Links",
+        "DemandsBuilder_DemandLinks", ("DemandsBuilder_DemandLinks",),
+    ),
+    AuxiliaryLayerType(
+        "Sectors", "DemandBuilder_Sectors",
+        "DemandsBuilder_Sectors", ("DemandsBuilder_Sectors",),
+    ),
 )
 
 # Mirrors ToShp.DefaultBaseDemandField: the first base demand column of a consumption
@@ -58,8 +79,8 @@ AUXILIARY_TYPES_BY_KEY = {layerType.key: layerType for layerType in AUXILIARY_LA
 
 
 def composeBaseName(networkName, layerType, themeName=""):
-    """`{Net}_DemandsBuilder_{Type}[_{theme name}]`, without extension."""
-    parts = [networkName, layerType.token]
+    """`{Net}_DemandBuilder_{Type}[_{theme name}]`, without extension."""
+    parts = [networkName, layerType.fileToken]
     if themeName:
         parts.append(themeName)
     return "_".join(part for part in parts if part)
@@ -79,10 +100,11 @@ def parseBaseName(baseName, networkName=""):
         remainder = remainder[len(prefix):]
 
     for layerType in AUXILIARY_LAYER_TYPES:
-        if remainder == layerType.token:
-            return layerType, ""
-        if remainder.startswith(layerType.token + "_"):
-            return layerType, remainder[len(layerType.token) + 1:]
+        for token in layerType.fileTokens:
+            if remainder == token:
+                return layerType, ""
+            if remainder.startswith(token + "_"):
+                return layerType, remainder[len(token) + 1:]
     return None, ""
 
 

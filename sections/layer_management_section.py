@@ -283,7 +283,7 @@ class LayerManagementSection:
             self._applyDemandsBuilderStyle(vlayer, baseName)
 
             if layerType is not None:
-                identifiers.setLayerIdentifier(vlayer, layerType.token)
+                identifiers.setLayerIdentifier(vlayer, layerType.identifierToken)
                 showName = identifiers.getAuxiliaryThemeName(baseName, self.NetworkName)
                 if showName:
                     vlayer.setName(showName)
