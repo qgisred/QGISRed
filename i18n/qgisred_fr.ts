@@ -241,8 +241,8 @@
     </message>
     <message>
         <location filename="../tools/qgisred_translatable_strings.py" line="304"/>
-        <source>Sectors</source>
-        <translation type="unfinished">Secteurs</translation>
+        <source>Demand Sectors</source>
+        <translation type="unfinished">Secteurs de Demande</translation>
     </message>
 </context>
 <context>

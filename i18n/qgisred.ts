@@ -236,7 +236,7 @@
     </message>
     <message>
         <location filename="../tools/qgisred_translatable_strings.py" line="304"/>
-        <source>Sectors</source>
+        <source>Demand Sectors</source>
         <translation type="unfinished"></translation>
     </message>
 </context>

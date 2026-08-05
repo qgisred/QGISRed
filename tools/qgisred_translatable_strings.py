@@ -301,7 +301,7 @@ QCoreApplication.translate('InputLayerNames', "Meters")
 # Demand Builder auxiliary theme types, looked up by key in the layer manager
 QCoreApplication.translate('AuxiliaryTypeNames', "Consumption Points")
 QCoreApplication.translate('AuxiliaryTypeNames', "Demand Links")
-QCoreApplication.translate('AuxiliaryTypeNames', "Sectors")
+QCoreApplication.translate('AuxiliaryTypeNames', "Demand Sectors")
 # Layer names shown in QGIS legend (Queries group)
 QCoreApplication.translate('InputLayerNames', "Connect_Links")
 QCoreApplication.translate('InputLayerNames', "HydSec_Links")

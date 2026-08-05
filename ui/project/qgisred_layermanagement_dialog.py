@@ -65,7 +65,7 @@ CONSUMPTION_POINTS_KEY = "Consumptions"
 _AUXILIARY_TYPE_LABELS = {
     "Consumptions": "Consumption Points",
     "Links": "Demand Links",
-    "Sectors": "Sectors",
+    "Sectors": "Demand Sectors",
 }
 
 
