@@ -861,12 +861,20 @@ class TestDeleteAuxiliaryTheme:
         dialog.tbAuxiliary._current = 0
         return dialog, path
 
-    def _confirm(self, dialog, accepted=True):
+    def _confirm(self, dialog, accepted=True, runDeferred=True):
+        """Delete, then run what was scheduled — the file removal waits one event loop turn."""
+        scheduled = []
         with patch(_DIALOG_MOD + ".QMessageBox") as messageBox, \
+                patch(_DIALOG_MOD + ".QTimer") as timer, \
                 patch(_DIALOG_MOD + ".QTableWidgetItem", _FakeItem):
             answer = messageBox.StandardButton.Yes if accepted else messageBox.StandardButton.No
             messageBox.question.return_value = answer
+            timer.singleShot.side_effect = lambda _delay, callback: scheduled.append(callback)
             dialog.deleteAuxiliaryTheme()
+            if runDeferred:
+                for callback in scheduled:
+                    callback()
+        return scheduled
 
     def test_the_files_are_removed(self, tmp_path):
         dialog, path = self._dialog(tmp_path)
@@ -887,6 +895,27 @@ class TestDeleteAuxiliaryTheme:
         order.append(("deleted", not os.path.exists(path)))
 
         assert order == [("close", True), ("deleted", True)]
+
+    def test_the_removal_waits_a_turn_of_the_event_loop(self, tmp_path):
+        """removeMapLayer only schedules the layer's destruction: deleting the file in the
+        same call stack is what used to fail with 'in use' on a loaded theme."""
+        dialog, path = self._dialog(tmp_path)
+
+        scheduled = self._confirm(dialog, runDeferred=False)
+
+        assert len(scheduled) == 1
+        assert os.path.exists(path)
+        scheduled[0]()
+        assert not os.path.exists(path)
+
+    def test_a_theme_that_is_loaded_is_deleted_all_the_same(self, tmp_path):
+        dialog, path = self._dialog(tmp_path)
+        dialog.openLayerPaths = MagicMock(return_value={os.path.normcase(_uniform(path))})
+
+        self._confirm(dialog)
+
+        dialog.parent.syncAuxiliaryThemes.assert_called_once_with([_uniform(path)], load=False)
+        assert not os.path.exists(path)
 
     def test_declining_the_confirmation_keeps_everything(self, tmp_path):
         dialog, path = self._dialog(tmp_path)

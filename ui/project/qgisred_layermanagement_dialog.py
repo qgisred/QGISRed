@@ -4,7 +4,7 @@ from qgis.PyQt.QtWidgets import (
     QComboBox, QLineEdit, QLabel, QPushButton, QVBoxLayout, QHBoxLayout,
     QListWidget, QListWidgetItem,
 )
-from qgis.PyQt.QtCore import Qt, QCoreApplication
+from qgis.PyQt.QtCore import Qt, QCoreApplication, QTimer
 from qgis.PyQt import uic
 from qgis.gui import QgsProjectionSelectionDialog as QgsGenericProjectionSelector
 from qgis.core import QgsVectorLayer
@@ -489,6 +489,13 @@ class QGISRedLayerManagementDialog(QDialog, FORM_CLASS):
 
         # Unload first: on Windows a shapefile QGIS still holds cannot be removed.
         self.parent.syncAuxiliaryThemes([path], load=False)
+        # removeMapLayer only schedules the layer's destruction, so at this point the file
+        # is still open and deleting it would fail with "in use". One turn of the event
+        # loop is what actually releases the OGR handle — same reason _deleteOldResultFiles
+        # defers too.
+        QTimer.singleShot(0, lambda: self.deleteThemeFiles(path))
+
+    def deleteThemeFiles(self, path):
         error = deleteTheme(path)
         if error:
             self.pushMessage(self.tr("Error"), error, level=2)
