@@ -2,7 +2,7 @@
 """The base demand columns of a consumption points theme.
 
 One theme can hold several base demands side by side — one column per billing run, say —
-so everything from the third column onwards is one of them: IdDem and Category are the
+so everything from the third column onwards is one of them: DemID and Category are the
 fixed head of the schema (see GISRed.ExtendedModel/Writers/ToShp.AuxiliaryLayers.cs).
 
 The planning half never touches QGIS, so the rules can be tested on their own;
@@ -12,7 +12,7 @@ applyFieldChanges is the only part that reaches a layer.
 import re
 
 
-# IdDem and Category. Everything after them is a base demand.
+# DemID and Category. Everything after them is a base demand.
 FIXED_FIELD_COUNT = 2
 
 # A DBF column name holds no more, and the file is the contract with the DLL.

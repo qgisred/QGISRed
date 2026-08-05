@@ -30,14 +30,14 @@ from QGISRed.tools.utils.qgisred_base_demand_fields import (
 
 class TestBaseDemandFieldNames:
     def test_the_two_fixed_columns_are_not_base_demands(self):
-        assert baseDemandFieldNames(["IdDem", "Category", "BaseDem"]) == ["BaseDem"]
+        assert baseDemandFieldNames(["DemID", "Category", "BaseDem"]) == ["BaseDem"]
 
     def test_every_further_column_is_one(self):
-        names = ["IdDem", "Category", "BaseDem", "Fact2024", "Padron"]
+        names = ["DemID", "Category", "BaseDem", "Fact2024", "Padron"]
         assert baseDemandFieldNames(names) == ["BaseDem", "Fact2024", "Padron"]
 
     def test_a_theme_with_only_the_fixed_columns_has_none(self):
-        assert baseDemandFieldNames(["IdDem", "Category"]) == []
+        assert baseDemandFieldNames(["DemID", "Category"]) == []
 
 
 class TestValidateFieldName:
@@ -174,30 +174,30 @@ def _layer(fieldNames):
 
 class TestApplyFieldChanges:
     def test_nothing_to_do_touches_no_provider(self):
-        layer, provider = _layer(["IdDem", "Category", "BaseDem"])
+        layer, provider = _layer(["DemID", "Category", "BaseDem"])
         assert applyFieldChanges(layer, {}, [], []) == ""
         provider.deleteAttributes.assert_not_called()
         provider.renameAttributes.assert_not_called()
         provider.addAttributes.assert_not_called()
 
     def test_a_deletion_uses_the_index_in_the_file(self):
-        layer, provider = _layer(["IdDem", "Category", "BaseDem", "Fact2024"])
+        layer, provider = _layer(["DemID", "Category", "BaseDem", "Fact2024"])
         applyFieldChanges(layer, {}, [], ["Fact2024"])
         provider.deleteAttributes.assert_called_once_with([3])
 
     def test_several_deletions_go_from_the_back(self):
         """Deleting a low index first would shift the ones still to come."""
-        layer, provider = _layer(["IdDem", "Category", "A", "B", "C"])
+        layer, provider = _layer(["DemID", "Category", "A", "B", "C"])
         applyFieldChanges(layer, {}, [], ["A", "C"])
         provider.deleteAttributes.assert_called_once_with([4, 2])
 
     def test_a_rename_maps_the_index_to_the_new_name(self):
-        layer, provider = _layer(["IdDem", "Category", "BaseDem"])
+        layer, provider = _layer(["DemID", "Category", "BaseDem"])
         applyFieldChanges(layer, {"BaseDem": "Fact2023"}, [], [])
         provider.renameAttributes.assert_called_once_with({2: "Fact2023"})
 
     def test_an_addition_creates_one_field(self):
-        layer, provider = _layer(["IdDem", "Category", "BaseDem"])
+        layer, provider = _layer(["DemID", "Category", "BaseDem"])
         applyFieldChanges(layer, {}, ["Fact2025"], [])
         provider.addAttributes.assert_called_once()
         assert len(provider.addAttributes.call_args[0][0]) == 1
@@ -205,18 +205,18 @@ class TestApplyFieldChanges:
     def test_the_provider_is_reloaded_between_steps(self):
         """OGR does not publish the new field list to the next call otherwise, and the
         columns end up in the wrong order."""
-        layer, provider = _layer(["IdDem", "Category", "A", "B"])
+        layer, provider = _layer(["DemID", "Category", "A", "B"])
         applyFieldChanges(layer, {"B": "C"}, ["D"], ["A"])
         assert provider.reloadData.call_count == 2
         assert layer.updateFields.call_args_list == [call(), call(), call()]
 
     def test_a_provider_refusal_is_reported(self):
-        layer, provider = _layer(["IdDem", "Category", "A"])
+        layer, provider = _layer(["DemID", "Category", "A"])
         provider.deleteAttributes.return_value = False
         assert applyFieldChanges(layer, {}, [], ["A"]) != ""
 
     def test_a_failed_deletion_stops_before_renaming(self):
-        layer, provider = _layer(["IdDem", "Category", "A", "B"])
+        layer, provider = _layer(["DemID", "Category", "A", "B"])
         provider.deleteAttributes.return_value = False
         applyFieldChanges(layer, {"B": "C"}, [], ["A"])
         provider.renameAttributes.assert_not_called()
