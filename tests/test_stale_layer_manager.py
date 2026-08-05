@@ -84,8 +84,8 @@ def project(tmp_path):
         "issues": _write(os.path.join(projDir, "Issues", NET + "_Pipes_Issues.shp"), old),
         "queries": _write(os.path.join(projDir, "Queries", "Trees", NET + "_Tree_1_Nodes.shp"), old),
         "auxiliary": _write(
-            os.path.join(projDir, "Auxiliary Layers", "DemandsBuilder",
-                         NET + "_DemandsBuilder_Sectors_sec1.shp"), old),
+            os.path.join(projDir, "Auxiliary Layers", "DemandBuilder",
+                         NET + "_DemandBuilder_Sectors_sec1.shp"), old),
         "demandSectors": _write(
             os.path.join(projDir, "Auxiliary Layers", "DemandSectors", NET + "_DemandSectors_Nodes.shp"), old),
     }
@@ -168,9 +168,9 @@ class TestRelevance:
     def test_auxiliary_identifier_is_never_flagged(self, project, harness):
         """A theme opened from outside the project folder is excluded by identifier."""
         projDir, _paths = project
-        outsider = _write(os.path.join(projDir, "Results", NET + "_DemandsBuilder_Sectors_x.shp"),
+        outsider = _write(os.path.join(projDir, "Results", NET + "_DemandBuilder_Sectors_x.shp"),
                           time.time() - 3600)
-        item = harness([_FakeLayer("aux", outsider, identifier="qgisred_demandsbuilder_sectors")])
+        item = harness([_FakeLayer("aux", outsider, identifier="qgisred_demandbuilder_sectors")])
         item.manager._check()
         assert item.flagged() == set()
 

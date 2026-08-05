@@ -21,7 +21,7 @@ class QGISRedLayerUtils:
         'HydraulicSectors': 'qgisred_hydraulicsectors',
         'Demand Sectors': 'qgisred_demandsectors',
         'IsolatedSegments': 'qgisred_isolatedsegments',
-        'DemandsBuilder': 'qgisred_demandsbuilder',
+        'DemandBuilder': 'qgisred_demandbuilder',
         'DemandSectors': 'qgisred_demandsectors',
         'Trees': 'qgisred_trees',
     }
@@ -36,7 +36,7 @@ class QGISRedLayerUtils:
         'qgisred_connectivity': 'Connectivity',
         'qgisred_hydraulicsectors': 'HydraulicSectors',
         'qgisred_isolatedsegments': 'IsolatedSegments',
-        'qgisred_demandsbuilder': 'DemandsBuilder',
+        'qgisred_demandbuilder': 'DemandBuilder',
         'qgisred_demandsectors': 'DemandSectors',
         'qgisred_trees': 'Trees',
     }
@@ -53,11 +53,13 @@ class QGISRedLayerUtils:
         'qgisred_hydraulicsectors': 'Hydraulic Sectors',
         'qgisred_demandsectors':    'Demand Sectors',
         'qgisred_isolatedsegments': 'Isolated Segments',
-        'qgisred_demandsbuilder':    'Demands Builder',
+        'qgisred_demandbuilder':    'Demand Builder',
         'qgisred_trees':            'Trees',
         # Written by builds where setGroupIdentifier derived the identifier from the name
         # instead of reading it from groupIdentifiers. Existing projects still carry it.
         'qgisred_auxiliarylayers':  'Auxiliary Layers',
+        # Before DemandsBuilder lost its plural.
+        'qgisred_demandsbuilder':   'Demand Builder',
     }
 
     MAIN_GROUP_ORDER = ["Results", "Queries", "Issues", "Auxiliary Layers", "Inputs"]
@@ -88,7 +90,7 @@ class QGISRedLayerUtils:
             'qgisred_hydraulicsectors': 'HydraulicSectors',
             'qgisred_demandsectors': 'DemandSectors',
             'qgisred_isolatedsegments': 'IsolatedSegments',
-            'qgisred_demandsbuilder': 'DemandsBuilder',
+            'qgisred_demandbuilder': 'DemandBuilder',
             'qgisred_trees': 'Trees',
         }
 
@@ -110,7 +112,7 @@ class QGISRedLayerUtils:
             "Demand Sectors":    QCoreApplication.translate("QGISRedGroups", "Demand Sectors"),
             "Isolated Segments": QCoreApplication.translate("QGISRedGroups", "Isolated Segments"),
             "Trees":             QCoreApplication.translate("QGISRedGroups", "Trees"),
-            "DemandsBuilder":     QCoreApplication.translate("QGISRedGroups", "DemandsBuilder"),
+            "DemandBuilder":     QCoreApplication.translate("QGISRedGroups", "DemandBuilder"),
             "DemandSectors":     QCoreApplication.translate("QGISRedGroups", "DemandSectors"),
             "Auxiliary Layers":   QCoreApplication.translate("QGISRedGroups", "Auxiliary Layers"),
         }
@@ -516,7 +518,7 @@ class QGISRedLayerUtils:
             styling.setSectorsStyle(layer)
 
     def openLayer(self, group, name, ext=".shp", results=False, toEnd=False, sectors=False, issues=False,
-                  demandsBuilder=False):
+                  demandBuilder=False):
         styling = self._styling()
         identifiers = self._identifiers()
         name = name.replace(" ", "")
@@ -526,7 +528,7 @@ class QGISRedLayerUtils:
             baseIdentifier = f"qgisred_{baseName.lower()}"
             translatedBase = identifiers.getTranslatedNameForIdentifier(baseIdentifier) or self.tr(self.getLayerNameToLegend(baseName))
             showName = self.tr("%1 I").replace("%1", translatedBase)
-        elif demandsBuilder:
+        elif demandBuilder:
             showName = identifiers.getAuxiliaryThemeName(name, self.NetworkName) or name
         else:
             showName = identifiers.getTranslatedNameForIdentifier(identifier) or self.tr(self.getLayerNameToLegend(name))
@@ -539,13 +541,13 @@ class QGISRedLayerUtils:
             if reloaded:
                 # Styles computed from the layer's own values must be rebuilt on every
                 # reload: the values may have changed under them.
-                if sectors or demandsBuilder:
+                if sectors or demandBuilder:
                     existingLayer = self._findLayerByPath(layerPath)
                     if existingLayer is not None:
                         if sectors:
                             self._applySectorStyle(styling, existingLayer, originalName)
                         else:
-                            styling.setDemandsBuilderStyle(existingLayer, originalName)
+                            styling.setDemandBuilderStyle(existingLayer, originalName)
                 return
             vlayer = QgsVectorLayer(layerPath, showName, "ogr")
             if not ext == ".dbf":
@@ -553,8 +555,8 @@ class QGISRedLayerUtils:
                     styling.setStyle(vlayer, originalName)
                 elif sectors:
                     self._applySectorStyle(styling, vlayer, originalName)
-                elif demandsBuilder:
-                    styling.setDemandsBuilderStyle(vlayer, originalName)
+                elif demandBuilder:
+                    styling.setDemandBuilderStyle(vlayer, originalName)
                 elif issues:
                     pass
                 else:

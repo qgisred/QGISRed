@@ -76,7 +76,10 @@ class QGISRedProjectIO:
         "Issues/HydraulicSectors":         LAYER_TYPE_CONFIG["HydraulicSectors"],
         "Auxiliary Layers/DemandSectors":  LAYER_TYPE_CONFIG["DemandSectors"],
         "Queries/IsolatedSegments":        LAYER_TYPE_CONFIG["IsolatedSegments"],
-        "Auxiliary Layers/DemandsBuilder": LAYER_TYPE_CONFIG["DemandsBuilder"],
+        "Auxiliary Layers/DemandBuilder": LAYER_TYPE_CONFIG["DemandBuilder"],
+        # Written before DemandsBuilder lost its plural. Kept so a project saved by an
+        # earlier build still finds its group.
+        "Auxiliary Layers/DemandsBuilder": LAYER_TYPE_CONFIG["DemandBuilder"],
     }
 
     @classmethod

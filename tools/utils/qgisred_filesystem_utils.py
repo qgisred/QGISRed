@@ -17,7 +17,7 @@ DIR_HYDRAULIC_SECTORS = "HydraulicSectors"
 DIR_DEMAND_SECTORS    = "DemandSectors"
 DIR_ISOLATED_SEGMENTS = "IsolatedSegments"
 DIR_AUXILIARY_LAYERS  = "Auxiliary Layers"
-DIR_DEMANDS_BUILDER    = "DemandsBuilder"
+DIR_DEMAND_BUILDER     = "DemandBuilder"
 # Legacy folder of the removed "Project backup" command. Kept as a constant because existing
 # installations still have it on disk: it must keep being renamed with the project, and it must
 # never be copied into an export.
@@ -65,10 +65,10 @@ LAYER_TYPE_CONFIG = {
         "tree_path": ["Queries", "Isolated Segments"],
         "flags":     {},
     },
-    "DemandsBuilder": {
-        "subdir":    os.path.join(DIR_AUXILIARY_LAYERS, DIR_DEMANDS_BUILDER),
-        "tree_path": ["Auxiliary Layers", "DemandsBuilder"],
-        "flags":     {"demandsBuilder": True},
+    "DemandBuilder": {
+        "subdir":    os.path.join(DIR_AUXILIARY_LAYERS, DIR_DEMAND_BUILDER),
+        "tree_path": ["Auxiliary Layers", "DemandBuilder"],
+        "flags":     {"demandBuilder": True},
     },
 }
 

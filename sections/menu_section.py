@@ -672,7 +672,7 @@ class MenuSection:
         action = self._make_action(
             ":/images/iconDemandBuilder.svg",
             self.tr("Nodal demand builder..."),
-            self.runDemandsBuilder,
+            self.runDemandBuilder,
             parent=self.iface.mainWindow(),
         )
         self.add_to_group(action, self.toolsMenu, self.toolsToolbar)

@@ -52,30 +52,32 @@ class QGISRedIdentifierUtils:
             'qgisred_isolatedsegments_isolateddemands': 'IsolSeg_Isolated Demands',
             'qgisred_tree_links': 'Tree_Links',
             'qgisred_tree_nodes': 'Tree_Nodes',
-            'qgisred_demandsbuilder_demandlinks': 'DemBuil_Demand Links',
-            'qgisred_demandsbuilder_consumptionpoints': 'DemBuil_Consumption Points',
-            'qgisred_demandsbuilder_isolateddemandsserviceconnections': 'DemBuil_Isolated Demands Connections',
-            'qgisred_demandsbuilder_sectors': 'DemBuil_Sectors'
+            'qgisred_demandbuilder_demandlinks': 'DemBuil_Demand Links',
+            'qgisred_demandbuilder_consumptionpoints': 'DemBuil_Consumption Points',
+            'qgisred_demandbuilder_isolateddemandsserviceconnections': 'DemBuil_Isolated Demands Connections',
+            'qgisred_demandbuilder_sectors': 'DemBuil_Sectors'
         }
 
     def tr(self, message):
         return QCoreApplication.translate("InputLayerNames", message)
 
-    def _normalizeDemandsBuilderLayerType(self, layerType):
+    def _normalizeDemandBuilderLayerType(self, layerType):
         """Collapse a Demand Builder file name onto the identifier of its *type*.
 
         There can be several themes of each type, named by the user, so the token is
         matched anywhere in the name rather than at its end: both
-        "Net_DemandsBuilder_Sectors" and "Net_DemandsBuilder_Sectors_Barrios" are sectors.
+        "Net_DemandBuilder_Sectors" and "Net_DemandBuilder_Sectors_Barrios" are sectors.
         The longest tokens are tried first, so IsolatedDemandsServiceConnections is not
         mistaken for something shorter it happens to contain.
         """
         if not isinstance(layerType, str):
             return layerType
 
-        # Shares the folder with the managed themes but is not one of them.
-        isolated = "demandsbuilder_isolateddemandsserviceconnections"
-        if isolated in layerType.lower():
+        # Shares the folder with the managed themes but is not one of them. Both spellings
+        # are matched: files written before DemandsBuilder lost its plural still exist.
+        isolated = "demandbuilder_isolateddemandsserviceconnections"
+        lowerType = layerType.lower()
+        if isolated in lowerType or "demandsbuilder_isolateddemandsserviceconnections" in lowerType:
             return isolated
 
         # The file names were shortened (DemandBuilder_Consumptions) while the identifiers
@@ -114,7 +116,7 @@ class QGISRedIdentifierUtils:
         return None
 
     def setLayerIdentifier(self, layer, layerType):
-        normalizedType = self._normalizeDemandsBuilderLayerType(layerType)
+        normalizedType = self._normalizeDemandBuilderLayerType(layerType)
         identifier = normalizedType.lower()
         # Accept a full identifier as layerType without doubling the prefix
         while identifier.startswith("qgisred_"):
@@ -206,7 +208,7 @@ class QGISRedIdentifierUtils:
         Both the layer manager and the metadata reopen go through here, so a theme is
         called the same however it got loaded. Deriving it from the file name instead
         would go through getLayerNameToLegend, whose "Demands" rule turns every one of
-        these — DemandsBuilder is in all their names — into "Multiple Demands".
+        these — DemandBuilder is in all their names — into "Multiple Demands".
 
         Returns "" when the file is not a recognised theme, so callers can fall back.
         """

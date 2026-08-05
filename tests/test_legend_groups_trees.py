@@ -112,13 +112,13 @@ class TestTreeSubgroups:
         assert _dialog().groupHasRenderableLayers(nodesOnly)
 
 
-class TestDemandsBuilderGroup:
+class TestDemandBuilderGroup:
     def _group(self):
-        return FakeGroup("DemandsBuilder", identifier="qgisred_demandsbuilder", children=[
-            FakeLayerNode(FakeLayer("qgisred_demandsbuilder_consumptionpoints", "categorizedSymbol")),
-            FakeLayerNode(FakeLayer("qgisred_demandsbuilder_demandlinks", "categorizedSymbol")),
-            FakeLayerNode(FakeLayer("qgisred_demandsbuilder_sectors", "categorizedSymbol")),
-            FakeLayerNode(FakeLayer("qgisred_demandsbuilder_isolateddemandsserviceconnections", "singleSymbol")),
+        return FakeGroup("DemandBuilder", identifier="qgisred_demandbuilder", children=[
+            FakeLayerNode(FakeLayer("qgisred_demandbuilder_consumptionpoints", "categorizedSymbol")),
+            FakeLayerNode(FakeLayer("qgisred_demandbuilder_demandlinks", "categorizedSymbol")),
+            FakeLayerNode(FakeLayer("qgisred_demandbuilder_sectors", "categorizedSymbol")),
+            FakeLayerNode(FakeLayer("qgisred_demandbuilder_isolateddemandsserviceconnections", "singleSymbol")),
         ])
 
     def test_only_points_and_links_are_collected(self):
@@ -126,12 +126,12 @@ class TestDemandsBuilderGroup:
         _dialog().collectRenderableLayersRecursive(self._group(), layers, False)
         identifiers = {layer.customProperty("qgisred_identifier") for layer in layers}
         assert identifiers == {
-            "qgisred_demandsbuilder_consumptionpoints",
-            "qgisred_demandsbuilder_demandlinks",
+            "qgisred_demandbuilder_consumptionpoints",
+            "qgisred_demandbuilder_demandlinks",
         }
 
     def test_group_is_allowed_in_the_combo(self):
-        assert "qgisred_demandsbuilder" in QGISRedLegendsDialog.ALLOWED_GROUP_IDENTIFIERS
+        assert "qgisred_demandbuilder" in QGISRedLegendsDialog.ALLOWED_GROUP_IDENTIFIERS
 
 
 class TestConnectivityGroup:

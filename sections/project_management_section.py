@@ -17,7 +17,7 @@ from ..tools.utils.qgisred_filesystem_utils import (
     DIR_ISSUES, DIR_QUERIES, DIR_RESULTS,
     DIR_CONNECTIVITY, DIR_HYDRAULIC_SECTORS,
     DIR_DEMAND_SECTORS, DIR_ISOLATED_SEGMENTS,
-    DIR_AUXILIARY_LAYERS, DIR_DEMANDS_BUILDER,
+    DIR_AUXILIARY_LAYERS, DIR_DEMAND_BUILDER,
     QGISRedFileSystemUtils,
 )
 from ..tools.utils.qgisred_identifier_utils import QGISRedIdentifierUtils
@@ -917,9 +917,9 @@ class ProjectManagementSection:
                 target_norm = os.path.normcase(os.path.normpath(os.path.join(self.ProjectDirectory, target)))
                 if layer_dir_norm != target_norm:
                     return target
-            # DemandsBuilder: root or Queries/ flat → Auxiliary Layers/DemandsBuilder/
-            if base.startswith(netPrefix) and "_DemandsBuilder_" in base:
-                target = os.path.join(DIR_AUXILIARY_LAYERS, DIR_DEMANDS_BUILDER)
+            # DemandBuilder: root or Queries/ flat → Auxiliary Layers/DemandBuilder/
+            if base.startswith(netPrefix) and "_DemandBuilder_" in base:
+                target = os.path.join(DIR_AUXILIARY_LAYERS, DIR_DEMAND_BUILDER)
                 target_norm = os.path.normcase(os.path.normpath(os.path.join(self.ProjectDirectory, target)))
                 if layer_dir_norm != target_norm:
                     return target
@@ -1014,13 +1014,13 @@ class ProjectManagementSection:
                     styling.applyNullStyle(layer)
                     layer.triggerRepaint()
 
-        # DemandsBuilder layers need the QGIS project tree and providers
+        # DemandBuilder layers need the QGIS project tree and providers
         # to be fully restored before they are reconciled.
-        QTimer.singleShot(500, self._restyle_demands_builder_layers_after_project_load)
+        QTimer.singleShot(500, self._restyle_demand_builder_layers_after_project_load)
         QTimer.singleShot(500, self._restyle_demand_sector_layers_after_project_load)
 
-    def _restyle_demands_builder_layers_after_project_load(self):
-        """Reapply styles only to DemandsBuilder layers already loaded in QGIS."""
+    def _restyle_demand_builder_layers_after_project_load(self):
+        """Reapply styles only to DemandBuilder layers already loaded in QGIS."""
         if self.isUnloading:
             return
 
@@ -1030,12 +1030,12 @@ class ProjectManagementSection:
         ):
             return
 
-        demands_builder_folder = os.path.normcase(
+        demand_builder_folder = os.path.normcase(
             os.path.normpath(
                 os.path.join(
                     self.ProjectDirectory,
-                    "Auxiliary Layers",
-                    "DemandsBuilder"
+                    DIR_AUXILIARY_LAYERS,
+                    DIR_DEMAND_BUILDER
                 )
             )
         )
@@ -1055,15 +1055,15 @@ class ProjectManagementSection:
 
             try:
                 common_path = os.path.commonpath(
-                    [normalized_source, demands_builder_folder]
+                    [normalized_source, demand_builder_folder]
                 )
             except ValueError:
                 continue
 
-            if common_path != demands_builder_folder:
+            if common_path != demand_builder_folder:
                 continue
 
-            self._applyDemandsBuilderStyle(layer)
+            self._applyDemandBuilderStyle(layer)
 
         if self.iface:
             self.iface.mapCanvas().refresh()

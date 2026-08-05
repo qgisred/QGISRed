@@ -4,7 +4,7 @@ from ._base import _load_dll, _encode, _to_string
 
 class QGISRedDigitalTwinMixin:
     @staticmethod
-    def DemandsBuilder(
+    def DemandBuilder(
             projectFolder,
             networkName,
             tempFolder,
@@ -27,14 +27,14 @@ class QGISRedDigitalTwinMixin:
 
         mydll = _load_dll()
 
-        mydll.DemandsBuilder.argtypes = (
+        mydll.DemandBuilder.argtypes = (
             c_char_p, c_char_p, c_char_p, c_char_p,
             c_char_p, c_char_p, c_char_p, c_char_p, c_char_p
         )
 
-        mydll.DemandsBuilder.restype = c_char_p
+        mydll.DemandBuilder.restype = c_char_p
 
-        b = mydll.DemandsBuilder(
+        b = mydll.DemandBuilder(
             projectFolder,
             networkName,
             tempFolder,

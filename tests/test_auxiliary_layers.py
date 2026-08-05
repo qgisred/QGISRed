@@ -26,8 +26,8 @@ from QGISRed.tools.utils.qgisred_auxiliary_layers import (
 
 _UTILS_CLS = "QGISRed.sections.layer_management_section.QGISRedLayerUtils"
 
-CONSUMPTION = AUXILIARY_TYPES_BY_KEY["ConsumptionPoints"]
-LINKS = AUXILIARY_TYPES_BY_KEY["DemandLinks"]
+CONSUMPTION = AUXILIARY_TYPES_BY_KEY["Consumptions"]
+LINKS = AUXILIARY_TYPES_BY_KEY["Links"]
 SECTORS = AUXILIARY_TYPES_BY_KEY["Sectors"]
 
 
@@ -46,29 +46,29 @@ class TestComposeBaseName:
 
 class TestParseBaseName:
     def test_a_named_theme_resolves_to_its_type(self):
-        layerType, name = parseBaseName("Net_DemandsBuilder_ConsumptionPoints_Padron", "Net")
+        layerType, name = parseBaseName("Net_DemandBuilder_ConsumptionPoints_Padron", "Net")
         assert layerType is CONSUMPTION
         assert name == "Padron"
 
     def test_the_unnamed_theme_resolves_with_an_empty_name(self):
-        assert parseBaseName("Net_DemandsBuilder_Sectors", "Net") == (SECTORS, "")
+        assert parseBaseName("Net_DemandBuilder_Sectors", "Net") == (SECTORS, "")
 
     def test_a_theme_name_may_contain_underscores(self):
-        _, name = parseBaseName("Net_DemandsBuilder_DemandLinks_Alta_Zona_2", "Net")
+        _, name = parseBaseName("Net_DemandBuilder_DemandLinks_Alta_Zona_2", "Net")
         assert name == "Alta_Zona_2"
 
     def test_the_network_prefix_is_optional(self):
         """A folder copied between projects must still read."""
-        assert parseBaseName("DemandsBuilder_Sectors_Barrios") == (SECTORS, "Barrios")
+        assert parseBaseName("DemandBuilder_Sectors_Barrios") == (SECTORS, "Barrios")
 
     def test_a_network_named_after_a_token_does_not_confuse_it(self):
-        layerType, name = parseBaseName("Sectors_DemandsBuilder_Sectors_A", "Sectors")
+        layerType, name = parseBaseName("Sectors_DemandBuilder_Sectors_A", "Sectors")
         assert layerType is SECTORS
         assert name == "A"
 
     def test_isolated_demands_connections_is_not_a_managed_theme(self):
         """It lives in the same folder but the layer manager does not offer it."""
-        assert parseBaseName("Net_DemandsBuilder_IsolatedDemandsServiceConnections", "Net") == (None, "")
+        assert parseBaseName("Net_DemandBuilder_IsolatedDemandsServiceConnections", "Net") == (None, "")
 
     def test_an_unrelated_file_is_rejected(self):
         assert parseBaseName("Net_Pipes", "Net") == (None, "")
@@ -90,8 +90,8 @@ class TestShortenedFileNames:
         assert composeBaseName("Net", SECTORS, "sec1") == "Net_DemandBuilder_Sectors_sec1"
 
     @pytest.mark.parametrize("baseName,expected", [
-        ("Net_DemandBuilder_Consumptions_pr1", "ConsumptionPoints"),
-        ("Net_DemandBuilder_Links_en2", "DemandLinks"),
+        ("Net_DemandBuilder_Consumptions_pr1", "Consumptions"),
+        ("Net_DemandBuilder_Links_en2", "Links"),
         ("Net_DemandBuilder_Sectors_sec1", "Sectors"),
     ])
     def test_the_short_token_parses_back(self, baseName, expected):
@@ -99,8 +99,8 @@ class TestShortenedFileNames:
         assert layerType.key == expected
 
     @pytest.mark.parametrize("baseName,expected", [
-        ("Net_DemandsBuilder_ConsumptionPoints_pr1", "ConsumptionPoints"),
-        ("Net_DemandsBuilder_DemandLinks_en2", "DemandLinks"),
+        ("Net_DemandsBuilder_ConsumptionPoints_pr1", "Consumptions"),
+        ("Net_DemandsBuilder_DemandLinks_en2", "Links"),
         ("Net_DemandsBuilder_Sectors_sec1", "Sectors"),
     ])
     def test_files_written_before_the_rename_still_read(self, baseName, expected):
@@ -124,12 +124,12 @@ class TestShortenedFileNames:
     def test_the_identifier_did_not_follow_the_rename(self):
         """Legend names, saved styles and the legend editor are all keyed on it, and so
         are the identifiers already written into existing .qgs projects."""
-        assert CONSUMPTION.identifier == "qgisred_demandsbuilder_consumptionpoints"
-        assert LINKS.identifier == "qgisred_demandsbuilder_demandlinks"
-        assert SECTORS.identifier == "qgisred_demandsbuilder_sectors"
+        assert CONSUMPTION.identifier == "qgisred_demandbuilder_consumptionpoints"
+        assert LINKS.identifier == "qgisred_demandbuilder_demandlinks"
+        assert SECTORS.identifier == "qgisred_demandbuilder_sectors"
 
-    def test_the_dll_contract_did_not_follow_the_rename_either(self):
-        assert {t.key for t in AUXILIARY_LAYER_TYPES} == {"ConsumptionPoints", "DemandLinks", "Sectors"}
+    def test_the_dll_contract_uses_the_same_words_as_the_files(self):
+        assert {t.key for t in AUXILIARY_LAYER_TYPES} == {"Consumptions", "Links", "Sectors"}
 
     def test_no_short_token_hides_inside_a_long_one(self):
         """Otherwise a file would resolve to whichever type happened to be checked first."""
@@ -165,8 +165,8 @@ def _touchTheme(folder, baseName):
 class TestListThemes:
     def test_only_recognised_shapefiles_are_listed(self, tmp_path):
         folder = str(tmp_path)
-        _touchTheme(folder, "Net_DemandsBuilder_Sectors_Barrios")
-        _touchTheme(folder, "Net_DemandsBuilder_IsolatedDemandsServiceConnections")
+        _touchTheme(folder, "Net_DemandBuilder_Sectors_Barrios")
+        _touchTheme(folder, "Net_DemandBuilder_IsolatedDemandsServiceConnections")
         _touchTheme(folder, "Net_Pipes")
 
         themes = listThemes(folder, "Net")
@@ -175,9 +175,9 @@ class TestListThemes:
 
     def test_themes_are_sorted_by_type_then_name(self, tmp_path):
         folder = str(tmp_path)
-        _touchTheme(folder, "Net_DemandsBuilder_Sectors_Zonas")
-        _touchTheme(folder, "Net_DemandsBuilder_ConsumptionPoints_Padron")
-        _touchTheme(folder, "Net_DemandsBuilder_ConsumptionPoints_Facturacion")
+        _touchTheme(folder, "Net_DemandBuilder_Sectors_Zonas")
+        _touchTheme(folder, "Net_DemandBuilder_ConsumptionPoints_Padron")
+        _touchTheme(folder, "Net_DemandBuilder_ConsumptionPoints_Facturacion")
 
         themes = listThemes(folder, "Net")
 
@@ -191,14 +191,14 @@ class TestDeleteTheme:
     def test_every_sidecar_goes_with_the_shapefile(self, tmp_path):
         """A theme that leaves its .dbf behind comes back as a broken row."""
         folder = str(tmp_path)
-        path = _touchTheme(folder, "Net_DemandsBuilder_Sectors_Barrios")
-        open(os.path.join(folder, "Net_DemandsBuilder_Sectors_Barrios.prj"), "w").close()
+        path = _touchTheme(folder, "Net_DemandBuilder_Sectors_Barrios")
+        open(os.path.join(folder, "Net_DemandBuilder_Sectors_Barrios.prj"), "w").close()
 
         assert deleteTheme(path) == ""
         assert os.listdir(folder) == []
 
     def test_deleting_what_is_already_gone_is_not_an_error(self, tmp_path):
-        assert deleteTheme(str(tmp_path / "Net_DemandsBuilder_Sectors_X.shp")) == ""
+        assert deleteTheme(str(tmp_path / "Net_DemandBuilder_Sectors_X.shp")) == ""
 
 
 class TestIdentifierNormalisation:
@@ -207,21 +207,21 @@ class TestIdentifierNormalisation:
     def _normalize(self, name):
         from QGISRed.tools.utils.qgisred_identifier_utils import QGISRedIdentifierUtils
         utils = object.__new__(QGISRedIdentifierUtils)
-        return utils._normalizeDemandsBuilderLayerType(name)
+        return utils._normalizeDemandBuilderLayerType(name)
 
     def test_a_named_theme_collapses_onto_its_type(self):
         assert self._normalize("Net_DemandBuilder_Consumptions_Facturacion2024") == \
-            "demandsbuilder_consumptionpoints"
+            "demandbuilder_consumptionpoints"
 
     def test_the_unnamed_theme_still_collapses(self):
-        assert self._normalize("Net_DemandsBuilder_Sectors") == "demandsbuilder_sectors"
+        assert self._normalize("Net_DemandBuilder_Sectors") == "demandbuilder_sectors"
 
     def test_the_token_passed_by_the_loader_collapses(self):
-        assert self._normalize("DemandsBuilder_DemandLinks") == "demandsbuilder_demandlinks"
+        assert self._normalize("DemandBuilder_DemandLinks") == "demandbuilder_demandlinks"
 
     def test_isolated_demands_connections_keeps_its_own_identifier(self):
-        assert self._normalize("Net_DemandsBuilder_IsolatedDemandsServiceConnections") == \
-            "demandsbuilder_isolateddemandsserviceconnections"
+        assert self._normalize("Net_DemandBuilder_IsolatedDemandsServiceConnections") == \
+            "demandbuilder_isolateddemandsserviceconnections"
 
     def test_an_unrelated_name_is_left_alone(self):
         assert self._normalize("Net_Pipes") == "Net_Pipes"
@@ -239,9 +239,9 @@ class TestGroupConfigLookup:
         from QGISRed.tools.utils.qgisred_project_io import QGISRedProjectIO
         return QGISRedProjectIO._groupConfig(groupName)
 
-    def test_the_demands_builder_group_is_found_without_its_space(self):
+    def test_the_demand_builder_group_is_found_without_its_space(self):
         from QGISRed.tools.utils.qgisred_filesystem_utils import LAYER_TYPE_CONFIG
-        assert self._config("AuxiliaryLayers/DemandsBuilder") is LAYER_TYPE_CONFIG["DemandsBuilder"]
+        assert self._config("AuxiliaryLayers/DemandBuilder") is LAYER_TYPE_CONFIG["DemandBuilder"]
 
     def test_the_demand_sectors_group_is_found_without_its_space(self):
         from QGISRed.tools.utils.qgisred_filesystem_utils import LAYER_TYPE_CONFIG
@@ -249,7 +249,7 @@ class TestGroupConfigLookup:
 
     def test_the_spelled_out_key_still_resolves(self):
         from QGISRed.tools.utils.qgisred_filesystem_utils import LAYER_TYPE_CONFIG
-        assert self._config("Auxiliary Layers/DemandsBuilder") is LAYER_TYPE_CONFIG["DemandsBuilder"]
+        assert self._config("Auxiliary Layers/DemandBuilder") is LAYER_TYPE_CONFIG["DemandBuilder"]
 
     def test_groups_without_spaces_are_unaffected(self):
         assert self._config("Inputs") is not None
@@ -265,7 +265,7 @@ class TestGroupConfigLookup:
         """Projects written before the parent group carried its identifier have its
         translated name in the metadata: <CapasAuxiliares>, <CouchesAuxiliaires>…"""
         from QGISRed.tools.utils.qgisred_filesystem_utils import LAYER_TYPE_CONFIG
-        assert self._config("CapasAuxiliares/DemandsBuilder") is LAYER_TYPE_CONFIG["DemandsBuilder"]
+        assert self._config("CapasAuxiliares/DemandBuilder") is LAYER_TYPE_CONFIG["DemandBuilder"]
         assert self._config("CouchesAuxiliaires/DemandSectors") is LAYER_TYPE_CONFIG["DemandSectors"]
 
     def test_a_dynamic_subgroup_is_not_swallowed_by_the_fallback(self):
@@ -317,7 +317,7 @@ class TestGroupIdentifierAssignment:
         assert missing == []
 
 
-class TestDemandsBuilderStyleFlag:
+class TestDemandBuilderStyleFlag:
     """The look is computed, not shipped as a QML, so openLayer must apply it.
 
     Demand sectors already work this way. Doing it here too is what removed the need for a
@@ -326,16 +326,16 @@ class TestDemandsBuilderStyleFlag:
 
     def test_the_group_config_carries_the_flag(self):
         from QGISRed.tools.utils.qgisred_filesystem_utils import LAYER_TYPE_CONFIG
-        assert LAYER_TYPE_CONFIG["DemandsBuilder"]["flags"] == {"demandsBuilder": True}
+        assert LAYER_TYPE_CONFIG["DemandBuilder"]["flags"] == {"demandBuilder": True}
 
     def test_open_layer_accepts_it(self):
         import inspect
         from QGISRed.tools.utils.qgisred_layer_utils import QGISRedLayerUtils
-        assert "demandsBuilder" in inspect.signature(QGISRedLayerUtils.openLayer).parameters
+        assert "demandBuilder" in inspect.signature(QGISRedLayerUtils.openLayer).parameters
 
     def test_the_styling_utils_own_the_look(self):
         from QGISRed.tools.utils.qgisred_styling_utils import QGISRedStylingUtils
-        assert hasattr(QGISRedStylingUtils, "setDemandsBuilderStyle")
+        assert hasattr(QGISRedStylingUtils, "setDemandBuilderStyle")
 
     def test_the_isolated_demands_connections_keep_their_qml(self):
         """They are told apart by file name, not by the display name they end up with."""
@@ -346,10 +346,10 @@ class TestDemandsBuilderStyleFlag:
         layer = MagicMock()
         layer.name.return_value = "DemBuil_Isolated Demands Connections"
 
-        styling.setDemandsBuilderStyle(layer, "DemandsBuilder_IsolatedDemandsServiceConnections")
+        styling.setDemandBuilderStyle(layer, "DemandBuilder_IsolatedDemandsServiceConnections")
 
         styling.setStyle.assert_called_once_with(
-            layer, "DemandsBuilderIsolatedDemandsServiceConnections")
+            layer, "DemandBuilderIsolatedDemandsServiceConnections")
 
     def test_a_theme_does_not_take_that_qml(self):
         from QGISRed.tools.utils.qgisred_styling_utils import QGISRedStylingUtils
@@ -362,7 +362,7 @@ class TestDemandsBuilderStyleFlag:
         layer.fields.return_value.indexFromName.return_value = -1
         layer.geometryType.return_value = 2
 
-        styling.setDemandsBuilderStyle(layer, "DemandsBuilder_Sectors_Barrios")
+        styling.setDemandBuilderStyle(layer, "DemandBuilder_Sectors_Barrios")
 
         styling.setStyle.assert_not_called()
         layer.setRenderer.assert_called_once()
@@ -424,38 +424,38 @@ class TestAuxiliaryThemeName:
         utils = object.__new__(QGISRedIdentifierUtils)
         utils.NetworkName = "Net"
         known = families if families is not None else {
-            "qgisred_demandsbuilder_consumptionpoints": "DemBuil_Consumption Points",
-            "qgisred_demandsbuilder_demandlinks": "DemBuil_Demand Links",
-            "qgisred_demandsbuilder_sectors": "DemBuil_Sectors",
+            "qgisred_demandbuilder_consumptionpoints": "DemBuil_Consumption Points",
+            "qgisred_demandbuilder_demandlinks": "DemBuil_Demand Links",
+            "qgisred_demandbuilder_sectors": "DemBuil_Sectors",
         }
         utils.getTranslatedNameForIdentifier = lambda identifier: known.get(identifier)
         return utils
 
     def test_a_named_theme_shows_its_family_and_its_name(self):
         utils = self._identifiers()
-        assert utils.getAuxiliaryThemeName("Net_DemandsBuilder_ConsumptionPoints_pr1") == \
+        assert utils.getAuxiliaryThemeName("Net_DemandBuilder_ConsumptionPoints_pr1") == \
             "DemBuil_Consumption Points: pr1"
 
     def test_the_demands_manager_theme_shows_only_its_family(self):
         utils = self._identifiers()
-        assert utils.getAuxiliaryThemeName("Net_DemandsBuilder_Sectors") == "DemBuil_Sectors"
+        assert utils.getAuxiliaryThemeName("Net_DemandBuilder_Sectors") == "DemBuil_Sectors"
 
     def test_each_family_keeps_its_own_name(self):
         """They all used to collapse onto 'Multiple Demands': getLayerNameToLegend rewrites
-        anything containing 'Demands', and DemandsBuilder is in every one of these."""
+        anything containing 'Demands', and DemandBuilder is in every one of these."""
         utils = self._identifiers()
         names = [
-            utils.getAuxiliaryThemeName("Net_DemandsBuilder_ConsumptionPoints_pr1"),
-            utils.getAuxiliaryThemeName("Net_DemandsBuilder_DemandLinks_en2"),
-            utils.getAuxiliaryThemeName("Net_DemandsBuilder_Sectors_sec1"),
+            utils.getAuxiliaryThemeName("Net_DemandBuilder_ConsumptionPoints_pr1"),
+            utils.getAuxiliaryThemeName("Net_DemandBuilder_DemandLinks_en2"),
+            utils.getAuxiliaryThemeName("Net_DemandBuilder_Sectors_sec1"),
         ]
         assert len(set(names)) == 3
         assert not any("Multiple Demands" in name for name in names)
 
     def test_two_themes_of_one_family_are_told_apart(self):
         utils = self._identifiers()
-        first = utils.getAuxiliaryThemeName("Net_DemandsBuilder_ConsumptionPoints_pr1")
-        second = utils.getAuxiliaryThemeName("Net_DemandsBuilder_ConsumptionPoints_consumPuntual")
+        first = utils.getAuxiliaryThemeName("Net_DemandBuilder_ConsumptionPoints_pr1")
+        second = utils.getAuxiliaryThemeName("Net_DemandBuilder_ConsumptionPoints_consumPuntual")
         assert first != second
 
     def test_a_file_that_is_not_a_theme_gets_no_name(self):
@@ -465,7 +465,7 @@ class TestAuxiliaryThemeName:
     def test_an_unknown_family_gets_no_name(self):
         """The caller falls back rather than showing half a name."""
         utils = self._identifiers(families={})
-        assert utils.getAuxiliaryThemeName("Net_DemandsBuilder_Sectors_sec1") == ""
+        assert utils.getAuxiliaryThemeName("Net_DemandBuilder_Sectors_sec1") == ""
 
 
 class TestGroupVisibility:
@@ -487,24 +487,24 @@ class TestGroupVisibility:
     def test_opening_a_theme_leaves_the_legend_alone(self):
         section = self._makeSection()
         with patch(_UTILS_CLS) as utilsCls:
-            section.getDemandsBuilderGroup(applyVisibility=False)
+            section.getDemandBuilderGroup(applyVisibility=False)
         _path, applyVisibility = utilsCls.return_value.getOrCreateNestedGroup.call_args[0]
         assert applyVisibility is False
 
     def test_the_demands_manager_still_brings_its_group_forward(self):
         section = self._makeSection()
         with patch(_UTILS_CLS) as utilsCls:
-            section.getDemandsBuilderGroup()
+            section.getDemandBuilderGroup()
         _path, applyVisibility = utilsCls.return_value.getOrCreateNestedGroup.call_args[0]
         assert applyVisibility is True
 
     def test_the_auxiliary_loader_asks_for_no_visibility_changes(self):
         section = self._makeSection()
-        section.getDemandsBuilderGroup = MagicMock()
+        section.getDemandBuilderGroup = MagicMock()
         with patch(_UTILS_CLS) as utilsCls:
             utilsCls.return_value._tryReloadExistingLayer.return_value = True
             section.openAuxiliaryThemes([__file__])
-        section.getDemandsBuilderGroup.assert_called_once_with(applyVisibility=False)
+        section.getDemandBuilderGroup.assert_called_once_with(applyVisibility=False)
 
 
 class TestCloseAuxiliaryThemes:
@@ -642,7 +642,7 @@ def _makeDialog(projectDirectory, networkName="Net"):
 
 def _auxFolder(projectDirectory):
     from QGISRed.tools.utils.qgisred_filesystem_utils import LAYER_TYPE_CONFIG
-    folder = os.path.join(str(projectDirectory), LAYER_TYPE_CONFIG["DemandsBuilder"]["subdir"])
+    folder = os.path.join(str(projectDirectory), LAYER_TYPE_CONFIG["DemandBuilder"]["subdir"])
     os.makedirs(folder, exist_ok=True)
     return folder
 
@@ -650,8 +650,8 @@ def _auxFolder(projectDirectory):
 class TestFillAuxiliaryTable:
     def test_one_row_per_theme_on_disk(self, tmp_path):
         folder = _auxFolder(tmp_path)
-        _touchTheme(folder, "Net_DemandsBuilder_Sectors_Barrios")
-        _touchTheme(folder, "Net_DemandsBuilder_ConsumptionPoints_Padron")
+        _touchTheme(folder, "Net_DemandBuilder_Sectors_Barrios")
+        _touchTheme(folder, "Net_DemandBuilder_ConsumptionPoints_Padron")
         dialog = _makeDialog(tmp_path)
 
         with patch(_DIALOG_MOD + ".QTableWidgetItem", _FakeItem):
@@ -662,7 +662,7 @@ class TestFillAuxiliaryTable:
     def test_a_loaded_theme_comes_back_checked(self, tmp_path):
         Qt = _qt()
         folder = _auxFolder(tmp_path)
-        path = _touchTheme(folder, "Net_DemandsBuilder_Sectors_Barrios")
+        path = _touchTheme(folder, "Net_DemandBuilder_Sectors_Barrios")
         dialog = _makeDialog(tmp_path)
         dialog.openLayerPaths = MagicMock(return_value={os.path.normcase(path)})
 
@@ -673,7 +673,7 @@ class TestFillAuxiliaryTable:
 
     def test_an_unloaded_theme_comes_back_unchecked(self, tmp_path):
         Qt = _qt()
-        _touchTheme(_auxFolder(tmp_path), "Net_DemandsBuilder_Sectors_Barrios")
+        _touchTheme(_auxFolder(tmp_path), "Net_DemandBuilder_Sectors_Barrios")
         dialog = _makeDialog(tmp_path)
         dialog.openLayerPaths = MagicMock(return_value=set())
 
@@ -684,7 +684,7 @@ class TestFillAuxiliaryTable:
 
     def test_the_name_and_the_type_sit_beside_the_checkbox(self, tmp_path):
         """The checkbox has a column of its own; name and type follow it."""
-        _touchTheme(_auxFolder(tmp_path), "Net_DemandsBuilder_DemandLinks_p1")
+        _touchTheme(_auxFolder(tmp_path), "Net_DemandBuilder_DemandLinks_p1")
         dialog = _makeDialog(tmp_path)
 
         with patch(_DIALOG_MOD + ".QTableWidgetItem", _FakeItem):
@@ -695,7 +695,7 @@ class TestFillAuxiliaryTable:
         assert dialog.tbAuxiliary.item(0, 2).text() is not None
 
     def test_the_demands_manager_theme_is_labelled_as_the_default_one(self, tmp_path):
-        _touchTheme(_auxFolder(tmp_path), "Net_DemandsBuilder_Sectors")
+        _touchTheme(_auxFolder(tmp_path), "Net_DemandBuilder_Sectors")
         dialog = _makeDialog(tmp_path)
 
         with patch(_DIALOG_MOD + ".QTableWidgetItem", _FakeItem):
@@ -706,7 +706,7 @@ class TestFillAuxiliaryTable:
     def test_the_row_carries_the_path_of_its_theme(self, tmp_path):
         Qt = _qt()
         folder = _auxFolder(tmp_path)
-        path = _touchTheme(folder, "Net_DemandsBuilder_Sectors_Barrios")
+        path = _touchTheme(folder, "Net_DemandBuilder_Sectors_Barrios")
         dialog = _makeDialog(tmp_path)
 
         with patch(_DIALOG_MOD + ".QTableWidgetItem", _FakeItem):
@@ -716,7 +716,7 @@ class TestFillAuxiliaryTable:
 
     def test_stale_rows_do_not_survive_a_refresh(self, tmp_path):
         folder = _auxFolder(tmp_path)
-        path = _touchTheme(folder, "Net_DemandsBuilder_Sectors_Barrios")
+        path = _touchTheme(folder, "Net_DemandBuilder_Sectors_Barrios")
         dialog = _makeDialog(tmp_path)
 
         with patch(_DIALOG_MOD + ".QTableWidgetItem", _FakeItem):
@@ -731,8 +731,8 @@ class TestFillAuxiliaryTable:
 class TestAuxiliaryRowPaths:
     def _fill(self, tmp_path, checked):
         folder = _auxFolder(tmp_path)
-        first = _touchTheme(folder, "Net_DemandsBuilder_ConsumptionPoints_A")
-        second = _touchTheme(folder, "Net_DemandsBuilder_Sectors_B")
+        first = _touchTheme(folder, "Net_DemandBuilder_ConsumptionPoints_A")
+        second = _touchTheme(folder, "Net_DemandBuilder_Sectors_B")
         dialog = _makeDialog(tmp_path)
         dialog.openLayerPaths = MagicMock(
             return_value={os.path.normcase(p) for p in checked}
@@ -751,7 +751,7 @@ class TestAuxiliaryRowPaths:
 
     def test_only_the_loaded_theme_is_selected(self, tmp_path):
         folder = _auxFolder(tmp_path)
-        loaded = os.path.join(folder, "Net_DemandsBuilder_ConsumptionPoints_A.shp")
+        loaded = os.path.join(folder, "Net_DemandBuilder_ConsumptionPoints_A.shp")
         dialog, first, _ = self._fill(tmp_path, [loaded])
         assert dialog.auxiliaryRowPaths(onlyChecked=True) == [_uniform(first)]
 
@@ -821,7 +821,7 @@ class TestCreateAuxiliaryTheme:
 
     def test_an_existing_name_is_refused_before_calling_the_dll(self, tmp_path):
         folder = _auxFolder(tmp_path)
-        _touchTheme(folder, "Net_DemandsBuilder_Sectors_Barrios")
+        _touchTheme(folder, "Net_DemandBuilder_Sectors_Barrios")
         dialog = _makeDialog(tmp_path)
 
         gisred = self._run(dialog, SECTORS, "Barrios")
@@ -854,7 +854,7 @@ class TestCreateAuxiliaryTheme:
 class TestDeleteAuxiliaryTheme:
     def _dialog(self, tmp_path):
         folder = _auxFolder(tmp_path)
-        path = _touchTheme(folder, "Net_DemandsBuilder_Sectors_Barrios")
+        path = _touchTheme(folder, "Net_DemandBuilder_Sectors_Barrios")
         dialog = _makeDialog(tmp_path)
         with patch(_DIALOG_MOD + ".QTableWidgetItem", _FakeItem):
             dialog.fillAuxiliaryTable()
@@ -911,7 +911,7 @@ class TestAcceptSendsBothSelections:
         """applyInputLayerSelection ends in updateMetadata, which must see the final tree."""
         from QGISRed.ui.project.qgisred_layermanagement_dialog import QGISRedLayerManagementDialog
 
-        _touchTheme(_auxFolder(tmp_path), "Net_DemandsBuilder_Sectors_Barrios")
+        _touchTheme(_auxFolder(tmp_path), "Net_DemandBuilder_Sectors_Barrios")
         dialog = _makeDialog(tmp_path)
         dialog.crs = dialog.originalCrs = MagicMock()
         with patch(_DIALOG_MOD + ".QTableWidgetItem", _FakeItem):

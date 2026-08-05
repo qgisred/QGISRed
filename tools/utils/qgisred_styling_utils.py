@@ -683,7 +683,7 @@ class QGISRedStylingUtils:
         color.setHsv(int(digest[:8], 16) % 360, 180, 220)
         return color
 
-    def setDemandsBuilderStyle(self, layer, sourceName="", baseDemandField="BaseDemand"):
+    def setDemandBuilderStyle(self, layer, sourceName="", baseDemandField="BaseDemand"):
         """Paint a Demand Builder auxiliary layer: a colour per Category, plus labels.
 
         Like the demand sectors', this look is computed from the layer's own values rather
@@ -696,7 +696,7 @@ class QGISRedStylingUtils:
         """
         name = sourceName or layer.name()
         if "IsolatedDemandsServiceConnections" in name:
-            self.setStyle(layer, "DemandsBuilderIsolatedDemandsServiceConnections")
+            self.setStyle(layer, "DemandBuilderIsolatedDemandsServiceConnections")
             layer.triggerRepaint()
             return
 

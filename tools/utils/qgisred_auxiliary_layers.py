@@ -5,7 +5,7 @@ Unlike the network's own layers, of which there is exactly one each, the user ca
 several themes of every type — one per billing run, per sector division, and so on. What
 ties a file to its type is the token its name carries:
 
-    {NetworkName}_DemandsBuilder_{Type}[_{theme name}].shp
+    {NetworkName}_DemandBuilder_{Type}[_{theme name}].shp
 
 The network prefix is what lets a theme survive closing and reopening a project that has
 no .qgs (see `_buildGroupsString` and `QGISRedProjectIO._openGroupByName`, which strip and
@@ -30,13 +30,12 @@ class AuxiliaryLayerType:
     They are deliberately not the same string:
 
     * `key` is what the DLL entry point expects as its themeType.
-    * `fileToken` is what new files carry. `legacyFileTokens` are still read, both for
-      themes created before the names were shortened and for the ones the Demands Manager
-      writes by itself, which keep the long spelling.
-    * `identifierToken` gives the loaded layer its qgisred_identifier, and does *not*
-      follow the file rename: legend names, styles saved by users and the legend editor's
-      allowlist are all keyed on it, and so are the identifiers already written into
-      existing .qgs projects.
+    * `fileToken` is what new files carry, and `identifierToken` what the loaded layer
+      takes as its qgisred_identifier. They differ because the file names were shortened
+      further than the identifiers were.
+    * `legacyFileTokens` are the spellings still read but no longer written: the plural
+      DemandsBuilder and the longer type names, which every theme created before this
+      rename carries.
     """
 
     def __init__(self, key, fileToken, identifierToken, legacyFileTokens=()):
@@ -54,16 +53,16 @@ class AuxiliaryLayerType:
 # GISRed.ExtendedModel/Writers/ToShp.AuxiliaryLayers.cs, which is what creates the files.
 AUXILIARY_LAYER_TYPES = (
     AuxiliaryLayerType(
-        "ConsumptionPoints", "DemandBuilder_Consumptions",
-        "DemandsBuilder_ConsumptionPoints", ("DemandsBuilder_ConsumptionPoints",),
+        "Consumptions", "DemandBuilder_Consumptions", "DemandBuilder_ConsumptionPoints",
+        ("DemandsBuilder_ConsumptionPoints", "DemandBuilder_ConsumptionPoints"),
     ),
     AuxiliaryLayerType(
-        "DemandLinks", "DemandBuilder_Links",
-        "DemandsBuilder_DemandLinks", ("DemandsBuilder_DemandLinks",),
+        "Links", "DemandBuilder_Links", "DemandBuilder_DemandLinks",
+        ("DemandsBuilder_DemandLinks", "DemandBuilder_DemandLinks"),
     ),
     AuxiliaryLayerType(
-        "Sectors", "DemandBuilder_Sectors",
-        "DemandsBuilder_Sectors", ("DemandsBuilder_Sectors",),
+        "Sectors", "DemandBuilder_Sectors", "DemandBuilder_Sectors",
+        ("DemandsBuilder_Sectors",),
     ),
 )
 

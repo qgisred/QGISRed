@@ -160,9 +160,9 @@ class ToolsSection:
 
         return ";;".join(selected)
 
-    def _getDemandsBuilderPointLayers(self):
+    def _getDemandBuilderPointLayers(self):
         points = []
-        demands_builder_id = QGISRedLayerUtils.groupIdentifiers.get("DemandsBuilder")
+        demand_builder_id = QGISRedLayerUtils.groupIdentifiers.get("DemandBuilder")
         root = QgsProject.instance().layerTreeRoot()
 
         for layer in QGISRedLayerUtils().getLayers():
@@ -182,10 +182,10 @@ class ToolsSection:
             parent = layer_node.parent()
             while parent is not None:
                 if isinstance(parent, QgsLayerTreeGroup):
-                    if parent.customProperty("qgisred_identifier") == demands_builder_id:
+                    if parent.customProperty("qgisred_identifier") == demand_builder_id:
                         points.append(layer.source())
                         break
-                    if parent.name() in ("DemandsBuilder", "Demands Builder"):
+                    if parent.name() in ("DemandBuilder", "Demand Builder"):
                         points.append(layer.source())
                         break
                 parent = parent.parent()
@@ -195,9 +195,9 @@ class ToolsSection:
             result = "[POINT]" + ";".join(points)
         return result
 
-    def _getDemandsBuilderLineLayers(self):
+    def _getDemandBuilderLineLayers(self):
         lines = []
-        demands_builder_id = QGISRedLayerUtils.groupIdentifiers.get("DemandsBuilder")
+        demand_builder_id = QGISRedLayerUtils.groupIdentifiers.get("DemandBuilder")
         root = QgsProject.instance().layerTreeRoot()
 
         for layer in QGISRedLayerUtils().getLayers():
@@ -217,10 +217,10 @@ class ToolsSection:
             parent = layer_node.parent()
             while parent is not None:
                 if isinstance(parent, QgsLayerTreeGroup):
-                    if parent.customProperty("qgisred_identifier") == demands_builder_id:
+                    if parent.customProperty("qgisred_identifier") == demand_builder_id:
                         lines.append(layer.source())
                         break
-                    if parent.name() in ("DemandsBuilder", "Demands Builder"):
+                    if parent.name() in ("DemandBuilder", "Demand Builder"):
                         lines.append(layer.source())
                         break
                 parent = parent.parent()
@@ -230,9 +230,9 @@ class ToolsSection:
             result = "[LINE]" + ";".join(lines)
         return result
 
-    def _getDemandsBuilderSectorLayers(self):
+    def _getDemandBuilderSectorLayers(self):
         polygons = []
-        demands_builder_id = QGISRedLayerUtils.groupIdentifiers.get("DemandsBuilder")
+        demand_builder_id = QGISRedLayerUtils.groupIdentifiers.get("DemandBuilder")
         root = QgsProject.instance().layerTreeRoot()
 
         for layer in QGISRedLayerUtils().getLayers():
@@ -249,22 +249,22 @@ class ToolsSection:
             if layer_node is None:
                 continue
 
-            in_demands_builder_group = False
+            in_demand_builder_group = False
 
             parent = layer_node.parent()
             while parent is not None:
                 if isinstance(parent, QgsLayerTreeGroup):
-                    if parent.customProperty("qgisred_identifier") == demands_builder_id:
-                        in_demands_builder_group = True
+                    if parent.customProperty("qgisred_identifier") == demand_builder_id:
+                        in_demand_builder_group = True
                         break
 
-                    if parent.name() in ("DemandsBuilder", "Demands Builder"):
-                        in_demands_builder_group = True
+                    if parent.name() in ("DemandBuilder", "Demand Builder"):
+                        in_demand_builder_group = True
                         break
 
                 parent = parent.parent()
 
-            if not in_demands_builder_group:
+            if not in_demand_builder_group:
                 continue
 
             source = layer.source().split("|")[0]
@@ -279,7 +279,7 @@ class ToolsSection:
 
         return "[POLYGON]" + ";".join(polygons)
 
-    def runDemandsBuilder(self):
+    def runDemandBuilder(self):
         if not self.checkDependencies():
             return
         # Validations
@@ -298,15 +298,15 @@ class ToolsSection:
             ids += "ServiceConnections:" + str(self.selectedIds["ServiceConnections"]) + ";"
 
         externalLayers = self._getExternalLoadedLayers()
-        qgisredPointLayers = self._getDemandsBuilderPointLayers()
-        qgisredLineLayers = self._getDemandsBuilderLineLayers()
-        qgisredSectorLayers = self._getDemandsBuilderSectorLayers()
+        qgisredPointLayers = self._getDemandBuilderPointLayers()
+        qgisredLineLayers = self._getDemandBuilderLineLayers()
+        qgisredSectorLayers = self._getDemandBuilderSectorLayers()
         selectedAuxiliaryLayerFids = self._getSelectedAuxiliaryLayerFids()
 
         # Process
         QApplication.setOverrideCursor(Qt.CursorShape.WaitCursor)
         self.especificComplementaryLayers = ["ServiceConnections"]
-        resMessage = GISRed.DemandsBuilder(
+        resMessage = GISRed.DemandBuilder(
             self.ProjectDirectory,
             self.NetworkName,
             self.tempFolder,
@@ -319,7 +319,7 @@ class ToolsSection:
         )
         QApplication.restoreOverrideCursor()
 
-        self.processCsharpResult(resMessage, "", layerType="demandsBuilder")
+        self.processCsharpResult(resMessage, "", layerType="demandBuilder")
         self.selectedFids = {}
 
     def runScenarioManager(self):
@@ -503,7 +503,7 @@ class ToolsSection:
         self.blockLayers(False)
         self.processCsharpResult(resMessage, "", layerType="isolatedSegments")
 
-    def _applyDemandsBuilderStyle(self, vlayer, sourceName=""):
+    def _applyDemandBuilderStyle(self, vlayer, sourceName=""):
         """Paint a Demand Builder auxiliary layer.
 
         The look itself lives in QGISRedStylingUtils next to the demand sectors', the other
@@ -512,8 +512,8 @@ class ToolsSection:
         """
         from ..tools.utils.qgisred_styling_utils import QGISRedStylingUtils
 
-        baseDemandField = getattr(self, "_demandsBuilderNewBaseDemandFieldName", "BaseDemand")
-        QGISRedStylingUtils(self.ProjectDirectory, self.NetworkName, self.iface).setDemandsBuilderStyle(
+        baseDemandField = getattr(self, "_demandBuilderNewBaseDemandFieldName", "BaseDemand")
+        QGISRedStylingUtils(self.ProjectDirectory, self.NetworkName, self.iface).setDemandBuilderStyle(
             vlayer, sourceName, baseDemandField
         )
 

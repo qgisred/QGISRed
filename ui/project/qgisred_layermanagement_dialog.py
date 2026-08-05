@@ -60,11 +60,11 @@ class _Element:
 
 
 # The only type whose base demand columns can be managed.
-CONSUMPTION_POINTS_KEY = "ConsumptionPoints"
+CONSUMPTION_POINTS_KEY = "Consumptions"
 
 _AUXILIARY_TYPE_LABELS = {
-    "ConsumptionPoints": "Consumption Points",
-    "DemandLinks": "Demand Links",
+    "Consumptions": "Consumption Points",
+    "Links": "Demand Links",
     "Sectors": "Sectors",
 }
 
@@ -320,7 +320,7 @@ class QGISRedLayerManagementDialog(QDialog, FORM_CLASS):
     """Demand Builder auxiliary themes"""
 
     def auxiliaryFolder(self):
-        return os.path.join(self.ProjectDirectory, LAYER_TYPE_CONFIG["DemandsBuilder"]["subdir"])
+        return os.path.join(self.ProjectDirectory, LAYER_TYPE_CONFIG["DemandBuilder"]["subdir"])
 
     def uniformedPath(self, path):
         """Spell a path the way getLayerPath does, so the two can be compared."""

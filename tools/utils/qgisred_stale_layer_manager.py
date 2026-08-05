@@ -36,7 +36,7 @@ EXCLUDED_SUBDIRS = (DIR_AUXILIARY_LAYERS,)
 
 # The same exclusion by qgisred_identifier, for a theme opened from somewhere else (the
 # Demands Manager can add layers to the group from outside the project folder).
-EXCLUDED_IDENTIFIER_PREFIXES = ("qgisred_demandsbuilder", "qgisred_demandsectors")
+EXCLUDED_IDENTIFIER_PREFIXES = ("qgisred_demandbuilder", "qgisred_demandsectors")
 
 # Where the running manager is published so the *next* plugin load can find it.
 #

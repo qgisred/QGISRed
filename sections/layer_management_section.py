@@ -198,16 +198,16 @@ class LayerManagementSection:
         utils = QGISRedLayerUtils(self.ProjectDirectory, self.NetworkName, self.iface)
         return utils.getOrCreateNestedGroup([self.NetworkName] + LAYER_TYPE_CONFIG["IsolatedSegments"]["tree_path"])
 
-    def getDemandsBuilderGroup(self, applyVisibility=True):
+    def getDemandBuilderGroup(self, applyVisibility=True):
         utils = QGISRedLayerUtils(self.ProjectDirectory, self.NetworkName, self.iface)
         return utils.getOrCreateNestedGroup(
-            [self.NetworkName] + LAYER_TYPE_CONFIG["DemandsBuilder"]["tree_path"], applyVisibility
+            [self.NetworkName] + LAYER_TYPE_CONFIG["DemandBuilder"]["tree_path"], applyVisibility
         )
 
     """Demand Builder auxiliary themes"""
 
     def getAuxiliaryThemesFolder(self):
-        return os.path.join(self.ProjectDirectory, LAYER_TYPE_CONFIG["DemandsBuilder"]["subdir"])
+        return os.path.join(self.ProjectDirectory, LAYER_TYPE_CONFIG["DemandBuilder"]["subdir"])
 
     def applyAuxiliaryLayerSelection(self, selectedPaths, managedPaths):
         """Load/unload auxiliary themes to match the layer-management table.
@@ -267,7 +267,7 @@ class LayerManagementSection:
         identifiers = QGISRedIdentifierUtils(self.ProjectDirectory, self.NetworkName, self.iface)
         # The layer manager loads what was asked for and nothing else: which groups the
         # user has ticked in the legend is theirs to decide.
-        group = self.getDemandsBuilderGroup(applyVisibility=False)
+        group = self.getDemandBuilderGroup(applyVisibility=False)
 
         for path in paths:
             if utils._tryReloadExistingLayer(path):
@@ -280,7 +280,7 @@ class LayerManagementSection:
             if not vlayer.isValid():
                 continue
 
-            self._applyDemandsBuilderStyle(vlayer, baseName)
+            self._applyDemandBuilderStyle(vlayer, baseName)
 
             if layerType is not None:
                 identifiers.setLayerIdentifier(vlayer, layerType.identifierToken)
@@ -301,19 +301,19 @@ class LayerManagementSection:
             if layer is not None:
                 QgsProject.instance().removeMapLayer(layer.id())
 
-    def openDemandsBuilderLayers(self):
-        cfg = LAYER_TYPE_CONFIG["DemandsBuilder"]
+    def openDemandBuilderLayers(self):
+        cfg = LAYER_TYPE_CONFIG["DemandBuilder"]
 
-        demands_builder_folder = os.path.join(
+        demand_builder_folder = os.path.join(
             self.ProjectDirectory,
             cfg["subdir"]
         )
 
-        if not os.path.isdir(demands_builder_folder):
-            self._demandsBuilderExtraPaths = []
+        if not os.path.isdir(demand_builder_folder):
+            self._demandBuilderExtraPaths = []
             return
 
-        demands_builder_group = self.getDemandsBuilderGroup()
+        demand_builder_group = self.getDemandBuilderGroup()
 
         identifiers = QGISRedIdentifierUtils(
             self.ProjectDirectory,
@@ -325,7 +325,7 @@ class LayerManagementSection:
 
         extra_paths = getattr(
             self,
-            "_demandsBuilderExtraPaths",
+            "_demandBuilderExtraPaths",
             []
         )
 
@@ -341,14 +341,14 @@ class LayerManagementSection:
             ):
                 paths_to_open.append(normalized_path)
 
-        for filename in os.listdir(demands_builder_folder):
+        for filename in os.listdir(demand_builder_folder):
             if not filename.lower().endswith(".shp"):
                 continue
 
             paths_to_open.append(
                 os.path.normpath(
                     os.path.join(
-                        demands_builder_folder,
+                        demand_builder_folder,
                         filename
                     )
                 )
@@ -385,7 +385,7 @@ class LayerManagementSection:
             existing_layer = utils._tryReloadExistingLayer(path)
 
             if existing_layer is not None:
-                self._applyDemandsBuilderStyle(existing_layer)
+                self._applyDemandBuilderStyle(existing_layer)
 
                 if not existing_layer.customProperty(
                     "qgisred_identifier"
@@ -406,7 +406,7 @@ class LayerManagementSection:
             if not vector_layer.isValid():
                 continue
 
-            self._applyDemandsBuilderStyle(vector_layer)
+            self._applyDemandBuilderStyle(vector_layer)
 
             identifiers.setLayerIdentifier(
                 vector_layer,
@@ -429,12 +429,12 @@ class LayerManagementSection:
                 False
             )
 
-            demands_builder_group.insertChildNode(
+            demand_builder_group.insertChildNode(
                 0,
                 QgsLayerTreeLayer(vector_layer)
             )
 
-        self._demandsBuilderExtraPaths = []
+        self._demandBuilderExtraPaths = []
 
     def getDemandSectorsGroup(self):
         utils = QGISRedLayerUtils(self.ProjectDirectory, self.NetworkName, self.iface)
@@ -628,10 +628,10 @@ class LayerManagementSection:
         self.hasToOpenSectorLayers = False
         self.hasToOpenConnectivityLayers = False
         self.hasToOpenIsolatedSegmentsLayers = False
-        self.hasToOpenDemandsBuilderLayers = False
+        self.hasToOpenDemandBuilderLayers = False
         self.hasToOpenTreeLayers = False
-        self._demandsBuilderExtraPaths = []
-        self._demandsBuilderNewBaseDemandFieldName = ""
+        self._demandBuilderExtraPaths = []
+        self._demandBuilderNewBaseDemandFieldName = ""
 
         def parse_extra_parts(result):
             parts = result.split("^")
@@ -665,7 +665,7 @@ class LayerManagementSection:
 
             for part in b.split("^")[1:]:
                 if part.startswith("baseDemandField="):
-                    self._demandsBuilderNewBaseDemandFieldName = (
+                    self._demandBuilderNewBaseDemandFieldName = (
                         part.split("=", 1)[1].strip()
                     )
 
@@ -678,8 +678,8 @@ class LayerManagementSection:
                 self.hasToOpenIsolatedSegmentsLayers = True
             elif layerType == "tree":
                 self.hasToOpenTreeLayers = True
-            elif layerType == "demandsBuilder":
-                self.hasToOpenDemandsBuilderLayers = True
+            elif layerType == "demandBuilder":
+                self.hasToOpenDemandBuilderLayers = True
             else:
                 self.hasToOpenIssuesLayers = True
 
@@ -694,11 +694,11 @@ class LayerManagementSection:
                 self.hasToOpenIsolatedSegmentsLayers = True
             elif layerType == "tree":
                 self.hasToOpenTreeLayers = True
-            elif layerType == "demandsBuilder":
-                self.hasToOpenDemandsBuilderLayers = True
+            elif layerType == "demandBuilder":
+                self.hasToOpenDemandBuilderLayers = True
                 (
-                    self._demandsBuilderExtraPaths,
-                    self._demandsBuilderNewBaseDemandFieldName
+                    self._demandBuilderExtraPaths,
+                    self._demandBuilderNewBaseDemandFieldName
                 ) = parse_extra_parts(b)
             else:
                 self.hasToOpenIssuesLayers = True
@@ -713,7 +713,7 @@ class LayerManagementSection:
             or self.hasToOpenConnectivityLayers
             or self.hasToOpenIsolatedSegmentsLayers
             or self.hasToOpenTreeLayers
-            or self.hasToOpenDemandsBuilderLayers
+            or self.hasToOpenDemandBuilderLayers
         ):
             self.layerOperationInProgress = True
             self.runOpenTemporaryFiles()
@@ -789,14 +789,14 @@ class LayerManagementSection:
             self.openIsolatedSegmentsLayers()
             self.hasToOpenIsolatedSegmentsLayers = False
 
-        if self.hasToOpenDemandsBuilderLayers:
-            isoFolder = os.path.join(self.ProjectDirectory, LAYER_TYPE_CONFIG["DemandsBuilder"]["subdir"])
+        if self.hasToOpenDemandBuilderLayers:
+            isoFolder = os.path.join(self.ProjectDirectory, LAYER_TYPE_CONFIG["DemandBuilder"]["subdir"])
             os.makedirs(isoFolder, exist_ok=True)
-            auxFolder = os.path.join(self.ProjectDirectory, "_aux_DemandsBuilder")
+            auxFolder = os.path.join(self.ProjectDirectory, "_aux_DemandBuilder")
             if os.path.isdir(auxFolder):
                 extraByName = {
                     os.path.splitext(os.path.basename(p))[0]: os.path.dirname(p)
-                    for p in self._demandsBuilderExtraPaths
+                    for p in self._demandBuilderExtraPaths
                 }
                 for fi in os.listdir(auxFolder):
                     dstDir = extraByName.get(os.path.splitext(fi)[0])
@@ -805,14 +805,14 @@ class LayerManagementSection:
                 shutil.rmtree(auxFolder)
             # Old code to remove...
             for fi in os.listdir(self.ProjectDirectory):
-                if fi.startswith(self.NetworkName) and "DemandsBuilder" in fi:
+                if fi.startswith(self.NetworkName) and "DemandBuilder" in fi:
                     src = os.path.join(self.ProjectDirectory, fi)
                     dst = os.path.join(isoFolder, fi)
                     shutil.copy2(src, dst)
                     os.remove(src)
             # --------
-            self.openDemandsBuilderLayers()
-            self.hasToOpenDemandsBuilderLayers = False
+            self.openDemandBuilderLayers()
+            self.hasToOpenDemandBuilderLayers = False
 
         if self.hasToOpenTreeLayers:
             treeFolder = os.path.join(self.ProjectDirectory, DIR_QUERIES, "Trees")

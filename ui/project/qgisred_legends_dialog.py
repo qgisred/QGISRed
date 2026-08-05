@@ -194,13 +194,13 @@ class QGISRedLegendsDialog(QDialog, formClass):
         "qgisred_hydraulicsectors",
         "qgisred_demandsectors",
         "qgisred_isolatedsegments",
-        "qgisred_demandsbuilder"
+        "qgisred_demandbuilder"
     ]
 
     # Only these Demand Builder layers are editable in the Legend Editor
     DEMANDS_BUILDER_EDITABLE_IDENTIFIERS = {
-        "qgisred_demandsbuilder_consumptionpoints",
-        "qgisred_demandsbuilder_demandlinks",
+        "qgisred_demandbuilder_consumptionpoints",
+        "qgisred_demandbuilder_demandlinks",
     }
 
     QUERIES_GROUP_PREFIXES = (
@@ -239,7 +239,7 @@ class QGISRedLegendsDialog(QDialog, formClass):
         "qgisred_demandsectors",
         "qgisred_isolatedsegments",
         "qgisred_tree",
-        "qgisred_demandsbuilder",
+        "qgisred_demandbuilder",
     )
 
     # Meter types gating the stacked SvgMarker layers in the Meters style
@@ -1727,13 +1727,13 @@ class QGISRedLegendsDialog(QDialog, formClass):
         groupIdentifier = group.customProperty("qgisred_identifier") or ""
         isInputGroup = groupIdentifier == "qgisred_inputs"
 
-        isDemandsBuilderGroup = groupIdentifier == "qgisred_demandsbuilder"
+        isDemandBuilderGroup = groupIdentifier == "qgisred_demandbuilder"
 
         for child in group.children():
             if isinstance(child, QgsLayerTreeLayer):
                 layer = child.layer()
                 if layer and isinstance(layer, QgsVectorLayer):
-                    if isDemandsBuilderGroup and (
+                    if isDemandBuilderGroup and (
                         layer.customProperty("qgisred_identifier")
                         not in self.DEMANDS_BUILDER_EDITABLE_IDENTIFIERS
                     ):
