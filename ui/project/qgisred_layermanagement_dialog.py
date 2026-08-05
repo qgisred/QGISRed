@@ -2,7 +2,7 @@
 from qgis.PyQt.QtWidgets import (
     QDialog, QApplication, QLayout, QTableWidgetItem, QMessageBox,
     QComboBox, QLineEdit, QLabel, QPushButton, QVBoxLayout, QHBoxLayout,
-    QListWidget, QListWidgetItem,
+    QListWidget, QListWidgetItem, QStyledItemDelegate,
 )
 from qgis.PyQt.QtCore import Qt, QCoreApplication, QTimer
 from qgis.PyQt import uic
@@ -128,6 +128,26 @@ class _NewAuxiliaryThemeDialog(QDialog):
         return layerType, self.tbName.text().strip()
 
 
+class _FieldNameDelegate(QStyledItemDelegate):
+    """Caps the editor at what a DBF column name holds.
+
+    The limit is enforced again when the dialog is accepted, but stopping the keystroke is
+    what makes it understood: being told afterwards that a name is too long only teaches
+    the user to count characters.
+    """
+
+    def createEditor(self, parent, option, index):
+        editor = super(_FieldNameDelegate, self).createEditor(parent, option, index)
+        self.capEditor(editor)
+        return editor
+
+    @staticmethod
+    def capEditor(editor):
+        """Limit whatever editor Qt handed us, when it is one that can be limited."""
+        if hasattr(editor, "setMaxLength"):
+            editor.setMaxLength(MAX_FIELD_NAME_LENGTH)
+
+
 class _BaseDemandFieldsDialog(QDialog):
     """Lists a consumption points theme's base demand columns, and edits them.
 
@@ -139,12 +159,16 @@ class _BaseDemandFieldsDialog(QDialog):
 
     MINIMUM_WIDTH = 350
 
-    def __init__(self, fieldNames, parent=None):
+    def __init__(self, fieldNames, themeName="", parent=None):
         super(_BaseDemandFieldsDialog, self).__init__(parent)
         self.setWindowTitle(self.tr("Base demand fields"))
         self.setMinimumWidth(self.MINIMUM_WIDTH)
+        self.themeName = themeName
 
         self.lstFields = QListWidget(self)
+        # Held on the instance: a delegate the widget does not own is collected away.
+        self.nameDelegate = _FieldNameDelegate(self.lstFields)
+        self.lstFields.setItemDelegate(self.nameDelegate)
         for name in fieldNames:
             self._appendRow(name, original=name)
 
@@ -177,13 +201,19 @@ class _BaseDemandFieldsDialog(QDialog):
         buttonRow.addWidget(self.btCancel)
 
         layout = QVBoxLayout(self)
-        layout.addWidget(QLabel(self.tr("Fields holding a base demand:"), self))
+        layout.addWidget(QLabel(self.headerText(), self))
         layout.addLayout(listRow)
         layout.addLayout(buttonRow)
 
         # Names are checked when this dialog is accepted, so the complaint has to appear
         # here: reporting it from the parent would mean the edits are already discarded.
         self.messageBar = QGISRedBanner.inject(self, layout)
+
+    def headerText(self):
+        """Names the theme being edited: several can be open and they all look alike."""
+        if self.themeName:
+            return self.tr("Fields holding a base demand of %1:").replace("%1", self.themeName)
+        return self.tr("Fields holding a base demand:")
 
     def _appendRow(self, text, original=None):
         item = QListWidgetItem(text)
@@ -426,9 +456,13 @@ class QGISRedLayerManagementDialog(QDialog, FORM_CLASS):
         return item, path, layerType
 
     def updateAuxiliaryButtons(self):
-        """Base demand fields only exist on consumption points themes."""
+        """Base demand fields only exist on consumption points themes.
+
+        Hidden rather than disabled: a greyed-out button invites the user to work out why
+        it is greyed out, and for the other two types there is nothing to explain.
+        """
         _item, _path, layerType = self.selectedAuxiliaryRow()
-        self.btConfigAuxiliary.setEnabled(layerType is not None and layerType.key == CONSUMPTION_POINTS_KEY)
+        self.btConfigAuxiliary.setVisible(layerType is not None and layerType.key == CONSUMPTION_POINTS_KEY)
 
     def configureBaseDemandFields(self):
         _item, path, layerType = self.selectedAuxiliaryRow()
@@ -446,8 +480,10 @@ class QGISRedLayerManagementDialog(QDialog, FORM_CLASS):
                 return
 
         originalNames = baseDemandFieldNames([field.name() for field in layer.fields()])
+        _layerType, themeName = parseBaseName(
+            os.path.splitext(os.path.basename(path))[0], self.NetworkName)
 
-        dialog = _BaseDemandFieldsDialog(originalNames, self)
+        dialog = _BaseDemandFieldsDialog(originalNames, themeName, self)
         if not dialog.exec():
             return
 

@@ -222,6 +222,48 @@ class TestApplyFieldChanges:
         provider.renameAttributes.assert_not_called()
 
 
+class TestFieldsDialogHeader:
+    """The header names the theme: several can be open and they all look alike."""
+
+    def _dialog(self, themeName):
+        from QGISRed.ui.project.qgisred_layermanagement_dialog import _BaseDemandFieldsDialog
+
+        dialog = _BaseDemandFieldsDialog.__new__(_BaseDemandFieldsDialog)
+        dialog.themeName = themeName
+        dialog.tr = lambda text: text
+        return dialog
+
+    def test_the_theme_name_is_shown(self):
+        assert "pr1" in self._dialog("pr1").headerText()
+
+    def test_a_theme_with_no_name_of_its_own_falls_back(self):
+        header = self._dialog("").headerText()
+        assert header and "%1" not in header
+
+    def test_the_placeholder_is_replaced(self):
+        assert "%1" not in self._dialog("Facturacion").headerText()
+
+
+class TestFieldNameDelegate:
+    """The DBF limit is felt while typing, not reported after the fact."""
+
+    def test_the_editor_is_capped_at_the_dbf_limit(self):
+        from QGISRed.ui.project.qgisred_layermanagement_dialog import _FieldNameDelegate
+
+        editor = MagicMock()
+        _FieldNameDelegate.capEditor(editor)
+        editor.setMaxLength.assert_called_once_with(MAX_FIELD_NAME_LENGTH)
+
+    def test_an_editor_with_no_length_to_cap_is_left_alone(self):
+        """Qt picks the editor; only a line edit has a length to limit."""
+        from QGISRed.ui.project.qgisred_layermanagement_dialog import _FieldNameDelegate
+
+        class Spinner:
+            pass
+
+        _FieldNameDelegate.capEditor(Spinner())  # must not raise
+
+
 class TestFieldsDialogValidation:
     """A bad name must be caught before the dialog closes, or the edits are thrown away."""
 

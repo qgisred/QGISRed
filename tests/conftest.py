@@ -61,7 +61,10 @@ def _qt_stub(name):
 
 
 _FORM_STUB = _qt_stub("FORM_CLASS")
-_QT_WIDGET_STUBS = ("QDialog", "QDockWidget", "QWidget", "QMainWindow", "QFrame", "QTableView")
+_QT_WIDGET_STUBS = (
+    "QDialog", "QDockWidget", "QWidget", "QMainWindow", "QFrame", "QTableView",
+    "QStyledItemDelegate",
+)
 
 # Symbol classes the legend editor feeds to isinstance() to tell a marker from a
 # line (see effectiveGeometryHint).  A MagicMock attribute is an instance, not a
