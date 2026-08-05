@@ -1,3 +1,5 @@
+"""Debug toolbar DLL calls (commit, topology/attribute checks, hydraulic sectors)."""
+
 from ctypes import c_char_p
 from ._base import _load_dll, _encode, _to_string
 
@@ -116,4 +118,28 @@ class QGISRedValidationMixin:
         mydll.CheckTConnections.argtypes = (c_char_p, c_char_p, c_char_p)
         mydll.CheckTConnections.restype = c_char_p
         b = mydll.CheckTConnections(projectFolder, networkName, tempFolder)
+        return _to_string(b)
+
+    @staticmethod
+    def Commit(projectFolder, networkName, tempFolder):
+        projectFolder = _encode(projectFolder)
+        networkName = _encode(networkName)
+        tempFolder = _encode(tempFolder)
+
+        mydll = _load_dll()
+        mydll.Commit.argtypes = (c_char_p, c_char_p, c_char_p)
+        mydll.Commit.restype = c_char_p
+        b = mydll.Commit(projectFolder, networkName, tempFolder)
+        return _to_string(b)
+
+    @staticmethod
+    def HydraulicSectors(projectFolder, networkName, tempFolder):
+        projectFolder = _encode(projectFolder)
+        networkName = _encode(networkName)
+        tempFolder = _encode(tempFolder)
+
+        mydll = _load_dll()
+        mydll.HydraulicSectors.argtypes = (c_char_p, c_char_p, c_char_p)
+        mydll.HydraulicSectors.restype = c_char_p
+        b = mydll.HydraulicSectors(projectFolder, networkName, tempFolder)
         return _to_string(b)

@@ -1,237 +1,95 @@
+"""Digital Twin toolbar DLL calls (service connections, isolation valves, meters, readings/SCADA)."""
+
 from ctypes import c_char_p
 from ._base import _load_dll, _encode, _to_string
 
 
 class QGISRedDigitalTwinMixin:
     @staticmethod
-    def DemandBuilder(
-            projectFolder,
-            networkName,
-            tempFolder,
-            ids,
-            auxiliarLayers,
-            qgisredPointLayers="",
-            qgisredLineLayers="",
-            qgisredSectorLayers="",
-            selectedAuxiliaryLayerFids=""):
-
+    def AddConnection(projectFolder, networkName, tempFolder, pipePoints):
         projectFolder = _encode(projectFolder)
         networkName = _encode(networkName)
         tempFolder = _encode(tempFolder)
-        ids = _encode(ids)
-        auxiliarLayers = _encode(auxiliarLayers)
-        qgisredPointLayers = _encode(qgisredPointLayers)
-        qgisredLineLayers = _encode(qgisredLineLayers)
-        qgisredSectorLayers = _encode(qgisredSectorLayers)
-        selectedAuxiliaryLayerFids = _encode(selectedAuxiliaryLayerFids)
+        pipePoints = _encode(pipePoints)
 
         mydll = _load_dll()
-
-        mydll.DemandBuilder.argtypes = (
-            c_char_p, c_char_p, c_char_p, c_char_p,
-            c_char_p, c_char_p, c_char_p, c_char_p, c_char_p
-        )
-
-        mydll.DemandBuilder.restype = c_char_p
-
-        b = mydll.DemandBuilder(
-            projectFolder,
-            networkName,
-            tempFolder,
-            ids,
-            auxiliarLayers,
-            qgisredPointLayers,
-            qgisredLineLayers,
-            qgisredSectorLayers,
-            selectedAuxiliaryLayerFids
-        )
-
+        mydll.AddConnection.argtypes = (c_char_p, c_char_p, c_char_p, c_char_p)
+        mydll.AddConnection.restype = c_char_p
+        b = mydll.AddConnection(projectFolder, networkName, tempFolder, pipePoints)
         return _to_string(b)
 
     @staticmethod
-    def DemandSectors(projectFolder, networkName, tempFolder):
+    def AddConnections(projectFolder, networkName, asNode, tempFolder):
         projectFolder = _encode(projectFolder)
         networkName = _encode(networkName)
+        asNode = _encode(asNode)
         tempFolder = _encode(tempFolder)
 
         mydll = _load_dll()
-        mydll.DemandSectors.argtypes = (c_char_p, c_char_p, c_char_p)
-        mydll.DemandSectors.restype = c_char_p
-        b = mydll.DemandSectors(projectFolder, networkName, tempFolder)
+        mydll.AddConnections.argtypes = (c_char_p, c_char_p, c_char_p, c_char_p)
+        mydll.AddConnections.restype = c_char_p
+        b = mydll.AddConnections(projectFolder, networkName, asNode, tempFolder)
         return _to_string(b)
 
     @staticmethod
-    def DemandSectorBuilder(projectFolder, networkName, tempFolder):
+    def AddIsolationValve(projectFolder, networkName, tempFolder, point):
+        projectFolder = _encode(projectFolder)
+        networkName = _encode(networkName)
+        tempFolder = _encode(tempFolder)
+        point = _encode(point)
+
+        mydll = _load_dll()
+        mydll.AddIsolationValve.argtypes = (c_char_p, c_char_p, c_char_p, c_char_p)
+        mydll.AddIsolationValve.restype = c_char_p
+        b = mydll.AddIsolationValve(projectFolder, networkName, tempFolder, point)
+        return _to_string(b)
+
+    @staticmethod
+    def AddMeter(projectFolder, networkName, tempFolder, point, metertype):
+        projectFolder = _encode(projectFolder)
+        networkName = _encode(networkName)
+        tempFolder = _encode(tempFolder)
+        point = _encode(point)
+        metertype = _encode(metertype)
+
+        mydll = _load_dll()
+        mydll.AddMeter.argtypes = (c_char_p, c_char_p, c_char_p, c_char_p, c_char_p)
+        mydll.AddMeter.restype = c_char_p
+        b = mydll.AddMeter(projectFolder, networkName, tempFolder, point, metertype)
+        return _to_string(b)
+
+    @staticmethod
+    def LoadReadings(projectFolder, networkName, tempFolder):
         projectFolder = _encode(projectFolder)
         networkName = _encode(networkName)
         tempFolder = _encode(tempFolder)
 
         mydll = _load_dll()
-        mydll.DemandSectorBuilder.argtypes = (c_char_p, c_char_p, c_char_p)
-        mydll.DemandSectorBuilder.restype = c_char_p
-        b = mydll.DemandSectorBuilder(projectFolder, networkName, tempFolder)
+        mydll.LoadReadings.argtypes = (c_char_p, c_char_p, c_char_p)
+        mydll.LoadReadings.restype = c_char_p
+        b = mydll.LoadReadings(projectFolder, networkName, tempFolder)
         return _to_string(b)
 
     @staticmethod
-    def CreateDemandSectorization(projectFolder, networkName, sectorizationName):
-        projectFolder = _encode(projectFolder)
-        networkName = _encode(networkName)
-        sectorizationName = _encode(sectorizationName)
-
-        mydll = _load_dll()
-
-        mydll.CreateDemandSectorization.argtypes = (c_char_p, c_char_p, c_char_p)
-
-        mydll.CreateDemandSectorization.restype = c_char_p
-
-        b = mydll.CreateDemandSectorization(projectFolder, networkName, sectorizationName)
-
-        return _to_string(b)
-
-    @staticmethod
-    def CreateRemoveDemandSectorTheme(
-            projectFolder,
-            networkName,
-            sectorizationName,
-            themeName):
-
-        projectFolder = _encode(projectFolder)
-        networkName = _encode(networkName)
-        sectorizationName = _encode(sectorizationName)
-        themeName = _encode(themeName)
-
-        mydll = _load_dll()
-
-        mydll.CreateRemoveDemandSectorTheme.argtypes = (
-            c_char_p,
-            c_char_p,
-            c_char_p,
-            c_char_p
-        )
-
-        mydll.CreateRemoveDemandSectorTheme.restype = c_char_p
-
-        b = mydll.CreateRemoveDemandSectorTheme(
-            projectFolder,
-            networkName,
-            sectorizationName,
-            themeName
-        )
-
-        return _to_string(b)
-
-
-    @staticmethod
-    def GetDemandSectorThemes(projectFolder, networkName, sectorizationName):
-        projectFolder = _encode(projectFolder)
-        networkName = _encode(networkName)
-        sectorizationName = _encode(sectorizationName)
-
-        mydll = _load_dll()
-
-        mydll.GetDemandSectorThemes.argtypes = (c_char_p, c_char_p, c_char_p)
-
-        mydll.GetDemandSectorThemes.restype = c_char_p
-
-        b = mydll.GetDemandSectorThemes(projectFolder, networkName, sectorizationName)
-
-        return _to_string(b)
-
-    @staticmethod
-    def CheckDemandSectorTheme(projectFolder, networkName, sectorizationName, themeName):
-        projectFolder = _encode(projectFolder)
-        networkName = _encode(networkName)
-        sectorizationName = _encode(sectorizationName)
-        themeName = _encode(themeName)
-
-        mydll = _load_dll()
-
-        mydll.CheckDemandSectorTheme.argtypes = (c_char_p, c_char_p, c_char_p, c_char_p)
-
-        mydll.CheckDemandSectorTheme.restype = c_char_p
-
-        b = mydll.CheckDemandSectorTheme(projectFolder, networkName, sectorizationName, themeName)
-
-        return _to_string(b)
-
-    @staticmethod
-    def CreateCompleteDemandSectorTheme(projectFolder, networkName, sectorizationName, fromTheme, toTheme):
-        projectFolder = _encode(projectFolder)
-        networkName = _encode(networkName)
-        sectorizationName = _encode(sectorizationName)
-        fromTheme = _encode(fromTheme)
-        toTheme = _encode(toTheme)
-
-        mydll = _load_dll()
-
-        mydll.CreateCompleteDemandSectorTheme.argtypes = (c_char_p, c_char_p, c_char_p,
-                                                          c_char_p, c_char_p)
-
-        mydll.CreateCompleteDemandSectorTheme.restype = c_char_p
-
-        b = mydll.CreateCompleteDemandSectorTheme(projectFolder, networkName,
-            sectorizationName, fromTheme, toTheme)
-
-        return _to_string(b)
-
-    @staticmethod
-    def UpdateDemandSectorThemesFromSource(
-            projectFolder,
-            networkName,
-            sectorizationName,
-            sourceTheme):
-
-        projectFolder = _encode(projectFolder)
-        networkName = _encode(networkName)
-        sectorizationName = _encode(sectorizationName)
-        sourceTheme = _encode(sourceTheme)
-
-        mydll = _load_dll()
-
-        mydll.UpdateDemandSectorThemesFromSource.argtypes = (
-            c_char_p,
-            c_char_p,
-            c_char_p,
-            c_char_p
-        )
-
-        mydll.UpdateDemandSectorThemesFromSource.restype = c_char_p
-
-        b = mydll.UpdateDemandSectorThemesFromSource(
-            projectFolder,
-            networkName,
-            sectorizationName,
-            sourceTheme
-        )
-
-        return _to_string(b)
-
-    @staticmethod
-    def ElevationInterpolation(projectFolder, networkName, tempFolder, elevationFiles):
+    def LoadScada(projectFolder, networkName, tempFolder):
         projectFolder = _encode(projectFolder)
         networkName = _encode(networkName)
         tempFolder = _encode(tempFolder)
-        elevationFiles = _encode(elevationFiles)
 
         mydll = _load_dll()
-        mydll.ElevationInterpolation.argtypes = (c_char_p, c_char_p, c_char_p, c_char_p)
-        mydll.ElevationInterpolation.restype = c_char_p
-        b = mydll.ElevationInterpolation(projectFolder, networkName, tempFolder, elevationFiles)
+        mydll.LoadScada.argtypes = (c_char_p, c_char_p, c_char_p)
+        mydll.LoadScada.restype = c_char_p
+        b = mydll.LoadScada(projectFolder, networkName, tempFolder)
         return _to_string(b)
 
     @staticmethod
-    def ImportFromShps(projectFolder, networkName, tempFolder, shapes, fields, epsg, tolerance, scLength):
+    def SetInitialStatusPipes(projectFolder, networkName, tempFolder):
         projectFolder = _encode(projectFolder)
         networkName = _encode(networkName)
         tempFolder = _encode(tempFolder)
-        shapes = _encode(shapes)
-        fields = _encode(fields)
-        epsg = _encode(epsg)
-        tolerance = _encode(tolerance)
-        scLength = _encode(scLength)
 
         mydll = _load_dll()
-        mydll.ImportFromShps.argtypes = (c_char_p, c_char_p, c_char_p, c_char_p, c_char_p, c_char_p, c_char_p, c_char_p)
-        mydll.ImportFromShps.restype = c_char_p
-        b = mydll.ImportFromShps(projectFolder, networkName, tempFolder, shapes, fields, epsg, tolerance, scLength)
+        mydll.SetInitialStatusPipes.argtypes = (c_char_p, c_char_p, c_char_p)
+        mydll.SetInitialStatusPipes.restype = c_char_p
+        b = mydll.SetInitialStatusPipes(projectFolder, networkName, tempFolder)
         return _to_string(b)

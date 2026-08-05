@@ -1,61 +1,10 @@
+"""Edition toolbar DLL calls (add/insert/move/split/delete elements, patterns, curves, controls)."""
+
 from ctypes import c_char_p
 from ._base import _load_dll, _encode, _to_string
 
 
 class QGISRedNetworkEditingMixin:
-    @staticmethod
-    def AddConnection(projectFolder, networkName, tempFolder, pipePoints):
-        projectFolder = _encode(projectFolder)
-        networkName = _encode(networkName)
-        tempFolder = _encode(tempFolder)
-        pipePoints = _encode(pipePoints)
-
-        mydll = _load_dll()
-        mydll.AddConnection.argtypes = (c_char_p, c_char_p, c_char_p, c_char_p)
-        mydll.AddConnection.restype = c_char_p
-        b = mydll.AddConnection(projectFolder, networkName, tempFolder, pipePoints)
-        return _to_string(b)
-
-    @staticmethod
-    def AddConnections(projectFolder, networkName, asNode, tempFolder):
-        projectFolder = _encode(projectFolder)
-        networkName = _encode(networkName)
-        asNode = _encode(asNode)
-        tempFolder = _encode(tempFolder)
-
-        mydll = _load_dll()
-        mydll.AddConnections.argtypes = (c_char_p, c_char_p, c_char_p, c_char_p)
-        mydll.AddConnections.restype = c_char_p
-        b = mydll.AddConnections(projectFolder, networkName, asNode, tempFolder)
-        return _to_string(b)
-
-    @staticmethod
-    def AddIsolationValve(projectFolder, networkName, tempFolder, point):
-        projectFolder = _encode(projectFolder)
-        networkName = _encode(networkName)
-        tempFolder = _encode(tempFolder)
-        point = _encode(point)
-
-        mydll = _load_dll()
-        mydll.AddIsolationValve.argtypes = (c_char_p, c_char_p, c_char_p, c_char_p)
-        mydll.AddIsolationValve.restype = c_char_p
-        b = mydll.AddIsolationValve(projectFolder, networkName, tempFolder, point)
-        return _to_string(b)
-
-    @staticmethod
-    def AddMeter(projectFolder, networkName, tempFolder, point, metertype):
-        projectFolder = _encode(projectFolder)
-        networkName = _encode(networkName)
-        tempFolder = _encode(tempFolder)
-        point = _encode(point)
-        metertype = _encode(metertype)
-
-        mydll = _load_dll()
-        mydll.AddMeter.argtypes = (c_char_p, c_char_p, c_char_p, c_char_p, c_char_p)
-        mydll.AddMeter.restype = c_char_p
-        b = mydll.AddMeter(projectFolder, networkName, tempFolder, point, metertype)
-        return _to_string(b)
-
     @staticmethod
     def AddPipe(projectFolder, networkName, tempFolder, pipePoints):
         projectFolder = _encode(projectFolder)
@@ -171,17 +120,6 @@ class QGISRedNetworkEditingMixin:
         mydll.EditPatternsCurves.argtypes = (c_char_p, c_char_p, c_char_p)
         mydll.EditPatternsCurves.restype = c_char_p
         b = mydll.EditPatternsCurves(projectFolder, networkName, tempFolder)
-        return _to_string(b)
-
-    @staticmethod
-    def EditSettings(projectFolder, networkName):
-        projectFolder = _encode(projectFolder)
-        networkName = _encode(networkName)
-
-        mydll = _load_dll()
-        mydll.EditSettings.argtypes = (c_char_p, c_char_p)
-        mydll.EditSettings.restype = c_char_p
-        b = mydll.EditSettings(projectFolder, networkName)
         return _to_string(b)
 
     @staticmethod

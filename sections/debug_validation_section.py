@@ -274,7 +274,7 @@ class DebugValidationSection:
         self.Sectors = "HydraulicSectors"
         # Process
         QApplication.setOverrideCursor(Qt.CursorShape.WaitCursor)
-        resMessage = GISRed.HydarulicSectors(self.ProjectDirectory, self.NetworkName, self.tempFolder)
+        resMessage = GISRed.HydraulicSectors(self.ProjectDirectory, self.NetworkName, self.tempFolder)
         QApplication.restoreOverrideCursor()
 
         self.processCsharpResult(resMessage, "", layerType="sectors")
