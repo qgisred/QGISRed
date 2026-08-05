@@ -344,7 +344,7 @@ class TestDemandBuilderStyleFlag:
         styling = object.__new__(QGISRedStylingUtils)
         styling.setStyle = MagicMock()
         layer = MagicMock()
-        layer.name.return_value = "DemBuil_Isolated Demands Connections"
+        layer.name.return_value = "DemBuild_Isolated Demands Connections"
 
         styling.setDemandBuilderStyle(layer, "DemandBuilder_IsolatedDemandsServiceConnections")
 
@@ -358,7 +358,7 @@ class TestDemandBuilderStyleFlag:
         styling.setStyle = MagicMock()
         styling.translateRendererLabels = MagicMock()
         layer = MagicMock()
-        layer.name.return_value = "DemBuil_Sectors"
+        layer.name.return_value = "DemBuild_Sectors"
         layer.fields.return_value.indexFromName.return_value = -1
         layer.geometryType.return_value = 2
 
@@ -424,9 +424,9 @@ class TestAuxiliaryThemeName:
         utils = object.__new__(QGISRedIdentifierUtils)
         utils.NetworkName = "Net"
         known = families if families is not None else {
-            "qgisred_demandbuilder_consumptionpoints": "DemBuil_Consumption Points",
-            "qgisred_demandbuilder_demandlinks": "DemBuil_Demand Links",
-            "qgisred_demandbuilder_sectors": "DemBuil_Sectors",
+            "qgisred_demandbuilder_consumptionpoints": "DemBuild_Consumption Points",
+            "qgisred_demandbuilder_demandlinks": "DemBuild_Demand Links",
+            "qgisred_demandbuilder_sectors": "DemBuild_Sectors",
         }
         utils.getTranslatedNameForIdentifier = lambda identifier: known.get(identifier)
         return utils
@@ -434,11 +434,11 @@ class TestAuxiliaryThemeName:
     def test_a_named_theme_shows_its_family_and_its_name(self):
         utils = self._identifiers()
         assert utils.getAuxiliaryThemeName("Net_DemandBuilder_ConsumptionPoints_pr1") == \
-            "DemBuil_Consumption Points: pr1"
+            "DemBuild_Consumption Points: pr1"
 
     def test_the_demands_manager_theme_shows_only_its_family(self):
         utils = self._identifiers()
-        assert utils.getAuxiliaryThemeName("Net_DemandBuilder_Sectors") == "DemBuil_Sectors"
+        assert utils.getAuxiliaryThemeName("Net_DemandBuilder_Sectors") == "DemBuild_Sectors"
 
     def test_each_family_keeps_its_own_name(self):
         """They all used to collapse onto 'Multiple Demands': getLayerNameToLegend rewrites

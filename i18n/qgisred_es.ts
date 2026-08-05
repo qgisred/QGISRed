@@ -2134,32 +2134,32 @@
     </message>
     <message>
         <location filename="../tools/qgisred_translatable_strings.py" line="317"/>
-        <source>DemBuil_Demand Links</source>
+        <source>DemBuild_Demand Links</source>
         <translation>ConstDem_Enlaces Demanda</translation>
     </message>
     <message>
         <location filename="../tools/qgisred_translatable_strings.py" line="318"/>
-        <source>DemBuil_Consumption Points</source>
+        <source>DemBuild_Consumption Points</source>
         <translation>ConstDem_Consumos Puntuales</translation>
     </message>
     <message>
         <location filename="../tools/qgisred_translatable_strings.py" line="319"/>
-        <source>DemBuil_Isolated Demands Connections</source>
+        <source>DemBuild_Isolated Demands Connections</source>
         <translation>ConstDem_Demandas Aisladas Acometidas</translation>
     </message>
     <message>
         <location filename="../tools/qgisred_translatable_strings.py" line="222"/>
-        <source>DemBuil_Efficiency Sectors</source>
+        <source>DemBuild_Efficiency Sectors</source>
         <translation type="obsolete">ConstDem_Sectores Eficiencia</translation>
     </message>
     <message>
         <location filename="../tools/qgisred_translatable_strings.py" line="223"/>
-        <source>DemBuil_Pattern Sectors</source>
+        <source>DemBuild_Pattern Sectors</source>
         <translation type="obsolete">ConstDem_Sectores Patrón</translation>
     </message>
     <message>
         <location filename="../tools/qgisred_translatable_strings.py" line="320"/>
-        <source>DemBuil_Sectors</source>
+        <source>DemBuild_Sectors</source>
         <translation>ConstDem_Sectores</translation>
     </message>
 </context>

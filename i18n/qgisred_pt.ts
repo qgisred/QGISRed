@@ -2149,28 +2149,28 @@
     </message>
     <message>
         <location filename="../tools/qgisred_translatable_strings.py" line="317"/>
-        <source>DemBuil_Demand Links</source>
-        <translation>DemBuil_Trechos de Consumo</translation>
+        <source>DemBuild_Demand Links</source>
+        <translation>DemBuild_Trechos de Consumo</translation>
     </message>
     <message>
         <location filename="../tools/qgisred_translatable_strings.py" line="318"/>
-        <source>DemBuil_Consumption Points</source>
-        <translation>DemBuil_Pontos de Consumo</translation>
+        <source>DemBuild_Consumption Points</source>
+        <translation>DemBuild_Pontos de Consumo</translation>
     </message>
     <message>
         <location filename="../tools/qgisred_translatable_strings.py" line="319"/>
-        <source>DemBuil_Isolated Demands Connections</source>
-        <translation>DemBuil_Conexões de Consumos Isolados</translation>
+        <source>DemBuild_Isolated Demands Connections</source>
+        <translation>DemBuild_Conexões de Consumos Isolados</translation>
     </message>
     <message>
         <location filename="../tools/qgisred_translatable_strings.py" line="222"/>
-        <source>DemBuil_Efficiency Sectors</source>
-        <translation type="obsolete">DemBuil_Setores de Eficiência</translation>
+        <source>DemBuild_Efficiency Sectors</source>
+        <translation type="obsolete">DemBuild_Setores de Eficiência</translation>
     </message>
     <message>
         <location filename="../tools/qgisred_translatable_strings.py" line="320"/>
-        <source>DemBuil_Sectors</source>
-        <translation type="unfinished">DemBuil_Setores</translation>
+        <source>DemBuild_Sectors</source>
+        <translation type="unfinished">DemBuild_Setores</translation>
     </message>
 </context>
 <context>

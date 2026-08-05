@@ -52,10 +52,10 @@ class QGISRedIdentifierUtils:
             'qgisred_isolatedsegments_isolateddemands': 'IsolSeg_Isolated Demands',
             'qgisred_tree_links': 'Tree_Links',
             'qgisred_tree_nodes': 'Tree_Nodes',
-            'qgisred_demandbuilder_demandlinks': 'DemBuil_Demand Links',
-            'qgisred_demandbuilder_consumptionpoints': 'DemBuil_Consumption Points',
-            'qgisred_demandbuilder_isolateddemandsserviceconnections': 'DemBuil_Isolated Demands Connections',
-            'qgisred_demandbuilder_sectors': 'DemBuil_Sectors'
+            'qgisred_demandbuilder_demandlinks': 'DemBuild_Demand Links',
+            'qgisred_demandbuilder_consumptionpoints': 'DemBuild_Consumption Points',
+            'qgisred_demandbuilder_isolateddemandsserviceconnections': 'DemBuild_Isolated Demands Connections',
+            'qgisred_demandbuilder_sectors': 'DemBuild_Sectors'
         }
 
     def tr(self, message):

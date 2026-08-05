@@ -2119,23 +2119,23 @@
     </message>
     <message>
         <location filename="../tools/qgisred_translatable_strings.py" line="317"/>
-        <source>DemBuil_Demand Links</source>
-        <translation type="unfinished">DemBuil_Liens de Demande</translation>
+        <source>DemBuild_Demand Links</source>
+        <translation type="unfinished">DemBuild_Liens de Demande</translation>
     </message>
     <message>
         <location filename="../tools/qgisred_translatable_strings.py" line="318"/>
-        <source>DemBuil_Consumption Points</source>
-        <translation type="unfinished">DemBuil_Points de Consommation</translation>
+        <source>DemBuild_Consumption Points</source>
+        <translation type="unfinished">DemBuild_Points de Consommation</translation>
     </message>
     <message>
         <location filename="../tools/qgisred_translatable_strings.py" line="319"/>
-        <source>DemBuil_Isolated Demands Connections</source>
-        <translation type="unfinished">DemBuil_Connexions de Demandes Isolées</translation>
+        <source>DemBuild_Isolated Demands Connections</source>
+        <translation type="unfinished">DemBuild_Connexions de Demandes Isolées</translation>
     </message>
     <message>
         <location filename="../tools/qgisred_translatable_strings.py" line="320"/>
-        <source>DemBuil_Sectors</source>
-        <translation type="unfinished">DemBuil_Secteurs</translation>
+        <source>DemBuild_Sectors</source>
+        <translation type="unfinished">DemBuild_Secteurs</translation>
     </message>
 </context>
 <context>
