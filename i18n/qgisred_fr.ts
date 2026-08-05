@@ -508,7 +508,7 @@
     <message>
         <location filename="../ui/queries/qgisred_thematicmaps_dialog.ui" line="548"/>
         <source>Service connections ranged by</source>
-        <translation>Raccordements de service classés par</translation>
+        <translation>Branchements classés par</translation>
     </message>
     <message>
         <location filename="../ui/queries/qgisred_thematicmaps_dialog.ui" line="592"/>
@@ -871,7 +871,7 @@
     <message>
         <location filename="../sections/digital_twin_section.py" line="243"/>
         <source>The Service Connections SHP file does not exist</source>
-        <translation type="unfinished">Le fichier SHP des Raccordements de service n'existe pas</translation>
+        <translation type="unfinished">Le fichier SHP des Branchements n'existe pas</translation>
     </message>
 </context>
 <context>
@@ -1967,7 +1967,7 @@
     <message>
         <location filename="../tools/qgisred_translatable_strings.py" line="42"/>
         <source>Minimum Level</source>
-        <translation type="unfinished"></translation>
+        <translation type="unfinished">Niveau minimal</translation>
     </message>
 </context>
 <context>
@@ -2015,7 +2015,7 @@
     <message>
         <location filename="../tools/qgisred_translatable_strings.py" line="298"/>
         <source>Service Connections</source>
-        <translation type="unfinished">Raccordements de service</translation>
+        <translation type="unfinished">Branchements</translation>
     </message>
     <message>
         <location filename="../tools/qgisred_translatable_strings.py" line="299"/>
@@ -2511,7 +2511,7 @@
     <message>
         <location filename="../sections/menu_section.py" line="939"/>
         <source>Add service connection</source>
-        <translation type="unfinished">Ajouter un raccordement de service</translation>
+        <translation type="unfinished">Ajouter un branchement</translation>
     </message>
     <message>
         <location filename="../sections/menu_section.py" line="949"/>
@@ -2596,7 +2596,7 @@
     <message>
         <location filename="../sections/menu_section.py" line="1141"/>
         <source>Convert service connections into pipes/nodes</source>
-        <translation type="unfinished">Convertir les raccordements de service en conduites/noeuds</translation>
+        <translation type="unfinished">Convertir les branchements en conduites/noeuds</translation>
     </message>
     <message>
         <location filename="../sections/menu_section.py" line="751"/>
@@ -3230,12 +3230,12 @@ Voulez-vous également supprimer les fichiers de résultats du disque ?</transla
     <message>
         <location filename="../ui/digitaltwin/qgisred_toolConnections_dialog.ui" line="14"/>
         <source>QGISRed: Include Connections in Model</source>
-        <translation>QGISRed : Inclure les raccordements dans le modèle</translation>
+        <translation>QGISRed : Inclure les branchements dans le modèle</translation>
     </message>
     <message>
         <location filename="../ui/digitaltwin/qgisred_toolConnections_dialog.ui" line="26"/>
         <source>Include service connection into the model as:</source>
-        <translation>Inclure le raccordement de service dans le modèle en tant que :</translation>
+        <translation>Inclure le branchement dans le modèle en tant que :</translation>
     </message>
     <message>
         <location filename="../ui/digitaltwin/qgisred_toolConnections_dialog.ui" line="38"/>
@@ -3758,7 +3758,7 @@ Continuer ?</translation>
     <message>
         <location filename="../ui/queries/qgisred_element_explorer_dock.py" line="121"/>
         <source>Service Connection</source>
-        <translation>Raccordement de service</translation>
+        <translation>Branchement</translation>
     </message>
     <message>
         <location filename="../ui/queries/qgisred_element_explorer_dock.py" line="122"/>
@@ -4210,7 +4210,7 @@ Continuer ?</translation>
     <message>
         <location filename="../ui/edition/qgisred_groupedit_dialog.py" line="402"/>
         <source>Service Connections</source>
-        <translation type="unfinished">Raccordements de service</translation>
+        <translation type="unfinished">Branchements</translation>
     </message>
     <message>
         <location filename="../ui/edition/qgisred_groupedit_dialog.py" line="403"/>
@@ -4811,12 +4811,12 @@ Continuer ?</translation>
     <message>
         <location filename="../ui/general/qgisred_import_dialog.ui" line="2781"/>
         <source>Service Connections</source>
-        <translation>Raccordements de service</translation>
+        <translation>Branchements</translation>
     </message>
     <message>
         <location filename="../ui/general/qgisred_import_dialog.ui" line="2804"/>
         <source>Sevice Connection Layer</source>
-        <translation>Couche de raccordements de service</translation>
+        <translation>Couche de branchements</translation>
     </message>
     <message>
         <location filename="../ui/general/qgisred_import_dialog.ui" line="3137"/>
@@ -4831,7 +4831,7 @@ Continuer ?</translation>
     <message>
         <location filename="../ui/general/qgisred_import_dialog.ui" line="3216"/>
         <source>Sevice Connection Length</source>
-        <translation type="obsolete">Longueur du raccordement de service</translation>
+        <translation type="obsolete">Longueur du branchement</translation>
     </message>
     <message>
         <location filename="../ui/general/qgisred_import_dialog.ui" line="3291"/>
@@ -5106,7 +5106,7 @@ Continuer ?</translation>
     <message>
         <location filename="../ui/general/qgisred_import_dialog.ui" line="3216"/>
         <source>Service Connection Length</source>
-        <translation type="unfinished"></translation>
+        <translation type="unfinished">Longueur de branchement</translation>
     </message>
 </context>
 <context>
@@ -5262,12 +5262,12 @@ Continuer ?</translation>
     <message>
         <location filename="../ui/project/qgisred_layermanagement_dialog.ui" line="561"/>
         <source>Service Connections</source>
-        <translation>Raccordements de service</translation>
+        <translation>Branchements</translation>
     </message>
     <message>
         <location filename="../ui/project/qgisred_layermanagement_dialog.ui" line="583"/>
         <source>Create Service Connections Layer</source>
-        <translation>Créer la couche de raccordements de service</translation>
+        <translation>Créer la couche de branchements</translation>
     </message>
     <message>
         <location filename="../ui/project/qgisred_layermanagement_dialog.ui" line="600"/>
@@ -7853,7 +7853,7 @@ Voulez-vous continuer ?</translation>
     <message>
         <location filename="../ui/queries/qgisred_statisticsandgraphs_dock.py" line="113"/>
         <source>Service Connections</source>
-        <translation type="obsolete">Raccordements de service</translation>
+        <translation type="obsolete">Branchements</translation>
     </message>
     <message>
         <location filename="../ui/queries/qgisred_statisticsandgraphs_dock.py" line="114"/>
@@ -9711,37 +9711,37 @@ Voulez-vous continuer ?</translation>
     <message>
         <location filename="../tools/qgisred_translatable_strings.py" line="374"/>
         <source>PRV</source>
-        <translation type="unfinished"></translation>
+        <translation type="unfinished">PRV</translation>
     </message>
     <message>
         <location filename="../tools/qgisred_translatable_strings.py" line="375"/>
         <source>PSV</source>
-        <translation type="unfinished"></translation>
+        <translation type="unfinished">PSV</translation>
     </message>
     <message>
         <location filename="../tools/qgisred_translatable_strings.py" line="376"/>
         <source>PBV</source>
-        <translation type="unfinished"></translation>
+        <translation type="unfinished">PBV</translation>
     </message>
     <message>
         <location filename="../tools/qgisred_translatable_strings.py" line="377"/>
         <source>FCV</source>
-        <translation type="unfinished"></translation>
+        <translation type="unfinished">FCV</translation>
     </message>
     <message>
         <location filename="../tools/qgisred_translatable_strings.py" line="378"/>
         <source>TCV</source>
-        <translation type="unfinished"></translation>
+        <translation type="unfinished">TCV</translation>
     </message>
     <message>
         <location filename="../tools/qgisred_translatable_strings.py" line="379"/>
         <source>GPV</source>
-        <translation type="unfinished"></translation>
+        <translation type="unfinished">GPV</translation>
     </message>
     <message>
         <location filename="../tools/qgisred_translatable_strings.py" line="380"/>
         <source>CV</source>
-        <translation type="unfinished"></translation>
+        <translation type="unfinished">CV</translation>
     </message>
 </context>
 <context>

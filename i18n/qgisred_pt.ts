@@ -1997,7 +1997,7 @@
     <message>
         <location filename="../tools/qgisred_translatable_strings.py" line="42"/>
         <source>Minimum Level</source>
-        <translation type="unfinished"></translation>
+        <translation type="unfinished">Nível Mínimo</translation>
     </message>
 </context>
 <context>
@@ -5151,7 +5151,7 @@ Continuar?</translation>
     <message>
         <location filename="../ui/general/qgisred_import_dialog.ui" line="3216"/>
         <source>Service Connection Length</source>
-        <translation type="unfinished"></translation>
+        <translation type="unfinished">Comprimento de Ligação de Serviço</translation>
     </message>
 </context>
 <context>
@@ -9826,37 +9826,37 @@ Deseja continuar?</translation>
     <message>
         <location filename="../tools/qgisred_translatable_strings.py" line="374"/>
         <source>PRV</source>
-        <translation>VRP</translation>
+        <translation>PRV</translation>
     </message>
     <message>
         <location filename="../tools/qgisred_translatable_strings.py" line="375"/>
         <source>PSV</source>
-        <translation>VSP</translation>
+        <translation>PSV</translation>
     </message>
     <message>
         <location filename="../tools/qgisred_translatable_strings.py" line="376"/>
         <source>PBV</source>
-        <translation type="unfinished"></translation>
+        <translation type="unfinished">PBV</translation>
     </message>
     <message>
         <location filename="../tools/qgisred_translatable_strings.py" line="377"/>
         <source>FCV</source>
-        <translation>VRV</translation>
+        <translation>FCV</translation>
     </message>
     <message>
         <location filename="../tools/qgisred_translatable_strings.py" line="378"/>
         <source>TCV</source>
-        <translation type="unfinished"></translation>
+        <translation type="unfinished">TCV</translation>
     </message>
     <message>
         <location filename="../tools/qgisred_translatable_strings.py" line="379"/>
         <source>GPV</source>
-        <translation type="unfinished"></translation>
+        <translation type="unfinished">GPV</translation>
     </message>
     <message>
         <location filename="../tools/qgisred_translatable_strings.py" line="380"/>
         <source>CV</source>
-        <translation type="unfinished"></translation>
+        <translation type="unfinished">CV</translation>
     </message>
 </context>
 <context>

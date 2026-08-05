@@ -1982,7 +1982,7 @@
     <message>
         <location filename="../tools/qgisred_translatable_strings.py" line="42"/>
         <source>Minimum Level</source>
-        <translation type="unfinished"></translation>
+        <translation type="unfinished">Nivel mínimo</translation>
     </message>
 </context>
 <context>
@@ -4993,7 +4993,7 @@ La información de sectores existente podría ser reemplazada.
     <message>
         <location filename="../ui/general/qgisred_import_dialog.py" line="1201"/>
         <source>Not numeric Service Connection Length</source>
-        <translation>Lontitud de acometida no numérica</translation>
+        <translation>Longitud de acometida no numérica</translation>
     </message>
     <message>
         <location filename="../ui/general/qgisred_import_dialog.py" line="1206"/>
@@ -5118,7 +5118,7 @@ La información de sectores existente podría ser reemplazada.
     <message>
         <location filename="../ui/general/qgisred_import_dialog.ui" line="3216"/>
         <source>Service Connection Length</source>
-        <translation type="unfinished"></translation>
+        <translation type="unfinished">Longitud de acometida</translation>
     </message>
 </context>
 <context>
@@ -9914,7 +9914,7 @@ Do you want to proceed?</source>
     <message>
         <location filename="../tools/qgisred_translatable_strings.py" line="380"/>
         <source>CV</source>
-        <translation type="unfinished"></translation>
+        <translation type="unfinished">VR</translation>
     </message>
 </context>
 <context>
