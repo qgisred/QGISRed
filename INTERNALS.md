@@ -195,6 +195,55 @@ effects there.
 
 ---
 
+## 6b. Render order — backdrop themes below the network
+
+### Goal
+
+Demand Builder sector themes are filled polygons. Wherever the user keeps them in the
+legend — and the top of their group is the natural place — they must be **painted under**
+the network instead of covering it.
+
+### Implementation
+
+QGIS renders the layer tree bottom-up unless the project carries a *custom layer order*:
+the flat list the **Layer Order** panel edits, first entry drawn on top. That order is
+independent of the tree, which is exactly what is needed here.
+
+`applyBackdropRenderOrder()` in `tools/utils/qgisred_layer_utils.py` rebuilds it:
+
+```python
+order     = tree order, top first        # findLayers(), NOT layerOrder()
+backdrops = layers whose qgisred_identifier is in BACKDROP_LAYER_IDENTIFIERS
+position  = one past the last Inputs layer
+root.setCustomLayerOrder(rest[:position] + backdrops + rest[position:])
+root.setHasCustomLayerOrder(True)
+```
+
+Three decisions worth keeping:
+
+- **Built from the tree, never from the previous custom order.** Feeding the result back
+  into itself would let the two drift apart as layers come and go.
+- **Not stored.** Nothing needs saving: a project reopened without the order (a network
+  with no `.qgs`, where it does not persist) settles back into place at the next layer
+  operation. It is also skipped when the order already reads that way, so opening a layer
+  does not redraw the canvas or dirty the project for nothing.
+- **After the last Inputs layer, not at the end of the list.** Whatever the user keeps
+  below the network — a base map, typically — must stay below the backdrop.
+
+Switching the order back off is guarded by the project entry `QGISRed/CustomLayerOrder`,
+written only when this plugin sets one: a custom order the user built in the panel
+themselves is never undone.
+
+### Where it fires
+
+`layersAdded` / `layersRemoved` → `runLayerOrderChanged()` in `LayerManagementSection`,
+which defers the work one event-loop turn: `layersAdded` fires from `addMapLayer`, and the
+plugin adds the tree node itself right afterwards, so reading the tree at signal time
+would miss the layer that caused the call. The `_backdropOrderPending` flag collapses a
+batch — opening a project, say — into a single pass.
+
+---
+
 ## 7. Centralized DLL result handling — `processCsharpResult`
 
 Every DLL call returns a string. `processCsharpResult` in

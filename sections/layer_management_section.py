@@ -7,7 +7,7 @@ import shutil
 
 from qgis.core import QgsProject, QgsVectorLayer, QgsLayerTreeLayer
 from qgis.PyQt.QtWidgets import QApplication
-from qgis.PyQt.QtCore import Qt
+from qgis.PyQt.QtCore import Qt, QTimer
 
 from ..tools.utils.qgisred_layer_utils import QGISRedLayerUtils
 from ..tools.utils.qgisred_identifier_utils import QGISRedIdentifierUtils
@@ -562,6 +562,26 @@ class LayerManagementSection:
                 return
 
             self.updateMetadata()
+
+    def runLayerOrderChanged(self, *args):
+        """Re-apply the backdrop render order once the layer tree has settled.
+
+        Deferred a turn on purpose: layersAdded fires from addMapLayer, and the plugin
+        adds the tree node itself right afterwards, so reading the tree now would miss
+        the layer that caused the call. The pending flag collapses a batch of layers
+        arriving together — opening a project, say — into a single pass.
+        """
+        if self.isUnloading or self._backdropOrderPending:
+            return
+        self._backdropOrderPending = True
+        QTimer.singleShot(0, self.applyBackdropRenderOrder)
+
+    def applyBackdropRenderOrder(self):
+        self._backdropOrderPending = False
+        if self.isUnloading:
+            return
+        with suppress(Exception):
+            QGISRedLayerUtils.applyBackdropRenderOrder()
 
     def activeInputGroup(self):
         # Guard against calls during shutdown

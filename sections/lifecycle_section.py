@@ -182,6 +182,10 @@ class LifecycleSection:
         QgsProject.instance().cleared.connect(self.runClearedProject)
         QgsProject.instance().layersRemoved.connect(self.runLegendChanged)
         QgsProject.instance().layersAdded.connect(self.runLegendChanged)
+        # Separate from runLegendChanged: the render order has to be kept up whether or
+        # not the project is one of ours, and it does not depend on the DLL being there.
+        QgsProject.instance().layersAdded.connect(self.runLayerOrderChanged)
+        QgsProject.instance().layersRemoved.connect(self.runLayerOrderChanged)
         QgsProject.instance().layersWillBeRemoved.connect(self._onLayersWillBeRemoved)
         QgsProject.instance().readProject.connect(self.runOpenedQgisProject)
 
@@ -224,6 +228,7 @@ class LifecycleSection:
         self.zoomToFullExtent = False
         self.layerOperationInProgress = False
         self._loading_project = False
+        self._backdropOrderPending = False
 
         with suppress(Exception):
             if QgsProject.instance().mapLayers():
@@ -384,6 +389,10 @@ class LifecycleSection:
             QgsProject.instance().layersRemoved.disconnect(self.runLegendChanged)
         with suppress(Exception):
             QgsProject.instance().layersAdded.disconnect(self.runLegendChanged)
+        with suppress(Exception):
+            QgsProject.instance().layersAdded.disconnect(self.runLayerOrderChanged)
+        with suppress(Exception):
+            QgsProject.instance().layersRemoved.disconnect(self.runLayerOrderChanged)
         with suppress(Exception):
             QgsProject.instance().layersWillBeRemoved.disconnect(self._onLayersWillBeRemoved)
         with suppress(Exception):

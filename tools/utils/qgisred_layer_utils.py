@@ -796,6 +796,106 @@ class QGISRedLayerUtils:
                     self.stopRenderingForRemoval(self.iface)
                     QgsProject.instance().removeMapLayer(layer.id())
 
+    """Render order"""
+
+    # Themes that are a backdrop rather than a part of the network: filled polygons that
+    # hide whatever the tree keeps below them. Where the legend shows them is the user's
+    # business, so instead of moving them the render order pushes them under the network.
+    BACKDROP_LAYER_IDENTIFIERS = ("qgisred_demandbuilder_sectors",)
+
+    # Marks a custom layer order this plugin wrote. Without it, switching the order off
+    # again could throw away one the user set up in the Layer Order panel themselves.
+    _CUSTOM_ORDER_ENTRY = ("QGISRed", "CustomLayerOrder")
+
+    @classmethod
+    def isBackdropLayer(cls, layer):
+        if layer is None:
+            return False
+        return layer.customProperty("qgisred_identifier") in cls.BACKDROP_LAYER_IDENTIFIERS
+
+    @classmethod
+    def applyBackdropRenderOrder(cls):
+        """Draw the sector themes under the network, wherever the legend keeps them.
+
+        QGIS renders the layer tree from the bottom up unless the project carries a custom
+        layer order — the flat list the Layer Order panel edits, first entry drawn on top.
+        Setting one is what lets a theme sit at the top of its group and still be painted
+        underneath everything the network is made of.
+
+        The list is rebuilt from the tree rather than stored, so it needs no saving: a
+        project reopened without one (a network with no .qgs, where nothing persists it)
+        falls back into place as soon as anything touches a layer.
+
+        Returns True when a custom order is left in force.
+        """
+        root = QgsProject.instance().layerTreeRoot()
+        if root is None:
+            return False
+
+        order = cls._treeLayerOrder(root)
+        backdrops = [layer for layer in order if cls.isBackdropLayer(layer)]
+        if not backdrops:
+            cls._clearOwnRenderOrder(root)
+            return False
+
+        backdropIds = {layer.id() for layer in backdrops}
+        rest = [layer for layer in order if layer.id() not in backdropIds]
+        position = cls._backdropPosition(rest)
+        wanted = rest[:position] + backdrops + rest[position:]
+
+        # Nothing to say when the order already reads like this: writing it again would
+        # redraw the canvas and mark the project modified on every layer that is opened.
+        if root.hasCustomLayerOrder() and cls._sameLayers(root.customLayerOrder(), wanted):
+            return True
+
+        root.setCustomLayerOrder(wanted)
+        root.setHasCustomLayerOrder(True)
+        QgsProject.instance().writeEntry(cls._CUSTOM_ORDER_ENTRY[0], cls._CUSTOM_ORDER_ENTRY[1], True)
+        return True
+
+    @staticmethod
+    def _sameLayers(current, wanted):
+        return [layer.id() for layer in current if layer is not None] == [layer.id() for layer in wanted]
+
+    @staticmethod
+    def _treeLayerOrder(root):
+        """Every layer in the tree, top first — the order QGIS renders in by default.
+
+        Read from the tree and not from layerOrder(), which returns the custom order once
+        there is one: building each pass on top of the last would let the two drift apart
+        as layers come and go.
+        """
+        order = []
+        seen = set()
+        for node in root.findLayers():
+            layer = node.layer()
+            # A node whose layer is gone, or the same layer showing twice in the tree.
+            if layer is None or layer.id() in seen:
+                continue
+            seen.add(layer.id())
+            order.append(layer)
+        return order
+
+    @classmethod
+    def _backdropPosition(cls, order):
+        """Index just past the last input layer.
+
+        Not the end of the list: whatever the user keeps below the network — a base map,
+        typically — has to stay below the backdrop too, or the backdrop would hide it.
+        """
+        inputIds = {layer.id() for layer in cls.getLayersByGroupIdentifier("qgisred_inputs")}
+        positions = [i for i, layer in enumerate(order) if layer.id() in inputIds]
+        return positions[-1] + 1 if positions else len(order)
+
+    @classmethod
+    def _clearOwnRenderOrder(cls, root):
+        """Give the project back its default order, but only if we are what changed it."""
+        project = QgsProject.instance()
+        if not project.readBoolEntry(cls._CUSTOM_ORDER_ENTRY[0], cls._CUSTOM_ORDER_ENTRY[1], False)[0]:
+            return
+        root.setHasCustomLayerOrder(False)
+        project.removeEntry(cls._CUSTOM_ORDER_ENTRY[0], cls._CUSTOM_ORDER_ENTRY[1])
+
     @staticmethod
     def getResultsCurrentTimeText():
         """Lee el campo Time de la primera feature disponible en capas de resultados.
