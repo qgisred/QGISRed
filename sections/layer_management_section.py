@@ -302,25 +302,14 @@ class LayerManagementSection:
                 QgsProject.instance().removeMapLayer(layer.id())
 
     def openDemandBuilderLayers(self):
-        cfg = LAYER_TYPE_CONFIG["DemandBuilder"]
+        """Open what the Demand Builder just wrote, and only that.
 
-        demand_builder_folder = os.path.join(
-            self.ProjectDirectory,
-            cfg["subdir"]
-        )
-
-        if not os.path.isdir(demand_builder_folder):
-            self._demandBuilderExtraPaths = []
-            return
-
-        demand_builder_group = self.getDemandBuilderGroup()
-
-        identifiers = QGISRedIdentifierUtils(
-            self.ProjectDirectory,
-            self.NetworkName,
-            self.iface
-        )
-
+        The DLL reports every layer it touched after the "^" of its result — the ones it
+        created and the ones it updated, wherever they live, which is not always this
+        project's folder. So the list is taken at its word instead of sweeping the folder:
+        sweeping would also pull in the user's own themes, including the ones they had
+        deliberately unloaded from the layer manager.
+        """
         paths_to_open = []
 
         extra_paths = getattr(
@@ -341,18 +330,17 @@ class LayerManagementSection:
             ):
                 paths_to_open.append(normalized_path)
 
-        for filename in os.listdir(demand_builder_folder):
-            if not filename.lower().endswith(".shp"):
-                continue
+        if not paths_to_open:
+            self._demandBuilderExtraPaths = []
+            return
 
-            paths_to_open.append(
-                os.path.normpath(
-                    os.path.join(
-                        demand_builder_folder,
-                        filename
-                    )
-                )
-            )
+        demand_builder_group = self.getDemandBuilderGroup()
+
+        identifiers = QGISRedIdentifierUtils(
+            self.ProjectDirectory,
+            self.NetworkName,
+            self.iface
+        )
 
         unique_paths = []
         seen_paths = set()

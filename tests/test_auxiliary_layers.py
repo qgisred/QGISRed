@@ -965,3 +965,116 @@ class TestAcceptSendsBothSelections:
         selected, managed = dialog.parent.applyAuxiliaryLayerSelection.call_args[0]
         assert managed == dialog.auxiliaryRowPaths()
         assert selected == []
+
+
+class TestOpenDemandBuilderLayers:
+    """After a Demand Builder run, only what the DLL reported is opened.
+
+    The DLL names every layer it created or updated after the "^" of its result, so there
+    is nothing to discover by listing the folder — and listing it would reopen the user's
+    own themes, including the ones they had just unloaded from the layer manager.
+    """
+
+    def _makeSection(self, tmp_path, reported, monkeypatch):
+        from QGISRed.sections import layer_management_section as mod
+        from QGISRed.sections.layer_management_section import LayerManagementSection
+
+        folder = tmp_path / "Auxiliary Layers" / "DemandBuilder"
+        folder.mkdir(parents=True)
+        for name in ("Net_DemandBuilder_Sectors.shp", "Net_DemandBuilder_Sectors_Mine.shp"):
+            (folder / name).write_text("")
+
+        section = object.__new__(LayerManagementSection)
+        section.ProjectDirectory = str(tmp_path)
+        section.NetworkName = "Net"
+        section.iface = MagicMock()
+        section._demandBuilderExtraPaths = [str(folder / name) for name in reported]
+        section.getDemandBuilderGroup = MagicMock()
+        section._applyDemandBuilderStyle = MagicMock()
+
+        # Nothing is ever already open in these tests, so every path takes the
+        # "open a fresh layer" branch.
+        utils = MagicMock()
+        utils._tryReloadExistingLayer.return_value = None
+        monkeypatch.setattr(mod, "QGISRedLayerUtils", MagicMock(return_value=utils))
+
+        identifiers = MagicMock()
+        identifiers.getAuxiliaryThemeName.side_effect = lambda base, net: base
+        monkeypatch.setattr(mod, "QGISRedIdentifierUtils", MagicMock(return_value=identifiers))
+
+        opened = []
+
+        def makeLayer(path, name, provider):
+            layer = MagicMock()
+            layer.isValid.return_value = True
+            opened.append(os.path.basename(path))
+            return layer
+
+        monkeypatch.setattr(mod, "QgsVectorLayer", makeLayer)
+        monkeypatch.setattr(mod, "QgsProject", MagicMock())
+        monkeypatch.setattr(mod, "QgsLayerTreeLayer", MagicMock())
+
+        return section, opened, folder
+
+    def test_only_the_reported_layer_is_opened(self, tmp_path, monkeypatch):
+        section, opened, _ = self._makeSection(
+            tmp_path, ["Net_DemandBuilder_Sectors.shp"], monkeypatch)
+
+        section.openDemandBuilderLayers()
+
+        assert opened == ["Net_DemandBuilder_Sectors.shp"]
+
+    def test_a_theme_the_user_had_unloaded_stays_unloaded(self, tmp_path, monkeypatch):
+        """It sits in the same folder as what the DLL wrote, which is why sweeping the
+        folder used to bring it back."""
+        section, opened, _ = self._makeSection(
+            tmp_path, ["Net_DemandBuilder_Sectors.shp"], monkeypatch)
+
+        section.openDemandBuilderLayers()
+
+        assert "Net_DemandBuilder_Sectors_Mine.shp" not in opened
+
+    def test_every_reported_layer_is_opened(self, tmp_path, monkeypatch):
+        section, opened, _ = self._makeSection(
+            tmp_path,
+            ["Net_DemandBuilder_Sectors.shp", "Net_DemandBuilder_Sectors_Mine.shp"],
+            monkeypatch)
+
+        section.openDemandBuilderLayers()
+
+        assert sorted(opened) == [
+            "Net_DemandBuilder_Sectors.shp", "Net_DemandBuilder_Sectors_Mine.shp"]
+
+    def test_nothing_reported_opens_nothing(self, tmp_path, monkeypatch):
+        section, opened, _ = self._makeSection(tmp_path, [], monkeypatch)
+
+        section.openDemandBuilderLayers()
+
+        assert opened == []
+
+    def test_nothing_reported_leaves_the_group_alone(self, tmp_path, monkeypatch):
+        """Creating it would show an empty Demand Builder group after a run that wrote
+        nothing into it."""
+        section, _opened, _ = self._makeSection(tmp_path, [], monkeypatch)
+
+        section.openDemandBuilderLayers()
+
+        section.getDemandBuilderGroup.assert_not_called()
+
+    def test_a_reported_path_that_is_not_there_is_skipped(self, tmp_path, monkeypatch):
+        section, opened, folder = self._makeSection(tmp_path, [], monkeypatch)
+        section._demandBuilderExtraPaths = [str(folder / "Net_DemandBuilder_Gone.shp")]
+
+        section.openDemandBuilderLayers()
+
+        assert opened == []
+
+    def test_the_reported_list_is_spent_once(self, tmp_path, monkeypatch):
+        """Otherwise the next unrelated run would reopen this one's layers."""
+        section, opened, _ = self._makeSection(
+            tmp_path, ["Net_DemandBuilder_Sectors.shp"], monkeypatch)
+
+        section.openDemandBuilderLayers()
+        section.openDemandBuilderLayers()
+
+        assert opened == ["Net_DemandBuilder_Sectors.shp"]
