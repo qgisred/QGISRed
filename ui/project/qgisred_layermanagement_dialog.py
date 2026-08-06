@@ -2,7 +2,7 @@
 from qgis.PyQt.QtWidgets import (
     QDialog, QApplication, QLayout, QTableWidgetItem, QMessageBox,
     QComboBox, QLineEdit, QLabel, QPushButton, QVBoxLayout, QHBoxLayout,
-    QListWidget, QListWidgetItem, QStyledItemDelegate,
+    QListWidget, QListWidgetItem, QStyledItemDelegate, QWIDGETSIZE_MAX,
 )
 from qgis.PyQt.QtCore import Qt, QCoreApplication, QTimer
 from qgis.PyQt import uic
@@ -280,11 +280,11 @@ class QGISRedLayerManagementDialog(QDialog, FORM_CLASS):
         self.btSelectCRS.clicked.connect(self.selectCRS)
 
         self.messageBar = QGISRedBanner.inject(self, self.gridLayout)
-        # Every row is a fixed-height checkbox, so there is nothing worth resizing. This
-        # also keeps the dialog honest when the banner appears: SetFixedSize re-reads the
-        # layout's hint, so the window grows to fit the message instead of squashing the
-        # tabs, and shrinks back when it hides.
-        self.gridLayout.setSizeConstraint(QLayout.SizeConstraint.SetFixedSize)
+        # The dialog may be enlarged but never squashed: SetMinimumSize keeps the layout's
+        # own minimum as the floor, so nothing is ever cut off and the window still grows
+        # to fit the banner when a message appears.
+        self.gridLayout.setSizeConstraint(QLayout.SizeConstraint.SetMinimumSize)
+        self.setSizeGripEnabled(True)
 
         self.elements = [
             _Element(name, getattr(self, checkBox), getattr(self, button), complementary)
@@ -300,6 +300,23 @@ class QGISRedLayerManagementDialog(QDialog, FORM_CLASS):
         # The checkbox gets a column of its own, so the theme name starts where the header
         # says it does instead of behind a tick.
         self.tbAuxiliary.setColumnWidth(0, 26)
+
+    def showEvent(self, event):
+        """Freeze the size the dialog has always opened at as its minimum, then let go.
+
+        The themes table carries a height cap in the .ui, and that cap is what decides how
+        tall the dialog opens. Pinning the tabs to that first hint keeps the window from
+        being dragged any smaller than it used to be, and once the floor is in place the
+        cap can go: the table is then the part that takes the room when the user enlarges.
+        """
+        super(QGISRedLayerManagementDialog, self).showEvent(event)
+        if self.tbAuxiliary.maximumHeight() >= QWIDGETSIZE_MAX:
+            return  # already done on a previous showing
+
+        openingSize = self.sizeHint()
+        self.tabElements.setMinimumSize(self.tabElements.sizeHint())
+        self.tbAuxiliary.setMaximumHeight(QWIDGETSIZE_MAX)
+        self.resize(openingSize)
 
     def config(self, ifac, direct, netw, parent):
         self.iface = ifac
