@@ -2024,12 +2024,12 @@
     </message>
     <message>
         <location filename="../tools/qgisred_translatable_strings.py" line="317"/>
-        <source>DemBuild_Demand Links</source>
+        <source>DemBuild_Links</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
         <location filename="../tools/qgisred_translatable_strings.py" line="318"/>
-        <source>DemBuild_Consumption Points</source>
+        <source>DemBuild_Consumptions</source>
         <translation type="unfinished"></translation>
     </message>
     <message>

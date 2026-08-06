@@ -424,8 +424,8 @@ class TestAuxiliaryThemeName:
         utils = object.__new__(QGISRedIdentifierUtils)
         utils.NetworkName = "Net"
         known = families if families is not None else {
-            "qgisred_demandbuilder_consumptionpoints": "DemBuild_Consumption Points",
-            "qgisred_demandbuilder_demandlinks": "DemBuild_Demand Links",
+            "qgisred_demandbuilder_consumptionpoints": "DemBuild_Consumptions",
+            "qgisred_demandbuilder_demandlinks": "DemBuild_Links",
             "qgisred_demandbuilder_sectors": "DemBuild_Sectors",
         }
         utils.getTranslatedNameForIdentifier = lambda identifier: known.get(identifier)
@@ -434,7 +434,7 @@ class TestAuxiliaryThemeName:
     def test_a_named_theme_shows_its_family_and_its_name(self):
         utils = self._identifiers()
         assert utils.getAuxiliaryThemeName("Net_DemandBuilder_ConsumptionPoints_pr1") == \
-            "DemBuild_Consumption Points: pr1"
+            "DemBuild_Consumptions_pr1"
 
     def test_the_demands_manager_theme_shows_only_its_family(self):
         utils = self._identifiers()

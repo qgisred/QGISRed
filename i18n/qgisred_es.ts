@@ -2134,13 +2134,13 @@
     </message>
     <message>
         <location filename="../tools/qgisred_translatable_strings.py" line="317"/>
-        <source>DemBuild_Demand Links</source>
-        <translation>ConstDem_Enlaces Demanda</translation>
+        <source>DemBuild_Links</source>
+        <translation type="unfinished">ConstDem_Enlaces</translation>
     </message>
     <message>
         <location filename="../tools/qgisred_translatable_strings.py" line="318"/>
-        <source>DemBuild_Consumption Points</source>
-        <translation>ConstDem_Consumos Puntuales</translation>
+        <source>DemBuild_Consumptions</source>
+        <translation type="unfinished">ConstDem_Consumos</translation>
     </message>
     <message>
         <location filename="../tools/qgisred_translatable_strings.py" line="319"/>

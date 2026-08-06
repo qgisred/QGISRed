@@ -414,7 +414,11 @@ class LayerManagementSection:
             )
 
             translated_name = (
-                identifiers.getTranslatedNameForIdentifier(
+                identifiers.getAuxiliaryThemeName(
+                    display_name,
+                    self.NetworkName
+                )
+                or identifiers.getTranslatedNameForIdentifier(
                     vector_layer.customProperty(
                         "qgisred_identifier"
                     )

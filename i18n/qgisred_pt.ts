@@ -2149,13 +2149,13 @@
     </message>
     <message>
         <location filename="../tools/qgisred_translatable_strings.py" line="317"/>
-        <source>DemBuild_Demand Links</source>
-        <translation>DemBuild_Trechos de Consumo</translation>
+        <source>DemBuild_Links</source>
+        <translation type="unfinished">DemBuild_Trechos</translation>
     </message>
     <message>
         <location filename="../tools/qgisred_translatable_strings.py" line="318"/>
-        <source>DemBuild_Consumption Points</source>
-        <translation>DemBuild_Pontos de Consumo</translation>
+        <source>DemBuild_Consumptions</source>
+        <translation type="unfinished">DemBuild_Consumos</translation>
     </message>
     <message>
         <location filename="../tools/qgisred_translatable_strings.py" line="319"/>

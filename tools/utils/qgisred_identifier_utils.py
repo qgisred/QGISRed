@@ -52,8 +52,8 @@ class QGISRedIdentifierUtils:
             'qgisred_isolatedsegments_isolateddemands': 'IsolSeg_Isolated Demands',
             'qgisred_tree_links': 'Tree_Links',
             'qgisred_tree_nodes': 'Tree_Nodes',
-            'qgisred_demandbuilder_demandlinks': 'DemBuild_Demand Links',
-            'qgisred_demandbuilder_consumptionpoints': 'DemBuild_Consumption Points',
+            'qgisred_demandbuilder_demandlinks': 'DemBuild_Links',
+            'qgisred_demandbuilder_consumptionpoints': 'DemBuild_Consumptions',
             'qgisred_demandbuilder_isolateddemandsserviceconnections': 'DemBuild_Isolated Demands Connections',
             'qgisred_demandbuilder_sectors': 'DemBuild_Sectors'
         }
@@ -205,6 +205,9 @@ class QGISRedIdentifierUtils:
     def getAuxiliaryThemeName(self, baseName, networkName=""):
         """Legend name for a Demand Builder theme file: its family, then its own name.
 
+        Joined the way the file name joins them — DemBuild_Sectors_Barrios — so the legend
+        entry and the shapefile on disk read as the same thing.
+
         Both the layer manager and the metadata reopen go through here, so a theme is
         called the same however it got loaded. Deriving it from the file name instead
         would go through getLayerNameToLegend, whose "Demands" rule turns every one of
@@ -220,7 +223,7 @@ class QGISRedIdentifierUtils:
         family = self.getTranslatedNameForIdentifier(layerType.identifier)
         if not family:
             return ""
-        return family + ": " + themeName if themeName else family
+        return family + "_" + themeName if themeName else family
 
     def getTranslatedNameForIdentifier(self, identifier):
         """Returns the translated legend name for a qgisred_identifier, or None if unknown."""
