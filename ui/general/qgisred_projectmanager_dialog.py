@@ -79,6 +79,7 @@ class QGISRedProjectManagerDialog(QDialog, FORM_CLASS):
 
         self.twProjectList.setWordWrap(False)
         self.twProjectList.cellDoubleClicked.connect(self.openProject)
+        self.twProjectList.itemSelectionChanged.connect(self.updateButtonStates)
 
         self.messageBar = QGISRedBanner.inject(self, self.gridLayout_2)
 
@@ -234,6 +235,8 @@ class QGISRedProjectManagerDialog(QDialog, FORM_CLASS):
             f.write(x + "\n")
         f.close()
 
+        self.updateButtonStates()
+
     def _addProjectToTable(self, folder, net):
         folder = self._getUniformedPath(folder)
         dirList = os.listdir(folder)
@@ -352,6 +355,40 @@ class QGISRedProjectManagerDialog(QDialog, FORM_CLASS):
 
     def _pushWarning(self, msg, level=0, duration=5):
         self.pushMessage(self.tr("Warning"), msg, level=level, duration=duration)
+
+    def _isCurrentProjectRow(self):
+        """True when the selected row is the project currently open in QGIS."""
+        ok, name, project, _row = self._getSelectedRowInfo()
+        if not ok or self.utils is None:
+            return False
+        return self._getUniformedPath(self.ProjectDirectory) == project and self.NetworkName == name
+
+    def updateButtonStates(self):
+        """Enables each button for the selected row instead of refusing after the click."""
+        ok, _name, _project, row = self._getSelectedRowInfo()
+        isCurrent = self._isCurrentProjectRow()
+        rows = self.twProjectList.rowCount()
+
+        noSelection = self.tr("Select a project first.")
+        isOpen = self.tr("This is the project currently open in QGIS.")
+
+        # (button, enabled, tooltip when disabled)
+        needsRow = (self.btExport, self.btClone, self.btGo2Folder)
+        for button in needsRow:
+            button.setEnabled(ok)
+            button.setToolTip("" if ok else noSelection)
+
+        needsClosedProject = (self.btOpen, self.btRemove, self.btUnLoad,
+                              self.btChangeName, self.btMove)
+        for button in needsClosedProject:
+            button.setEnabled(ok and not isCurrent)
+            button.setToolTip("" if ok and not isCurrent else (isOpen if isCurrent else noSelection))
+
+        self.btUp.setEnabled(ok and row > 0)
+        self.btDown.setEnabled(ok and 0 <= row < rows - 1)
+        reorderTip = "" if ok else noSelection
+        self.btUp.setToolTip(reorderTip)
+        self.btDown.setToolTip(reorderTip)
 
     def openProject(self):
         ok, name, project, _ = self._getSelectedRowInfo()

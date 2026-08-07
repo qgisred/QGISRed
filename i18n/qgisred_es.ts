@@ -4042,134 +4042,139 @@ La información de sectores existente podría ser reemplazada.
         <translation>%1 (%2 archivos, %3)</translation>
     </message>
     <message>
-        <location filename="../ui/general/qgisred_exportproject_dialog.py" line="146"/>
+        <location filename="../ui/general/qgisred_exportproject_dialog.py" line="145"/>
         <source>Layer</source>
         <translation>Capa</translation>
     </message>
     <message>
-        <location filename="../ui/general/qgisred_exportproject_dialog.py" line="146"/>
+        <location filename="../ui/general/qgisred_exportproject_dialog.py" line="145"/>
         <source>Location</source>
         <translation>Ubicación</translation>
     </message>
     <message>
-        <location filename="../ui/general/qgisred_exportproject_dialog.py" line="146"/>
+        <location filename="../ui/general/qgisred_exportproject_dialog.py" line="145"/>
         <source>Status</source>
         <translation type="unfinished">Estado</translation>
     </message>
     <message>
-        <location filename="../ui/general/qgisred_exportproject_dialog.py" line="308"/>
+        <location filename="../ui/general/qgisred_exportproject_dialog.py" line="307"/>
         <source>Estimated size: %1</source>
         <translation>Tamaño estimado: %1</translation>
     </message>
     <message>
-        <location filename="../ui/general/qgisred_exportproject_dialog.py" line="311"/>
+        <location filename="../ui/general/qgisred_exportproject_dialog.py" line="310"/>
         <source>ZIP content: %1</source>
         <translation>Contenido del ZIP: %1</translation>
     </message>
     <message>
-        <location filename="../ui/general/qgisred_exportproject_dialog.py" line="317"/>
+        <location filename="../ui/general/qgisred_exportproject_dialog.py" line="316"/>
         <source>a single folder %1 holding everything</source>
         <translation>una única carpeta %1 con todo dentro</translation>
     </message>
     <message>
-        <location filename="../ui/general/qgisred_exportproject_dialog.py" line="345"/>
+        <location filename="../ui/general/qgisred_exportproject_dialog.py" line="344"/>
         <source>Select the folder for the ZIP file</source>
         <translation>Seleccione la carpeta para el archivo ZIP</translation>
     </message>
     <message>
-        <location filename="../ui/general/qgisred_exportproject_dialog.py" line="356"/>
+        <location filename="../ui/general/qgisred_exportproject_dialog.py" line="355"/>
         <source>%1 complementary layer(s) are outside the project folder and its parent, so they will NOT be exported. Move them into the project folder (or next to it) with the file explorer and reopen the project to relink them.</source>
         <translation>%1 capa(s) complementaria(s) está(n) fuera de la carpeta del proyecto y de su carpeta superior, así que NO se exportarán. Muévalas a la carpeta del proyecto (o junto a ella) con el explorador de archivos y vuelva a abrir el proyecto para revincularlas.</translation>
     </message>
     <message>
-        <location filename="../ui/general/qgisred_exportproject_dialog.py" line="365"/>
+        <location filename="../ui/general/qgisred_exportproject_dialog.py" line="364"/>
         <source>The QGIS project references layers in %1. Whoever imports it will have to locate or remove them.</source>
         <translation>El proyecto de QGIS hace referencia a capas de %1. Quien lo importe tendrá que localizarlas o quitarlas.</translation>
     </message>
     <message>
-        <location filename="../ui/general/qgisred_exportproject_dialog.py" line="387"/>
+        <location filename="../ui/general/qgisred_exportproject_dialog.py" line="386"/>
         <source>Validations</source>
         <translation type="unfinished">Validaciones</translation>
     </message>
     <message>
-        <location filename="../ui/general/qgisred_exportproject_dialog.py" line="376"/>
+        <location filename="../ui/general/qgisred_exportproject_dialog.py" line="375"/>
         <source>Enter a name for the ZIP file</source>
         <translation>Introduzca un nombre para el archivo ZIP</translation>
     </message>
     <message>
-        <location filename="../ui/general/qgisred_exportproject_dialog.py" line="379"/>
+        <location filename="../ui/general/qgisred_exportproject_dialog.py" line="378"/>
         <source>The file name is not valid</source>
         <translation>El nombre del archivo no es válido</translation>
     </message>
     <message>
-        <location filename="../ui/general/qgisred_exportproject_dialog.py" line="384"/>
+        <location filename="../ui/general/qgisred_exportproject_dialog.py" line="383"/>
         <source>Select an existing folder</source>
         <translation>Seleccione una carpeta existente</translation>
     </message>
     <message>
-        <location filename="../ui/general/qgisred_exportproject_dialog.py" line="387"/>
+        <location filename="../ui/general/qgisred_exportproject_dialog.py" line="386"/>
         <source>The selected folder is not writable</source>
         <translation>No se puede escribir en la carpeta seleccionada</translation>
     </message>
     <message>
-        <location filename="../ui/general/qgisred_exportproject_dialog.py" line="393"/>
+        <location filename="../ui/general/qgisred_exportproject_dialog.py" line="392"/>
         <source>QGISRed</source>
         <translation type="unfinished">QGISRed</translation>
     </message>
     <message>
-        <location filename="../ui/general/qgisred_exportproject_dialog.py" line="393"/>
+        <location filename="../ui/general/qgisred_exportproject_dialog.py" line="392"/>
         <source>The file already exists. Do you want to overwrite it?</source>
         <translation>El archivo ya existe. ¿Desea sobrescribirlo?</translation>
     </message>
     <message>
-        <location filename="../ui/general/qgisred_exportproject_dialog.py" line="405"/>
+        <location filename="../ui/general/qgisred_exportproject_dialog.py" line="404"/>
         <source>Warning</source>
         <translation type="unfinished">Advertencia</translation>
     </message>
     <message>
-        <location filename="../ui/general/qgisred_exportproject_dialog.py" line="405"/>
+        <location filename="../ui/general/qgisred_exportproject_dialog.py" line="404"/>
         <source>Press OK again to export anyway.</source>
         <translation>Pulse Aceptar de nuevo para exportar de todos modos.</translation>
     </message>
     <message>
-        <location filename="../ui/general/qgisred_exportproject_dialog.py" line="57"/>
+        <location filename="../ui/general/qgisred_exportproject_dialog.py" line="56"/>
         <source>No QGIS project file was found, so the map appearance will not be exported. Save the QGIS project inside the project folder to include it.</source>
         <translation>No se ha encontrado el archivo de proyecto de QGIS, así que no se exportará la apariencia del mapa. Guarde el proyecto de QGIS en la carpeta del proyecto para incluirlo.</translation>
     </message>
     <message>
-        <location filename="../ui/general/qgisred_exportproject_dialog.py" line="210"/>
+        <location filename="../ui/general/qgisred_exportproject_dialog.py" line="222"/>
         <source>Not exportable</source>
         <translation>No exportable</translation>
     </message>
     <message>
-        <location filename="../ui/general/qgisred_exportproject_dialog.py" line="211"/>
+        <location filename="../ui/general/qgisred_exportproject_dialog.py" line="223"/>
         <source>It is outside the project folder and its parent folder. Move it with the file explorer into the project folder (or next to it) and reopen the project to relink it.</source>
         <translation>Está fuera de la carpeta del proyecto y de su carpeta superior. Muévalo con el explorador de archivos a la carpeta del proyecto (o junto a ella) y vuelva a abrir el proyecto para revincularlo.</translation>
     </message>
     <message>
-        <location filename="../ui/general/qgisred_exportproject_dialog.py" line="217"/>
+        <location filename="../ui/general/qgisred_exportproject_dialog.py" line="229"/>
         <source>Included</source>
         <translation>Incluida</translation>
     </message>
     <message>
-        <location filename="../ui/general/qgisred_exportproject_dialog.py" line="218"/>
+        <location filename="../ui/general/qgisred_exportproject_dialog.py" line="230"/>
         <source>It will travel inside the ZIP file.</source>
         <translation>Viajará dentro del archivo ZIP.</translation>
     </message>
     <message>
-        <location filename="../ui/general/qgisred_exportproject_dialog.py" line="220"/>
+        <location filename="../ui/general/qgisred_exportproject_dialog.py" line="232"/>
         <source>Not included</source>
         <translation>No incluida</translation>
     </message>
     <message>
-        <location filename="../ui/general/qgisred_exportproject_dialog.py" line="221"/>
+        <location filename="../ui/general/qgisred_exportproject_dialog.py" line="233"/>
         <source>Whoever imports the project is expected to have it already.</source>
         <translation>Se asume que quien importe el proyecto ya la tiene.</translation>
     </message>
     <message>
-        <location filename="../ui/general/qgisred_exportproject_dialog.py" line="278"/>
+        <location filename="../ui/general/qgisred_exportproject_dialog.py" line="290"/>
         <source>&apos;%1&apos; is used in more than one group. Leaving it out removes it from all of them.</source>
         <translation>'%1' se usa en más de un grupo. Al dejarla fuera se quita de todos ellos.</translation>
+    </message>
+    <message>
+        <location filename="../ui/general/qgisred_exportproject_dialog.py" line="172"/>
+        <source>None of the complementary layers can be exported from their current location.</source>
+        <translation>Ninguna de las capas complementarias se puede exportar desde su ubicación actual.</translation>
     </message>
 </context>
 <context>
@@ -6758,47 +6763,47 @@ Do you want to proceed?</source>
         <translation>Carpeta</translation>
     </message>
     <message>
-        <location filename="../ui/general/qgisred_projectmanager_dialog.py" line="663"/>
+        <location filename="../ui/general/qgisred_projectmanager_dialog.py" line="700"/>
         <source>Warning</source>
         <translation>Advertencia</translation>
     </message>
     <message>
-        <location filename="../ui/general/qgisred_projectmanager_dialog.py" line="328"/>
+        <location filename="../ui/general/qgisred_projectmanager_dialog.py" line="331"/>
         <source>Please, select a row project to move.</source>
         <translation>Por favor, seleccione un proyecto de fila para mover.</translation>
     </message>
     <message>
-        <location filename="../ui/general/qgisred_projectmanager_dialog.py" line="482"/>
+        <location filename="../ui/general/qgisred_projectmanager_dialog.py" line="519"/>
         <source>Current project cannot be removed</source>
         <translation>El proyecto actual no se puede eliminar</translation>
     </message>
     <message>
-        <location filename="../ui/general/qgisred_projectmanager_dialog.py" line="484"/>
+        <location filename="../ui/general/qgisred_projectmanager_dialog.py" line="521"/>
         <source>Current project cannot be unloaded</source>
         <translation>El proyecto actual no se puede descargar</translation>
     </message>
     <message>
-        <location filename="../ui/general/qgisred_projectmanager_dialog.py" line="499"/>
+        <location filename="../ui/general/qgisred_projectmanager_dialog.py" line="536"/>
         <source>QGISRed</source>
         <translation>QGISRed</translation>
     </message>
     <message>
-        <location filename="../ui/general/qgisred_projectmanager_dialog.py" line="488"/>
+        <location filename="../ui/general/qgisred_projectmanager_dialog.py" line="525"/>
         <source>Project will be removed completely from your computer. Are you sure?</source>
         <translation>El proyecto se eliminará completamente de su ordenador. ¿Está seguro?</translation>
     </message>
     <message>
-        <location filename="../ui/general/qgisred_projectmanager_dialog.py" line="499"/>
+        <location filename="../ui/general/qgisred_projectmanager_dialog.py" line="536"/>
         <source>Project will be unloaded from this list, but will remain in your computer. You could add it back using the Load button. Do you want to continue?</source>
         <translation>Se quitará el proyecto de esta lista, pero permanecerá en el ordenador. Puede añadirlo otra vez usando el botón de Cargar. ¿Desea continuar?</translation>
     </message>
     <message>
-        <location filename="../ui/general/qgisred_projectmanager_dialog.py" line="362"/>
+        <location filename="../ui/general/qgisred_projectmanager_dialog.py" line="399"/>
         <source>Selected project is currently opened.</source>
         <translation>El proyecto seleccionado está actualmente abierto</translation>
     </message>
     <message>
-        <location filename="../ui/general/qgisred_projectmanager_dialog.py" line="368"/>
+        <location filename="../ui/general/qgisred_projectmanager_dialog.py" line="405"/>
         <source>You need to select a project to open it.</source>
         <translation>Necesitas seleccionar un proyecto para abrirlo</translation>
     </message>
@@ -6808,27 +6813,27 @@ Do you want to proceed?</source>
         <translation type="obsolete">Archivo Zip almacenado en: </translation>
     </message>
     <message>
-        <location filename="../ui/general/qgisred_projectmanager_dialog.py" line="451"/>
+        <location filename="../ui/general/qgisred_projectmanager_dialog.py" line="488"/>
         <source>You need to select a project to export it.</source>
         <translation>Es necesario seleccionar un proyecto para exportarlo.</translation>
     </message>
     <message>
-        <location filename="../ui/general/qgisred_projectmanager_dialog.py" line="557"/>
+        <location filename="../ui/general/qgisred_projectmanager_dialog.py" line="594"/>
         <source>You need to select a project to clone.</source>
         <translation>Es necesario seleccionar un proyecto para clonarlo.</translation>
     </message>
     <message>
-        <location filename="../ui/general/qgisred_projectmanager_dialog.py" line="565"/>
+        <location filename="../ui/general/qgisred_projectmanager_dialog.py" line="602"/>
         <source>Current project can not be renamed.</source>
         <translation>El proyecto actual no puede ser renombrado.</translation>
     </message>
     <message>
-        <location filename="../ui/general/qgisred_projectmanager_dialog.py" line="650"/>
+        <location filename="../ui/general/qgisred_projectmanager_dialog.py" line="687"/>
         <source>You need to select a project to change its name.</source>
         <translation>Es necesario seleccionar un proyecto para cambiar su nombre.</translation>
     </message>
     <message>
-        <location filename="../ui/general/qgisred_projectmanager_dialog.py" line="350"/>
+        <location filename="../ui/general/qgisred_projectmanager_dialog.py" line="353"/>
         <source>You need to select a project to open its folder.</source>
         <translation>Es necesario seleccionar un proyecto para abrir su carpeta.</translation>
     </message>
@@ -6838,34 +6843,44 @@ Do you want to proceed?</source>
         <translation>Mover</translation>
     </message>
     <message>
-        <location filename="../ui/general/qgisred_projectmanager_dialog.py" line="657"/>
+        <location filename="../ui/general/qgisred_projectmanager_dialog.py" line="694"/>
         <source>You need to select a project to move it.</source>
         <translation>Necesitas seleccionar un proyecto para moverlo</translation>
     </message>
     <message>
-        <location filename="../ui/general/qgisred_projectmanager_dialog.py" line="663"/>
+        <location filename="../ui/general/qgisred_projectmanager_dialog.py" line="700"/>
         <source>Current project can not be moved.</source>
         <translation>No se puede mover el proyecto actual.</translation>
     </message>
     <message>
-        <location filename="../ui/general/qgisred_projectmanager_dialog.py" line="526"/>
+        <location filename="../ui/general/qgisred_projectmanager_dialog.py" line="563"/>
         <source>You need to select a project to %1 it.</source>
         <translation>Necesitas seleccionar un proyecto para %1.</translation>
     </message>
     <message>
-        <location filename="../ui/general/qgisred_projectmanager_dialog.py" line="648"/>
+        <location filename="../ui/general/qgisred_projectmanager_dialog.py" line="685"/>
         <source>Project name has been renamed to %1</source>
         <translation>Se ha renombrado el proyecto a %1</translation>
     </message>
     <message>
-        <location filename="../ui/general/qgisred_projectmanager_dialog.py" line="724"/>
+        <location filename="../ui/general/qgisred_projectmanager_dialog.py" line="761"/>
         <source>Project has been moved to %1</source>
         <translation>Se ha movido el proyecto a %1</translation>
     </message>
     <message>
-        <location filename="../ui/general/qgisred_projectmanager_dialog.py" line="458"/>
+        <location filename="../ui/general/qgisred_projectmanager_dialog.py" line="495"/>
         <source>Error</source>
         <translation type="unfinished">Error</translation>
+    </message>
+    <message>
+        <location filename="../ui/general/qgisred_projectmanager_dialog.py" line="372"/>
+        <source>Select a project first.</source>
+        <translation>Seleccione antes un proyecto.</translation>
+    </message>
+    <message>
+        <location filename="../ui/general/qgisred_projectmanager_dialog.py" line="373"/>
+        <source>This is the project currently open in QGIS.</source>
+        <translation>Este es el proyecto abierto actualmente en QGIS.</translation>
     </message>
 </context>
 <context>
