@@ -84,12 +84,7 @@ class QGISRedSelectPointTool(QgsMapTool):
         if self.custom_cursor:
             self.canvas.setCursor(self.custom_cursor)
 
-        snap_type = SNAP_TYPE_VERTEX
-        if self.type == SelectPointType.Line:
-            snap_type = SNAP_TYPE_BOTH
-        elif self.type == SelectPointType.TwoLines:
-            snap_type = SNAP_TYPE_SEGMENT
-        self.configSnapper(snap_type)
+        self.configSnapper(self.defaultSnapType())
 
     def deactivate(self):
         self.resetProperties()
@@ -105,6 +100,13 @@ class QGISRedSelectPointTool(QgsMapTool):
         return True
 
     """Methods"""
+
+    def defaultSnapType(self):
+        if self.type == SelectPointType.Line:
+            return SNAP_TYPE_BOTH
+        if self.type == SelectPointType.TwoLines:
+            return SNAP_TYPE_SEGMENT
+        return SNAP_TYPE_VERTEX
 
     def configSnapper(self, snapping_type):
         # Snapping
@@ -184,7 +186,9 @@ class QGISRedSelectPointTool(QgsMapTool):
                     return
             if self.type == SelectPointType.TwoPoints or self.type == SelectPointType.PointLine:
                 if self.objectSnapped is None:
-                    QGISRedUIUtils.showGlobalMessage(self.iface, self.tr("A not valid point was selected"), level=1, duration=5)
+                    # Right-click over empty space leaves the tool, as in every other one
+                    self.canvas.unsetMapTool(self)
+                    self.deactivate()
                     return
                 else:
                     point = self.objectSnapped.point()
@@ -196,7 +200,8 @@ class QGISRedSelectPointTool(QgsMapTool):
                     # self.resetProperties()
             else:
                 if self.context_callback is not None:
-                    point = self.objectSnapped.point() if self.objectSnapped is not None else None
+                    point = QgsPointXY(self.objectSnapped.point()) if self.objectSnapped is not None else None
+                    self.resetProperties()
                     self.context_callback(point)
                     return
                 # For tools that opted-in to receive modifiers, allow right-click callbacks too
@@ -257,11 +262,27 @@ class QGISRedSelectPointTool(QgsMapTool):
     def canvasDoubleClickEvent(self, event):
         if hasattr(self.parent, 'isUnloading') and self.parent.isUnloading:
             return
+        # Qt emits a trailing release after every double-click. Swallow it always, so
+        # the gesture counts as a single action instead of firing the tool twice (and
+        # complaining about the second, unsnapped click).
+        self._ignore_next_release = True
         if self.double_click_callback is None:
             return
-        # The double-click will be followed by a redundant release; swallow it.
-        self._ignore_next_release = True
         with suppress(Exception):
-            match = self.snapper.snapToMap(self.toMapCoordinates(event.pos()))
-            if match.isValid():
-                self.double_click_callback(QgsPointXY(match.point()), event.button())
+            # On multi-step tools the first click of the gesture already stored the
+            # snapped point (and switched the snapper to segments); reuse it instead of
+            # snapping again, which would now return a point over the line. No stored
+            # point there means that first click completed the pair instead: the action
+            # already ran and the gesture must not trigger a second one.
+            point = self.firstPoint
+            if point is None:
+                if self.type in (SelectPointType.TwoPoints, SelectPointType.TwoLines, SelectPointType.PointLine):
+                    return
+                match = self.snapper.snapToMap(self.toMapCoordinates(event.pos()))
+                point = match.point() if match.isValid() else None
+            if point is None:
+                return
+            point = QgsPointXY(point)
+            self.resetProperties()
+            self.configSnapper(self.defaultSnapType())
+            self.double_click_callback(point, event.button())

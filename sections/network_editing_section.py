@@ -322,8 +322,14 @@ class NetworkEditingSection:
             self.iface.mapCanvas().unsetMapTool(self.myMapTools[tool])
             self.mergeSplitJunctionButton.setChecked(False)
         else:
-            self.myMapTools[tool] = QGISRedSelectPointTool(self.mergeSplitJunctionButton, self, self.runMergeSplitPoints, SelectPointType.TwoPoints, cursor=":/images/iconMergeSplitJunctions.svg")
+            self.myMapTools[tool] = QGISRedSelectPointTool(
+                self.mergeSplitJunctionButton, self, self.runMergeSplitPoints, SelectPointType.TwoPoints,
+                cursor=":/images/iconMergeSplitJunctions.svg", double_click_callback=self.runMergeJunction
+            )
             self.iface.mapCanvas().setMapTool(self.myMapTools[tool])
+
+    def runMergeJunction(self, point, button=None):
+        self.runMergeSplitPoints(point, None)
 
     def runMergeSplitPoints(self, point1, point2):
         if not self.checkDependencies():
@@ -357,9 +363,13 @@ class NetworkEditingSection:
             self.createReverseTconButton.setChecked(False)
         else:
             self.myMapTools[tool] = QGISRedSelectPointTool(
-                self.createReverseTconButton, self, self.runCreateRemoveTconnections, SelectPointType.PointLine, cursor=":/images/iconCreateRemoveTConnections.svg"
+                self.createReverseTconButton, self, self.runCreateRemoveTconnections, SelectPointType.PointLine,
+                cursor=":/images/iconCreateRemoveTConnections.svg", double_click_callback=self.runReverseTconnection
             )
             self.iface.mapCanvas().setMapTool(self.myMapTools[tool])
+
+    def runReverseTconnection(self, point, button=None):
+        self.runCreateRemoveTconnections(point, None)
 
     def runCreateRemoveTconnections(self, point1, point2):
         if not self.checkDependencies():
@@ -392,8 +402,19 @@ class NetworkEditingSection:
             self.iface.mapCanvas().unsetMapTool(self.myMapTools[tool])
             self.createReverseCrossButton.setChecked(False)
         else:
-            self.myMapTools[tool] = QGISRedSelectPointTool(self.createReverseCrossButton, self, self.runCreateRemoveCrossings, SelectPointType.Line, cursor=":/images/iconCreateRemoveCrossings.svg")
+            self.myMapTools[tool] = QGISRedSelectPointTool(
+                self.createReverseCrossButton, self, self.runCreateRemoveCrossings, SelectPointType.Line,
+                cursor=":/images/iconCreateRemoveCrossings.svg", context_callback=self.runReverseCrossing
+            )
             self.iface.mapCanvas().setMapTool(self.myMapTools[tool])
+
+    def runReverseCrossing(self, point):
+        tool = self.myMapTools.get("createReverseCross")
+        if point is None:
+            if tool is not None:
+                self.iface.mapCanvas().unsetMapTool(tool)
+            return
+        self.runCreateRemoveCrossings(point)
 
     def runCreateRemoveCrossings(self, point1):
         if not self.checkDependencies():
