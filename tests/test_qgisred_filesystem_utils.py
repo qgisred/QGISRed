@@ -4,8 +4,8 @@ import shutil
 import tempfile
 from unittest.mock import patch
 from QGISRed.tools.utils.qgisred_filesystem_utils import (
-    APP_DATA_DEFAULT_FOLDER,
     APP_DATA_MATERIALS_FOLDER,
+    INSTALL_DEFAULTS_FOLDER,
     QGISRedFileSystemUtils,
 )
 
@@ -50,37 +50,58 @@ class TestFileSystemUtils:
         with patch("sys.platform", "linux"), patch.dict(os.environ, {"XDG_CONFIG_HOME": xdg}):
             assert utils.getQGISRedFolder() == os.path.join(xdg, "QGISRed")
 
+    # The installer folder is where the MSI/.deb/.pkg deploy dlls and defaults. It is the
+    # per-user folder on Windows only; on Linux/macOS the packages install machine-wide.
+    # These paths must match GISRed.Utils.PlatformPaths.InstallRoot on the C# side.
+
+    def test_getQGISRedInstallFolder_windows_is_the_user_folder(self, utils):
+        appdata = os.path.join(tempfile.gettempdir(), "AppData")
+        with patch("sys.platform", "win32"), patch.dict(os.environ, {"APPDATA": appdata}):
+            assert utils.getQGISRedInstallFolder() == utils.getQGISRedFolder()
+
+    def test_getQGISRedInstallFolder_macos_is_machine_wide(self, utils):
+        with patch("sys.platform", "darwin"):
+            assert utils.getQGISRedInstallFolder() == "/Library/Application Support/QGISRed"
+
+    def test_getQGISRedInstallFolder_linux_is_machine_wide(self, utils):
+        with patch("sys.platform", "linux"):
+            assert utils.getQGISRedInstallFolder() == "/opt/QGISRed"
+
     def test_getDefaultsFolder(self, utils):
-        assert utils.getDefaultsFolder() == os.path.join(utils.getQGISRedFolder(), APP_DATA_DEFAULT_FOLDER)
+        assert utils.getDefaultsFolder() == os.path.join(utils.getQGISRedInstallFolder(), INSTALL_DEFAULTS_FOLDER)
+
+    def test_getDefaultsFolder_linux_is_machine_wide(self, utils):
+        with patch("sys.platform", "linux"):
+            assert utils.getDefaultsFolder() == os.path.join("/opt/QGISRed", INSTALL_DEFAULTS_FOLDER)
 
     def test_getMaterialsFolder(self, utils):
         assert utils.getMaterialsFolder() == os.path.join(utils.getQGISRedFolder(), APP_DATA_MATERIALS_FOLDER)
 
-    def test_getGISRedDllFolder_windows_x64(self, utils):
-        appdata = os.path.join(tempfile.gettempdir(), "AppData")
-        with patch("sys.platform", "win32"), patch.dict(os.environ, {"APPDATA": appdata}), \
-                patch("platform.architecture", return_value=("64bit", "WindowsPE")):
-            assert utils.getGISRedDllFolder() == os.path.join(appdata, "QGISRed", "dlls", "x64")
+    def test_getMaterialsFolder_linux_stays_per_user(self, utils):
+        # Material tables are user data, so they never move to the machine-wide folder.
+        xdg = os.path.join(tempfile.gettempdir(), "config")
+        with patch("sys.platform", "linux"), patch.dict(os.environ, {"XDG_CONFIG_HOME": xdg}):
+            assert utils.getMaterialsFolder() == os.path.join(xdg, "QGISRed", APP_DATA_MATERIALS_FOLDER)
 
-    def test_getGISRedDllFolder_windows_x86(self, utils):
+    def test_getGISRedDllFolder_windows_x64(self, utils):
+        # QGIS is 64-bit only, so Windows always resolves to x64 - there is no x86 build.
         appdata = os.path.join(tempfile.gettempdir(), "AppData")
-        with patch("sys.platform", "win32"), patch.dict(os.environ, {"APPDATA": appdata}), \
-                patch("platform.architecture", return_value=("32bit", "WindowsPE")):
-            assert utils.getGISRedDllFolder() == os.path.join(appdata, "QGISRed", "dlls", "x86")
+        with patch("sys.platform", "win32"), patch.dict(os.environ, {"APPDATA": appdata}):
+            assert utils.getGISRedDllFolder() == os.path.join(appdata, "QGISRed", "dlls", "x64")
 
     def test_getGISRedDllFolder_macos(self, utils):
         with patch("sys.platform", "darwin"):
-            expected = os.path.join(utils.getQGISRedFolder(), "dlls", "osx")
+            expected = os.path.join("/Library/Application Support/QGISRed", "dlls", "osx")
             assert utils.getGISRedDllFolder() == expected
 
     def test_getGISRedDllFolder_linux_x64(self, utils):
         with patch("sys.platform", "linux"), patch("platform.machine", return_value="x86_64"):
-            expected = os.path.join(utils.getQGISRedFolder(), "dlls", "x64")
+            expected = os.path.join("/opt/QGISRed", "dlls", "x64")
             assert utils.getGISRedDllFolder() == expected
 
     def test_getGISRedDllFolder_linux_arm64(self, utils):
         with patch("sys.platform", "linux"), patch("platform.machine", return_value="aarch64"):
-            expected = os.path.join(utils.getQGISRedFolder(), "dlls", "arm64")
+            expected = os.path.join("/opt/QGISRed", "dlls", "arm64")
             assert utils.getGISRedDllFolder() == expected
 
     def test_removeFolder(self, utils):

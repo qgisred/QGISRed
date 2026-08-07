@@ -20,7 +20,7 @@ DIR_AUXILIARY_LAYERS  = "Auxiliary Layers"
 DIR_DEMAND_BUILDER     = "DemandBuilder"
 DIR_BACKUPS           = "backups"
 
-APP_DATA_DEFAULT_FOLDER   = "defaults"
+INSTALL_DEFAULTS_FOLDER   = "defaults"
 APP_DATA_MATERIALS_FOLDER = "materials"
 ELEMENT_LAYERS = [
     "Pipes",
@@ -95,6 +95,8 @@ class QGISRedFileSystemUtils:
         return self.getUniformedPath(os.path.join(folder, fileName))
 
     def getQGISRedFolder(self):
+        """Per-user folder: everything the plugin writes on behalf of this user (project list,
+        global styles, material tables, temp-folder registry...). Always under the user's home."""
         import sys
         if sys.platform == "win32":
             appdata = os.getenv("APPDATA") or os.path.join(os.path.expanduser("~"), "AppData", "Roaming")
@@ -105,12 +107,28 @@ class QGISRedFileSystemUtils:
             xdg = os.getenv("XDG_CONFIG_HOME") or os.path.join(os.path.expanduser("~"), ".config")
             return os.path.join(xdg, "QGISRed")
 
+    def getQGISRedInstallFolder(self):
+        """Folder where the dependencies installer deploys its read-only assets (dlls, defaults).
+
+        On Windows the MSI installs per-user, so it is the same folder as getQGISRedFolder(). On
+        Linux and macOS the .deb and .pkg install as root, machine-wide. Must stay in sync with
+        GISRed.Utils.PlatformPaths.InstallRoot on the C# side: both read the very same files.
+        """
+        import sys
+        if sys.platform == "win32":
+            return self.getQGISRedFolder()
+        elif sys.platform == "darwin":
+            return "/Library/Application Support/QGISRed"
+        else:
+            return "/opt/QGISRed"
+
     def getDefaultsFolder(self):
-        """Application-data folder with the defaults installed for every project."""
-        return os.path.join(self.getQGISRedFolder(), APP_DATA_DEFAULT_FOLDER)
+        """Installer-deployed folder with the defaults shared by every project (units/decimals
+        CSV and the Materials_*.dbf tables). Read-only: not writable on Linux/macOS."""
+        return os.path.join(self.getQGISRedInstallFolder(), INSTALL_DEFAULTS_FOLDER)
 
     def getMaterialsFolder(self):
-        """Application-data folder with the user's own material tables."""
+        """Per-user folder with the user's own material tables (written by the C# side)."""
         return os.path.join(self.getQGISRedFolder(), APP_DATA_MATERIALS_FOLDER)
 
     def getMaterialFiles(self):
@@ -125,15 +143,16 @@ class QGISRedFileSystemUtils:
         return result
 
     def getGISRedDllFolder(self):
+        """Installer-deployed folder with the native libraries for this platform."""
         import sys
         if sys.platform == "darwin":
             subdir = "osx"
         elif sys.platform == "win32":
-            subdir = "x64" if "64bit" in str(platform.architecture()) else "x86"
+            subdir = "x64"  # QGIS has shipped 64-bit only for many versions; no x86 build exists
         else:
             machine = platform.machine()
             subdir = "arm64" if machine in ("aarch64", "arm64") else "x64"
-        return os.path.join(self.getQGISRedFolder(), "dlls", subdir)
+        return os.path.join(self.getQGISRedInstallFolder(), "dlls", subdir)
 
     def getDownloadsFolder(self):
         """Returns the user's Downloads folder (cross-platform), falling back to the home folder."""
