@@ -18,14 +18,10 @@ DIR_DEMAND_SECTORS    = "DemandSectors"
 DIR_ISOLATED_SEGMENTS = "IsolatedSegments"
 DIR_AUXILIARY_LAYERS  = "Auxiliary Layers"
 DIR_DEMAND_BUILDER     = "DemandBuilder"
-# Legacy folder of the removed "Project backup" command. Kept as a constant because existing
-# installations still have it on disk: it must keep being renamed with the project, and it must
-# never be copied into an export.
 DIR_BACKUPS           = "backups"
 
-# The element layers QGISRed generates, named after their shapefile suffix
-# ({NetworkName}_{name}.shp). Single source of truth for "which files make up a network":
-# lowercased, each one is also its qgisred_identifier suffix.
+APP_DATA_DEFAULT_FOLDER   = "defaults"
+APP_DATA_MATERIALS_FOLDER = "materials"
 ELEMENT_LAYERS = [
     "Pipes",
     "Junctions",
@@ -109,12 +105,18 @@ class QGISRedFileSystemUtils:
             xdg = os.getenv("XDG_CONFIG_HOME") or os.path.join(os.path.expanduser("~"), ".config")
             return os.path.join(xdg, "QGISRed")
 
+    def getDefaultsFolder(self):
+        """Application-data folder with the defaults installed for every project."""
+        return os.path.join(self.getQGISRedFolder(), APP_DATA_DEFAULT_FOLDER)
+
+    def getMaterialsFolder(self):
+        """Application-data folder with the user's own material tables."""
+        return os.path.join(self.getQGISRedFolder(), APP_DATA_MATERIALS_FOLDER)
+
     def getMaterialFiles(self):
-        """Returns a list of (name, path) tuples for all .dbf files in global_defaults and materials folders."""
+        """Returns a list of (name, path) tuples for all .dbf files in defaults and materials folders."""
         result = []
-        root = self.getQGISRedFolder()
-        for subfolder in ("global_defaults", "materials"):
-            folder = os.path.join(root, subfolder)
+        for folder in (self.getDefaultsFolder(), self.getMaterialsFolder()):
             if not os.path.isdir(folder):
                 continue
             for fname in sorted(os.listdir(folder)):

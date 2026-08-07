@@ -545,7 +545,7 @@ class QGISRedFieldUtils:
             return cached
 
         _CSV_FILENAME = "qgisred_properties_units_decimals.csv"
-        globalDir = os.path.join(QGISRedFileSystemUtils().getQGISRedFolder(), "global_defaults")
+        globalDir = QGISRedFileSystemUtils().getDefaultsFolder()
         csvPath = os.path.join(globalDir, _CSV_FILENAME)
         fallback = os.path.join(_plugin_root(), "defaults", _CSV_FILENAME)
         if os.path.exists(fallback):

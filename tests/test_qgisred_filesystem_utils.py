@@ -3,7 +3,11 @@ import os
 import shutil
 import tempfile
 from unittest.mock import patch
-from QGISRed.tools.utils.qgisred_filesystem_utils import QGISRedFileSystemUtils
+from QGISRed.tools.utils.qgisred_filesystem_utils import (
+    APP_DATA_DEFAULT_FOLDER,
+    APP_DATA_MATERIALS_FOLDER,
+    QGISRedFileSystemUtils,
+)
 
 
 class TestFileSystemUtils:
@@ -45,6 +49,12 @@ class TestFileSystemUtils:
         xdg = os.path.join(tempfile.gettempdir(), "config")
         with patch("sys.platform", "linux"), patch.dict(os.environ, {"XDG_CONFIG_HOME": xdg}):
             assert utils.getQGISRedFolder() == os.path.join(xdg, "QGISRed")
+
+    def test_getDefaultsFolder(self, utils):
+        assert utils.getDefaultsFolder() == os.path.join(utils.getQGISRedFolder(), APP_DATA_DEFAULT_FOLDER)
+
+    def test_getMaterialsFolder(self, utils):
+        assert utils.getMaterialsFolder() == os.path.join(utils.getQGISRedFolder(), APP_DATA_MATERIALS_FOLDER)
 
     def test_getGISRedDllFolder_windows_x64(self, utils):
         appdata = os.path.join(tempfile.gettempdir(), "AppData")

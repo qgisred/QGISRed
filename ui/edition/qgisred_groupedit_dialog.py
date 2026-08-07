@@ -141,7 +141,7 @@ _nullFilterData = "__qgisred_null__"
 # Free-text fields keep a typed value (no unique-value combobox) and default to ILIKE.
 _freeTextFields = {"Descrip", "InstalDate", "InstDate", "Time", "Time_H", "Time_Q", "Time_D"}
 
-# Fields whose Do value offers a combobox sourced from a global_defaults DBF instead of a typed input.
+# Fields whose Do value offers a combobox sourced from a defaults DBF instead of a typed input.
 _materialFields = {"Material"}
 
 # Curve reference fields -> required curve type, used to list only matching declared curves from
@@ -740,7 +740,7 @@ class QGISRedGroupEditDialog(QDialog, FORM_CLASS):
         if fieldName not in _materialFields:
             return []
         language = "es" if QgsApplication.locale()[0:2] == "es" else "en"
-        folder = os.path.join(QGISRedFileSystemUtils().getQGISRedFolder(), "global_defaults")
+        folder = QGISRedFileSystemUtils().getDefaultsFolder()
         path = os.path.join(folder, "Materials_%s.dbf" % language)
         if not os.path.exists(path):
             return []
