@@ -303,12 +303,10 @@ class QGISRedThematicMapsDialog(QDialog, FORM_CLASS):
         def syncDerivedLayer():
             if sip.isdeleted(derivedLayer):
                 self.safeDisconnect(mainLayer.dataChanged, syncDerivedLayer)
-                self.safeDisconnect(mainLayer.styleChanged, syncDerivedLayer)
                 return
             self.syncLayers(mainLayer, derivedLayer)
 
         mainLayer.dataChanged.connect(syncDerivedLayer)
-        mainLayer.styleChanged.connect(syncDerivedLayer)
         derivedLayer.dataChanged.connect(lambda: derivedLayer.triggerRepaint())
         derivedLayer.setReadOnly(True)
 
@@ -331,9 +329,9 @@ class QGISRedThematicMapsDialog(QDialog, FORM_CLASS):
         return None, None
 
     def syncLayers(self, mainLayer, derivedLayer):
+        # Only refresh the derived layer's data; its thematic symbology must survive
+        # any change made to the input layer.
         derivedLayer.dataProvider().forceReload()
-        newRenderer = mainLayer.renderer().clone()
-        derivedLayer.setRenderer(newRenderer)
         derivedLayer.triggerRepaint()
 
     def safeDisconnect(self, signal, slot):
@@ -391,12 +389,6 @@ class QGISRedThematicMapsDialog(QDialog, FORM_CLASS):
             labelSettings = labeling.clone()
             labelSettings.fieldName = field
             layer.setLabeling(labelSettings)
-
-    def syncSymbology(self, mainLayer, derivedLayer):
-        if derivedLayer and mainLayer:
-            newRenderer = mainLayer.renderer().clone()
-            derivedLayer.setRenderer(newRenderer)
-            derivedLayer.triggerRepaint()
 
     def setLabelsWithNullHandling(self, layer, fieldName, qmlFilePath):
         if not layer or not isinstance(layer, QgsVectorLayer):

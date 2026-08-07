@@ -34,6 +34,7 @@ from qgis.gui import QgsFilterLineEdit, QgsHighlight
 from ...compat import QAction, sip
 from ...tools.utils.qgisred_field_utils import QGISRedFieldUtils, normalize_element
 from ...tools.utils.qgisred_filesystem_utils import QGISRedFileSystemUtils
+from ...tools.utils.qgisred_layer_utils import QGISRedLayerUtils
 from ...tools.utils.qgisred_project_utils import QGISRedProjectUtils
 from ...tools.utils.qgisred_ui_utils import QGISRedBanner, QGISRED_COMBO_STYLE, QGISRedUIUtils
 from ...tools.utils.qgisred_valve_types import getValveTypeName
@@ -1462,11 +1463,19 @@ class QGISRedGroupEditDialog(QDialog, FORM_CLASS):
                                         self.tr("Failed to commit changes: %s") % "; ".join(layer.commitErrors()),
                                         level=2, duration=8)
                 return
+        self._refreshThematicMaps()
         self.editedLayers = []
         self._removePreviewHighlights()
         self._disconnectCountSignals()
         self._disconnectProjectSignals()
         self.accept()
+
+    def _refreshThematicMaps(self):
+        with suppress(Exception):
+            utils = QGISRedLayerUtils(self.ProjectDirectory, self.NetworkName, self.iface)
+            fs = QGISRedFileSystemUtils(self.ProjectDirectory, self.NetworkName, self.iface)
+            for layer in self.editedLayers:
+                utils.refreshThematicMapLayers(fs.getLayerPath(layer))
 
     def _hasPendingChanges(self):
         for layer in self.editedLayers:

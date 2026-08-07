@@ -5,7 +5,7 @@ from qgis.PyQt.QtCore import QCoreApplication, QTimer
 from qgis.core import (
     QgsProject, QgsLayerTreeGroup, QgsLayerTreeLayer,
     QgsVectorLayer, QgsCoordinateReferenceSystem, QgsDataProvider,
-    QgsAttributeTableConfig
+    QgsAttributeTableConfig, QgsCategorizedSymbolRenderer
 )
 
 
@@ -475,9 +475,45 @@ class QGISRedLayerUtils:
             layer.updateFields()
             layer.updateExtents()
             layer.triggerRepaint()
-            return layer
+        self.refreshThematicMapLayers(layerPath)
+        return layer
 
-        return None
+    def refreshThematicMapLayers(self, layerPath):
+        """Reload and repaint open thematic-map layers whose source file is *layerPath*.
+        They share the shapefile with an input layer, so an edit committed to that file
+        must reach them too; only their data cache is refreshed, never their symbology."""
+        from contextlib import suppress
+
+        fs = self._fs()
+        identifiers = self._identifiers()
+        layerPath = fs.getUniformedPath(layerPath)
+        for layer in self.getLayers():
+            with suppress(Exception):
+                if not identifiers.isThematicMapsLayer(layer):
+                    continue
+                if fs.getLayerPath(layer) != layerPath:
+                    continue
+                provider = layer.dataProvider()
+                if provider is not None:
+                    provider.reloadData()
+                layer.updateExtents()
+                with suppress(Exception):
+                    self._rebuildCategorizedThematicRenderer(layer)
+                layer.triggerRepaint()
+                with suppress(Exception):
+                    layer.countSymbolFeatures()
+
+    def _rebuildCategorizedThematicRenderer(self, layer):
+        """A categorized thematic map classifies by literal value, so a value first
+        introduced by an edit has no category yet and its feature would not be drawn.
+        Rebuild the categories from the current data; existing values keep the colours
+        saved in the layer's style file."""
+        if not isinstance(layer.renderer(), QgsCategorizedSymbolRenderer):
+            return
+        field = layer.customProperty("query_field")
+        if not field:
+            return
+        self._styling().applyCategorizedRenderer(layer, field, layer.customProperty("styleURI"))
 
     def _reloadOpenLayer(self, layerName):
         """Reload OGR data for an already-open network layer (file was overwritten in-place)."""
