@@ -1,7 +1,9 @@
 # -*- coding: utf-8 -*-
 import os
 
-from qgis.PyQt.QtWidgets import QDialog, QFileDialog, QMessageBox, QTableWidgetItem, QHeaderView
+from qgis.PyQt.QtWidgets import (
+    QDialog, QFileDialog, QMessageBox, QTreeWidgetItem, QHeaderView, QCheckBox,
+)
 from qgis.PyQt.QtCore import Qt
 from qgis.PyQt import uic
 
@@ -12,14 +14,6 @@ from ...tools.utils.qgisred_project_export import (
 )
 
 FORM_CLASS, _ = uic.loadUiType(os.path.join(os.path.dirname(__file__), "qgisred_exportproject_dialog.ui"))
-
-# Content-group key → checkbox object name in the .ui
-GROUP_CHECKBOXES = {
-    "results": "cbResults",
-    "issues": "cbIssues",
-    "queries": "cbQueries",
-    "auxiliary": "cbAuxiliary",
-}
 
 
 class QGISRedExportProjectDialog(QDialog, FORM_CLASS):
@@ -37,7 +31,10 @@ class QGISRedExportProjectDialog(QDialog, FORM_CLASS):
         self._plan = plan
         self._package = package or QGISRedProjectPackage(plan.projectDirectory, plan.networkName)
         self._warningsConfirmed = False
-        self._externalRows = []
+        self._groupCheckboxes = {}   # content-group key -> QCheckBox, built in _fillContentGroups
+        self._groupNodes = {}        # groupPath tuple -> QTreeWidgetItem, built in _fillExternalData
+        self._layerNodes = []        # (QTreeWidgetItem, ExternalItem)
+        self._updatingTree = False   # guards the itemChanged signal while propagating ticks
 
         self.messageBar = QGISRedBanner.inject(self, self.verticalLayout)
 
@@ -50,8 +47,6 @@ class QGISRedExportProjectDialog(QDialog, FORM_CLASS):
 
         self.btSelectFolder.clicked.connect(self.selectFolder)
         self.cbIncludeExternalData.toggled.connect(self._onMasterToggled)
-        for objectName in GROUP_CHECKBOXES.values():
-            getattr(self, objectName).toggled.connect(self._onSelectionChanged)
         self.tbZipName.textChanged.connect(self._resetWarnings)
         self.buttonBox.accepted.connect(self._onAccepted)
         self.buttonBox.rejected.connect(self.reject)
@@ -83,20 +78,22 @@ class QGISRedExportProjectDialog(QDialog, FORM_CLASS):
 
     @property
     def includeGroups(self):
-        return {key for key, name in GROUP_CHECKBOXES.items() if getattr(self, name).isChecked()}
+        return {key for key, checkbox in self._groupCheckboxes.items() if checkbox.isChecked()}
 
     @property
     def externalSources(self):
-        """The source paths the user ticked, one per complementary layer."""
+        """The source paths the user ticked. Nodes sharing a file are kept in step, so reading any
+        of them is enough."""
         return {
             item.source
-            for row, item in enumerate(self._externalRows)
-            if self._isRowChecked(row)
+            for node, item in self._layerNodes
+            if node.checkState(0) == Qt.CheckState.Checked
         }
 
     @property
     def includeExternalData(self):
-        return bool(self.externalSources)
+        """The gate. With it off nothing complementary travels, whatever the tree still shows."""
+        return self.cbIncludeExternalData.isChecked() and bool(self.externalSources)
 
     @property
     def openFolder(self):
@@ -111,126 +108,197 @@ class QGISRedExportProjectDialog(QDialog, FORM_CLASS):
         return QGISRedUIUtils.formatSize(sizeBytes)
 
     def _fillContentGroups(self):
+        """Builds one checkbox per content group. The set of folders is discovered per project, so
+        the checkboxes are created here rather than declared in the .ui."""
         self.lbBaseLayers.setText(
             self.tr("Base layers — always included (%1 files, %2)")
             .replace("%1", str(self._plan.baseFileCount))
             .replace("%2", self._formatSize(self._plan.baseSizeBytes))
         )
-        groupsByKey = {g.key: g for g in self._plan.contentGroups}
-        for key, objectName in GROUP_CHECKBOXES.items():
-            checkbox = getattr(self, objectName)
-            group = groupsByKey.get(key)
-            label = group.dirName if group else key
-            if group is None or not group.exists:
+        for group in self._plan.contentGroups:
+            checkbox = QCheckBox(self.gbContent)
+            if group.exists:
+                checkbox.setChecked(group.key in self._plan.includeGroups)
+                checkbox.setText(
+                    self.tr("%1 (%2 files, %3)")
+                    .replace("%1", group.dirName)
+                    .replace("%2", str(group.fileCount))
+                    .replace("%3", self._formatSize(group.sizeBytes))
+                )
+            else:
                 checkbox.setChecked(False)
                 checkbox.setEnabled(False)
-                checkbox.setText(self.tr("%1 — no data").replace("%1", label))
-                continue
-            checkbox.setChecked(key in self._plan.includeGroups)
-            checkbox.setEnabled(True)
-            checkbox.setText(
-                self.tr("%1 (%2 files, %3)")
-                .replace("%1", label)
-                .replace("%2", str(group.fileCount))
-                .replace("%3", self._formatSize(group.sizeBytes))
-            )
+                checkbox.setText(self.tr("%1 — no data").replace("%1", group.dirName))
+            checkbox.toggled.connect(self._onSelectionChanged)
+            self.verticalLayoutContent.addWidget(checkbox)
+            self._groupCheckboxes[group.key] = checkbox
 
     def _fillExternalData(self):
+        """Mirrors the QGIS layers panel: the complementary layers in their own group hierarchy,
+        so they can be picked one by one or a whole group at a time."""
         items = [i for i in self._plan.externalItems if i.scope != SCOPE_REMOTE]
-        self._externalRows = items
         if not items:
             self.gbExternal.setVisible(False)
             return
 
-        table = self.twExternalData
-        table.setColumnCount(3)
-        table.setHorizontalHeaderLabels([self.tr("Layer"), self.tr("Location"), self.tr("Status")])
-        table.setRowCount(len(items))
-        table.verticalHeader().setVisible(False)
-        for row, item in enumerate(items):
-            exportable = item.scope != SCOPE_OUTSIDE
+        tree = self.twExternalData
+        tree.setHeaderLabels([self.tr("Layer"), self.tr("Location"), self.tr("Status")])
+        self._groupNodes = {}      # groupPath tuple -> QTreeWidgetItem
+        self._layerNodes = []      # (QTreeWidgetItem, ExternalItem)
 
-            # The tick lives in the Layer cell: one checkbox per layer, so a 2 GB DTM can be left
-            # out while the small cartography still travels.
-            layerCell = QTableWidgetItem(item.displayName)
-            flags = Qt.ItemFlag.ItemIsSelectable | Qt.ItemFlag.ItemIsEnabled
-            if exportable:
-                flags |= Qt.ItemFlag.ItemIsUserCheckable
-            layerCell.setFlags(flags)
-            layerCell.setCheckState(Qt.CheckState.Checked if exportable else Qt.CheckState.Unchecked)
-            layerCell.setToolTip(item.displayName)
-            table.setItem(row, 0, layerCell)
+        for item in items:
+            for groupPath, layerName in (item.placements or [((), item.displayName)]):
+                node = QTreeWidgetItem(self._groupNodeFor(groupPath))
+                node.setText(0, layerName)
+                node.setText(1, item.source)
+                node.setToolTip(0, layerName)
+                node.setToolTip(1, item.source)   # the cell elides; the tooltip never does
+                if item.scope == SCOPE_OUTSIDE:
+                    # Greyed out, not merely unresponsive: the row has to look as inert as it is
+                    node.setFlags(Qt.ItemFlag.NoItemFlags)
+                    node.setCheckState(0, Qt.CheckState.Unchecked)
+                else:
+                    node.setFlags(Qt.ItemFlag.ItemIsSelectable | Qt.ItemFlag.ItemIsEnabled
+                                  | Qt.ItemFlag.ItemIsUserCheckable)
+                    node.setCheckState(0, Qt.CheckState.Checked)
+                self._layerNodes.append((node, item))
 
-            locationCell = QTableWidgetItem(item.source)
-            locationCell.setToolTip(item.source)  # the cell elides; the tooltip never does
-            table.setItem(row, 1, locationCell)
-
-            statusCell = QTableWidgetItem("")
-            table.setItem(row, 2, statusCell)
-
-        # Status text must exist before sizing, or ResizeToContents measures an empty column.
         self._refreshExternalStatus()
-        # Every row may be out of scope, in which case the master must not look checked.
-        self._syncMasterCheckbox()
-        header = table.horizontalHeader()
+        self._refreshGroupCheckStates()
+        hasSelectable = any(i.scope != SCOPE_OUTSIDE for _n, i in self._layerNodes)
+        self.cbIncludeExternalData.blockSignals(True)
+        self.cbIncludeExternalData.setChecked(hasSelectable)
+        self.cbIncludeExternalData.blockSignals(False)
+        self.cbIncludeExternalData.setToolTip(
+            "" if hasSelectable else
+            self.tr("None of the complementary layers can be exported from their current location.")
+        )
+        tree.setEnabled(self.cbIncludeExternalData.isChecked())
+        tree.expandAll()
+        header = tree.header()
         header.setSectionResizeMode(0, QHeaderView.ResizeMode.ResizeToContents)
         header.setSectionResizeMode(1, QHeaderView.ResizeMode.Stretch)
         header.setSectionResizeMode(2, QHeaderView.ResizeMode.ResizeToContents)
-        table.itemChanged.connect(self._onExternalItemChanged)
+        tree.itemChanged.connect(self._onExternalItemChanged)
+
+    def _groupNodeFor(self, groupPath):
+        """Returns (creating if needed) the node for a group path; the tree root for an empty one."""
+        parent = self.twExternalData.invisibleRootItem()
+        path = ()
+        for name in groupPath:
+            path = path + (name,)
+            node = self._groupNodes.get(path)
+            if node is None:
+                node = QTreeWidgetItem(parent)
+                node.setText(0, name)
+                node.setFlags(Qt.ItemFlag.ItemIsSelectable | Qt.ItemFlag.ItemIsEnabled
+                              | Qt.ItemFlag.ItemIsUserCheckable)
+                node.setCheckState(0, Qt.CheckState.Checked)
+                self._groupNodes[path] = node
+            parent = node
+        return parent
+
+    def _layerNodesUnder(self, groupNode):
+        return [(node, item) for node, item in self._layerNodes if self._isDescendant(node, groupNode)]
+
+    @staticmethod
+    def _isDescendant(node, ancestor):
+        parent = node.parent()
+        while parent is not None:
+            if parent is ancestor:
+                return True
+            parent = parent.parent()
+        return False
 
     def _refreshExternalStatus(self):
         """Fills the Status column. Kept short — the long explanation goes in the tooltip."""
-        for row, item in enumerate(self._externalRows):
-            cell = self.twExternalData.item(row, 2)
-            if cell is None:
-                continue
-            if item.scope == SCOPE_OUTSIDE:
-                cell.setText(self.tr("Not exportable"))
-                cell.setToolTip(
-                    self.tr(
-                        "It is outside the project folder and its parent folder. Move it with the file "
-                        "explorer into the project folder (or next to it) and reopen the project to "
-                        "relink it."
-                    )
-                )
-            elif self._isRowChecked(row):
-                cell.setText(self.tr("Included"))
-                cell.setToolTip(self.tr("It will travel inside the ZIP file."))
+        gateOpen = self.cbIncludeExternalData.isChecked()
+        for node, item in self._layerNodes:
+            if not gateOpen and item.scope != SCOPE_OUTSIDE:
+                # The tick is preserved but nothing travels, so the column must not claim otherwise
+                node.setText(2, self.tr("Not included"))
+                node.setToolTip(2, self.tr("Whoever imports the project is expected to have it already."))
+            elif item.scope == SCOPE_OUTSIDE:
+                node.setText(2, self.tr("Not exportable"))
+                node.setToolTip(2, self.tr(
+                    "It is outside the project folder and its parent folder. Move it with the file "
+                    "explorer into the project folder (or next to it) and reopen the project to "
+                    "relink it."
+                ))
+            elif node.checkState(0) == Qt.CheckState.Checked:
+                node.setText(2, self.tr("Included"))
+                node.setToolTip(2, self.tr("It will travel inside the ZIP file."))
             else:
-                cell.setText(self.tr("Not included"))
-                cell.setToolTip(self.tr("Whoever imports the project is expected to have it already."))
+                node.setText(2, self.tr("Not included"))
+                node.setToolTip(2, self.tr("Whoever imports the project is expected to have it already."))
 
-    def _isRowChecked(self, row):
-        cell = self.twExternalData.item(row, 0)
-        return cell is not None and cell.checkState() == Qt.CheckState.Checked
+    def _refreshGroupCheckStates(self):
+        """A group reflects its layers: checked, unchecked, or partially checked."""
+        for node in self._groupNodes.values():
+            children = self._layerNodesUnder(node)
+            selectable = [n for n, i in children if i.scope != SCOPE_OUTSIDE]
+            if not selectable:
+                # Nothing under it can be exported, so the group is greyed out like its children
+                node.setFlags(Qt.ItemFlag.NoItemFlags)
+                node.setCheckState(0, Qt.CheckState.Unchecked)
+                continue
+            checked = [n for n in selectable if n.checkState(0) == Qt.CheckState.Checked]
+            if len(checked) == len(selectable):
+                state = Qt.CheckState.Checked
+            elif checked:
+                state = Qt.CheckState.PartiallyChecked
+            else:
+                state = Qt.CheckState.Unchecked
+            node.setCheckState(0, state)
 
-    def _setRowChecked(self, row, checked):
-        cell = self.twExternalData.item(row, 0)
-        if cell is None or not bool(cell.flags() & Qt.ItemFlag.ItemIsUserCheckable):
+    def _setNodeChecked(self, node, checked):
+        if not bool(node.flags() & Qt.ItemFlag.ItemIsUserCheckable):
             return
-        cell.setCheckState(Qt.CheckState.Checked if checked else Qt.CheckState.Unchecked)
+        node.setCheckState(0, Qt.CheckState.Checked if checked else Qt.CheckState.Unchecked)
 
-    def _onExternalItemChanged(self, item):
-        """A single layer was ticked or unticked: sync the master checkbox and the totals."""
-        if item.column() != 0:
+    def _onExternalItemChanged(self, node, column):
+        """Propagates a tick: groups drive their layers, and layers sharing a file stay in step."""
+        if column != 0 or self._updatingTree:
             return
-        self._syncMasterCheckbox()
+        self._updatingTree = True
+        try:
+            checked = node.checkState(0) == Qt.CheckState.Checked
+            groupPath = next((p for p, n in self._groupNodes.items() if n is node), None)
+            if groupPath is not None:
+                for child, _item in self._layerNodesUnder(node):
+                    self._setNodeChecked(child, checked)
+            else:
+                self._linkNodesSharingTheSameFile(node, checked)
+            self._refreshGroupCheckStates()
+            self._refreshExternalStatus()
+        finally:
+            self._updatingTree = False
         self._onSelectionChanged()
 
-    def _syncMasterCheckbox(self):
-        anyChecked = any(self._isRowChecked(row) for row in range(len(self._externalRows)))
-        if self.cbIncludeExternalData.isChecked() != anyChecked:
-            self.cbIncludeExternalData.blockSignals(True)
-            self.cbIncludeExternalData.setChecked(anyChecked)
-            self.cbIncludeExternalData.blockSignals(False)
+    def _linkNodesSharingTheSameFile(self, node, checked):
+        """A file travels or it does not, so every node pointing at it moves together.
+
+        Warns when unticking one that is also used elsewhere, since the other group loses it too.
+        """
+        item = next((i for n, i in self._layerNodes if n is node), None)
+        if item is None:
+            return
+        twins = [n for n, i in self._layerNodes if i is item and n is not node]
+        for twin in twins:
+            self._setNodeChecked(twin, checked)
+        if twins and not checked:
+            self.pushMessage(
+                self.tr("Warning"),
+                self.tr("'%1' is used in more than one group. Leaving it out removes it from all of them.")
+                .replace("%1", node.text(0)),
+                level=1,
+                duration=6,
+            )
 
     def _onMasterToggled(self, checked):
-        """The group checkbox is a select-all / select-none shortcut over the rows."""
-        table = self.twExternalData
-        table.blockSignals(True)
-        for row in range(len(self._externalRows)):
-            self._setRowChecked(row, checked)
-        table.blockSignals(False)
+        """The group checkbox gates the whole block: unticked, nothing is exported and the tree is
+        disabled. The per-layer ticks are left as they were, so they come back if it is re-enabled."""
+        self.twExternalData.setEnabled(checked)
         self._onSelectionChanged()
 
     def _refreshEstimate(self):

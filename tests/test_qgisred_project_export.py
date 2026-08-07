@@ -286,6 +286,115 @@ class TestCollectExternalData:
             shutil.rmtree(other, ignore_errors=True)
 
 
+QGS_TREE_TEMPLATE = """<?xml version="1.0" encoding="UTF-8"?>
+<qgis version="3.34.0">
+  <layer-tree-group>
+{tree}
+  </layer-tree-group>
+  <projectlayers>
+{layers}
+  </projectlayers>
+</qgis>
+"""
+
+TREE_LAYER = '      <layer-tree-layer id="{id}" name="{name}" source="{source}"/>'
+MAPLAYER_WITH_ID = """    <maplayer>
+      <id>{id}</id>
+      <datasource>{datasource}</datasource>
+      <layername>{name}</layername>
+    </maplayer>"""
+
+
+def _writeQgzWithTree(qgzPath, entries):
+    """entries: list of (groupPath tuple, layerName, datasource) — builds a real layer tree."""
+    treeLines = []
+    layerLines = []
+    openGroups = []
+
+    def closeTo(depth):
+        while len(openGroups) > depth:
+            openGroups.pop()
+            treeLines.append("    " + "  " * len(openGroups) + "</layer-tree-group>")
+
+    for index, (groupPath, name, source) in enumerate(entries):
+        common = 0
+        while common < min(len(groupPath), len(openGroups)) and groupPath[common] == openGroups[common]:
+            common += 1
+        closeTo(common)
+        for groupName in groupPath[common:]:
+            treeLines.append('    ' + "  " * len(openGroups) + '<layer-tree-group name="%s">' % groupName)
+            openGroups.append(groupName)
+        layerId = "L%d_id" % index
+        treeLines.append(TREE_LAYER.format(id=layerId, name=name, source=source))
+        layerLines.append(MAPLAYER_WITH_ID.format(id=layerId, datasource=source, name=name))
+    closeTo(0)
+
+    qgs = QGS_TREE_TEMPLATE.format(tree="\n".join(treeLines), layers="\n".join(layerLines))
+    os.makedirs(os.path.dirname(qgzPath), exist_ok=True)
+    with ZipFile(qgzPath, "w", ZIP_DEFLATED) as zout:
+        zout.writestr(os.path.basename(qgzPath).replace(".qgz", ".qgs"), qgs)
+    return qgzPath
+
+
+class TestLayerTreePlacement:
+    """The dialog mirrors the QGIS layers panel, and the hierarchy comes from the same .qgz we
+    already parse — so it works for projects that are not open."""
+
+    def _project(self, workspace, entries):
+        projectDir = os.path.join(workspace, NET)
+        _touch(os.path.join(projectDir, NET + "_Pipes.shp"))
+        qgzPath = _writeQgzWithTree(os.path.join(projectDir, NET + ".qgz"), entries)
+        _touch(os.path.join(projectDir, NET + "_Metadata.txt"),
+               METADATA_TEMPLATE.format(qgis=NET + ".qgz"))
+        return projectDir, qgzPath
+
+    def test_group_path_is_recovered_from_the_tree(self, workspace):
+        _touch(os.path.join(workspace, "Carto", "roads.shp"))
+        _touch(os.path.join(workspace, "DTM", "mdt.tif"))
+        projectDir, _ = self._project(workspace, [
+            (("Externas", "Cartografia"), "Roads", "../Carto/roads.shp"),
+            (("Externas",), "MDT", "../DTM/mdt.tif"),
+        ])
+        items = {i.displayName: i for i in
+                 QGISRedProjectPackage(projectDir, NET).inspectForExport().externalItems}
+
+        assert items["Roads"].placements == [(("Externas", "Cartografia"), "Roads")]
+        assert items["MDT"].placements == [(("Externas",), "MDT")]
+
+    def test_nested_groups_keep_their_full_path(self, workspace):
+        _touch(os.path.join(workspace, "Carto", "roads.shp"))
+        projectDir, _ = self._project(workspace, [
+            (("A", "B", "C"), "Roads", "../Carto/roads.shp"),
+        ])
+        items = QGISRedProjectPackage(projectDir, NET).inspectForExport().externalItems
+        assert items[0].placements == [(("A", "B", "C"), "Roads")]
+
+    def test_one_file_in_two_groups_keeps_both_placements(self, workspace):
+        """It is still a single ExternalItem — the file travels once — but the dialog shows it in
+        both groups, as the layers panel does."""
+        _touch(os.path.join(workspace, "Carto", "roads.shp"))
+        projectDir, _ = self._project(workspace, [
+            (("Grupo A",), "Roads A", "../Carto/roads.shp"),
+            (("Grupo B",), "Roads B", "../Carto/roads.shp"),
+        ])
+        items = QGISRedProjectPackage(projectDir, NET).inspectForExport().externalItems
+
+        assert len(items) == 1
+        assert items[0].placements == [(("Grupo A",), "Roads A"), (("Grupo B",), "Roads B")]
+
+    def test_a_layer_outside_any_group_sits_at_the_root(self, workspace):
+        _touch(os.path.join(workspace, "Carto", "roads.shp"))
+        projectDir, _ = self._project(workspace, [((), "Roads", "../Carto/roads.shp")])
+        items = QGISRedProjectPackage(projectDir, NET).inspectForExport().externalItems
+        assert items[0].placements == [((), "Roads")]
+
+    def test_the_projects_own_layers_never_reach_the_tree(self, workspace):
+        projectDir, _ = self._project(workspace, [
+            (("Datos",), "Pipes", "./" + NET + "_Pipes.shp"),
+        ])
+        assert QGISRedProjectPackage(projectDir, NET).inspectForExport().externalItems == []
+
+
 class TestContentGroups:
     def test_only_groups_with_data_are_detected(self, workspace):
         projectDir, _ = _makeProject(workspace, qgzAt="project", groups=["Results", "Issues"])
@@ -311,6 +420,56 @@ class TestContentGroups:
         groups = QGISRedProjectPackage(projectDir, NET).inspectContentGroups()
         assert "backups" not in [g.dirName for g in groups]
         assert all(not g.exists for g in groups)
+
+    def test_an_unexpected_folder_is_discovered_and_offered(self, workspace):
+        """Real case: the DLL renamed its output folder, so a project can carry both
+        "Auxiliary Layers" and a legacy "AuxiliaryLayers". A hardcoded list of four names would
+        ship the legacy one with no checkbox, no way to leave it out and no weight in the total."""
+        projectDir, _ = _makeProject(workspace, qgzAt="project", groups=["Auxiliary Layers"])
+        _touch(os.path.join(projectDir, "AuxiliaryLayers", "DemandSectors",
+                            NET + "_DemSect_Frontiers.shp"))
+        groups = {g.key: g for g in QGISRedProjectPackage(projectDir, NET).inspectContentGroups()}
+
+        assert "AuxiliaryLayers" in groups
+        assert groups["AuxiliaryLayers"].exists
+        assert groups["AuxiliaryLayers"].fileCount == 1
+        # and it did not get merged into the known, differently spelled group
+        assert groups["auxiliary"].dirName == "Auxiliary Layers"
+        assert groups["auxiliary"].fileCount == 1
+
+    def test_the_known_groups_are_always_listed_even_when_empty(self, workspace):
+        projectDir, _ = _makeProject(workspace, qgzAt="project")
+        groups = QGISRedProjectPackage(projectDir, NET).inspectContentGroups()
+        assert [g.key for g in groups] == ["results", "issues", "queries", "auxiliary"]
+        assert all(not g.exists for g in groups)
+
+    def test_a_stray_folder_without_project_files_is_not_offered(self, workspace):
+        projectDir, _ = _makeProject(workspace, qgzAt="project")
+        _touch(os.path.join(projectDir, "notes", "readme.txt"))
+        _touch(os.path.join(projectDir, "OtherNet", "OtherNet_Pipes.shp"))
+        keys = [g.key for g in QGISRedProjectPackage(projectDir, NET).inspectContentGroups()]
+        assert "notes" not in keys        # no files of this network
+        assert "OtherNet" not in keys     # files, but of another network
+
+    def test_backups_is_never_discovered(self, workspace):
+        projectDir, _ = _makeProject(workspace, qgzAt="project")
+        _touch(os.path.join(projectDir, "backups", NET + "_123.zip"))
+        keys = [g.key for g in QGISRedProjectPackage(projectDir, NET).inspectContentGroups()]
+        assert "backups" not in keys
+
+    def test_a_discovered_group_can_be_excluded(self, workspace):
+        projectDir, _ = _makeProject(workspace, qgzAt="project")
+        _touch(os.path.join(projectDir, "AuxiliaryLayers", NET + "_DemSect.shp"))
+        zipPath = os.path.join(workspace, "out", "export.zip")
+        package = QGISRedProjectPackage(projectDir, NET)
+
+        ok, reason, manifest = package.exportToZip(zipPath, includeGroups=set())
+        assert ok, reason
+        with ZipFile(zipPath, "r") as z:
+            names = z.namelist()
+        assert not any(name.startswith("AuxiliaryLayers/") for name in names)
+        assert "AuxiliaryLayers" in manifest["omittedGroups"]
+        assert NET + "_Pipes.shp" in names   # base layers still travel
 
     def test_base_files_are_counted_apart(self, workspace):
         projectDir, _ = _makeProject(workspace, qgzAt="project", groups=["Results"])
@@ -575,6 +734,19 @@ class TestPerLayerExternalSelection:
         )
         assert os.path.exists(dtm)  # nothing was moved or removed by planning
 
+    def test_the_gate_wins_over_the_per_layer_ticks(self, workspace):
+        """The dialog's "include complementary data" checkbox disables the tree but keeps the ticks,
+        so the engine must export nothing when it is off, whatever selection it is handed."""
+        projectDir, _dtm, roads = self._twoExternals(workspace)
+        package = QGISRedProjectPackage(projectDir, NET)
+        plan = package.inspectForExport()
+
+        package.applySelection(plan, False, plan.includeGroups, externalSources={roads})
+
+        assert plan.selectedExternalItems == []
+        assert plan.includeExternal is False
+        assert plan.structure == STRUCTURE_PROJECT   # no sibling travels, so no need for B
+
     def test_out_of_scope_items_can_never_be_selected(self, workspace):
         other = tempfile.mkdtemp()
         try:
@@ -810,11 +982,6 @@ class TestExportDialogWiring:
     MagicMock and any assertion would be vacuous). These check the two invariants that would
     otherwise only blow up at runtime: the checkbox map and the .ui widget names."""
 
-    def test_every_content_group_has_a_checkbox(self):
-        from QGISRed.tools.utils.qgisred_project_export import CONTENT_GROUPS
-        from QGISRed.ui.general.qgisred_exportproject_dialog import GROUP_CHECKBOXES
-        assert sorted(GROUP_CHECKBOXES) == sorted(key for key, _dirName in CONTENT_GROUPS)
-
     def test_the_ui_declares_every_widget_the_dialog_uses(self):
         import re
         uiPath = os.path.join(os.path.dirname(os.path.dirname(os.path.abspath(__file__))),
@@ -823,11 +990,21 @@ class TestExportDialogWiring:
             declared = set(re.findall(r'name="(\w+)"', f.read()))
         needed = {
             "tbZipName", "tbTargetFolder", "btSelectFolder", "cbOpenFolder", "buttonBox",
-            "lbBaseLayers", "cbResults", "cbIssues", "cbQueries", "cbAuxiliary",
+            "lbBaseLayers", "gbContent", "verticalLayoutContent",
             "gbExternal", "cbIncludeExternalData", "twExternalData",
             "lbStructure", "lbSizeEstimate", "verticalLayout",
         }
         assert not needed - declared
+
+    def test_the_group_checkboxes_are_not_declared_in_the_ui(self):
+        """They are created per project from the discovered folders, so hardcoding them would
+        silently drop any folder that is not one of the four known names."""
+        import re
+        uiPath = os.path.join(os.path.dirname(os.path.dirname(os.path.abspath(__file__))),
+                              "ui", "general", "qgisred_exportproject_dialog.ui")
+        with open(uiPath, encoding="utf-8") as f:
+            declared = set(re.findall(r'name="(\w+)"', f.read()))
+        assert not declared & {"cbResults", "cbIssues", "cbQueries", "cbAuxiliary"}
 
 
 class TestImportTabWiring:

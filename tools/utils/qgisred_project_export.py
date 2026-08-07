@@ -77,9 +77,7 @@ REASON_SCHEMA_TOO_NEW = "manifest_schema_too_new"
 # Recognises the one file that makes an archive a QGISRed project, at any depth
 RE_PIPES_MEMBER = re.compile(r"^(?:(?P<folder>.*)/)?(?P<net>[^/]+)_Pipes\.shp$", re.IGNORECASE)
 
-# Optional content groups, in presentation order. Everything else under the project folder
-# (the base layers at its root) is always exported and has no checkbox.
-CONTENT_GROUPS = (
+KNOWN_CONTENT_GROUPS = (
     ("results", DIR_RESULTS),
     ("issues", DIR_ISSUES),
     ("queries", DIR_QUERIES),
@@ -149,6 +147,7 @@ class ExternalItem:
         self.sidecars = sidecars or []  # absolute paths sharing the same stem (.shx, .dbf, .prj…)
         self.rawValues = rawValues or []  # original datasource strings, for reference
         self.selected = True          # set by applySelection from the user's per-layer choice
+        self.placements = []
 
     @property
     def isExportable(self):
@@ -343,13 +342,20 @@ class QGISRedProjectPackage:
         return count, size
 
     def inspectContentGroups(self):
-        """Detects which optional subfolders actually hold data for this network.
+        """Detects the optional subfolders that hold data for this network.
 
-        `backups/` is deliberately absent: it is a legacy folder of the removed Backup command and
-        is never listed, never counted and never exported.
+        The four known groups are always listed (disabled when empty) so the dialog also says what
+        the project does *not* have. Any other first-level subfolder holding `<Net>_*` files is
+        discovered and offered too: the DLL has renamed its output folders before (a project can
+        carry both "Auxiliary Layers" and a legacy "AuxiliaryLayers"), and a hardcoded list would
+        silently ship those files with no way to leave them out and no weight in the size estimate.
+
+        `backups/` is deliberately never listed: it is a legacy folder of the removed Backup
+        command, and it is never counted nor exported.
         """
         groups = []
-        for key, dirName in CONTENT_GROUPS:
+        seen = set()
+        for key, dirName in KNOWN_CONTENT_GROUPS:
             folder = os.path.join(self.ProjectDirectory, dirName)
             if os.path.isdir(folder):
                 fileCount, sizeBytes = self._walkProjectFiles(folder)
@@ -358,7 +364,26 @@ class QGISRedProjectPackage:
             # A folder that exists but holds no file of this network counts as absent: there is
             # nothing to export, so its checkbox must come up disabled.
             groups.append(ContentGroup(key, dirName, fileCount > 0, fileCount, sizeBytes))
+            seen.add(dirName.lower())
+
+        for dirName in self._discoverExtraGroupFolders(seen):
+            fileCount, sizeBytes = self._walkProjectFiles(os.path.join(self.ProjectDirectory, dirName))
+            groups.append(ContentGroup(dirName, dirName, True, fileCount, sizeBytes))
         return groups
+
+    def _discoverExtraGroupFolders(self, knownLowercase):
+        """First-level subfolders holding project files that are not one of the known groups."""
+        found = []
+        with suppress(OSError):
+            for name in sorted(os.listdir(self.ProjectDirectory)):
+                if name.lower() in knownLowercase or name.lower() == DIR_BACKUPS.lower():
+                    continue
+                folder = os.path.join(self.ProjectDirectory, name)
+                if not os.path.isdir(folder):
+                    continue
+                if self._walkProjectFiles(folder)[0]:
+                    found.append(name)
+        return found
 
     def inspectBaseFiles(self):
         """Returns (fileCount, sizeBytes) of the always-exported files at the project root."""
@@ -394,25 +419,56 @@ class QGISRedProjectPackage:
                 members.append((None, f.read()))
         return members
 
-    def iterQgisDatasources(self, qgisPath):
-        """Yields (rawValue, layerName) for every datasource referenced by the project.
+    def readLayerTree(self, xmlText):
+        """Maps layer id -> (groupPath, name) from the project's <layer-tree-group> hierarchy.
 
-        A primary pass over <maplayer> nodes gives datasource + display name pairs; a secondary
-        regex sweep catches values outside <maplayer> (print layouts, SVG markers, meshes), which
-        yield layerName None.
+        This is what lets the dialog show the complementary layers the way QGIS shows them, groups
+        and all, without a live QGIS session. Group names come out translated when the project was
+        saved in another locale, which does not matter: QGISRed's own layers are filtered out by
+        file name, never by group name.
+        """
+        placement = {}
+
+        def walk(node, path):
+            for child in node:
+                if child.tag == "layer-tree-group":
+                    name = child.get("name") or ""
+                    walk(child, path + (name,) if name else path)
+                elif child.tag == "layer-tree-layer":
+                    layerId = child.get("id")
+                    if layerId:
+                        placement[layerId] = (path, child.get("name") or "")
+
+        with suppress(Exception):
+            root = ElementTree.fromstring(xmlText)  # nosec B314 — local project file
+            for tree in root.iter("layer-tree-group"):
+                walk(tree, ())
+                break  # the first one is the root group; walk() covers everything below it
+        return placement
+
+    def iterQgisDatasources(self, qgisPath):
+        """Yields (rawValue, layerName, groupPath) for every datasource the project references.
+
+        A primary pass over <maplayer> nodes gives datasource + display name + position in the
+        layer tree; a secondary regex sweep catches values outside <maplayer> (print layouts, SVG
+        markers, meshes), which have no tree position and yield (None, None).
         """
         for _memberName, xmlText in self.readQgisXmlMembers(qgisPath):
             seenRaw = set()
+            placement = self.readLayerTree(xmlText)
             with suppress(Exception):
                 root = ElementTree.fromstring(xmlText)  # nosec B314 — local project file
                 for maplayer in root.iter("maplayer"):
                     datasource = maplayer.find("datasource")
                     if datasource is None or not datasource.text:
                         continue
+                    idNode = maplayer.find("id")
+                    groupPath, treeName = placement.get(idNode.text if idNode is not None else None,
+                                                        ((), None))
                     layerNode = maplayer.find("layername")
-                    layerName = layerNode.text if layerNode is not None else None
+                    layerName = treeName or (layerNode.text if layerNode is not None else None)
                     seenRaw.add(datasource.text)
-                    yield datasource.text, layerName
+                    yield datasource.text, layerName, groupPath
 
             for pattern, group in ((RE_DATASOURCE_ATTR_DQ, 4), (RE_DATASOURCE_ATTR_SQ, 4),
                                    (RE_DATASOURCE_ELEMENT, 2)):
@@ -421,7 +477,7 @@ class QGISRedProjectPackage:
                     if raw in seenRaw:
                         continue
                     seenRaw.add(raw)
-                    yield raw, None
+                    yield raw, None, ()
 
     def resolveDatasource(self, rawValue, qgisDir):
         """Resolves a raw datasource string to (absolutePath, uriSuffix, isRemote).
@@ -496,7 +552,7 @@ class QGISRedProjectPackage:
             return []
         qgisDir = os.path.dirname(qgisPath)
         items = {}
-        for rawValue, layerName in self.iterQgisDatasources(qgisPath):
+        for rawValue, layerName, groupPath in self.iterQgisDatasources(qgisPath):
             absPath, _suffix, isRemote = self.resolveDatasource(rawValue, qgisDir)
             if isRemote:
                 continue
@@ -533,6 +589,9 @@ class QGISRedProjectPackage:
                 item.layerNames.append(layerName)
             if rawValue not in item.rawValues:
                 item.rawValues.append(rawValue)
+            placement = (tuple(groupPath), layerName or os.path.basename(absPath))
+            if placement not in item.placements:
+                item.placements.append(placement)
         return list(items.values())
 
     """Planning"""
@@ -580,8 +639,6 @@ class QGISRedProjectPackage:
                 continue
             item.relPath = relativeToRoot(item.source, plan.exportRoot)
             if item.relPath is None:
-                # Should be impossible by construction; treat as out of scope rather than emit
-                # a member path that escapes the zip root.
                 item.scope = SCOPE_OUTSIDE
                 item.selected = False
         return plan
@@ -591,9 +648,6 @@ class QGISRedProjectPackage:
     def _stageProjectFiles(self, plan, stageDir):
         """Copies the project's own files, honouring the content-group selection."""
         excludeDirs = [DIR_BACKUPS]
-        # `backups` is unconditional: it is a legacy folder of the removed Backup command and must
-        # never travel inside an export. NOTE excludeDirs matches by folder *name* at any depth, not
-        # by path — fine for these names, but do not add a group whose name repeats in the tree.
         excludeDirs += [g.dirName for g in plan.contentGroups if g.key not in plan.includeGroups]
 
         stageProjectDir = safeJoin(stageDir, plan.projectFolderRel)
@@ -612,14 +666,11 @@ class QGISRedProjectPackage:
         qgisDir = os.path.dirname(plan.qgisPath)
         qgisDirRel = relativeToRoot(qgisDir, plan.exportRoot)
         if qgisDirRel is None:
-            # Should be unreachable: classifyQgisLocation blocks the export in that case.
             raise ValueError(REASON_QGZ_OUTSIDE)
         stagedQgisDir = safeJoin(stageDir, qgisDirRel)
         os.makedirs(stagedQgisDir, exist_ok=True)
 
         qgisBase = io.stripAllExtensions(plan.qgisPath)
-        # Keep the original basename: renaming it to the network name (as the old code did) would
-        # silently rename the map file whenever the two differ.
         stagedQgisPath = io.processQGisProjectFiles(
             qgisBase, os.path.basename(qgisBase), stagedQgisDir, deleteSource=False
         )
@@ -631,9 +682,6 @@ class QGISRedProjectPackage:
         staged = []
         for item in plan.selectedExternalItems:
             target = safeJoin(stageDir, item.relPath)
-            # _stageProjectFiles ran first and only copies `NetworkName_*`, so a third-party file
-            # sitting inside the project folder still has to be copied here. Checking the staged
-            # tree rather than the folder layout keeps the two in step whatever the naming.
             if os.path.exists(target):
                 pathMap[norm(item.source)] = target
                 staged.append(item)

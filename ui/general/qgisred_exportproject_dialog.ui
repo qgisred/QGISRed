@@ -97,46 +97,8 @@
         </property>
        </widget>
       </item>
-      <item>
-       <widget class="QCheckBox" name="cbResults">
-        <property name="text">
-         <string>Results</string>
-        </property>
-        <property name="checked">
-         <bool>true</bool>
-        </property>
-       </widget>
-      </item>
-      <item>
-       <widget class="QCheckBox" name="cbIssues">
-        <property name="text">
-         <string>Issues</string>
-        </property>
-        <property name="checked">
-         <bool>true</bool>
-        </property>
-       </widget>
-      </item>
-      <item>
-       <widget class="QCheckBox" name="cbQueries">
-        <property name="text">
-         <string>Queries</string>
-        </property>
-        <property name="checked">
-         <bool>true</bool>
-        </property>
-       </widget>
-      </item>
-      <item>
-       <widget class="QCheckBox" name="cbAuxiliary">
-        <property name="text">
-         <string>Auxiliary Layers</string>
-        </property>
-        <property name="checked">
-         <bool>true</bool>
-        </property>
-       </widget>
-      </item>
+      <!-- One checkbox per content group is added here at runtime: the set of folders is
+           discovered from the project, not fixed. See _fillContentGroups(). -->
      </layout>
     </widget>
    </item>
@@ -157,7 +119,22 @@
        </widget>
       </item>
       <item>
-       <widget class="QTableWidget" name="twExternalData">
+       <widget class="QTreeWidget" name="twExternalData">
+        <column>
+         <property name="text">
+          <string>Layer</string>
+         </property>
+        </column>
+        <column>
+         <property name="text">
+          <string>Location</string>
+         </property>
+        </column>
+        <column>
+         <property name="text">
+          <string>Status</string>
+         </property>
+        </column>
         <property name="sizePolicy">
          <sizepolicy hsizetype="Expanding" vsizetype="Expanding">
           <horstretch>0</horstretch>

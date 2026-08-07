@@ -2023,16 +2023,6 @@
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../tools/qgisred_translatable_strings.py" line="317"/>
-        <source>DemBuild_Links</source>
-        <translation type="unfinished"></translation>
-    </message>
-    <message>
-        <location filename="../tools/qgisred_translatable_strings.py" line="318"/>
-        <source>DemBuild_Consumptions</source>
-        <translation type="unfinished"></translation>
-    </message>
-    <message>
         <location filename="../tools/qgisred_translatable_strings.py" line="319"/>
         <source>DemBuild_Isolated Demands Connections</source>
         <translation type="unfinished"></translation>
@@ -2042,16 +2032,26 @@
         <source>DemBuild_Sectors</source>
         <translation type="unfinished"></translation>
     </message>
+    <message>
+        <location filename="../tools/qgisred_translatable_strings.py" line="317"/>
+        <source>DemBuild_Demand Links</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="../tools/qgisred_translatable_strings.py" line="318"/>
+        <source>DemBuild_Consumption Points</source>
+        <translation type="unfinished"></translation>
+    </message>
 </context>
 <context>
     <name>LifecycleSection</name>
     <message>
-        <location filename="../sections/lifecycle_section.py" line="248"/>
+        <location filename="../sections/lifecycle_section.py" line="253"/>
         <source>Loaded sucssesfully</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../sections/lifecycle_section.py" line="533"/>
+        <location filename="../sections/lifecycle_section.py" line="542"/>
         <source>QGISRed Dependencies</source>
         <translation type="unfinished"></translation>
     </message>
@@ -2061,32 +2061,32 @@
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../sections/lifecycle_section.py" line="631"/>
+        <location filename="../sections/lifecycle_section.py" line="640"/>
         <source>QGISRed News</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../sections/lifecycle_section.py" line="533"/>
+        <location filename="../sections/lifecycle_section.py" line="542"/>
         <source>The installation may have failed. Please try again or report the issue in GitHub</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../sections/lifecycle_section.py" line="506"/>
+        <location filename="../sections/lifecycle_section.py" line="515"/>
         <source>QGISRed plugin requires some dependencies (v{}). Do you want to install them now?</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../sections/lifecycle_section.py" line="586"/>
+        <location filename="../sections/lifecycle_section.py" line="595"/>
         <source>Checking for QGISRed news…</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../sections/lifecycle_section.py" line="604"/>
+        <location filename="../sections/lifecycle_section.py" line="613"/>
         <source>QGISRed news are not available: the server could not be reached.</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../sections/lifecycle_section.py" line="613"/>
+        <location filename="../sections/lifecycle_section.py" line="622"/>
         <source>There are no QGISRed news to show.</source>
         <translation type="unfinished"></translation>
     </message>
@@ -3785,178 +3785,163 @@ Continue?</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../ui/general/qgisred_exportproject_dialog.ui" line="103"/>
-        <source>Results</source>
-        <translation type="unfinished"></translation>
-    </message>
-    <message>
-        <location filename="../ui/general/qgisred_exportproject_dialog.ui" line="113"/>
-        <source>Issues</source>
-        <translation type="unfinished"></translation>
-    </message>
-    <message>
-        <location filename="../ui/general/qgisred_exportproject_dialog.ui" line="123"/>
-        <source>Queries</source>
-        <translation type="unfinished"></translation>
-    </message>
-    <message>
-        <location filename="../ui/general/qgisred_exportproject_dialog.ui" line="133"/>
-        <source>Auxiliary Layers</source>
-        <translation type="unfinished"></translation>
-    </message>
-    <message>
-        <location filename="../ui/general/qgisred_exportproject_dialog.ui" line="146"/>
+        <location filename="../ui/general/qgisred_exportproject_dialog.ui" line="108"/>
         <source>Complementary data</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../ui/general/qgisred_exportproject_dialog.ui" line="152"/>
+        <location filename="../ui/general/qgisred_exportproject_dialog.ui" line="114"/>
         <source>Include complementary data (background cartography, DTM, etc.)</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../ui/general/qgisred_exportproject_dialog.ui" line="229"/>
+        <location filename="../ui/general/qgisred_exportproject_dialog.ui" line="206"/>
         <source>Open the containing folder when finished</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../ui/general/qgisred_exportproject_dialog.py" line="114"/>
+        <location filename="../ui/general/qgisred_exportproject_dialog.py" line="113"/>
         <source>Base layers — always included (%1 files, %2)</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../ui/general/qgisred_exportproject_dialog.py" line="127"/>
+        <location filename="../ui/general/qgisred_exportproject_dialog.py" line="131"/>
         <source>%1 — no data</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../ui/general/qgisred_exportproject_dialog.py" line="131"/>
+        <location filename="../ui/general/qgisred_exportproject_dialog.py" line="122"/>
         <source>%1 (%2 files, %3)</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../ui/general/qgisred_exportproject_dialog.py" line="147"/>
+        <location filename="../ui/general/qgisred_exportproject_dialog.py" line="146"/>
         <source>Layer</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../ui/general/qgisred_exportproject_dialog.py" line="147"/>
+        <location filename="../ui/general/qgisred_exportproject_dialog.py" line="146"/>
         <source>Location</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../ui/general/qgisred_exportproject_dialog.py" line="147"/>
+        <location filename="../ui/general/qgisred_exportproject_dialog.py" line="146"/>
         <source>Status</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../ui/general/qgisred_exportproject_dialog.py" line="239"/>
+        <location filename="../ui/general/qgisred_exportproject_dialog.py" line="308"/>
         <source>Estimated size: %1</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../ui/general/qgisred_exportproject_dialog.py" line="242"/>
+        <location filename="../ui/general/qgisred_exportproject_dialog.py" line="311"/>
         <source>ZIP content: %1</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../ui/general/qgisred_exportproject_dialog.py" line="248"/>
+        <location filename="../ui/general/qgisred_exportproject_dialog.py" line="317"/>
         <source>a single folder %1 holding everything</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../ui/general/qgisred_exportproject_dialog.py" line="276"/>
+        <location filename="../ui/general/qgisred_exportproject_dialog.py" line="345"/>
         <source>Select the folder for the ZIP file</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../ui/general/qgisred_exportproject_dialog.py" line="287"/>
+        <location filename="../ui/general/qgisred_exportproject_dialog.py" line="356"/>
         <source>%1 complementary layer(s) are outside the project folder and its parent, so they will NOT be exported. Move them into the project folder (or next to it) with the file explorer and reopen the project to relink them.</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../ui/general/qgisred_exportproject_dialog.py" line="296"/>
+        <location filename="../ui/general/qgisred_exportproject_dialog.py" line="365"/>
         <source>The QGIS project references layers in %1. Whoever imports it will have to locate or remove them.</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../ui/general/qgisred_exportproject_dialog.py" line="318"/>
+        <location filename="../ui/general/qgisred_exportproject_dialog.py" line="387"/>
         <source>Validations</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../ui/general/qgisred_exportproject_dialog.py" line="307"/>
+        <location filename="../ui/general/qgisred_exportproject_dialog.py" line="376"/>
         <source>Enter a name for the ZIP file</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../ui/general/qgisred_exportproject_dialog.py" line="310"/>
+        <location filename="../ui/general/qgisred_exportproject_dialog.py" line="379"/>
         <source>The file name is not valid</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../ui/general/qgisred_exportproject_dialog.py" line="315"/>
+        <location filename="../ui/general/qgisred_exportproject_dialog.py" line="384"/>
         <source>Select an existing folder</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../ui/general/qgisred_exportproject_dialog.py" line="318"/>
+        <location filename="../ui/general/qgisred_exportproject_dialog.py" line="387"/>
         <source>The selected folder is not writable</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../ui/general/qgisred_exportproject_dialog.py" line="324"/>
+        <location filename="../ui/general/qgisred_exportproject_dialog.py" line="393"/>
         <source>QGISRed</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../ui/general/qgisred_exportproject_dialog.py" line="324"/>
+        <location filename="../ui/general/qgisred_exportproject_dialog.py" line="393"/>
         <source>The file already exists. Do you want to overwrite it?</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../ui/general/qgisred_exportproject_dialog.py" line="336"/>
+        <location filename="../ui/general/qgisred_exportproject_dialog.py" line="405"/>
         <source>Warning</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../ui/general/qgisred_exportproject_dialog.py" line="336"/>
+        <location filename="../ui/general/qgisred_exportproject_dialog.py" line="405"/>
         <source>Press OK again to export anyway.</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../ui/general/qgisred_exportproject_dialog.py" line="61"/>
+        <location filename="../ui/general/qgisred_exportproject_dialog.py" line="57"/>
         <source>No QGIS project file was found, so the map appearance will not be exported. Save the QGIS project inside the project folder to include it.</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../ui/general/qgisred_exportproject_dialog.py" line="188"/>
+        <location filename="../ui/general/qgisred_exportproject_dialog.py" line="210"/>
         <source>Not exportable</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../ui/general/qgisred_exportproject_dialog.py" line="189"/>
+        <location filename="../ui/general/qgisred_exportproject_dialog.py" line="211"/>
         <source>It is outside the project folder and its parent folder. Move it with the file explorer into the project folder (or next to it) and reopen the project to relink it.</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../ui/general/qgisred_exportproject_dialog.py" line="197"/>
+        <location filename="../ui/general/qgisred_exportproject_dialog.py" line="217"/>
         <source>Included</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../ui/general/qgisred_exportproject_dialog.py" line="198"/>
+        <location filename="../ui/general/qgisred_exportproject_dialog.py" line="218"/>
         <source>It will travel inside the ZIP file.</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../ui/general/qgisred_exportproject_dialog.py" line="200"/>
+        <location filename="../ui/general/qgisred_exportproject_dialog.py" line="220"/>
         <source>Not included</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../ui/general/qgisred_exportproject_dialog.py" line="201"/>
+        <location filename="../ui/general/qgisred_exportproject_dialog.py" line="221"/>
         <source>Whoever imports the project is expected to have it already.</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="../ui/general/qgisred_exportproject_dialog.py" line="278"/>
+        <source>&apos;%1&apos; is used in more than one group. Leaving it out removes it from all of them.</source>
         <translation type="unfinished"></translation>
     </message>
 </context>
@@ -5090,32 +5075,32 @@ Continue?</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../ui/project/qgisred_layermanagement_dialog.ui" line="906"/>
+        <location filename="../ui/project/qgisred_layermanagement_dialog.ui" line="893"/>
         <source>Accept</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../ui/project/qgisred_layermanagement_dialog.ui" line="913"/>
+        <location filename="../ui/project/qgisred_layermanagement_dialog.ui" line="900"/>
         <source>Cancel</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../ui/project/qgisred_layermanagement_dialog.py" line="575"/>
+        <location filename="../ui/project/qgisred_layermanagement_dialog.py" line="592"/>
         <source>Warning</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../ui/project/qgisred_layermanagement_dialog.py" line="552"/>
+        <location filename="../ui/project/qgisred_layermanagement_dialog.py" line="569"/>
         <source>Only coordinate systems with an EPSG code are supported</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../ui/project/qgisred_layermanagement_dialog.py" line="575"/>
+        <location filename="../ui/project/qgisred_layermanagement_dialog.py" line="592"/>
         <source>Some issues occurred in the process</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../ui/project/qgisred_layermanagement_dialog.py" line="577"/>
+        <location filename="../ui/project/qgisred_layermanagement_dialog.py" line="594"/>
         <source>Error</source>
         <translation type="unfinished"></translation>
     </message>
@@ -5165,32 +5150,32 @@ Continue?</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../ui/project/qgisred_layermanagement_dialog.py" line="390"/>
+        <location filename="../ui/project/qgisred_layermanagement_dialog.py" line="407"/>
         <source>(default)</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../ui/project/qgisred_layermanagement_dialog.py" line="413"/>
+        <location filename="../ui/project/qgisred_layermanagement_dialog.py" line="430"/>
         <source>The theme name is not valid</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../ui/project/qgisred_layermanagement_dialog.py" line="428"/>
+        <location filename="../ui/project/qgisred_layermanagement_dialog.py" line="445"/>
         <source>A theme with that name already exists</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../ui/project/qgisred_layermanagement_dialog.py" line="518"/>
+        <location filename="../ui/project/qgisred_layermanagement_dialog.py" line="535"/>
         <source>Select the theme to delete</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../ui/project/qgisred_layermanagement_dialog.py" line="522"/>
+        <location filename="../ui/project/qgisred_layermanagement_dialog.py" line="539"/>
         <source>The theme and its files will be deleted. Continue?</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../ui/project/qgisred_layermanagement_dialog.py" line="523"/>
+        <location filename="../ui/project/qgisred_layermanagement_dialog.py" line="540"/>
         <source>Delete theme</source>
         <translation type="unfinished"></translation>
     </message>
@@ -5205,17 +5190,17 @@ Continue?</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../ui/project/qgisred_layermanagement_dialog.py" line="479"/>
+        <location filename="../ui/project/qgisred_layermanagement_dialog.py" line="496"/>
         <source>The theme could not be read</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../ui/project/qgisred_layermanagement_dialog.py" line="496"/>
+        <location filename="../ui/project/qgisred_layermanagement_dialog.py" line="513"/>
         <source>The selected fields and all their values will be deleted. Continue?</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../ui/project/qgisred_layermanagement_dialog.py" line="497"/>
+        <location filename="../ui/project/qgisred_layermanagement_dialog.py" line="514"/>
         <source>Delete fields</source>
         <translation type="unfinished"></translation>
     </message>
@@ -7721,47 +7706,47 @@ Do you want to proceed?</source>
 <context>
     <name>QGISRedStylingUtils</name>
     <message>
-        <location filename="../tools/utils/qgisred_styling_utils.py" line="854"/>
+        <location filename="../tools/utils/qgisred_styling_utils.py" line="863"/>
         <source>%1 field not found in layer %2</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../tools/utils/qgisred_styling_utils.py" line="244"/>
+        <location filename="../tools/utils/qgisred_styling_utils.py" line="245"/>
         <source>Failed to apply legend strategy for layer %1: %2</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../tools/utils/qgisred_styling_utils.py" line="276"/>
+        <location filename="../tools/utils/qgisred_styling_utils.py" line="277"/>
         <source>Unsupported legend strategy schema: %1</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../tools/utils/qgisred_styling_utils.py" line="289"/>
+        <location filename="../tools/utils/qgisred_styling_utils.py" line="290"/>
         <source>Legend strategy field &apos;%1&apos; not found on layer &apos;%2&apos;</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../tools/utils/qgisred_styling_utils.py" line="498"/>
+        <location filename="../tools/utils/qgisred_styling_utils.py" line="499"/>
         <source>Color ramp &apos;%1&apos; not found; falling back to random colors</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../tools/utils/qgisred_styling_utils.py" line="370"/>
+        <location filename="../tools/utils/qgisred_styling_utils.py" line="371"/>
         <source>Unsupported classification mode: %1</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../tools/utils/qgisred_styling_utils.py" line="532"/>
+        <location filename="../tools/utils/qgisred_styling_utils.py" line="533"/>
         <source>Color ramp &apos;%1&apos; not found; colors strategy skipped</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../tools/utils/qgisred_styling_utils.py" line="630"/>
+        <location filename="../tools/utils/qgisred_styling_utils.py" line="631"/>
         <source>Closed Links</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../tools/utils/qgisred_styling_utils.py" line="628"/>
+        <location filename="../tools/utils/qgisred_styling_utils.py" line="629"/>
         <source>Uncategorized</source>
         <translation type="unfinished"></translation>
     </message>
