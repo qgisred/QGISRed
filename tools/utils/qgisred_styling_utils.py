@@ -899,7 +899,9 @@ class QGISRedStylingUtils:
 
         renderer = QgsCategorizedSymbolRenderer(field, categories)
         layer.setRenderer(renderer)
-        layer.saveNamedStyle(qmlFile)
+        # .qml.bak files are the plugin's shipped defaults and must never be rewritten.
+        if qmlFile and not qmlFile.endswith(".qml.bak"):
+            layer.saveNamedStyle(qmlFile)
 
     def hideFields(self, layer, fieldname, idFieldName=None):
         config = layer.attributeTableConfig()

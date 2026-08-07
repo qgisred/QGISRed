@@ -17,6 +17,7 @@ from qgis.core import QgsVectorFileWriter, QgsVectorLayer
 from qgis.core import QgsPalLayerSettings, QgsVectorLayerSimpleLabeling
 
 # Local imports
+from ...tools.utils.qgisred_filesystem_utils import QGISRedFileSystemUtils
 from ...tools.utils.qgisred_layer_utils import QGISRedLayerUtils
 from ...tools.utils.qgisred_styling_utils import QGISRedStylingUtils
 from ...tools.utils.qgisred_project_utils import QGISRedProjectUtils
@@ -307,6 +308,19 @@ class QGISRedThematicMapsDialog(QDialog, FORM_CLASS):
             self.syncLayers(mainLayer, derivedLayer)
 
         mainLayer.dataChanged.connect(syncDerivedLayer)
+
+        def refreshAfterCommit():
+            # Commits made through a QGIS edit session (attribute table, field
+            # calculator) never pass through the plugin's reload pipeline, so the
+            # central refresh must be driven from the layer's own commit signal.
+            if sip.isdeleted(derivedLayer):
+                self.safeDisconnect(mainLayer.afterCommitChanges, refreshAfterCommit)
+                return
+            utils = QGISRedLayerUtils(self.ProjectDirectory, self.NetworkName, self.iface)
+            fs = QGISRedFileSystemUtils(self.ProjectDirectory, self.NetworkName, self.iface)
+            utils.refreshThematicMapLayers(fs.getLayerPath(mainLayer))
+
+        mainLayer.afterCommitChanges.connect(refreshAfterCommit)
         derivedLayer.dataChanged.connect(lambda: derivedLayer.triggerRepaint())
         derivedLayer.setReadOnly(True)
 

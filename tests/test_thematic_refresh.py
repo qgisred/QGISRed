@@ -2,11 +2,13 @@
 """Thematic-map layers share their shapefile with an input layer, so committing an
 edit to that file must reload and repaint them automatically — without touching the
 thematic symbology that gives them their meaning."""
+import json
 from unittest.mock import MagicMock
 
 from QGISRed.tools.utils.qgisred_filesystem_utils import QGISRedFileSystemUtils
 from QGISRed.tools.utils import qgisred_layer_utils as layer_utils_module
 from QGISRed.tools.utils.qgisred_layer_utils import QGISRedLayerUtils
+from QGISRed.tools.utils.qgisred_styling_utils import QGISRedStylingUtils
 from QGISRed.ui.queries.qgisred_thematicmaps_dialog import QGISRedThematicMapsDialog
 from QGISRed.ui.edition import qgisred_groupedit_dialog as groupedit_module
 
@@ -40,7 +42,9 @@ class TestRefreshThematicMapLayers:
         thematic.dataProvider.return_value.reloadData.assert_called_once()
         thematic.triggerRepaint.assert_called_once()
         thematic.countSymbolFeatures.assert_called_once()
-        thematic.setRenderer.assert_not_called()
+        # The renderer may only ever be replaced by a clone of ITSELF (to force QGIS
+        # to drop cached feature counts), never by another layer's renderer.
+        thematic.setRenderer.assert_called_once_with(thematic.renderer.return_value.clone.return_value)
         thematic.setDataSource.assert_not_called()
 
     def test_input_layer_and_other_files_are_untouched(self):
@@ -51,8 +55,10 @@ class TestRefreshThematicMapLayers:
 
         inputLayer.dataProvider.return_value.reloadData.assert_not_called()
         inputLayer.triggerRepaint.assert_not_called()
+        inputLayer.setRenderer.assert_not_called()
         otherThematic.dataProvider.return_value.reloadData.assert_not_called()
         otherThematic.triggerRepaint.assert_not_called()
+        otherThematic.setRenderer.assert_not_called()
 
     def test_a_failing_layer_does_not_stop_the_next_one(self):
         broken = _mockLayer("qgisred_query_pipes_diameter", PIPES_PATH)
@@ -129,6 +135,124 @@ class TestCategorizedThematicMaps:
         utils.refreshThematicMapLayers(PIPES_PATH)
 
         styling.applyCategorizedRenderer.assert_not_called()
+        layer.triggerRepaint.assert_called_once()
+
+
+class TestGraduatedStrategyReapply:
+    def _strategyLayer(self, strategy):
+        properties = {
+            "qgisred_identifier": "qgisred_query_pipes_diameter",
+            "qgisred_legend_strategy": json.dumps(strategy),
+        }
+        layer = _mockLayer("qgisred_query_pipes_diameter", PIPES_PATH)
+        layer.customProperty.side_effect = lambda name, *a: properties.get(name)
+        return layer
+
+    def test_an_intervals_strategy_is_recomputed_from_current_data(self):
+        strategy = {"mode": "graduated", "parts": ["intervals", "colors"]}
+        layer = self._strategyLayer(strategy)
+        utils = _utils([layer])
+        styling = MagicMock()
+        styling.resolveStrategyParts.return_value = ["intervals", "colors"]
+        utils._styling = lambda: styling
+
+        utils.refreshThematicMapLayers(PIPES_PATH)
+
+        styling.applyLegendStrategy.assert_called_once_with(layer, strategy)
+        layer.triggerRepaint.assert_called_once()
+
+    def test_a_colors_only_strategy_is_left_to_range_expansion(self):
+        strategy = {"mode": "graduated", "parts": ["colors"]}
+        layer = self._strategyLayer(strategy)
+        utils = _utils([layer])
+        styling = MagicMock()
+        styling.resolveStrategyParts.return_value = ["colors"]
+        utils._styling = lambda: styling
+
+        utils.refreshThematicMapLayers(PIPES_PATH)
+
+        styling.applyLegendStrategy.assert_not_called()
+
+    def test_a_categorized_strategy_is_not_reapplied(self):
+        strategy = {"mode": "categorized", "parts": ["allClasses", "colors"]}
+        layer = self._strategyLayer(strategy)
+        utils = _utils([layer])
+        styling = MagicMock()
+        utils._styling = lambda: styling
+
+        utils.refreshThematicMapLayers(PIPES_PATH)
+
+        styling.applyLegendStrategy.assert_not_called()
+
+
+class TestApplyCategorizedRendererPersistence:
+    def _layer(self):
+        layer = MagicMock()
+        layer.fields.return_value.indexFromName.return_value = 0
+        layer.uniqueValues.return_value = []
+        return layer
+
+    def test_saves_the_rebuilt_style_to_a_regular_qml(self):
+        layer = self._layer()
+        QGISRedStylingUtils("", "", None).applyCategorizedRenderer(layer, "Material", "/proj/mat.qml")
+        layer.saveNamedStyle.assert_called_once_with("/proj/mat.qml")
+
+    def test_never_overwrites_the_shipped_bak_defaults(self):
+        layer = self._layer()
+        QGISRedStylingUtils("", "", None).applyCategorizedRenderer(
+            layer, "Material", "/plugin/defaults/layerStyles/PipeMaterials.qml.bak")
+        layer.saveNamedStyle.assert_not_called()
+
+
+class _GraduatedRendererStub:
+    pass
+
+
+class TestGraduatedThematicMaps:
+    def _range(self, lower, upper):
+        r = MagicMock()
+        r.lowerValue.return_value = lower
+        r.upperValue.return_value = upper
+        return r
+
+    def _graduatedLayer(self, monkeypatch, ranges, minValue, maxValue):
+        monkeypatch.setattr(layer_utils_module, "QgsGraduatedSymbolRenderer",
+                            _GraduatedRendererStub)
+        layer = _mockLayer("qgisred_query_pipes_diameter", PIPES_PATH)
+        renderer = _GraduatedRendererStub()
+        renderer.ranges = MagicMock(return_value=ranges)
+        renderer.classAttribute = MagicMock(return_value="Diameter")
+        renderer.updateRangeLowerValue = MagicMock()
+        renderer.updateRangeUpperValue = MagicMock()
+        renderer.clone = MagicMock()
+        layer.renderer.return_value = renderer
+        layer.fields.return_value.indexFromName.return_value = 3
+        layer.minimumValue.return_value = minValue
+        layer.maximumValue.return_value = maxValue
+        return layer, renderer
+
+    def test_outer_classes_stretch_to_cover_new_values(self, monkeypatch):
+        ranges = [self._range(150.0, 180.0), self._range(180.0, 450.0)]
+        layer, renderer = self._graduatedLayer(monkeypatch, ranges,
+                                               minValue=50.0, maxValue=500.0)
+
+        _utils([layer]).refreshThematicMapLayers(PIPES_PATH)
+
+        renderer.updateRangeLowerValue.assert_called_once_with(0, 50.0)
+        renderer.updateRangeUpperValue.assert_called_once_with(1, 500.0)
+        layer.setRenderer.assert_called_once_with(renderer.clone.return_value)
+        layer.triggerRepaint.assert_called_once()
+
+    def test_ranges_stay_untouched_when_data_fits(self, monkeypatch):
+        ranges = [self._range(150.0, 450.0)]
+        layer, renderer = self._graduatedLayer(monkeypatch, ranges,
+                                               minValue=200.0, maxValue=400.0)
+
+        _utils([layer]).refreshThematicMapLayers(PIPES_PATH)
+
+        renderer.updateRangeLowerValue.assert_not_called()
+        renderer.updateRangeUpperValue.assert_not_called()
+        layer.setRenderer.assert_called_once_with(renderer.clone.return_value)
         layer.triggerRepaint.assert_called_once()
 
 

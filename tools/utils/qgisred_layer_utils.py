@@ -1,12 +1,16 @@
 # -*- coding: utf-8 -*-
+import json
 import os
 
 from qgis.PyQt.QtCore import QCoreApplication, QTimer
 from qgis.core import (
     QgsProject, QgsLayerTreeGroup, QgsLayerTreeLayer,
     QgsVectorLayer, QgsCoordinateReferenceSystem, QgsDataProvider,
-    QgsAttributeTableConfig, QgsCategorizedSymbolRenderer
+    QgsAttributeTableConfig, QgsCategorizedSymbolRenderer,
+    QgsGraduatedSymbolRenderer, QgsMessageLog
 )
+
+from ...compat import QGIS_WARNING
 
 
 class QGISRedLayerUtils:
@@ -481,27 +485,72 @@ class QGISRedLayerUtils:
     def refreshThematicMapLayers(self, layerPath):
         """Reload and repaint open thematic-map layers whose source file is *layerPath*.
         They share the shapefile with an input layer, so an edit committed to that file
-        must reach them too; only their data cache is refreshed, never their symbology."""
+        must reach them too. Symbology is adapted only as far as new values require it;
+        failures are logged instead of swallowed so field issues stay diagnosable."""
         from contextlib import suppress
 
         fs = self._fs()
         identifiers = self._identifiers()
         layerPath = fs.getUniformedPath(layerPath)
+        matching = []
         for layer in self.getLayers():
             with suppress(Exception):
-                if not identifiers.isThematicMapsLayer(layer):
-                    continue
-                if fs.getLayerPath(layer) != layerPath:
-                    continue
+                if identifiers.isThematicMapsLayer(layer) and fs.getLayerPath(layer) == layerPath:
+                    matching.append(layer)
+        for layer in matching:
+            try:
                 provider = layer.dataProvider()
                 if provider is not None:
                     provider.reloadData()
                 layer.updateExtents()
-                with suppress(Exception):
-                    self._rebuildCategorizedThematicRenderer(layer)
+                for adaptSymbology in (self._reapplyGraduatedStrategy,
+                                       self._rebuildCategorizedThematicRenderer,
+                                       self._expandGraduatedThematicRanges):
+                    try:
+                        adaptSymbology(layer)
+                    except Exception as error:
+                        self._logThematicRefreshIssue(layer, adaptSymbology.__name__, error)
+                self._republishRenderer(layer)
                 layer.triggerRepaint()
                 with suppress(Exception):
                     layer.countSymbolFeatures()
+            except Exception as error:
+                self._logThematicRefreshIssue(layer, "reload", error)
+
+    def _republishRenderer(self, layer):
+        """Re-set a clone of the layer's own renderer: QGIS only drops cached symbol
+        feature counts and rebuilds the legend badges on rendererChanged, so after a
+        data reload a bare triggerRepaint keeps showing the old per-class counts."""
+        from contextlib import suppress
+
+        with suppress(Exception):
+            renderer = layer.renderer()
+            if renderer is not None:
+                layer.setRenderer(renderer.clone())
+
+    def _logThematicRefreshIssue(self, layer, step, error):
+        from contextlib import suppress
+
+        with suppress(Exception):
+            identifier = layer.customProperty("qgisred_identifier") or layer.name()
+            QgsMessageLog.logMessage(
+                "Thematic map refresh: %s failed for '%s': %s" % (step, identifier, error),
+                "QGISRed", QGIS_WARNING)
+
+    def _reapplyGraduatedStrategy(self, layer):
+        """A legend strategy with an intervals part means the class breaks were computed
+        from the data, so an edit must recompute them the same way; a value landing
+        outside the stored breaks would otherwise stay invisible."""
+        raw = layer.customProperty("qgisred_legend_strategy")
+        if not raw:
+            return
+        strategy = json.loads(raw)
+        if not isinstance(strategy, dict) or strategy.get("mode") != "graduated":
+            return
+        styling = self._styling()
+        if "intervals" not in styling.resolveStrategyParts(strategy):
+            return
+        styling.applyLegendStrategy(layer, strategy)
 
     def _rebuildCategorizedThematicRenderer(self, layer):
         """A categorized thematic map classifies by literal value, so a value first
@@ -514,6 +563,27 @@ class QGISRedLayerUtils:
         if not field:
             return
         self._styling().applyCategorizedRenderer(layer, field, layer.customProperty("styleURI"))
+
+    def _expandGraduatedThematicRanges(self, layer):
+        """A graduated thematic map keeps the class bounds it was created with, so a
+        value edited beyond them (below the lowest class or above the highest) would
+        silently not be drawn. Stretch the outer classes to cover the current data;
+        every class keeps its colour and label."""
+        renderer = layer.renderer()
+        if not isinstance(renderer, QgsGraduatedSymbolRenderer):
+            return
+        ranges = renderer.ranges()
+        if not ranges:
+            return
+        fieldIndex = layer.fields().indexFromName(renderer.classAttribute())
+        if fieldIndex < 0:
+            return
+        minValue = layer.minimumValue(fieldIndex)
+        maxValue = layer.maximumValue(fieldIndex)
+        if minValue is not None and float(minValue) < ranges[0].lowerValue():
+            renderer.updateRangeLowerValue(0, float(minValue))
+        if maxValue is not None and float(maxValue) > ranges[-1].upperValue():
+            renderer.updateRangeUpperValue(len(ranges) - 1, float(maxValue))
 
     def _reloadOpenLayer(self, layerName):
         """Reload OGR data for an already-open network layer (file was overwritten in-place)."""
