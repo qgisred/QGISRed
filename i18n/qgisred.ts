@@ -5633,12 +5633,12 @@ Do you want to proceed?</source>
     </message>
     <message>
         <location filename="../ui/general/qgisred_moveproject_dialog.ui" line="66"/>
-        <source>Move project files</source>
+        <source>Move project data</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
         <location filename="../ui/general/qgisred_moveproject_dialog.ui" line="76"/>
-        <source>Move QGIS project file</source>
+        <source>Move project map file</source>
         <translation type="unfinished"></translation>
     </message>
     <message>

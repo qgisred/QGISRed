@@ -10,8 +10,8 @@ FORM_CLASS, _ = uic.loadUiType(os.path.join(os.path.dirname(__file__), "qgisred_
 class QGISRedMoveProjectDialog(QDialog, FORM_CLASS):
     # Common variables
     TargetDirectory = ""
-    MoveProjectFiles = True
-    MoveQGISProject = False
+    MoveProjectData = True
+    MoveProjectMapFile = False
     ProcessDone = False
 
     def __init__(self, parent=None, projectPath="", networkName="", qgisProjectBase=None):
@@ -23,9 +23,9 @@ class QGISRedMoveProjectDialog(QDialog, FORM_CLASS):
         self.setupUi(self)
         self.btSelectDirectory.clicked.connect(self.selectDirectory)
         self.btAccept.clicked.connect(self.accept)
-        self.cbMoveQGISProject.setVisible(self._hasQGisProject)
+        self.cbMoveProjectMapFile.setVisible(self._hasQGisProject)
         if self._hasQGisProject:
-            self.resize(self.width(), self.height() + self.cbMoveQGISProject.sizeHint().height() + 6)
+            self.resize(self.width(), self.height() + self.cbMoveProjectMapFile.sizeHint().height() + 6)
 
         self.messageBar = QGISRedBanner.inject(self, self.gridLayout)
 
@@ -41,12 +41,12 @@ class QGISRedMoveProjectDialog(QDialog, FORM_CLASS):
         # self.lbMessage.setText("") # Deprecated, replaced by banner
         sameDir = os.path.normcase(os.path.normpath(d)) == self._projectPath
         if sameDir:
-            self.cbMoveProjectFiles.setChecked(False)
-            self.cbMoveProjectFiles.setEnabled(False)
-        elif not self.cbMoveProjectFiles.isEnabled():
+            self.cbMoveProjectData.setChecked(False)
+            self.cbMoveProjectData.setEnabled(False)
+        elif not self.cbMoveProjectData.isEnabled():
             # was disabled only because of same-dir — re-enable it, but don't override a manual uncheck
-            self.cbMoveProjectFiles.setChecked(True)
-            self.cbMoveProjectFiles.setEnabled(True)
+            self.cbMoveProjectData.setChecked(True)
+            self.cbMoveProjectData.setEnabled(True)
 
     def accept(self):
         if self.TargetDirectory == "":
@@ -56,14 +56,14 @@ class QGISRedMoveProjectDialog(QDialog, FORM_CLASS):
         if sameDir and not self._hasQGisProject:
             self.pushMessage(self.tr("Validations"), self.tr("Cannot move to the same directory."), level=1)
             return
-        if self.cbMoveProjectFiles.isChecked() and not sameDir:
+        if self.cbMoveProjectData.isChecked() and not sameDir:
             if os.path.exists(os.path.join(self.TargetDirectory, self._networkName + "_Pipes.shp")):
                 self.pushMessage(self.tr("Validations"), self.tr("There is already a project with this name in the target folder."), level=1)
                 return
-        if not self.cbMoveProjectFiles.isChecked() and not self.cbMoveQGISProject.isChecked():
+        if not self.cbMoveProjectData.isChecked() and not self.cbMoveProjectMapFile.isChecked():
             self.pushMessage(self.tr("Validations"), self.tr("Select at least one option."), level=1)
             return
-        self.MoveProjectFiles = self.cbMoveProjectFiles.isChecked()
-        self.MoveQGISProject = self.cbMoveQGISProject.isChecked()
+        self.MoveProjectData = self.cbMoveProjectData.isChecked()
+        self.MoveProjectMapFile = self.cbMoveProjectMapFile.isChecked()
         self.ProcessDone = True
         self.close()

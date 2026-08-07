@@ -676,12 +676,12 @@ class QGISRedProjectManagerDialog(QDialog, FORM_CLASS):
         oldQgisDir = os.path.dirname(qgisBase) if qgisBase else None
         newQgisPath = None
 
-        if dlg.MoveProjectFiles:
+        if dlg.MoveProjectData:
             io.processProjectFiles(projectPath, projectNetwork, projectNetwork, targetDir, deleteSource=True)
             projectPath = targetDir
             self.twProjectList.setItem(rowIndex, 3, QTableWidgetItem(projectPath))
 
-        if dlg.MoveQGISProject and qgisBase:
+        if dlg.MoveProjectMapFile and qgisBase:
             newQgisPath = io.processQGisProjectFiles(qgisBase, os.path.basename(qgisBase), targetDir, deleteSource=True)
             if newQgisPath:
                 io.updateMetadataQGisProject(projectPath, projectNetwork, newQgisPath)
@@ -699,7 +699,7 @@ class QGISRedProjectManagerDialog(QDialog, FORM_CLASS):
                 # Cases A and C: .qgz/.qgs is now at its new location
                 qgisFileToUpdate = newQgisPath
                 newQgisDir = os.path.dirname(newQgisPath)
-            elif dlg.MoveProjectFiles:
+            elif dlg.MoveProjectData:
                 # Case B: layers moved but .qgz/.qgs stayed — update it in place
                 qgisFileToUpdate = io.findQGisProjectFile(qgisBase)
                 newQgisDir = oldQgisDir  # .qgz/.qgs did not move

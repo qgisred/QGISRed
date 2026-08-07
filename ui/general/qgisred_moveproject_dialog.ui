@@ -61,9 +61,9 @@
       </layout>
      </item>
      <item>
-      <widget class="QCheckBox" name="cbMoveProjectFiles">
+      <widget class="QCheckBox" name="cbMoveProjectData">
        <property name="text">
-        <string>Move project files</string>
+        <string>Move project data</string>
        </property>
        <property name="checked">
         <bool>true</bool>
@@ -71,9 +71,9 @@
       </widget>
      </item>
      <item>
-      <widget class="QCheckBox" name="cbMoveQGISProject">
+      <widget class="QCheckBox" name="cbMoveProjectMapFile">
        <property name="text">
-        <string>Move QGIS project file</string>
+        <string>Move project map file</string>
        </property>
        <property name="checked">
         <bool>true</bool>

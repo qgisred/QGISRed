@@ -5913,13 +5913,13 @@ Voulez-vous continuer ?</translation>
     </message>
     <message>
         <location filename="../ui/general/qgisred_moveproject_dialog.ui" line="66"/>
-        <source>Move project files</source>
-        <translation>Déplacer les fichiers du projet</translation>
+        <source>Move project data</source>
+        <translation>Déplacer les données du projet</translation>
     </message>
     <message>
         <location filename="../ui/general/qgisred_moveproject_dialog.ui" line="76"/>
-        <source>Move QGIS project file</source>
-        <translation>Déplacer le fichier de projet QGIS</translation>
+        <source>Move project map file</source>
+        <translation>Déplacer le fichier de carte du projet</translation>
     </message>
     <message>
         <location filename="../ui/general/qgisred_moveproject_dialog.ui" line="114"/>
