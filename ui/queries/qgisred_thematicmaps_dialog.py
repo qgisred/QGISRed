@@ -54,10 +54,8 @@ class QGISRedThematicMapsDialog(QDialog, FORM_CLASS):
         self.gbReservoirs.hide()
 
         self.cbPipesRoughness.hide()
-        self.cbPipesAge.hide()
         self.cbPipesLossCoeff.hide()
         self.cbPipesInitStatus.hide()
-        self.cbPipesInstallationDate.hide()
         self.cbPipesBulkCoeff.hide()
         self.cbPipesWallCoeff.hide()
         self.cbPipesTag.hide()
@@ -286,6 +284,11 @@ class QGISRedThematicMapsDialog(QDialog, FORM_CLASS):
         hideField = field
         if layerType == 'valves' and field == 'Type' and derivedLayer.fields().indexFromName('ValveType') >= 0:
             hideField = 'ValveType'
+        # Same split for the installation-year map: 'InstallDate' is only the query's
+        # identifier value, while the classified column is the virtual InstYear field
+        # the style file adds on top of the raw InstalDate column.
+        if layerType == 'pipes' and field == 'InstallDate' and derivedLayer.fields().indexFromName('InstYear') >= 0:
+            hideField = 'InstYear'
 
         # hideFields() would otherwise resolve the identity column itself via
         # derivedLayer's own qgisred_identifier -- but that property is set above to this
@@ -968,10 +971,10 @@ class QGISRedThematicMapsDialog(QDialog, FORM_CLASS):
 
         if self.cbPipesAge.isChecked():
             queries.append({
-                'layer_name': 'Pipe Age',
+                'layer_name': 'Pipe Ages (years)',
                 'layer_type': 'Pipes',
                 'field': 'Age',
-                'qml_file': 'pipe_age.qml',
+                'qml_file': 'PipeAges.qml',
                 'file_name': 'age',
                 'tooltip_prefix': 'Age'
             })
@@ -998,10 +1001,10 @@ class QGISRedThematicMapsDialog(QDialog, FORM_CLASS):
 
         if self.cbPipesInstallationDate.isChecked():
             queries.append({
-                'layer_name': 'Pipe Installation Date',
+                'layer_name': 'Pipe Installation Year',
                 'layer_type': 'Pipes',
                 'field': 'InstallDate',
-                'qml_file': 'pipe_install_date.qml',
+                'qml_file': 'PipeInstallationYears.qml',
                 'file_name': 'install_date',
                 'tooltip_prefix': 'Inst'
             })

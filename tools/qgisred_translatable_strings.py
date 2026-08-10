@@ -323,6 +323,8 @@ QCoreApplication.translate('InputLayerNames', "%1 I")
 QCoreApplication.translate('InputLayerNames', "Pipe Diameters")
 QCoreApplication.translate('InputLayerNames', "Pipe Lengths")
 QCoreApplication.translate('InputLayerNames', "Pipe Materials")
+QCoreApplication.translate('InputLayerNames', "Pipe Installation Year")
+QCoreApplication.translate('InputLayerNames', "Pipe Ages (years)")
 
 # Histogram hover tooltips (renderers call widget.tr with these contexts)
 QCoreApplication.translate('StatisticsHistogramWidget', "No data")
