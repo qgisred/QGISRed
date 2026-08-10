@@ -17,6 +17,7 @@ from qgis.core import QgsVectorFileWriter, QgsVectorLayer
 from qgis.core import QgsPalLayerSettings, QgsVectorLayerSimpleLabeling
 
 # Local imports
+from ...tools.utils.qgisred_field_utils import QGISRedFieldUtils
 from ...tools.utils.qgisred_filesystem_utils import QGISRedFileSystemUtils
 from ...tools.utils.qgisred_layer_utils import QGISRedLayerUtils
 from ...tools.utils.qgisred_styling_utils import QGISRedStylingUtils
@@ -288,12 +289,12 @@ class QGISRedThematicMapsDialog(QDialog, FORM_CLASS):
 
         # hideFields() would otherwise resolve the identity column itself via
         # derivedLayer's own qgisred_identifier -- but that property is set above to this
-        # query's own identifier (e.g. "qgisred_query_valves_type"), not the element's
-        # ("qgisred_valves"), so its CSV-driven lookup can't match and falls back to the
-        # legacy bare "Id". Resolve the per-layer id explicitly here instead.
-        idFieldCandidates = {'valves': 'ValveID', 'pumps': 'PumpID'}
-        idFieldName = idFieldCandidates.get(layerType)
-        if idFieldName is None or derivedLayer.fields().indexFromName(idFieldName) < 0:
+        # query's own identifier (e.g. "qgisred_query_pipes_material"), not the element's
+        # ("qgisred_pipes"), so its CSV-driven lookup can't match and falls back to the
+        # legacy bare "Id". Resolve it from mainLayer, which still carries the element
+        # identifier, so both old ("Id") and new ("PipeID") schemas work.
+        idFieldName = QGISRedFieldUtils().getIdFieldName(mainLayer)
+        if derivedLayer.fields().indexFromName(idFieldName) < 0:
             idFieldName = None
         QGISRedStylingUtils().hideFields(derivedLayer, hideField, idFieldName)
 
