@@ -110,6 +110,8 @@ class QGISRedThematicMapsDialog(QDialog, FORM_CLASS):
 
         # remove old layers (supports both old location under 'Queries' and new under 'Thematic Maps')
         self.removeQueryLayersByIdentifiers(toRemoveIdentifiers)
+        if toRemoveIdentifiers and self.iface is not None:
+            self.iface.mapCanvas().refresh()
 
         # cleanup empty groups first
         queriesGroup = QGISRedLayerUtils.findGroupByIdentifier("qgisred_queries")
