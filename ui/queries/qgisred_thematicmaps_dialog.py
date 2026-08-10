@@ -299,10 +299,11 @@ class QGISRedThematicMapsDialog(QDialog, FORM_CLASS):
         QGISRedStylingUtils().hideFields(derivedLayer, hideField, idFieldName)
 
         if parentGroup is not None and not sip.isdeleted(parentGroup):
-            # Use insertChildNode with a new QgsLayerTreeLayer instance for better QGIS 4 compatibility
-            layerTreeLayer = parentGroup.insertChildNode(layerPosition, QgsLayerTreeLayer(derivedLayer))
-            if layerTreeLayer is not None:
-                layerTreeLayer.setCustomProperty("showFeatureCount", True)
+            # Use insertChildNode with a new QgsLayerTreeLayer instance for better QGIS 4 compatibility.
+            # insertChildNode() returns None on QGIS 3, so keep our own reference to the node.
+            layerTreeLayer = QgsLayerTreeLayer(derivedLayer)
+            layerTreeLayer.setCustomProperty("showFeatureCount", True)
+            parentGroup.insertChildNode(layerPosition, layerTreeLayer)
 
         def syncDerivedLayer():
             if sip.isdeleted(derivedLayer):
