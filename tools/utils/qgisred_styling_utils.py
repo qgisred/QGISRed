@@ -914,7 +914,8 @@ class QGISRedStylingUtils:
         # its own query identifier instead) must resolve it themselves and pass it in.
         if idFieldName is None:
             idFieldName = QGISRedFieldUtils().getIdFieldName(layer)
-        fieldsToKeep = [idFieldName, fieldname]
+        fieldnames = [fieldname] if isinstance(fieldname, str) else list(fieldname)
+        fieldsToKeep = [idFieldName] + fieldnames
 
         for column in columns:
             column.hidden = column.name not in fieldsToKeep
