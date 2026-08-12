@@ -277,12 +277,13 @@ class QGISRedElementExplorerDock(QGISRedHighlightOwnerMixin, QDockWidget, FORM_C
         if not self.isLayerValid(self.currentLayer) or not self.currentFeature:
             return False
         try:
-            self.clearHighlights()
+            oldHighlights = self.takeHighlights()
             highlight = QgsHighlight(iface.mapCanvas(), self.currentFeature.geometry(), self.currentLayer)
             highlight.setColor(QColor("red"))
             highlight.setWidth(5)
             highlight.show()
             self.mainHighlight = highlight
+            self.removeHighlightItems(oldHighlights)
             self.selectOnLayer(self.currentLayer, [self.currentFeature.id()])
             self.notifyHighlightDrawn()
             return True
@@ -590,7 +591,7 @@ class QGISRedElementExplorerDock(QGISRedHighlightOwnerMixin, QDockWidget, FORM_C
         if hasattr(self, 'leElementMask'):
             self.leElementMask.clear()
         if hasattr(self, 'cbElementId') and self.cbElementId.count() > 0:
-            self.cbElementId.setCurrentIndex(0)
+            self.cbElementId.setCurrentIndex(-1)
         if hasattr(self, 'labelFoundElement'):
             self.labelFoundElement.setText("")
         if hasattr(self, 'labelFoundElementTag'):
@@ -619,17 +620,26 @@ class QGISRedElementExplorerDock(QGISRedHighlightOwnerMixin, QDockWidget, FORM_C
                     lyr.removeSelection()
         self._selectedLayers = []
 
-    def clearHighlights(self):
-        scene = iface.mapCanvas().scene()
-        for highlight in [self.mainHighlight, self.currentSelectedHighlight] + list(self.adjacentHighlights):
-            if highlight is not None:
-                highlight.hide()
-                with suppress(Exception):
-                    scene.removeItem(highlight)
+    def takeHighlights(self):
+        """Detach the current highlights without removing them from the canvas,
+        so a replacement can be drawn before the old ones disappear."""
+        old = [self.mainHighlight, self.currentSelectedHighlight] + list(self.adjacentHighlights)
         self.mainHighlight = None
         self.currentSelectedHighlight = None
         self.adjacentHighlights.clear()
-        iface.mapCanvas().refresh()
+        return [h for h in old if h is not None]
+
+    def removeHighlightItems(self, highlights):
+        scene = iface.mapCanvas().scene()
+        for highlight in highlights:
+            highlight.hide()
+            with suppress(Exception):
+                scene.removeItem(highlight)
+
+    def clearHighlights(self):
+        # hide() already repaints just the highlight's own area; a full
+        # canvas.refresh() here redrew the whole map and read as a blink.
+        self.removeHighlightItems(self.takeHighlights())
 
     def closeEvent(self, event):
         try:
@@ -1037,13 +1047,16 @@ class QGISRedElementExplorerDock(QGISRedHighlightOwnerMixin, QDockWidget, FORM_C
 
     @pyqtSlot()
     def findElement(self):
-        self.clearHighlights()
-        self.clearAllLayerSelections()
+        # Keep the old highlight on screen until the new one is drawn; clearing
+        # first left an empty frame that read as a blink.
+        oldHighlights = self.takeHighlights()
         self.listWidget.clear()
 
         # Check if any layers are available
         availableLayers, sourceGroup = self.getAvailableLayersForExplorer()
         if not availableLayers:
+            self.removeHighlightItems(oldHighlights)
+            self.clearAllLayerSelections()
             self.showLayerVisibilityWarning()
             return
 
@@ -1051,6 +1064,8 @@ class QGISRedElementExplorerDock(QGISRedHighlightOwnerMixin, QDockWidget, FORM_C
         selectedId = self.extractNodeId(self.cbElementId.currentText())
 
         if not selectedId:
+            self.removeHighlightItems(oldHighlights)
+            self.clearAllLayerSelections()
             self.labelFoundElement.setText("")
             return
 
@@ -1073,6 +1088,8 @@ class QGISRedElementExplorerDock(QGISRedHighlightOwnerMixin, QDockWidget, FORM_C
             foundFeature, foundFeatureLayer = self.findElementInResultsGroup(selectedId)
 
         if not foundFeature:
+            self.removeHighlightItems(oldHighlights)
+            self.clearAllLayerSelections()
             QMessageBox.information(self, self.tr("Info"), self.tr("Feature not found"))
             return
 
@@ -1085,6 +1102,8 @@ class QGISRedElementExplorerDock(QGISRedHighlightOwnerMixin, QDockWidget, FORM_C
         highlight.setWidth(5)
         highlight.show()
         self.mainHighlight = highlight
+        self.removeHighlightItems(oldHighlights)
+        self.clearAllLayerSelections()
         self.notifyHighlightDrawn()
         self.adjustMapView(foundFeature)
 
@@ -1094,6 +1113,9 @@ class QGISRedElementExplorerDock(QGISRedHighlightOwnerMixin, QDockWidget, FORM_C
     @pyqtSlot()
     def updateElementIds(self):
         self.cbElementId.setUpdatesEnabled(False)
+        # Repopulating moves the index to 0, and letting that signal through
+        # would find and highlight the first element of the list for an instant.
+        self.cbElementId.blockSignals(True)
         try:
             self.cbElementId.clear()
             self.labelFoundElement.setText("")
@@ -1107,12 +1129,17 @@ class QGISRedElementExplorerDock(QGISRedHighlightOwnerMixin, QDockWidget, FORM_C
                 self.cbElementId.addItems(filteredIds)
             else:
                 self.cbElementId.addItems(ids)
+            self.cbElementId.setCurrentIndex(-1)
         finally:
+            self.cbElementId.blockSignals(False)
             self.cbElementId.setUpdatesEnabled(True)
 
     @pyqtSlot()
     def filterElementIds(self):
         self.cbElementId.setUpdatesEnabled(False)
+        # Same as updateElementIds: keep the repopulation silent so typing a
+        # mask does not flash the first matching element on the map.
+        self.cbElementId.blockSignals(True)
         try:
             mask = self.leElementMask.text().strip()
             self.cbElementId.clear()
@@ -1123,7 +1150,9 @@ class QGISRedElementExplorerDock(QGISRedHighlightOwnerMixin, QDockWidget, FORM_C
             else:
                 filteredIds = ids
             self.cbElementId.addItems(filteredIds)
+            self.cbElementId.setCurrentIndex(-1)
         finally:
+            self.cbElementId.blockSignals(False)
             self.cbElementId.setUpdatesEnabled(True)
 
     def onListItemSingleClicked(self, item):
@@ -2384,10 +2413,15 @@ class QGISRedElementExplorerDock(QGISRedHighlightOwnerMixin, QDockWidget, FORM_C
 
         index = self.cbElementId.findText(featureIdText)
         if index >= 0:
+            # This path draws its own highlight below; letting the index change
+            # run findElement too would do the whole search and repaint twice.
+            self.cbElementId.blockSignals(True)
             self.cbElementId.setCurrentIndex(index)
+            self.cbElementId.blockSignals(False)
 
-        self.clearHighlights()
-        self.clearAllLayerSelections()
+        # Draw the replacement before removing what is on screen, so the swap
+        # never shows an empty frame.
+        oldHighlights = self.takeHighlights()
         self.listWidget.clear()
 
         finalTitleText = self.updateFoundElementLabel(featureIdText, layer)
@@ -2397,6 +2431,8 @@ class QGISRedElementExplorerDock(QGISRedHighlightOwnerMixin, QDockWidget, FORM_C
         highlight.setWidth(5)
         highlight.show()
         self.mainHighlight = highlight
+        self.removeHighlightItems(oldHighlights)
+        self.clearAllLayerSelections()
         self.notifyHighlightDrawn()
 
         self.adjustMapView(feature)
