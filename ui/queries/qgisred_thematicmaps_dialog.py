@@ -9,11 +9,11 @@ from qgis.PyQt.QtGui import QIcon
 from qgis.PyQt.QtWidgets import QDialog, QMessageBox, QWidget
 from ...compat import sip, NODE_TYPE_LAYER, NODE_TYPE_GROUP, PAL_PLACEMENT_OVER_POINT
 from qgis.PyQt import uic
-from qgis.PyQt.QtCore import QCoreApplication
+from qgis.PyQt.QtCore import QCoreApplication, QVariant
 
 # QGIS imports
 from qgis.core import QgsLayerTreeGroup, QgsLayerTreeLayer, QgsProject
-from qgis.core import QgsVectorFileWriter, QgsVectorLayer
+from qgis.core import QgsField, QgsVectorFileWriter, QgsVectorLayer
 from qgis.core import QgsPalLayerSettings, QgsVectorLayerSimpleLabeling
 
 # Local imports
@@ -53,7 +53,6 @@ class QGISRedThematicMapsDialog(QDialog, FORM_CLASS):
         self.gbTanks.hide()
         self.gbReservoirs.hide()
 
-        self.cbPipesRoughness.hide()
         self.cbPipesLossCoeff.hide()
         self.cbPipesInitStatus.hide()
         self.cbPipesBulkCoeff.hide()
@@ -289,6 +288,20 @@ class QGISRedThematicMapsDialog(QDialog, FORM_CLASS):
         # the style file adds on top of the raw InstalDate column.
         if layerType == 'pipes' and field == 'InstallDate' and derivedLayer.fields().indexFromName('InstYear') >= 0:
             hideField = 'InstYear'
+        # The two date-based maps should expose both virtual fields (InstYear and Age).
+        # A style copied to the project or global folder may predate one of them, so
+        # add whichever is missing before deciding which columns stay visible.
+        if layerType == 'pipes' and field in ('InstallDate', 'Age'):
+            if derivedLayer.fields().indexFromName('InstalDate') >= 0:
+                expressions = {
+                    'InstYear': 'to_int( left( "InstalDate" ,4))',
+                    'Age': "round(year(age(now(),to_datetime(\"InstalDate\",'yyyyMMdd'))),0)",
+                }
+                for name, expression in expressions.items():
+                    if derivedLayer.fields().indexFromName(name) < 0:
+                        derivedLayer.addExpressionField(expression, QgsField(name, QVariant.Int))
+            hideField = [name for name in ('InstYear', 'Age')
+                         if derivedLayer.fields().indexFromName(name) >= 0] or hideField
 
         # hideFields() would otherwise resolve the identity column itself via
         # derivedLayer's own qgisred_identifier -- but that property is set above to this
