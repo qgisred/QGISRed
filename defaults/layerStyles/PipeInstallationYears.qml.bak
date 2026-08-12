@@ -2,12 +2,12 @@
 <qgis labelsEnabled="1" version="3.38.1-Grenoble" styleCategories="Symbology|Labeling|Fields|MapTips">
   <renderer-v2 type="RuleRenderer" symbollevels="0" forceraster="0" enableorderby="0" referencescale="-1">
     <rules key="{393b4f4d-076e-4070-b9bd-0dcc7d9fae13}">
-      <rule key="{bb123f93-b3c8-48d0-8892-4c84bc1b73d2}" symbol="0" label="&lt; 1925" filter="&quot;InstYear&quot; >= 1000 AND &quot;InstYear&quot; &lt;= 1924.99"/>
-      <rule key="{d73f8386-52c1-4fb2-8648-db0f094b6650}" symbol="1" label="1925 - 1949" filter="&quot;InstYear&quot; > 1924.99 AND &quot;InstYear&quot; &lt;= 1949.99"/>
-      <rule key="{5528ae6c-eeaf-4889-88c0-f4456511c344}" symbol="2" label="1950 - 1974" filter="&quot;InstYear&quot; > 1949.99 AND &quot;InstYear&quot; &lt;= 1974.99"/>
-      <rule key="{2f458c0d-e0a9-42fb-a82f-f82e3374a3ec}" symbol="3" label="1975 - 1999" filter="&quot;InstYear&quot; > 1974.99 AND &quot;InstYear&quot; &lt;= 1999.99"/>
-      <rule key="{9d16740b-5e95-477c-89f1-17deb0d96371}" symbol="4" label="2000 - 2014" filter="&quot;InstYear&quot; > 1999.99 AND &quot;InstYear&quot; &lt;= 2014.99"/>
       <rule key="{0da0dfc1-f630-4b84-b3e5-9d00400d0c4e}" symbol="5" label=">= 2015" filter="&quot;InstYear&quot; > 2014.99 AND &quot;InstYear&quot; &lt;= 2050"/>
+      <rule key="{9d16740b-5e95-477c-89f1-17deb0d96371}" symbol="4" label="2000 - 2014" filter="&quot;InstYear&quot; > 1999.99 AND &quot;InstYear&quot; &lt;= 2014.99"/>
+      <rule key="{2f458c0d-e0a9-42fb-a82f-f82e3374a3ec}" symbol="3" label="1975 - 1999" filter="&quot;InstYear&quot; > 1974.99 AND &quot;InstYear&quot; &lt;= 1999.99"/>
+      <rule key="{5528ae6c-eeaf-4889-88c0-f4456511c344}" symbol="2" label="1950 - 1974" filter="&quot;InstYear&quot; > 1949.99 AND &quot;InstYear&quot; &lt;= 1974.99"/>
+      <rule key="{d73f8386-52c1-4fb2-8648-db0f094b6650}" symbol="1" label="1925 - 1949" filter="&quot;InstYear&quot; > 1924.99 AND &quot;InstYear&quot; &lt;= 1949.99"/>
+      <rule key="{bb123f93-b3c8-48d0-8892-4c84bc1b73d2}" symbol="0" label="&lt; 1925" filter="&quot;InstYear&quot; >= 1000 AND &quot;InstYear&quot; &lt;= 1924.99"/>
       <rule key="{223fbee9-d99b-42b1-95d0-dd4e3c221edc}" symbol="6" label="Unknown" filter="ELSE"/>
     </rules>
     <symbols>
@@ -313,7 +313,7 @@
             <Option name="dash_pattern_offset_unit" value="MM" type="QString"/>
             <Option name="draw_inside_polygon" value="0" type="QString"/>
             <Option name="joinstyle" value="bevel" type="QString"/>
-            <Option name="line_color" value="128,128,128,255,rgb:0.5019607843137255,0.5019607843137255,0.5019607843137255,1" type="QString"/>
+            <Option name="line_color" value="211,211,211,255,rgb:0.8274509803921568,0.8274509803921568,0.8274509803921568,1" type="QString"/>
             <Option name="line_style" value="solid" type="QString"/>
             <Option name="line_width" value="0.8" type="QString"/>
             <Option name="line_width_unit" value="MM" type="QString"/>
@@ -529,6 +529,7 @@
   <featureBlendMode>0</featureBlendMode>
   <expressionfields>
     <field expression="to_int( left( &quot;InstalDate&quot; ,4))" name="InstYear" precision="0" comment="" length="0" subType="0" typeName="integer" type="2"/>
+    <field expression="round(year(age(now(),to_datetime(&quot;InstalDate&quot;,'yyyyMMdd'))),0)" name="Age" precision="0" comment="" length="0" subType="0" typeName="integer" type="2"/>
   </expressionfields>
   <mapTip enabled="1">Year [%"InstYear"%]</mapTip>
   <layerGeometryType>1</layerGeometryType>

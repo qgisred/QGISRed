@@ -313,7 +313,7 @@
             <Option name="dash_pattern_offset_unit" value="MM" type="QString"/>
             <Option name="draw_inside_polygon" value="0" type="QString"/>
             <Option name="joinstyle" value="bevel" type="QString"/>
-            <Option name="line_color" value="128,128,128,255,rgb:0.5019607843137255,0.5019607843137255,0.5019607843137255,1" type="QString"/>
+            <Option name="line_color" value="211,211,211,255,rgb:0.8274509803921568,0.8274509803921568,0.8274509803921568,1" type="QString"/>
             <Option name="line_style" value="solid" type="QString"/>
             <Option name="line_width" value="0.8" type="QString"/>
             <Option name="line_width_unit" value="MM" type="QString"/>
@@ -529,6 +529,7 @@
   <featureBlendMode>0</featureBlendMode>
   <expressionfields>
     <field expression="round(year(age(now(),to_datetime(&quot;InstalDate&quot;,'yyyyMMdd'))),0)" name="Age" precision="0" comment="" length="0" subType="0" typeName="integer" type="2"/>
+    <field expression="to_int( left( &quot;InstalDate&quot; ,4))" name="InstYear" precision="0" comment="" length="0" subType="0" typeName="integer" type="2"/>
   </expressionfields>
   <mapTip enabled="1">[%"Age"%] years old</mapTip>
   <layerGeometryType>1</layerGeometryType>
