@@ -66,7 +66,10 @@ def _analysisSection():
 
 
 def _sectionWith(currentTool):
+    from QGISRed.tools.utils.qgisred_highlight_manager import QGISRedHighlightManager
+
     section = _analysisSection().__new__(_analysisSection())
+    section.highlightManager = QGISRedHighlightManager()
     section.myMapTools = {"TimeSeries": MagicMock()}
     section.iface = MagicMock()
     section.canvas = section.iface.mapCanvas.return_value
@@ -78,7 +81,18 @@ def _sectionWith(currentTool):
     return section
 
 
-def test_the_chart_takes_the_canvas_tool_from_the_identify_tool():
+class _NativeIdentifyTool:
+    """QGIS's own Identify Features. Recognised by name: the class is not wrapped for
+    Python, so it reaches us cast to whatever base sip found."""
+
+    __module__ = "qgis.gui"
+
+
+class _NativePanTool:
+    __module__ = "qgis.gui"
+
+
+def test_the_chart_takes_the_canvas_tool_from_the_element_explorer():
     identify = QGISRedIdentifyFeature.__new__(QGISRedIdentifyFeature)
     section = _sectionWith(identify)
 
@@ -87,10 +101,66 @@ def test_the_chart_takes_the_canvas_tool_from_the_identify_tool():
     section.canvas.setMapTool.assert_called_once_with(section.myMapTools["TimeSeries"])
 
 
-def test_the_chart_does_not_take_an_unrelated_tool():
-    """A pan, a zoom or a digitising tool is the user in the middle of something."""
-    section = _sectionWith(MagicMock())
+def test_the_chart_takes_the_canvas_tool_from_qgis_own_identify():
+    """A competing subject, not a navigation gesture: turning back to the chart ends its
+    turn, and the mouse belongs to the chart again."""
+    section = _sectionWith(_NativeIdentifyTool())
+
+    section._reclaimMapToolForTimeSeries(MagicMock(highlights={"J1": 1}))
+
+    section.canvas.setMapTool.assert_called_once_with(section.myMapTools["TimeSeries"])
+
+
+def test_the_chart_takes_the_canvas_tool_from_the_multiple_selector():
+    """QGISRed's own multiple selector picks things off the map too. It is not filed as a
+    selection tool by the arbiter — every plugin tool is "plugin, no owner" before its job is
+    looked at — so it has to be named. The selected elements survive: they live in the
+    layers, not in the tool."""
+    from QGISRed.tools.map_tools.qgisred_multilayerSelection import QGISRedMultiLayerSelection
+
+    selector = QGISRedMultiLayerSelection.__new__(QGISRedMultiLayerSelection)
+    section = _sectionWith(selector)
+
+    section._reclaimMapToolForTimeSeries(MagicMock(highlights={"J1": 1}))
+
+    section.canvas.setMapTool.assert_called_once_with(section.myMapTools["TimeSeries"])
+
+
+def test_the_chart_does_not_take_a_navigation_tool():
+    """A pan or a zoom is the user in the middle of a gesture, not another subject."""
+    section = _sectionWith(_NativePanTool())
 
     section._reclaimMapToolForTimeSeries(MagicMock(highlights={"J1": 1}))
 
     section.canvas.setMapTool.assert_not_called()
+
+
+def _resultsSectionWith(currentTool):
+    section = _sectionWith(currentTool)
+    section.myMapTools["ResultsEvolution"] = MagicMock()
+    section._resultsEvolutionHighlight = MagicMock()
+    section._resultsEvolutionDock = MagicMock()
+    section._resultsEvolutionDock.return_value._activeEvolutionLayerType.return_value = "junctions"
+    return section
+
+
+def test_the_results_panel_answers_the_same_question_as_the_chart():
+    """Both reclaims ask one predicate, so the two cannot drift apart again."""
+    identify = _NativeIdentifyTool()
+
+    charts = _sectionWith(identify)
+    charts._reclaimMapToolForTimeSeries(MagicMock(highlights={"J1": 1}))
+
+    results = _resultsSectionWith(identify)
+    results._reclaimMapToolForResultsEvolution()
+
+    charts.canvas.setMapTool.assert_called_once_with(charts.myMapTools["TimeSeries"])
+    results.canvas.setMapTool.assert_called_once_with(results.myMapTools["ResultsEvolution"])
+
+
+def test_the_results_panel_also_leaves_a_navigation_tool_alone():
+    results = _resultsSectionWith(_NativePanTool())
+
+    results._reclaimMapToolForResultsEvolution()
+
+    results.canvas.setMapTool.assert_not_called()

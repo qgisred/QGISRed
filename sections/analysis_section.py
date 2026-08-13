@@ -388,15 +388,61 @@ class AnalysisSection:
             with suppress(Exception):
                 self._applyTimeSeriesMapStateForDock(dock)
         self._restyleTimeSeriesDocks()
-        tools = getattr(self, "myMapTools", {})
-        ts_tool = tools.get("TimeSeries")
-        evo_tool = tools.get("ResultsEvolution")
-        profile_tool = tools.get("Profile")
+        ts_tool = getattr(self, "myMapTools", {}).get("TimeSeries")
         current = self.iface.mapCanvas().mapTool()
-        takeable = (current is None or current is evo_tool or current is profile_tool
-                    or self._isElementExplorerMapTool(current))
-        if ts_tool is not None and current is not ts_tool and takeable:
+        if ts_tool is not None and self._mayTakeMapTool(current, ts_tool):
             self.iface.mapCanvas().setMapTool(ts_tool)
+
+    # Every QGISRed panel that picks elements off the map. Kept here rather than spelled out
+    # at each call site: the list was written twice before, the two copies drifted, and the
+    # panel missing from one of them is exactly what left a foreign cursor on the canvas.
+    _PANEL_MAP_TOOL_KEYS = ("TimeSeries", "ResultsEvolution", "Profile")
+
+    def _mayTakeMapTool(self, current, ownTool):
+        """May the panel that has just been given the canvas arm `ownTool`?
+
+        Yes for a canvas nobody holds, for another QGISRed panel's picking tool, and for the
+        Element Explorer's or QGIS's own identify — every one of those is a subject whose turn
+        has just ended, and leaving its tool armed sends the next click on the map to the panel
+        the user turned away from. No for pan, zoom and digitizing: that is the user in the
+        middle of a gesture, and no panel has any business interrupting it.
+        """
+        if current is None:
+            return True
+        if current is ownTool:
+            return False
+        tools = getattr(self, "myMapTools", {})
+        if any(current is tools.get(key) for key in self._PANEL_MAP_TOOL_KEYS):
+            return True
+        return self._isElementExplorerMapTool(current) or self._isCompetingSelectionTool(current)
+
+    def _isCompetingSelectionTool(self, tool):
+        """Tools whose job is picking things off the map: QGIS's identify and select, and
+        QGISRed's own multiple selector.
+
+        The arbiter grades the native tools already — pan and zoom are the user navigating and
+        never lose the canvas, digitizing is the user editing the geometry itself — so that
+        grading is asked for rather than restated here. The multiple selector needs naming on
+        top of it because the grading files every QGISRed tool as "plugin, no owner" before it
+        can look at what the tool does. Selecting is a subject, not a gesture, and its turn
+        ends when the user turns back to a panel. Nothing is lost with it: the selected
+        elements live in the layers (qgis:selectbylocation), not in the tool — only an
+        unfinished rubber-band drag goes.
+        """
+        from ..tools.map_tools.qgisred_multilayerSelection import QGISRedMultiLayerSelection
+
+        with suppress(Exception):
+            if isinstance(tool, QGISRedMultiLayerSelection):
+                return True
+        manager = getattr(self, "highlightManager", None)
+        if manager is None:
+            return False
+        from ..tools.utils.qgisred_highlight_manager import MapToolRole
+
+        with suppress(Exception):
+            role, _owner = manager.classifyMapTool(tool)
+            return role == MapToolRole.SELECTION
+        return False
 
     def _isElementExplorerMapTool(self, tool):
         """The identify tool, which answers clicks on the map for the Element Explorer.
@@ -423,13 +469,11 @@ class AnalysisSection:
                 layer, feature = self._resolveEvolutionLayerFeature(remembered)
                 if layer is not None and feature is not None:
                     self._setResultsEvolutionHighlight(layer, feature)
-        tools = getattr(self, "myMapTools", {})
-        ts_tool = tools.get("TimeSeries")
-        evo_tool = tools.get("ResultsEvolution")
+        evo_tool = getattr(self, "myMapTools", {}).get("ResultsEvolution")
         current = self.iface.mapCanvas().mapTool()
         if evo_tool is not None and current is evo_tool:
             return
-        if current is ts_tool:
+        if self._mayTakeMapTool(current, evo_tool):
             self._resultsEvolutionType = dock._activeEvolutionLayerType()
             if evo_tool is not None:
                 self.iface.mapCanvas().setMapTool(evo_tool)
