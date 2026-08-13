@@ -385,8 +385,27 @@ class QGISRedElementExplorerDock(QGISRedHighlightOwnerMixin, QDockWidget, FORM_C
         # making the Statistics preview recompute itself away. It is undone by
         # this dock's own lifecycle instead (close, new search, project change).
         self.clearHighlights()
+        self.clearIdentifyToolHighlight()
+
+    def clearIdentifyToolHighlight(self):
+        """The identify tool draws a red highlight of its own on every map click.
+
+        Two reds end up stacked on the same element — the tool's and this dock's — and only
+        this dock's is in the lists above, so suspending left the element lit. The tool drops
+        its own in deactivate(), but the panel taking the canvas does not always replace the
+        map tool, and on that path the highlight outlived the suspension.
+        """
+        from ...tools.map_tools.qgisred_identifyFeature import QGISRedIdentifyFeature
+
+        with suppress(Exception):
+            currentTool = self.canvas.mapTool()
+            if isinstance(currentTool, QGISRedIdentifyFeature):
+                currentTool.clearHighlightGraphics()
 
     def redrawMapHighlights(self):
+        # No counterpart for clearIdentifyToolHighlight(): reHighlightCurrentElement() puts
+        # the same red back on the same element, so the tool's copy has nothing to add. It
+        # draws itself again on the next click on the map.
         self.reHighlightCurrentElement()
         self.reestablishIdentifyTool()
 

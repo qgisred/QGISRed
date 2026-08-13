@@ -393,8 +393,25 @@ class AnalysisSection:
         evo_tool = tools.get("ResultsEvolution")
         profile_tool = tools.get("Profile")
         current = self.iface.mapCanvas().mapTool()
-        if ts_tool is not None and current is not ts_tool and (current is None or current is evo_tool or current is profile_tool):
+        takeable = (current is None or current is evo_tool or current is profile_tool
+                    or self._isElementExplorerMapTool(current))
+        if ts_tool is not None and current is not ts_tool and takeable:
             self.iface.mapCanvas().setMapTool(ts_tool)
+
+    def _isElementExplorerMapTool(self, tool):
+        """The identify tool, which answers clicks on the map for the Element Explorer.
+
+        Left armed while a chart owns the canvas, a click meant for the chart comes back to
+        the Explorer instead: its dock raises itself, it takes the highlight, and there is no
+        way to add a series to the chart at all. Only the chart claims it back — the Explorer
+        re-arms it in reestablishIdentifyTool() when the arbiter gives it the canvas again, so
+        each side acts once per handover and neither reacts to the other taking it.
+        """
+        from ..tools.map_tools.qgisred_identifyFeature import QGISRedIdentifyFeature
+
+        with suppress(Exception):
+            return isinstance(tool, QGISRedIdentifyFeature)
+        return False
 
     def _reclaimMapToolForResultsEvolution(self):
         dock = self._resultsEvolutionDock()

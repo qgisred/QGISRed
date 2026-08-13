@@ -178,13 +178,22 @@ class QGISRedIdentifyFeature(QgsMapToolIdentify):
         self.currentHighlight.setFillColor(Qt.GlobalColor.transparent)
         self.currentHighlight.show()
 
-    def clearHighlights(self):
+    def clearHighlightGraphics(self):
+        """Take this tool's highlight off the canvas and nothing else.
+
+        The Element Explorer suspends through this one when the arbiter hands the canvas to
+        another panel. The selection on the layers is shared state other docks read — dropping
+        it fires selectionChanged and the Statistics preview recomputes itself away — and a
+        full canvas refresh reads as a blink, so neither belongs in a suspend.
+        """
         if self.currentHighlight is not None:
             self.currentHighlight.hide()
             with suppress(Exception):
                 self.canvas.scene().removeItem(self.currentHighlight)
             self.currentHighlight = None
 
+    def clearHighlights(self):
+        self.clearHighlightGraphics()
         iface.mapCanvas().refresh()
         self.clearSelections()
 
@@ -272,6 +281,11 @@ class QGISRedIdentifyFeature(QgsMapToolIdentify):
         self.showFeatureInDock(selectedLayer, selectedFeature, selectedHandler)
 
     def canvasMoveEvent(self, event):
+        # Escape, a project change and the arbiter handing the canvas to another panel all
+        # call deactivate() without taking the tool off the canvas, so the mouse keeps
+        # arriving here after removeVertexMarkers() nulled the markers.
+        if self.snapper is None or self.startMarker is None or self.endMarker is None:
+            return
         match = self.snapper.snapToMap(self.toMapCoordinates(event.pos()))
         if match.isValid():
             self.objectSnapped = match
@@ -297,6 +311,18 @@ class QGISRedIdentifyFeature(QgsMapToolIdentify):
         QgsMapTool.activate(self)
         if self.custom_cursor:
             self.canvas.setCursor(self.custom_cursor)
+        # deactivate() dismantles this instance, and this very instance goes back on the canvas
+        # every time the Element Explorer gets the focus again (the dock re-arms the tool it
+        # remembers, it does not build a new one). So everything deactivate() took apart has to
+        # be put back here.
+        #
+        # Markers: rebuild before configSnapper(), which startVertexes() would otherwise undo —
+        # it clears the snapper on its way out.
+        if self.startMarker is None or self.endMarker is None:
+            self.startVertexes()
+        # dockClosed: without it the tool never hears the Explorer being closed, and closing it
+        # would leave this tool's highlight on the map and its cursor over the canvas.
+        self.setDockConnections()
         self.configSnapper()
 
     def setIdentifyFeatureAsMapTool(self):

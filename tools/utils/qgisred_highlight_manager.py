@@ -146,11 +146,12 @@ class _QGISRedDockActivationEvents:
     def _onActivationVisibilityChanged(self, visible):
         # Only the panel that came to the top says anything: when docks sit side
         # by side, re-stacking one makes the others report False while they are
-        # still perfectly visible.
+        # still perfectly visible. Not userDriven: a dock re-shown because the
+        # layout was rearranged is not the user turning to it.
         if visible:
             self.notifyDockActivation()
 
-    def notifyDockActivation(self):
+    def notifyDockActivation(self, userDriven=False):
         """Tell whoever arbitrates that this dock is the subject now."""
 
     def _handleActivationEvent(self, event):
@@ -159,7 +160,7 @@ class _QGISRedDockActivationEvents:
         with suppress(Exception):
             etype = event.type()
             if etype in _ACTIVATION_EVENTS:
-                self.notifyDockActivation()
+                self.notifyDockActivation(userDriven=True)
             elif etype in _CHILD_EVENTS:
                 self._installActivationFilter(event.child())
 
@@ -214,17 +215,22 @@ class QGISRedHighlightOwnerMixin(_QGISRedDockActivationEvents):
     def highlightManager(self):
         return getattr(self, "_highlightManager", None)
 
-    def notifyHighlightActivated(self):
-        """The user turned to this dock — take the canvas if there is anything
-        to show on it."""
+    def notifyHighlightActivated(self, userDriven=False):
+        """The user turned to this dock — take the canvas.
+
+        userDriven says the user did something to this dock: clicked in it, or moved the
+        keyboard focus into it. That answer overrules canActivate(), so a panel with nothing
+        to draw still becomes the current one when it is clicked. Left False, the call is
+        incidental — a dock re-shown by a layout change — and canActivate() still decides.
+        """
         manager = self.highlightManager()
         if manager is not None:
             with suppress(Exception):
-                manager.activate(self)
+                manager.activate(self, force=userDriven)
 
-    def notifyDockActivation(self):
+    def notifyDockActivation(self, userDriven=False):
         # The dock is its own owner, so turning to it is claiming the canvas.
-        self.notifyHighlightActivated()
+        self.notifyHighlightActivated(userDriven=userDriven)
 
     def isHighlightSuspended(self):
         """True when the arbiter has taken the canvas away from this dock.
@@ -298,14 +304,15 @@ class QGISRedHighlightOwnerMixin(_QGISRedDockActivationEvents):
 
     # -- Qt events that mean "the user is working here" --------------------
     def focusInEvent(self, event):
-        self.notifyHighlightActivated()
+        self.notifyHighlightActivated(userDriven=True)
         super(QGISRedHighlightOwnerMixin, self).focusInEvent(event)
 
     def mousePressEvent(self, event):
-        self.notifyHighlightActivated()
+        self.notifyHighlightActivated(userDriven=True)
         super(QGISRedHighlightOwnerMixin, self).mousePressEvent(event)
 
     def showEvent(self, event):
+        # Not userDriven: being shown is the layout's doing, not the user's.
         super(QGISRedHighlightOwnerMixin, self).showEvent(event)
         self.notifyHighlightActivated()
 
@@ -342,7 +349,9 @@ class QGISRedDockActivationMixin(_QGISRedDockActivationEvents):
         with suppress(Exception):
             self.activated.emit()
 
-    def notifyDockActivation(self):
+    def notifyDockActivation(self, userDriven=False):
+        # These docks have no canActivate() of their own for the flag to overrule: their
+        # Section decides, and it always has a chart to put back.
         self.emitActivated()
 
     def mousePressEvent(self, event):
@@ -488,15 +497,23 @@ class QGISRedHighlightManager:
         return any(o is owner for o in self._suspended)
 
     # -- Arbitration -------------------------------------------------------
-    def activate(self, owner):
-        """Give `owner` the canvas: restore its highlights, suspend everyone else."""
+    def activate(self, owner, force=False):
+        """Give `owner` the canvas: restore its highlights, suspend everyone else.
+
+        canActivate() exists so a dock that has nothing to draw cannot take the canvas from
+        one that is using it — but it was also swallowing the user's own clicks, which left a
+        panel with nothing identified yet permanently greyed out and unable to become the
+        current one at all. `force` is the caller saying the user did this on purpose; the
+        panel then becomes the current one whether or not it has anything to put on the map.
+        """
         if owner is None or not self.isRegistered(owner) or self._busy:
             return
         if self._active is owner and not self.isSuspended(owner):
             return
-        with suppress(Exception):
-            if not owner.canActivate():
-                return
+        if not force:
+            with suppress(Exception):
+                if not owner.canActivate():
+                    return
         self._busy = True
         try:
             for other in self._owners:
