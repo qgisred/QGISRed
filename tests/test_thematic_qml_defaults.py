@@ -21,24 +21,33 @@ PLUGIN_ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 STYLES_DIR = os.path.join(PLUGIN_ROOT, "defaults", "layerStyles")
 DIALOG_SOURCE = os.path.join(PLUGIN_ROOT, "ui", "queries", "qgisred_thematicmaps_dialog.py")
 
+# Both styles declare both derived fields, whichever one they classify by, so a
+# map tip or a label can be switched from one to the other without editing the
+# expression back in.
+VIRTUAL_FIELDS = {
+    "InstYear": 'to_int( left( "InstalDate" ,4))',
+    # -1: a pipe laid last year is in its first year of service, not its second.
+    "Age": "round(year(age(now(),to_datetime(\"InstalDate\",'yyyyMMdd'))),0)-1",
+}
+
 EXPECTED = {
     "PipeInstallationYears.qml.bak": {
         "field": "InstYear",
-        "expression": 'to_int( left( "InstalDate" ,4))',
-        "labels": ["< 1925", "1925 - 1949", "1950 - 1974", "1975 - 1999", "2000 - 2014", ">= 2015"],
+        # Newest first: the legend reads in the order the renewal plan is argued.
+        "labels": [">= 2015", "2000 - 2014", "1975 - 1999", "1950 - 1974", "1925 - 1949", "< 1925"],
         "bounds": (1000.0, 2050.0),
-        "mapTip": 'Year [%"InstYear"%]',
+        "mapTip": 'Inst. [%"InstYear"%]',
     },
     "PipeAges.qml.bak": {
         "field": "Age",
-        "expression": "round(year(age(now(),to_datetime(\"InstalDate\",'yyyyMMdd'))),0)",
+        # Oldest last: same pipes, read the other way round.
         "labels": ["< 10", "10 - 24", "25 - 49", "50 - 74", "75 - 100", ">= 100"],
         "bounds": (0.0, 1000.0),
-        "mapTip": '[%"Age"%] years old',
+        "mapTip": '[%"Age"%] yr',
     },
 }
 
-GREY = "128,128,128,255"
+GREY = "211,211,211,255"
 
 
 def loadStyle(fileName):
@@ -63,17 +72,19 @@ class TestDateDerivedThematicStyles:
         assert [rule.get("label") for rule in rules[:-1]] == expected["labels"]
 
         # The range filters must stay readable by the legend editor's parser,
-        # contiguous, and all on the virtual field.
-        previousUpper = None
+        # contiguous, and all on the virtual field. The two styles list their
+        # classes in opposite directions, so compare the ranges in value order
+        # rather than in legend order.
+        ranges = []
         for rule in rules[:-1]:
             field, lower, upper = parseRangeFilter(rule.get("filter"))
             assert field == expected["field"]
             assert lower < upper
-            if previousUpper is not None:
-                assert lower == previousUpper
-            previousUpper = upper
-        firstLower = parseRangeFilter(rules[0].get("filter"))[1]
-        assert (firstLower, previousUpper) == expected["bounds"]
+            ranges.append((lower, upper))
+        ranges.sort()
+        for (_lower, upper), (nextLower, _nextUpper) in zip(ranges, ranges[1:]):
+            assert nextLower == upper
+        assert (ranges[0][0], ranges[-1][1]) == expected["bounds"]
 
         # Undated pipes land in the catch-all Unknown rule, drawn grey.
         elseRule = rules[-1]
@@ -85,13 +96,15 @@ class TestDateDerivedThematicStyles:
         for symbol in symbols.values():
             assert lineOption(symbol, "line_width") == "0.8"
 
-    def test_virtual_field_is_declared_in_the_style_itself(self, fileName):
+    def test_virtual_fields_are_declared_in_the_style_itself(self, fileName):
         expected = EXPECTED[fileName]
-        fields = loadStyle(fileName).findall("expressionfields/field")
-        assert len(fields) == 1
-        assert fields[0].get("name") == expected["field"]
-        assert fields[0].get("expression") == expected["expression"]
-        assert fields[0].get("typeName") == "integer"
+        fields = {field.get("name"): field for field in loadStyle(fileName).findall("expressionfields/field")}
+
+        assert set(fields) == set(VIRTUAL_FIELDS)
+        assert expected["field"] in fields
+        for name, expression in VIRTUAL_FIELDS.items():
+            assert fields[name].get("expression") == expression
+            assert fields[name].get("typeName") == "integer"
 
     def test_map_tip_and_label_read_the_virtual_field(self, fileName):
         expected = EXPECTED[fileName]

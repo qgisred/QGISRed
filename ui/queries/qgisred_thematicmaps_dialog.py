@@ -7,9 +7,9 @@ import os
 # Third-party imports
 from qgis.PyQt.QtGui import QIcon
 from qgis.PyQt.QtWidgets import QDialog, QMessageBox, QWidget
-from ...compat import sip, NODE_TYPE_LAYER, NODE_TYPE_GROUP, PAL_PLACEMENT_OVER_POINT
+from ...compat import sip, NODE_TYPE_LAYER, NODE_TYPE_GROUP, PAL_PLACEMENT_OVER_POINT, QVariantInt
 from qgis.PyQt import uic
-from qgis.PyQt.QtCore import QCoreApplication, QVariant
+from qgis.PyQt.QtCore import QCoreApplication
 
 # QGIS imports
 from qgis.core import QgsLayerTreeGroup, QgsLayerTreeLayer, QgsProject
@@ -299,7 +299,7 @@ class QGISRedThematicMapsDialog(QDialog, FORM_CLASS):
                 }
                 for name, expression in expressions.items():
                     if derivedLayer.fields().indexFromName(name) < 0:
-                        derivedLayer.addExpressionField(expression, QgsField(name, QVariant.Int))
+                        derivedLayer.addExpressionField(expression, QgsField(name, QVariantInt))
             hideField = [name for name in ('InstYear', 'Age')
                          if derivedLayer.fields().indexFromName(name) >= 0] or hideField
 

@@ -272,7 +272,9 @@ class TestCollectExternalData:
         assert [i.kind for i in items] == ["folder"]
 
     def test_out_of_scope_item_is_flagged(self, workspace):
-        other = tempfile.mkdtemp()
+        # Resolved like the workspace fixture: the exporter reports resolved paths, and on a
+        # platform where the temp folder is reached through a link the raw one never matches.
+        other = os.path.realpath(tempfile.mkdtemp())
         try:
             far = _touch(os.path.join(other, "ortho.tif"))
             projectDir, _ = _makeProject(workspace, qgzAt="project",
@@ -574,7 +576,9 @@ class TestExportToZip:
         assert values == [dtm.replace(os.sep, "/")]
 
     def test_out_of_scope_external_data_is_reported_and_skipped(self, workspace):
-        other = tempfile.mkdtemp()
+        # Resolved like the workspace fixture: the exporter reports resolved paths, and on a
+        # platform where the temp folder is reached through a link the raw one never matches.
+        other = os.path.realpath(tempfile.mkdtemp())
         try:
             far = _touch(os.path.join(other, "ortho.tif"))
             projectDir, _ = _makeProject(workspace, qgzAt="project",
@@ -748,7 +752,9 @@ class TestPerLayerExternalSelection:
         assert plan.structure == STRUCTURE_PROJECT   # no sibling travels, so no need for B
 
     def test_out_of_scope_items_can_never_be_selected(self, workspace):
-        other = tempfile.mkdtemp()
+        # Resolved like the workspace fixture: the exporter reports resolved paths, and on a
+        # platform where the temp folder is reached through a link the raw one never matches.
+        other = os.path.realpath(tempfile.mkdtemp())
         try:
             far = _touch(os.path.join(other, "ortho.tif"))
             projectDir, _ = _makeProject(workspace, qgzAt="project",

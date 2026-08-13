@@ -37,6 +37,15 @@ REMOTE_PREFIXES = ("http://", "https://")
 URI_SUFFIX_SEPARATOR = "|"
 
 
+def _resolvedNorm(path):
+    """The one form in which two paths may be compared for "is this inside that?".
+
+    Links, junctions and 8.3 short names all give a folder more than one spelling, and two
+    of them reaching the same file compare unequal until both are resolved.
+    """
+    return os.path.normcase(os.path.normpath(os.path.realpath(path)))
+
+
 def isRemoteDatasource(value):
     """True when the datasource is a connection string rather than a local file path."""
     lowered = (value or "").lower()
@@ -341,7 +350,12 @@ class QGISRedProjectIO:
         """
         oldFolderNorm = os.path.normcase(os.path.normpath(oldFolder))
         newFolderNorm = os.path.normpath(newFolder)
-        relativizeUnderNorm = os.path.normcase(os.path.normpath(relativizeUnder)) if relativizeUnder else None
+        # Resolved, because the staging root arrives as the caller created it (mkdtemp) while every
+        # path it gets compared against came back through safeJoin, which resolves. Unresolved, a
+        # staging root that is reached through a link — macOS /var -> /private/var, an 8.3 %TEMP% on
+        # Windows — makes every staged file look like it landed outside the package, and the export
+        # keeps absolute paths into a folder that is deleted the moment the ZIP is written.
+        relativizeUnderNorm = _resolvedNorm(relativizeUnder) if relativizeUnder else None
 
         def emitPath(absPath, protocol, wasRelative):
             """Renders a resolved absolute path back into a datasource value.
@@ -354,7 +368,7 @@ class QGISRedProjectIO:
             """
             targetQgisDir = newQgisDir if newQgisDir else oldQgisDir
             if relativizeUnderNorm:
-                probe = os.path.normcase(os.path.normpath(absPath))
+                probe = _resolvedNorm(absPath)
                 shouldRelativize = probe == relativizeUnderNorm or probe.startswith(relativizeUnderNorm + os.sep)
             else:
                 shouldRelativize = wasRelative

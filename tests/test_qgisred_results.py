@@ -1,5 +1,6 @@
 # -*- coding: utf-8 -*-
 """Tests for tools/qgisred_results.py — the EPANET binary (.out) parser."""
+import importlib.util
 import io
 import struct
 import os
@@ -31,6 +32,13 @@ from QGISRed.ui.analysis.qgisred_results_hyd import (
 
 from .helpers.epanet_out_builder import simple_network_out, pump_valve_network_out, simple_network_out_with_trailing
 from .helpers.epanet_hyd_builder import build_epanet_hyd
+
+# Only the .out statistics readers vectorise the whole time series with numpy; every other
+# reader here, the .hyd statistics included, is pure Python. QGIS always ships numpy, so this
+# skips nothing where it matters — it just keeps a bare interpreter from failing the suite.
+requiresNumpy = pytest.mark.skipif(
+    importlib.util.find_spec("numpy") is None, reason="numpy is not installed in this interpreter"
+)
 
 
 # ═══════════════════════════════════════════════════════════════════════
@@ -301,6 +309,7 @@ class TestGetOutTimesLinkProperty:
 # 8. Statistics across time
 # ═══════════════════════════════════════════════════════════════════════
 
+@requiresNumpy
 class TestGetOutStatNodesProperties:
     def test_maximum(self, simple_network_out):
         results = getOut_StatNodesProperties(simple_network_out, "Maximum")
@@ -350,6 +359,7 @@ class TestGetOutStatNodesProperties:
         assert results == {}
 
 
+@requiresNumpy
 class TestGetOutStatLinksProperties:
     def test_maximum(self, simple_network_out):
         results = getOut_StatLinksProperties(simple_network_out, "Maximum")

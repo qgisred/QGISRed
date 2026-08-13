@@ -398,10 +398,17 @@ class TestApplyAuxiliaryLayerSelection:
         assert section.closeAuxiliaryThemes.call_args[0][0] == []
 
     def test_the_comparison_ignores_path_case(self):
-        """Windows hands back the same file spelled either way."""
+        """Windows hands back the same file spelled either way.
+
+        os.path.normcase only folds case on Windows, so on any other platform
+        the fold has to be simulated — otherwise this passes for the wrong
+        reason there and the check would be just as green with one of the two
+        sides not normalised at all.
+        """
         section = self._makeSection()
 
-        section.applyAuxiliaryLayerSelection(["C:/proj/A.shp"], ["c:/proj/a.shp"])
+        with patch("os.path.normcase", str.lower):
+            section.applyAuxiliaryLayerSelection(["C:/proj/A.shp"], ["c:/proj/a.shp"])
 
         assert section.closeAuxiliaryThemes.call_args[0][0] == []
 
