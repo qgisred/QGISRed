@@ -41,6 +41,9 @@ class QGISRedQueriesByPropertiesDock(QGISRedHighlightOwnerMixin, QDockWidget, FO
         for combo in self.findChildren(QComboBox):
             QGISRedUIUtils.applyComboStyle(combo)
 
+        # Anywhere in the panel counts as turning to it.
+        self.watchDockActivation()
+
     # ------------------------------
     # Highlight ownership protocol
     # ------------------------------

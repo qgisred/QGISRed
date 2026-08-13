@@ -1180,7 +1180,6 @@ class QGISRedTimeSeriesDock(QGISRedDockActivationMixin, QDockWidget, FORM_CLASS)
 
         self.plot = TimeSeriesPlotWidget(self.chartContainer)
         self.plot.setCursorTimeTextFormatter(self._formatCursorTimeText)
-        self.plot.installEventFilter(self)
         self._initPlotAndTableLayout()
         self.plot.seriesOrderChanged.connect(self.seriesReordered)
         self.plot.seriesOrderChanged.connect(self._onSeriesOrderChanged)
@@ -1196,6 +1195,9 @@ class QGISRedTimeSeriesDock(QGISRedDockActivationMixin, QDockWidget, FORM_CLASS)
         self._applyGlobalVarComboStyles()
         self._updateClearToolbarVisibility()
         self._updatePanAvailability()
+
+        # Anywhere in the panel counts as turning to it, not just the chart.
+        self.watchDockActivation()
 
     def _updateMinimumWidthForDockTitle(self) -> None:
         title = (self.windowTitle() or "").strip()

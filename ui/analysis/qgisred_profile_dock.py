@@ -303,10 +303,8 @@ class QGISRedProfileDock(QGISRedDockActivationMixin, QDockWidget):
         self.setWidget(container)
         self._updateChartActionsEnabled()
 
-        with suppress(Exception):
-            self.plot.installEventFilter(self)
-            self.table.installEventFilter(self)
-            self._toolbarBox.installEventFilter(self)
+        # Anywhere in the panel counts as turning to it, not just the chart.
+        self.watchDockActivation()
 
     def _makeIconButton(self, parent, icon_path, tooltip, checkable=False):
         button = QToolButton(parent)

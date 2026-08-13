@@ -346,15 +346,9 @@ class QGISRedElementExplorerDock(QGISRedHighlightOwnerMixin, QDockWidget, FORM_C
     # Event Filter Setup
     # ------------------------------
     def setupEventFilters(self):
-        mainWidget = self.widget()
-        self.installEventFilterRecursive(mainWidget)
-
-    def installEventFilterRecursive(self, widget):
-        if widget:
-            widget.installEventFilter(self)
-            for child in widget.children():
-                if isinstance(child, QWidget):
-                    self.installEventFilterRecursive(child)
+        # Filters the whole panel, so a click anywhere in it — not only on a
+        # widget that takes the keyboard focus — says the user turned to it.
+        self.watchDockActivation()
 
     def eventFilter(self, obj, event):
         # Intercept Show events on conditional labels to keep them hidden if empty
@@ -364,9 +358,6 @@ class QGISRedElementExplorerDock(QGISRedHighlightOwnerMixin, QDockWidget, FORM_C
                 obj.hide()
                 return True
 
-        if event.type() == QEvent.Type.FocusIn:
-            if obj != self and self.isAncestorOf(obj):
-                self.notifyHighlightActivated()
         return super(QGISRedElementExplorerDock, self).eventFilter(obj, event)
 
     def reestablishIdentifyTool(self):
@@ -687,7 +678,9 @@ class QGISRedElementExplorerDock(QGISRedHighlightOwnerMixin, QDockWidget, FORM_C
             self.layerTreeChangeTimer.stop()
             self.resultsDockVisibilityTimer.stop()
 
-            self.removeEventFiltersRecursive(self.widget())
+            # From the dock itself: the activation filter watches the whole
+            # panel, not only the widget it holds.
+            self.removeEventFiltersRecursive(self)
             self.clearHighlights()
             self.clearAllLayerSelections()
 

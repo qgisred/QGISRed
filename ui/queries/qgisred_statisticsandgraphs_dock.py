@@ -247,6 +247,9 @@ class QGISRedStatisticsDock(QGISRedHighlightOwnerMixin, QDockWidget, formClass):
         if self.resultsDock is None:
             self.resultsDockPollTimer.start()
 
+        # Anywhere in the panel counts as turning to it.
+        self.watchDockActivation()
+
     # ------------------------------
     # Highlight ownership protocol
     # ------------------------------

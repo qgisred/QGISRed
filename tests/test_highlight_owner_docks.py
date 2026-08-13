@@ -9,7 +9,10 @@ runtime — the query docks are otherwise not imported anywhere in the suite.
 """
 import pytest
 
+from qgis.PyQt.QtCore import QEvent
+
 from QGISRed.tools.utils.qgisred_highlight_manager import (
+    _ACTIVATION_EVENTS,
     QGISRedDockActivationMixin,
     QGISRedHighlightOwnerMixin,
 )
@@ -59,3 +62,78 @@ def test_every_owner_dock_uses_a_distinct_key():
     keys = [_dockClass(m, c).highlightOwnerKey for m, c in OWNER_DOCKS]
 
     assert len(set(keys)) == len(keys)
+
+
+@pytest.mark.parametrize("module_path,class_name", OWNER_DOCKS + ACTIVATION_DOCKS)
+def test_every_dock_watches_activation_over_its_whole_window(module_path, class_name):
+    """Wiring the mixin is not enough: watchDockActivation() has to be called.
+
+    Without it only the widgets that happen to take the keyboard focus report
+    the user turning to the panel, which is how "the highlights only swap when
+    I click inside the chart" happened.
+    """
+    import importlib
+    import inspect
+
+    source = inspect.getsource(importlib.import_module(module_path))
+
+    assert "watchDockActivation()" in source
+
+
+class _FakeDockBase:
+    """Stands in for QDockWidget: the mixins chain up to it."""
+
+    def eventFilter(self, obj, event):
+        return False
+
+
+class _FakeDock(QGISRedDockActivationMixin, _FakeDockBase):
+    def __init__(self):
+        self.activations = 0
+
+    def emitActivated(self):
+        self.activations += 1
+
+
+class _FakeEvent:
+    def __init__(self, event_type):
+        self._type = event_type
+
+    def type(self):
+        return self._type
+
+
+def test_a_press_on_any_child_widget_activates_the_dock():
+    dock = _FakeDock()
+
+    # The child, not the dock, is what Qt delivers the press to.
+    dock.eventFilter(object(), _FakeEvent(QEvent.Type.MouseButtonPress))
+
+    assert dock.activations == 1
+
+
+def test_a_tab_becoming_the_current_one_activates_the_dock():
+    """Tabbed docks are re-stacked, never hidden and shown, so showEvent is
+    silent and visibilityChanged is the only report of the tab change."""
+    dock = _FakeDock()
+
+    dock._onActivationVisibilityChanged(True)
+
+    assert dock.activations == 1
+
+
+def test_dropping_behind_another_panel_does_not_activate_the_dock():
+    dock = _FakeDock()
+
+    dock._onActivationVisibilityChanged(False)
+
+    assert dock.activations == 0
+
+
+def test_returning_to_qgis_does_not_activate_every_panel_at_once():
+    # WindowActivate reaches every widget of the window, so honouring it would
+    # let the last dock to receive it win the canvas by accident.
+    assert QEvent.Type.WindowActivate not in _ACTIVATION_EVENTS
+    assert QEvent.Type.MouseButtonPress in _ACTIVATION_EVENTS
+    assert QEvent.Type.NonClientAreaMouseButtonPress in _ACTIVATION_EVENTS
+    assert QEvent.Type.FocusIn in _ACTIVATION_EVENTS

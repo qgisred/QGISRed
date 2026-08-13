@@ -83,6 +83,91 @@ ACTIVE_ACCENT = "#0097A7"
 INACTIVE_ACCENT = "#B0BEC5"
 
 
+def _eventType(name):
+    with suppress(Exception):
+        return getattr(QEvent.Type, name)
+    return None
+
+
+# What counts as "the user turned to this panel". The target is the *window*,
+# not the chart: pressing a button, a table cell or the blank space between
+# widgets means the same thing as clicking on the plot.
+#
+# NonClientAreaMouseButtonPress is the title bar of a floating panel, which is
+# not a child widget. WindowActivate is deliberately absent: it reaches every
+# widget of the window at once, so coming back to QGIS from another application
+# would "activate" all the docks and the last one would win by accident.
+_ACTIVATION_EVENTS = tuple(t for t in (
+    _eventType("MouseButtonPress"),
+    _eventType("NonClientAreaMouseButtonPress"),
+    _eventType("FocusIn"),
+) if t is not None)
+
+# Widgets built after the filter was installed have to be caught up with.
+_CHILD_EVENTS = tuple(t for t in (
+    _eventType("ChildAdded"),
+    _eventType("ChildPolished"),
+) if t is not None)
+
+
+class _QGISRedDockActivationEvents:
+    """The single answer to "when did the user turn to this dock?".
+
+    Both mixins below inherit it so the two families behave alike. Three Qt
+    facts make the naive wiring insufficient, and each is covered here:
+
+    * a child widget swallows the mouse press, so the dock's own
+      mousePressEvent only ever fires on the title bar and on blank space;
+    * a widget with Qt::NoFocus (most tool buttons) takes no keyboard focus, so
+      QApplication.focusChanged says nothing about the click;
+    * switching between *tabbed* docks neither hides nor shows anything — Qt
+      only re-stacks them, and the tab bar belongs to the main window, not to
+      the dock. No show event, no focus change. The re-stacking arrives as
+      QEvent.ZOrderChange, which QDockWidget publishes as visibilityChanged.
+    """
+
+    def watchDockActivation(self):
+        """Wire the dock up. Call once, at the end of __init__."""
+        self._installActivationFilter(self)
+        with suppress(Exception):
+            self.visibilityChanged.connect(self._onActivationVisibilityChanged)
+
+    def _installActivationFilter(self, widget):
+        """Filter the whole widget tree, so no child can swallow the click."""
+        with suppress(Exception):
+            from qgis.PyQt.QtWidgets import QWidget
+
+            if not isinstance(widget, QWidget):
+                return
+            widget.installEventFilter(self)
+            for child in widget.children():
+                self._installActivationFilter(child)
+
+    def _onActivationVisibilityChanged(self, visible):
+        # Only the panel that came to the top says anything: when docks sit side
+        # by side, re-stacking one makes the others report False while they are
+        # still perfectly visible.
+        if visible:
+            self.notifyDockActivation()
+
+    def notifyDockActivation(self):
+        """Tell whoever arbitrates that this dock is the subject now."""
+
+    def _handleActivationEvent(self, event):
+        if event is None:
+            return
+        with suppress(Exception):
+            etype = event.type()
+            if etype in _ACTIVATION_EVENTS:
+                self.notifyDockActivation()
+            elif etype in _CHILD_EVENTS:
+                self._installActivationFilter(event.child())
+
+    def eventFilter(self, obj, event):
+        self._handleActivationEvent(event)
+        return super(_QGISRedDockActivationEvents, self).eventFilter(obj, event)
+
+
 def _isPluginMapTool(tool):
     """True for a map tool that belongs to QGISRed.
 
@@ -107,7 +192,7 @@ def _nativeToolRole(tool):
     return MapToolRole.NAVIGATION
 
 
-class QGISRedHighlightOwnerMixin:
+class QGISRedHighlightOwnerMixin(_QGISRedDockActivationEvents):
     """Protocol for a dock that draws its own highlights on the canvas.
 
     Mixed in *before* QDockWidget so the event overrides below run first:
@@ -116,7 +201,9 @@ class QGISRedHighlightOwnerMixin:
             highlightOwnerKey = "myDock"
 
     Subclasses implement clearMapHighlights() and redrawMapHighlights(); the
-    suspend/restore pair on top of them is what the manager drives.
+    suspend/restore pair on top of them is what the manager drives, and
+    watchDockActivation() (call it from __init__) reports the user turning to
+    the dock.
     """
 
     highlightOwnerKey = "unnamed"
@@ -134,6 +221,10 @@ class QGISRedHighlightOwnerMixin:
         if manager is not None:
             with suppress(Exception):
                 manager.activate(self)
+
+    def notifyDockActivation(self):
+        # The dock is its own owner, so turning to it is claiming the canvas.
+        self.notifyHighlightActivated()
 
     def isHighlightSuspended(self):
         """True when the arbiter has taken the canvas away from this dock.
@@ -231,7 +322,7 @@ class QGISRedHighlightOwnerMixin:
         super(QGISRedHighlightOwnerMixin, self).hideEvent(event)
 
 
-class QGISRedDockActivationMixin:
+class QGISRedDockActivationMixin(_QGISRedDockActivationEvents):
     """Turns clicking, focusing or showing a dock into one `activated` signal.
 
     For docks whose highlights are arbitrated by a Section rather than by
@@ -239,9 +330,9 @@ class QGISRedDockActivationMixin:
     above, but they still have to say when the user turned to them, and the
     answer to "what counts as turning to a dock" belongs in one place.
 
-    Mix in *before* QDockWidget, and declare the signal in the dock's own class
-    body — PyQt only registers signals found on the class it is building, not
-    on plain-Python bases:
+    Mix in *before* QDockWidget, declare the signal in the dock's own class body
+    — PyQt only registers signals found on the class it is building, not on
+    plain-Python bases — and call watchDockActivation() from __init__:
 
         class MyDock(QGISRedDockActivationMixin, QDockWidget):
             activated = pyqtSignal()
@@ -251,11 +342,8 @@ class QGISRedDockActivationMixin:
         with suppress(Exception):
             self.activated.emit()
 
-    def eventFilter(self, obj, event):
-        with suppress(Exception):
-            if event is not None and event.type() == QEvent.Type.MouseButtonPress:
-                self.emitActivated()
-        return super(QGISRedDockActivationMixin, self).eventFilter(obj, event)
+    def notifyDockActivation(self):
+        self.emitActivated()
 
     def mousePressEvent(self, event):
         self.emitActivated()

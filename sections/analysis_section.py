@@ -114,6 +114,11 @@ class AnalysisSection:
     def _applyTimeSeriesMapStateForDock(self, dock):
         if dock is None:
             return
+        # Reactive redraw: guarded like the profile one, so switching the
+        # current chart while another dock owns the canvas does not put the
+        # chart highlights back on top of it.
+        if getattr(self, "_timeSeriesFocusCeded", False):
+            return
         with suppress(Exception):
             self._syncTimeSeriesHighlights(dock.lastLayer, dock.lastFeature, dock=dock)
 
@@ -1254,7 +1259,12 @@ class AnalysisSection:
                         and self.iface.mapCanvas().mapTool() == self.myMapTools.get("TimeSeries")
                     ):
                         self.iface.mapCanvas().unsetMapTool(self.myMapTools["TimeSeries"])
-            else:
+            elif not getattr(self, "_timeSeriesFocusCeded", False):
+                # Only redraw while the charts still own the canvas. Qt reports
+                # a panel dropping to the back of the pile as "not visible" even
+                # when it stays on screen next to the other one, and answering
+                # that with a redraw would snatch the canvas back from whoever
+                # the user just turned to.
                 self._setActiveTimeSeriesDock(dock)
                 self._restoreTimeSeriesState()
 
