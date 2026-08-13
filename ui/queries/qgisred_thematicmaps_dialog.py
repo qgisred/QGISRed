@@ -288,6 +288,10 @@ class QGISRedThematicMapsDialog(QDialog, FORM_CLASS):
         # the style file adds on top of the raw InstalDate column.
         if layerType == 'pipes' and field == 'InstallDate' and derivedLayer.fields().indexFromName('InstYear') >= 0:
             hideField = 'InstYear'
+        # Same split for roughness: 'Roughness' is the query's identifier value,
+        # while the classified column on the layer is 'RoughCoeff'.
+        if layerType == 'pipes' and field == 'Roughness' and derivedLayer.fields().indexFromName('RoughCoeff') >= 0:
+            hideField = 'RoughCoeff'
         # The two date-based maps should expose both virtual fields (InstYear and Age).
         # A style copied to the project or global folder may predate one of them, so
         # add whichever is missing before deciding which columns stay visible.
@@ -973,11 +977,20 @@ class QGISRedThematicMapsDialog(QDialog, FORM_CLASS):
             })
 
         if self.cbPipesRoughness.isChecked():
+            # Roughness meaning (and its classes) depends on the headloss formula:
+            # H-W is unitless, C-M is s/m^(1/3), and only D-W uses length units.
+            formula = QGISRedProjectUtils.getHeadlossFormula()
+            if formula == 'H-W':
+                roughnessQml = 'PipeRoughnessesHW.qml'
+            elif formula == 'C-M':
+                roughnessQml = 'PipeRoughnessesCM.qml'
+            else:
+                roughnessQml = f'PipeRoughnessesDW{units}.qml'
             queries.append({
                 'layer_name': 'Pipe Roughness',
                 'layer_type': 'Pipes',
                 'field': 'Roughness',
-                'qml_file': 'pipe_roughness.qml',
+                'qml_file': roughnessQml,
                 'file_name': 'roughness',
                 'tooltip_prefix': 'Rough'
             })

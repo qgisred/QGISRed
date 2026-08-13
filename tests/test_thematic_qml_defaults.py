@@ -129,3 +129,20 @@ def test_dialog_ships_a_default_for_every_referenced_style():
     assert sorted(referenced) == ["PipeAges.qml", "PipeInstallationYears.qml"]
     for qmlFile in referenced:
         assert os.path.exists(os.path.join(STYLES_DIR, qmlFile + ".bak"))
+
+
+def test_dialog_ships_a_default_for_every_roughness_variant():
+    """The roughness map picks its style at runtime from the headloss formula
+    (H-W, C-M) plus the unit system for D-W, so every branch the dialog can
+    build must resolve to a shipped default."""
+    with open(DIALOG_SOURCE, encoding="utf-8") as source:
+        text = source.read()
+    referenced = set(re.findall(r"'(PipeRoughnesses\w+)(?:\{units\})?\.qml'", text))
+    expected = {"PipeRoughnessesHW", "PipeRoughnessesCM", "PipeRoughnessesDW"}
+    assert referenced == expected
+    for name in ("PipeRoughnessesHW", "PipeRoughnessesCM", "PipeRoughnessesDWSI", "PipeRoughnessesDWUS"):
+        assert os.path.exists(os.path.join(STYLES_DIR, name + ".qml.bak"))
+    # The renderer must classify the real Pipes column.
+    for name in ("PipeRoughnessesHW", "PipeRoughnessesCM", "PipeRoughnessesDWSI", "PipeRoughnessesDWUS"):
+        renderer = loadStyle(name + ".qml.bak").find("renderer-v2")
+        assert renderer.get("attr") == "RoughCoeff"
