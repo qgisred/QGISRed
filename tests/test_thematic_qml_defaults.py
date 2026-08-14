@@ -26,8 +26,7 @@ DIALOG_SOURCE = os.path.join(PLUGIN_ROOT, "ui", "queries", "qgisred_thematicmaps
 # expression back in.
 VIRTUAL_FIELDS = {
     "InstYear": 'to_int( left( "InstalDate" ,4))',
-    # -1: a pipe laid last year is in its first year of service, not its second.
-    "Age": "round(year(age(now(),to_datetime(\"InstalDate\",'yyyyMMdd'))),0)-1",
+    "Age": "round(year(age(now(),to_datetime(\"InstalDate\",'yyyyMMdd'))),0)",
 }
 
 EXPECTED = {
