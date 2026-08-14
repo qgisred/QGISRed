@@ -529,7 +529,7 @@
   <featureBlendMode>0</featureBlendMode>
   <expressionfields>
     <field expression="to_int( left( &quot;InstalDate&quot; ,4))" name="InstYear" precision="0" comment="" length="0" subType="0" typeName="integer" type="2"/>
-    <field expression="round(year(age(now(),to_datetime(&quot;InstalDate&quot;,'yyyyMMdd'))),0)-1" name="Age" precision="0" comment="" length="0" subType="0" typeName="integer" type="2"/>
+    <field expression="round(year(age(now(),to_datetime(&quot;InstalDate&quot;,'yyyyMMdd'))),0)" name="Age" precision="0" comment="" length="0" subType="0" typeName="integer" type="2"/>
   </expressionfields>
   <mapTip enabled="1">Inst. [%"InstYear"%]</mapTip>
   <layerGeometryType>1</layerGeometryType>
