@@ -287,16 +287,66 @@ class NetworkEditingSection:
 
         self.processCsharpResult(resMessage, "")
 
+    """Node editing tools: left click builds, right click or double click removes
+
+    SplitPipe and CreateReverseCrossings are a single DLL toggle that decides by
+    geometry, so junctionAt() is what tells the two intents apart here.  These handlers
+    return True when they really call the DLL: the map tool needs it to know that a
+    double-click must not undo what its own first click just created.
+    """
+
+    def junctionAt(self, point):
+        from qgis.core import QgsRectangle
+
+        # One screen pixel: the point comes from the snapper, so a junction under it is
+        # an exact match.  A wider window would swallow clicks on short pipes.
+        tolerance = self.iface.mapCanvas().getCoordinateTransform().mapUnitsPerPixel()
+        rect = QgsRectangle(point.x() - tolerance, point.y() - tolerance,
+                            point.x() + tolerance, point.y() + tolerance)
+        for layer in self.getLayers():
+            if layer.customProperty("qgisred_identifier") != "qgisred_junctions":
+                continue
+            for _feature in layer.getFeatures(rect):
+                return True
+        return False
+
+    def leaveMapTool(self, tool):
+        mapTool = self.myMapTools.get(tool)
+        if mapTool is not None:
+            self.iface.mapCanvas().unsetMapTool(mapTool)
+
     def runSelectSplitPoint(self):
         tool = "pointSplit"
         if tool in self.myMapTools.keys() and self.iface.mapCanvas().mapTool() is self.myMapTools[tool]:
             self.iface.mapCanvas().unsetMapTool(self.myMapTools[tool])
             self.splitPipeButton.setChecked(False)
         else:
-            self.myMapTools[tool] = QGISRedSelectPointTool(self.splitPipeButton, self, self.runSplitPipe, SelectPointType.Line, cursor=":/images/iconSplitJoinPipes.svg")
+            self.myMapTools[tool] = QGISRedSelectPointTool(
+                self.splitPipeButton, self, self.runSplitPipe, SelectPointType.Line,
+                cursor=":/images/iconSplitJoinPipes.svg", context_callback=self.runJoinPipesFromContext,
+                double_click_callback=self.runJoinPipes
+            )
             self.iface.mapCanvas().setMapTool(self.myMapTools[tool])
 
     def runSplitPipe(self, point):
+        if self.junctionAt(point):
+            self.pushMessage(self.tr("Click on a pipe to split it; right-click or double-click on a node to join its pipes."))
+            return False
+        return self.runSplitJoinPipe(point)
+
+    def runJoinPipes(self, point, button=None):
+        if not self.junctionAt(point):
+            self.pushMessage(self.tr("To join two pipes, right-click or double-click on the node between them."))
+            return False
+        return self.runSplitJoinPipe(point)
+
+    def runJoinPipesFromContext(self, point):
+        if point is None:
+            self.leaveMapTool("pointSplit")
+            return False
+        return self.runJoinPipes(point)
+
+    def runSplitJoinPipe(self, point):
         if not self.checkDependencies():
             return
         # Validations
@@ -315,6 +365,7 @@ class NetworkEditingSection:
         QApplication.restoreOverrideCursor()
 
         self.processCsharpResult(resMessage, "")
+        return True
 
     def runSelectPointToMergeSplit(self):
         tool = "mergeSplitPoint"
@@ -329,7 +380,7 @@ class NetworkEditingSection:
             self.iface.mapCanvas().setMapTool(self.myMapTools[tool])
 
     def runMergeJunction(self, point, button=None):
-        self.runMergeSplitPoints(point, None)
+        return self.runMergeSplitPoints(point, None)
 
     def runMergeSplitPoints(self, point1, point2):
         if not self.checkDependencies():
@@ -355,6 +406,7 @@ class NetworkEditingSection:
         QApplication.restoreOverrideCursor()
 
         self.processCsharpResult(resMessage, "")
+        return True
 
     def runSelectPointToTconnections(self):
         tool = "createReverseTconn"
@@ -369,7 +421,7 @@ class NetworkEditingSection:
             self.iface.mapCanvas().setMapTool(self.myMapTools[tool])
 
     def runReverseTconnection(self, point, button=None):
-        self.runCreateRemoveTconnections(point, None)
+        return self.runCreateRemoveTconnections(point, None)
 
     def runCreateRemoveTconnections(self, point1, point2):
         if not self.checkDependencies():
@@ -395,6 +447,7 @@ class NetworkEditingSection:
         QApplication.restoreOverrideCursor()
 
         self.processCsharpResult(resMessage, "")
+        return True
 
     def runSelectPointToCrossings(self):
         tool = "createReverseCross"
@@ -404,19 +457,30 @@ class NetworkEditingSection:
         else:
             self.myMapTools[tool] = QGISRedSelectPointTool(
                 self.createReverseCrossButton, self, self.runCreateRemoveCrossings, SelectPointType.Line,
-                cursor=":/images/iconCreateRemoveCrossings.svg", context_callback=self.runReverseCrossing
+                cursor=":/images/iconCreateRemoveCrossings.svg", context_callback=self.runRemoveCrossingFromContext,
+                double_click_callback=self.runRemoveCrossing
             )
             self.iface.mapCanvas().setMapTool(self.myMapTools[tool])
 
-    def runReverseCrossing(self, point):
-        tool = self.myMapTools.get("createReverseCross")
-        if point is None:
-            if tool is not None:
-                self.iface.mapCanvas().unsetMapTool(tool)
-            return
-        self.runCreateRemoveCrossings(point)
+    def runCreateRemoveCrossings(self, point):
+        if self.junctionAt(point):
+            self.pushMessage(self.tr("Click where two pipes cross to create the crossing; right-click or double-click on a node to remove it."))
+            return False
+        return self.runCrossing(point)
 
-    def runCreateRemoveCrossings(self, point1):
+    def runRemoveCrossing(self, point, button=None):
+        if not self.junctionAt(point):
+            self.pushMessage(self.tr("To remove a crossing, right-click or double-click on its node."))
+            return False
+        return self.runCrossing(point)
+
+    def runRemoveCrossingFromContext(self, point):
+        if point is None:
+            self.leaveMapTool("createReverseCross")
+            return False
+        return self.runRemoveCrossing(point)
+
+    def runCrossing(self, point1):
         if not self.checkDependencies():
             return
         # Validations
@@ -437,6 +501,7 @@ class NetworkEditingSection:
         QApplication.restoreOverrideCursor()
 
         self.processCsharpResult(resMessage, "")
+        return True
 
     def runSelectValvePumpPoints(self):
         tool = "moveValvePump"

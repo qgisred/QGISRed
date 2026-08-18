@@ -54,6 +54,7 @@ def _makeTool(type, double_click_callback=None, context_callback=None):
     tool.double_click_callback = double_click_callback
     tool.show_snap_marker = True
     tool._ignore_next_release = False
+    tool._lastClickActed = False
     tool.startMarker = MagicMock()
     tool.endMarker = MagicMock()
     tool.firstPoint = None
@@ -113,6 +114,35 @@ class TestDoubleClick:
         tool.canvasDoubleClickEvent(_event(LEFT))
 
         callback.assert_not_called()
+
+    def test_ignoredWhenFirstClickAlreadyActed(self):
+        callback = MagicMock()
+        tool = _makeTool(SelectPointType.Line, double_click_callback=callback)
+        tool.method.return_value = True
+        tool.objectSnapped = _match(_Point(5, 6))
+        tool.snapper.snapToMap.return_value = _match(_Point(5, 6))
+        tool.deactivate = MagicMock()
+        tool.activate = MagicMock()
+
+        tool.canvasReleaseEvent(_event(LEFT))
+        tool.canvasDoubleClickEvent(_event(LEFT))
+
+        tool.method.assert_called_once_with(_Point(5, 6))
+        callback.assert_not_called()
+
+    def test_firesWhenFirstClickDidNothing(self):
+        callback = MagicMock()
+        tool = _makeTool(SelectPointType.Line, double_click_callback=callback)
+        tool.method.return_value = False
+        tool.objectSnapped = _match(_Point(5, 6))
+        tool.snapper.snapToMap.return_value = _match(_Point(5, 6))
+        tool.deactivate = MagicMock()
+        tool.activate = MagicMock()
+
+        tool.canvasReleaseEvent(_event(LEFT))
+        tool.canvasDoubleClickEvent(_event(LEFT))
+
+        callback.assert_called_once_with(_Point(5, 6), LEFT)
 
     def test_ignoredWhenNothingSnapped(self):
         callback = MagicMock()

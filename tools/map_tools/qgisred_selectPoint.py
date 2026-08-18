@@ -38,6 +38,10 @@ class QGISRedSelectPointTool(QgsMapTool):
         # Optional double-click handler, called as double_click_callback(point, button).
         self.double_click_callback = double_click_callback
         self._ignore_next_release = False
+        # Set when a click actually ran the tool action. The click handler reports it
+        # by returning True, so a double-click knows the first click already did the
+        # job and must not fire the secondary handler on top of it.
+        self._lastClickActed = False
         # When False, the snap vertex markers are not drawn on hover. Tools that
         # provide their own hover highlight (e.g. longitudinal profiles) use this
         # to avoid showing a second, redundant marker under the cursor.
@@ -120,6 +124,9 @@ class QGISRedSelectPointTool(QgsMapTool):
         config.setEnabled(True)
         self.snapper.setConfig(config)
 
+    def callMethod(self, *args):
+        self._lastClickActed = bool(self.method(*args))
+
     def resetProperties(self):
         self.firstPoint = None
         self.startMarker.hide()
@@ -137,6 +144,7 @@ class QGISRedSelectPointTool(QgsMapTool):
         if self._ignore_next_release:
             self._ignore_next_release = False
             return
+        self._lastClickActed = False
         if event.button() == Qt.MouseButton.LeftButton:
             if self.objectSnapped is None:
                 QGISRedUIUtils.showGlobalMessage(self.iface, self.tr("A not valid point was selected"), level=1, duration=5)
@@ -150,7 +158,7 @@ class QGISRedSelectPointTool(QgsMapTool):
                     point1 = self.firstPoint
                     point2 = self.objectSnapped.point()
                     # Call to parent method
-                    self.method(point1, point2)
+                    self.callMethod(point1, point2)
                     self.deactivate()
                     self.activate()
                     # self.resetProperties()
@@ -164,14 +172,14 @@ class QGISRedSelectPointTool(QgsMapTool):
                 try:
                     sig = inspect.signature(self.method)
                     if self.pass_modifiers and len(sig.parameters) >= 3:
-                        self.method(point, event.modifiers(), event.button())
+                        self.callMethod(point, event.modifiers(), event.button())
                     elif self.pass_modifiers and len(sig.parameters) >= 2:
-                        self.method(point, event.modifiers())
+                        self.callMethod(point, event.modifiers())
                     else:
-                        self.method(point)
+                        self.callMethod(point)
                 except Exception:
                     try:
-                        self.method(point)
+                        self.callMethod(point)
                     except Exception:
                         return
 
@@ -194,7 +202,7 @@ class QGISRedSelectPointTool(QgsMapTool):
                     point = self.objectSnapped.point()
                     # Call to parent method
                     # Tconnection & Split/merge Juncitons
-                    self.method(point, None)
+                    self.callMethod(point, None)
                     self.deactivate()
                     self.activate()
                     # self.resetProperties()
@@ -216,14 +224,14 @@ class QGISRedSelectPointTool(QgsMapTool):
                     try:
                         sig = inspect.signature(self.method)
                         if len(sig.parameters) >= 3:
-                            self.method(point, event.modifiers(), event.button())
+                            self.callMethod(point, event.modifiers(), event.button())
                         elif len(sig.parameters) >= 2:
-                            self.method(point, event.modifiers())
+                            self.callMethod(point, event.modifiers())
                         else:
-                            self.method(point)
+                            self.callMethod(point)
                     except Exception:
                         try:
-                            self.method(point)
+                            self.callMethod(point)
                         except Exception:
                             return
                     return
@@ -267,6 +275,11 @@ class QGISRedSelectPointTool(QgsMapTool):
         # complaining about the second, unsnapped click).
         self._ignore_next_release = True
         if self.double_click_callback is None:
+            return
+        # The first click of the gesture already ran the action: the double-click is
+        # that same action, not a request to undo what was just done.
+        if self._lastClickActed:
+            self._lastClickActed = False
             return
         with suppress(Exception):
             # On multi-step tools the first click of the gesture already stored the
