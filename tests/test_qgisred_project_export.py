@@ -300,6 +300,10 @@ QGS_TREE_TEMPLATE = """<?xml version="1.0" encoding="UTF-8"?>
 """
 
 TREE_LAYER = '      <layer-tree-layer id="{id}" name="{name}" source="{source}"/>'
+TREE_GROUP = """    <layer-tree-group name="{name}">
+{layer}
+    </layer-tree-group>"""
+
 MAPLAYER_WITH_ID = """    <maplayer>
       <id>{id}</id>
       <datasource>{datasource}</datasource>
@@ -383,6 +387,32 @@ class TestLayerTreePlacement:
 
         assert len(items) == 1
         assert items[0].placements == [(("Grupo A",), "Roads A"), (("Grupo B",), "Roads B")]
+
+    def test_a_subset_datasource_is_not_shown_twice(self, workspace):
+        """QGIS escapes the layer-tree `source` attribute one level deeper than the <datasource>
+        element, so a datasource carrying quotes (a subset filter) reaches the regex sweep as a
+        string seenRaw cannot match. It must not become a second, group-less row."""
+        _touch(os.path.join(workspace, "Carto", "roads.shp"))
+        projectDir = os.path.join(workspace, NET)
+        _touch(os.path.join(projectDir, NET + "_Pipes.shp"))
+        treeLayer = TREE_LAYER.format(
+            id="L0_id", name="Roads",
+            source="../Carto/roads.shp|subset=--&amp;quot;Id&amp;quot; ILIKE 'VS15'")
+        qgs = QGS_TREE_TEMPLATE.format(
+            tree=TREE_GROUP.format(name="Sectores", layer=treeLayer),
+            layers=MAPLAYER_WITH_ID.format(
+                id="L0_id", name="Roads",
+                datasource="../Carto/roads.shp|subset=--&quot;Id&quot; ILIKE 'VS15'"),
+        )
+        with ZipFile(os.path.join(projectDir, NET + ".qgz"), "w", ZIP_DEFLATED) as zout:
+            zout.writestr(NET + ".qgs", qgs)
+        _touch(os.path.join(projectDir, NET + "_Metadata.txt"),
+               METADATA_TEMPLATE.format(qgis=NET + ".qgz"))
+
+        items = QGISRedProjectPackage(projectDir, NET).inspectForExport().externalItems
+
+        assert len(items) == 1
+        assert items[0].placements == [(("Sectores",), "Roads")]
 
     def test_a_layer_outside_any_group_sits_at_the_root(self, workspace):
         _touch(os.path.join(workspace, "Carto", "roads.shp"))

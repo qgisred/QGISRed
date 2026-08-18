@@ -589,6 +589,11 @@ class QGISRedProjectPackage:
                 item.layerNames.append(layerName)
             if rawValue not in item.rawValues:
                 item.rawValues.append(rawValue)
+            if layerName is None and item.placements:
+                # A nameless hit is the regex sweep re-catching a layer the <maplayer> pass already
+                # placed: the same datasource is escaped differently in the layer-tree attribute, so
+                # seenRaw cannot match it. Keeping it would draw a second, group-less row.
+                continue
             placement = (tuple(groupPath), layerName or os.path.basename(absPath))
             if placement not in item.placements:
                 item.placements.append(placement)
