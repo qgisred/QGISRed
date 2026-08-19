@@ -319,12 +319,15 @@ QCoreApplication.translate('InputLayerNames', "DemBuild_Consumption Points")
 QCoreApplication.translate('InputLayerNames', "DemBuild_Isolated Demands Connections")
 QCoreApplication.translate('InputLayerNames', "DemBuild_Sectors")
 QCoreApplication.translate('InputLayerNames', "%1 I")
-# Layer names shown in QGIS legend (Thematic Maps group)
+# Layer names shown in QGIS legend (Thematic Maps group).
+# Only the maps the dialog actually exposes: tempElementsHide() hides the rest.
 QCoreApplication.translate('InputLayerNames', "Pipe Diameters")
 QCoreApplication.translate('InputLayerNames', "Pipe Lengths")
 QCoreApplication.translate('InputLayerNames', "Pipe Materials")
+QCoreApplication.translate('InputLayerNames', "Pipe Roughnesses")
 QCoreApplication.translate('InputLayerNames', "Pipe Installation Year")
 QCoreApplication.translate('InputLayerNames', "Pipe Ages (years)")
+QCoreApplication.translate('InputLayerNames', "Junction Base Demands")
 
 # Histogram hover tooltips (renderers call widget.tr with these contexts)
 QCoreApplication.translate('StatisticsHistogramWidget', "No data")
