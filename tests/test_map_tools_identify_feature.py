@@ -9,28 +9,41 @@ import sys
 from unittest.mock import MagicMock
 import pytest
 
-from .conftest import _qt_stub
+from .conftest import REAL_QGIS, _qt_stub
 
-sys.modules['qgis.gui'].QgsMapTool = _qt_stub("QgsMapTool")
-sys.modules['qgis.gui'].QgsMapToolIdentify = _qt_stub("QgsMapToolIdentify")
+if REAL_QGIS:
+    from qgis.gui import QgsMapCanvas
+    from QGISRed.compat import QAction
+else:
+    # Replacing the real classes would leave every module imported afterwards seeing
+    # stubs, so it is only done when there is no real QGIS to subclass.
+    sys.modules['qgis.gui'].QgsMapTool = _qt_stub("QgsMapTool")
+    sys.modules['qgis.gui'].QgsMapToolIdentify = _qt_stub("QgsMapToolIdentify")
 
 from QGISRed.tools.map_tools.qgisred_identifyFeature import QGISRedIdentifyFeature  # noqa: E402
 
 
 def _deactivatedTool():
     """A tool deactivate() has dismantled, still sitting on the canvas."""
-    tool = QGISRedIdentifyFeature.__new__(QGISRedIdentifyFeature)
-    tool.canvas = MagicMock()
-    tool.custom_cursor = None
-    tool.currentHighlight = None
-    tool.firstPoint = None
-    tool.objectSnapped = None
-    tool.startMarker = MagicMock()
-    tool.endMarker = MagicMock()
+    if REAL_QGIS:
+        # Built for real: a tool created with __new__ has no C++ side, so the markers
+        # activate() rebuilds would be rejected by the canvas.
+        canvas = QgsMapCanvas()
+        tool = QGISRedIdentifyFeature(canvas, QAction("test"), dock=MagicMock())
+        tool._testCanvas = canvas  # the markers live on it; keep it from being collected
+    else:
+        tool = QGISRedIdentifyFeature.__new__(QGISRedIdentifyFeature)
+        tool.canvas = MagicMock()
+        tool.custom_cursor = None
+        tool.currentHighlight = None
+        tool.firstPoint = None
+        tool.objectSnapped = None
+        tool.startMarker = MagicMock()
+        tool.endMarker = MagicMock()
+        tool.dock = MagicMock()
     tool.snapper = MagicMock()
     tool.snapper.snapToMap.return_value = MagicMock(isValid=lambda: False)
     tool.toMapCoordinates = MagicMock()
-    tool.dock = MagicMock()
     tool.removeVertexMarkers()
     tool.disconnectDockSignals()
     tool.dock.dockClosed.reset_mock()
@@ -43,7 +56,6 @@ def test_a_mouse_move_after_deactivation_does_not_raise():
     tool.canvasMoveEvent(MagicMock())  # used to raise AttributeError on a None marker
 
 
-@pytest.mark.mock_only
 def test_reactivating_the_tool_rebuilds_the_markers_and_the_snapper():
     """The Element Explorer re-arms the instance it remembers rather than building a new
     one, so activate() is the only chance to get the markers back — and it has to rebuild
@@ -57,7 +69,6 @@ def test_reactivating_the_tool_rebuilds_the_markers_and_the_snapper():
     assert tool.snapper is not None
 
 
-@pytest.mark.mock_only
 def test_reactivating_the_tool_listens_for_the_dock_closing_again():
     """deactivate() drops the dockClosed connection, and onDockClosed is what takes this
     tool's highlight off the map and its cursor off the canvas when the Explorer is closed.

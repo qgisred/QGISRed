@@ -9,6 +9,8 @@ window sends a show event to all of them at once, which is where it used to blow
 """
 import importlib
 import sys
+
+from .conftest import REAL_QGIS
 from unittest.mock import MagicMock, patch
 
 
@@ -20,7 +22,10 @@ class _QObjectStub:
         pass
 
 
-sys.modules["qgis.PyQt.QtCore"].QObject = _QObjectStub
+if not REAL_QGIS:
+    # Replacing the real QObject would leave every module imported afterwards with
+    # a stub base class.
+    sys.modules["qgis.PyQt.QtCore"].QObject = _QObjectStub
 
 _MODULE = "QGISRed.tools.utils.qgisred_maptip."
 QGISRedMapTip = importlib.reload(importlib.import_module(_MODULE.rstrip("."))).QGISRedMapTip

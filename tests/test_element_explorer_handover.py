@@ -9,10 +9,13 @@ stayed on the element, next to the chart's.
 import sys
 from unittest.mock import MagicMock
 
-from .conftest import _qt_stub
+from .conftest import REAL_QGIS, _qt_stub
 
-sys.modules['qgis.gui'].QgsMapTool = _qt_stub("QgsMapTool")
-sys.modules['qgis.gui'].QgsMapToolIdentify = _qt_stub("QgsMapToolIdentify")
+if not REAL_QGIS:
+    # Replacing the real classes would leave every module imported afterwards seeing
+    # stubs, so it is only done when there is no real QGIS to subclass.
+    sys.modules['qgis.gui'].QgsMapTool = _qt_stub("QgsMapTool")
+    sys.modules['qgis.gui'].QgsMapToolIdentify = _qt_stub("QgsMapToolIdentify")
 
 from QGISRed.tools.map_tools.qgisred_identifyFeature import QGISRedIdentifyFeature  # noqa: E402
 from QGISRed.ui.queries.qgisred_element_explorer_dock import QGISRedElementExplorerDock  # noqa: E402
