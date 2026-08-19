@@ -8,7 +8,7 @@ from qgis.core import (
     QgsProject, QgsLayerTreeGroup, QgsField, QgsRenderContext, NULL,
 )
 from qgis.gui import QgsDualView
-from ...compat import sip, QVariantString, QVariantDouble, ATCOL_TYPE_FIELD
+from ...compat import sip, FIELD_TYPE_STRING, FIELD_TYPE_DOUBLE, ATCOL_TYPE_FIELD
 
 from ...tools.utils.qgisred_filesystem_utils import QGISRedFileSystemUtils, DIR_RESULTS
 from ...tools.utils.qgisred_layer_utils import QGISRedLayerUtils
@@ -794,13 +794,13 @@ class QGISRedResultsDock(
         new_fields = []
 
         type_map = {
-            "String": QVariantString,
-            "Double": QVariantDouble
+            "String": FIELD_TYPE_STRING,
+            "Double": FIELD_TYPE_DOUBLE
         }
 
         for name, type_str, *extra in fields_def:
             if name not in existing_fields:
-                qgs_type = type_map.get(type_str, QVariantString)
+                qgs_type = type_map.get(type_str, FIELD_TYPE_STRING)
                 field = QgsField(name, qgs_type)
                 if type_str == "Double":
                     field.setLength(20)  # DBF width 20 prevents truncation of large values

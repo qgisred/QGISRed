@@ -49,6 +49,24 @@ except AttributeError:
     QVariantLongLong = QMetaType.Type.LongLong
 
 # ---------------------------------------------------------------------------
+# QgsField type argument.
+# QGIS >= 3.38 deprecates the QVariant.Type overload in favour of QMetaType.Type,
+# but QGIS 3.28 only has the QVariant one and raises TypeError for the other. The
+# accepted value is feature-tested instead of guessed from a version number.
+# ---------------------------------------------------------------------------
+try:
+    from qgis.core import QgsField as _QgsField
+    from qgis.PyQt.QtCore import QMetaType as _QMetaType
+    _QgsField('probe', _QMetaType.Type.Double)
+    FIELD_TYPE_STRING = _QMetaType.Type.QString
+    FIELD_TYPE_DOUBLE = _QMetaType.Type.Double
+    FIELD_TYPE_INT    = _QMetaType.Type.Int
+except (ImportError, AttributeError, TypeError):
+    FIELD_TYPE_STRING = QVariantString
+    FIELD_TYPE_DOUBLE = QVariantDouble
+    FIELD_TYPE_INT    = QVariantInt
+
+# ---------------------------------------------------------------------------
 # QgsMapLayer layer-type constants.
 # QGIS 3: QgsMapLayer.RasterLayer / VectorLayer (flat enum)
 # QGIS 4: QgsMapLayer.LayerType.RasterLayer / VectorLayer (scoped enum)

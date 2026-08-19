@@ -153,7 +153,7 @@ def applyFieldChanges(layer, renames, additions, deletions):
     call otherwise, and the columns end up in the wrong order.
     """
     from qgis.core import QgsField
-    from ...compat import QVariantDouble
+    from ...compat import FIELD_TYPE_DOUBLE
 
     provider = layer.dataProvider()
 
@@ -179,7 +179,7 @@ def applyFieldChanges(layer, renames, additions, deletions):
     if additions:
         # Same width and precision the DLL writes, so a field added here is
         # indistinguishable from one that came with the theme.
-        fields = [QgsField(name, QVariantDouble, "Real", 17, 2) for name in additions]
+        fields = [QgsField(name, FIELD_TYPE_DOUBLE, "Real", 17, 2) for name in additions]
         if not provider.addAttributes(fields):
             return "Could not add the fields"
         layer.updateFields()
