@@ -351,6 +351,7 @@ class TestDemandBuilderStyleFlag:
         styling.setStyle.assert_called_once_with(
             layer, "DemandBuilderIsolatedDemandsServiceConnections")
 
+    @pytest.mark.mock_only
     def test_a_theme_does_not_take_that_qml(self):
         from QGISRed.tools.utils.qgisred_styling_utils import QGISRedStylingUtils
 

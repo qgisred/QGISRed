@@ -7,6 +7,7 @@ off the canvas. The mouse kept arriving in canvasMoveEvent, landing on a None ma
 """
 import sys
 from unittest.mock import MagicMock
+import pytest
 
 from .conftest import _qt_stub
 
@@ -42,6 +43,7 @@ def test_a_mouse_move_after_deactivation_does_not_raise():
     tool.canvasMoveEvent(MagicMock())  # used to raise AttributeError on a None marker
 
 
+@pytest.mark.mock_only
 def test_reactivating_the_tool_rebuilds_the_markers_and_the_snapper():
     """The Element Explorer re-arms the instance it remembers rather than building a new
     one, so activate() is the only chance to get the markers back — and it has to rebuild
@@ -55,6 +57,7 @@ def test_reactivating_the_tool_rebuilds_the_markers_and_the_snapper():
     assert tool.snapper is not None
 
 
+@pytest.mark.mock_only
 def test_reactivating_the_tool_listens_for_the_dock_closing_again():
     """deactivate() drops the dockClosed connection, and onDockClosed is what takes this
     tool's highlight off the map and its cursor off the canvas when the Explorer is closed.

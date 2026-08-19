@@ -2,6 +2,7 @@
 """Save-strategy parts are independent: allClasses can be saved together with
 colors and sizes, and loading a combined strategy pins the classes first."""
 import os
+import pytest
 
 import QGISRed.ui.project.qgisred_legends_dialog as legendsModule
 from QGISRed.ui.project.qgisred_legends_dialog import QGISRedLegendsDialog
@@ -204,6 +205,7 @@ class TestBuildableParts:
         assert self._dialog("RULES").getBuildableStrategyParts() == []
 
 
+@pytest.mark.mock_only
 class TestLoadBranching:
     def _dialog(self, monkeypatch, strategy):
         dialog = _dialog()

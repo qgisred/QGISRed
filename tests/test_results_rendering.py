@@ -69,6 +69,7 @@ def clear_cache():
 
 
 class TestResultsLabels:
+    @pytest.mark.mock_only
     def test_set_layer_labels_show_id(self):
         with patch("QGISRed.tools.utils.qgisred_project_utils.QgsProject") as MockProj, \
              patch("QGISRed.ui.analysis.qgisred_results_rendering.QgsVectorLayerSimpleLabeling") as MockLabeling:
@@ -101,6 +102,7 @@ class TestResultsLabels:
             # Second line should contain the formatted value
             assert 'format_number' in expr
 
+    @pytest.mark.mock_only
     def test_set_layer_labels_no_show_id(self):
         with patch("QGISRed.tools.utils.qgisred_project_utils.QgsProject") as MockProj, \
              patch("QGISRed.ui.analysis.qgisred_results_rendering.QgsVectorLayerSimpleLabeling") as MockLabeling:
@@ -126,6 +128,7 @@ class TestResultsLabels:
             assert '"Id"' not in expr
             assert 'format_number("Pressure", 2)' in expr
 
+    @pytest.mark.mock_only
     def test_set_layer_labels_id_only_when_value_label_off(self):
         # Value label off (Results tab) but Show Node ID on (Appearance tab): the label
         # must still render, showing only the Id — never the value expression.
@@ -150,6 +153,7 @@ class TestResultsLabels:
             assert 'format_number' not in expr
             assert 'Pressure' not in expr
 
+    @pytest.mark.mock_only
     def test_set_layer_labels_id_only_without_selected_variable(self):
         # Showing only the Id must work even with no variable selected (empty field).
         with patch("QGISRed.tools.utils.qgisred_project_utils.QgsProject") as MockProj, \
@@ -192,6 +196,7 @@ class TestResultsLabels:
             layer.setLabelsEnabled.assert_called_once_with(False)
             assert MockLabeling.call_args is None
 
+    @pytest.mark.mock_only
     def test_node_id_flag_does_not_affect_link_labels(self):
         # The Id flags are per element type: Show Node ID must not add an Id line to links.
         with patch("QGISRed.tools.utils.qgisred_project_utils.QgsProject") as MockProj, \
@@ -214,6 +219,7 @@ class TestResultsLabels:
             assert '"Id"' not in expr
             assert 'format_number("Velocity", 2)' in expr
 
+    @pytest.mark.mock_only
     def test_set_layer_labels_id_only_when_value_label_off(self):
         # Value label off (Results tab) but Show Node ID on (Appearance tab): the label
         # must still render, showing only the Id — never the value expression.
@@ -238,6 +244,7 @@ class TestResultsLabels:
             assert 'format_number' not in expr
             assert 'Pressure' not in expr
 
+    @pytest.mark.mock_only
     def test_set_layer_labels_id_only_without_selected_variable(self):
         # Showing only the Id must work even with no variable selected (empty field).
         with patch("QGISRed.tools.utils.qgisred_project_utils.QgsProject") as MockProj, \
@@ -280,6 +287,7 @@ class TestResultsLabels:
             layer.setLabelsEnabled.assert_called_once_with(False)
             assert MockLabeling.call_args is None
 
+    @pytest.mark.mock_only
     def test_node_id_flag_does_not_affect_link_labels(self):
         # The Id flags are per element type: Show Node ID must not add an Id line to links.
         with patch("QGISRed.tools.utils.qgisred_project_utils.QgsProject") as MockProj, \
@@ -302,6 +310,7 @@ class TestResultsLabels:
             assert '"Id"' not in expr
             assert 'format_number("Velocity", 2)' in expr
 
+    @pytest.mark.mock_only
     def test_set_layer_labels_status_groups_into_closed_and_active(self):
         # Status is a categorical string field: labels must group the 13 link
         # states into just "Closed" and "Active" (Open* → no label), never the
@@ -334,6 +343,7 @@ class TestResultsLabels:
 
 
 # Regression tests: Flow labels must never show the sign — the label always uses abs().
+@pytest.mark.mock_only
 class TestFlowLabelsNeverShowSign:
     def _get_expr(self, dock, layer, fieldName):
         with patch("QGISRed.tools.utils.qgisred_project_utils.QgsProject") as MockProj, \
@@ -379,6 +389,7 @@ class TestFlowLabelsNeverShowSign:
 
 # Regression tests: the occurrence time (Max/Min stats) must NEVER appear in the map
 # label — it is shown only in the tooltip. The label carries just the value.
+@pytest.mark.mock_only
 class TestLabelsNeverShowOccurrenceTime:
     def _get_expr(self, dock, layer, fieldName):
         with patch("QGISRed.tools.utils.qgisred_project_utils.QgsProject") as MockProj, \
@@ -611,6 +622,7 @@ class TestPaintIntervalTimeResultsVariableOrdering:
             assert dock.displayingLinkField == "Status"
 
 
+@pytest.mark.mock_only
 class TestSetGraduatedPaletteVariableSwitch:
     """End-to-end check that setGraduatedPalette actually swaps the renderer type
     when switching to/from Status, given a correctly-captured previously_displayed."""
@@ -757,6 +769,7 @@ class TestLinkLabelDistances:
         pipe, valve_pump = self._dock(arrow_factor=10.0, valve_pump_factor=0.25)._linkLabelDistances(False)
         assert valve_pump >= pipe
 
+    @pytest.mark.mock_only
     def test_link_labels_use_a_type_based_distance_expression(self):
         with patch("QGISRed.tools.utils.qgisred_project_utils.QgsProject") as MockProj, \
              patch("QGISRed.ui.analysis.qgisred_results_rendering.QgsVectorLayerSimpleLabeling"), \
@@ -817,6 +830,7 @@ class TestNodeLabelDistances:
         assert prop_junction > base_junction
         assert prop_special > base_special
 
+    @pytest.mark.mock_only
     def test_node_labels_use_a_type_based_distance_expression(self):
         with patch("QGISRed.tools.utils.qgisred_project_utils.QgsProject") as MockProj, \
              patch("QGISRed.ui.analysis.qgisred_results_rendering.QgsVectorLayerSimpleLabeling"), \
@@ -860,6 +874,7 @@ class TestRenamedResultColumns:
             dd_exprs = [c.args[0] for c in MockProperty.fromExpression.call_args_list]
             return label_expr, dd_exprs
 
+    @pytest.mark.mock_only
     def test_node_labels_use_the_renamed_columns(self):
         layer = _result_layer(0, ["NodeID", "NodeType", "Pressure"])
         label_expr, dd_exprs = self._labelExpressions(layer, "Pressure", self._dock(show_node_id=True))
@@ -867,18 +882,21 @@ class TestRenamedResultColumns:
         assert '"Id"' not in label_expr
         assert any('"NodeType" IN (' in e for e in dd_exprs)
 
+    @pytest.mark.mock_only
     def test_node_labels_keep_the_legacy_columns(self):
         layer = _result_layer(0, ["Id", "Type", "Pressure"])
         label_expr, dd_exprs = self._labelExpressions(layer, "Pressure", self._dock(show_node_id=True))
         assert '"Id"' in label_expr
         assert any('"Type" IN (' in e for e in dd_exprs)
 
+    @pytest.mark.mock_only
     def test_link_labels_use_the_renamed_columns(self):
         layer = _result_layer(1, ["LinkID", "LinkType", "Flow"])
         label_expr, dd_exprs = self._labelExpressions(layer, "Flow", self._dock(show_link_id=True))
         assert '"LinkID"' in label_expr
         assert any('"LinkType" IN (' in e for e in dd_exprs)
 
+    @pytest.mark.mock_only
     def test_link_labels_keep_the_legacy_columns(self):
         layer = _result_layer(1, ["Id", "Type", "Flow"])
         label_expr, dd_exprs = self._labelExpressions(layer, "Flow", self._dock(show_link_id=True))
@@ -927,11 +945,13 @@ class TestLabelBuffer:
             dock.setLayerLabels(layer, field)
             return MockBuffer, MockFormat.return_value
 
+    @pytest.mark.mock_only
     def test_no_buffer_when_no_color_is_picked(self):
         MockBuffer, text_format = self._applyLabels(None)
         assert MockBuffer.call_count == 0
         assert text_format.setBuffer.call_count == 0
 
+    @pytest.mark.mock_only
     def test_buffer_uses_the_picked_color(self):
         color = MagicMock()
         MockBuffer, text_format = self._applyLabels(color)
@@ -940,6 +960,7 @@ class TestLabelBuffer:
         settings.setColor.assert_called_once_with(color)
         text_format.setBuffer.assert_called_once_with(settings)
 
+    @pytest.mark.mock_only
     def test_every_option_but_the_color_is_fixed(self):
         MockBuffer, _ = self._applyLabels(MagicMock())
         settings = MockBuffer.return_value
@@ -949,6 +970,7 @@ class TestLabelBuffer:
         settings.setFillBufferInterior.assert_called_once_with(False)
         assert settings.setJoinStyle.call_count == 1
 
+    @pytest.mark.mock_only
     def test_buffer_is_applied_to_link_labels_too(self):
         MockBuffer, text_format = self._applyLabels(MagicMock(), geometry_type=1, field="Flow")
         assert MockBuffer.call_count == 1
@@ -1002,6 +1024,7 @@ class TestLabelBufferSettingsPersistence:
         assert labels.get("bufferColor") == ""
 
 
+@pytest.mark.mock_only
 class TestLabelStyleCallersMatchSignature:
     @pytest.mark.parametrize("show_id", [False, True])
     def test_on_label_style_changed_calls_real_setLayerLabels(self, show_id):
