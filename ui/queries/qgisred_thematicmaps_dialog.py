@@ -285,6 +285,7 @@ class QGISRedThematicMapsDialog(QDialog, FORM_CLASS):
             QGISRedStylingUtils().applyCategorizedRenderer(derivedLayer, field, qmlPath)
 
         derivedLayer.setCustomProperty("qgisred_identifier", layerIdentifier)
+        self.markThemeDependencies(derivedLayer, query)
 
         QgsProject.instance().addMapLayer(derivedLayer, False)
         # 'field' here is the query's stable identifier value ('Type'), used above to build
@@ -373,6 +374,18 @@ class QGISRedThematicMapsDialog(QDialog, FORM_CLASS):
         derivedLayer.setReadOnly(True)
 
         return derivedLayer
+
+    def markThemeDependencies(self, derivedLayer, query):
+        # Stamp the units/formula the theme was built with so the stale layer
+        # manager can flag it when either project setting changes afterwards.
+        units = QGISRedProjectUtils.getUnits()
+        if query['file_name'].endswith(f'_{units}'):
+            derivedLayer.setCustomProperty("qgisred_theme_units", units)
+        if query['field'] == 'Roughness':
+            formula = QGISRedProjectUtils.getHeadlossFormula()
+            derivedLayer.setCustomProperty("qgisred_theme_formula", formula)
+            if formula not in ('H-W', 'C-M'):
+                derivedLayer.setCustomProperty("qgisred_theme_units", units)
 
     def findLayerByIdentifier(self, parentGroup, identifier):
         if not parentGroup:

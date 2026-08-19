@@ -24,6 +24,7 @@ from qgis.PyQt.QtCore import QTimer, QCoreApplication
 from qgis.PyQt.QtGui import QIcon
 
 from .qgisred_filesystem_utils import DIR_ISSUES, DIR_QUERIES, DIR_RESULTS, DIR_AUXILIARY_LAYERS
+from .qgisred_project_utils import QGISRedProjectUtils
 
 # Layers the DLL derives from the network: if an input has been edited since they were
 # written, what they show no longer describes the current network.
@@ -173,6 +174,30 @@ class StaleLayerManager:
 
         return stale
 
+    def _outdatedThemeLayerIds(self):
+        """Ids of thematic map layers built with units or a headloss formula the
+        project no longer uses."""
+        net, projDir = self._getProjectInfo()
+        if not net or not projDir:
+            return set()
+
+        try:
+            currentUnits = QGISRedProjectUtils.getUnits()
+            currentFormula = QGISRedProjectUtils.getHeadlossFormula()
+        except Exception:
+            return set()
+
+        outdated = set()
+        for layer in list(QgsProject.instance().mapLayers().values()):
+            themeUnits = layer.customProperty("qgisred_theme_units")
+            themeFormula = layer.customProperty("qgisred_theme_formula")
+            unitsChanged = bool(themeUnits) and themeUnits != currentUnits
+            formulaChanged = bool(themeFormula) and themeFormula != currentFormula
+            if unitsChanged or formulaChanged:
+                outdated.add(layer.id())
+
+        return outdated
+
     def _isActive(self):
         """False for a manager the plugin has moved on from.
 
@@ -188,7 +213,7 @@ class StaleLayerManager:
     def _check(self):
         if not self._isActive():
             return
-        self._syncIndicators(self._staleLayerIds())
+        self._syncIndicators(self._staleLayerIds() | self._outdatedThemeLayerIds())
 
     # ------------------------------------------------------------------
     # Indicator helpers
