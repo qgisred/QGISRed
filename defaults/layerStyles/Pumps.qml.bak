@@ -20,7 +20,7 @@
           <Option type="Map">
             <Option type="QString" name="align_dash_pattern" value="0"/>
             <Option type="QString" name="capstyle" value="square"/>
-            <Option type="QString" name="customdash" value="5;2"/>
+            <Option type="QString" name="customdash" value="5000;0"/>
             <Option type="QString" name="customdash_map_unit_scale" value="3x:0,0,0,0,0,0"/>
             <Option type="QString" name="customdash_unit" value="MM"/>
             <Option type="QString" name="dash_pattern_offset" value="0"/>
