@@ -55,7 +55,7 @@
               <Option type="Map" name="properties">
                 <Option type="Map" name="width">
                   <Option type="bool" value="true" name="active"/>
-                  <Option type="QString" value="if(coalesce(attribute($currentfeature,'NodeType'),attribute($currentfeature,'ElemType')) ='TANK', 7, 0)" name="expression"/>
+                  <Option type="QString" value="if(@id is NULL, NULL, if(coalesce(attribute($currentfeature,'NodeType'),attribute($currentfeature,'ElemType')) ='TANK', 7, 0))" name="expression"/>
                   <Option type="int" value="3" name="type"/>
                 </Option>
               </Option>
@@ -108,7 +108,7 @@
               <Option type="Map" name="properties">
                 <Option type="Map" name="width">
                   <Option type="bool" value="true" name="active"/>
-                  <Option type="QString" value="if(coalesce(attribute($currentfeature,'NodeType'),attribute($currentfeature,'ElemType')) ='RESERVOIR', 7, 0)" name="expression"/>
+                  <Option type="QString" value="if(@id is NULL, NULL, if(coalesce(attribute($currentfeature,'NodeType'),attribute($currentfeature,'ElemType')) ='RESERVOIR', 7, 0))" name="expression"/>
                   <Option type="int" value="3" name="type"/>
                 </Option>
               </Option>
@@ -163,7 +163,7 @@
               <Option type="Map" name="properties">
                 <Option type="Map" name="size">
                   <Option type="bool" value="true" name="active"/>
-                  <Option type="QString" value="if(coalesce(attribute($currentfeature,'NodeType'),attribute($currentfeature,'ElemType')) !='INCIDENCE', 0,6)" name="expression"/>
+                  <Option type="QString" value="if(@id is NULL, NULL, if(coalesce(attribute($currentfeature,'NodeType'),attribute($currentfeature,'ElemType')) !='INCIDENCE', 0,6))" name="expression"/>
                   <Option type="int" value="3" name="type"/>
                 </Option>
               </Option>
@@ -228,7 +228,7 @@
                 </Option>
                 <Option type="Map" name="size">
                   <Option type="bool" value="true" name="active"/>
-                  <Option type="QString" value="if(coalesce(attribute($currentfeature,'NodeType'),attribute($currentfeature,'ElemType')) !='ISOLATIONVALVE', 0,2)" name="expression"/>
+                  <Option type="QString" value="if(@id is NULL, NULL, if(coalesce(attribute($currentfeature,'NodeType'),attribute($currentfeature,'ElemType')) !='ISOLATIONVALVE', 0,2))" name="expression"/>
                   <Option type="int" value="3" name="type"/>
                 </Option>
               </Option>
@@ -288,7 +288,7 @@
                 </Option>
                 <Option type="Map" name="size">
                   <Option type="bool" value="true" name="active"/>
-                  <Option type="QString" value="if(coalesce(attribute($currentfeature,'NodeType'),attribute($currentfeature,'ElemType')) !='JUNCTION', 0,2)" name="expression"/>
+                  <Option type="QString" value="if(@id is NULL, NULL, if(coalesce(attribute($currentfeature,'NodeType'),attribute($currentfeature,'ElemType')) !='JUNCTION', 0,2))" name="expression"/>
                   <Option type="int" value="3" name="type"/>
                 </Option>
               </Option>
