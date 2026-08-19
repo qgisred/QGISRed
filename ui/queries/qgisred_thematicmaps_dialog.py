@@ -244,7 +244,7 @@ class QGISRedThematicMapsDialog(QDialog, FORM_CLASS):
         return None
 
     def processQuery(self, query, mainLayer, queriesGroup):
-        layerName = QCoreApplication.translate('InputLayerNames', query['layer_name'])
+        layerName = QCoreApplication.translate('InputLayerNames', query['layer_name']) + query.get('name_suffix', '')
         field = query['field']
         qmlFile = query['qml_file']
 
@@ -1058,17 +1058,21 @@ class QGISRedThematicMapsDialog(QDialog, FORM_CLASS):
             formula = QGISRedProjectUtils.getHeadlossFormula()
             if formula == 'H-W':
                 roughnessQml = 'PipeRoughnessesHW.qml'
+                formulaAbbreviation = 'HW'
             elif formula == 'C-M':
                 roughnessQml = 'PipeRoughnessesCM.qml'
+                formulaAbbreviation = 'CM'
             else:
                 roughnessQml = f'PipeRoughnessesDW{units}.qml'
+                formulaAbbreviation = 'DW'
             queries.append({
-                'layer_name': 'Pipe Roughness',
+                'layer_name': 'Pipe Roughnesses',
                 'layer_type': 'Pipes',
                 'field': 'Roughness',
                 'qml_file': roughnessQml,
                 'file_name': 'roughness',
-                'tooltip_prefix': 'Rough'
+                'tooltip_prefix': 'Rough',
+                'name_suffix': f'_{formulaAbbreviation}'
             })
 
         if self.cbPipesAge.isChecked():
