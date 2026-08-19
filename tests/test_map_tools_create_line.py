@@ -6,18 +6,15 @@ from unittest.mock import MagicMock
 
 from .conftest import REAL_QGIS
 
-# This module swaps the real qgis modules out of sys.modules at collection time and never
-# puts them back, which would leave every module collected afterwards importing mocks.
-# Deselecting by marker is too late -- the swap happens on import -- so skip before it runs.
-if REAL_QGIS:
-    pytest.skip('rebuilds sys.modules with mocks; incompatible with the real QGIS run',
-                allow_module_level=True)
-
 
 # ---------------------------------------------------------------------------
-# Minimal stand-in for QgsPointXY so arithmetic in _snapToGrid works
+# Stand-ins used only when the suite runs against the mocked QGIS.
+#
+# QgsMapTool must be a real Python class (not a MagicMock instance) so that
+# QGISRedCreateLineTool can subclass it without the MagicMock metaclass
+# interfering with class attribute lookup.
 # ---------------------------------------------------------------------------
-class _Point:
+class _StubPoint:
     def __init__(self, x, y):
         self._x = float(x)
         self._y = float(y)
@@ -29,22 +26,13 @@ class _Point:
         return self._y
 
     def __eq__(self, other):
-        return isinstance(other, _Point) and self._x == other._x and self._y == other._y
+        return isinstance(other, _StubPoint) and self._x == other._x and self._y == other._y
 
     def __repr__(self):
-        return f"_Point({self._x}, {self._y})"
+        return f"_StubPoint({self._x}, {self._y})"
 
 
-# ---------------------------------------------------------------------------
-# Mock all QGIS / PyQt5 modules BEFORE importing plugin code
-#
-# QgsMapTool must be a real Python class (not a MagicMock instance) so that
-# QGISRedCreateLineTool can subclass it without the MagicMock metaclass
-# interfering with class attribute lookup.
-# ---------------------------------------------------------------------------
-
-class _QgsMapTool:
-    """Minimal real stub for QgsMapTool."""
+class _StubMapTool:
     def __init__(self, *args, **kwargs):
         pass
 
@@ -61,8 +49,7 @@ class _QgsMapTool:
         return MagicMock()
 
 
-class _QgsVertexMarker:
-    """Stub that holds the icon-type constants as class attributes."""
+class _StubVertexMarker:
     ICON_BOX = 'ICON_BOX'
     ICON_X = 'ICON_X'
     ICON_CROSS = 'ICON_CROSS'
@@ -74,7 +61,7 @@ class _QgsVertexMarker:
         return MagicMock()
 
 
-class _QgsRubberBand:
+class _StubRubberBand:
     ICON_CROSS = 'ICON_CROSS'
 
     def __init__(self, *args, **kwargs):
@@ -84,56 +71,47 @@ class _QgsRubberBand:
         return MagicMock()
 
 
-_mock_qtcore = MagicMock()
-_mock_qtcore.Qt.MouseButton.LeftButton = 1
-_mock_qtcore.Qt.MouseButton.RightButton = 2
-_mock_qtcore.Qt.PenStyle.SolidLine = 1
-_mock_qtcore.Qt.PenStyle.DashLine = 2
+def _configureSharedMocks():
+    """Put the stubs on the mocks conftest already installed.
 
-_mock_qgis_gui = MagicMock()
-_mock_qgis_gui.QgsMapTool = _QgsMapTool
-_mock_qgis_gui.QgsVertexMarker = _QgsVertexMarker
-_mock_qgis_gui.QgsRubberBand = _QgsRubberBand
+    Replacing the sys.modules entries outright -- what this module used to do --
+    left every module imported afterwards seeing mocks, which silently disabled
+    the real-QGIS run for half the suite.
+    """
+    gui = sys.modules['qgis.gui']
+    gui.QgsMapTool = _StubMapTool
+    gui.QgsVertexMarker = _StubVertexMarker
+    gui.QgsRubberBand = _StubRubberBand
 
-_mock_qgis_core = MagicMock()
-_mock_qgis_core.QgsPointXY = _Point
-_mock_qgis_core.QgsSnappingConfig.Vertex = 1
-_mock_qgis_core.QgsSnappingConfig.Segment = 2
-_mock_qgis_core.QgsSnappingConfig.VertexAndSegment = 3
-_mock_qgis_core.QgsWkbTypes.LineGeometry = 2
-_mock_qgis_core.QgsWkbTypes.PointGeometry = 1
+    core = sys.modules['qgis.core']
+    core.QgsPointXY = _StubPoint
+    core.QgsSnappingConfig.Vertex = 1
+    core.QgsSnappingConfig.Segment = 2
+    core.QgsSnappingConfig.VertexAndSegment = 3
+    core.QgsWkbTypes.LineGeometry = 2
+    core.QgsWkbTypes.PointGeometry = 1
 
-_mock_qgis_pyqt = MagicMock()
-_mock_qgis_pyqt.__path__ = []  # Make it look like a package
-_mock_qgis_pyqt_qtcore = MagicMock()
-_mock_qgis_pyqt_qtgui = MagicMock()
-_mock_qgis_pyqt_qtwidgets = MagicMock()
-_mock_qgis_pyqt_qtcore.Qt = _mock_qtcore.Qt
-_mock_qgis_pyqt_qtgui.QAction = MagicMock()
-_mock_qgis_pyqt_qtwidgets.QStyle = MagicMock()
-_mock_qgis_pyqt_qtwidgets.QStyle.CC_ComboBox = 1
-_mock_qgis_pyqt_qtwidgets.QStyle.CE_ComboBoxLabel = 2
+    qt = sys.modules['qgis.PyQt.QtCore'].Qt
+    qt.MouseButton.LeftButton = 1
+    qt.MouseButton.RightButton = 2
+    qt.PenStyle.SolidLine = 1
+    qt.PenStyle.DashLine = 2
 
-sys.modules['PyQt5'] = MagicMock()
-sys.modules['PyQt5.QtCore'] = _mock_qtcore
-sys.modules['PyQt5.QtGui'] = MagicMock()
-sys.modules['PyQt5.QtWidgets'] = MagicMock()
-sys.modules['qgis'] = MagicMock()
-sys.modules['qgis.core'] = _mock_qgis_core
-sys.modules['qgis.gui'] = _mock_qgis_gui
-sys.modules['qgis.PyQt'] = _mock_qgis_pyqt
-sys.modules['qgis.PyQt.QtCore'] = _mock_qgis_pyqt_qtcore
-sys.modules['qgis.PyQt.QtGui'] = _mock_qgis_pyqt_qtgui
-sys.modules['qgis.PyQt.QtWidgets'] = _mock_qgis_pyqt_qtwidgets
 
-# The replacements above wiped the shared widget stubs, leaving QDockWidget as a
-# MagicMock *instance*. Any dock imported after this module would then fail with
-# a metaclass conflict as soon as it mixes a plain-Python mixin in before its Qt
-# base. Put the stub types back on the new mocks right away — the autouse
-# fixture in conftest only runs before each test, which is too late for the
-# imports other test modules do at collection time.
-from .conftest import _apply_qt_mock_config  # noqa: E402
-_apply_qt_mock_config()
+if REAL_QGIS:
+    from qgis.core import QgsPointXY as _Point
+    from qgis.gui import QgsMapCanvas
+    from qgis.PyQt.QtCore import Qt
+    from QGISRed.compat import QAction
+    LEFT_BUTTON = Qt.MouseButton.LeftButton
+    RIGHT_BUTTON = Qt.MouseButton.RightButton
+else:
+    _Point = _StubPoint
+    LEFT_BUTTON, RIGHT_BUTTON = 1, 2
+    _configureSharedMocks()
+    # The stubs must be in place before the tool binds its module-level names, so
+    # drop a copy imported by an earlier test module instead of reusing it.
+    sys.modules.pop('QGISRed.tools.map_tools.qgisred_createLineTool', None)
 
 from QGISRed.tools.map_tools.qgisred_createLineTool import QGISRedCreateLineTool  # noqa: E402
 
@@ -142,11 +120,22 @@ from QGISRed.tools.map_tools.qgisred_createLineTool import QGISRedCreateLineTool
 # Shared fixture
 # ---------------------------------------------------------------------------
 def _make_tool(cls=QGISRedCreateLineTool, canvas_width=100.0):
-    """Instantiate a line tool with fully mocked QGIS dependencies."""
+    """Instantiate a line tool, against the real QGIS when the suite runs that way."""
     iface = MagicMock()
-    iface.mapCanvas.return_value.extent.return_value.width.return_value = canvas_width
+    canvas = None
+    button = MagicMock()
+    if REAL_QGIS:
+        canvas = QgsMapCanvas()
+        iface.mapCanvas.return_value = canvas
+        button = QAction("test")
     method = MagicMock()
-    tool = cls(MagicMock(), iface, "dir", "net", method)
+    tool = cls(button, iface, "dir", "net", method)
+    if canvas is not None:
+        tool._testCanvas = canvas  # the markers live on it; keep it from being collected
+    # A real canvas refits the extent to its own aspect ratio, so the width the grid
+    # tests need cannot be set on it -- the iface is swapped for a mock afterwards.
+    tool.iface = MagicMock()
+    tool.iface.mapCanvas.return_value.extent.return_value.width.return_value = canvas_width
     # Replace rubber band rendering with no-op so state tests stay clean
     tool.createRubberBand = MagicMock()
     return tool, method
@@ -221,12 +210,12 @@ class TestPressEventStateMachine:
         """Simulate a left-click at map coordinates (x, y)."""
         tool.toMapCoordinates = lambda pos: _Point(x, y)
         event = MagicMock()
-        event.button.return_value = 1  # Qt.MouseButton.LeftButton
+        event.button.return_value = LEFT_BUTTON
         tool.canvasPressEvent(event)
 
     def _right_click(self, tool):
         event = MagicMock()
-        event.button.return_value = 2  # Qt.MouseButton.RightButton
+        event.button.return_value = RIGHT_BUTTON
         tool.canvasPressEvent(event)
 
     # --- first left click ---
