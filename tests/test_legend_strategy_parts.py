@@ -2,6 +2,7 @@
 """Save-strategy parts are independent: allClasses can be saved together with
 colors and sizes, and loading a combined strategy pins the classes first."""
 import os
+from unittest.mock import MagicMock
 import pytest
 
 import QGISRed.ui.project.qgisred_legends_dialog as legendsModule
@@ -205,9 +206,11 @@ class TestBuildableParts:
         assert self._dialog("RULES").getBuildableStrategyParts() == []
 
 
-@pytest.mark.mock_only
 class TestLoadBranching:
     def _dialog(self, monkeypatch, strategy):
+        # The dialog reports the outcome through QMessageBox, whose real signature
+        # wants a QWidget parent -- and the dialog base is stubbed for the whole suite.
+        monkeypatch.setattr(legendsModule, "QMessageBox", MagicMock())
         dialog = _dialog()
         dialog.calls = []
 

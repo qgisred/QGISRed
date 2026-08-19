@@ -115,6 +115,10 @@ _QT_WIDGET_STUBS = (
     "QStyledItemDelegate",
 )
 
+# Against the real QGIS only the bases the suite builds with object.__new__ need a
+# stub; leaving the rest real lets widgets be passed to real Qt constructors.
+_QT_WIDGET_STUBS_REAL = ("QDialog", "QDockWidget", "QMainWindow")
+
 # Symbol classes the legend editor feeds to isinstance() to tell a marker from a
 # line (see effectiveGeometryHint).  A MagicMock attribute is an instance, not a
 # type, so isinstance() raises TypeError against it.  Test symbols are plain
@@ -138,7 +142,7 @@ def _apply_qt_mock_config():
         _pyqt.uic.loadUiType.return_value = (_FORM_STUB, None)
     _qtw = sys.modules.get('qgis.PyQt.QtWidgets')
     if _qtw is not None:
-        for _name in _QT_WIDGET_STUBS:
+        for _name in (_QT_WIDGET_STUBS_REAL if REAL_QGIS else _QT_WIDGET_STUBS):
             setattr(_qtw, _name, _qt_stub(_name))
     _qgis_core = sys.modules.get('qgis.core')
     if _qgis_core is not None and not REAL_QGIS:

@@ -523,7 +523,6 @@ class TestPaintIntervalTimeResultsVariableOrdering:
             assert dock.displayingLinkField == "Status"
 
 
-@pytest.mark.mock_only
 class TestSetGraduatedPaletteVariableSwitch:
     """End-to-end check that setGraduatedPalette actually swaps the renderer type
     when switching to/from Status, given a correctly-captured previously_displayed."""
@@ -532,9 +531,11 @@ class TestSetGraduatedPaletteVariableSwitch:
         class _FakeNullHiddenLegend:
             pass
 
+        # QgsProject is mocked: the real layerTreeRoot().findLayer() rejects the mocked layer.
         with patch("QGISRed.ui.analysis.qgisred_results_rendering.QgsGraduatedSymbolRenderer", _FakeGraduatedRenderer), \
              patch("QGISRed.ui.analysis.qgisred_results_rendering.QgsRuleBasedRenderer", _FakeRuleBasedRenderer), \
              patch("QGISRed.ui.analysis.qgisred_results_rendering._NullHiddenLegend", _FakeNullHiddenLegend), \
+             patch("QGISRed.ui.analysis.qgisred_results_rendering.QgsProject"), \
              patch("QGISRed.ui.analysis.qgisred_results_rendering.QGISRedStylingUtils") as MockStylingUtils:
 
             dock = MockDock()
@@ -832,7 +833,10 @@ class TestLabelBuffer:
         dock._labelBufferColor = buffer_color
         layer = MagicMock()
         layer.geometryType.return_value = geometry_type
+        # QgsPalLayerSettings is mocked too: it receives the mocked text format and the
+        # real one rejects it. Nothing in these tests asserts on it.
         with patch("QGISRed.tools.utils.qgisred_project_utils.QgsProject") as MockProj, \
+             patch("QGISRed.ui.analysis.qgisred_results_rendering.QgsPalLayerSettings"), \
              patch("QGISRed.ui.analysis.qgisred_results_rendering.QgsVectorLayerSimpleLabeling"), \
              patch("QGISRed.ui.analysis.qgisred_results_rendering.QgsTextFormat") as MockFormat, \
              patch("QGISRed.ui.analysis.qgisred_results_rendering.QgsTextBufferSettings") as MockBuffer:
@@ -840,13 +844,11 @@ class TestLabelBuffer:
             dock.setLayerLabels(layer, field)
             return MockBuffer, MockFormat.return_value
 
-    @pytest.mark.mock_only
     def test_no_buffer_when_no_color_is_picked(self):
         MockBuffer, text_format = self._applyLabels(None)
         assert MockBuffer.call_count == 0
         assert text_format.setBuffer.call_count == 0
 
-    @pytest.mark.mock_only
     def test_buffer_uses_the_picked_color(self):
         color = MagicMock()
         MockBuffer, text_format = self._applyLabels(color)
@@ -855,7 +857,6 @@ class TestLabelBuffer:
         settings.setColor.assert_called_once_with(color)
         text_format.setBuffer.assert_called_once_with(settings)
 
-    @pytest.mark.mock_only
     def test_every_option_but_the_color_is_fixed(self):
         MockBuffer, _ = self._applyLabels(MagicMock())
         settings = MockBuffer.return_value
@@ -865,7 +866,6 @@ class TestLabelBuffer:
         settings.setFillBufferInterior.assert_called_once_with(False)
         assert settings.setJoinStyle.call_count == 1
 
-    @pytest.mark.mock_only
     def test_buffer_is_applied_to_link_labels_too(self):
         MockBuffer, text_format = self._applyLabels(MagicMock(), geometry_type=1, field="Flow")
         assert MockBuffer.call_count == 1

@@ -13,6 +13,8 @@ from unittest.mock import MagicMock, patch
 
 import pytest
 
+from .conftest import REAL_QGIS
+
 from QGISRed.tools.utils.qgisred_auxiliary_layers import (
     AUXILIARY_LAYER_TYPES,
     AUXILIARY_TYPES_BY_KEY,
@@ -23,6 +25,13 @@ from QGISRed.tools.utils.qgisred_auxiliary_layers import (
     listThemes,
     parseBaseName,
 )
+
+if REAL_QGIS:
+    # QgsSymbol.defaultSymbol() takes the geometry enum, not its int value.
+    from qgis.core import QgsVectorLayer
+    POLYGON_GEOMETRY = QgsVectorLayer('Polygon?crs=EPSG:25830', 'probe', 'memory').geometryType()
+else:
+    POLYGON_GEOMETRY = 2
 
 _UTILS_CLS = "QGISRed.sections.layer_management_section.QGISRedLayerUtils"
 
@@ -351,7 +360,6 @@ class TestDemandBuilderStyleFlag:
         styling.setStyle.assert_called_once_with(
             layer, "DemandBuilderIsolatedDemandsServiceConnections")
 
-    @pytest.mark.mock_only
     def test_a_theme_does_not_take_that_qml(self):
         from QGISRed.tools.utils.qgisred_styling_utils import QGISRedStylingUtils
 
@@ -361,7 +369,7 @@ class TestDemandBuilderStyleFlag:
         layer = MagicMock()
         layer.name.return_value = "DemBuild_Sectors"
         layer.fields.return_value.indexFromName.return_value = -1
-        layer.geometryType.return_value = 2
+        layer.geometryType.return_value = POLYGON_GEOMETRY
 
         styling.setDemandBuilderStyle(layer, "DemandBuilder_Sectors_Barrios")
 

@@ -60,6 +60,18 @@ class _FakeView:
         self._byNode.get(id(node), []).remove(indicator)
 
 
+@pytest.fixture(autouse=True)
+def _stubQtObjects():
+    """Stand in for the two Qt objects the fake project tree cannot satisfy.
+
+    QgsLayerTreeViewIndicator needs a real QgsLayerTreeView, and the debounce tests
+    assert on the QTimer instead of waiting five seconds for its tick.
+    """
+    module = "QGISRed.tools.utils.qgisred_stale_layer_manager."
+    with patch(module + "QgsLayerTreeViewIndicator"), patch(module + "QTimer"):
+        yield
+
+
 def _write(path, mtime):
     os.makedirs(os.path.dirname(path), exist_ok=True)
     with open(path, "wb") as handle:
@@ -139,7 +151,6 @@ def harness(project):
 
 
 class TestRelevance:
-    @pytest.mark.mock_only
     def test_derived_layers_are_flagged(self, project, harness):
         _projDir, paths = project
         item = harness([
@@ -203,7 +214,6 @@ class TestGhostIndicators:
 
         assert item.flagged() == set()
 
-    @pytest.mark.mock_only
     def test_duplicate_on_a_stale_node_is_reduced_to_one(self, project, harness):
         _projDir, paths = project
         item = harness([_FakeLayer("results", paths["results"])])
@@ -227,7 +237,6 @@ class TestGhostIndicators:
 
         assert item.view.indicators(item.nodes["pipes"]) == [foreign]
 
-    @pytest.mark.mock_only
     def test_indicator_leaves_the_node_before_it_dies(self, project, harness):
         """The view keys indicators by node pointer: a leaked one resurfaces on the next
         project, attached to whatever node lands on the same address."""
@@ -240,7 +249,6 @@ class TestGhostIndicators:
 
         assert item.flagged() == set()
 
-    @pytest.mark.mock_only
     def test_will_be_removed_repaints(self, project, harness):
         _projDir, paths = project
         item = harness([_FakeLayer("results", paths["results"])])
@@ -251,7 +259,6 @@ class TestGhostIndicators:
 
         item.view.viewport().update.assert_called_once()
 
-    @pytest.mark.mock_only
     def test_will_be_removed_accepts_layer_objects(self, project, harness):
         """PyQt may deliver either overload of layersWillBeRemoved."""
         _projDir, paths = project
@@ -264,7 +271,6 @@ class TestGhostIndicators:
         assert item.flagged() == set()
 
 
-@pytest.mark.mock_only
 class TestRefresh:
     def test_adding_an_indicator_repaints_the_viewport(self, project, harness):
         """update() on the view does not reach the viewport, so the row would only redraw
@@ -312,7 +318,6 @@ class TestPluginReload:
         assert first.manager._stopped is True
         assert second.manager._stopped is False
 
-    @pytest.mark.mock_only
     def test_a_superseded_manager_touches_nothing(self, project, harness):
         _projDir, paths = project
         first = harness([_FakeLayer("results", paths["results"])])

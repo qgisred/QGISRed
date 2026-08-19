@@ -2,12 +2,8 @@
 import math
 import sys
 from unittest.mock import MagicMock
-import pytest
 
 from QGISRed.tools.utils.qgisred_axis_scale_utils import compute_nice_scale
-
-# Every test here drives the axis code with mocked Qt chart objects.
-pytestmark = pytest.mark.mock_only
 
 
 def test_axis_series_data_filters_non_finite_and_huge_values_to_prevent_overflow():
