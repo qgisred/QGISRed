@@ -1,5 +1,6 @@
 # -*- coding: utf-8 -*-
 from QGISRed.ui.analysis.qgisred_results_evolution import _ResultsEvolutionMixin
+import pytest
 
 
 class _FakeCheckBox:
@@ -99,6 +100,7 @@ class TestEvolutionPanelVisibility:
         assert harness.evolutionChartContainer.visible is False
 
 
+@pytest.mark.mock_only
 class TestEvolutionWidgetImportable:
     def test_construct_simplified_widget(self):
         from QGISRed.ui.analysis.results_evolution_widget import ResultsEvolutionPlotWidget

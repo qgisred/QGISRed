@@ -4,6 +4,15 @@ import sys
 import os
 from unittest.mock import MagicMock
 
+from .conftest import REAL_QGIS
+
+# This module swaps the real qgis modules out of sys.modules at collection time and never
+# puts them back, which would leave every module collected afterwards importing mocks.
+# Deselecting by marker is too late -- the swap happens on import -- so skip before it runs.
+if REAL_QGIS:
+    pytest.skip('rebuilds sys.modules with mocks; incompatible with the real QGIS run',
+                allow_module_level=True)
+
 
 # ---------------------------------------------------------------------------
 # Minimal stand-in for QgsPointXY so arithmetic in _snapToGrid works

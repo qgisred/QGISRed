@@ -84,6 +84,7 @@ class TestDoubleClick:
     """A double-click is a single gesture: one action, no leftover release."""
 
     @pytest.mark.parametrize("type", [SelectPointType.PointLine, SelectPointType.TwoPoints])
+    @pytest.mark.mock_only
     def test_reusesFirstClickPoint(self, type):
         callback = MagicMock()
         tool = _makeTool(type, double_click_callback=callback)
@@ -96,6 +97,7 @@ class TestDoubleClick:
         callback.assert_called_once_with(_Point(10, 20), LEFT)
         assert tool.firstPoint is None
 
+    @pytest.mark.mock_only
     def test_snapsWhenNoFirstPoint(self):
         callback = MagicMock()
         tool = _makeTool(SelectPointType.Point, double_click_callback=callback)
@@ -130,6 +132,7 @@ class TestDoubleClick:
         tool.method.assert_called_once_with(_Point(5, 6))
         callback.assert_not_called()
 
+    @pytest.mark.mock_only
     def test_firesWhenFirstClickDidNothing(self):
         callback = MagicMock()
         tool = _makeTool(SelectPointType.Line, double_click_callback=callback)
