@@ -1,7 +1,8 @@
 name: QGISRed Complete Test Suite
 
 on:
-  workflow_dispatch:
+  push:
+    branches: [master]
 
 jobs:
   tests:
@@ -71,6 +72,15 @@ jobs:
       - name: Show bundled Python version
         run: '& $env:QGIS_PYTHON -VV'
 
-      - name: Run tests
+      - name: Run tests (mocked QGIS)
         working-directory: QGISRed
         run: '& $env:QGIS_PYTHON -m pytest'
+
+      # The mocked run above cannot tell the QGIS versions apart; this one loads the
+      # real qgis.core, so it is what makes the matrix mean something.  The conftest
+      # aborts instead of falling back to mocks if QGIS fails to load.
+      - name: Run tests (real QGIS)
+        working-directory: QGISRed
+        env:
+          QGISRED_REAL_QGIS: '1'
+        run: '& $env:QGIS_PYTHON -m pytest -m "not mock_only"'
