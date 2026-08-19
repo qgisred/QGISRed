@@ -325,7 +325,7 @@
     <settings calloutType="simple">
       <text-style fontUnderline="0" fontItalic="0" forcedItalic="0" fontWordSpacing="0" previewBkgrdColor="255,255,255,255,rgb:1,1,1,1" fontWeight="50" textColor="45,151,201,255,rgb:0.17647058823529413,0.59215686274509804,0.78823529411764703,1" isExpression="1" fontLetterSpacing="0" allowHtml="0" capitalization="0" textOpacity="1" tabStopDistance="6" legendString="Aa" fontFamily="Arial" fontKerning="1" tabStopDistanceUnit="Percentage" namedStyle="" blendMode="0" tabStopDistanceMapUnitScale="3x:0,0,0,0,0,0" forcedBold="0" fontSize="8" useSubstitutions="0" multilineHeight="1" fontStrikeout="0" textOrientation="horizontal" fieldName="if(&quot;DemType&quot; = 'Source', '-', '') || round(&quot;TotBaseDem&quot;, 1) || ' LPS'" fontSizeMapUnitScale="3x:0,0,0,0,0,0" multilineHeightUnit="Percentage" fontSizeUnit="Point">
         <families/>
-        <text-buffer bufferOpacity="1" bufferDraw="0" bufferNoFill="1" bufferSizeMapUnitScale="3x:0,0,0,0,0,0" bufferSize="1" bufferSizeUnits="MM" bufferColor="179,53,97,255,rgb:0.70196078431372544,0.20784313725490197,0.38039215686274508,1" bufferJoinStyle="128" bufferBlendMode="0"/>
+        <text-buffer bufferOpacity="1" bufferDraw="0" bufferNoFill="1" bufferSizeMapUnitScale="3x:0,0,0,0,0,0" bufferSize="0.5" bufferSizeUnits="Point" bufferColor="179,53,97,255,rgb:0.70196078431372544,0.20784313725490197,0.38039215686274508,1" bufferJoinStyle="128" bufferBlendMode="0"/>
         <text-mask maskSizeUnits="MM" maskJoinStyle="128" maskEnabled="0" maskSizeMapUnitScale="3x:0,0,0,0,0,0" maskSize="1.5" maskedSymbolLayers="" maskType="0" maskOpacity="1" maskSize2="1.5"/>
         <background shapeBorderColor="128,128,128,255,rgb:0.50196078431372548,0.50196078431372548,0.50196078431372548,1" shapeSizeType="0" shapeOffsetUnit="MM" shapeType="0" shapeBorderWidth="0" shapeSizeMapUnitScale="3x:0,0,0,0,0,0" shapeRotation="0" shapeSizeUnit="MM" shapeRotationType="0" shapeBorderWidthUnit="MM" shapeSizeY="0" shapeBorderWidthMapUnitScale="3x:0,0,0,0,0,0" shapeRadiiUnit="MM" shapeOpacity="1" shapeRadiiY="0" shapeBlendMode="0" shapeFillColor="255,255,255,255,rgb:1,1,1,1" shapeOffsetX="0" shapeRadiiX="0" shapeOffsetY="0" shapeSVGFile="" shapeSizeX="0" shapeJoinStyle="64" shapeDraw="0" shapeOffsetMapUnitScale="3x:0,0,0,0,0,0" shapeRadiiMapUnitScale="3x:0,0,0,0,0,0">
           <symbol alpha="1" frame_rate="10" clip_to_extent="1" is_animated="0" name="fillSymbol" force_rhr="0" type="fill">
@@ -364,7 +364,23 @@
         <dd_properties>
           <Option type="Map">
             <Option name="name" type="QString" value=""/>
-            <Option name="properties"/>
+            <Option name="properties" type="Map">
+              <Option name="Color" type="Map">
+                <Option name="active" type="bool" value="true"/>
+                <Option name="expression" type="QString" value="if(&quot;DemType&quot; = 'Source', '#e15989', '#2d97c9')"/>
+                <Option name="type" type="int" value="3"/>
+              </Option>
+              <Option name="Size" type="Map">
+                <Option name="active" type="bool" value="true"/>
+                <Option name="expression" type="QString" value="if(&quot;DemType&quot; = 'Source', 9, 8)"/>
+                <Option name="type" type="int" value="3"/>
+              </Option>
+              <Option name="BufferDraw" type="Map">
+                <Option name="active" type="bool" value="true"/>
+                <Option name="expression" type="QString" value="if(&quot;DemType&quot; = 'Source', 1, 0)"/>
+                <Option name="type" type="int" value="3"/>
+              </Option>
+            </Option>
             <Option name="type" type="QString" value="collection"/>
           </Option>
         </dd_properties>
