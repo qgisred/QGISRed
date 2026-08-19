@@ -15,6 +15,7 @@ from qgis.PyQt.QtCore import QCoreApplication
 from qgis.core import QgsLayerTreeGroup, QgsLayerTreeLayer, QgsProject
 from qgis.core import QgsField, QgsVectorFileWriter, QgsVectorLayer
 from qgis.core import QgsPalLayerSettings, QgsVectorLayerSimpleLabeling
+from qgis.core import QgsDataDefinedSizeLegend, QgsMapLayerLegendUtils
 
 # Local imports
 from ...tools.utils.qgisred_field_utils import QGISRedFieldUtils
@@ -47,11 +48,16 @@ class QGISRedThematicMapsDialog(QDialog, FORM_CLASS):
         self.NetworkName = networkName
 
     def tempElementsHide(self):
-        self.gbJunctions.hide()
         self.gbValves.hide()
         self.gbPumps.hide()
         self.gbTanks.hide()
         self.gbReservoirs.hide()
+
+        self.cbJunctionsElevation.hide()
+        self.cbJunctionsPatternDemand.hide()
+        self.cbJunctionsEmitterCoeff.hide()
+        self.cbJunctionsInitialQuality.hide()
+        self.cbJunctionsTag.hide()
 
         self.cbPipesLossCoeff.hide()
         self.cbPipesInitStatus.hide()
@@ -145,6 +151,7 @@ class QGISRedThematicMapsDialog(QDialog, FORM_CLASS):
             if pipesLayer is None:
                 super().accept()
                 return
+            junctionsLayer = self.findLayerInGroup(inputsGroup, 'Junctions', 'qgisred_junctions')
 
             newQueries = [
                 query for query in selectedQueries
@@ -153,7 +160,11 @@ class QGISRedThematicMapsDialog(QDialog, FORM_CLASS):
             ]
 
             for query in reversed(newQueries):
-                self.processQuery(query, pipesLayer, thematicGroup)
+                if query['layer_type'] == 'Junctions':
+                    if junctionsLayer is not None:
+                        self.processQuery(query, junctionsLayer, thematicGroup)
+                else:
+                    self.processQuery(query, pipesLayer, thematicGroup)
 
         super().accept()
 
@@ -306,6 +317,14 @@ class QGISRedThematicMapsDialog(QDialog, FORM_CLASS):
                         derivedLayer.addExpressionField(expression, QgsField(name, QVariantInt))
             hideField = [name for name in ('InstYear', 'Age')
                          if derivedLayer.fields().indexFromName(name) >= 0] or hideField
+        # Same split for the base demand map: 'BaseDemand' is the query's identifier
+        # value, while the classified columns are the TotBaseDem/DemType virtual
+        # fields the style file adds; the style also needs the demands layer id and
+        # the project flow units, which only this code can know.
+        if layerType == 'junctions' and field == 'BaseDemand':
+            self.adaptBaseDemandDerivedLayer(derivedLayer)
+            hideField = [name for name in ('TotBaseDem', 'DemType')
+                         if derivedLayer.fields().indexFromName(name) >= 0] or hideField
 
         # hideFields() would otherwise resolve the identity column itself via
         # derivedLayer's own qgisred_identifier -- but that property is set above to this
@@ -322,7 +341,12 @@ class QGISRedThematicMapsDialog(QDialog, FORM_CLASS):
             # Use insertChildNode with a new QgsLayerTreeLayer instance for better QGIS 4 compatibility.
             # insertChildNode() returns None on QGIS 3, so keep our own reference to the node.
             layerTreeLayer = QgsLayerTreeLayer(derivedLayer)
-            layerTreeLayer.setCustomProperty("showFeatureCount", True)
+            # The base demand legend lists concrete values (proportional size),
+            # not ranges, so a feature count would add nothing there.
+            isBaseDemandQuery = layerType == 'junctions' and field == 'BaseDemand'
+            layerTreeLayer.setCustomProperty("showFeatureCount", not isBaseDemandQuery)
+            if isBaseDemandQuery:
+                self.hideProportionalLegendTitle(derivedLayer, layerTreeLayer)
             parentGroup.insertChildNode(layerPosition, layerTreeLayer)
 
         def syncDerivedLayer():
@@ -419,6 +443,58 @@ class QGISRedThematicMapsDialog(QDialog, FORM_CLASS):
             styling.applyStrategyFromLayer(layer)
             layer.triggerRepaint()
         return qmlPath
+
+    def adaptBaseDemandDerivedLayer(self, layer):
+        self.pointBaseDemandFieldsToDemandsLayer(layer)
+        self.applyFlowUnitsToBaseDemandStyle(layer)
+
+    def hideProportionalLegendTitle(self, layer, layerTreeLayer):
+        # The proportional size legend always renders a title row, falling back
+        # to the classified field name when the stored title is empty, so the
+        # node is dropped from the legend order instead (what the Legend
+        # properties tab does when an entry is removed).
+        renderer = layer.renderer()
+        sizeLegend = renderer.dataDefinedSizeLegend() if hasattr(renderer, 'dataDefinedSizeLegend') else None
+        if sizeLegend is None:
+            return
+        classCount = len(sizeLegend.classes())
+        QgsMapLayerLegendUtils.setLegendNodeOrder(layerTreeLayer, list(range(1, classCount + 1)))
+
+    def pointBaseDemandFieldsToDemandsLayer(self, layer):
+        # The style file references the multiple demands layer by its default
+        # name; the real layer may be renamed or translated, so retarget the
+        # virtual field expressions to its stable layer id.
+        demandsLayer = self.findLayerInGroup(self.getRootGroup(), None, 'qgisred_demands')
+        if demandsLayer is None:
+            return
+        for fieldName in ('TotBaseDem', 'DemType'):
+            fieldIndex = layer.fields().indexFromName(fieldName)
+            if fieldIndex < 0:
+                continue
+            expression = layer.expressionField(fieldIndex)
+            if "'Demands'" in expression:
+                layer.updateExpressionField(fieldIndex, expression.replace("'Demands'", "'%s'" % demandsLayer.id()))
+
+    def applyFlowUnitsToBaseDemandStyle(self, layer):
+        flowUnit = QGISRedProjectUtils.getFlowUnit()
+        layer.setName("%s (%s)" % (layer.name(), flowUnit))
+        layer.setMapTipTemplate(layer.mapTipTemplate().replace('LPS', flowUnit))
+
+        labeling = layer.labeling()
+        if labeling is not None:
+            labelSettings = labeling.settings()
+            labelSettings.fieldName = labelSettings.fieldName.replace('LPS', flowUnit)
+            layer.setLabeling(QgsVectorLayerSimpleLabeling(labelSettings))
+
+        renderer = layer.renderer()
+        sizeLegend = renderer.dataDefinedSizeLegend() if hasattr(renderer, 'dataDefinedSizeLegend') else None
+        if sizeLegend is not None:
+            updatedLegend = QgsDataDefinedSizeLegend(sizeLegend)
+            updatedLegend.setClasses([
+                QgsDataDefinedSizeLegend.SizeClass(sizeClass.size, sizeClass.label.replace('LPS', flowUnit))
+                for sizeClass in sizeLegend.classes()
+            ])
+            renderer.setDataDefinedSizeLegend(updatedLegend)
 
     def assignLabels(self, layer, field, ):
         layer.setLabelsEnabled(True)
