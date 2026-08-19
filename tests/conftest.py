@@ -11,6 +11,55 @@ _PARENT = os.path.dirname(_PLUGIN_ROOT)
 if _PARENT not in sys.path:
     sys.path.insert(0, _PARENT)
 
+
+def _realQgisRequested():
+    flag = os.environ.get('QGISRED_REAL_QGIS', '').strip().lower()
+    if flag and flag not in ('0', 'false', 'no'):
+        return True
+    # conftest runs before pytest parses its arguments, so the flag is read from argv.
+    return '--real-qgis' in sys.argv
+
+
+def _bootstrapRealQgis():
+    """Import the real QGIS so the mock block below finds sys.modules taken."""
+    os.environ.setdefault('QT_QPA_PLATFORM', 'offscreen')
+
+    import qgis
+    import qgis.core  # noqa: F401
+    import qgis.gui  # noqa: F401
+    import qgis.utils
+    import qgis.PyQt.QtCore  # noqa: F401
+    import qgis.PyQt.QtGui  # noqa: F401
+    import qgis.PyQt.QtWidgets  # noqa: F401
+
+    # 'processing' is a QGIS plugin, not part of the qgis package, so it sits
+    # outside sys.path until its plugins directory is added.
+    pluginsDir = os.path.join(os.path.dirname(os.path.dirname(qgis.__file__)), 'plugins')
+    if pluginsDir not in sys.path:
+        sys.path.append(pluginsDir)
+    import processing  # noqa: F401
+
+    from qgis.testing import start_app
+    from qgis.testing.mocked import get_iface
+    app = start_app()
+    qgis.utils.iface = get_iface()
+    return app
+
+
+REAL_QGIS = _realQgisRequested()
+QGIS_APP = None
+if REAL_QGIS:
+    try:
+        QGIS_APP = _bootstrapRealQgis()
+    except Exception as exc:
+        # Falling back to the mocks here would let CI report a green real-QGIS
+        # run that never loaded QGIS at all.
+        raise RuntimeError(
+            'Real QGIS was requested (QGISRED_REAL_QGIS / --real-qgis) but could '
+            'not be loaded: %s: %s' % (type(exc).__name__, exc)
+        )
+
+
 # Shared Mocks for QGIS and PyQt5
 # This ensures that even if tests import plugin code at the top level,
 # the modules are already mocked.
@@ -80,6 +129,9 @@ def _apply_qt_mock_config():
     Some test modules replace sys.modules['qgis.PyQt*'] at collection time,
     wiping out configuration done here at conftest import time.  This function
     re-applies the configuration so it can be called from a fixture as well.
+
+    The Qt widget scaffolding is stubbed even in real-QGIS mode: the suite builds
+    dialogs with object.__new__(Dialog), which sip rejects on real Qt bases.
     """
     _pyqt = sys.modules.get('qgis.PyQt')
     if _pyqt is not None:
@@ -89,7 +141,7 @@ def _apply_qt_mock_config():
         for _name in _QT_WIDGET_STUBS:
             setattr(_qtw, _name, _qt_stub(_name))
     _qgis_core = sys.modules.get('qgis.core')
-    if _qgis_core is not None:
+    if _qgis_core is not None and not REAL_QGIS:
         for _name in _QGIS_SYMBOL_STUBS:
             setattr(_qgis_core, _name, _qt_stub(_name))
     _qgis_gui = sys.modules.get('qgis.gui')
@@ -112,3 +164,10 @@ def _ensure_qt_mock_config():
     at module-import (collection) time, resetting uic.loadUiType and widget stubs.
     """
     _apply_qt_mock_config()
+
+
+def pytest_addoption(parser):
+    parser.addoption(
+        '--real-qgis', action='store_true', default=False,
+        help='Run against the real QGIS instead of the mocks (needs a QGIS Python).',
+    )
