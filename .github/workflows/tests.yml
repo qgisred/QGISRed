@@ -1,0 +1,76 @@
+name: QGISRed Complete Test Suite
+
+on:
+  workflow_dispatch:
+
+jobs:
+  tests:
+    name: QGIS ${{ matrix.qgis-version }} (Python ${{ matrix.python-version }}, ${{ matrix.qt }})
+    runs-on: windows-latest
+    timeout-minutes: 60
+    strategy:
+      fail-fast: false
+      matrix:
+        # Each QGIS version is installed from the official standalone MSI and the
+        # tests run under its bundled Python via the bin\python-qgis*.bat launcher.
+        include:
+          - qgis-version: "4.2.1"
+            installer: QGIS-OSGeo4W-4.2.1-1.msi
+            sha256: cd7ba1af6e9ca83fe2bbcfeae636bed09fa2cf77acdf530663fd10197b19aba5
+            launcher: python-qgis.bat
+            python-version: "3.12"
+            qt: PyQt6
+          - qgis-version: "3.44.13"
+            installer: QGIS-OSGeo4W-3.44.13-1.msi
+            sha256: 42e2f1a6047a827454bc991f8e8caa069961b9cb4b877e1f5568a43d98844eb4
+            launcher: python-qgis-ltr.bat
+            python-version: "3.12"
+            qt: PyQt5
+          - qgis-version: "3.28.15"
+            installer: QGIS-OSGeo4W-3.28.15-1.msi
+            sha256: 0d47be5ab4318d8e95d22b5e99f7291d5855123a2d34e3b21f0acefe307ea03b
+            launcher: python-qgis-ltr.bat
+            python-version: "3.9"
+            qt: PyQt5
+    env:
+      QGIS_PYTHON: C:\Program Files\QGIS ${{ matrix.qgis-version }}\bin\${{ matrix.launcher }}
+    defaults:
+      run:
+        shell: pwsh
+    steps:
+      - uses: actions/checkout@v7
+        with:
+          path: QGISRed
+
+      - name: Cache QGIS installer
+        id: cache-installer
+        uses: actions/cache@v6
+        with:
+          path: ${{ runner.temp }}\${{ matrix.installer }}
+          key: ${{ matrix.installer }}
+
+      - name: Download QGIS installer
+        if: steps.cache-installer.outputs.cache-hit != 'true'
+        run: curl.exe -fL --retry 5 --retry-delay 10 -o "$env:RUNNER_TEMP\${{ matrix.installer }}" "https://download.osgeo.org/qgis/windows/${{ matrix.installer }}"
+
+      - name: Verify installer checksum
+        run: |
+          $actualHash = (Get-FileHash "$env:RUNNER_TEMP\${{ matrix.installer }}" -Algorithm SHA256).Hash.ToLower()
+          if ($actualHash -ne "${{ matrix.sha256 }}") { throw "Checksum mismatch for ${{ matrix.installer }}: $actualHash" }
+
+      - name: Install QGIS ${{ matrix.qgis-version }}
+        run: |
+          $process = Start-Process msiexec.exe -ArgumentList '/i', "$env:RUNNER_TEMP\${{ matrix.installer }}", '/qn', '/norestart', 'INSTALLDESKTOPSHORTCUTS=0', 'INSTALLMENUSHORTCUTS=0' -Wait -PassThru
+          if ($process.ExitCode -notin 0, 3010) { throw "msiexec exited with code $($process.ExitCode)" }
+
+      - name: Install pytest into the bundled Python
+        run: |
+          & $env:QGIS_PYTHON -m pip install pytest
+          if ($LASTEXITCODE -ne 0) { throw "pip install pytest failed" }
+
+      - name: Show bundled Python version
+        run: '& $env:QGIS_PYTHON -VV'
+
+      - name: Run tests
+        working-directory: QGISRed
+        run: '& $env:QGIS_PYTHON -m pytest'
