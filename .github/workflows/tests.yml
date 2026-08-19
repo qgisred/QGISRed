@@ -43,26 +43,37 @@ jobs:
         with:
           path: QGISRed
 
-      - name: Cache QGIS installer
-        id: cache-installer
+      # The install directory is cached, not the .msi: downloading takes ~15s while
+      # msiexec takes 3-4 minutes.  The standalone build resolves everything through
+      # o4w_env.bat with paths relative to this folder, so it survives being restored.
+      - name: Cache QGIS installation
+        id: cache-qgis
         uses: actions/cache@v6
         with:
-          path: ${{ runner.temp }}\${{ matrix.installer }}
-          key: ${{ matrix.installer }}
+          path: C:\Program Files\QGIS ${{ matrix.qgis-version }}
+          key: qgis-install-${{ matrix.installer }}
 
       - name: Download QGIS installer
-        if: steps.cache-installer.outputs.cache-hit != 'true'
+        if: steps.cache-qgis.outputs.cache-hit != 'true'
         run: curl.exe -fL --retry 5 --retry-delay 10 -o "$env:RUNNER_TEMP\${{ matrix.installer }}" "https://download.osgeo.org/qgis/windows/${{ matrix.installer }}"
 
       - name: Verify installer checksum
+        if: steps.cache-qgis.outputs.cache-hit != 'true'
         run: |
           $actualHash = (Get-FileHash "$env:RUNNER_TEMP\${{ matrix.installer }}" -Algorithm SHA256).Hash.ToLower()
           if ($actualHash -ne "${{ matrix.sha256 }}") { throw "Checksum mismatch for ${{ matrix.installer }}: $actualHash" }
 
       - name: Install QGIS ${{ matrix.qgis-version }}
+        if: steps.cache-qgis.outputs.cache-hit != 'true'
         run: |
           $process = Start-Process msiexec.exe -ArgumentList '/i', "$env:RUNNER_TEMP\${{ matrix.installer }}", '/qn', '/norestart', 'INSTALLDESKTOPSHORTCUTS=0', 'INSTALLMENUSHORTCUTS=0' -Wait -PassThru
           if ($process.ExitCode -notin 0, 3010) { throw "msiexec exited with code $($process.ExitCode)" }
+
+      - name: Check the QGIS Python is usable
+        run: |
+          if (-not (Test-Path "$env:QGIS_PYTHON")) { throw "Launcher not found: $env:QGIS_PYTHON" }
+          & $env:QGIS_PYTHON -c "import qgis.core; print(qgis.core.Qgis.QGIS_VERSION)"
+          if ($LASTEXITCODE -ne 0) { throw "The QGIS Python cannot import qgis.core" }
 
       - name: Install pytest into the bundled Python
         run: |
