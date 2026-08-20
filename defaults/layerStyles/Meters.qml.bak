@@ -607,7 +607,7 @@
             <Option type="Map" name="properties">
               <Option type="Map" name="ShapeFillColor">
                 <Option type="bool" name="active" value="true"/>
-                <Option type="QString" name="expression" value="with_variable('mt', coalesce(attribute($currentfeature,'MeterType'),attribute($currentfeature,'Type')), CASE WHEN @mt = 'Manometer' THEN '#81eb9d' WHEN @mt = 'LevelSensor' THEN '#cfa5ce' WHEN @mt = 'QualitySensor' THEN '#9d95e7' WHEN @mt = 'Flowmeter' THEN '#94dcf8' WHEN @mt = 'Countermeter' THEN '#f6cbf3' WHEN @mt = 'Tachometer' THEN '#f7c7ac' WHEN @mt = 'StatusSensor' THEN '#eb8247' WHEN @mt = 'DifferentialManometer' THEN '#eb8247' WHEN @mt = 'ValveOpening' THEN '#b2bd8f' WHEN @mt = 'EnergySensor' THEN '#ffc000' ELSE '#ffffff' END)"/>
+                <Option type="QString" name="expression" value="with_variable('mt', coalesce(attribute($currentfeature,'MeterType'),attribute($currentfeature,'Type')), CASE WHEN @mt = 'Manometer' THEN '#81eb9d' WHEN @mt = 'LevelSensor' THEN '#cfa5ce' WHEN @mt = 'QualitySensor' THEN '#9d95e7' WHEN @mt = 'Flowmeter' THEN '#94dcf8' WHEN @mt = 'Countermeter' THEN '#61cbf3' WHEN @mt = 'Tachometer' THEN '#f7c7ac' WHEN @mt = 'StatusSensor' THEN '#eb8247' WHEN @mt = 'DifferentialManometer' THEN '#eb8247' WHEN @mt = 'ValveOpening' THEN '#b2bd8f' WHEN @mt = 'EnergySensor' THEN '#ffc000' ELSE '#ffffff' END)"/>
                 <Option type="int" name="type" value="3"/>
               </Option>
             </Option>
