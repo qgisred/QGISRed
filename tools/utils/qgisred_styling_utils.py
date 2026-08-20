@@ -5,6 +5,7 @@ import math
 import os
 import json
 import random
+import sqlite3
 import zlib
 from random import randrange
 
@@ -897,6 +898,70 @@ class QGISRedStylingUtils:
             layer.setRenderer(renderer)
         layer.setLabelsEnabled(False)
 
+    @staticmethod
+    def themeKeyFromQmlFile(qmlFile):
+        themeKey = os.path.basename(qmlFile)
+        for suffix in (".bak", ".qml"):
+            if themeKey.endswith(suffix):
+                themeKey = themeKey[: -len(suffix)]
+        for suffix in ("_SI", "_US", "SI", "US"):
+            if themeKey.endswith(suffix):
+                themeKey = themeKey[: -len(suffix)]
+                break
+        return themeKey.lower()
+
+    def getThemeColorsFromDb(self, themeName):
+        databasePath = os.path.join(_plugin_root(), "defaults", "qgisred_theme_colors.db")
+        if not os.path.exists(databasePath):
+            return []
+        with suppress(sqlite3.Error):
+            connection = sqlite3.connect(databasePath)
+            try:
+                return connection.execute(
+                    "SELECT classIndex, label, color FROM themeColors WHERE theme = ? ORDER BY classIndex",
+                    (themeName,),
+                ).fetchall()
+            finally:
+                connection.close()
+        return []
+
+    def getMaterialColorFromDb(self, materialValue):
+        for _, label, color in self.getThemeColorsFromDb("pipematerials"):
+            if label == materialValue:
+                return color
+        return None
+
+    def applyThemeColorsFromDb(self, layer, qmlFile):
+        # Colors stored in data-defined expressions (e.g. junction base demands)
+        # are outside the renderer classes and keep their qml colors.
+        colorsByIndex = {classIndex: color for classIndex, _, color in self.getThemeColorsFromDb(self.themeKeyFromQmlFile(qmlFile))}
+        if not colorsByIndex:
+            return
+
+        renderer = layer.renderer()
+        changed = False
+        if isinstance(renderer, QgsCategorizedSymbolRenderer):
+            for index in range(len(renderer.categories())):
+                if index in colorsByIndex:
+                    symbol = renderer.categories()[index].symbol().clone()
+                    symbol.setColor(QColor(colorsByIndex[index]))
+                    renderer.updateCategorySymbol(index, symbol)
+                    changed = True
+        elif isinstance(renderer, QgsGraduatedSymbolRenderer):
+            for index in range(len(renderer.ranges())):
+                if index in colorsByIndex:
+                    symbol = renderer.ranges()[index].symbol().clone()
+                    symbol.setColor(QColor(colorsByIndex[index]))
+                    renderer.updateRangeSymbol(index, symbol)
+                    changed = True
+        elif isinstance(renderer, QgsRuleBasedRenderer):
+            for index, rule in enumerate(renderer.rootRule().children()):
+                if index in colorsByIndex and rule.symbol() is not None:
+                    rule.symbol().setColor(QColor(colorsByIndex[index]))
+                    changed = True
+        if changed:
+            layer.triggerRepaint()
+
     def applyCategorizedRenderer(self, layer, field, qmlFile):
         fieldIndex = layer.fields().indexFromName(field)
 
@@ -927,7 +992,8 @@ class QGISRedStylingUtils:
             symbol = QgsSymbol.defaultSymbol(layer.geometryType())
             paletteColor = None
             if isDefaultStyle and field == "Material":
-                paletteColor = _DEFAULT_MATERIAL_COLORS.get(str(value).strip().lower())
+                materialKey = str(value).strip().lower()
+                paletteColor = self.getMaterialColorFromDb(materialKey) or _DEFAULT_MATERIAL_COLORS.get(materialKey)
             if value in existingCategories:
                 symbol.setColor(existingCategories[value])
             elif paletteColor is not None:

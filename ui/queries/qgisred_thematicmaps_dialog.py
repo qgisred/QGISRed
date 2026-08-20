@@ -282,7 +282,13 @@ class QGISRedThematicMapsDialog(QDialog, FORM_CLASS):
         derivedLayer.setLabelsEnabled(False)
 
         if field == 'Material':
+            # Material colors are resolved per data value inside applyCategorizedRenderer,
+            # which already reads the theme colors database.
             QGISRedStylingUtils().applyCategorizedRenderer(derivedLayer, field, qmlPath)
+        elif qmlPath.endswith('.qml.bak'):
+            # Only the shipped default styles take their colors from the theme
+            # colors database; project and global styles keep their own colors.
+            QGISRedStylingUtils().applyThemeColorsFromDb(derivedLayer, qmlFile)
 
         derivedLayer.setCustomProperty("qgisred_identifier", layerIdentifier)
         self.markThemeDependencies(derivedLayer, query)
