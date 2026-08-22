@@ -34,40 +34,40 @@ THEMATIC_STYLE_FILES = [
 ]
 
 # Fixed colors for the default Pipe Materials legend, so reloading the theme keeps
-# the same color per material. Built from the 19 materials in the Materials_*.dbf
-# tables: keys are the lowercase abbreviations and descriptions from the EN/ES
-# tables plus the FR/PT description names, grouped by color family (ferrous greys
-# and blues, cement/concrete earth tones, plastics purples and greens). Anything
-# else still gets a random color. The abbreviation "AC" exists in both tables
-# (Asbestos Cement vs Acero) and can only carry one color: the asbestos-cement
-# brown; the Spanish steel is still matched through its description. Only the
-# shipped default style uses this palette — project and global styles saved from
-# the Legends dialog keep their own colors.
+# the same color per material. Taken from the "Materiales" sheet of the
+# Colores_Medidores_Materiales.xlsx spec: keys are the lowercase abbreviations and
+# descriptions of every language (EN, ES, FR, PT). The spec guarantees that no
+# abbreviation is reused for a different material across languages, so all of
+# them map together. Anything else still gets a random color. Only the shipped
+# default style uses this palette — project and global styles saved from the
+# Legends dialog keep their own colors.
 MATERIAL_PALETTE = (
-    (("ci", "cast iron", "fg", "fundición gris", "fonte grise", "ferro fundido"), "#4d4d4d"),
-    (("di", "ductile iron", "fd", "fundición dúctil", "fonte ductile", "ferro dúctil"), "#1f78b4"),
-    (("st", "steel", "acero", "acier", "aço"), "#8c9aa5"),
-    (("sst", "stainless steel", "ain", "acero inoxidable", "acier inoxydable", "aço inoxidável"), "#a6cee3"),
-    (("gi", "galvanized iron", "agal", "acero galvanizado", "acier galvanisé", "aço galvanizado"), "#8b6914"),
-    (("ac", "asbestos cement", "fc", "fibrocemento", "amiante-ciment", "fibrocimento"), "#b15928"),
-    (("cwsmj", "concrete with sheet metal jacket", "hca", "hormigón con armadura"), "#c8a165"),
-    (("cwosmj", "concrete without sheet metal jacket", "hs", "hormigón sin revestimiento"), "#bfb08e"),
-    (("rfc", "reinforced concrete pipe", "har", "hormigón armado", "béton armé", "concreto armado", "betão armado"), "#a08052"),
-    (("pc", "prestessed concrete", "prestressed concrete", "hp", "hormigón pretensado",
-      "béton précontraint", "concreto protendido", "betão pré-esforçado"), "#8a7048"),
-    (("l", "lead", "pb", "plomo", "plomb", "chumbo"), "#4a4a6a"),
-    (("pvc", "polyvinyl chloride", "policloruro de vinilo", "polychlorure de vinyle", "policloreto de vinila"), "#6a3d9a"),
-    (("pvc-o", "orientated pvc", "pvc orientado", "pvc orienté"), "#9a5fd1"),
-    (("pvc-unp", "unplasticized pvc", "pvc-r", "pvc rígido", "pvc rigide"), "#b57bd6"),
-    (("pe", "polyethylene", "polietileno", "polyéthylène"), "#33a02c"),
-    (("hdpe", "hight density polyethylene", "high density polyethylene", "pe-ad", "pead",
-      "polietileno alta densidad", "polyéthylène haute densité", "polietileno de alta densidade"), "#1a7a1a"),
-    (("ldpe", "low density polyethylene", "pe-bd", "pebd",
-      "polietileno baja densidad", "polyéthylène basse densité", "polietileno de baixa densidade"), "#7fce6e"),
-    (("mdpe", "medium density polyethylene", "pe-md", "pemd",
-      "polietileno media densidad", "polyéthylène moyenne densité", "polietileno de média densidade"), "#4fb84a"),
-    (("cu", "cooper", "copper", "cobre", "cuivre"), "#b87333"),
-    (("unknown", "desconocido", "inconnu", "desconhecido"), "#c0c0c0"),
+    (("ci", "cast iron", "fg", "fundición gris", "fonte grise", "ff", "ferro fundido cinzento"), "#d0d0d0"),
+    (("di", "ductile iron", "fd", "fundición dúctil", "fonte ductile", "ffd", "ferro fundido dúctil"), "#c6c5ba"),
+    (("st", "steel", "ace", "acero", "aci", "acier", "aço"), "#a6a6a6"),
+    (("sst", "stainless steel", "inox", "acero inoxidable", "acier inoxydable", "aço inoxidável"), "#9898b4"),
+    (("ac", "asbestos cement", "fc", "fibrocemento", "amiante-ciment", "fibrocimento"), "#fff90f"),
+    (("gi", "galvanized iron", "agal", "acero galvanizado", "ag", "acier galvanisé", "fgal", "ferro galvanizado"), "#b5c8e9"),
+    (("cwsmj", "concrete with sheet metal jacket", "hccc", "hormigón con camisa de chapa",
+      "bat", "béton à âme en tôle", "ccca", "concreto com cilindro de aço"), "#ffc000"),
+    (("cwosmj", "concrete without sheet metal jacket", "hscc", "hormigón sin camisa de chapa",
+      "bsat", "béton sans âme en tôle", "csca", "concreto sem cilindro de aço"), "#ffd54f"),
+    (("rfc", "reinforced concrete pipe", "har", "hormigón armado", "ba", "béton armé", "ca", "concreto armado"), "#cece2c"),
+    (("pc", "prestessed concrete", "hpr", "hormigón pretensado", "bp", "béton précontraint", "cp", "concreto protendido"), "#aba824"),
+    (("l", "lead", "pb", "plomo", "plomb", "chumbo"), "#ff0000"),
+    (("pvc", "polyvinyl chloride", "policloruro de vinilo", "polychlorure de vinyle", "policloreto de vinila"), "#94dcf8"),
+    (("pe", "polyethylene", "polietileno", "polyéthylène"), "#a86ed4"),
+    (("pvc-o", "orientated pvc", "pvc orientado", "pvc orienté"), "#52c6f4"),
+    (("pvc-unp", "unplasticized pvc", "pvc-r", "pvc rígido", "pvc-u", "pvc non plastifié", "pvc não plastificado"), "#73a3f1"),
+    (("cu", "cooper", "cobre", "cuivre"), "#83e28e"),
+    (("hdpe", "hight density polyethylene", "pe-ad", "polietileno alta densidad",
+      "pehd", "polyéthylène haute densité", "pead", "polietileno de alta densidade"), "#a83bb3"),
+    (("ldpe", "low density polyethylene", "pe-bd", "polietileno baja densidad",
+      "pebd", "polyéthylène basse densité", "polietileno de baixa densidade"), "#d697dd"),
+    (("mdpe", "medium density polyethylene", "pe-md", "polietileno media densidad",
+      "pemd", "polyéthylène moyenne densité", "polietileno de média densidade"), "#c76ed0"),
+    (("frp", "fiberglass reinforced polyester", "prfv", "poliester reforzado con fibra de vidrio",
+      "polyester renforcé de fibre de verre", "poliéster reforçado com fibra de vidro"), "#bfadbd"),
 )
 
 
