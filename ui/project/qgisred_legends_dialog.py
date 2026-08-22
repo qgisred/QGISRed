@@ -3854,7 +3854,7 @@ class QGISRedLegendsDialog(QDialog, formClass):
             userHex = color.name().lower()
             fillExpr = (
                 f"if (BaseDem is NULL, '#ffffff', if( BaseDem >0, '{userHex}', "
-                f"if (BaseDem <0 , '#a6cee3', '#ffffff')))"
+                f"if (BaseDem <0 , '#78b3dc', '#ffffff')))"
             )
             self._setExpressionOnLayers(symbol, SL_PROP_FILL_COLOR, fillExpr)
         if size is not None:

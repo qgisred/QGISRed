@@ -44,7 +44,7 @@
               <Option name="properties" type="Map">
                 <Option name="fillColor" type="Map">
                   <Option name="active" type="bool" value="true"/>
-                  <Option name="expression" type="QString" value="if (BaseDem is NULL, '#ffffff', if( BaseDem >0, '#fdbf6f', if (BaseDem &lt;0 , '#a6cee3', '#ffffff')))"/>
+                  <Option name="expression" type="QString" value="if (BaseDem is NULL, '#ffffff', if( BaseDem >0, '#fdbf6f', if (BaseDem &lt;0 , '#78b3dc', '#ffffff')))"/>
                   <Option name="type" type="int" value="3"/>
                 </Option>
                 <Option name="size" type="Map">
@@ -85,7 +85,7 @@
               <Option name="properties" type="Map">
                 <Option name="fillColor" type="Map">
                   <Option name="active" type="bool" value="true"/>
-                  <Option name="expression" type="QString" value="if (BaseDem is NULL, '#ffffff', if( BaseDem >0, '#fdbf6f', if (BaseDem &lt;0 , '#a6cee3', '#ffffff')))"/>
+                  <Option name="expression" type="QString" value="if (BaseDem is NULL, '#ffffff', if( BaseDem >0, '#fdbf6f', if (BaseDem &lt;0 , '#78b3dc', '#ffffff')))"/>
                   <Option name="type" type="int" value="3"/>
                 </Option>
                 <Option name="size" type="Map">
