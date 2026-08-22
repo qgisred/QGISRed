@@ -392,6 +392,8 @@ class QGISRedThematicMapsDialog(QDialog, FORM_CLASS):
             derivedLayer.setCustomProperty("qgisred_theme_formula", formula)
             if formula not in ('H-W', 'C-M'):
                 derivedLayer.setCustomProperty("qgisred_theme_units", units)
+        if query['field'] == 'BaseDemand':
+            derivedLayer.setCustomProperty("qgisred_theme_flow_units", QGISRedProjectUtils.getFlowUnit())
 
     def findLayerByIdentifier(self, parentGroup, identifier):
         if not parentGroup:
@@ -465,7 +467,34 @@ class QGISRedThematicMapsDialog(QDialog, FORM_CLASS):
 
     def adaptBaseDemandDerivedLayer(self, layer):
         self.pointBaseDemandFieldsToDemandsLayer(layer)
+        self.classifyBaseDemandBySize(layer)
         self.applyFlowUnitsToBaseDemandStyle(layer)
+
+    def classifyBaseDemandBySize(self, layer):
+        # Pretty Breaks depend on the data, so the classes shipped in the style
+        # are placeholders rebuilt here; map circles keep their data-defined
+        # size expression while each legend class gets the Flannery size of its
+        # central value: r = rmin + k * (value - vmin)^0.5716.
+        renderer = layer.renderer()
+        if not isinstance(renderer, QgsGraduatedSymbolRenderer):
+            return
+        values = [feature['TotBaseDem'] for feature in layer.getFeatures()
+                  if isinstance(feature['TotBaseDem'], (int, float))]
+        if not values:
+            return
+        renderer.setClassificationMethod(QgsClassificationPrettyBreaks())
+        renderer.updateClasses(layer, 5)
+        minimumValue, maximumValue = min(values), max(values)
+        minimumSize, maximumSize, exponent = 1.3, 5.0, 0.5716
+        valueSpan = (maximumValue - minimumValue) ** exponent if maximumValue > minimumValue else 0
+        sizeFactor = (maximumSize - minimumSize) / valueSpan if valueSpan else 0
+        for index, classRange in enumerate(renderer.ranges()):
+            centralValue = (classRange.lowerValue() + classRange.upperValue()) / 2
+            valueOffset = max(centralValue - minimumValue, 0)
+            symbol = classRange.symbol().clone()
+            symbol.setSize(minimumSize + sizeFactor * (valueOffset ** exponent))
+            renderer.updateRangeSymbol(index, symbol)
+            renderer.updateRangeLabel(index, classRange.label() + ' ' + QGISRedProjectUtils.getFlowUnit().lower())
 
     def hideProportionalLegendTitle(self, layer, layerTreeLayer):
         # The proportional size legend always renders a title row, falling back
@@ -495,8 +524,7 @@ class QGISRedThematicMapsDialog(QDialog, FORM_CLASS):
                 layer.updateExpressionField(fieldIndex, expression.replace("'Demands'", "'%s'" % demandsLayer.id()))
 
     def applyFlowUnitsToBaseDemandStyle(self, layer):
-        flowUnit = QGISRedProjectUtils.getFlowUnit()
-        layer.setName("%s (%s)" % (layer.name(), flowUnit))
+        flowUnit = QGISRedProjectUtils.getFlowUnit().lower()
         layer.setMapTipTemplate(layer.mapTipTemplate().replace('LPS', flowUnit))
 
         labeling = layer.labeling()
@@ -514,6 +542,63 @@ class QGISRedThematicMapsDialog(QDialog, FORM_CLASS):
                 for sizeClass in sizeLegend.classes()
             ])
             renderer.setDataDefinedSizeLegend(updatedLegend)
+
+    def adaptElevationDerivedLayer(self, layer):
+        units = QGISRedFieldUtils().getUnitAbbreviation('Junctions', 'Elevation')
+        self.classifyElevationByPrettyBreaks(layer, units)
+        self.applyLengthUnitsToElevationStyle(layer, units)
+
+    def classifyElevationByPrettyBreaks(self, layer, units):
+        # Breaks come from the data (none at all when every junction shares one
+        # elevation) and are shifted down so a value sitting on a break reads in
+        # the upper class, as the labels say; the outer bounds cover later edits.
+        # Each class takes the color of its position in the shipped legend.
+        renderer = layer.renderer()
+        if not isinstance(renderer, QgsGraduatedSymbolRenderer):
+            return
+        shippedRanges = renderer.ranges()
+        if not shippedRanges:
+            return
+        colors = [classRange.symbol().color() for classRange in shippedRanges]
+        stops = [QgsGradientStop(index / (len(colors) - 1), color)
+                 for index, color in enumerate(colors[1:-1], 1)]
+        renderer.setSourceSymbol(shippedRanges[0].symbol().clone())
+        renderer.setSourceColorRamp(QgsGradientColorRamp(colors[0], colors[-1], False, stops))
+        renderer.setClassificationMethod(QgsClassificationPrettyBreaks())
+        renderer.updateClasses(layer, 5)
+        classRanges = renderer.ranges()
+        if not classRanges:
+            elevation = layer.minimumValue(layer.fields().indexFromName('Elevation'))
+            label = units
+            if isinstance(elevation, (int, float)):
+                label = '%s %s' % (self.formatBreakValue(elevation), units)
+            renderer.addClass(QgsRendererRange(-100000, 100000, shippedRanges[0].symbol().clone(), label))
+            return
+        lastIndex = len(classRanges) - 1
+        for index, classRange in enumerate(classRanges):
+            renderer.updateRangeLowerValue(index, -100000 if index == 0 else classRange.lowerValue() - 0.001)
+            renderer.updateRangeUpperValue(index, 100000 if index == lastIndex else classRange.upperValue() - 0.001)
+            lowerText = self.formatBreakValue(classRange.lowerValue())
+            upperText = self.formatBreakValue(classRange.upperValue())
+            if index == 0:
+                label = '< %s %s' % (upperText, units)
+            elif index == lastIndex:
+                label = '>= %s %s' % (lowerText, units)
+            else:
+                label = '%s < %s %s' % (lowerText, upperText, units)
+            renderer.updateRangeLabel(index, label)
+
+    def formatBreakValue(self, value):
+        return ('%.3f' % value).rstrip('0').rstrip('.')
+
+    def applyLengthUnitsToElevationStyle(self, layer, units):
+        layer.setMapTipTemplate(layer.mapTipTemplate().replace('[units]', units))
+
+        labeling = layer.labeling()
+        if labeling is not None:
+            labelSettings = labeling.settings()
+            labelSettings.fieldName = labelSettings.fieldName.replace('[units]', units)
+            layer.setLabeling(QgsVectorLayerSimpleLabeling(labelSettings))
 
     def assignLabels(self, layer, field, ):
         layer.setLabelsEnabled(True)

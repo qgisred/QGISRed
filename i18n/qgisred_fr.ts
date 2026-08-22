@@ -397,8 +397,8 @@
     </message>
     <message>
         <location filename="../ui/queries/qgisred_thematicmaps_dialog.ui" line="194"/>
-        <source>Base demand</source>
-        <translation>Demande de base</translation>
+        <source>Total Base Demand</source>
+        <translation>Demande de base totale</translation>
     </message>
     <message>
         <location filename="../ui/queries/qgisred_thematicmaps_dialog.ui" line="430"/>
@@ -2171,6 +2171,11 @@
         <location filename="../tools/qgisred_translatable_strings.py" line="330"/>
         <source>Junction Base Demands</source>
         <translation>Demandes de base de nœud</translation>
+    </message>
+    <message>
+        <location filename="../tools/qgisred_translatable_strings.py" line="328"/>
+        <source>Junction Elevations</source>
+        <translation type="unfinished">Altitudes des nœuds de demande</translation>
     </message>
 </context>
 <context>

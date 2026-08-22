@@ -382,7 +382,7 @@
     </message>
     <message>
         <location filename="../ui/queries/qgisred_thematicmaps_dialog.ui" line="194"/>
-        <source>Base demand</source>
+        <source>Total Base Demand</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
@@ -2060,6 +2060,11 @@
     <message>
         <location filename="../tools/qgisred_translatable_strings.py" line="330"/>
         <source>Junction Base Demands</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="../tools/qgisred_translatable_strings.py" line="328"/>
+        <source>Junction Elevations</source>
         <translation type="unfinished"></translation>
     </message>
 </context>

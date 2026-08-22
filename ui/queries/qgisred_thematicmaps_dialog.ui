@@ -191,7 +191,7 @@
               <item row="0" column="1">
                <widget class="QCheckBox" name="cbJunctionsBaseDemand">
                 <property name="text">
-                 <string>Base demand</string>
+                 <string>Total Base Demand</string>
                 </property>
                </widget>
               </item>
