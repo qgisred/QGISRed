@@ -43,7 +43,7 @@
               <Option type="Map" name="properties">
                 <Option type="Map" name="fillColor">
                   <Option type="bool" name="active" value="true"/>
-                  <Option type="QString" name="expression" value="if(IsActive is NULL, '#ffffff',if(IsActive !=0, '#ffffff','#cccccc'))"/>
+                  <Option type="QString" name="expression" value="if(IsActive is NULL, '#ffc000',if(IsActive !=0, '#ffc000','#cccccc'))"/>
                   <Option type="int" name="type" value="3"/>
                 </Option>
                 <Option type="Map" name="outlineColor">
@@ -88,7 +88,7 @@
               <Option type="Map" name="properties">
                 <Option type="Map" name="fillColor">
                   <Option type="bool" name="active" value="true"/>
-                  <Option type="QString" name="expression" value="if(IsActive is NULL, '#ffffff',if(IsActive !=0, '#ffffff','#cccccc'))"/>
+                  <Option type="QString" name="expression" value="if(IsActive is NULL, '#b2bd8f',if(IsActive !=0, '#b2bd8f','#cccccc'))"/>
                   <Option type="int" name="type" value="3"/>
                 </Option>
                 <Option type="Map" name="outlineColor">
@@ -133,7 +133,7 @@
               <Option type="Map" name="properties">
                 <Option type="Map" name="fillColor">
                   <Option type="bool" name="active" value="true"/>
-                  <Option type="QString" name="expression" value="if(IsActive is NULL, '#ffffff',if(IsActive !=0, '#ffffff','#cccccc'))"/>
+                  <Option type="QString" name="expression" value="if(IsActive is NULL, '#eb8247',if(IsActive !=0, '#eb8247','#cccccc'))"/>
                   <Option type="int" name="type" value="3"/>
                 </Option>
                 <Option type="Map" name="outlineColor">
@@ -178,7 +178,7 @@
               <Option type="Map" name="properties">
                 <Option type="Map" name="fillColor">
                   <Option type="bool" name="active" value="true"/>
-                  <Option type="QString" name="expression" value="if(IsActive is NULL, '#ffffff',if(IsActive !=0, '#ffffff','#cccccc'))"/>
+                  <Option type="QString" name="expression" value="if(IsActive is NULL, '#eb8247',if(IsActive !=0, '#eb8247','#cccccc'))"/>
                   <Option type="int" name="type" value="3"/>
                 </Option>
                 <Option type="Map" name="outlineColor">
@@ -223,7 +223,7 @@
               <Option type="Map" name="properties">
                 <Option type="Map" name="fillColor">
                   <Option type="bool" name="active" value="true"/>
-                  <Option type="QString" name="expression" value="if(IsActive is NULL, '#ffffff',if(IsActive !=0, '#ffffff','#cccccc'))"/>
+                  <Option type="QString" name="expression" value="if(IsActive is NULL, '#f7c7ac',if(IsActive !=0, '#f7c7ac','#cccccc'))"/>
                   <Option type="int" name="type" value="3"/>
                 </Option>
                 <Option type="Map" name="outlineColor">
@@ -268,7 +268,7 @@
               <Option type="Map" name="properties">
                 <Option type="Map" name="fillColor">
                   <Option type="bool" name="active" value="true"/>
-                  <Option type="QString" name="expression" value="if(IsActive is NULL, '#ffffff',if(IsActive !=0, '#ffffff','#cccccc'))"/>
+                  <Option type="QString" name="expression" value="if(IsActive is NULL, '#61cbf3',if(IsActive !=0, '#61cbf3','#cccccc'))"/>
                   <Option type="int" name="type" value="3"/>
                 </Option>
                 <Option type="Map" name="outlineColor">
@@ -313,7 +313,7 @@
               <Option type="Map" name="properties">
                 <Option type="Map" name="fillColor">
                   <Option type="bool" name="active" value="true"/>
-                  <Option type="QString" name="expression" value="if(IsActive is NULL, '#ffffff',if(IsActive !=0, '#ffffff','#cccccc'))"/>
+                  <Option type="QString" name="expression" value="if(IsActive is NULL, '#94dcf8',if(IsActive !=0, '#94dcf8','#cccccc'))"/>
                   <Option type="int" name="type" value="3"/>
                 </Option>
                 <Option type="Map" name="outlineColor">
@@ -358,7 +358,7 @@
               <Option type="Map" name="properties">
                 <Option type="Map" name="fillColor">
                   <Option type="bool" name="active" value="true"/>
-                  <Option type="QString" name="expression" value="if(IsActive is NULL, '#ffffff',if(IsActive !=0, '#ffffff','#cccccc'))"/>
+                  <Option type="QString" name="expression" value="if(IsActive is NULL, '#9d95e7',if(IsActive !=0, '#9d95e7','#cccccc'))"/>
                   <Option type="int" name="type" value="3"/>
                 </Option>
                 <Option type="Map" name="outlineColor">
@@ -403,7 +403,7 @@
               <Option type="Map" name="properties">
                 <Option type="Map" name="fillColor">
                   <Option type="bool" name="active" value="true"/>
-                  <Option type="QString" name="expression" value="if(IsActive is NULL, '#ffffff',if(IsActive !=0, '#ffffff','#cccccc'))"/>
+                  <Option type="QString" name="expression" value="if(IsActive is NULL, '#cfa5ce',if(IsActive !=0, '#cfa5ce','#cccccc'))"/>
                   <Option type="int" name="type" value="3"/>
                 </Option>
                 <Option type="Map" name="outlineColor">
@@ -448,7 +448,7 @@
               <Option type="Map" name="properties">
                 <Option type="Map" name="fillColor">
                   <Option type="bool" name="active" value="true"/>
-                  <Option type="QString" name="expression" value="if(IsActive is NULL, '#ffffff',if(IsActive !=0, '#ffffff','#cccccc'))"/>
+                  <Option type="QString" name="expression" value="if(IsActive is NULL, '#81eb9d',if(IsActive !=0, '#81eb9d','#cccccc'))"/>
                   <Option type="int" name="type" value="3"/>
                 </Option>
                 <Option type="Map" name="outlineColor">
@@ -604,13 +604,7 @@
         <dd_properties>
           <Option type="Map">
             <Option type="QString" name="name" value=""/>
-            <Option type="Map" name="properties">
-              <Option type="Map" name="ShapeFillColor">
-                <Option type="bool" name="active" value="true"/>
-                <Option type="QString" name="expression" value="with_variable('mt', coalesce(attribute($currentfeature,'MeterType'),attribute($currentfeature,'Type')), CASE WHEN @mt = 'Manometer' THEN '#81eb9d' WHEN @mt = 'LevelSensor' THEN '#cfa5ce' WHEN @mt = 'QualitySensor' THEN '#9d95e7' WHEN @mt = 'Flowmeter' THEN '#94dcf8' WHEN @mt = 'Countermeter' THEN '#61cbf3' WHEN @mt = 'Tachometer' THEN '#f7c7ac' WHEN @mt = 'StatusSensor' THEN '#eb8247' WHEN @mt = 'DifferentialManometer' THEN '#eb8247' WHEN @mt = 'ValveOpening' THEN '#b2bd8f' WHEN @mt = 'EnergySensor' THEN '#ffc000' ELSE '#ffffff' END)"/>
-                <Option type="int" name="type" value="3"/>
-              </Option>
-            </Option>
+            <Option name="properties"/>
             <Option type="QString" name="type" value="collection"/>
           </Option>
         </dd_properties>
