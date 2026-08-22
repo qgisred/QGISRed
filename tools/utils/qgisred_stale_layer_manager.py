@@ -175,8 +175,8 @@ class StaleLayerManager:
         return stale
 
     def _outdatedThemeLayerIds(self):
-        """Ids of thematic map layers built with units or a headloss formula the
-        project no longer uses."""
+        """Ids of thematic map layers built with units, flow units or a headloss
+        formula the project no longer uses."""
         net, projDir = self._getProjectInfo()
         if not net or not projDir:
             return set()
@@ -184,6 +184,7 @@ class StaleLayerManager:
         try:
             currentUnits = QGISRedProjectUtils.getUnits()
             currentFormula = QGISRedProjectUtils.getHeadlossFormula()
+            currentFlowUnits = QGISRedProjectUtils.getFlowUnit()
         except Exception:
             return set()
 
@@ -191,9 +192,11 @@ class StaleLayerManager:
         for layer in list(QgsProject.instance().mapLayers().values()):
             themeUnits = layer.customProperty("qgisred_theme_units")
             themeFormula = layer.customProperty("qgisred_theme_formula")
+            themeFlowUnits = layer.customProperty("qgisred_theme_flow_units")
             unitsChanged = bool(themeUnits) and themeUnits != currentUnits
             formulaChanged = bool(themeFormula) and themeFormula != currentFormula
-            if unitsChanged or formulaChanged:
+            flowUnitsChanged = bool(themeFlowUnits) and themeFlowUnits != currentFlowUnits
+            if unitsChanged or formulaChanged or flowUnitsChanged:
                 outdated.add(layer.id())
 
         return outdated

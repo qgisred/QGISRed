@@ -7,16 +7,18 @@ from unittest.mock import MagicMock, patch
 import pytest
 
 from QGISRed.tools.utils.qgisred_stale_layer_manager import StaleLayerManager
+from QGISRed.tools.utils.qgisred_project_utils import QGISRedProjectUtils
 
 
 NET = "test123"
 
 
 class _FakeLayer:
-    def __init__(self, layerId, path, identifier=""):
+    def __init__(self, layerId, path, identifier="", properties=None):
         self._id = layerId
         self._path = path
-        self._identifier = identifier
+        self._properties = {"qgisred_identifier": identifier}
+        self._properties.update(properties or {})
 
     def id(self):
         return self._id
@@ -27,9 +29,7 @@ class _FakeLayer:
         return provider
 
     def customProperty(self, name, default=None):
-        if name == "qgisred_identifier":
-            return self._identifier
-        return default
+        return self._properties.get(name, default)
 
 
 class _FakeNode:
@@ -199,6 +199,54 @@ class TestRelevance:
         item = harness([_FakeLayer("fresh", fresh)])
         item.manager._check()
         assert item.flagged() == set()
+
+
+class TestOutdatedThemes:
+    """Thematic map layers are flagged when the setting they were built with —
+    unit system, flow units or headloss formula — no longer matches the project."""
+
+    @pytest.fixture(autouse=True)
+    def projectSettings(self):
+        with patch.object(QGISRedProjectUtils, "getUnits", return_value="SI"), \
+             patch.object(QGISRedProjectUtils, "getHeadlossFormula", return_value="D-W"), \
+             patch.object(QGISRedProjectUtils, "getFlowUnit", return_value="LPS"):
+            yield
+
+    def test_theme_built_with_current_settings_is_not_flagged(self, project, harness):
+        _projDir, paths = project
+        item = harness([_FakeLayer("theme", paths["input"], properties={
+            "qgisred_theme_units": "SI",
+            "qgisred_theme_formula": "D-W",
+            "qgisred_theme_flow_units": "LPS",
+        })])
+        item.manager._check()
+        assert item.flagged() == set()
+
+    def test_theme_built_with_the_other_unit_system_is_flagged(self, project, harness):
+        _projDir, paths = project
+        item = harness([_FakeLayer("theme", paths["input"], properties={
+            "qgisred_theme_units": "US",
+        })])
+        item.manager._check()
+        assert item.flagged() == {"theme"}
+
+    def test_base_demand_theme_is_flagged_when_flow_units_change(self, project, harness):
+        """CMH and LPS are both SI: the base demand theme reacts to the flow unit
+        itself, not the unit system."""
+        _projDir, paths = project
+        item = harness([_FakeLayer("theme", paths["input"], properties={
+            "qgisred_theme_flow_units": "CMH",
+        })])
+        item.manager._check()
+        assert item.flagged() == {"theme"}
+
+    def test_roughness_theme_is_flagged_when_the_formula_changes(self, project, harness):
+        _projDir, paths = project
+        item = harness([_FakeLayer("theme", paths["input"], properties={
+            "qgisred_theme_formula": "H-W",
+        })])
+        item.manager._check()
+        assert item.flagged() == {"theme"}
 
 
 class TestGhostIndicators:
