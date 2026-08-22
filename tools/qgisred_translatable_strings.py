@@ -328,6 +328,7 @@ QCoreApplication.translate('InputLayerNames', "Pipe Roughnesses")
 QCoreApplication.translate('InputLayerNames', "Pipe Installation Year")
 QCoreApplication.translate('InputLayerNames', "Pipe Ages (years)")
 QCoreApplication.translate('InputLayerNames', "Junction Base Demands")
+QCoreApplication.translate('InputLayerNames', "Junction Elevations")
 
 # Histogram hover tooltips (renderers call widget.tr with these contexts)
 QCoreApplication.translate('StatisticsHistogramWidget', "No data")

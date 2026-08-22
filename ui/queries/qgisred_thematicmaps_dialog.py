@@ -16,6 +16,8 @@ from qgis.core import QgsLayerTreeGroup, QgsLayerTreeLayer, QgsProject
 from qgis.core import QgsField, QgsVectorFileWriter, QgsVectorLayer
 from qgis.core import QgsPalLayerSettings, QgsVectorLayerSimpleLabeling
 from qgis.core import QgsDataDefinedSizeLegend, QgsMapLayerLegendUtils
+from qgis.core import QgsClassificationPrettyBreaks, QgsGraduatedSymbolRenderer, QgsRendererRange
+from qgis.core import QgsGradientColorRamp, QgsGradientStop
 
 # Local imports
 from ...tools.utils.qgisred_field_utils import QGISRedFieldUtils
@@ -53,7 +55,6 @@ class QGISRedThematicMapsDialog(QDialog, FORM_CLASS):
         self.gbTanks.hide()
         self.gbReservoirs.hide()
 
-        self.cbJunctionsElevation.hide()
         self.cbJunctionsPatternDemand.hide()
         self.cbJunctionsEmitterCoeff.hide()
         self.cbJunctionsInitialQuality.hide()
@@ -332,6 +333,10 @@ class QGISRedThematicMapsDialog(QDialog, FORM_CLASS):
             self.adaptBaseDemandDerivedLayer(derivedLayer)
             hideField = [name for name in ('TotBaseDem', 'DemType')
                          if derivedLayer.fields().indexFromName(name) >= 0] or hideField
+        # Elevations follow no standard ranges, so the style only ships the look of
+        # the classes; their breaks and their units come from the data and the project.
+        if layerType == 'junctions' and field == 'Elevation':
+            self.adaptElevationDerivedLayer(derivedLayer)
 
         # hideFields() would otherwise resolve the identity column itself via
         # derivedLayer's own qgisred_identifier -- but that property is set above to this
@@ -890,21 +895,24 @@ class QGISRedThematicMapsDialog(QDialog, FORM_CLASS):
 
         # Junctions queries (second from top)
         if self.cbJunctionsElevation.isChecked():
+            # One style serves both unit systems (the breaks are computed from the
+            # data); file_name still carries the units because labels, map tip and
+            # legend are written in the project's length unit.
             queries.append({
                 'layer_name': 'Junction Elevations',
                 'layer_type': 'Junctions',
                 'field': 'Elevation',
-                'qml_file': f'junction_elevation_{units}.qml',
+                'qml_file': 'Junction_Elevations.qml',
                 'file_name': f'elevation_{units}',
                 'tooltip_prefix': 'Elev'
             })
 
         if self.cbJunctionsBaseDemand.isChecked():
             queries.append({
-                'layer_name': 'Junction Base Demands',
+                'layer_name': 'Junction Total_Base_Demands',
                 'layer_type': 'Junctions',
                 'field': 'BaseDemand',
-                'qml_file': 'junction_base_demand.qml',
+                'qml_file': 'Junction_TotalBaseDemands.qml',
                 'file_name': 'base_demand',
                 'tooltip_prefix': 'Demand'
             })
