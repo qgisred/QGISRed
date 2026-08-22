@@ -36,47 +36,6 @@ def _plugin_root():
 
 _DEMAND_SECTOR_COLOR_CACHE = {}
 
-# Fixed colors for the default Pipe Materials legend, so reloading the theme keeps
-# the same color per material. Built from the 19 materials in the Materials_*.dbf
-# tables: keys are the lowercase abbreviations and descriptions from the EN/ES
-# tables plus the FR/PT description names, grouped by color family (ferrous greys
-# and blues, cement/concrete earth tones, plastics purples and greens). Anything
-# else still gets a random color. The abbreviation "AC" exists in both tables
-# (Asbestos Cement vs Acero) and can only carry one color: the asbestos-cement
-# brown; the Spanish steel is still matched through its description. Only the
-# shipped default style uses this palette — project and global styles saved from
-# the Legends dialog keep their own colors.
-_DEFAULT_MATERIAL_COLORS = {}
-for _names, _color in (
-    (("ci", "cast iron", "fg", "fundición gris", "fonte grise", "ferro fundido"), "#4d4d4d"),
-    (("di", "ductile iron", "fd", "fundición dúctil", "fonte ductile", "ferro dúctil"), "#1f78b4"),
-    (("st", "steel", "acero", "acier", "aço"), "#8c9aa5"),
-    (("sst", "stainless steel", "ain", "acero inoxidable", "acier inoxydable", "aço inoxidável"), "#a6cee3"),
-    (("gi", "galvanized iron", "agal", "acero galvanizado", "acier galvanisé", "aço galvanizado"), "#8b6914"),
-    (("ac", "asbestos cement", "fc", "fibrocemento", "amiante-ciment", "fibrocimento"), "#b15928"),
-    (("cwsmj", "concrete with sheet metal jacket", "hca", "hormigón con armadura"), "#c8a165"),
-    (("cwosmj", "concrete without sheet metal jacket", "hs", "hormigón sin revestimiento"), "#bfb08e"),
-    (("rfc", "reinforced concrete pipe", "har", "hormigón armado", "béton armé", "concreto armado", "betão armado"), "#a08052"),
-    (("pc", "prestessed concrete", "prestressed concrete", "hp", "hormigón pretensado",
-      "béton précontraint", "concreto protendido", "betão pré-esforçado"), "#8a7048"),
-    (("l", "lead", "pb", "plomo", "plomb", "chumbo"), "#4a4a6a"),
-    (("pvc", "polyvinyl chloride", "policloruro de vinilo", "polychlorure de vinyle", "policloreto de vinila"), "#6a3d9a"),
-    (("pvc-o", "orientated pvc", "pvc orientado", "pvc orienté"), "#9a5fd1"),
-    (("pvc-unp", "unplasticized pvc", "pvc-r", "pvc rígido", "pvc rigide"), "#b57bd6"),
-    (("pe", "polyethylene", "polietileno", "polyéthylène"), "#33a02c"),
-    (("hdpe", "hight density polyethylene", "high density polyethylene", "pe-ad", "pead",
-      "polietileno alta densidad", "polyéthylène haute densité", "polietileno de alta densidade"), "#1a7a1a"),
-    (("ldpe", "low density polyethylene", "pe-bd", "pebd",
-      "polietileno baja densidad", "polyéthylène basse densité", "polietileno de baixa densidade"), "#7fce6e"),
-    (("mdpe", "medium density polyethylene", "pe-md", "pemd",
-      "polietileno media densidad", "polyéthylène moyenne densité", "polietileno de média densidade"), "#4fb84a"),
-    (("cu", "cooper", "copper", "cobre", "cuivre"), "#b87333"),
-    (("unknown", "desconocido", "inconnu", "desconhecido"), "#c0c0c0"),
-):
-    for _name in _names:
-        _DEFAULT_MATERIAL_COLORS[_name] = _color
-del _names, _color, _name
-
 
 def create_combined_cursor(icon, iface=None, icon_size=24):
     """Create a cursor with a slender arrow and a custom icon at the bottom-right.
@@ -941,16 +900,19 @@ class QGISRedStylingUtils:
         renderer = layer.renderer()
         changed = False
         if isinstance(renderer, QgsCategorizedSymbolRenderer):
-            for index in range(len(renderer.categories())):
+            # Keep the category/range copy referenced while cloning its symbol:
+            # the symbol pointer is owned by that copy, and indexing the list
+            # inline destroys it before clone() runs, crashing QGIS.
+            for index, category in enumerate(renderer.categories()):
                 if index in colorsByIndex:
-                    symbol = renderer.categories()[index].symbol().clone()
+                    symbol = category.symbol().clone()
                     symbol.setColor(QColor(colorsByIndex[index]))
                     renderer.updateCategorySymbol(index, symbol)
                     changed = True
         elif isinstance(renderer, QgsGraduatedSymbolRenderer):
-            for index in range(len(renderer.ranges())):
+            for index, rendererRange in enumerate(renderer.ranges()):
                 if index in colorsByIndex:
-                    symbol = renderer.ranges()[index].symbol().clone()
+                    symbol = rendererRange.symbol().clone()
                     symbol.setColor(QColor(colorsByIndex[index]))
                     renderer.updateRangeSymbol(index, symbol)
                     changed = True
@@ -993,7 +955,7 @@ class QGISRedStylingUtils:
             paletteColor = None
             if isDefaultStyle and field == "Material":
                 materialKey = str(value).strip().lower()
-                paletteColor = self.getMaterialColorFromDb(materialKey) or _DEFAULT_MATERIAL_COLORS.get(materialKey)
+                paletteColor = self.getMaterialColorFromDb(materialKey)
             if value in existingCategories:
                 symbol.setColor(existingCategories[value])
             elif paletteColor is not None:
