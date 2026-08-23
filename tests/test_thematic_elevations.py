@@ -161,6 +161,10 @@ class _GraduatedRendererStub:
 def graduatedStub(monkeypatch):
     monkeypatch.setattr(dialog_module, "QgsGraduatedSymbolRenderer", _GraduatedRendererStub)
     monkeypatch.setattr(dialog_module, "QgsRendererRange", lambda *args: args)
+    # Real QGIS rejects the plain color names the stub hands out.
+    monkeypatch.setattr(dialog_module, "QgsGradientStop", MagicMock())
+    monkeypatch.setattr(dialog_module, "QgsGradientColorRamp", MagicMock())
+    monkeypatch.setattr(dialog_module, "QgsClassificationPrettyBreaks", MagicMock())
     return _GraduatedRendererStub
 
 
