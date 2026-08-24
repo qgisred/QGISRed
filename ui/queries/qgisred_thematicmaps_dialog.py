@@ -311,9 +311,10 @@ class QGISRedThematicMapsDialog(QDialog, FORM_CLASS):
         # while the classified column on the layer is 'RoughCoeff'.
         if layerType == 'pipes' and field == 'Roughness' and derivedLayer.fields().indexFromName('RoughCoeff') >= 0:
             hideField = 'RoughCoeff'
-        # The two date-based maps should expose both virtual fields (InstYear and Age).
-        # A style copied to the project or global folder may predate one of them, so
-        # add whichever is missing before deciding which columns stay visible.
+        # The two date-based maps should expose the raw InstalDate column followed by
+        # both virtual fields (InstYear and Age). A style copied to the project or
+        # global folder may predate one of them, so add whichever is missing before
+        # deciding which columns stay visible.
         if layerType == 'pipes' and field in ('InstallDate', 'Age'):
             if derivedLayer.fields().indexFromName('InstalDate') >= 0:
                 expressions = {
@@ -323,7 +324,7 @@ class QGISRedThematicMapsDialog(QDialog, FORM_CLASS):
                 for name, expression in expressions.items():
                     if derivedLayer.fields().indexFromName(name) < 0:
                         derivedLayer.addExpressionField(expression, QgsField(name, FIELD_TYPE_INT))
-            hideField = [name for name in ('InstYear', 'Age')
+            hideField = [name for name in ('InstalDate', 'InstYear', 'Age')
                          if derivedLayer.fields().indexFromName(name) >= 0] or hideField
         # Same split for the base demand map: 'BaseDemand' is the query's identifier
         # value, while the classified columns are the TotBaseDem/DemType virtual
