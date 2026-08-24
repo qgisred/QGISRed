@@ -1190,7 +1190,7 @@ class QGISRedThematicMapsDialog(QDialog, FORM_CLASS):
 
         if self.cbPipesAge.isChecked():
             queries.append({
-                'layer_name': 'Pipe Ages (years)',
+                'layer_name': 'Pipe Ages',
                 'layer_type': 'Pipes',
                 'field': 'Age',
                 'qml_file': 'PipeAges.qml',

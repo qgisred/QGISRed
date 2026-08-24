@@ -326,7 +326,7 @@ QCoreApplication.translate('InputLayerNames', "Pipe Lengths")
 QCoreApplication.translate('InputLayerNames', "Pipe Materials")
 QCoreApplication.translate('InputLayerNames', "Pipe Roughnesses")
 QCoreApplication.translate('InputLayerNames', "Pipe Installation Year")
-QCoreApplication.translate('InputLayerNames', "Pipe Ages (years)")
+QCoreApplication.translate('InputLayerNames', "Pipe Ages")
 QCoreApplication.translate('InputLayerNames', "Junction Base Demands")
 QCoreApplication.translate('InputLayerNames', "Junction Elevations")
 

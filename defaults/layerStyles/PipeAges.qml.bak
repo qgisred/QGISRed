@@ -2,12 +2,12 @@
 <qgis labelsEnabled="1" version="3.38.1-Grenoble" styleCategories="Symbology|Labeling|Fields|MapTips">
   <renderer-v2 type="RuleRenderer" symbollevels="0" forceraster="0" enableorderby="0" referencescale="-1">
     <rules key="{a5993e09-789e-440e-af0e-9190f0ed9db5}">
-      <rule key="{4b5084a7-02b9-4843-8f4f-ee7f3f703d15}" symbol="0" label="&lt; 10" filter="&quot;Age&quot; >= 0 AND &quot;Age&quot; &lt;= 9.99"/>
-      <rule key="{a066565a-5e82-496b-ae7a-afee9263a31a}" symbol="1" label="10 - 24" filter="&quot;Age&quot; > 9.99 AND &quot;Age&quot; &lt;= 24.99"/>
-      <rule key="{00018a3b-b788-4829-897d-afcb0caeb756}" symbol="2" label="25 - 49" filter="&quot;Age&quot; > 24.99 AND &quot;Age&quot; &lt;= 49.99"/>
-      <rule key="{a6c995fb-02ee-496c-af31-6b3b72e5d72d}" symbol="3" label="50 - 74" filter="&quot;Age&quot; > 49.99 AND &quot;Age&quot; &lt;= 74.99"/>
-      <rule key="{01c4fa61-452d-4900-bf34-991d53a254a7}" symbol="4" label="75 - 100" filter="&quot;Age&quot; > 74.99 AND &quot;Age&quot; &lt;= 99.99"/>
-      <rule key="{82857010-d96d-4498-af8d-f6ea94b48f5d}" symbol="5" label=">= 100" filter="&quot;Age&quot; > 99.99 AND &quot;Age&quot; &lt;= 1000"/>
+      <rule key="{4b5084a7-02b9-4843-8f4f-ee7f3f703d15}" symbol="0" label="&lt; 10 yrs" filter="&quot;Age&quot; >= 0 AND &quot;Age&quot; &lt;= 9.99"/>
+      <rule key="{a066565a-5e82-496b-ae7a-afee9263a31a}" symbol="1" label="10 - 24 yrs" filter="&quot;Age&quot; > 9.99 AND &quot;Age&quot; &lt;= 24.99"/>
+      <rule key="{00018a3b-b788-4829-897d-afcb0caeb756}" symbol="2" label="25 - 49 yrs" filter="&quot;Age&quot; > 24.99 AND &quot;Age&quot; &lt;= 49.99"/>
+      <rule key="{a6c995fb-02ee-496c-af31-6b3b72e5d72d}" symbol="3" label="50 - 74 yrs" filter="&quot;Age&quot; > 49.99 AND &quot;Age&quot; &lt;= 74.99"/>
+      <rule key="{01c4fa61-452d-4900-bf34-991d53a254a7}" symbol="4" label="75 - 100 yrs" filter="&quot;Age&quot; > 74.99 AND &quot;Age&quot; &lt;= 99.99"/>
+      <rule key="{82857010-d96d-4498-af8d-f6ea94b48f5d}" symbol="5" label=">= 100 yrs" filter="&quot;Age&quot; > 99.99 AND &quot;Age&quot; &lt;= 1000"/>
       <rule key="{a1846168-7848-45f6-8af2-3aaa28f38911}" symbol="6" label="Unknown" filter="ELSE"/>
     </rules>
     <symbols>

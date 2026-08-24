@@ -2049,7 +2049,7 @@
     </message>
     <message>
         <location filename="../tools/qgisred_translatable_strings.py" line="329"/>
-        <source>Pipe Ages (years)</source>
+        <source>Pipe Ages</source>
         <translation type="unfinished"></translation>
     </message>
     <message>

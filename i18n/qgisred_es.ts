@@ -2184,8 +2184,8 @@
     </message>
     <message>
         <location filename="../tools/qgisred_translatable_strings.py" line="329"/>
-        <source>Pipe Ages (years)</source>
-        <translation>Antigüedad de Tubería (años)</translation>
+        <source>Pipe Ages</source>
+        <translation>Antigüedad de Tubería</translation>
     </message>
     <message>
         <location filename="../tools/qgisred_translatable_strings.py" line="327"/>

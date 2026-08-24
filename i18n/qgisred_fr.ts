@@ -2159,8 +2159,8 @@
     </message>
     <message>
         <location filename="../tools/qgisred_translatable_strings.py" line="329"/>
-        <source>Pipe Ages (years)</source>
-        <translation>Âges de conduite (années)</translation>
+        <source>Pipe Ages</source>
+        <translation>Âges de conduite</translation>
     </message>
     <message>
         <location filename="../tools/qgisred_translatable_strings.py" line="327"/>
