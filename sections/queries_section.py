@@ -111,6 +111,7 @@ class QueriesSection:
 
         self.groupEditDialog = QGISRedGroupEditDialog()
         self.groupEditDialog.config(self.iface, self.ProjectDirectory, self.NetworkName)
+        self.highlightManager.register(self.groupEditDialog)
         self.groupEditDialog.setAttribute(Qt.WidgetAttribute.WA_DeleteOnClose)
         self.groupEditDialog.destroyed.connect(
             lambda: setattr(self, 'groupEditDialog', None)

@@ -34,6 +34,7 @@ from qgis.gui import QgsFilterLineEdit, QgsHighlight
 from ...compat import QAction, sip
 from ...tools.utils.qgisred_field_utils import QGISRedFieldUtils, normalize_element
 from ...tools.utils.qgisred_filesystem_utils import QGISRedFileSystemUtils
+from ...tools.utils.qgisred_highlight_manager import QGISRedHighlightOwnerMixin
 from ...tools.utils.qgisred_layer_utils import QGISRedLayerUtils
 from ...tools.utils.qgisred_project_utils import QGISRedProjectUtils
 from ...tools.utils.qgisred_ui_utils import QGISRedBanner, QGISRED_COMBO_STYLE, QGISRedUIUtils
@@ -206,8 +207,10 @@ _defaultProperties = {
 _comboSelectionOverride = "QComboBox QAbstractItemView { selection-background-color: #3399ff; selection-color: white; }"
 
 
-class QGISRedGroupEditDialog(QDialog, FORM_CLASS):
+class QGISRedGroupEditDialog(QGISRedHighlightOwnerMixin, QDialog, FORM_CLASS):
     """Bulk-edit dialog for QGISRed network elements (EPANET Group Edit-style)."""
+
+    highlightOwnerKey = "groupEdit"
 
     def __init__(self, parent=None):
         super(QGISRedGroupEditDialog, self).__init__(parent)
@@ -257,6 +260,9 @@ class QGISRedGroupEditDialog(QDialog, FORM_CLASS):
         self.targetGrid.setColumnStretch(1, 1)
         self.actionGrid.setColumnStretch(1, 1)
 
+        # Anywhere in the dialog counts as turning to it.
+        self.watchDockActivation()
+
     """Public API"""
 
     def config(self, iface, projectDirectory, networkName):
@@ -304,17 +310,26 @@ class QGISRedGroupEditDialog(QDialog, FORM_CLASS):
             with suppress(RuntimeError):
                 layer.removeSelection()
 
-    def hideEvent(self, event):
-        self._hidePreviewHighlights()
-        super(QGISRedGroupEditDialog, self).hideEvent(event)
-
     def changeEvent(self, event):
         if event.type() == QEvent.Type.ActivationChange:
             if self.isActiveWindow():
-                self._restorePreviewHighlights()
+                self._activateOwnHighlights()
             else:
-                self._hidePreviewHighlights()
+                self._suspendOwnHighlights()
         super(QGISRedGroupEditDialog, self).changeEvent(event)
+
+    def _activateOwnHighlights(self):
+        if self.highlightManager() is None:
+            self._restorePreviewHighlights()
+        else:
+            self.notifyHighlightActivated(userDriven=True)
+
+    def _suspendOwnHighlights(self):
+        manager = self.highlightManager()
+        if manager is None:
+            self._hidePreviewHighlights()
+        else:
+            manager.suspend(self)
 
     """Setup"""
 
@@ -1165,6 +1180,8 @@ class QGISRedGroupEditDialog(QDialog, FORM_CLASS):
             highlight.setWidth(3)
             highlight.show()
             self.previewHighlights.append(highlight)
+        if self.previewHighlights:
+            self.notifyHighlightDrawn()
 
     def _hidePreviewHighlights(self):
         for highlight in self.previewHighlights:
@@ -1193,6 +1210,22 @@ class QGISRedGroupEditDialog(QDialog, FORM_CLASS):
         if self.canvas is not None:
             with suppress(Exception):
                 self.canvas.refresh()
+
+    """Highlight ownership protocol"""
+
+    def canActivate(self):
+        # An unchecked or empty preview has nothing to put back on the map.
+        return self.chkPreview.isChecked() and bool(self.previewHighlights)
+
+    def clearMapHighlights(self):
+        self._hidePreviewHighlights()
+
+    def redrawMapHighlights(self):
+        self._restorePreviewHighlights()
+
+    def applyHighlightAccent(self, isActive):
+        # The mixin's dock accent would replace the stylesheet set by _applyStyle().
+        pass
 
     """Apply"""
 

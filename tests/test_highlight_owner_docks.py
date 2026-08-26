@@ -28,6 +28,7 @@ OWNER_DOCKS = [
     ("QGISRed.ui.queries.qgisred_element_explorer_dock", "QGISRedElementExplorerDock"),
     ("QGISRed.ui.queries.qgisred_queriesbyproperties_dock", "QGISRedQueriesByPropertiesDock"),
     ("QGISRed.ui.queries.qgisred_statisticsandgraphs_dock", "QGISRedStatisticsDock"),
+    ("QGISRed.ui.edition.qgisred_groupedit_dialog", "QGISRedGroupEditDialog"),
 ]
 
 ACTIVATION_DOCKS = [
