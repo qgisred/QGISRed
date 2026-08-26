@@ -354,10 +354,8 @@ class QGISRedThematicMapsDialog(QDialog, FORM_CLASS):
             # Use insertChildNode with a new QgsLayerTreeLayer instance for better QGIS 4 compatibility.
             # insertChildNode() returns None on QGIS 3, so keep our own reference to the node.
             layerTreeLayer = QgsLayerTreeLayer(derivedLayer)
-            # The base demand legend lists concrete values (proportional size),
-            # not ranges, so a feature count would add nothing there.
+            layerTreeLayer.setCustomProperty("showFeatureCount", True)
             isBaseDemandQuery = layerType == 'junctions' and field == 'BaseDemand'
-            layerTreeLayer.setCustomProperty("showFeatureCount", not isBaseDemandQuery)
             if isBaseDemandQuery:
                 self.hideProportionalLegendTitle(derivedLayer, layerTreeLayer)
             parentGroup.insertChildNode(layerPosition, layerTreeLayer)
