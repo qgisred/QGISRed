@@ -99,7 +99,9 @@ class TestDateDerivedThematicStyles:
         expected = EXPECTED[fileName]
         fields = {field.get("name"): field for field in loadStyle(fileName).findall("expressionfields/field")}
 
-        assert set(fields) == set(VIRTUAL_FIELDS)
+        # Declaration order is the attribute-table column order, so both maps
+        # must read InstalDate, InstYear, Age.
+        assert list(fields) == list(VIRTUAL_FIELDS)
         assert expected["field"] in fields
         for name, expression in VIRTUAL_FIELDS.items():
             assert fields[name].get("expression") == expression
