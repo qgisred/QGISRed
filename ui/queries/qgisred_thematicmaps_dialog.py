@@ -903,17 +903,17 @@ class QGISRedThematicMapsDialog(QDialog, FORM_CLASS):
                 'layer_name': 'Junction Elevations',
                 'layer_type': 'Junctions',
                 'field': 'Elevation',
-                'qml_file': 'Junction_Elevations.qml',
+                'qml_file': 'JunctionElevations.qml',
                 'file_name': f'elevation_{units}',
                 'tooltip_prefix': 'Elev'
             })
 
         if self.cbJunctionsBaseDemand.isChecked():
             queries.append({
-                'layer_name': 'Junction Total_Base_Demands',
+                'layer_name': 'Junction Total Base Demands',
                 'layer_type': 'Junctions',
                 'field': 'BaseDemand',
-                'qml_file': 'Junction_TotalBaseDemands.qml',
+                'qml_file': 'JunctionTotalBaseDemands.qml',
                 'file_name': 'base_demand',
                 'tooltip_prefix': 'Demand'
             })

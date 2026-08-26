@@ -2204,7 +2204,7 @@
     </message>
     <message>
         <location filename="../tools/qgisred_translatable_strings.py" line="330"/>
-        <source>Junction Base Demands</source>
+        <source>Junction Total Base Demands</source>
         <translation>Consumos Base dos Nós</translation>
     </message>
     <message>

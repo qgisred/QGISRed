@@ -2169,7 +2169,7 @@
     </message>
     <message>
         <location filename="../tools/qgisred_translatable_strings.py" line="330"/>
-        <source>Junction Base Demands</source>
+        <source>Junction Total Base Demands</source>
         <translation>Demandes de base de nœud</translation>
     </message>
     <message>

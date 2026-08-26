@@ -17,7 +17,7 @@ from QGISRed.ui.queries import qgisred_thematicmaps_dialog as dialog_module
 from QGISRed.ui.queries.qgisred_thematicmaps_dialog import QGISRedThematicMapsDialog
 
 PLUGIN_ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
-STYLE_PATH = os.path.join(PLUGIN_ROOT, "defaults", "layerStyles", "Junction_Elevations.qml.bak")
+STYLE_PATH = os.path.join(PLUGIN_ROOT, "defaults", "layerStyles", "JunctionElevations.qml.bak")
 DIALOG_SOURCE = os.path.join(PLUGIN_ROOT, "ui", "queries", "qgisred_thematicmaps_dialog.py")
 
 # Blue (lowest) to red (highest), as specified for the map: #446ee7, #7bddee,
@@ -95,7 +95,7 @@ class TestDialogWiring:
     def test_one_style_serves_both_unit_systems_and_is_shipped(self):
         with open(DIALOG_SOURCE, encoding="utf-8") as source:
             text = source.read()
-        assert "'qml_file': 'Junction_Elevations.qml'" in text
+        assert "'qml_file': 'JunctionElevations.qml'" in text
         assert not re.search(r"junction_elevation_\{units\}", text)
         assert os.path.exists(STYLE_PATH)
         # The option must be reachable: it was hidden while unimplemented.

@@ -18,12 +18,12 @@ DATABASE_PATH = os.path.join(PLUGIN_ROOT, "defaults", "qgisred_theme_colors.db")
 
 # Thematic map styles referenced by the Thematic Maps dialog (units variants of
 # the same theme share one entry because only the class breaks change, not the
-# colors). Junction_Elevations computes its breaks from the data, so its colors
-# are applied by class position. Junction_TotalBaseDemands is excluded: its
+# colors). JunctionElevations computes its breaks from the data, so its colors
+# are applied by class position. JunctionTotalBaseDemands is excluded: its
 # colors live in data-defined expressions, not renderer classes. PipeMaterials
 # has no renderer in its qml; its palette is MATERIAL_PALETTE below.
 THEMATIC_STYLE_FILES = [
-    "Junction_Elevations.qml.bak",
+    "JunctionElevations.qml.bak",
     "PipeAges.qml.bak",
     "PipeDiametersSI.qml.bak",
     "PipeInstallationYears.qml.bak",
