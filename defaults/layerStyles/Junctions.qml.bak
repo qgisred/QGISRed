@@ -244,7 +244,12 @@
               </Option>
               <Option name="BufferColor" type="Map">
                 <Option name="active" type="bool" value="true"/>
-                <Option name="expression" type="QString" value="with_variable('bd', coalesce(attribute($currentfeature,'BaseDem'), attribute($currentfeature,'BaseDemand'), 0) + if(layer_property('Demands','id') IS NOT NULL, coalesce(aggregate(layer:='Demands', aggregate:='sum', expression:=coalesce(attribute($currentfeature,'BaseDem'), attribute($currentfeature,'BaseValue'), 0), filter:=intersects($geometry, geometry(@parent))), 0), 0), if(@bd &gt; 0, '#78b3dc', '#ff9457'))"/>
+                <Option name="expression" type="QString" value="with_variable('bd', coalesce(attribute($currentfeature,'BaseDem'), attribute($currentfeature,'BaseDemand'), 0) + if(layer_property('Demands','id') IS NOT NULL, coalesce(aggregate(layer:='Demands', aggregate:='sum', expression:=coalesce(attribute($currentfeature,'BaseDem'), attribute($currentfeature,'BaseValue'), 0), filter:=intersects($geometry, geometry(@parent))), 0), 0), if(@bd &gt; 0, '#78b3dc', if(coalesce(attribute($currentfeature,'BaseDem'), attribute($currentfeature,'BaseDemand'), 0) &lt; 0, '#b33561', '#ff9457')))"/>
+                <Option name="type" type="int" value="3"/>
+              </Option>
+              <Option name="Color" type="Map">
+                <Option name="active" type="bool" value="true"/>
+                <Option name="expression" type="QString" value="if(coalesce(attribute($currentfeature,'BaseDem'), attribute($currentfeature,'BaseDemand'), 0) &lt; 0, '#e15989', '#ff7f00')"/>
                 <Option name="type" type="int" value="3"/>
               </Option>
             </Option>
