@@ -14,11 +14,12 @@ NET = "test123"
 
 
 class _FakeLayer:
-    def __init__(self, layerId, path, identifier="", properties=None):
+    def __init__(self, layerId, path, identifier="", properties=None, renderer=None):
         self._id = layerId
         self._path = path
         self._properties = {"qgisred_identifier": identifier}
         self._properties.update(properties or {})
+        self._renderer = renderer
 
     def id(self):
         return self._id
@@ -30,6 +31,28 @@ class _FakeLayer:
 
     def customProperty(self, name, default=None):
         return self._properties.get(name, default)
+
+    def setCustomProperty(self, name, value):
+        self._properties[name] = value
+
+    def renderer(self):
+        return self._renderer
+
+
+class _FakeLegendItem:
+    def __init__(self, label):
+        self._label = label
+
+    def label(self):
+        return self._label
+
+
+class _FakeRenderer:
+    def __init__(self, labels):
+        self._labels = labels
+
+    def legendSymbolItems(self):
+        return [_FakeLegendItem(label) for label in self._labels]
 
 
 class _FakeNode:
@@ -247,6 +270,88 @@ class TestOutdatedThemes:
         })])
         item.manager._check()
         assert item.flagged() == {"theme"}
+
+
+class TestThemeUnitsBackfill:
+    """Length and diameter maps created before the qgisred_theme_units stamp existed
+    carry none; their build units are inferred from the unit in the legend labels."""
+
+    @pytest.fixture(autouse=True)
+    def projectSettings(self):
+        with patch.object(QGISRedProjectUtils, "getUnits", return_value="SI"), \
+             patch.object(QGISRedProjectUtils, "getHeadlossFormula", return_value="D-W"), \
+             patch.object(QGISRedProjectUtils, "getFlowUnit", return_value="LPS"):
+            yield
+
+    def test_legacy_us_lengths_map_is_stamped_and_flagged_on_an_si_project(self, project, harness):
+        _projDir, paths = project
+        layer = _FakeLayer("theme", paths["input"], identifier="qgisred_query_pipes_length",
+                           renderer=_FakeRenderer(["0 < 1 ft", "1 < 10 ft", "> 1000 ft"]))
+        item = harness([layer])
+        item.manager._check()
+        assert layer.customProperty("qgisred_theme_units") == "US"
+        assert item.flagged() == {"theme"}
+
+    def test_legacy_si_diameters_map_is_stamped_but_not_flagged(self, project, harness):
+        _projDir, paths = project
+        layer = _FakeLayer("theme", paths["input"], identifier="qgisred_query_pipes_diameter",
+                           renderer=_FakeRenderer(["< 100 mm", "100 < 150 mm", "> 600 mm"]))
+        item = harness([layer])
+        item.manager._check()
+        assert layer.customProperty("qgisred_theme_units") == "SI"
+        assert item.flagged() == set()
+
+    def test_labels_mixing_both_systems_are_not_trusted(self, project, harness):
+        _projDir, paths = project
+        layer = _FakeLayer("theme", paths["input"], identifier="qgisred_query_pipes_length",
+                           renderer=_FakeRenderer(["0 - 1 m", "1 - 10 in"]))
+        item = harness([layer])
+        item.manager._check()
+        assert layer.customProperty("qgisred_theme_units") is None
+        assert item.flagged() == set()
+
+    def test_labels_without_unit_tokens_leave_the_layer_alone(self, project, harness):
+        _projDir, paths = project
+        layer = _FakeLayer("theme", paths["input"], identifier="qgisred_query_pipes_length",
+                           renderer=_FakeRenderer(["low", "high", "Unknown"]))
+        item = harness([layer])
+        item.manager._check()
+        assert layer.customProperty("qgisred_theme_units") is None
+        assert item.flagged() == set()
+
+    def test_a_unitless_class_does_not_block_agreeing_labels(self, project, harness):
+        _projDir, paths = project
+        layer = _FakeLayer("theme", paths["input"], identifier="qgisred_query_pipes_length",
+                           renderer=_FakeRenderer(["0 - 1 m", "> 1000 m", "Unknown"]))
+        item = harness([layer])
+        item.manager._check()
+        assert layer.customProperty("qgisred_theme_units") == "SI"
+
+    def test_an_existing_stamp_is_never_overwritten(self, project, harness):
+        _projDir, paths = project
+        layer = _FakeLayer("theme", paths["input"], identifier="qgisred_query_pipes_length",
+                           properties={"qgisred_theme_units": "SI"},
+                           renderer=_FakeRenderer(["0 < 1 ft", "> 1000 ft"]))
+        item = harness([layer])
+        item.manager._check()
+        assert layer.customProperty("qgisred_theme_units") == "SI"
+        assert item.flagged() == set()
+
+    def test_other_thematic_maps_are_not_stamped(self, project, harness):
+        _projDir, paths = project
+        layer = _FakeLayer("theme", paths["input"], identifier="qgisred_query_pipes_material",
+                           renderer=_FakeRenderer(["0 - 1 m", "> 1000 m"]))
+        item = harness([layer])
+        item.manager._check()
+        assert layer.customProperty("qgisred_theme_units") is None
+
+    def test_a_layer_without_a_renderer_does_not_break_the_pass(self, project, harness):
+        _projDir, paths = project
+        layer = _FakeLayer("theme", paths["input"], identifier="qgisred_query_pipes_length")
+        item = harness([layer])
+        item.manager._check()
+        assert layer.customProperty("qgisred_theme_units") is None
+        assert item.flagged() == set()
 
 
 class TestGhostIndicators:

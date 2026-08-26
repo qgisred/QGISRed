@@ -39,6 +39,11 @@ EXCLUDED_SUBDIRS = (DIR_AUXILIARY_LAYERS,)
 # Demands Manager can add layers to the group from outside the project folder).
 EXCLUDED_IDENTIFIER_PREFIXES = ("qgisred_demandbuilder", "qgisred_demandsectors")
 
+# Thematic maps whose legend class labels embed a length unit, so the units they were
+# built with can be recovered for layers created before the qgisred_theme_units stamp.
+LEGACY_UNITS_IDENTIFIERS = ("qgisred_query_pipes_length", "qgisred_query_pipes_diameter")
+UNIT_SYSTEM_BY_TOKEN = {"m": "SI", "mm": "SI", "ft": "US", "in": "US"}
+
 # Where the running manager is published so the *next* plugin load can find it.
 #
 # Reloading the plugin re-imports this module, so a module-level global would come back
@@ -174,6 +179,22 @@ class StaleLayerManager:
 
         return stale
 
+    def _backfillThemeUnits(self, layer):
+        # Themes created before the units stamp existed carry no qgisred_theme_units;
+        # recover the build units once from the unit tokens of the legend class labels.
+        if layer.customProperty("qgisred_theme_units"):
+            return
+        if layer.customProperty("qgisred_identifier") not in LEGACY_UNITS_IDENTIFIERS:
+            return
+        with suppress(Exception):
+            inferredSystems = set()
+            for legendItem in layer.renderer().legendSymbolItems():
+                token = (legendItem.label() or "").strip().rsplit(" ", 1)[-1]
+                if token in UNIT_SYSTEM_BY_TOKEN:
+                    inferredSystems.add(UNIT_SYSTEM_BY_TOKEN[token])
+            if len(inferredSystems) == 1:
+                layer.setCustomProperty("qgisred_theme_units", inferredSystems.pop())
+
     def _outdatedThemeLayerIds(self):
         """Ids of thematic map layers built with units, flow units or a headloss
         formula the project no longer uses."""
@@ -190,6 +211,7 @@ class StaleLayerManager:
 
         outdated = set()
         for layer in list(QgsProject.instance().mapLayers().values()):
+            self._backfillThemeUnits(layer)
             themeUnits = layer.customProperty("qgisred_theme_units")
             themeFormula = layer.customProperty("qgisred_theme_formula")
             themeFlowUnits = layer.customProperty("qgisred_theme_flow_units")
