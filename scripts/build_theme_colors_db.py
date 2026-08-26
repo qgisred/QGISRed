@@ -68,6 +68,7 @@ MATERIAL_PALETTE = (
       "pemd", "polyéthylène moyenne densité", "polietileno de média densidade"), "#c76ed0"),
     (("frp", "fiberglass reinforced polyester", "prfv", "poliester reforzado con fibra de vidrio",
       "polyester renforcé de fibre de verre", "poliéster reforçado com fibra de vidro"), "#bfadbd"),
+    (("#na", "not available", "no disponible", "non disponible", "não disponível"), "#e8e8e8"),
 )
 
 

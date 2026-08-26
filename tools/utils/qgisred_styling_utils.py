@@ -963,15 +963,15 @@ class QGISRedStylingUtils:
             else:
                 randomColor = QColor.fromRgb(random.randint(0, 255), random.randint(0, 255), random.randint(0, 255))  # nosec B311 — cosmetic category color, not security-sensitive
                 symbol.setColor(randomColor)
-            symbol.setWidth(0.6)
+            symbol.setWidth(0.8)
             category = QgsRendererCategory(value, symbol, self._translateCategoryLabel(value, field))
             categories.append(category)
 
         if nullValues:
             symbol = QgsSymbol.defaultSymbol(layer.geometryType())
-            darkGray = QColor.fromRgb(192, 192, 192)
-            symbol.setColor(darkGray)
-            symbol.setWidth(0.6)
+            lightGray = QColor.fromRgb(232, 232, 232)
+            symbol.setColor(lightGray)
+            symbol.setWidth(0.8)
             category = QgsRendererCategory(nullValues[0], symbol, str("#NA"))
             categories.append(category)
 
