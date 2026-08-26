@@ -289,6 +289,7 @@ class QGISRedStatisticsDock(QGISRedHighlightOwnerMixin, QDockWidget, formClass):
         self.safeDisconnect(project.layersRemoved, self.onLayerTreeChanged)
         self.safeDisconnect(project.readProject, self.onProjectChanged)
         self.safeDisconnect(project.cleared, self.onProjectChanged)
+        self.safeDisconnect(project.layerTreeRoot().visibilityChanged, self.scheduleReactiveFilterPreview)
         for layerNode in self.connectedLayerNodes:
             self.disconnectLayerNode(layerNode)
         self.connectedLayerNodes.clear()
@@ -531,6 +532,9 @@ class QGISRedStatisticsDock(QGISRedHighlightOwnerMixin, QDockWidget, formClass):
         project.layersRemoved.connect(self.onLayerTreeChanged)
         project.readProject.connect(self.onProjectChanged)
         project.cleared.connect(self.onProjectChanged)
+        # Hidden layers keep their selection, so a visibility toggle changes the
+        # "Only selected elements" result; child toggles propagate up to the root
+        project.layerTreeRoot().visibilityChanged.connect(self.scheduleReactiveFilterPreview)
         self.reconnectLayerSignals()
 
     def reconnectLayerSignals(self):
@@ -937,6 +941,12 @@ class QGISRedStatisticsDock(QGISRedHighlightOwnerMixin, QDockWidget, formClass):
                 return layer
         return None
 
+    def isLayerVisibleInTree(self, layer):
+        # A layer without a tree node cannot be proven hidden (QGIS 4 layer-tree
+        # wrapper quirks), so its selection keeps counting
+        node = QgsProject.instance().layerTreeRoot().findLayer(layer.id())
+        return node is None or node.isVisible()
+
     def selectionCounterpartLayers(self, baseLayer):
         # Layers in the other group (Inputs <-> Results) whose selection also counts
         ident = baseLayer.customProperty("qgisred_identifier") or ""
@@ -957,11 +967,12 @@ class QGISRedStatisticsDock(QGISRedHighlightOwnerMixin, QDockWidget, formClass):
 
     def unionSelectedFids(self, baseLayer):
         # Union of the selections on the base layer and on its counterpart group,
-        # expressed as base-layer feature ids (layers are joined by element id)
-        fids = set(baseLayer.selectedFeatureIds())
+        # expressed as base-layer feature ids (layers are joined by element id).
+        # Hidden layers keep their selection alive in QGIS, so they are ignored
+        fids = set(baseLayer.selectedFeatureIds()) if self.isLayerVisibleInTree(baseLayer) else set()
         selectedElementIds = set()
         for layer in self.selectionCounterpartLayers(baseLayer):
-            if layer is baseLayer:
+            if layer is baseLayer or not self.isLayerVisibleInTree(layer):
                 continue
             idFieldName = self.fieldUtils.getIdFieldName(layer)
             if layer.fields().indexFromName(idFieldName) < 0:
