@@ -252,6 +252,11 @@
                 <Option name="expression" type="QString" value="if(coalesce(attribute($currentfeature,'BaseDem'), attribute($currentfeature,'BaseDemand'), 0) &lt; 0, '#e15989', '#ff7f00')"/>
                 <Option name="type" type="int" value="3"/>
               </Option>
+              <Option name="Size" type="Map">
+                <Option name="active" type="bool" value="true"/>
+                <Option name="expression" type="QString" value="if(coalesce(attribute($currentfeature,'BaseDem'), attribute($currentfeature,'BaseDemand'), 0) &lt; 0, 9, 8)"/>
+                <Option name="type" type="int" value="3"/>
+              </Option>
             </Option>
             <Option name="type" type="QString" value="collection"/>
           </Option>
@@ -278,6 +283,11 @@
             <Option name="Color" type="Map">
               <Option name="active" type="bool" value="true"/>
               <Option name="expression" type="QString" value="if(coalesce(attribute($currentfeature,'BaseDem'), attribute($currentfeature,'BaseDemand'), 0) &lt; 0, '#e15989', '#ff7f00')"/>
+              <Option name="type" type="int" value="3"/>
+            </Option>
+            <Option name="Size" type="Map">
+              <Option name="active" type="bool" value="true"/>
+              <Option name="expression" type="QString" value="if(coalesce(attribute($currentfeature,'BaseDem'), attribute($currentfeature,'BaseDemand'), 0) &lt; 0, 9, 8)"/>
               <Option name="type" type="int" value="3"/>
             </Option>
           </Option>
