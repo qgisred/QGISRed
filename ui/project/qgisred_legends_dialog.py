@@ -4697,6 +4697,15 @@ class QGISRedLegendsDialog(QDialog, formClass):
                                 self.tr("Style file not found: %1").replace("%1", os.path.join(folder, filename)))
             return
 
+        if isDefault:
+            # Restoring the default must rebuild the shipped expressions, symbol layers
+            # and labels, which the dialog cannot recreate, so the file goes straight
+            # onto the live layer instead of only into the dialog table.
+            self.applyStyleFileToLayer(path)
+            message = self.tr("Default style applied to the layer from %1.").replace("%1", filename)
+            QMessageBox.information(self, self.tr("Loaded"), message)
+            return
+
         strategy = self.readStrategyFromStyleFile(path)
         if self.isLiteralStyle(strategy):
             self.loadLiteralStyleIntoDialog(path)
@@ -4708,6 +4717,17 @@ class QGISRedLegendsDialog(QDialog, formClass):
             self.applyStrategyToDialog(strategy)
             message = self.tr("Strategy loaded into the dialog from %1. Press Apply to update the layer.").replace("%1", filename)
         QMessageBox.information(self, self.tr("Loaded"), message)
+
+    def applyStyleFileToLayer(self, path):
+        self.currentLayer.loadNamedStyle(path)
+        self.restoreResultNullClass()
+        self.currentLayer.triggerRepaint()
+        self.ensureLayerVisible(self.currentLayer)
+        self.originalRenderer = self.currentLayer.renderer().clone() if self.currentLayer.renderer() else None
+        self.hasAppliedChanges = True
+        renderer = self.currentLayer.renderer().clone() if self.currentLayer.renderer() else None
+        if renderer is not None:
+            self.populateDialogFromRenderer(renderer)
 
     # Appearance settings that rewrite a result layer's symbols, with the value that means
     # "untouched". Decimals and labels also live in that file but change nothing here, so
