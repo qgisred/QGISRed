@@ -17,7 +17,7 @@ from qgis.core import (
     QgsLineSymbol, QgsSimpleLineSymbolLayer, QgsSimpleMarkerSymbolLayer,
     QgsRendererCategory, QgsCategorizedSymbolRenderer, QgsVectorLayerCache, NULL,
     QgsGraduatedSymbolRenderer, QgsRuleBasedRenderer, QgsRenderContext,
-    QgsMapLayerLegend, QgsMessageLog, QgsStyle, QgsExpression,
+    QgsMapLayerLegend, QgsMessageLog, QgsStyle, QgsExpression, QgsProject,
     QgsSingleSymbolRenderer, QgsPalLayerSettings, QgsTextFormat, QgsProperty,
     QgsVectorLayerSimpleLabeling
 )
@@ -941,6 +941,16 @@ class QGISRedStylingUtils:
                 continue
             defaultStyle.addColorRamp(rampName, ramp, True)
             defaultStyle.tagSymbol(QgsStyle.StyleEntity.ColorrampEntity, rampName, ["QGISRed"])
+
+    @staticmethod
+    def registerStyleDatabaseInProject():
+        # Lists the shipped database in the Style Manager's database selector.
+        databasePath = QGISRedStylingUtils.styleDatabasePath()
+        if not os.path.exists(databasePath):
+            return
+        styleSettings = QgsProject.instance().styleSettings()
+        if databasePath not in styleSettings.styleDatabasePaths():
+            styleSettings.addStyleDatabasePath(databasePath)
 
     def applyCategorizedRenderer(self, layer, field, qmlFile):
         fieldIndex = layer.fields().indexFromName(field)

@@ -253,6 +253,12 @@ class LifecycleSection:
 
         with suppress(Exception):
             QGISRedStylingUtils.syncColorRampsToDefaultStyle()
+        with suppress(Exception):
+            QGISRedStylingUtils.registerStyleDatabaseInProject()
+        # Opening or clearing a project resets the project style settings, so the
+        # shipped style database has to be registered again on both events.
+        QgsProject.instance().readProject.connect(QGISRedStylingUtils.registerStyleDatabaseInProject)
+        QgsProject.instance().cleared.connect(QGISRedStylingUtils.registerStyleDatabaseInProject)
 
         QgsMessageLog.logMessage(self.tr("Loaded sucssesfully"), "QGISRed", level=QGIS_INFO)
 
@@ -401,6 +407,10 @@ class LifecycleSection:
             QgsProject.instance().layersWillBeRemoved.disconnect(self._onLayersWillBeRemoved)
         with suppress(Exception):
             QgsProject.instance().readProject.disconnect(self.runOpenedQgisProject)
+        with suppress(Exception):
+            QgsProject.instance().readProject.disconnect(QGISRedStylingUtils.registerStyleDatabaseInProject)
+        with suppress(Exception):
+            QgsProject.instance().cleared.disconnect(QGISRedStylingUtils.registerStyleDatabaseInProject)
 
         QGISRedFileSystemUtils().removeFolder(self.tempFolder)
 
