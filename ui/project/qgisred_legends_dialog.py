@@ -729,9 +729,7 @@ class QGISRedLegendsDialog(QDialog, formClass):
 
         if os.path.exists(dbPath):
             try:
-                success = self.style.createDatabase(dbPath) or self.style.load(
-                    dbPath
-                )
+                success = self.style.load(dbPath)
                 if not success:
                     QgsMessageLog.logMessage(
                         f"Failed to load style database: {dbPath}",

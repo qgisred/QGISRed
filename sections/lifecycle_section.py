@@ -23,6 +23,7 @@ from ..tools.qgisred_dependencies import QGISRedDependencies as GISRed
 from ..ui.queries.qgisred_element_explorer_dock import QGISRedElementExplorerDock
 from ..ui.general.qgisred_news_dialog import QGISRedNewsDialog
 from ..tools.utils.qgisred_stale_layer_manager import StaleLayerManager
+from ..tools.utils.qgisred_styling_utils import QGISRedStylingUtils
 from ..tools.utils.qgisred_highlight_manager import QGISRedHighlightManager
 from ..tools.utils.qgisred_maptip import QGISRedMapTip
 
@@ -249,6 +250,9 @@ class LifecycleSection:
 
         self.setCulture()
         # QgsMessageLog.logMessage("Culture set to " + definedCulture, "QGISRed", level=0)
+
+        with suppress(Exception):
+            QGISRedStylingUtils.syncColorRampsToDefaultStyle()
 
         QgsMessageLog.logMessage(self.tr("Loaded sucssesfully"), "QGISRed", level=QGIS_INFO)
 

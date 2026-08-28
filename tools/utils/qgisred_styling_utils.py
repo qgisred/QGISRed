@@ -903,71 +903,44 @@ class QGISRedStylingUtils:
         layer.saveNamedStyle(qmlPath)
 
     @staticmethod
-    def themeKeyFromQmlFile(qmlFile):
-        themeKey = os.path.basename(qmlFile)
-        for suffix in (".bak", ".qml"):
-            if themeKey.endswith(suffix):
-                themeKey = themeKey[: -len(suffix)]
-        for suffix in ("_SI", "_US", "SI", "US"):
-            if themeKey.endswith(suffix):
-                themeKey = themeKey[: -len(suffix)]
-                break
-        return themeKey.lower()
+    def styleDatabasePath():
+        return os.path.join(_plugin_root(), "defaults", "symbology-style_QGISRed.db")
 
-    def getThemeColorsFromDb(self, themeName):
-        databasePath = os.path.join(_plugin_root(), "defaults", "qgisred_theme_colors.db")
+    def getMaterialColorFromDb(self, materialValue):
+        databasePath = QGISRedStylingUtils.styleDatabasePath()
         if not os.path.exists(databasePath):
-            return []
+            return None
         with suppress(sqlite3.Error):
             connection = sqlite3.connect(databasePath)
             try:
-                return connection.execute(
-                    "SELECT classIndex, label, color FROM themeColors WHERE theme = ? ORDER BY classIndex",
-                    (themeName,),
-                ).fetchall()
+                row = connection.execute(
+                    "SELECT color FROM materialColors WHERE label = ?", (materialValue,)
+                ).fetchone()
+                return row[0] if row else None
             finally:
                 connection.close()
-        return []
-
-    def getMaterialColorFromDb(self, materialValue):
-        for _, label, color in self.getThemeColorsFromDb("pipematerials"):
-            if label == materialValue:
-                return color
         return None
 
-    def applyThemeColorsFromDb(self, layer, qmlFile):
-        # Colors stored in data-defined expressions (e.g. junction base demands)
-        # are outside the renderer classes and keep their qml colors.
-        colorsByIndex = {classIndex: color for classIndex, _, color in self.getThemeColorsFromDb(self.themeKeyFromQmlFile(qmlFile))}
-        if not colorsByIndex:
+    @staticmethod
+    def syncColorRampsToDefaultStyle():
+        # Registers the shipped ramps in the user default style so saved legend
+        # strategies resolve their rampName and the Style Manager shows them.
+        databasePath = QGISRedStylingUtils.styleDatabasePath()
+        if not os.path.exists(databasePath):
             return
-
-        renderer = layer.renderer()
-        changed = False
-        if isinstance(renderer, QgsCategorizedSymbolRenderer):
-            # Keep the category/range copy referenced while cloning its symbol:
-            # the symbol pointer is owned by that copy, and indexing the list
-            # inline destroys it before clone() runs, crashing QGIS.
-            for index, category in enumerate(renderer.categories()):
-                if index in colorsByIndex:
-                    symbol = category.symbol().clone()
-                    symbol.setColor(QColor(colorsByIndex[index]))
-                    renderer.updateCategorySymbol(index, symbol)
-                    changed = True
-        elif isinstance(renderer, QgsGraduatedSymbolRenderer):
-            for index, rendererRange in enumerate(renderer.ranges()):
-                if index in colorsByIndex:
-                    symbol = rendererRange.symbol().clone()
-                    symbol.setColor(QColor(colorsByIndex[index]))
-                    renderer.updateRangeSymbol(index, symbol)
-                    changed = True
-        elif isinstance(renderer, QgsRuleBasedRenderer):
-            for index, rule in enumerate(renderer.rootRule().children()):
-                if index in colorsByIndex and rule.symbol() is not None:
-                    rule.symbol().setColor(QColor(colorsByIndex[index]))
-                    changed = True
-        if changed:
-            layer.triggerRepaint()
+        pluginStyle = QgsStyle()
+        if not pluginStyle.load(databasePath):
+            return
+        defaultStyle = QgsStyle.defaultStyle()
+        existingNames = defaultStyle.colorRampNames()
+        for rampName in pluginStyle.colorRampNames():
+            if rampName in existingNames:
+                continue
+            ramp = pluginStyle.colorRamp(rampName)
+            if ramp is None:
+                continue
+            defaultStyle.addColorRamp(rampName, ramp, True)
+            defaultStyle.tagSymbol(QgsStyle.StyleEntity.ColorrampEntity, rampName, ["QGISRed"])
 
     def applyCategorizedRenderer(self, layer, field, qmlFile):
         fieldIndex = layer.fields().indexFromName(field)
