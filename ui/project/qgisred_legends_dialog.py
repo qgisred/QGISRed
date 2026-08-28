@@ -4856,10 +4856,28 @@ class QGISRedLegendsDialog(QDialog, formClass):
         Thematic maps are left out on purpose: their styles follow a different scheme
         (pipe_roughness.qml) resolved by the thematic maps dialog, not by setStyle.
         """
+        thematicName = self.getThematicQueryStyleName(identifier)
+        if thematicName:
+            return thematicName
         prefix = "qgisred_"
         if not identifier.startswith(prefix) or identifier.startswith(prefix + "query_"):
             return None
         return identifier[len(prefix):].replace("_", "") or None
+
+    def getThematicQueryStyleName(self, identifier):
+        """Basename of the qml the thematic maps dialog resolves for this theme, or None."""
+        if identifier == "qgisred_query_pipes_installdate":
+            return "PipeInstallationYears"
+        if identifier == "qgisred_query_pipes_age":
+            return "PipeAges"
+        if identifier == "qgisred_query_pipes_roughness":
+            formula = QGISRedProjectUtils.getHeadlossFormula()
+            if formula == "H-W":
+                return "PipeRoughnessesHW"
+            if formula == "C-M":
+                return "PipeRoughnessesCM"
+            return "PipeRoughnessesDW" + QGISRedProjectUtils.getUnits()
+        return None
 
     def getElementNameForIdentifier(self, identifier):
         resultName = self.getResultStyleName(identifier or "")

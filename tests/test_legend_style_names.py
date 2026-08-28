@@ -169,9 +169,13 @@ class TestStyleNameForIdentifier:
         assert os.path.basename(found) == defaultFile
 
     def test_thematic_maps_are_left_to_their_own_scheme(self):
-        # Their styles are named pipe_roughness.qml and resolved by the thematic maps
+        # Their styles are named pipe_material.qml and resolved by the thematic maps
         # dialog, which records the file it used in the styleURI custom property.
-        assert _dialog().getStyleNameForIdentifier("qgisred_query_pipes_roughness") is None
+        assert _dialog().getStyleNameForIdentifier("qgisred_query_pipes_material") is None
+
+    def test_classifiable_thematic_maps_map_to_their_theme_qml(self):
+        assert _dialog().getStyleNameForIdentifier("qgisred_query_pipes_installdate") == "PipeInstallationYears"
+        assert _dialog().getStyleNameForIdentifier("qgisred_query_pipes_age") == "PipeAges"
 
     def test_a_layer_outside_the_plugin_has_no_derived_name(self):
         assert _dialog().getStyleNameForIdentifier("something_else") is None
