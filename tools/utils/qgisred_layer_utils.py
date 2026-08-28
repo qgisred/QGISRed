@@ -623,6 +623,11 @@ class QGISRedLayerUtils:
         elif not styling.setSavedStyle(layer, originalName):
             styling.setSectorsStyle(layer)
 
+    def _applyConnectivityStyle(self, styling, layer, originalName):
+        # Computed like demand sectors: random colour per subnet, saved style wins.
+        if not styling.setSavedStyle(layer, originalName):
+            styling.setConnectivityStyle(layer)
+
     def openLayer(self, group, name, ext=".shp", results=False, toEnd=False, sectors=False, issues=False,
                   demandBuilder=False):
         styling = self._styling()
@@ -647,13 +652,15 @@ class QGISRedLayerUtils:
             if reloaded:
                 # Styles computed from the layer's own values must be rebuilt on every
                 # reload: the values may have changed under them.
-                if sectors or demandBuilder:
+                if sectors or demandBuilder or name.lower() == "connectivity_links":
                     existingLayer = self._findLayerByPath(layerPath)
                     if existingLayer is not None:
                         if sectors:
                             self._applySectorStyle(styling, existingLayer, originalName)
-                        else:
+                        elif demandBuilder:
                             styling.setDemandBuilderStyle(existingLayer, originalName)
+                        else:
+                            self._applyConnectivityStyle(styling, existingLayer, originalName)
                 return
             vlayer = QgsVectorLayer(layerPath, showName, "ogr")
             if not ext == ".dbf":
@@ -665,6 +672,8 @@ class QGISRedLayerUtils:
                     styling.setDemandBuilderStyle(vlayer, originalName)
                 elif issues:
                     pass
+                elif name.lower() == "connectivity_links":
+                    self._applyConnectivityStyle(styling, vlayer, originalName)
                 else:
                     styling.setStyle(vlayer, name.lower())
 

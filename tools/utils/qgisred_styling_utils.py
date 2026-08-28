@@ -857,6 +857,44 @@ class QGISRedStylingUtils:
             layer.setRenderer(renderer)
         layer.setLabelsEnabled(False)
 
+    def setConnectivityStyle(self, layer):
+        field = "SubNet"
+        fni = layer.fields().indexFromName(field)
+        if fni == -1:
+            return
+        uniqueValues = sorted(layer.dataProvider().uniqueValues(fni))
+
+        categories = []
+        for uniqueValue in uniqueValues:
+            valueColor = QColor(randrange(0, 256), randrange(0, 256), randrange(0, 256))  # nosec B311 — cosmetic connectivity color, not security-sensitive
+            if layer.geometryType() == 0:  # Point
+                symbol = QgsSymbol.defaultSymbol(layer.geometryType())
+                layerStyle = {
+                    "color": "%d, %d, %d" % (valueColor.red(), valueColor.green(), valueColor.blue()),
+                    "size": str(0.6),
+                }
+                symbol.changeSymbolLayer(0, QgsSimpleMarkerSymbolLayer.create(layerStyle))
+            else:
+                symbol = QgsLineSymbol().createSimple({})
+                symbol.deleteSymbolLayer(0)
+                lineSymbol = QgsSimpleLineSymbolLayer()
+                lineSymbol.setWidth(0.6)
+                lineSymbol.setColor(valueColor)
+                symbol.appendSymbolLayer(lineSymbol)
+
+            categories.append(QgsRendererCategory(uniqueValue, symbol, self._translateCategoryLabel(uniqueValue, field)))
+
+        layer.setRenderer(QgsCategorizedSymbolRenderer(field, categories))
+        layer.setLabelsEnabled(False)
+        self.saveDefaultConnectivityStyle(layer)
+
+    def saveDefaultConnectivityStyle(self, layer):
+        # Shipped defaults are never rewritten, so the generated one is only created once.
+        qmlPath = os.path.join(_plugin_root(), "defaults", "layerStyles", "ConnectivityLinks.qml.bak")
+        if os.path.exists(qmlPath):
+            return
+        layer.saveNamedStyle(qmlPath)
+
     @staticmethod
     def themeKeyFromQmlFile(qmlFile):
         themeKey = os.path.basename(qmlFile)
