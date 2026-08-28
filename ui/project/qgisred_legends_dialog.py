@@ -51,6 +51,9 @@ from .qgisred_custom_dialogs import QGISRedSaveStrategyDialog
 
 formClass, _ = uic.loadUiType(os.path.join(os.path.dirname(__file__), "qgisred_legends_dialog.ui"))
 
+# Flannery-like exponent used by the shipped proportional size themes (e.g. JunctionTotalBaseDemands)
+PROPORTIONAL_SIZE_EXPONENT = 0.57
+
 
 def formatExpressionNumber(value, precision=3):
     """Format a number for use inside a QGIS expression, trimming trailing zeros."""
@@ -4214,18 +4217,17 @@ class QGISRedLegendsDialog(QDialog, formClass):
     def applyProportionalSizeExpression(self, symbol):
         minSize = self.spinSizeMin.value()
         maxSize = self.spinSizeMax.value()
-        _, globalValueMax = self.getLayerMinMax()
-
-        if globalValueMax == 0:
-            return
-
         fieldName = self.currentFieldName
         isLine = self.currentLayer.geometryType() == WKB_LINE_GEOMETRY
 
         if self.ckSizeInvert.isChecked():
-            expression = f'{maxSize} - ("{fieldName}" / {globalValueMax}) * ({maxSize} - {minSize})'
+            firstSize, secondSize = maxSize, minSize
         else:
-            expression = f'{minSize} + ("{fieldName}" / {globalValueMax}) * ({maxSize} - {minSize})'
+            firstSize, secondSize = minSize, maxSize
+        expression = (
+            f'coalesce(scale_polynomial("{fieldName}", minimum("{fieldName}"), maximum("{fieldName}"), '
+            f"{firstSize}, {secondSize}, {PROPORTIONAL_SIZE_EXPONENT}), {firstSize})"
+        )
 
         sizeProperty = QgsProperty.fromExpression(expression)
 
