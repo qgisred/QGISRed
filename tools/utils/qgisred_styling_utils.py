@@ -706,6 +706,13 @@ class QGISRedStylingUtils:
             layer.triggerRepaint()
             return
 
+        # A style saved from the Legends Editor wins over the computed look, like sectors.
+        if layer.geometryType() in (0, 1):
+            savedName = "DemandBuilder_ConsumptionPoints" if layer.geometryType() == 0 else "DemandBuilder_DemandLinks"
+            if self.setSavedStyle(layer, savedName):
+                layer.triggerRepaint()
+                return
+
         geomType = layer.geometryType()
         fieldIndex = layer.fields().indexFromName("Category")
 

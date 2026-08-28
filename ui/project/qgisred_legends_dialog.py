@@ -18,6 +18,7 @@ from ...compat import (
     QVariantInt, QVariantDouble, QVariantLongLong,
     QGIS_INFO, QGIS_WARNING,
     SL_PROP_SIZE, SL_PROP_WIDTH, SL_PROP_FILL_COLOR, SL_PROP_STROKE_COLOR, SL_PROP_STROKE_WIDTH,
+    PAL_PROPERTY_COLOR,
 )
 
 from qgis.core import QgsProject, QgsVectorLayer, QgsMessageLog, QgsGraduatedSymbolRenderer
@@ -3569,6 +3570,7 @@ class QGISRedLegendsDialog(QDialog, formClass):
         if renderer is not None:
             self.currentLayer.setRenderer(renderer)
             self._syncHydraulicSectorSibling(renderer)
+            self._syncDemandBuilderLabelColors(renderer)
             # Last, so the rule-based wrap is what the layer ends up carrying: the
             # sibling sync above reads the graduated/categorized renderer as applied.
             self.restoreResultNullClass()
@@ -3596,6 +3598,37 @@ class QGISRedLegendsDialog(QDialog, formClass):
             QGISRedStylingUtils(
                 self.projectDirectory, self.networkName, self.qgisInterface
             ).applyNullStyle(self.currentLayer)
+
+    def _syncDemandBuilderLabelColors(self, appliedRenderer):
+        """Rebuild the label color expression so labels keep matching their category symbol."""
+        identifier = self.currentLayer.customProperty("qgisred_identifier") if self.currentLayer else None
+        if identifier not in self.DEMANDS_BUILDER_EDITABLE_IDENTIFIERS:
+            return
+        if not isinstance(appliedRenderer, QgsCategorizedSymbolRenderer):
+            return
+        labeling = self.currentLayer.labeling()
+        if labeling is None:
+            return
+        colorExpression = "CASE "
+        for category in appliedRenderer.categories():
+            symbol = category.symbol()
+            if symbol is None:
+                continue
+            colorName = symbol.color().name()
+            value = str(category.value())
+            if value == "Uncategorized":
+                colorExpression += (
+                    "WHEN \"Category\" IS NULL OR trim(\"Category\") = '' "
+                    "OR lower(trim(\"Category\")) IN ('null', 'undefined') "
+                    f"THEN '{colorName}' "
+                )
+            else:
+                safeValue = value.replace("'", "''")
+                colorExpression += f"WHEN trim(\"Category\") = '{safeValue}' THEN '{colorName}' "
+        colorExpression += "ELSE 'gray' END"
+        settings = labeling.settings()
+        settings.dataDefinedProperties().setProperty(PAL_PROPERTY_COLOR, QgsProperty.fromExpression(colorExpression))
+        labeling.setSettings(settings)
 
     HYDRAULIC_SECTOR_SIBLINGS = {
         "qgisred_hydraulicsectors_links": "qgisred_hydraulicsectors_nodes",
