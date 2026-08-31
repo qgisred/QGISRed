@@ -59,6 +59,11 @@ class QGISRedThematicMapsDialog(QDialog, FORM_CLASS):
         self.cbJunctionsEmitterCoeff.hide()
         self.cbJunctionsInitialQuality.hide()
         self.cbJunctionsTag.hide()
+        # The hidden third Junctions option keeps its column, so Total Base
+        # Demand lines up with the second Pipes option.
+        retainingPolicy = self.cbJunctionsPatternDemand.sizePolicy()
+        retainingPolicy.setRetainSizeWhenHidden(True)
+        self.cbJunctionsPatternDemand.setSizePolicy(retainingPolicy)
 
         self.cbPipesLossCoeff.hide()
         self.cbPipesInitStatus.hide()
