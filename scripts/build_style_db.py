@@ -4,8 +4,9 @@
 Developer tool, not part of the plugin runtime. The file is a QGIS style
 database whose schema ships in git; this script refreshes only its QGISRed
 content: the fixed pipe material colors (materialColors table) and the color
-ramps and palettes offered by the Legends dialog, all tagged QGISRed. Run it
-after changing MATERIAL_PALETTE, GRADIENT_RAMPS or PRESET_PALETTES:
+ramps and palettes offered by the Legends dialog, tagged Ramps and Palettes so
+the Style Manager can filter them apart. Run it after changing
+MATERIAL_PALETTE, GRADIENT_RAMPS or PRESET_PALETTES:
 
     python scripts/build_style_db.py
 """
@@ -18,41 +19,42 @@ DATABASE_PATH = os.path.join(PLUGIN_ROOT, "defaults", "symbology-style_QGISRed.d
 
 # Fixed colors for the default Pipe Materials legend, so reloading the theme keeps
 # the same color per material. Taken from the "Materiales" sheet of the
-# Colores_Medidores_Materiales.xlsx spec: each entry holds the lowercase
-# abbreviations and the descriptions of every language (EN, ES, FR, PT); both are
-# matching keys, and the abbreviations also label the colors of the Pipe Materials
-# palette. The spec guarantees that no abbreviation is reused for a different
-# material across languages, so all of them map together. Anything else still gets
-# a random color. Only the shipped default style uses this palette — project and
-# global styles saved from the Legends dialog keep their own colors.
+# QGISRed_Paletas y Rampas de Colores.xlsx spec: each entry holds the abbreviations
+# of its combined Abbrev column (every language, exact duplicates removed, as
+# spelled there) and the lowercase descriptions; both are case-insensitive matching
+# keys, and the abbreviations, comma separated, also name the colors of the Pipe
+# Materials palette. The spec guarantees that no abbreviation is reused for a
+# different material across languages, so all of them map together. Anything else
+# still gets a random color. Only the shipped default style uses this palette —
+# project and global styles saved from the Legends dialog keep their own colors.
 MATERIAL_PALETTE = (
-    (("ci", "fg", "ff"), ("cast iron", "fundición gris", "fonte grise", "ferro fundido cinzento"), "#d0d0d0"),
-    (("di", "fd", "ffd"), ("ductile iron", "fundición dúctil", "fonte ductile", "ferro fundido dúctil"), "#c6c5ba"),
-    (("st", "ace", "aci"), ("steel", "acero", "acier", "aço"), "#a6a6a6"),
-    (("sst", "inox"), ("stainless steel", "acero inoxidable", "acier inoxydable", "aço inoxidável"), "#9898b4"),
-    (("ac", "fc"), ("asbestos cement", "fibrocemento", "amiante-ciment", "fibrocimento"), "#fff90f"),
-    (("gi", "agal", "ag", "fgal"), ("galvanized iron", "acero galvanizado", "acier galvanisé", "ferro galvanizado"), "#b5c8e9"),
-    (("cwsmj", "hccc", "bat", "ccca"), ("concrete with sheet metal jacket", "hormigón con camisa de chapa",
+    (("CI", "FG", "FF"), ("cast iron", "fundición gris", "fonte grise", "ferro fundido cinzento"), "#d0d0d0"),
+    (("DI", "FD", "FFD"), ("ductile iron", "fundición dúctil", "fonte ductile", "ferro fundido dúctil"), "#c6c5ba"),
+    (("ST", "ACE", "ACI", "AÇO"), ("steel", "acero", "acier"), "#a6a6a6"),
+    (("SST", "INOX"), ("stainless steel", "acero inoxidable", "acier inoxydable", "aço inoxidável"), "#9898b4"),
+    (("AC", "FC"), ("asbestos cement", "fibrocemento", "amiante-ciment", "fibrocimento"), "#fff90f"),
+    (("GI", "Agal", "AG", "Fgal"), ("galvanized iron", "acero galvanizado", "acier galvanisé", "ferro galvanizado"), "#b5c8e9"),
+    (("CWSMJ", "HCCC", "BAT", "CCCA"), ("concrete with sheet metal jacket", "hormigón con camisa de chapa",
       "béton à âme en tôle", "concreto com cilindro de aço"), "#ffc000"),
-    (("cwosmj", "hscc", "bsat", "csca"), ("concrete without sheet metal jacket", "hormigón sin camisa de chapa",
+    (("CWOSMJ", "HSCC", "BSAT", "CSCA"), ("concrete without sheet metal jacket", "hormigón sin camisa de chapa",
       "béton sans âme en tôle", "concreto sem cilindro de aço"), "#ffd54f"),
-    (("rfc", "har", "ba", "ca"), ("reinforced concrete pipe", "hormigón armado", "béton armé", "concreto armado"), "#cece2c"),
-    (("pc", "hpr", "bp", "cp"), ("prestessed concrete", "hormigón pretensado", "béton précontraint", "concreto protendido"), "#aba824"),
-    (("l", "pb"), ("lead", "plomo", "plomb", "chumbo"), "#ff0000"),
-    (("pvc",), ("polyvinyl chloride", "policloruro de vinilo", "polychlorure de vinyle", "policloreto de vinila"), "#94dcf8"),
-    (("pe",), ("polyethylene", "polietileno", "polyéthylène"), "#a86ed4"),
-    (("pvc-o",), ("orientated pvc", "pvc orientado", "pvc orienté"), "#52c6f4"),
-    (("pvc-unp", "pvc-r", "pvc-u"), ("unplasticized pvc", "pvc rígido", "pvc non plastifié", "pvc não plastificado"), "#73a3f1"),
-    (("cu",), ("cooper", "cobre", "cuivre"), "#83e28e"),
-    (("hdpe", "pe-ad", "pehd", "pead"), ("hight density polyethylene", "polietileno alta densidad",
+    (("RFC", "HAr", "BA", "CA"), ("reinforced concrete pipe", "hormigón armado", "béton armé", "concreto armado"), "#cece2c"),
+    (("PC", "HPr", "BP", "CP"), ("prestessed concrete", "hormigón pretensado", "béton précontraint", "concreto protendido"), "#aba824"),
+    (("L", "Pb", "PB"), ("lead", "plomo", "plomb", "chumbo"), "#ff0000"),
+    (("PVC",), ("polyvinyl chloride", "policloruro de vinilo", "polychlorure de vinyle", "policloreto de vinila"), "#94dcf8"),
+    (("PE",), ("polyethylene", "polietileno", "polyéthylène"), "#a86ed4"),
+    (("PVC-O",), ("orientated pvc", "pvc orientado", "pvc orienté"), "#52c6f4"),
+    (("PVC-UNP", "PVC-R", "PVC-U"), ("unplasticized pvc", "pvc rígido", "pvc non plastifié", "pvc não plastificado"), "#73a3f1"),
+    (("CU", "Cu"), ("cooper", "cobre", "cuivre"), "#83e28e"),
+    (("HDPE", "PE-AD", "PEHD", "PEAD"), ("hight density polyethylene", "polietileno alta densidad",
       "polyéthylène haute densité", "polietileno de alta densidade"), "#a83bb3"),
-    (("ldpe", "pe-bd", "pebd"), ("low density polyethylene", "polietileno baja densidad",
+    (("LDPE", "PE-BD", "PEBD"), ("low density polyethylene", "polietileno baja densidad",
       "polyéthylène basse densité", "polietileno de baixa densidade"), "#d697dd"),
-    (("mdpe", "pe-md", "pemd"), ("medium density polyethylene", "polietileno media densidad",
+    (("MDPE", "PE-MD", "PEMD"), ("medium density polyethylene", "polietileno media densidad",
       "polyéthylène moyenne densité", "polietileno de média densidade"), "#c76ed0"),
-    (("frp", "prfv"), ("fiberglass reinforced polyester", "poliester reforzado con fibra de vidrio",
+    (("FRP", "PRFV"), ("fiberglass reinforced polyester", "poliester reforzado con fibra de vidrio",
       "polyester renforcé de fibre de verre", "poliéster reforçado com fibra de vidro"), "#bfadbd"),
-    (("#na",), ("not available", "no disponible", "non disponible", "não disponível"), "#e8e8e8"),
+    (("NULL",), ("#na", "not available", "no disponible", "non disponible", "não disponível"), "#e8e8e8"),
 )
 
 # Gradient ramps for the Legends dialog "Ramp" color mode, as (name, stops) with
@@ -75,8 +77,7 @@ PRESET_PALETTES = (
     ("QGISRed Pipe Roughness", ("#b72dcc", "#446ee7", "#2dcae5", "#7cd76c", "#f6cb5e", "#fc3a54"), None),
     ("QGISRed Pipe Materials",
      tuple(color for _, _, color in MATERIAL_PALETTE),
-     tuple(" / ".join(abbreviation.upper() for abbreviation in abbreviations)
-           for abbreviations, _, _ in MATERIAL_PALETTE)),
+     tuple(", ".join(abbreviations) for abbreviations, _, _ in MATERIAL_PALETTE)),
     ("QGISRed Qualitative 10", ("#e41a1c", "#377eb8", "#4daf4a", "#984ea3", "#ff7f00",
                                 "#a65628", "#f781bf", "#999999", "#66c2a5", "#ffd92f"), None),
 )
@@ -111,27 +112,28 @@ def presetRampXml(name, colors, labels=None):
 
 
 def materialColorRows():
-    rows = []
+    rows = {}
     for abbreviations, descriptions, color in MATERIAL_PALETTE:
         for name in abbreviations + descriptions:
-            rows.append((name, color))
-    return rows
+            rows[name.lower()] = color
+    return list(rows.items())
 
 
 def buildDatabase():
     if not os.path.exists(DATABASE_PATH):
         raise SystemExit("Style database not found: %s (its QGIS style schema ships in git)" % DATABASE_PATH)
     connection = sqlite3.connect(DATABASE_PATH)
-    connection.execute("DROP TABLE IF EXISTS themeColors")
     connection.execute("DROP TABLE IF EXISTS materialColors")
     connection.execute("CREATE TABLE materialColors (label TEXT PRIMARY KEY, color TEXT NOT NULL)")
     connection.executemany("INSERT INTO materialColors (label, color) VALUES (?, ?)", materialColorRows())
     for table in ("symbol", "colorramp", "tag", "tagmap", "ctagmap"):
         connection.execute("DELETE FROM %s" % table)
-    tagId = connection.execute("INSERT INTO tag (name) VALUES ('QGISRed')").lastrowid
-    ramps = [(name, gradientRampXml(name, stops)) for name, stops in GRADIENT_RAMPS]
-    ramps += [(name, presetRampXml(name, colors, labels)) for name, colors, labels in PRESET_PALETTES]
-    for name, xml in ramps:
+    rampsTagId = connection.execute("INSERT INTO tag (name) VALUES ('Ramps')").lastrowid
+    palettesTagId = connection.execute("INSERT INTO tag (name) VALUES ('Palettes')").lastrowid
+    ramps = [(name, gradientRampXml(name, stops), rampsTagId) for name, stops in GRADIENT_RAMPS]
+    ramps += [(name, presetRampXml(name, colors, labels), palettesTagId)
+              for name, colors, labels in PRESET_PALETTES]
+    for name, xml, tagId in ramps:
         rampId = connection.execute("INSERT INTO colorramp (name, xml, favorite) VALUES (?, ?, 0)", (name, xml)).lastrowid
         connection.execute("INSERT INTO ctagmap (tag_id, colorramp_id) VALUES (?, ?)", (tagId, rampId))
     connection.commit()

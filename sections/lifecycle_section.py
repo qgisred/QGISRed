@@ -252,8 +252,6 @@ class LifecycleSection:
         # QgsMessageLog.logMessage("Culture set to " + definedCulture, "QGISRed", level=0)
 
         with suppress(Exception):
-            QGISRedStylingUtils.syncColorRampsToDefaultStyle()
-        with suppress(Exception):
             QGISRedStylingUtils.registerStyleDatabaseInProject()
         # Opening or clearing a project resets the project style settings, so the
         # shipped style database has to be registered again on both events.

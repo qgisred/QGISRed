@@ -452,7 +452,7 @@ class QGISRedStylingUtils:
 
         ramp = None
         if source == "ramp" and rampName:
-            ramp = QgsStyle.defaultStyle().colorRamp(rampName)
+            ramp = self.findColorRamp(rampName)
             if ramp is None:
                 QgsMessageLog.logMessage(
                     self.tr("Color ramp '%1' not found; falling back to random colors")
@@ -495,7 +495,7 @@ class QGISRedStylingUtils:
 
         ramp = None
         if source == "ramp" and rampName:
-            ramp = QgsStyle.defaultStyle().colorRamp(rampName)
+            ramp = self.findColorRamp(rampName)
             if ramp is None:
                 QgsMessageLog.logMessage(
                     self.tr("Color ramp '%1' not found; falling back to random colors")
@@ -529,7 +529,7 @@ class QGISRedStylingUtils:
         invertRamp = colorsBlock.get("invertRamp", False)
         if not rampName:
             return
-        ramp = QgsStyle.defaultStyle().colorRamp(rampName)
+        ramp = self.findColorRamp(rampName)
         if ramp is None:
             QgsMessageLog.logMessage(
                 self.tr("Color ramp '%1' not found; colors strategy skipped")
@@ -922,25 +922,16 @@ class QGISRedStylingUtils:
         return None
 
     @staticmethod
-    def syncColorRampsToDefaultStyle():
-        # Registers the shipped ramps in the user default style so saved legend
-        # strategies resolve their rampName and the Style Manager shows them.
-        databasePath = QGISRedStylingUtils.styleDatabasePath()
-        if not os.path.exists(databasePath):
-            return
+    def findColorRamp(rampName):
+        # Saved legend strategies name a ramp of the shipped database; the user
+        # default style is only a fallback and is never written to.
         pluginStyle = QgsStyle()
-        if not pluginStyle.load(databasePath):
-            return
-        defaultStyle = QgsStyle.defaultStyle()
-        existingNames = defaultStyle.colorRampNames()
-        for rampName in pluginStyle.colorRampNames():
-            if rampName in existingNames:
-                continue
+        databasePath = QGISRedStylingUtils.styleDatabasePath()
+        if os.path.exists(databasePath) and pluginStyle.load(databasePath):
             ramp = pluginStyle.colorRamp(rampName)
-            if ramp is None:
-                continue
-            defaultStyle.addColorRamp(rampName, ramp, True)
-            defaultStyle.tagSymbol(QgsStyle.StyleEntity.ColorrampEntity, rampName, ["QGISRed"])
+            if ramp is not None:
+                return ramp
+        return QgsStyle.defaultStyle().colorRamp(rampName)
 
     @staticmethod
     def registerStyleDatabaseInProject():
