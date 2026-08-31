@@ -36,7 +36,7 @@ LAYER_ID_TO_FIELD = {
     'qgisred_query_pipes_roughness':                 ('Pipes', 'RoughCoeff'),
     'qgisred_query_pipes_losscoeff':                 ('Pipes', 'LossCoeff'),
     'qgisred_query_pipes_material':                  ('Pipes', 'Material'),
-    'qgisred_query_pipes_installdate':               ('Pipes', 'InstalDate'),
+    'qgisred_query_pipes_installyear':               ('Pipes', 'InstalDate'),
     'qgisred_query_pipes_age':                       ('Pipes', 'Age'),
     'qgisred_query_pipes_initstatus':                ('Pipes', 'IniStatus'),
     'qgisred_query_pipes_bulkcoeff':                 ('Pipes', 'BulkCoeff'),

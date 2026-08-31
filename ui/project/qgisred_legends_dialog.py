@@ -4897,7 +4897,7 @@ class QGISRedLegendsDialog(QDialog, formClass):
 
     def getThematicQueryStyleName(self, identifier):
         """Basename of the qml the thematic maps dialog resolves for this theme, or None."""
-        if identifier == "qgisred_query_pipes_installdate":
+        if identifier == "qgisred_query_pipes_installyear":
             return "PipeInstallationYears"
         if identifier == "qgisred_query_pipes_age":
             return "PipeAges"

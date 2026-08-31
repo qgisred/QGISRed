@@ -71,7 +71,7 @@ class QGISRedLayerUtils:
     _CATEGORIZED_LAYER_IDS = {
         'qgisred_query_pipes_length',
         'qgisred_query_pipes_diameter',
-        'qgisred_query_pipes_installdate',
+        'qgisred_query_pipes_installyear',
         'qgisred_query_pipes_age',
         'qgisred_query_pipes_roughness',
     }

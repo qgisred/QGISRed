@@ -174,7 +174,7 @@ class TestStyleNameForIdentifier:
         assert _dialog().getStyleNameForIdentifier("qgisred_query_pipes_material") is None
 
     def test_classifiable_thematic_maps_map_to_their_theme_qml(self):
-        assert _dialog().getStyleNameForIdentifier("qgisred_query_pipes_installdate") == "PipeInstallationYears"
+        assert _dialog().getStyleNameForIdentifier("qgisred_query_pipes_installyear") == "PipeInstallationYears"
         assert _dialog().getStyleNameForIdentifier("qgisred_query_pipes_age") == "PipeAges"
 
     def test_a_layer_outside_the_plugin_has_no_derived_name(self):

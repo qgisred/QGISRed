@@ -303,10 +303,10 @@ class QGISRedThematicMapsDialog(QDialog, FORM_CLASS):
         hideField = field
         if layerType == 'valves' and field == 'Type' and derivedLayer.fields().indexFromName('ValveType') >= 0:
             hideField = 'ValveType'
-        # Same split for the installation-year map: 'InstallDate' is only the query's
+        # Same split for the installation-year map: 'InstallYear' is only the query's
         # identifier value, while the classified column is the virtual InstYear field
         # the style file adds on top of the raw InstalDate column.
-        if layerType == 'pipes' and field == 'InstallDate' and derivedLayer.fields().indexFromName('InstYear') >= 0:
+        if layerType == 'pipes' and field == 'InstallYear' and derivedLayer.fields().indexFromName('InstYear') >= 0:
             hideField = 'InstYear'
         # Same split for roughness: 'Roughness' is the query's identifier value,
         # while the classified column on the layer is 'RoughCoeff'.
@@ -316,7 +316,7 @@ class QGISRedThematicMapsDialog(QDialog, FORM_CLASS):
         # both virtual fields (InstYear and Age). A style copied to the project or
         # global folder may predate one of them, so add whichever is missing before
         # deciding which columns stay visible.
-        if layerType == 'pipes' and field in ('InstallDate', 'Age'):
+        if layerType == 'pipes' and field in ('InstallYear', 'Age'):
             if derivedLayer.fields().indexFromName('InstalDate') >= 0:
                 expressions = {
                     'InstYear': 'to_int( left( "InstalDate" ,4))',
@@ -733,7 +733,7 @@ class QGISRedThematicMapsDialog(QDialog, FORM_CLASS):
             'qgisred_query_pipes_age': self.cbPipesAge,
             'qgisred_query_pipes_losscoeff': self.cbPipesLossCoeff,
             'qgisred_query_pipes_initstatus': self.cbPipesInitStatus,
-            'qgisred_query_pipes_installdate': self.cbPipesInstallationDate,
+            'qgisred_query_pipes_installyear': self.cbPipesInstallationDate,
             'qgisred_query_pipes_bulkcoeff': self.cbPipesBulkCoeff,
             'qgisred_query_pipes_wallcoeff': self.cbPipesWallCoeff,
             'qgisred_query_pipes_tag': self.cbPipesTag
@@ -1221,9 +1221,9 @@ class QGISRedThematicMapsDialog(QDialog, FORM_CLASS):
             queries.append({
                 'layer_name': 'Pipe Installation Year',
                 'layer_type': 'Pipes',
-                'field': 'InstallDate',
+                'field': 'InstallYear',
                 'qml_file': 'PipeInstallationYears.qml',
-                'file_name': 'install_date',
+                'file_name': 'install_year',
                 'tooltip_prefix': 'Inst'
             })
 
