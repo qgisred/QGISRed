@@ -70,7 +70,10 @@ class QGISRedProjectManagementMixin:
         return _to_string(b)
 
     @staticmethod
-    def ImportFromShps(projectFolder, networkName, tempFolder, shapes, fields, epsg, tolerance, scLength):
+    def ImportFromShps(
+        projectFolder, networkName, tempFolder, shapes, fields, epsg, tolerance, scLength,
+        scMaxDiameter="", scPipeIds=""
+    ):
         projectFolder = _encode(projectFolder)
         networkName = _encode(networkName)
         tempFolder = _encode(tempFolder)
@@ -79,11 +82,18 @@ class QGISRedProjectManagementMixin:
         epsg = _encode(epsg)
         tolerance = _encode(tolerance)
         scLength = _encode(scLength)
+        scMaxDiameter = _encode(scMaxDiameter)
+        scPipeIds = _encode(scPipeIds)
 
         mydll = _load_dll()
-        mydll.ImportFromShps.argtypes = (c_char_p, c_char_p, c_char_p, c_char_p, c_char_p, c_char_p, c_char_p, c_char_p)
+        mydll.ImportFromShps.argtypes = (
+            c_char_p, c_char_p, c_char_p, c_char_p, c_char_p, c_char_p, c_char_p, c_char_p, c_char_p, c_char_p
+        )
         mydll.ImportFromShps.restype = c_char_p
-        b = mydll.ImportFromShps(projectFolder, networkName, tempFolder, shapes, fields, epsg, tolerance, scLength)
+        b = mydll.ImportFromShps(
+            projectFolder, networkName, tempFolder, shapes, fields, epsg, tolerance, scLength,
+            scMaxDiameter, scPipeIds
+        )
         return _to_string(b)
 
     @staticmethod

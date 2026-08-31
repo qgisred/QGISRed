@@ -15,9 +15,12 @@ from ...tools.utils.qgisred_project_export import (
 )
 from ...tools.utils.qgisred_identifier_utils import QGISRedIdentifierUtils
 from ...tools.utils.qgisred_ui_utils import QGISRedBanner, QGISRedUIUtils
+from ...tools.utils.qgisred_field_utils import QGISRedFieldUtils
 from ...tools.qgisred_dependencies import QGISRedDependencies as GISRed
 import os
 
+
+_AMERICAN_FLOW_UNITS = ("CFS", "GPM", "MGD", "IMGD", "AFD")
 
 FORM_CLASS, _ = uic.loadUiType(os.path.join(os.path.dirname(__file__), "qgisred_import_dialog.ui"))
 
@@ -39,6 +42,9 @@ class QGISRedImportDialog(QDialog, FORM_CLASS):
         """Constructor."""
         super(QGISRedImportDialog, self).__init__(parent)
         self.setupUi(self)
+        # Etiqueta del elemento "sin capa". Se compara por texto en createShpsNames/createShpFields,
+        # asi que tiene que ser exactamente la misma cadena que se mete en los desplegables.
+        self.noneLabel = self.tr("None")
         gplFolder = QGISRedFileSystemUtils().getQGISRedFolder()
         os.makedirs(gplFolder, exist_ok=True)
         self.gplFile = os.path.join(gplFolder, "qgisredprojectlist.gpl")
@@ -59,6 +65,8 @@ class QGISRedImportDialog(QDialog, FORM_CLASS):
         self.cbIsolationValveLayer.currentIndexChanged.connect(self.isolationValveLayerChanged)
         self.cbMeterLayer.currentIndexChanged.connect(self.meterLayerChanged)
         self.cbMeterType.currentIndexChanged.connect(self.meterTypeChanged)
+        self.chkScMaxDiameter.toggled.connect(self.scMaxDiameterToggled)
+        self.chkScSelectedPipes.toggled.connect(self.scSelectedPipesToggled)
         self.btImportShps.clicked.connect(self.importShpProject)
         self._loadMaterials()
         # QGISRed project
@@ -105,6 +113,14 @@ class QGISRedImportDialog(QDialog, FORM_CLASS):
         self.tbScLength.setText(str(5))
         self.isPunctualConnection = False
         self.tbScLength.setEnabled(self.isPunctualConnection)
+        self.lbUnits_2.setText(self._lengthUnitAbbreviation())
+
+        self.tbScMaxDiameter.setText(str(0))
+        self.lbScDiameterUnits.setText(self._diameterUnitAbbreviation())
+        self.chkScMaxDiameter.setChecked(False)
+        self.chkScSelectedPipes.setChecked(False)
+        self.selectedPipeIds = self._getSelectedPipeIds()
+        self.updateServiceConnectionRestrictions()
 
         if not self.NewProject:
             self._addDataMode = True
@@ -314,23 +330,23 @@ class QGISRedImportDialog(QDialog, FORM_CLASS):
 
         dirList = os.listdir(selected_directory)
         self.cbPipeLayer.clear()
-        self.cbPipeLayer.addItem(self.tr("None"))
+        self.cbPipeLayer.addItem(self.noneLabel)
         self.cbValveLayer.clear()
-        self.cbValveLayer.addItem("None")
+        self.cbValveLayer.addItem(self.noneLabel)
         self.cbPumpLayer.clear()
-        self.cbPumpLayer.addItem("None")
+        self.cbPumpLayer.addItem(self.noneLabel)
         self.cbTankLayer.clear()
-        self.cbTankLayer.addItem("None")
+        self.cbTankLayer.addItem(self.noneLabel)
         self.cbReservoirLayer.clear()
-        self.cbReservoirLayer.addItem("None")
+        self.cbReservoirLayer.addItem(self.noneLabel)
         self.cbJunctionLayer.clear()
-        self.cbJunctionLayer.addItem("None")
+        self.cbJunctionLayer.addItem(self.noneLabel)
         self.cbServiceConnectionLayer.clear()
-        self.cbServiceConnectionLayer.addItem("None")
+        self.cbServiceConnectionLayer.addItem(self.noneLabel)
         self.cbIsolationValveLayer.clear()
-        self.cbIsolationValveLayer.addItem("None")
+        self.cbIsolationValveLayer.addItem(self.noneLabel)
         self.cbMeterLayer.clear()
-        self.cbMeterLayer.addItem("None")
+        self.cbMeterLayer.addItem(self.noneLabel)
 
         self.layerGeometryType = {}
         for file in dirList:
@@ -384,7 +400,7 @@ class QGISRedImportDialog(QDialog, FORM_CLASS):
         self.cbPipe_Wall.clear()
         self.cbPipe_Tag.clear()
         self.cbPipe_Descr.clear()
-        if newItem == "None":
+        if newItem == self.noneLabel:
             self.gbPipes.setEnabled(False)
             return
 
@@ -395,7 +411,7 @@ class QGISRedImportDialog(QDialog, FORM_CLASS):
         if not vlayer.isValid():
             return
         field_names = [field.name() for field in vlayer.fields()]
-        field_names.insert(0, "None")
+        field_names.insert(0, self.noneLabel)
         self.cbPipe_Id.addItems(field_names)
         self.cbPipe_Length.addItems(field_names)
         self.cbPipe_Diameter.addItems(field_names)
@@ -431,7 +447,7 @@ class QGISRedImportDialog(QDialog, FORM_CLASS):
         self.cbValve_Orient.clear()
         self.cbValve_Tag.clear()
         self.cbValve_Descr.clear()
-        if newItem == "None":
+        if newItem == self.noneLabel:
             self.gbValves.setEnabled(False)
             return
 
@@ -442,7 +458,7 @@ class QGISRedImportDialog(QDialog, FORM_CLASS):
         if not vlayer.isValid():
             return
         field_names = [field.name() for field in vlayer.fields()]
-        field_names.insert(0, "None")
+        field_names.insert(0, self.noneLabel)
         self.cbValve_Id.addItems(field_names)
         self.cbValve_Diameter.addItems(field_names)
         self.cbValve_Type.addItems(field_names)
@@ -469,7 +485,7 @@ class QGISRedImportDialog(QDialog, FORM_CLASS):
         self.cbPump_Orient.clear()
         self.cbPump_Tag.clear()
         self.cbPump_Descr.clear()
-        if newItem == "None":
+        if newItem == self.noneLabel:
             self.gbPumps.setEnabled(False)
             return
 
@@ -480,7 +496,7 @@ class QGISRedImportDialog(QDialog, FORM_CLASS):
         if not vlayer.isValid():
             return
         field_names = [field.name() for field in vlayer.fields()]
-        field_names.insert(0, "None")
+        field_names.insert(0, self.noneLabel)
         self.cbPump_Id.addItems(field_names)
         self.cbPump_Power.addItems(field_names)
         self.cbPump_PumpCurve.addItems(field_names)
@@ -513,7 +529,7 @@ class QGISRedImportDialog(QDialog, FORM_CLASS):
         self.cbTank_MixFraction.clear()
         self.cbTank_Tag.clear()
         self.cbTank_Descr.clear()
-        if newItem == "None":
+        if newItem == self.noneLabel:
             self.gbTanks.setEnabled(False)
             return
 
@@ -524,7 +540,7 @@ class QGISRedImportDialog(QDialog, FORM_CLASS):
         if not vlayer.isValid():
             return
         field_names = [field.name() for field in vlayer.fields()]
-        field_names.insert(0, "None")
+        field_names.insert(0, self.noneLabel)
         self.cbTank_Id.addItems(field_names)
         self.cbTank_Elevat.addItems(field_names)
         self.cbTank_MinLevel.addItems(field_names)
@@ -558,7 +574,7 @@ class QGISRedImportDialog(QDialog, FORM_CLASS):
         self.cbReservoir_HeadPatt.clear()
         self.cbReservoir_Tag.clear()
         self.cbReservoir_Descr.clear()
-        if newItem == "None":
+        if newItem == self.noneLabel:
             self.gbReservoirs.setEnabled(False)
             return
 
@@ -569,7 +585,7 @@ class QGISRedImportDialog(QDialog, FORM_CLASS):
         if not vlayer.isValid():
             return
         field_names = [field.name() for field in vlayer.fields()]
-        field_names.insert(0, "None")
+        field_names.insert(0, self.noneLabel)
         self.cbReservoir_Id.addItems(field_names)
         self.cbReservoir_TotHead.addItems(field_names)
         self.cbReservoir_HeadPatt.addItems(field_names)
@@ -590,7 +606,7 @@ class QGISRedImportDialog(QDialog, FORM_CLASS):
         self.cbJunction_Pattern.clear()
         self.cbJunction_Tag.clear()
         self.cbJunction_Descr.clear()
-        if newItem == "None":
+        if newItem == self.noneLabel:
             self.gbJunctions.setEnabled(False)
             return
 
@@ -601,7 +617,7 @@ class QGISRedImportDialog(QDialog, FORM_CLASS):
         if not vlayer.isValid():
             return
         field_names = [field.name() for field in vlayer.fields()]
-        field_names.insert(0, "None")
+        field_names.insert(0, self.noneLabel)
         self.cbJunction_Id.addItems(field_names)
         self.cbJunction_Elevation.addItems(field_names)
         self.cbJunction_BaseDem.addItems(field_names)
@@ -615,6 +631,48 @@ class QGISRedImportDialog(QDialog, FORM_CLASS):
         self.selectComboBoxItem(self.cbJunction_Pattern, ["dempattid", "pattern", "idpattdem"])
         self.selectComboBoxItem(self.cbJunction_Tag, ["tag"])
         self.selectComboBoxItem(self.cbJunction_Descr, ["descrip", "descr", "description", "descripcion", "descripción"])
+
+    def _serviceConnectionUnitAbbreviation(self, fieldName, siAbbr, usAbbr):
+        # En un proyecto nuevo todavia no hay unidades escritas en el QgsProject: se deducen del
+        # caudal elegido en el propio dialogo.
+        if self.NewProject:
+            return usAbbr if self.cbUnits.currentText() in _AMERICAN_FLOW_UNITS else siAbbr
+        return QGISRedFieldUtils().getUnitAbbreviation("Service Connection", fieldName) or siAbbr
+
+    def _diameterUnitAbbreviation(self):
+        return self._serviceConnectionUnitAbbreviation("Diameter", "mm", "in")
+
+    def _lengthUnitAbbreviation(self):
+        return self._serviceConnectionUnitAbbreviation("Length", "m", "ft")
+
+    def _getSelectedPipeIds(self):
+        if self.NewProject:
+            return []
+        if self.parent.getSelectedFeaturesIds() is False:
+            return []
+        return self.parent.selectedIds.get("Pipes", [])
+
+    def updateServiceConnectionRestrictions(self):
+        hasSelection = len(self.selectedPipeIds) > 0
+        self.chkScMaxDiameter.setEnabled(self.isPunctualConnection)
+        self.chkScSelectedPipes.setEnabled(self.isPunctualConnection and hasSelection)
+        self.tbScMaxDiameter.setEnabled(self.isPunctualConnection and self.chkScMaxDiameter.isChecked())
+
+        if not self.chkScMaxDiameter.isEnabled():
+            self.chkScMaxDiameter.setChecked(False)
+        if not self.chkScSelectedPipes.isEnabled():
+            self.chkScSelectedPipes.setChecked(False)
+
+        if self.isPunctualConnection and hasSelection:
+            self.lbScSelectedPipes.setText(self.tr("{} selected").format(len(self.selectedPipeIds)))
+        else:
+            self.lbScSelectedPipes.setText("")
+
+    def scMaxDiameterToggled(self):
+        self.updateServiceConnectionRestrictions()
+
+    def scSelectedPipesToggled(self):
+        self.updateServiceConnectionRestrictions()
 
     def serviceConnectionLayerChanged(self):
         newItem = self.cbServiceConnectionLayer.currentText()
@@ -630,20 +688,23 @@ class QGISRedImportDialog(QDialog, FORM_CLASS):
         self.cbServiceConnection_Tag.clear()
         self.cbServiceConnection_Descr.clear()
 
-        if newItem == "None" or newItem == "":
+        if newItem == self.noneLabel or newItem == "":
             self.gbServiceConnection.setEnabled(False)
+            self.isPunctualConnection = False
+            self.updateServiceConnectionRestrictions()
             return
 
         self.gbServiceConnection.setEnabled(True)
         self.isPunctualConnection = self.layerGeometryType[newItem] == "Point"
         self.tbScLength.setEnabled(self.isPunctualConnection)
+        self.updateServiceConnectionRestrictions()
 
         valveLayer = os.path.join(self.tbShpDirectory.text(), newItem + ".shp")
         vlayer = QgsVectorLayer(valveLayer, "SC layer", "ogr")
         if not vlayer.isValid():
             return
         field_names = [field.name() for field in vlayer.fields()]
-        field_names.insert(0, "None")
+        field_names.insert(0, self.noneLabel)
         self.cbServiceConnection_Id.addItems(field_names)
         self.cbServiceConnection_Length.addItems(field_names)
         self.cbServiceConnection_Diameter.addItems(field_names)
@@ -679,7 +740,7 @@ class QGISRedImportDialog(QDialog, FORM_CLASS):
         self.cbIsolationValve_Tag.clear()
         self.cbIsolationValve_Descr.clear()
 
-        if newItem == "None":
+        if newItem == self.noneLabel:
             self.gbIsolationValve.setEnabled(False)
             return
 
@@ -690,7 +751,7 @@ class QGISRedImportDialog(QDialog, FORM_CLASS):
         if not vlayer.isValid():
             return
         field_names = [field.name() for field in vlayer.fields()]
-        field_names.insert(0, "None")
+        field_names.insert(0, self.noneLabel)
         self.cbIsolationValve_Id.addItems(field_names)
         self.cbIsolationValve_Diameter.addItems(field_names)
         self.cbIsolationValve_LossCoeff.addItems(field_names)
@@ -719,7 +780,7 @@ class QGISRedImportDialog(QDialog, FORM_CLASS):
         self.cbMeter_Tag.clear()
         self.cbMeter_Descr.clear()
 
-        if newItem == "None":
+        if newItem == self.noneLabel:
             self.gbMeter.setEnabled(False)
             return
 
@@ -730,7 +791,7 @@ class QGISRedImportDialog(QDialog, FORM_CLASS):
         if not vlayer.isValid():
             return
         field_names = [field.name() for field in vlayer.fields()]
-        field_names.insert(0, "None")
+        field_names.insert(0, self.noneLabel)
         self.cbMeter_Id.addItems(field_names)
         self.cbMeter_Type.addItems(field_names)
         self.cbMeter_Active.addItems(field_names)
@@ -762,31 +823,31 @@ class QGISRedImportDialog(QDialog, FORM_CLASS):
         shpNames = ""
 
         name = self.cbPipeLayer.currentText()
-        if not name == "None":
+        if not name == self.noneLabel:
             shpNames = shpNames + "[PIPES]" + os.path.join(shpFolder, name) + ","
         name = self.cbValveLayer.currentText()
-        if not name == "None":
+        if not name == self.noneLabel:
             shpNames = shpNames + "[VALVES]" + os.path.join(shpFolder, name) + ","
         name = self.cbPumpLayer.currentText()
-        if not name == "None":
+        if not name == self.noneLabel:
             shpNames = shpNames + "[PUMPS]" + os.path.join(shpFolder, name) + ","
         name = self.cbTankLayer.currentText()
-        if not name == "None":
+        if not name == self.noneLabel:
             shpNames = shpNames + "[TANKS]" + os.path.join(shpFolder, name) + ","
         name = self.cbReservoirLayer.currentText()
-        if not name == "None":
+        if not name == self.noneLabel:
             shpNames = shpNames + "[RESERVOIRS]" + os.path.join(shpFolder, name) + ","
         name = self.cbJunctionLayer.currentText()
-        if not name == "None":
+        if not name == self.noneLabel:
             shpNames = shpNames + "[JUNCTIONS]" + os.path.join(shpFolder, name) + ","
         name = self.cbServiceConnectionLayer.currentText()
-        if not name == "None":
+        if not name == self.noneLabel:
             shpNames = shpNames + "[SERVICECONNECTIONS]" + os.path.join(shpFolder, name) + ","
         name = self.cbIsolationValveLayer.currentText()
-        if not name == "None":
+        if not name == self.noneLabel:
             shpNames = shpNames + "[ISOLATIONVALVES]" + os.path.join(shpFolder, name) + ","
         name = self.cbMeterLayer.currentText()
-        if not name == "None":
+        if not name == self.noneLabel:
             shpNames = shpNames + "[METERS]" + os.path.join(shpFolder, name) + ","
         return shpNames
 
@@ -794,376 +855,376 @@ class QGISRedImportDialog(QDialog, FORM_CLASS):
         fields = ""
 
         name = self.cbPipeLayer.currentText()
-        if not name == "None":
+        if not name == self.noneLabel:
             fields = "[PIPES]"
             name = self.cbPipe_Id.currentText()
-            if not name == "None":
+            if not name == self.noneLabel:
                 fields = fields + name
             fields = fields + ";"
             name = self.cbPipe_Length.currentText()
-            if not name == "None":
+            if not name == self.noneLabel:
                 fields = fields + name
             fields = fields + ";"
             name = self.cbPipe_Diameter.currentText()
-            if not name == "None":
+            if not name == self.noneLabel:
                 fields = fields + name
             fields = fields + ";"
             name = self.cbPipe_Roughness.currentText()
-            if not name == "None":
+            if not name == self.noneLabel:
                 fields = fields + name
             fields = fields + ";"
             name = self.cbPipe_Material.currentText()
-            if not name == "None":
+            if not name == self.noneLabel:
                 fields = fields + name
             fields = fields + ";"
             name = self.cbPipe_InstDate.currentText()
-            if not name == "None":
+            if not name == self.noneLabel:
                 fields = fields + name
             fields = fields + ";"
             name = self.cbPipe_LossCoef.currentText()
-            if not name == "None":
+            if not name == self.noneLabel:
                 fields = fields + name
             fields = fields + ";"
             name = self.cbPipe_Status.currentText()
-            if not name == "None":
+            if not name == self.noneLabel:
                 fields = fields + name
             fields = fields + ";"
             name = self.cbPipe_Bulk.currentText()
-            if not name == "None":
+            if not name == self.noneLabel:
                 fields = fields + name
             fields = fields + ";"
             name = self.cbPipe_Wall.currentText()
-            if not name == "None":
+            if not name == self.noneLabel:
                 fields = fields + name
             fields = fields + ";"
             name = self.cbPipe_Tag.currentText()
-            if not name == "None":
+            if not name == self.noneLabel:
                 fields = fields + name
             fields = fields + ";"
             name = self.cbPipe_Descr.currentText()
-            if not name == "None":
+            if not name == self.noneLabel:
                 fields = fields + name
             fields = fields + ";"
 
             fields = fields + ","  # To separate layers
 
         name = self.cbValveLayer.currentText()
-        if not name == "None":
+        if not name == self.noneLabel:
             fields = fields + "[VALVES]"
             name = self.cbValve_Id.currentText()
-            if not name == "None":
+            if not name == self.noneLabel:
                 fields = fields + name
             fields = fields + ";"
             name = self.cbValve_Diameter.currentText()
-            if not name == "None":
+            if not name == self.noneLabel:
                 fields = fields + name
             fields = fields + ";"
             name = self.cbValve_Type.currentText()
-            if not name == "None":
+            if not name == self.noneLabel:
                 fields = fields + name
             fields = fields + ";"
             fields = fields + ";"  # Setting
             fields = fields + ";"  # IdHeadLoss
             fields = fields + ";"  # LossCoef
             name = self.cbValve_InitStat.currentText()
-            if not name == "None":
+            if not name == self.noneLabel:
                 fields = fields + name
             fields = fields + ";"
             name = self.cbValve_Tag.currentText()
-            if not name == "None":
+            if not name == self.noneLabel:
                 fields = fields + name
             fields = fields + ";"
             name = self.cbValve_Descr.currentText()
-            if not name == "None":
+            if not name == self.noneLabel:
                 fields = fields + name
             fields = fields + ";"
             # fields = fields + ";" #Sector
             name = self.cbValve_Orient.currentText()
-            if not name == "None":
+            if not name == self.noneLabel:
                 fields = fields + name
             fields = fields + ";"
 
             fields = fields + ","  # To separate layers
 
         name = self.cbPumpLayer.currentText()
-        if not name == "None":
+        if not name == self.noneLabel:
             fields = fields + "[PUMPS]"
             name = self.cbPump_Id.currentText()
-            if not name == "None":
+            if not name == self.noneLabel:
                 fields = fields + name
             fields = fields + ";"
             name = self.cbPump_PumpCurve.currentText()
-            if not name == "None":
+            if not name == self.noneLabel:
                 fields = fields + name
             fields = fields + ";"  # IdHFCurve
             name = self.cbPump_Power.currentText()
-            if not name == "None":
+            if not name == self.noneLabel:
                 fields = fields + name
             fields = fields + ";"
             fields = fields + ";"  # Speed
             fields = fields + ";"  # IdSpeedPat
             name = self.cbPump_InitStat.currentText()
-            if not name == "None":
+            if not name == self.noneLabel:
                 fields = fields + name
             fields = fields + ";"
             name = self.cbPump_EfficCurve.currentText()
-            if not name == "None":
+            if not name == self.noneLabel:
                 fields = fields + name
             fields = fields + ";"
             fields = fields + ";"  # EnergPrice
             fields = fields + ";"  # IdPricePat
             name = self.cbPump_Tag.currentText()
-            if not name == "None":
+            if not name == self.noneLabel:
                 fields = fields + name
             fields = fields + ";"
             name = self.cbPump_Descr.currentText()
-            if not name == "None":
+            if not name == self.noneLabel:
                 fields = fields + name
             fields = fields + ";"
             # fields = fields + ";" #Sector
             name = self.cbPump_Orient.currentText()
-            if not name == "None":
+            if not name == self.noneLabel:
                 fields = fields + name
             fields = fields + ";"
 
             fields = fields + ","  # To separate layers
 
         name = self.cbTankLayer.currentText()
-        if not name == "None":
+        if not name == self.noneLabel:
             fields = fields + "[TANKS]"
             name = self.cbTank_Id.currentText()
-            if not name == "None":
+            if not name == self.noneLabel:
                 fields = fields + name
             fields = fields + ";"
             name = self.cbTank_Elevat.currentText()
-            if not name == "None":
+            if not name == self.noneLabel:
                 fields = fields + name
             fields = fields + ";"
             name = self.cbTank_InitLevel.currentText()
-            if not name == "None":
+            if not name == self.noneLabel:
                 fields = fields + name
             fields = fields + ";"
             name = self.cbTank_MinLevel.currentText()
-            if not name == "None":
+            if not name == self.noneLabel:
                 fields = fields + name
             fields = fields + ";"
             name = self.cbTank_MaxLevel.currentText()
-            if not name == "None":
+            if not name == self.noneLabel:
                 fields = fields + name
             fields = fields + ";"
             name = self.cbTank_Diameter.currentText()
-            if not name == "None":
+            if not name == self.noneLabel:
                 fields = fields + name
             fields = fields + ";"
             name = self.cbTank_MinVolume.currentText()
-            if not name == "None":
+            if not name == self.noneLabel:
                 fields = fields + name
             fields = fields + ";"
             fields = fields + ";"  # IdVolCur
             name = self.cbTank_MixModel.currentText()
-            if not name == "None":
+            if not name == self.noneLabel:
                 fields = fields + name
             fields = fields + ";"
             name = self.cbTank_MixFraction.currentText()
-            if not name == "None":
+            if not name == self.noneLabel:
                 fields = fields + name
             fields = fields + ";"
             name = self.cbTank_ReactCoeff.currentText()
-            if not name == "None":
+            if not name == self.noneLabel:
                 fields = fields + name
             fields = fields + ";"
             fields = fields + ";"  # InitialQuality
             name = self.cbTank_Tag.currentText()
-            if not name == "None":
+            if not name == self.noneLabel:
                 fields = fields + name
             fields = fields + ";"
             name = self.cbTank_Descr.currentText()
-            if not name == "None":
+            if not name == self.noneLabel:
                 fields = fields + name
             fields = fields + ";"
 
             fields = fields + ","  # To separate layers
 
         name = self.cbReservoirLayer.currentText()
-        if not name == "None":
+        if not name == self.noneLabel:
             fields = fields + "[RESERVOIRS]"
             name = self.cbReservoir_Id.currentText()
-            if not name == "None":
+            if not name == self.noneLabel:
                 fields = fields + name
             fields = fields + ";"
             name = self.cbReservoir_TotHead.currentText()
-            if not name == "None":
+            if not name == self.noneLabel:
                 fields = fields + name
             fields = fields + ";"
             name = self.cbReservoir_HeadPatt.currentText()
-            if not name == "None":
+            if not name == self.noneLabel:
                 fields = fields + name
             fields = fields + ";"
             fields = fields + ";"  # IniQual
             name = self.cbReservoir_Tag.currentText()
-            if not name == "None":
+            if not name == self.noneLabel:
                 fields = fields + name
             fields = fields + ";"
             name = self.cbReservoir_Descr.currentText()
-            if not name == "None":
+            if not name == self.noneLabel:
                 fields = fields + name
             fields = fields + ";"
 
             fields = fields + ","  # To separate layers
 
         name = self.cbJunctionLayer.currentText()
-        if not name == "None":
+        if not name == self.noneLabel:
             fields = fields + "[JUNCTIONS]"
             name = self.cbJunction_Id.currentText()
-            if not name == "None":
+            if not name == self.noneLabel:
                 fields = fields + name
             fields = fields + ";"
             name = self.cbJunction_Elevation.currentText()
-            if not name == "None":
+            if not name == self.noneLabel:
                 fields = fields + name
             fields = fields + ";"
             name = self.cbJunction_BaseDem.currentText()
-            if not name == "None":
+            if not name == self.noneLabel:
                 fields = fields + name
             fields = fields + ";"
             name = self.cbJunction_Pattern.currentText()
-            if not name == "None":
+            if not name == self.noneLabel:
                 fields = fields + name
             fields = fields + ";"  # EmitCoef
             fields = fields + ";"  # IniQual
             name = self.cbJunction_Tag.currentText()
-            if not name == "None":
+            if not name == self.noneLabel:
                 fields = fields + name
             fields = fields + ";"
             name = self.cbJunction_Descr.currentText()
-            if not name == "None":
+            if not name == self.noneLabel:
                 fields = fields + name
             fields = fields + ";"
 
             fields = fields + ","  # To separate layers
 
         name = self.cbServiceConnectionLayer.currentText()
-        if not name == "None":
+        if not name == self.noneLabel:
             fields = fields + "[SERVICECONNECTIONS]"
             name = self.cbServiceConnection_Id.currentText()
-            if not name == "None":
+            if not name == self.noneLabel:
                 fields = fields + name
             fields = fields + ";"
             name = self.cbServiceConnection_Length.currentText()
-            if not name == "None":
+            if not name == self.noneLabel:
                 fields = fields + name
             fields = fields + ";"
             name = self.cbServiceConnection_Diameter.currentText()
-            if not name == "None":
+            if not name == self.noneLabel:
                 fields = fields + name
             fields = fields + ";"
             name = self.cbServiceConnection_Roughness.currentText()
-            if not name == "None":
+            if not name == self.noneLabel:
                 fields = fields + name
             fields = fields + ";"
             name = self.cbServiceConnection_Material.currentText()
-            if not name == "None":
+            if not name == self.noneLabel:
                 fields = fields + name
             fields = fields + ";"
             name = self.cbServiceConnection_IsActive.currentText()
-            if not name == "None":
+            if not name == self.noneLabel:
                 fields = fields + name
             fields = fields + ";"
             name = self.cbServiceConnection_InstDate.currentText()
-            if not name == "None":
+            if not name == self.noneLabel:
                 fields = fields + name
             fields = fields + ";"
             name = self.cbServiceConnection_Tag.currentText()
-            if not name == "None":
+            if not name == self.noneLabel:
                 fields = fields + name
             fields = fields + ";"
             name = self.cbServiceConnection_Descr.currentText()
-            if not name == "None":
+            if not name == self.noneLabel:
                 fields = fields + name
             fields = fields + ";"
             name = self.cbServiceConnection_Demand.currentText()
-            if not name == "None":
+            if not name == self.noneLabel:
                 fields = fields + name
             fields = fields + ";"
             name = self.cbServiceConnection_Pattern.currentText()
-            if not name == "None":
+            if not name == self.noneLabel:
                 fields = fields + name
             fields = fields + ";"
             fields = fields + ";"  # Reliability
             fields = fields + ","  # To separate layers
 
         name = self.cbIsolationValveLayer.currentText()
-        if not name == "None":
+        if not name == self.noneLabel:
             fields = fields + "[ISOLATIONVALVES]"
             name = self.cbIsolationValve_Id.currentText()
-            if not name == "None":
+            if not name == self.noneLabel:
                 fields = fields + name
             fields = fields + ";"
             name = self.cbIsolationValve_Diameter.currentText()
-            if not name == "None":
+            if not name == self.noneLabel:
                 fields = fields + name
             fields = fields + ";"
             name = self.cbIsolationValve_LossCoeff.currentText()
-            if not name == "None":
+            if not name == self.noneLabel:
                 fields = fields + name
             fields = fields + ";"
             name = self.cbIsolationValve_Status.currentText()
-            if not name == "None":
+            if not name == self.noneLabel:
                 fields = fields + name
             fields = fields + ";"
             name = self.cbIsolationValve_Available.currentText()
-            if not name == "None":
+            if not name == self.noneLabel:
                 fields = fields + name
             fields = fields + ";"
             name = self.cbIsolationValve_InstDate.currentText()
-            if not name == "None":
+            if not name == self.noneLabel:
                 fields = fields + name
             fields = fields + ";"
             name = self.cbIsolationValve_Tag.currentText()
-            if not name == "None":
+            if not name == self.noneLabel:
                 fields = fields + name
             fields = fields + ";"
             name = self.cbIsolationValve_Descr.currentText()
-            if not name == "None":
+            if not name == self.noneLabel:
                 fields = fields + name
             fields = fields + ";"
 
             fields = fields + ","  # To separate layers
 
         name = self.cbMeterLayer.currentText()
-        if not name == "None":
+        if not name == self.noneLabel:
             fields = fields + "[METERS]"
             name = self.cbMeter_Id.currentText()
-            if not name == "None":
+            if not name == self.noneLabel:
                 fields = fields + name
             fields = fields + ";"
             index = self.cbMeterType.currentIndex()
             if index == 0:
                 name = self.cbMeter_Type.currentText()
-                if not name == "None":
+                if not name == self.noneLabel:
                     fields = fields + name
             else:
                 name = self.cbMeterType.currentText()
                 fields = fields + "QGISRed" + name.replace(" ", "")
             fields = fields + ";"
             name = self.cbMeter_Active.currentText()
-            if not name == "None":
+            if not name == self.noneLabel:
                 fields = fields + name
             fields = fields + ";"
             name = self.cbMeter_InstDate.currentText()
-            if not name == "None":
+            if not name == self.noneLabel:
                 fields = fields + name
             fields = fields + ";"
             name = self.cbMeter_Tag.currentText()
-            if not name == "None":
+            if not name == self.noneLabel:
                 fields = fields + name
             fields = fields + ";"
             name = self.cbMeter_Descr.currentText()
-            if not name == "None":
+            if not name == self.noneLabel:
                 fields = fields + name
             fields = fields + ";"
             name = self.cbMeter_Orientation.currentText()
-            if not name == "None":
+            if not name == self.noneLabel:
                 fields = fields + name
             fields = fields + ";"
 
@@ -1200,6 +1261,21 @@ class QGISRedImportDialog(QDialog, FORM_CLASS):
                 except Exception:
                     self.pushMessage(self.tr("Validations"), self.tr("Not numeric Service Connection Length"), level=1)
                     return
+            # Max pipe diameter for the service connections
+            scMaxDiameter = "0"
+            if self.isPunctualConnection and self.chkScMaxDiameter.isChecked():
+                scMaxDiameter = self.tbScMaxDiameter.text()
+                try:
+                    t = float(scMaxDiameter)
+                    if t <= 0:
+                        self.pushMessage(self.tr("Validations"), self.tr("Not valid Max Pipe Diameter"), level=1)
+                        return
+                except Exception:
+                    self.pushMessage(self.tr("Validations"), self.tr("Not numeric Max Pipe Diameter"), level=1)
+                    return
+            scPipeIds = ""
+            if self.isPunctualConnection and self.chkScSelectedPipes.isChecked():
+                scPipeIds = ";".join(self.selectedPipeIds)
             # Fields
             fields = self.createShpFields()
             if fields == "":
@@ -1221,7 +1297,8 @@ class QGISRedImportDialog(QDialog, FORM_CLASS):
             # Process
             QApplication.setOverrideCursor(Qt.CursorShape.WaitCursor)
             resMessage = GISRed.ImportFromShps(
-                self.ProjectDirectory, self.NetworkName, self.parent.tempFolder, shapes, fields, epsg, tolerance, scLength
+                self.ProjectDirectory, self.NetworkName, self.parent.tempFolder, shapes, fields, epsg, tolerance,
+                scLength, scMaxDiameter, scPipeIds
             )
             QApplication.restoreOverrideCursor()
             self.parent.ProjectDirectory = self.ProjectDirectory
@@ -1229,15 +1306,15 @@ class QGISRedImportDialog(QDialog, FORM_CLASS):
 
             self.parent.especificComplementaryLayers = []
             sc = self.cbServiceConnectionLayer.currentText()
-            if not sc == "None":
+            if not sc == self.noneLabel:
                 self.parent.especificComplementaryLayers.append("ServiceConnections")
 
             iv = self.cbIsolationValveLayer.currentText()
-            if not iv == "None":
+            if not iv == self.noneLabel:
                 self.parent.especificComplementaryLayers.append("IsolationValves")
 
             me = self.cbMeterLayer.currentText()
-            if not me == "None":
+            if not me == self.noneLabel:
                 self.parent.especificComplementaryLayers.append("Meters")
 
             self.parent.processCsharpResult(resMessage, "")

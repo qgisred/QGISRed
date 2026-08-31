@@ -2783,7 +2783,7 @@
                 <layout class="QGridLayout" name="gridLayout_36">
                  <item row="0" column="0">
                   <layout class="QGridLayout" name="gridLayout_33">
-                   <item row="3" column="0">
+                   <item row="5" column="0">
                     <spacer name="verticalSpacer_9">
                      <property name="orientation">
                       <enum>Qt::Vertical</enum>
@@ -2835,7 +2835,7 @@
                      </item>
                     </layout>
                    </item>
-                   <item row="2" column="0">
+                   <item row="4" column="0">
                     <widget class="QGroupBox" name="gbServiceConnection">
                      <property name="enabled">
                       <bool>false</bool>
@@ -3245,7 +3245,7 @@
                      <item>
                       <widget class="QLabel" name="lbUnits_2">
                        <property name="toolTip">
-                        <string>Length units (meters, degrees) depending on CRS</string>
+                        <string>Length units of the project</string>
                        </property>
                        <property name="frameShape">
                         <enum>QFrame::NoFrame</enum>
@@ -3269,6 +3269,101 @@
                      </item>
                      <item>
                       <spacer name="horizontalSpacer_56">
+                       <property name="orientation">
+                        <enum>Qt::Horizontal</enum>
+                       </property>
+                       <property name="sizeHint" stdset="0">
+                        <size>
+                         <width>70</width>
+                         <height>20</height>
+                        </size>
+                       </property>
+                      </spacer>
+                     </item>
+                    </layout>
+                   </item>
+                   <item row="2" column="0">
+                    <layout class="QHBoxLayout" name="horizontalLayout_scSelectedPipes">
+                     <item>
+                      <widget class="QCheckBox" name="chkScSelectedPipes">
+                       <property name="toolTip">
+                        <string>Only the pipes currently selected in the Pipes layer are candidates to host the service connections</string>
+                       </property>
+                       <property name="text">
+                        <string>Only the selected pipes</string>
+                       </property>
+                      </widget>
+                     </item>
+                     <item>
+                      <widget class="QLabel" name="lbScSelectedPipes">
+                       <property name="font">
+                        <font>
+                         <italic>true</italic>
+                        </font>
+                       </property>
+                       <property name="text">
+                        <string/>
+                       </property>
+                      </widget>
+                     </item>
+                     <item>
+                      <spacer name="horizontalSpacer_scSelectedPipes">
+                       <property name="orientation">
+                        <enum>Qt::Horizontal</enum>
+                       </property>
+                       <property name="sizeHint" stdset="0">
+                        <size>
+                         <width>70</width>
+                         <height>20</height>
+                        </size>
+                       </property>
+                      </spacer>
+                     </item>
+                    </layout>
+                   </item>
+                   <item row="3" column="0">
+                    <layout class="QHBoxLayout" name="horizontalLayout_scMaxDiameter">
+                     <item>
+                      <widget class="QCheckBox" name="chkScMaxDiameter">
+                       <property name="toolTip">
+                        <string>Only pipes with a diameter below this value are candidates to host the service connections</string>
+                       </property>
+                       <property name="text">
+                        <string>Only pipes with diameter below</string>
+                       </property>
+                      </widget>
+                     </item>
+                     <item>
+                      <widget class="QLineEdit" name="tbScMaxDiameter">
+                       <property name="enabled">
+                        <bool>false</bool>
+                       </property>
+                       <property name="maximumSize">
+                        <size>
+                         <width>75</width>
+                         <height>16777215</height>
+                        </size>
+                       </property>
+                       <property name="text">
+                        <string>0</string>
+                       </property>
+                       <property name="alignment">
+                        <set>Qt::AlignRight|Qt::AlignTrailing|Qt::AlignVCenter</set>
+                       </property>
+                      </widget>
+                     </item>
+                     <item>
+                      <widget class="QLabel" name="lbScDiameterUnits">
+                       <property name="toolTip">
+                        <string>Diameter units of the project</string>
+                       </property>
+                       <property name="text">
+                        <string>mm</string>
+                       </property>
+                      </widget>
+                     </item>
+                     <item>
+                      <spacer name="horizontalSpacer_scMaxDiameter">
                        <property name="orientation">
                         <enum>Qt::Horizontal</enum>
                        </property>
