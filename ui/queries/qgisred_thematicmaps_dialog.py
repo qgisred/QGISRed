@@ -327,11 +327,11 @@ class QGISRedThematicMapsDialog(QDialog, FORM_CLASS):
                         derivedLayer.addExpressionField(expression, QgsField(name, FIELD_TYPE_INT))
             hideField = [name for name in ('InstalDate', 'InstYear', 'Age')
                          if derivedLayer.fields().indexFromName(name) >= 0] or hideField
-        # Same split for the base demand map: 'BaseDemand' is the query's identifier
-        # value, while the classified columns are the TotBaseDem/DemType virtual
-        # fields the style file adds; the style also needs the demands layer id and
-        # the project flow units, which only this code can know.
-        if layerType == 'junctions' and field == 'BaseDemand':
+        # Same split for the base demand map: 'TotalBaseDemand' is the query's
+        # identifier value, while the classified columns are the TotBaseDem/DemType
+        # virtual fields the style file adds; the style also needs the demands layer
+        # id and the project flow units, which only this code can know.
+        if layerType == 'junctions' and field == 'TotalBaseDemand':
             self.adaptBaseDemandDerivedLayer(derivedLayer)
             hideField = [name for name in ('TotBaseDem', 'DemType')
                          if derivedLayer.fields().indexFromName(name) >= 0] or hideField
@@ -356,7 +356,7 @@ class QGISRedThematicMapsDialog(QDialog, FORM_CLASS):
             # insertChildNode() returns None on QGIS 3, so keep our own reference to the node.
             layerTreeLayer = QgsLayerTreeLayer(derivedLayer)
             layerTreeLayer.setCustomProperty("showFeatureCount", True)
-            isBaseDemandQuery = layerType == 'junctions' and field == 'BaseDemand'
+            isBaseDemandQuery = layerType == 'junctions' and field == 'TotalBaseDemand'
             if isBaseDemandQuery:
                 self.hideProportionalLegendTitle(derivedLayer, layerTreeLayer)
             parentGroup.insertChildNode(layerPosition, layerTreeLayer)
@@ -397,7 +397,7 @@ class QGISRedThematicMapsDialog(QDialog, FORM_CLASS):
             derivedLayer.setCustomProperty("qgisred_theme_formula", formula)
             if formula not in ('H-W', 'C-M'):
                 derivedLayer.setCustomProperty("qgisred_theme_units", units)
-        if query['field'] == 'BaseDemand':
+        if query['field'] == 'TotalBaseDemand':
             derivedLayer.setCustomProperty("qgisred_theme_flow_units", QGISRedProjectUtils.getFlowUnit())
 
     def findLayerByIdentifier(self, parentGroup, identifier):
@@ -688,7 +688,7 @@ class QGISRedThematicMapsDialog(QDialog, FORM_CLASS):
         # Junctions mappings
         mapping.update({
             'qgisred_query_junctions_elevation': self.cbJunctionsElevation,
-            'qgisred_query_junctions_basedemand': self.cbJunctionsBaseDemand,
+            'qgisred_query_junctions_totalbasedemand': self.cbJunctionsBaseDemand,
             'qgisred_query_junctions_patterndemand': self.cbJunctionsPatternDemand,
             'qgisred_query_junctions_emittercoeff': self.cbJunctionsEmitterCoeff,
             'qgisred_query_junctions_initquality': self.cbJunctionsInitialQuality,
@@ -911,9 +911,9 @@ class QGISRedThematicMapsDialog(QDialog, FORM_CLASS):
             queries.append({
                 'layer_name': 'Junction Total Base Demands',
                 'layer_type': 'Junctions',
-                'field': 'BaseDemand',
+                'field': 'TotalBaseDemand',
                 'qml_file': 'JunctionTotalBaseDemands.qml',
-                'file_name': 'base_demand',
+                'file_name': 'total_base_demand',
                 'tooltip_prefix': 'Demand'
             })
 

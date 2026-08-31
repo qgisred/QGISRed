@@ -61,7 +61,7 @@ LAYER_ID_TO_FIELD = {
     'qgisred_query_reservoirs_tag':                  ('Reservoirs', 'Tag'),
     # Junctions
     'qgisred_query_junctions_elevation':             ('Junctions', 'Elevation'),
-    'qgisred_query_junctions_basedemand':            ('Junctions', 'BaseDem'),
+    'qgisred_query_junctions_totalbasedemand':       ('Junctions', 'BaseDem'),
     'qgisred_query_junctions_patterndemand':         ('Junctions', 'IdPattDem'),
     'qgisred_query_junctions_emittercoeff':          ('Junctions', 'EmittCoef'),
     'qgisred_query_junctions_initquality':           ('Junctions', 'IniQuality'),
