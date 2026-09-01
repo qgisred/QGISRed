@@ -13,12 +13,13 @@ from unittest.mock import MagicMock
 
 import pytest
 
-from QGISRed.ui.queries import qgisred_thematicmaps_dialog as dialog_module
-from QGISRed.ui.queries.qgisred_thematicmaps_dialog import QGISRedThematicMapsDialog
+from QGISRed.tools.utils import qgisred_thematicmaps_builder as builder_module
+from QGISRed.tools.utils.qgisred_thematicmaps_builder import QGISRedThematicMapsBuilder
 
 PLUGIN_ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 STYLE_PATH = os.path.join(PLUGIN_ROOT, "defaults", "layerStyles", "JunctionElevations.qml.bak")
 DIALOG_SOURCE = os.path.join(PLUGIN_ROOT, "ui", "queries", "qgisred_thematicmaps_dialog.py")
+QUERIES_SOURCE = os.path.join(PLUGIN_ROOT, "tools", "utils", "qgisred_thematicmaps_queries.py")
 
 # Blue (lowest) to red (highest), as specified for the map: #446ee7, #7bddee,
 # #84f71e, #f7ba22, #f21835.
@@ -93,13 +94,15 @@ class TestShippedStyle:
 class TestDialogWiring:
 
     def test_one_style_serves_both_unit_systems_and_is_shipped(self):
+        with open(QUERIES_SOURCE, encoding="utf-8") as source:
+            catalogue = source.read()
         with open(DIALOG_SOURCE, encoding="utf-8") as source:
-            text = source.read()
-        assert "'qml_file': 'JunctionElevations.qml'" in text
-        assert not re.search(r"junction_elevation_\{units\}", text)
+            dialog = source.read()
+        assert "'qml_file': 'JunctionElevations.qml'" in catalogue
+        assert not re.search(r"junction_elevation_\{units\}", catalogue)
         assert os.path.exists(STYLE_PATH)
         # The option must be reachable: it was hidden while unimplemented.
-        assert "self.cbJunctionsElevation.hide()" not in text
+        assert "self.cbJunctionsElevation.hide()" not in dialog
 
 
 class _GraduatedRendererStub:
@@ -159,17 +162,17 @@ class _GraduatedRendererStub:
 
 @pytest.fixture
 def graduatedStub(monkeypatch):
-    monkeypatch.setattr(dialog_module, "QgsGraduatedSymbolRenderer", _GraduatedRendererStub)
-    monkeypatch.setattr(dialog_module, "QgsRendererRange", lambda *args: args)
+    monkeypatch.setattr(builder_module, "QgsGraduatedSymbolRenderer", _GraduatedRendererStub)
+    monkeypatch.setattr(builder_module, "QgsRendererRange", lambda *args: args)
     # Real QGIS rejects the plain color names the stub hands out.
-    monkeypatch.setattr(dialog_module, "QgsGradientStop", MagicMock())
-    monkeypatch.setattr(dialog_module, "QgsGradientColorRamp", MagicMock())
-    monkeypatch.setattr(dialog_module, "QgsClassificationPrettyBreaks", MagicMock())
+    monkeypatch.setattr(builder_module, "QgsGradientStop", MagicMock())
+    monkeypatch.setattr(builder_module, "QgsGradientColorRamp", MagicMock())
+    monkeypatch.setattr(builder_module, "QgsClassificationPrettyBreaks", MagicMock())
     return _GraduatedRendererStub
 
 
-def _dialog():
-    return object.__new__(QGISRedThematicMapsDialog)
+def _builder():
+    return object.__new__(QGISRedThematicMapsBuilder)
 
 
 class TestClassifyElevationByPrettyBreaks:
@@ -180,7 +183,7 @@ class TestClassifyElevationByPrettyBreaks:
         layer = MagicMock()
         layer.renderer.return_value = renderer
 
-        _dialog().classifyElevationByPrettyBreaks(layer, "m")
+        _builder().classifyElevationByPrettyBreaks(layer, "m")
 
         assert renderer.updatedClassesWith == (layer, 5)
         assert renderer.labels == {0: "< 20 m", 1: "20 < 40 m", 2: "40 < 60 m", 3: "60 < 80 m", 4: ">= 80 m"}
@@ -195,16 +198,16 @@ class TestClassifyElevationByPrettyBreaks:
         layer.renderer.return_value = renderer
         shippedFirstSymbol = renderer.ranges()[0].symbol.return_value
 
-        _dialog().classifyElevationByPrettyBreaks(layer, "ft")
+        _builder().classifyElevationByPrettyBreaks(layer, "ft")
 
         # updateClasses clones the source symbol per class, so it must be the
         # shipped circle, and the ramp must run through the five shipped colors.
         assert renderer.sourceSymbol is shippedFirstSymbol.clone.return_value
-        rampCall = dialog_module.QgsGradientColorRamp.call_args
+        rampCall = builder_module.QgsGradientColorRamp.call_args
         assert rampCall.args[0] == "blue" and rampCall.args[1] == "red"
-        stopCalls = [call.args for call in dialog_module.QgsGradientStop.call_args_list[-3:]]
+        stopCalls = [call.args for call in builder_module.QgsGradientStop.call_args_list[-3:]]
         assert stopCalls == [(0.25, "cyan"), (0.5, "green"), (0.75, "yellow")]
-        assert renderer.classificationMethod is dialog_module.QgsClassificationPrettyBreaks.return_value
+        assert renderer.classificationMethod is builder_module.QgsClassificationPrettyBreaks.return_value
 
     def test_pretty_breaks_class_count_is_honoured_whatever_it_is(self, graduatedStub):
         # R's pretty gives "about" five classes: 0 .. 300 yields six.
@@ -212,7 +215,7 @@ class TestClassifyElevationByPrettyBreaks:
         layer = MagicMock()
         layer.renderer.return_value = renderer
 
-        _dialog().classifyElevationByPrettyBreaks(layer, "m")
+        _builder().classifyElevationByPrettyBreaks(layer, "m")
 
         assert renderer.labels[0] == "< 50 m"
         assert renderer.labels[5] == ">= 250 m"
@@ -226,7 +229,7 @@ class TestClassifyElevationByPrettyBreaks:
         layer.renderer.return_value = renderer
         layer.minimumValue.return_value = 0.0
 
-        _dialog().classifyElevationByPrettyBreaks(layer, "m")
+        _builder().classifyElevationByPrettyBreaks(layer, "m")
 
         assert len(renderer.addedClasses) == 1
         lower, upper, _symbol, label = renderer.addedClasses[0]
@@ -237,7 +240,7 @@ class TestClassifyElevationByPrettyBreaks:
         layer = MagicMock()
         layer.renderer.return_value = MagicMock()
 
-        _dialog().classifyElevationByPrettyBreaks(layer, "m")
+        _builder().classifyElevationByPrettyBreaks(layer, "m")
 
         layer.renderer.return_value.updateClasses.assert_not_called()
 
@@ -249,20 +252,20 @@ class TestBreakFormatting:
         (0.30000000000000004, "0.3"),
     ])
     def test_pretty_values_print_without_spurious_decimals(self, value, text):
-        assert _dialog().formatBreakValue(value) == text
+        assert _builder().formatBreakValue(value) == text
 
 
 class TestLengthUnitsInLabelsAndMapTip:
 
     def test_placeholder_is_replaced_in_map_tip_and_label_expression(self, monkeypatch):
-        monkeypatch.setattr(dialog_module, "QgsVectorLayerSimpleLabeling", lambda settings: ("labeling", settings))
+        monkeypatch.setattr(builder_module, "QgsVectorLayerSimpleLabeling", lambda settings: ("labeling", settings))
         layer = MagicMock()
         layer.mapTipTemplate.return_value = "[%'Elev '|| round(\"Elevation\",1) ||' [units]'%]"
         labelSettings = MagicMock()
         labelSettings.fieldName = "round(\"Elevation\",1) ||' [units]'"
         layer.labeling.return_value.settings.return_value = labelSettings
 
-        _dialog().applyLengthUnitsToElevationStyle(layer, "ft")
+        _builder().applyLengthUnitsToElevationStyle(layer, "ft")
 
         layer.setMapTipTemplate.assert_called_once_with("[%'Elev '|| round(\"Elevation\",1) ||' ft'%]")
         assert labelSettings.fieldName == "round(\"Elevation\",1) ||' ft'"
@@ -273,7 +276,7 @@ class TestLengthUnitsInLabelsAndMapTip:
         layer.mapTipTemplate.return_value = "[units]"
         layer.labeling.return_value = None
 
-        _dialog().applyLengthUnitsToElevationStyle(layer, "m")
+        _builder().applyLengthUnitsToElevationStyle(layer, "m")
 
         layer.setMapTipTemplate.assert_called_once_with("m")
         layer.setLabeling.assert_not_called()
@@ -285,11 +288,11 @@ class TestUnitResolution:
     def test_adaptation_resolves_the_length_unit_of_the_project(self, monkeypatch, unitSystem, units):
         from QGISRed.tools.utils.qgisred_project_utils import QGISRedProjectUtils
         monkeypatch.setattr(QGISRedProjectUtils, "getUnits", staticmethod(lambda: unitSystem))
-        dialog = _dialog()
+        builder = _builder()
         seen = {}
-        dialog.classifyElevationByPrettyBreaks = lambda layer, units: seen.setdefault("classify", units)
-        dialog.applyLengthUnitsToElevationStyle = lambda layer, units: seen.setdefault("style", units)
+        builder.classifyElevationByPrettyBreaks = lambda layer, units: seen.setdefault("classify", units)
+        builder.applyLengthUnitsToElevationStyle = lambda layer, units: seen.setdefault("style", units)
 
-        dialog.adaptElevationDerivedLayer(MagicMock())
+        builder.adaptElevationDerivedLayer(MagicMock())
 
         assert seen == {"classify": units, "style": units}

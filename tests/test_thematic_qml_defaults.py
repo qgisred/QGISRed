@@ -19,7 +19,7 @@ from QGISRed.tools.utils.qgisred_legend_rule_utils import parseRangeFilter
 
 PLUGIN_ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 STYLES_DIR = os.path.join(PLUGIN_ROOT, "defaults", "layerStyles")
-DIALOG_SOURCE = os.path.join(PLUGIN_ROOT, "ui", "queries", "qgisred_thematicmaps_dialog.py")
+QUERIES_SOURCE = os.path.join(PLUGIN_ROOT, "tools", "utils", "qgisred_thematicmaps_queries.py")
 
 # Both styles declare both derived fields, whichever one they classify by, so a
 # map tip or a label can be switched from one to the other without editing the
@@ -125,7 +125,7 @@ def test_dialog_ships_a_default_for_every_referenced_style():
     """Both query dicts must point at style files that actually exist: a missing
     default is silent — loadQmlStyle skips loadNamedStyle and the layer comes up
     with QGIS's single-symbol line."""
-    with open(DIALOG_SOURCE, encoding="utf-8") as source:
+    with open(QUERIES_SOURCE, encoding="utf-8") as source:
         referenced = re.findall(r"'qml_file':\s*'(Pipe(?:InstallationYears|Ages)\.qml)'", source.read())
     assert sorted(referenced) == ["PipeAges.qml", "PipeInstallationYears.qml"]
     for qmlFile in referenced:
@@ -136,7 +136,7 @@ def test_dialog_ships_a_default_for_every_roughness_variant():
     """The roughness map picks its style at runtime from the headloss formula
     (H-W, C-M) plus the unit system for D-W, so every branch the dialog can
     build must resolve to a shipped default."""
-    with open(DIALOG_SOURCE, encoding="utf-8") as source:
+    with open(QUERIES_SOURCE, encoding="utf-8") as source:
         text = source.read()
     referenced = set(re.findall(r"'(PipeRoughnesses\w+)(?:\{units\})?\.qml'", text))
     expected = {"PipeRoughnessesHW", "PipeRoughnessesCM", "PipeRoughnessesDW"}

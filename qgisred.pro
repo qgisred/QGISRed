@@ -30,6 +30,8 @@ SOURCES = qgisred.py \
           tools/utils/qgisred_project_io.py \
           tools/utils/qgisred_project_utils.py \
           tools/utils/qgisred_stale_layer_manager.py \
+          tools/utils/qgisred_thematicmaps_builder.py \
+          tools/utils/qgisred_thematicmaps_queries.py \
           tools/utils/qgisred_highlight_manager.py \
           tools/map_tools/qgisred_createLineTool.py \
           tools/map_tools/qgisred_editLinksGeometry.py \

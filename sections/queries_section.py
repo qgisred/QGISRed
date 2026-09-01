@@ -5,6 +5,7 @@ from contextlib import suppress
 from qgis.PyQt.QtCore import Qt
 
 from ..ui.queries.qgisred_thematicmaps_dialog import QGISRedThematicMapsDialog
+from ..tools.utils.qgisred_thematicmaps_builder import QGISRedThematicMapsBuilder
 from ..ui.queries.qgisred_element_explorer_dock import QGISRedElementExplorerDock
 from ..ui.queries.qgisred_queriesbyproperties_dock import QGISRedQueriesByPropertiesDock
 from ..ui.queries.qgisred_statisticsandgraphs_dock import QGISRedStatisticsDock
@@ -92,6 +93,23 @@ class QueriesSection:
         dlg = QGISRedThematicMapsDialog()
         dlg.config(self.iface, self.ProjectDirectory, self.NetworkName)
         dlg.exec()
+
+    def runRebuildThematicMaps(self, identifiers):
+        """Rebuild the named thematic maps from the project's current settings.
+
+        No dialog: the legend's outdated-map warning names the map itself, and the builder
+        is the same one the dialog drives.
+        """
+        if not self.checkDependencies():
+            return False
+        self.defineCurrentProject()
+        if not self.isValidProject():
+            return False
+        if self.isLayerOnEdition():
+            return False
+
+        builder = QGISRedThematicMapsBuilder(self.iface, self.ProjectDirectory, self.NetworkName)
+        return builder.rebuildThematicMaps(identifiers)
 
     def runGroupEdit(self):
         if not self.checkDependencies():

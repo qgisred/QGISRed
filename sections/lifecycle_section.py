@@ -237,7 +237,8 @@ class LifecycleSection:
 
         self._staleLayerManager = StaleLayerManager(
             self.iface,
-            lambda: (getattr(self, "NetworkName", ""), getattr(self, "ProjectDirectory", ""))
+            lambda: (getattr(self, "NetworkName", ""), getattr(self, "ProjectDirectory", "")),
+            self.onStaleIndicatorClicked,
         )
 
         # Single arbiter of which dock may show highlights on the canvas. It

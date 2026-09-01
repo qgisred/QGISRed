@@ -9,7 +9,7 @@ from QGISRed.tools.utils.qgisred_filesystem_utils import QGISRedFileSystemUtils
 from QGISRed.tools.utils import qgisred_layer_utils as layer_utils_module
 from QGISRed.tools.utils.qgisred_layer_utils import QGISRedLayerUtils
 from QGISRed.tools.utils.qgisred_styling_utils import QGISRedStylingUtils
-from QGISRed.ui.queries.qgisred_thematicmaps_dialog import QGISRedThematicMapsDialog
+from QGISRed.tools.utils.qgisred_thematicmaps_builder import QGISRedThematicMapsBuilder
 from QGISRed.ui.edition import qgisred_groupedit_dialog as groupedit_module
 
 
@@ -283,11 +283,11 @@ class TestTryReloadExistingLayer:
 
 class TestSyncLayersKeepsThematicStyle:
     def test_data_is_refreshed_but_renderer_is_never_cloned(self):
-        dialog = object.__new__(QGISRedThematicMapsDialog)
+        builder = object.__new__(QGISRedThematicMapsBuilder)
         mainLayer = MagicMock()
         derivedLayer = MagicMock()
 
-        dialog.syncLayers(mainLayer, derivedLayer)
+        builder.syncLayers(mainLayer, derivedLayer)
 
         derivedLayer.dataProvider.return_value.forceReload.assert_called_once()
         derivedLayer.triggerRepaint.assert_called_once()

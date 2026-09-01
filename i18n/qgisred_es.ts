@@ -2204,14 +2204,45 @@
     </message>
 </context>
 <context>
+    <name>LayerManagementSection</name>
+    <message>
+        <location filename="../sections/layer_management_section.py" line="750"/>
+        <source>Outdated results</source>
+        <translation>Resultados obsoletos</translation>
+    </message>
+    <message>
+        <location filename="../sections/layer_management_section.py" line="751"/>
+        <source>These results no longer match the network: the inputs have changed since the simulation was run.
+
+Do you want to run the simulation again?</source>
+        <translation>Estos resultados ya no corresponden a la red: los datos de entrada han cambiado desde que se ejecutó la simulación.
+
+¿Desea volver a simular?</translation>
+    </message>
+    <message>
+        <location filename="../sections/layer_management_section.py" line="755"/>
+        <source>Outdated thematic map</source>
+        <translation>Mapa temático obsoleto</translation>
+    </message>
+    <message>
+        <location filename="../sections/layer_management_section.py" line="756"/>
+        <source>This thematic map was built with project settings that have changed since.
+
+Do you want to rebuild it now?</source>
+        <translation>Este mapa temático se creó con unas opciones del proyecto que han cambiado desde entonces.
+
+¿Desea reconstruirlo ahora?</translation>
+    </message>
+</context>
+<context>
     <name>LifecycleSection</name>
     <message>
-        <location filename="../sections/lifecycle_section.py" line="263"/>
+        <location filename="../sections/lifecycle_section.py" line="262"/>
         <source>Loaded sucssesfully</source>
         <translation>Cargado exitósamente</translation>
     </message>
     <message>
-        <location filename="../sections/lifecycle_section.py" line="556"/>
+        <location filename="../sections/lifecycle_section.py" line="555"/>
         <source>QGISRed Dependencies</source>
         <translation>Dependencias de QGISRed</translation>
     </message>
@@ -2231,32 +2262,32 @@
         <translation>Pincha para cambiar</translation>
     </message>
     <message>
-        <location filename="../sections/lifecycle_section.py" line="654"/>
+        <location filename="../sections/lifecycle_section.py" line="653"/>
         <source>QGISRed News</source>
         <translation>Noticias QGISRed</translation>
     </message>
     <message>
-        <location filename="../sections/lifecycle_section.py" line="556"/>
+        <location filename="../sections/lifecycle_section.py" line="555"/>
         <source>The installation may have failed. Please try again or report the issue in GitHub</source>
         <translation>La instalación puede haber fallado. Por favor, prueba otra vez o reporta un issue en GitHub</translation>
     </message>
     <message>
-        <location filename="../sections/lifecycle_section.py" line="529"/>
+        <location filename="../sections/lifecycle_section.py" line="528"/>
         <source>QGISRed plugin requires some dependencies (v{}). Do you want to install them now?</source>
         <translation type="unfinished">El complemento QGISRed requiere algunas dependencias (v{}). ¿Desea instalarlas ahora?</translation>
     </message>
     <message>
-        <location filename="../sections/lifecycle_section.py" line="609"/>
+        <location filename="../sections/lifecycle_section.py" line="608"/>
         <source>Checking for QGISRed news…</source>
         <translation>Comprobando las noticias de QGISRed…</translation>
     </message>
     <message>
-        <location filename="../sections/lifecycle_section.py" line="627"/>
+        <location filename="../sections/lifecycle_section.py" line="626"/>
         <source>QGISRed news are not available: the server could not be reached.</source>
         <translation>Las noticias de QGISRed no están disponibles: no se ha podido conectar con el servidor.</translation>
     </message>
     <message>
-        <location filename="../sections/lifecycle_section.py" line="636"/>
+        <location filename="../sections/lifecycle_section.py" line="635"/>
         <source>There are no QGISRed news to show.</source>
         <translation>No hay noticias de QGISRed que mostrar.</translation>
     </message>
@@ -8651,7 +8682,7 @@ Do you want to proceed?</source>
 <context>
     <name>QGISRedStylingUtils</name>
     <message>
-        <location filename="../tools/utils/qgisred_styling_utils.py" line="959"/>
+        <location filename="../tools/utils/qgisred_styling_utils.py" line="950"/>
         <source>%1 field not found in layer %2</source>
         <translation>Campo %1 no encontrado en capa %2</translation>
     </message>
@@ -8720,24 +8751,32 @@ Do you want to proceed?</source>
     </message>
 </context>
 <context>
+    <name>QGISRedThematicMapsBuilder</name>
+    <message>
+        <location filename="../tools/utils/qgisred_thematicmaps_builder.py" line="372"/>
+        <source>Failed to create derived layer from %1</source>
+        <translation type="unfinished">Fallo al crear la capa derivada desde %1</translation>
+    </message>
+</context>
+<context>
     <name>QGISRedThematicMapsDialog</name>
     <message>
-        <location filename="../ui/queries/qgisred_thematicmaps_dialog.py" line="102"/>
+        <location filename="../ui/queries/qgisred_thematicmaps_dialog.py" line="97"/>
         <source>Error</source>
         <translation>Error</translation>
     </message>
     <message>
-        <location filename="../ui/queries/qgisred_thematicmaps_dialog.py" line="760"/>
+        <location filename="../ui/queries/qgisred_thematicmaps_dialog.py" line="238"/>
         <source>Query already exists.</source>
         <translation>La consulta ya existe.</translation>
     </message>
     <message>
         <location filename="../ui/queries/qgisred_thematicmaps_dialog.py" line="449"/>
         <source>Failed to create derived layer from %1</source>
-        <translation>Fallo al crear la capa derivada desde %1</translation>
+        <translation type="obsolete">Fallo al crear la capa derivada desde %1</translation>
     </message>
     <message>
-        <location filename="../ui/queries/qgisred_thematicmaps_dialog.py" line="102"/>
+        <location filename="../ui/queries/qgisred_thematicmaps_dialog.py" line="97"/>
         <source>Inputs group not found.</source>
         <translation>Grupo de datos no encontrado.</translation>
     </message>
@@ -9086,9 +9125,29 @@ Do you want to proceed?</source>
 <context>
     <name>StaleLayerManager</name>
     <message>
-        <location filename="../tools/utils/qgisred_stale_layer_manager.py" line="251"/>
+        <location filename="../tools/utils/qgisred_stale_layer_manager.py" line="285"/>
         <source>Layer may be outdated — inputs have changed since last generation</source>
         <translation>La capa puede estar obsoleta - los datos de entrada han cambiado desde que se generó</translation>
+    </message>
+    <message>
+        <location filename="../tools/utils/qgisred_stale_layer_manager.py" line="280"/>
+        <source>Results may be outdated — the network has changed since the last simulation</source>
+        <translation>Los resultados pueden estar obsoletos — la red ha cambiado desde la última simulación</translation>
+    </message>
+    <message>
+        <location filename="../tools/utils/qgisred_stale_layer_manager.py" line="280"/>
+        <source>Click this icon to run the simulation again</source>
+        <translation>Pulse este icono para volver a simular</translation>
+    </message>
+    <message>
+        <location filename="../tools/utils/qgisred_stale_layer_manager.py" line="283"/>
+        <source>Thematic map may be outdated — project settings have changed since it was built</source>
+        <translation>El mapa temático puede estar obsoleto — las opciones del proyecto han cambiado desde que se creó</translation>
+    </message>
+    <message>
+        <location filename="../tools/utils/qgisred_stale_layer_manager.py" line="283"/>
+        <source>Click this icon to rebuild it</source>
+        <translation>Pulse este icono para reconstruirlo</translation>
     </message>
 </context>
 <context>

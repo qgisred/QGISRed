@@ -16,6 +16,7 @@ from ..tools.utils.qgisred_filesystem_utils import (
     LAYER_TYPE_CONFIG, QGISRedFileSystemUtils,
 )
 from ..tools.qgisred_dependencies import QGISRedDependencies as GISRed
+from ..tools.utils.qgisred_stale_layer_manager import KIND_RESULTS, KIND_THEMATIC
 
 
 class LayerManagementSection:
@@ -733,6 +734,51 @@ class LayerManagementSection:
             self.layerOperationInProgress = False
 
         self._staleLayerManager.forceCheck()
+
+    def onStaleIndicatorClicked(self, layerId, kind):
+        """Act on a click on the legend's outdated-layer warning.
+
+        Deferred by one turn of the event loop: clicked() is emitted from inside the layer
+        tree view's mouse handler, and both actions rebuild the very nodes it is handling.
+        """
+        QTimer.singleShot(0, lambda: self._runStaleIndicatorAction(layerId, kind))
+
+    def _runStaleIndicatorAction(self, layerId, kind):
+        from qgis.PyQt.QtWidgets import QMessageBox
+
+        if kind == KIND_RESULTS:
+            title = self.tr("Outdated results")
+            question = self.tr(
+                "These results no longer match the network: the inputs have changed since "
+                "the simulation was run.\n\nDo you want to run the simulation again?")
+        elif kind == KIND_THEMATIC:
+            title = self.tr("Outdated thematic map")
+            question = self.tr(
+                "This thematic map was built with project settings that have changed since."
+                "\n\nDo you want to rebuild it now?")
+        else:
+            return
+
+        reply = QMessageBox.question(
+            self.iface.mainWindow(),
+            title,
+            question,
+            QMessageBox.StandardButton.Yes | QMessageBox.StandardButton.No,
+            QMessageBox.StandardButton.No,
+        )
+        if reply != QMessageBox.StandardButton.Yes:
+            return
+
+        if kind == KIND_RESULTS:
+            self.runModel()
+            return
+
+        layer = QgsProject.instance().mapLayer(layerId)
+        identifier = layer.customProperty("qgisred_identifier") if layer is not None else None
+        if not identifier or not str(identifier).startswith("qgisred_query_"):
+            return
+        if self.runRebuildThematicMaps([identifier]):
+            self._staleLayerManager.forceCheck()
 
     def runOpenTemporaryFiles(self):
         QApplication.setOverrideCursor(Qt.CursorShape.WaitCursor)
