@@ -6,7 +6,7 @@ import os
 import shutil
 
 from qgis.core import QgsProject, QgsVectorLayer, QgsLayerTreeLayer
-from qgis.PyQt.QtWidgets import QApplication
+from qgis.PyQt.QtWidgets import QApplication, QMessageBox
 from qgis.PyQt.QtCore import Qt, QTimer
 
 from ..tools.utils.qgisred_layer_utils import QGISRedLayerUtils
@@ -744,8 +744,6 @@ class LayerManagementSection:
         QTimer.singleShot(0, lambda: self._runStaleIndicatorAction(layerId, kind))
 
     def _runStaleIndicatorAction(self, layerId, kind):
-        from qgis.PyQt.QtWidgets import QMessageBox
-
         if kind == KIND_RESULTS:
             title = self.tr("Outdated results")
             question = self.tr(

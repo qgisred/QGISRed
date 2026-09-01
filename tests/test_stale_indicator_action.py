@@ -12,7 +12,10 @@ import pytest
 from QGISRed.sections.layer_management_section import LayerManagementSection
 from QGISRed.tools.utils.qgisred_stale_layer_manager import KIND_RESULTS, KIND_THEMATIC, KIND_DERIVED
 
-_MESSAGE_BOX = "qgis.PyQt.QtWidgets.QMessageBox"
+# Patched on the module under test, never on qgis.PyQt.QtWidgets: patch() on Python 3.9
+# walks getattr from __import__("qgis"), which on the mocked qgis package hands out a
+# fresh child mock instead of the QtWidgets the code imports — so the patch missed.
+_MESSAGE_BOX = "QGISRed.sections.layer_management_section.QMessageBox"
 _PROJECT = "QGISRed.sections.layer_management_section.QgsProject"
 _TIMER = "QGISRed.sections.layer_management_section.QTimer"
 
