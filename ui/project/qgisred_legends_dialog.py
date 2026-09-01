@@ -1314,7 +1314,7 @@ class QGISRedLegendsDialog(QDialog, formClass):
 
             if sizeWidget:
                 sizeWidget.blockSignals(True)
-                sizeWidget.setText(f"{sizes[row]:.2f}")
+                sizeWidget.setText(f"{sizes[row]:.1f}")
                 sizeWidget.blockSignals(False)
 
     # ============================================================
@@ -2252,7 +2252,7 @@ class QGISRedLegendsDialog(QDialog, formClass):
         meterTypeSize = self._readSelectedMeterTypeSize(symbol)
         if meterTypeSize is not None:
             size = meterTypeSize
-        sizeWidget = QLineEdit(str(size))
+        sizeWidget = QLineEdit(f"{size:.1f}")
         sizeWidget.setEnabled(self.isEditing)
         sizeWidget.setAlignment(Qt.AlignmentFlag.AlignCenter)
         sizeWidget.setStyleSheet(self.getBaseLineEditStyle())
