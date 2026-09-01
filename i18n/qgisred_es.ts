@@ -5101,7 +5101,7 @@ La información de sectores existente podría ser reemplazada.
     <message>
         <location filename="../ui/general/qgisred_import_dialog.ui" line="3266"/>
         <source>(when click over an element)</source>
-        <translation>(al pinchar sobre un elemento)</translation>
+        <translation type="obsolete">(al pinchar sobre un elemento)</translation>
     </message>
     <message>
         <location filename="../ui/general/qgisred_import_dialog.ui" line="464"/>
@@ -5252,6 +5252,16 @@ La información de sectores existente podría ser reemplazada.
         <location filename="../ui/general/qgisred_import_dialog.ui" line="3248"/>
         <source>Length units of the project</source>
         <translation>Unidades de longitud del proyecto</translation>
+    </message>
+    <message>
+        <location filename="../ui/general/qgisred_import_dialog.ui" line="3223"/>
+        <source>Length given to the service connection when the imported point already falls over a pipe: it is drawn perpendicular to that pipe with this length. When the point falls outside the network the connection reaches the nearest pipe and its length is the real distance, so this value is not used.</source>
+        <translation type="obsolete">Longitud que se da a la acometida cuando el punto importado ya cae sobre una tubería: se traza perpendicular a esa tubería con esta longitud. Si el punto cae fuera de la red, la acometida llega hasta la tubería más próxima y su longitud es la distancia real, así que este valor no se emplea.</translation>
+    </message>
+    <message>
+        <location filename="../ui/general/qgisred_import_dialog.ui" line="3266"/>
+        <source>(only when the point falls over a pipe)</source>
+        <translation>(solo si el punto cae sobre una tubería)</translation>
     </message>
 </context>
 <context>

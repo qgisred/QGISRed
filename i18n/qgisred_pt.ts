@@ -5134,7 +5134,7 @@ Continuar?</translation>
     <message>
         <location filename="../ui/general/qgisred_import_dialog.ui" line="3266"/>
         <source>(when click over an element)</source>
-        <translation>(ao clicar sobre um elemento)</translation>
+        <translation type="obsolete">(ao clicar sobre um elemento)</translation>
     </message>
     <message>
         <location filename="../ui/general/qgisred_import_dialog.ui" line="464"/>
@@ -5285,6 +5285,16 @@ Continuar?</translation>
         <location filename="../ui/general/qgisred_import_dialog.ui" line="3248"/>
         <source>Length units of the project</source>
         <translation>Unidades de comprimento do projeto</translation>
+    </message>
+    <message>
+        <location filename="../ui/general/qgisred_import_dialog.ui" line="3223"/>
+        <source>Length given to the service connection when the imported point already falls over a pipe: it is drawn perpendicular to that pipe with this length. When the point falls outside the network the connection reaches the nearest pipe and its length is the real distance, so this value is not used.</source>
+        <translation type="obsolete">Comprimento atribuído à ligação predial quando o ponto importado já cai sobre uma tubulação: é traçada perpendicular a essa tubulação com este comprimento. Se o ponto cair fora da rede, a ligação alcança a tubulação mais próxima e o seu comprimento é a distância real, pelo que este valor não é utilizado.</translation>
+    </message>
+    <message>
+        <location filename="../ui/general/qgisred_import_dialog.ui" line="3266"/>
+        <source>(only when the point falls over a pipe)</source>
+        <translation>(apenas se o ponto cair sobre uma tubulação)</translation>
     </message>
 </context>
 <context>

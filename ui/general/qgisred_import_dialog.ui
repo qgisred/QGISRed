@@ -3263,7 +3263,7 @@
                         </font>
                        </property>
                        <property name="text">
-                        <string>(when click over an element)</string>
+                        <string>(only when the point falls over a pipe)</string>
                        </property>
                       </widget>
                      </item>

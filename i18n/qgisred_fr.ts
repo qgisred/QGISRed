@@ -5089,7 +5089,7 @@ Continuer ?</translation>
     <message>
         <location filename="../ui/general/qgisred_import_dialog.ui" line="3266"/>
         <source>(when click over an element)</source>
-        <translation type="unfinished">(lors du clic sur un élément)</translation>
+        <translation type="obsolete">(lors du clic sur un élément)</translation>
     </message>
     <message>
         <location filename="../ui/general/qgisred_import_dialog.ui" line="464"/>
@@ -5240,6 +5240,16 @@ Continuer ?</translation>
         <location filename="../ui/general/qgisred_import_dialog.ui" line="3248"/>
         <source>Length units of the project</source>
         <translation>Unités de longueur du projet</translation>
+    </message>
+    <message>
+        <location filename="../ui/general/qgisred_import_dialog.ui" line="3223"/>
+        <source>Length given to the service connection when the imported point already falls over a pipe: it is drawn perpendicular to that pipe with this length. When the point falls outside the network the connection reaches the nearest pipe and its length is the real distance, so this value is not used.</source>
+        <translation type="obsolete">Longueur donnée au branchement lorsque le point importé tombe déjà sur une conduite : il est tracé perpendiculairement à cette conduite avec cette longueur. Si le point tombe hors du réseau, le branchement rejoint la conduite la plus proche et sa longueur est la distance réelle, cette valeur n'est donc pas utilisée.</translation>
+    </message>
+    <message>
+        <location filename="../ui/general/qgisred_import_dialog.ui" line="3266"/>
+        <source>(only when the point falls over a pipe)</source>
+        <translation>(uniquement si le point tombe sur une conduite)</translation>
     </message>
 </context>
 <context>

@@ -4852,11 +4852,6 @@ Continue?</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../ui/general/qgisred_import_dialog.ui" line="3266"/>
-        <source>(when click over an element)</source>
-        <translation type="unfinished"></translation>
-    </message>
-    <message>
         <location filename="../ui/general/qgisred_import_dialog.ui" line="464"/>
         <source>Materials:</source>
         <translation type="unfinished"></translation>
@@ -4994,6 +4989,11 @@ Continue?</source>
     <message>
         <location filename="../ui/general/qgisred_import_dialog.py" line="99"/>
         <source>Degrees</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="../ui/general/qgisred_import_dialog.ui" line="3266"/>
+        <source>(only when the point falls over a pipe)</source>
         <translation type="unfinished"></translation>
     </message>
 </context>
