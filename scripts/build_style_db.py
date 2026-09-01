@@ -54,7 +54,7 @@ MATERIAL_PALETTE = (
       "polyéthylène moyenne densité", "polietileno de média densidade"), "#c76ed0"),
     (("FRP", "PRFV"), ("fiberglass reinforced polyester", "poliester reforzado con fibra de vidrio",
       "polyester renforcé de fibre de verre", "poliéster reforçado com fibra de vidro"), "#bfadbd"),
-    (("NULL",), ("#na", "not available", "no disponible", "non disponible", "não disponível"), "#e8e8e8"),
+    (("NULL",), ("#na", "not available", "no disponible", "non disponible", "não disponível"), "#eeeeee"),
 )
 
 # Gradient ramps for the Legends dialog "Ramp" color mode, as (name, stops) with

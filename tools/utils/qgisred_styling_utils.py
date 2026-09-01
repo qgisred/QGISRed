@@ -1070,9 +1070,9 @@ class QGISRedStylingUtils:
 
         if nullValues:
             symbol = QgsSymbol.defaultSymbol(layer.geometryType())
-            lightGray = QColor.fromRgb(232, 232, 232)
+            lightGray = QColor.fromRgb(238, 238, 238)
             symbol.setColor(lightGray)
-            symbol.setWidth(0.8)
+            symbol.setWidth(0.6)
             category = QgsRendererCategory(nullValues[0], symbol, str("#NA"))
             categories.append(category)
 
