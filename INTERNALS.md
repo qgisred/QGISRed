@@ -385,3 +385,86 @@ This mechanism was **removed** because:
 5. Do **not** use `runTask(remove..., open...)` — call the open method directly.
 6. If the layer uses a data-driven style (categorized, graduated…), add a post-reload style
    refresh inside `openLayer()` following the pattern in §4.
+
+## 12. Style database — why QGIS never opens the tracked file
+
+`qgisred_symbology_style.db` is the QGIS style database behind the fixed pipe material
+colors (`materialColors`) and the ramps and palettes the Legends dialog offers. It is built
+by `scripts/build_style_db.py`, a developer tool.
+
+`registerStyleDatabaseInProject()` lists it in the Style Manager, and from that moment QGIS
+keeps the SQLite file **open for the whole session**. On Windows an open file cannot be
+renamed or replaced, so if QGIS opened the file git tracks, `git pull` would fail while QGIS
+runs. Hence two separate lives:
+
+```
+CHECKOUT                                        RELEASE
+defaults/qgisred_symbology_style.db.bak         (absent — MakeZip.bat leaves it out)
+    │  ensureStyleDatabase()
+    │  copy2 to .new + os.replace, per plugin load
+    ▼
+defaults/qgisred_symbology_style.db             <install>/defaults/qgisred_symbology_style.db
+    gitignored (*.db), so locking it costs           deployed by the dependencies installer,
+    nothing                                          outside any checkout — opened where it lies
+```
+
+`styleDatabasePath()` picks between them by asking whether the `.bak` is there. The same
+file also lives in the C# repository under `GISRed.Resources/Defaults`, which is what the
+three installers deploy; the name must stay identical on both sides.
+
+Rules:
+
+1. Everything resolves the database through `QGISRedStylingUtils.styleDatabasePath()`.
+   `developmentStyleDatabasePath()` is the tracked `.bak`, and only `ensureStyleDatabase()`
+   should ever name it.
+2. The `.bak` extension is not decoration: `.gitignore` carries `*.db`, so the regenerated
+   working copy stays invisible to git — and a plain `.db` under `defaults/` would silently
+   stop being tracked.
+3. `MakeZip.bat` excludes both files **by exact name**, in `$exFile`. Never exclude them by
+   the `.bak` extension: the ~30 shipped styles in `defaults/layerStyles` are `.qml.bak` and
+   must go in the ZIP.
+4. The working copy is rewritten on every plugin load with no date comparison, because it is
+   derived and holds nothing of the user's. `os.replace` is what makes that safe: it fails
+   rather than writing under a handle another QGIS instance still holds, the staged file is
+   removed, and a warning goes to the log so the refresh does not look like a change that did
+   not take. Never swap it for a plain `shutil.copy2` onto the destination — SQLite on Windows
+   opens with `FILE_SHARE_READ | FILE_SHARE_WRITE`, so that copy would *succeed* and corrupt
+   the other instance's page cache. The staged file carries the pid so two instances reloading
+   at once cannot write over each other.
+5. `unload()` calls `unregisterStyleDatabaseFromProject()` so this QGIS releases its own handle.
+   Without it a plugin reload could never refresh the working copy — not because of the *other*
+   instance, but because this one still had the .db open. Reloading with a second instance open
+   still cannot refresh: no process can make another close its handle. That is a restart.
+6. `registerStyleDatabaseInProject()` prunes before it adds. `QgsProjectStyleSettings` has
+   `writeXml`/`readXml`, so a project carries the style database paths of whichever machine
+   saved it — a checkout, another install root, another user's home. None resolve elsewhere,
+   and the list is only ever appended to, so a project travelling between machines would
+   collect one dead entry per machine. Prune by file name, leave databases that are not ours
+   alone, and do not rewrite an unchanged list: that would mark the project dirty on open.
+7. Moving the database into the installers couples it to their release cadence: a new ramp or
+   a changed material color now needs an installer release, not just a plugin one. If that
+   ever bites, the fix is to stop excluding the `.bak` from the ZIP — the checkout branch
+   above already takes precedence over the installer's copy.
+
+### If the plugin is ever allowed to write to it
+
+Today the runtime only reads: `getMaterialColorFromDb()` does a `SELECT`, `findColorRamp()`
+and the Legends dialog do `load()` + `colorRamp()`. Nothing calls `addColorRamp`,
+`addSymbol` or `tagSymbol`. That is why two QGIS instances cannot interfere: SQLite allows
+unlimited concurrent readers.
+
+Writing changes that. SQLite still will not lose or corrupt writes — it serializes them and
+returns `SQLITE_BUSY` on contention — but `QgsStyle` loads the whole catalog into memory on
+`load()` and never notices what another process writes afterwards. A long-lived `QgsStyle`
+(the Legends dialog keeps one in `self.style`) therefore acts on a stale list, and a delete
+or rename resolved against it can drop an entry the other instance had just added.
+
+If user-writable ramps are ever needed, in order of preference:
+
+1. **Keep the shipped database read-only and put the user's own entries somewhere else** —
+   QGIS's default style (already the fallback in `findColorRamp()`) or a separate
+   `<QGISRedFolder>/layerStyles` database. Content that ships and data the user owns should
+   not share a file. This keeps the concurrency question from arising at all.
+2. If a shared writable database is genuinely required: enable WAL on it, and never hold a
+   writable `QgsStyle` open across user interaction — open, write, close, and reload the
+   catalog before each write so no decision is taken on a stale list.

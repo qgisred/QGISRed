@@ -253,9 +253,11 @@ class LifecycleSection:
         # QgsMessageLog.logMessage("Culture set to " + definedCulture, "QGISRed", level=0)
 
         with suppress(Exception):
+            QGISRedStylingUtils.ensureStyleDatabase()
+        with suppress(Exception):
             QGISRedStylingUtils.registerStyleDatabaseInProject()
         # Opening or clearing a project resets the project style settings, so the
-        # shipped style database has to be registered again on both events.
+        # style database has to be registered again on both events.
         QgsProject.instance().readProject.connect(QGISRedStylingUtils.registerStyleDatabaseInProject)
         QgsProject.instance().cleared.connect(QGISRedStylingUtils.registerStyleDatabaseInProject)
 
@@ -410,6 +412,8 @@ class LifecycleSection:
             QgsProject.instance().readProject.disconnect(QGISRedStylingUtils.registerStyleDatabaseInProject)
         with suppress(Exception):
             QgsProject.instance().cleared.disconnect(QGISRedStylingUtils.registerStyleDatabaseInProject)
+        with suppress(Exception):
+            QGISRedStylingUtils.unregisterStyleDatabaseFromProject()
 
         QGISRedFileSystemUtils().removeFolder(self.tempFolder)
 

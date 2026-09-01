@@ -32,6 +32,9 @@ if exist "%PS_OUTPUT_ZIP%" del "%PS_OUTPUT_ZIP%"
 ::                               .gitignore  README.md  qgisred.pro  resources.qrc
 ::   Excluded dir names (any depth): __pycache__
 ::   Excluded extensions       : .pyc  .pyo  .ts
+::   Excluded file names       : the style database, shipped by the dependencies installer
+::                               instead. By name, never by the .bak extension: the ~30
+::                               default styles in defaults/layerStyles are .qml.bak.
 ::
 powershell -NoProfile -ExecutionPolicy Bypass -Command ^
     "$d   = $env:PS_PLUGIN_DIR;" ^
@@ -40,6 +43,7 @@ powershell -NoProfile -ExecutionPolicy Bypass -Command ^
     "$exTop = @('.git','.vscode','.claude','news','scripts','.githooks','tests','.gitignore','.gitattributes','README.md','INTERNALS.md','pytest.ini','qgisred.pro','resources.qrc');" ^
     "$exDir = @('__pycache__','.pytest_cache');" ^
     "$exExt = @('.pyc','.pyo','.ts');" ^
+    "$exFile = @('qgisred_symbology_style.db','qgisred_symbology_style.db.bak');" ^
     "Add-Type -Assembly System.IO.Compression.FileSystem;" ^
     "$zip = [System.IO.Compression.ZipFile]::Open($out, 'Create');" ^
     "Get-ChildItem -Path $d -Recurse -File | ForEach-Object {" ^
@@ -51,6 +55,7 @@ powershell -NoProfile -ExecutionPolicy Bypass -Command ^
     "        if ($exDir -contains $parts[$i]) { $skip = $true }" ^
     "    };" ^
     "    if ($exExt -contains $_.Extension) { $skip = $true };" ^
+    "    if ($exFile -contains $_.Name) { $skip = $true };" ^
     "    if (-not $skip) {" ^
     "        $arc = ($nm + '/' + $rel) -replace '\\','/';" ^
     "        [System.IO.Compression.ZipFileExtensions]::CreateEntryFromFile(" ^

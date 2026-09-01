@@ -725,7 +725,7 @@ class QGISRedLegendsDialog(QDialog, formClass):
 
     def loadStyleDatabase(self):
         self.style = QgsStyle()
-        dbPath = os.path.join(self.pluginFolder, "defaults", "symbology-style_QGISRed.db")
+        dbPath = QGISRedStylingUtils.styleDatabasePath()
 
         if os.path.exists(dbPath):
             try:

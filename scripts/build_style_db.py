@@ -1,5 +1,5 @@
 # -*- coding: utf-8 -*-
-"""Builds the QGISRed content of defaults/symbology-style_QGISRed.db.
+"""Builds the QGISRed content of defaults/qgisred_symbology_style.db.bak.
 
 Developer tool, not part of the plugin runtime. The file is a QGIS style
 database whose schema ships in git; this script refreshes only its QGISRed
@@ -15,7 +15,7 @@ import os
 import sqlite3
 
 PLUGIN_ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
-DATABASE_PATH = os.path.join(PLUGIN_ROOT, "defaults", "symbology-style_QGISRed.db")
+DATABASE_PATH = os.path.join(PLUGIN_ROOT, "defaults", "qgisred_symbology_style.db.bak")
 
 # Fixed colors for the default Pipe Materials legend, so reloading the theme keeps
 # the same color per material. Taken from the "Materiales" sheet of the

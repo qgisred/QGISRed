@@ -5,6 +5,7 @@ import math
 import os
 import json
 import random
+import shutil
 import sqlite3
 import zlib
 from random import randrange
@@ -35,6 +36,8 @@ def _plugin_root():
 
 
 _DEMAND_SECTOR_COLOR_CACHE = {}
+
+STYLE_DATABASE_NAME = "qgisred_symbology_style.db"
 
 
 def create_combined_cursor(icon, iface=None, icon_size=24):
@@ -903,8 +906,71 @@ class QGISRedStylingUtils:
         layer.saveNamedStyle(qmlPath)
 
     @staticmethod
+    def developmentStyleDatabasePath():
+        """The style database tracked in git. Only a checkout has it: the release ZIP
+        leaves it out, so a released plugin reads the installer's copy instead."""
+        return os.path.join(_plugin_root(), "defaults", STYLE_DATABASE_NAME + ".bak")
+
+    @staticmethod
     def styleDatabasePath():
-        return os.path.join(_plugin_root(), "defaults", "symbology-style_QGISRed.db")
+        """The style database QGIS opens.
+
+        In a checkout it is the .db regenerated beside the tracked .bak, never the .bak
+        itself: QGIS keeps whatever it opens locked for the whole session, and Windows would
+        then refuse the `git pull` that rewrites it. The regenerated file is invisible to git
+        (.gitignore carries *.db), so it can be locked with no consequence.
+        """
+        if os.path.exists(QGISRedStylingUtils.developmentStyleDatabasePath()):
+            return os.path.join(_plugin_root(), "defaults", STYLE_DATABASE_NAME)
+        from .qgisred_filesystem_utils import QGISRedFileSystemUtils
+        return os.path.join(QGISRedFileSystemUtils().getDefaultsFolder(), STYLE_DATABASE_NAME)
+
+    @staticmethod
+    def ensureStyleDatabase():
+        """Regenerate the working .db from the tracked .bak. Called once per plugin load.
+
+        The .bak is the source of truth and nothing of the user's lives in the copy, so it is
+        rewritten every time rather than compared. A released plugin has no .bak and this does
+        nothing: there the installer's database is opened where it lies, outside any checkout.
+
+        os.replace is what keeps a second QGIS instance safe — it fails rather than writing
+        under the handle that instance still holds, and the instance keeps reading a valid
+        database until the next start.
+        """
+        developmentPath = QGISRedStylingUtils.developmentStyleDatabasePath()
+        if not os.path.exists(developmentPath):
+            return
+        workingPath = QGISRedStylingUtils.styleDatabasePath()
+        stagedPath = "%s.%d.new" % (workingPath, os.getpid())
+        try:
+            shutil.copy2(developmentPath, stagedPath)
+            os.replace(stagedPath, workingPath)
+        except OSError:
+            with suppress(OSError):
+                os.remove(stagedPath)
+            # Silence here would read as "my change did not take": say who is holding it.
+            QgsMessageLog.logMessage(
+                QCoreApplication.translate(
+                    "QGISRedStylingUtils",
+                    "Another QGIS instance is using the style database: it keeps the previous "
+                    "one. Close the other instance and restart QGIS to pick up the changes.",
+                ),
+                "QGISRed",
+                Qgis.MessageLevel.Warning,
+            )
+
+    @staticmethod
+    def unregisterStyleDatabaseFromProject():
+        """Drop the database from the Style Manager so QGIS releases its file handle.
+
+        Without this a plugin reload cannot refresh the working copy in a checkout: this very
+        QGIS would still hold the .db open and Windows would refuse the replace.
+        """
+        databasePath = QGISRedStylingUtils.styleDatabasePath()
+        styleSettings = QgsProject.instance().styleSettings()
+        remaining = [path for path in styleSettings.styleDatabasePaths() if path != databasePath]
+        if len(remaining) != len(styleSettings.styleDatabasePaths()):
+            styleSettings.setStyleDatabasePaths(remaining)
 
     def getMaterialColorFromDb(self, materialValue):
         databasePath = QGISRedStylingUtils.styleDatabasePath()
@@ -923,7 +989,7 @@ class QGISRedStylingUtils:
 
     @staticmethod
     def findColorRamp(rampName):
-        # Saved legend strategies name a ramp of the shipped database; the user
+        # Saved legend strategies name a ramp of the QGISRed database; the user
         # default style is only a fallback and is never written to.
         pluginStyle = QgsStyle()
         databasePath = QGISRedStylingUtils.styleDatabasePath()
@@ -935,13 +1001,29 @@ class QGISRedStylingUtils:
 
     @staticmethod
     def registerStyleDatabaseInProject():
-        # Lists the shipped database in the Style Manager's database selector.
+        """List this machine's QGISRed database in the Style Manager, and only this one.
+
+        A project stores the style database paths it was saved with, so it comes back
+        carrying whichever path the machine that saved it used — a plugin checkout, another
+        install root, another user's home. None of those resolve here, and the list is only
+        ever appended to, so without pruning a project would collect one dead entry per
+        machine it travels to.
+        """
         databasePath = QGISRedStylingUtils.styleDatabasePath()
-        if not os.path.exists(databasePath):
-            return
+        currentKey = os.path.normcase(os.path.normpath(databasePath))
         styleSettings = QgsProject.instance().styleSettings()
-        if databasePath not in styleSettings.styleDatabasePaths():
-            styleSettings.addStyleDatabasePath(databasePath)
+        registered = list(styleSettings.styleDatabasePaths())
+
+        ourName = STYLE_DATABASE_NAME.lower()
+        kept = [path for path in registered
+                if os.path.basename(path).lower() != ourName
+                or os.path.normcase(os.path.normpath(path)) == currentKey]
+        if os.path.exists(databasePath) and currentKey not in [
+                os.path.normcase(os.path.normpath(path)) for path in kept]:
+            kept.append(databasePath)
+        # Rewriting an unchanged list would mark the project dirty on every open.
+        if kept != registered:
+            styleSettings.setStyleDatabasePaths(kept)
 
     def applyCategorizedRenderer(self, layer, field, qmlFile):
         fieldIndex = layer.fields().indexFromName(field)

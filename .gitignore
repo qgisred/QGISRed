@@ -3,6 +3,8 @@
 .vscode
 /layerStyles/*.qml
 *.qml
+*.db
+*.db.*.new
 scripts/.ftp_credentials
 CLAUDE.md
 .claude/
