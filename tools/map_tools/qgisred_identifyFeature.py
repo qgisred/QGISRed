@@ -240,12 +240,14 @@ class QGISRedIdentifyFeature(QgsMapToolIdentify):
 
         allFeatures = self.identify(event.pos().x(), event.pos().y(), self.TopDownAll)
         if not allFeatures:
+            self.clearHighlights()
             if self.dock:
                 self.dock.deselectElement()
             return
 
         selectedLayer, selectedFeature, selectedHandler = self.getFeatureByPriority(allFeatures)
         if not selectedLayer:
+            self.clearHighlights()
             if self.dock:
                 self.dock.deselectElement()
             return

@@ -1116,6 +1116,10 @@ class QGISRedElementExplorerDock(QGISRedHighlightOwnerMixin, QDockWidget, FORM_C
         # Keep the old highlight on screen until the new one is drawn; clearing
         # first left an empty frame that read as a blink.
         oldHighlights = self.takeHighlights()
+        # A prior map click may have left the identify tool's own highlight
+        # behind (findElement never draws through the tool, so it never
+        # clears it): drop it before adding the search's own highlight.
+        self.clearIdentifyToolHighlight()
         self.listWidget.clear()
 
         # Check if any layers are available
