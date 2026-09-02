@@ -174,7 +174,7 @@ class QGISRedIdentifyFeature(QgsMapToolIdentify):
         self.clearHighlights()
         self.currentHighlight = QgsHighlight(self.canvas, feature.geometry(), layer)
         self.currentHighlight.setColor(Qt.GlobalColor.red)
-        self.currentHighlight.setWidth(4)
+        self.currentHighlight.setWidth(3)
         self.currentHighlight.setFillColor(Qt.GlobalColor.transparent)
         self.currentHighlight.show()
 

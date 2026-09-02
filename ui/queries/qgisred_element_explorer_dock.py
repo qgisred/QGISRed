@@ -289,7 +289,7 @@ class QGISRedElementExplorerDock(QGISRedHighlightOwnerMixin, QDockWidget, FORM_C
             oldHighlights = self.takeHighlights()
             highlight = QgsHighlight(iface.mapCanvas(), self.currentFeature.geometry(), self.currentLayer)
             highlight.setColor(QColor("red"))
-            highlight.setWidth(5)
+            highlight.setWidth(3)
             highlight.show()
             self.mainHighlight = highlight
             self.removeHighlightItems(oldHighlights)
@@ -1169,7 +1169,7 @@ class QGISRedElementExplorerDock(QGISRedHighlightOwnerMixin, QDockWidget, FORM_C
         finalTitleText = self.updateFoundElementLabel(selectedId, foundFeatureLayer)
         highlight = QgsHighlight(iface.mapCanvas(), foundFeature.geometry(), foundFeatureLayer)
         highlight.setColor(QColor("red"))
-        highlight.setWidth(5)
+        highlight.setWidth(3)
         highlight.show()
         self.mainHighlight = highlight
         self.removeHighlightItems(oldHighlights)
@@ -2503,7 +2503,7 @@ class QGISRedElementExplorerDock(QGISRedHighlightOwnerMixin, QDockWidget, FORM_C
 
         highlight = QgsHighlight(iface.mapCanvas(), feature.geometry(), layer)
         highlight.setColor(QColor("red"))
-        highlight.setWidth(5)
+        highlight.setWidth(3)
         highlight.show()
         self.mainHighlight = highlight
         self.removeHighlightItems(oldHighlights)
