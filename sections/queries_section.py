@@ -174,7 +174,10 @@ class QueriesSection:
                 dock.show()
                 dock.raise_()
                 dock.activateWindow()
-                dock.onLayerTreeChanged()
+                # Synchronous, not the debounced onLayerTreeChanged(): the
+                # explicit collapse state set below must be the last word,
+                # not overwritten by a timer firing after this returns.
+                dock.doLayerTreeChanged()
                 dock.setDefaultValue()
                 dock.updateCollapsibleWidgetsState(collapseFindElements=False, collapseConnectedElements=True)
             except Exception:
@@ -225,7 +228,10 @@ class QueriesSection:
                 dock.show()
                 dock.raise_()
                 dock.activateWindow()
-                dock.onLayerTreeChanged()
+                # Synchronous, not the debounced onLayerTreeChanged(): the
+                # explicit collapse state set below must be the last word,
+                # not overwritten by a timer firing after this returns.
+                dock.doLayerTreeChanged()
                 dock.setDefaultValue()
                 dock.updateCollapsibleWidgetsState(collapseElementProperties=False, collapseFindElements=True)
             except Exception:

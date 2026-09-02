@@ -175,6 +175,19 @@
               </widget>
              </item>
              <item>
+              <widget class="QLabel" name="labelNoElementSelected">
+               <property name="styleSheet">
+                <string notr="true">color: gray; font-style: italic;</string>
+               </property>
+               <property name="text">
+                <string>No element selected.</string>
+               </property>
+               <property name="wordWrap">
+                <bool>true</bool>
+               </property>
+              </widget>
+             </item>
+             <item>
               <widget class="QLabel" name="labelFoundElement">
                <property name="text">
                 <string>-</string>

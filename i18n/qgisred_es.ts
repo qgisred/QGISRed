@@ -912,37 +912,37 @@
         <translation>Propiedades de los elementos</translation>
     </message>
     <message>
-        <location filename="../ui/queries/qgisred_element_explorer_dock.ui" line="194"/>
+        <location filename="../ui/queries/qgisred_element_explorer_dock.ui" line="207"/>
         <source>-</source>
         <translation>-</translation>
     </message>
     <message>
-        <location filename="../ui/queries/qgisred_element_explorer_dock.ui" line="207"/>
+        <location filename="../ui/queries/qgisred_element_explorer_dock.ui" line="220"/>
         <source>Connected Elements</source>
         <translation>Elementos conectados</translation>
     </message>
     <message>
-        <location filename="../ui/queries/qgisred_element_explorer_dock.ui" line="301"/>
+        <location filename="../ui/queries/qgisred_element_explorer_dock.ui" line="314"/>
         <source>Data</source>
         <translation>Datos</translation>
     </message>
     <message>
-        <location filename="../ui/queries/qgisred_element_explorer_dock.ui" line="342"/>
+        <location filename="../ui/queries/qgisred_element_explorer_dock.ui" line="355"/>
         <source>Results</source>
         <translation>Resultados</translation>
     </message>
     <message>
-        <location filename="../ui/queries/qgisred_element_explorer_dock.ui" line="404"/>
+        <location filename="../ui/queries/qgisred_element_explorer_dock.ui" line="417"/>
         <source>Curves</source>
         <translation>Curvas</translation>
     </message>
     <message>
-        <location filename="../ui/queries/qgisred_element_explorer_dock.ui" line="426"/>
+        <location filename="../ui/queries/qgisred_element_explorer_dock.ui" line="439"/>
         <source>Patterns</source>
         <translation>Patrones</translation>
     </message>
     <message>
-        <location filename="../ui/queries/qgisred_element_explorer_dock.ui" line="448"/>
+        <location filename="../ui/queries/qgisred_element_explorer_dock.ui" line="461"/>
         <source>Controls</source>
         <translation>Controles</translation>
     </message>
@@ -1145,6 +1145,11 @@
         <location filename="../ui/queries/qgisred_statisticsandgraphs_dock.ui" line="314"/>
         <source>0 elements match</source>
         <translation type="unfinished">0 elementos coinciden</translation>
+    </message>
+    <message>
+        <location filename="../ui/queries/qgisred_element_explorer_dock.ui" line="183"/>
+        <source>No element selected.</source>
+        <translation type="unfinished">No hay ningún elemento seleccionado.</translation>
     </message>
 </context>
 <context>
@@ -2206,12 +2211,12 @@
 <context>
     <name>LayerManagementSection</name>
     <message>
-        <location filename="../sections/layer_management_section.py" line="750"/>
+        <location filename="../sections/layer_management_section.py" line="748"/>
         <source>Outdated results</source>
         <translation>Resultados obsoletos</translation>
     </message>
     <message>
-        <location filename="../sections/layer_management_section.py" line="751"/>
+        <location filename="../sections/layer_management_section.py" line="749"/>
         <source>These results no longer match the network: the inputs have changed since the simulation was run.
 
 Do you want to run the simulation again?</source>
@@ -2220,12 +2225,12 @@ Do you want to run the simulation again?</source>
 ¿Desea volver a simular?</translation>
     </message>
     <message>
-        <location filename="../sections/layer_management_section.py" line="755"/>
+        <location filename="../sections/layer_management_section.py" line="753"/>
         <source>Outdated thematic map</source>
         <translation>Mapa temático obsoleto</translation>
     </message>
     <message>
-        <location filename="../sections/layer_management_section.py" line="756"/>
+        <location filename="../sections/layer_management_section.py" line="754"/>
         <source>This thematic map was built with project settings that have changed since.
 
 Do you want to rebuild it now?</source>
@@ -2237,12 +2242,12 @@ Do you want to rebuild it now?</source>
 <context>
     <name>LifecycleSection</name>
     <message>
-        <location filename="../sections/lifecycle_section.py" line="262"/>
+        <location filename="../sections/lifecycle_section.py" line="264"/>
         <source>Loaded sucssesfully</source>
         <translation>Cargado exitósamente</translation>
     </message>
     <message>
-        <location filename="../sections/lifecycle_section.py" line="555"/>
+        <location filename="../sections/lifecycle_section.py" line="559"/>
         <source>QGISRed Dependencies</source>
         <translation>Dependencias de QGISRed</translation>
     </message>
@@ -2262,32 +2267,32 @@ Do you want to rebuild it now?</source>
         <translation>Pincha para cambiar</translation>
     </message>
     <message>
-        <location filename="../sections/lifecycle_section.py" line="653"/>
+        <location filename="../sections/lifecycle_section.py" line="657"/>
         <source>QGISRed News</source>
         <translation>Noticias QGISRed</translation>
     </message>
     <message>
-        <location filename="../sections/lifecycle_section.py" line="555"/>
+        <location filename="../sections/lifecycle_section.py" line="559"/>
         <source>The installation may have failed. Please try again or report the issue in GitHub</source>
         <translation>La instalación puede haber fallado. Por favor, prueba otra vez o reporta un issue en GitHub</translation>
     </message>
     <message>
-        <location filename="../sections/lifecycle_section.py" line="528"/>
+        <location filename="../sections/lifecycle_section.py" line="532"/>
         <source>QGISRed plugin requires some dependencies (v{}). Do you want to install them now?</source>
         <translation type="unfinished">El complemento QGISRed requiere algunas dependencias (v{}). ¿Desea instalarlas ahora?</translation>
     </message>
     <message>
-        <location filename="../sections/lifecycle_section.py" line="608"/>
+        <location filename="../sections/lifecycle_section.py" line="612"/>
         <source>Checking for QGISRed news…</source>
         <translation>Comprobando las noticias de QGISRed…</translation>
     </message>
     <message>
-        <location filename="../sections/lifecycle_section.py" line="626"/>
+        <location filename="../sections/lifecycle_section.py" line="630"/>
         <source>QGISRed news are not available: the server could not be reached.</source>
         <translation>Las noticias de QGISRed no están disponibles: no se ha podido conectar con el servidor.</translation>
     </message>
     <message>
-        <location filename="../sections/lifecycle_section.py" line="635"/>
+        <location filename="../sections/lifecycle_section.py" line="639"/>
         <source>There are no QGISRed news to show.</source>
         <translation>No hay noticias de QGISRed que mostrar.</translation>
     </message>
@@ -3885,37 +3890,37 @@ La información de sectores existente podría ser reemplazada.
         <translation>Medidor</translation>
     </message>
     <message>
-        <location filename="../ui/queries/qgisred_element_explorer_dock.py" line="1105"/>
+        <location filename="../ui/queries/qgisred_element_explorer_dock.py" line="1159"/>
         <source>Info</source>
         <translation>Información</translation>
     </message>
     <message>
-        <location filename="../ui/queries/qgisred_element_explorer_dock.py" line="1105"/>
+        <location filename="../ui/queries/qgisred_element_explorer_dock.py" line="1159"/>
         <source>Feature not found</source>
         <translation>Característica no encontrada</translation>
     </message>
     <message>
-        <location filename="../ui/queries/qgisred_element_explorer_dock.py" line="2667"/>
+        <location filename="../ui/queries/qgisred_element_explorer_dock.py" line="2726"/>
         <source>Property</source>
         <translation>Propiedad</translation>
     </message>
     <message>
-        <location filename="../ui/queries/qgisred_element_explorer_dock.py" line="2667"/>
+        <location filename="../ui/queries/qgisred_element_explorer_dock.py" line="2726"/>
         <source>Value</source>
         <translation>Valor</translation>
     </message>
     <message>
-        <location filename="../ui/queries/qgisred_element_explorer_dock.py" line="2667"/>
+        <location filename="../ui/queries/qgisred_element_explorer_dock.py" line="2726"/>
         <source>Units</source>
         <translation>Unidades</translation>
     </message>
     <message>
-        <location filename="../ui/queries/qgisred_element_explorer_dock.py" line="2543"/>
+        <location filename="../ui/queries/qgisred_element_explorer_dock.py" line="2602"/>
         <source>No Layers Found</source>
         <translation>No se ha encontrado ninguna capa</translation>
     </message>
     <message>
-        <location filename="../ui/queries/qgisred_element_explorer_dock.py" line="2543"/>
+        <location filename="../ui/queries/qgisred_element_explorer_dock.py" line="2602"/>
         <source>No layers found in the Inputs or Results group.</source>
         <translation>No se ha encontrado ninguna capa en el grupo de Inputs o Results.</translation>
     </message>
@@ -3925,32 +3930,32 @@ La información de sectores existente podría ser reemplazada.
         <translation>Demanda Multiple</translation>
     </message>
     <message>
-        <location filename="../ui/queries/qgisred_element_explorer_dock.py" line="1293"/>
+        <location filename="../ui/queries/qgisred_element_explorer_dock.py" line="1347"/>
         <source>Total Demands</source>
         <translation>Demandas Totales</translation>
     </message>
     <message>
-        <location filename="../ui/queries/qgisred_element_explorer_dock.py" line="1456"/>
+        <location filename="../ui/queries/qgisred_element_explorer_dock.py" line="1510"/>
         <source>Previous demand</source>
         <translation>Demanda anterior</translation>
     </message>
     <message>
-        <location filename="../ui/queries/qgisred_element_explorer_dock.py" line="1463"/>
+        <location filename="../ui/queries/qgisred_element_explorer_dock.py" line="1517"/>
         <source>Next demand</source>
         <translation>Siguiente demanda</translation>
     </message>
     <message>
-        <location filename="../ui/queries/qgisred_element_explorer_dock.py" line="2068"/>
+        <location filename="../ui/queries/qgisred_element_explorer_dock.py" line="2122"/>
         <source>(Source)</source>
         <translation>(Fuente)</translation>
     </message>
     <message>
-        <location filename="../ui/queries/qgisred_element_explorer_dock.py" line="2070"/>
+        <location filename="../ui/queries/qgisred_element_explorer_dock.py" line="2124"/>
         <source>(Mult.Dem)</source>
         <translation>(Dem.Múlt.)</translation>
     </message>
     <message>
-        <location filename="../ui/queries/qgisred_element_explorer_dock.py" line="2655"/>
+        <location filename="../ui/queries/qgisred_element_explorer_dock.py" line="2714"/>
         <source>Time</source>
         <translation type="unfinished">Instante</translation>
     </message>
@@ -8682,7 +8687,7 @@ Do you want to proceed?</source>
 <context>
     <name>QGISRedStylingUtils</name>
     <message>
-        <location filename="../tools/utils/qgisred_styling_utils.py" line="950"/>
+        <location filename="../tools/utils/qgisred_styling_utils.py" line="1032"/>
         <source>%1 field not found in layer %2</source>
         <translation>Campo %1 no encontrado en capa %2</translation>
     </message>
@@ -8697,37 +8702,37 @@ Do you want to proceed?</source>
         <translation type="obsolete">Cuerdas</translation>
     </message>
     <message>
-        <location filename="../tools/utils/qgisred_styling_utils.py" line="246"/>
+        <location filename="../tools/utils/qgisred_styling_utils.py" line="249"/>
         <source>Failed to apply legend strategy for layer %1: %2</source>
         <translation>Fallo al aplicar la estrategia de leyenda para la capa %1: %2</translation>
     </message>
     <message>
-        <location filename="../tools/utils/qgisred_styling_utils.py" line="278"/>
+        <location filename="../tools/utils/qgisred_styling_utils.py" line="281"/>
         <source>Unsupported legend strategy schema: %1</source>
         <translation>Esquema de estrategia de leyenda no soportado: %1</translation>
     </message>
     <message>
-        <location filename="../tools/utils/qgisred_styling_utils.py" line="291"/>
+        <location filename="../tools/utils/qgisred_styling_utils.py" line="294"/>
         <source>Legend strategy field &apos;%1&apos; not found on layer &apos;%2&apos;</source>
         <translation>Campo de estrategia de leyenda '%1' no encontrado en la capa '%2'</translation>
     </message>
     <message>
-        <location filename="../tools/utils/qgisred_styling_utils.py" line="500"/>
+        <location filename="../tools/utils/qgisred_styling_utils.py" line="503"/>
         <source>Color ramp &apos;%1&apos; not found; falling back to random colors</source>
         <translation>Rampa de color '%1' no encontrada; volviendo a colores aleatorios</translation>
     </message>
     <message>
-        <location filename="../tools/utils/qgisred_styling_utils.py" line="372"/>
+        <location filename="../tools/utils/qgisred_styling_utils.py" line="375"/>
         <source>Unsupported classification mode: %1</source>
         <translation type="unfinished">Modo de clasificación no compatible: %1</translation>
     </message>
     <message>
-        <location filename="../tools/utils/qgisred_styling_utils.py" line="534"/>
+        <location filename="../tools/utils/qgisred_styling_utils.py" line="537"/>
         <source>Color ramp &apos;%1&apos; not found; colors strategy skipped</source>
         <translation type="unfinished">Rampa de colores '%1' no encontrada; se omite la estrategia de colores</translation>
     </message>
     <message>
-        <location filename="../tools/utils/qgisred_styling_utils.py" line="632"/>
+        <location filename="../tools/utils/qgisred_styling_utils.py" line="635"/>
         <source>Closed Links</source>
         <translation>Líneas Cerradas</translation>
     </message>
@@ -8737,7 +8742,7 @@ Do you want to proceed?</source>
         <translation type="obsolete">Indefinido</translation>
     </message>
     <message>
-        <location filename="../tools/utils/qgisred_styling_utils.py" line="630"/>
+        <location filename="../tools/utils/qgisred_styling_utils.py" line="633"/>
         <source>Uncategorized</source>
         <translation>Sin categoría</translation>
     </message>
@@ -8753,7 +8758,7 @@ Do you want to proceed?</source>
 <context>
     <name>QGISRedThematicMapsBuilder</name>
     <message>
-        <location filename="../tools/utils/qgisred_thematicmaps_builder.py" line="372"/>
+        <location filename="../tools/utils/qgisred_thematicmaps_builder.py" line="388"/>
         <source>Failed to create derived layer from %1</source>
         <translation type="unfinished">Fallo al crear la capa derivada desde %1</translation>
     </message>
@@ -9125,27 +9130,27 @@ Do you want to proceed?</source>
 <context>
     <name>StaleLayerManager</name>
     <message>
-        <location filename="../tools/utils/qgisred_stale_layer_manager.py" line="285"/>
+        <location filename="../tools/utils/qgisred_stale_layer_manager.py" line="333"/>
         <source>Layer may be outdated — inputs have changed since last generation</source>
         <translation>La capa puede estar obsoleta - los datos de entrada han cambiado desde que se generó</translation>
     </message>
     <message>
-        <location filename="../tools/utils/qgisred_stale_layer_manager.py" line="280"/>
+        <location filename="../tools/utils/qgisred_stale_layer_manager.py" line="328"/>
         <source>Results may be outdated — the network has changed since the last simulation</source>
         <translation>Los resultados pueden estar obsoletos — la red ha cambiado desde la última simulación</translation>
     </message>
     <message>
-        <location filename="../tools/utils/qgisred_stale_layer_manager.py" line="280"/>
+        <location filename="../tools/utils/qgisred_stale_layer_manager.py" line="328"/>
         <source>Click this icon to run the simulation again</source>
         <translation>Pulse este icono para volver a simular</translation>
     </message>
     <message>
-        <location filename="../tools/utils/qgisred_stale_layer_manager.py" line="283"/>
+        <location filename="../tools/utils/qgisred_stale_layer_manager.py" line="331"/>
         <source>Thematic map may be outdated — project settings have changed since it was built</source>
         <translation>El mapa temático puede estar obsoleto — las opciones del proyecto han cambiado desde que se creó</translation>
     </message>
     <message>
-        <location filename="../tools/utils/qgisred_stale_layer_manager.py" line="283"/>
+        <location filename="../tools/utils/qgisred_stale_layer_manager.py" line="331"/>
         <source>Click this icon to rebuild it</source>
         <translation>Pulse este icono para reconstruirlo</translation>
     </message>

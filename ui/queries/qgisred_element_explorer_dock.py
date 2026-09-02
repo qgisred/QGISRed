@@ -208,6 +208,7 @@ class QGISRedElementExplorerDock(QGISRedHighlightOwnerMixin, QDockWidget, FORM_C
         self.mElementPropertiesGroupBox.setCollapsed(False)
         self.mFindElementsGroupBox.setCollapsed(False)
         self.mConnectedElementsGroupBox.setCollapsed(True)
+        self.showNoElementSelectedState()
         self.trackCollapsibleWidgetsEvents()
 
         self.topLevelChanged.connect(self.onTopLevelChanged)
@@ -229,6 +230,14 @@ class QGISRedElementExplorerDock(QGISRedHighlightOwnerMixin, QDockWidget, FORM_C
 
         if collapseElementProperties is not None:
             self.mElementPropertiesGroupBox.setCollapsed(collapseElementProperties)
+            if not collapseElementProperties:
+                # Expanding a QgsCollapsibleGroupBox re-shows every child
+                # widget it owns, undoing whichever of showElementFoundState /
+                # showNoElementSelectedState was last applied. Re-assert it.
+                if self.isLayerValid(self.currentLayer) and self.currentFeature is not None:
+                    self.showElementFoundState()
+                else:
+                    self.showNoElementSelectedState()
 
         if collapseFindElements is not None:
             self.mFindElementsGroupBox.setCollapsed(collapseFindElements)
@@ -597,6 +606,7 @@ class QGISRedElementExplorerDock(QGISRedHighlightOwnerMixin, QDockWidget, FORM_C
         self.clearHighlights()
         self.clearAllLayerSelections()
         self.clearAllCaches()
+        self.showNoElementSelectedState()
 
         if hasattr(self, 'leElementMask'):
             self.leElementMask.clear()
@@ -759,12 +769,21 @@ class QGISRedElementExplorerDock(QGISRedHighlightOwnerMixin, QDockWidget, FORM_C
             self.cbElementType.blockSignals(False)
             self.cbElementId.blockSignals(False)
 
-            hasSelection = self.cbElementId.currentIndex() >= 0 and bool(self.cbElementId.currentText())
-            self.mElementPropertiesGroupBox.setCollapsed(not hasSelection)
-            if not hasSelection:
-                self.mConnectedElementsGroupBox.setVisible(False)
-
+            # Decide collapsed/label state from the outcome of reacquisition,
+            # not from the combobox: reacquireCurrentElement can still find the
+            # feature (and refreshConnectedElements can still show the
+            # Connected Elements box) even when the combo's own restore failed,
+            # and deciding beforehand let that call re-show it underneath the
+            # "no element selected" label.
             self.reacquireCurrentElement(prevState)
+
+            hasSelection = self.isLayerValid(self.currentLayer) and self.currentFeature is not None
+            self.mElementPropertiesGroupBox.setCollapsed(not hasSelection)
+            if hasSelection:
+                self.showElementFoundState()
+            else:
+                self.showNoElementSelectedState()
+
             self.updateResultsTabVisibility()
             self.populateResultsTable()
         finally:
@@ -837,6 +856,39 @@ class QGISRedElementExplorerDock(QGISRedHighlightOwnerMixin, QDockWidget, FORM_C
             self.currentLayer = None
             self.currentFeature = None
             self.clearHighlights()
+
+    def showNoElementSelectedState(self):
+        """Keep the Element Properties expander open but empty, instead of
+        collapsing it, so its open/closed state does not flip on every click
+        on empty map space."""
+        if hasattr(self, 'labelNoElementSelected'):
+            self.labelNoElementSelected.show()
+        if hasattr(self, 'labelFoundElement'):
+            self.labelFoundElement.hide()
+        if hasattr(self, 'labelFoundElementTag'):
+            self.labelFoundElementTag.hide()
+        if hasattr(self, 'labelFoundElementDescription'):
+            self.labelFoundElementDescription.hide()
+        if hasattr(self, 'line_3'):
+            self.line_3.hide()
+        if hasattr(self, 'line_4'):
+            self.line_4.hide()
+        if hasattr(self, 'tabWidget'):
+            self.tabWidget.hide()
+        if hasattr(self, 'mConnectedElementsGroupBox'):
+            self.mConnectedElementsGroupBox.setVisible(False)
+
+    def showElementFoundState(self):
+        if hasattr(self, 'labelNoElementSelected'):
+            self.labelNoElementSelected.hide()
+        if hasattr(self, 'labelFoundElement'):
+            self.labelFoundElement.show()
+        if hasattr(self, 'line_3'):
+            self.line_3.show()
+        if hasattr(self, 'line_4'):
+            self.line_4.show()
+        if hasattr(self, 'tabWidget'):
+            self.tabWidget.show()
 
     def restoreLabels(self, labelText, tagText, tagVisible, descText, descVisible):
         self.labelFoundElement.setText(labelText)
@@ -1046,12 +1098,14 @@ class QGISRedElementExplorerDock(QGISRedHighlightOwnerMixin, QDockWidget, FORM_C
         self.dataTableWidget.setRowCount(0)
         self.setUpdatesEnabled(False)
         try:
+            self.mElementPropertiesGroupBox.setCollapsed(False)
             if index >= 0 and self.cbElementId.currentText():
+                self.showElementFoundState()
                 self.findElement()
-                self.mElementPropertiesGroupBox.setCollapsed(False)
             else:
-                self.mElementPropertiesGroupBox.setCollapsed(True)
-                self.mConnectedElementsGroupBox.setVisible(False)
+                self.currentLayer = None
+                self.currentFeature = None
+                self.showNoElementSelectedState()
                 self.clearHighlights()
                 self.clearAllLayerSelections()
         finally:
@@ -2413,6 +2467,11 @@ class QGISRedElementExplorerDock(QGISRedHighlightOwnerMixin, QDockWidget, FORM_C
 
         # Resolve Results/Queries layer to its Inputs counterpart
         layer, feature = self.resolveToInputElement(layer, feature)
+
+        # A feature was actually picked on the map: always show it, even if
+        # the dock was left collapsed or showing "no element selected".
+        self.mElementPropertiesGroupBox.setCollapsed(False)
+        self.showElementFoundState()
 
         layerIdentifier = layer.customProperty("qgisred_identifier", "")
         index = self.cbElementType.findData(layerIdentifier)
