@@ -57,7 +57,7 @@
                 </Option>
                 <Option type="Map" name="outlineColor">
                   <Option type="bool" name="active" value="true"/>
-                  <Option type="QString" name="expression" value="if(IniStatus is NULL, '#0f1291',if(IniStatus !='CLOSED', '#0f1291','#ff0f13'))"/>
+                  <Option type="QString" name="expression" value="with_variable('openPipeColor', '#0f1291', with_variable('closedPipeColor', '#ff0f13', if(IniStatus is NULL, @openPipeColor, if(IniStatus != 'CLOSED', @openPipeColor, @closedPipeColor))))"/>
                   <Option type="int" name="type" value="3"/>
                 </Option>
               </Option>
@@ -90,7 +90,7 @@
               <Option type="Map" name="properties">
                 <Option type="Map" name="width">
                   <Option type="bool" name="active" value="true"/>
-                  <Option type="QString" name="expression" value="if(IniStatus is NULL, 0,if(IniStatus !='CV', 0,5))"/>
+                  <Option type="QString" name="expression" value="with_variable('cvPipeSize', 5, if(IniStatus is NULL, 0, if(IniStatus != 'CV', 0, @cvPipeSize)))"/>
                   <Option type="int" name="type" value="3"/>
                 </Option>
               </Option>
@@ -132,17 +132,12 @@
                   <Option type="Map" name="properties">
                     <Option type="Map" name="fillColor">
                       <Option type="bool" name="active" value="true"/>
-                      <Option type="QString" name="expression" value="if(IniStatus is NULL, '#0f1291',if(IniStatus !='CLOSED', '#0f1291','#ff0f13'))"/>
-                      <Option type="int" name="type" value="3"/>
-                    </Option>
-                    <Option type="Map" name="offset">
-                      <Option type="bool" name="active" value="true"/>
-                      <Option type="QString" name="expression" value="tostring(-inf*(if(IniStatus is NULL, 0,if(IniStatus !='CV', 0,5))))|| ',' || tostring(-inf*(if(IniStatus is NULL, 0,if(IniStatus !='CV', 0,5))))"/>
+                      <Option type="QString" name="expression" value="with_variable('openPipeColor', '#0f1291', with_variable('closedPipeColor', '#ff0f13', if(IniStatus is NULL, @openPipeColor, if(IniStatus != 'CLOSED', @openPipeColor, @closedPipeColor))))"/>
                       <Option type="int" name="type" value="3"/>
                     </Option>
                     <Option type="Map" name="size">
                       <Option type="bool" name="active" value="true"/>
-                      <Option type="QString" name="expression" value="if(IniStatus is NULL, 0,if(IniStatus !='CV', 0,5))"/>
+                      <Option type="QString" name="expression" value="with_variable('cvPipeSize', 5, if(IniStatus is NULL, 0, if(IniStatus != 'CV', 0, @cvPipeSize)))"/>
                       <Option type="int" name="type" value="3"/>
                     </Option>
                   </Option>

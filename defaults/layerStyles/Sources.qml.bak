@@ -44,7 +44,7 @@
               <Option type="Map" name="properties">
                 <Option type="Map" name="outlineColor">
                   <Option value="true" type="bool" name="active"/>
-                  <Option value="if(@id is NULL, NULL, with_variable('bq', coalesce(attribute($currentfeature,'SourceQual'),attribute($currentfeature,'BaseValue')), with_variable('st', coalesce(attribute($currentfeature,'SourceType'),attribute($currentfeature,'Type')), if (@bq is NULL or @bq = 0, '#9d979d' , if ( @st = 'MASS', '#ffd17123', if (@st = 'FLOWPACED', '#ff23d146', if (@st = 'CONCEN', '#0d20ed', '#ffcb0f96')))))))" type="QString" name="expression"/>
+                  <Option value="if(@id is NULL, NULL, with_variable('massSourceColor', '#d17123', with_variable('flowpacedSourceColor', '#23d146', with_variable('concenSourceColor', '#0d20ed', with_variable('setpointSourceColor', '#cb0f96', with_variable('noQualitySourceColor', '#9d979d', with_variable('bq', coalesce(attribute($currentfeature,'SourceQual'),attribute($currentfeature,'BaseValue')), with_variable('st', coalesce(attribute($currentfeature,'SourceType'),attribute($currentfeature,'Type')), if(@bq is NULL or @bq = 0, @noQualitySourceColor, if(@st = 'MASS', @massSourceColor, if(@st = 'FLOWPACED', @flowpacedSourceColor, if(@st = 'CONCEN', @concenSourceColor, @setpointSourceColor))))))))))))" type="QString" name="expression"/>
                   <Option value="3" type="int" name="type"/>
                 </Option>
               </Option>

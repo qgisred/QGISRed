@@ -182,12 +182,12 @@
               <Option name="properties" type="Map">
                 <Option name="fillColor" type="Map">
                   <Option name="active" type="bool" value="true"/>
-                  <Option name="expression" type="QString" value="if (BaseDem is NULL, '#ffffff', if( BaseDem >0, '#fdbf6f', if (BaseDem &lt;0 , '#78b3dc', '#ffffff')))"/>
+                  <Option name="expression" type="QString" value="with_variable('positiveDemandJunctionColor', '#fdbf6f', with_variable('negativeDemandJunctionColor', '#78b3dc', with_variable('noDemandJunctionColor', '#ffffff', if(BaseDem is NULL, @noDemandJunctionColor, if(BaseDem > 0, @positiveDemandJunctionColor, if(BaseDem &lt; 0, @negativeDemandJunctionColor, @noDemandJunctionColor))))))"/>
                   <Option name="type" type="int" value="3"/>
                 </Option>
                 <Option name="size" type="Map">
                   <Option name="active" type="bool" value="true"/>
-                  <Option name="expression" type="QString" value="if (EmittCoef> 0, if (BaseDem is NULL, 2.2, if( BaseDem >0, 2.2, if (BaseDem &lt;0 , 4, 2.2))),0)"/>
+                  <Option name="expression" type="QString" value="with_variable('emitterJunctionSize', 2.2, with_variable('negativeDemandEmitterJunctionSize', 4, if(EmittCoef > 0, if(BaseDem is NULL, @emitterJunctionSize, if(BaseDem > 0, @emitterJunctionSize, if(BaseDem &lt; 0, @negativeDemandEmitterJunctionSize, @emitterJunctionSize))), 0)))"/>
                   <Option name="type" type="int" value="3"/>
                 </Option>
               </Option>
@@ -223,12 +223,12 @@
               <Option name="properties" type="Map">
                 <Option name="fillColor" type="Map">
                   <Option name="active" type="bool" value="true"/>
-                  <Option name="expression" type="QString" value="if (BaseDem is NULL, '#ffffff', if( BaseDem >0, '#fdbf6f', if (BaseDem &lt;0 , '#78b3dc', '#ffffff')))"/>
+                  <Option name="expression" type="QString" value="with_variable('positiveDemandJunctionColor', '#fdbf6f', with_variable('negativeDemandJunctionColor', '#78b3dc', with_variable('noDemandJunctionColor', '#ffffff', if(BaseDem is NULL, @noDemandJunctionColor, if(BaseDem > 0, @positiveDemandJunctionColor, if(BaseDem &lt; 0, @negativeDemandJunctionColor, @noDemandJunctionColor))))))"/>
                   <Option name="type" type="int" value="3"/>
                 </Option>
                 <Option name="size" type="Map">
                   <Option name="active" type="bool" value="true"/>
-                  <Option name="expression" type="QString" value="if (EmittCoef>0, 0, if (BaseDem is NULL, 1.3, if( BaseDem >0, 1.3, if (BaseDem &lt;0 , 3.5, 1.3))))"/>
+                  <Option name="expression" type="QString" value="with_variable('junctionSize', 1.3, with_variable('negativeDemandJunctionSize', 3.5, if(EmittCoef > 0, 0, if(BaseDem is NULL, @junctionSize, if(BaseDem > 0, @junctionSize, if(BaseDem &lt; 0, @negativeDemandJunctionSize, @junctionSize))))))"/>
                   <Option name="type" type="int" value="3"/>
                 </Option>
               </Option>

@@ -195,7 +195,7 @@
                 </Option>
                 <Option name="outlineColor" type="Map">
                   <Option value="true" name="active" type="bool"/>
-                  <Option value="if(IsActive is NULL, '#85b66f',if(IsActive >0, '#85b66f','#ff0f13'))" name="expression" type="QString"/>
+                  <Option value="with_variable('activeServiceConnectionColor', '#85b66f', with_variable('inactiveServiceConnectionColor', '#ff0f13', if(IsActive is NULL, @activeServiceConnectionColor, if(IsActive > 0, @activeServiceConnectionColor, @inactiveServiceConnectionColor))))" name="expression" type="QString"/>
                   <Option value="3" name="type" type="int"/>
                 </Option>
               </Option>
@@ -265,12 +265,12 @@
                   <Option name="properties" type="Map">
                     <Option name="fillColor" type="Map">
                       <Option value="true" name="active" type="bool"/>
-                      <Option value="if(@id is NULL, NULL, if(coalesce(attribute($currentfeature,'BaseDem'),attribute($currentfeature,'BaseDemand'))>0,if(IsActive is NULL or IsActive >0,'#b7dfa3','#c7cbc5'),'#fff'))" name="expression" type="QString"/>
+                      <Option value="if(@id is NULL, NULL, with_variable('activeDemandServiceConnectionColor', '#b7dfa3', with_variable('inactiveDemandServiceConnectionColor', '#c7cbc5', with_variable('noDemandServiceConnectionColor', '#ffffff', if(coalesce(attribute($currentfeature,'BaseDem'),attribute($currentfeature,'BaseDemand')) > 0, if(IsActive is NULL or IsActive > 0, @activeDemandServiceConnectionColor, @inactiveDemandServiceConnectionColor), @noDemandServiceConnectionColor)))))" name="expression" type="QString"/>
                       <Option value="3" name="type" type="int"/>
                     </Option>
                     <Option name="outlineColor" type="Map">
                       <Option value="true" name="active" type="bool"/>
-                      <Option value="if(IsActive is NULL, '#85b66f',if(IsActive >0, '#85b66f','#ff0f13'))" name="expression" type="QString"/>
+                      <Option value="with_variable('activeServiceConnectionColor', '#85b66f', with_variable('inactiveServiceConnectionColor', '#ff0f13', if(IsActive is NULL, @activeServiceConnectionColor, if(IsActive > 0, @activeServiceConnectionColor, @inactiveServiceConnectionColor))))" name="expression" type="QString"/>
                       <Option value="3" name="type" type="int"/>
                     </Option>
                   </Option>

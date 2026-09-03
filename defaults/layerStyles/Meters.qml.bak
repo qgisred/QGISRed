@@ -181,17 +181,17 @@
               <Option type="Map" name="properties">
                 <Option type="Map" name="fillColor">
                   <Option value="true" type="bool" name="active"/>
-                  <Option value="if(IsActive is NULL, '#fdf47b',if(IsActive !=0, '#fdf47b','#cccccc'))" type="QString" name="expression"/>
+                  <Option value="with_variable('energySensorMeterColor', '#fdf47b', with_variable('inactiveMeterColor', '#cccccc', if(IsActive is NULL, @energySensorMeterColor, if(IsActive != 0, @energySensorMeterColor, @inactiveMeterColor))))" type="QString" name="expression"/>
                   <Option value="3" type="int" name="type"/>
                 </Option>
                 <Option type="Map" name="outlineColor">
                   <Option value="true" type="bool" name="active"/>
-                  <Option value="if(IsActive is NULL, '#232323',if(IsActive !=0, '#232323','#999999'))" type="QString" name="expression"/>
+                  <Option value="with_variable('meterStrokeColor', '#232323', with_variable('inactiveMeterStrokeColor', '#999999', if(IsActive is NULL, @meterStrokeColor, if(IsActive != 0, @meterStrokeColor, @inactiveMeterStrokeColor))))" type="QString" name="expression"/>
                   <Option value="3" type="int" name="type"/>
                 </Option>
                 <Option type="Map" name="width">
                   <Option value="true" type="bool" name="active"/>
-                  <Option value="if(@id is NULL, NULL, with_variable('mt', coalesce(attribute($currentfeature,'MeterType'),attribute($currentfeature,'Type')), if (@mt is NULL, 0, if (@mt = 'EnergySensor', 5, 0))))" type="QString" name="expression"/>
+                  <Option value="if(@id is NULL, NULL, with_variable('energySensorMeterSize', 5, with_variable('mt', coalesce(attribute($currentfeature,'MeterType'),attribute($currentfeature,'Type')), if(@mt is NULL, 0, if(@mt = 'EnergySensor', @energySensorMeterSize, 0)))))" type="QString" name="expression"/>
                   <Option value="3" type="int" name="type"/>
                 </Option>
               </Option>
@@ -226,17 +226,17 @@
               <Option type="Map" name="properties">
                 <Option type="Map" name="fillColor">
                   <Option value="true" type="bool" name="active"/>
-                  <Option value="if(IsActive is NULL, '#ccd3b5',if(IsActive !=0, '#ccd3b5','#cccccc'))" type="QString" name="expression"/>
+                  <Option value="with_variable('valveOpeningMeterColor', '#ccd3b5', with_variable('inactiveMeterColor', '#cccccc', if(IsActive is NULL, @valveOpeningMeterColor, if(IsActive != 0, @valveOpeningMeterColor, @inactiveMeterColor))))" type="QString" name="expression"/>
                   <Option value="3" type="int" name="type"/>
                 </Option>
                 <Option type="Map" name="outlineColor">
                   <Option value="true" type="bool" name="active"/>
-                  <Option value="if(IsActive is NULL, '#232323',if(IsActive !=0, '#232323','#999999'))" type="QString" name="expression"/>
+                  <Option value="with_variable('meterStrokeColor', '#232323', with_variable('inactiveMeterStrokeColor', '#999999', if(IsActive is NULL, @meterStrokeColor, if(IsActive != 0, @meterStrokeColor, @inactiveMeterStrokeColor))))" type="QString" name="expression"/>
                   <Option value="3" type="int" name="type"/>
                 </Option>
                 <Option type="Map" name="width">
                   <Option value="true" type="bool" name="active"/>
-                  <Option value="if(@id is NULL, NULL, with_variable('mt', coalesce(attribute($currentfeature,'MeterType'),attribute($currentfeature,'Type')), if (@mt is NULL, 0, if (@mt = 'ValveOpening', 5, 0))))" type="QString" name="expression"/>
+                  <Option value="if(@id is NULL, NULL, with_variable('valveOpeningMeterSize', 5, with_variable('mt', coalesce(attribute($currentfeature,'MeterType'),attribute($currentfeature,'Type')), if(@mt is NULL, 0, if(@mt = 'ValveOpening', @valveOpeningMeterSize, 0)))))" type="QString" name="expression"/>
                   <Option value="3" type="int" name="type"/>
                 </Option>
               </Option>
@@ -271,17 +271,17 @@
               <Option type="Map" name="properties">
                 <Option type="Map" name="fillColor">
                   <Option value="true" type="bool" name="active"/>
-                  <Option value="if(IsActive is NULL, '#8de3c2',if(IsActive !=0, '#8de3c2','#cccccc'))" type="QString" name="expression"/>
+                  <Option value="with_variable('differentialManometerMeterColor', '#8de3c2', with_variable('inactiveMeterColor', '#cccccc', if(IsActive is NULL, @differentialManometerMeterColor, if(IsActive != 0, @differentialManometerMeterColor, @inactiveMeterColor))))" type="QString" name="expression"/>
                   <Option value="3" type="int" name="type"/>
                 </Option>
                 <Option type="Map" name="outlineColor">
                   <Option value="true" type="bool" name="active"/>
-                  <Option value="if(IsActive is NULL, '#232323',if(IsActive !=0, '#232323','#999999'))" type="QString" name="expression"/>
+                  <Option value="with_variable('meterStrokeColor', '#232323', with_variable('inactiveMeterStrokeColor', '#999999', if(IsActive is NULL, @meterStrokeColor, if(IsActive != 0, @meterStrokeColor, @inactiveMeterStrokeColor))))" type="QString" name="expression"/>
                   <Option value="3" type="int" name="type"/>
                 </Option>
                 <Option type="Map" name="width">
                   <Option value="true" type="bool" name="active"/>
-                  <Option value="if(@id is NULL, NULL, with_variable('mt', coalesce(attribute($currentfeature,'MeterType'),attribute($currentfeature,'Type')), if (@mt is NULL, 0, if (@mt = 'DifferentialManometer', 5, 0))))" type="QString" name="expression"/>
+                  <Option value="if(@id is NULL, NULL, with_variable('differentialManometerMeterSize', 5, with_variable('mt', coalesce(attribute($currentfeature,'MeterType'),attribute($currentfeature,'Type')), if(@mt is NULL, 0, if(@mt = 'DifferentialManometer', @differentialManometerMeterSize, 0)))))" type="QString" name="expression"/>
                   <Option value="3" type="int" name="type"/>
                 </Option>
               </Option>
@@ -316,17 +316,17 @@
               <Option type="Map" name="properties">
                 <Option type="Map" name="fillColor">
                   <Option value="true" type="bool" name="active"/>
-                  <Option value="if(IsActive is NULL, '#eeab68',if(IsActive !=0, '#eeab68','#cccccc'))" type="QString" name="expression"/>
+                  <Option value="with_variable('statusSensorMeterColor', '#eeab68', with_variable('inactiveMeterColor', '#cccccc', if(IsActive is NULL, @statusSensorMeterColor, if(IsActive != 0, @statusSensorMeterColor, @inactiveMeterColor))))" type="QString" name="expression"/>
                   <Option value="3" type="int" name="type"/>
                 </Option>
                 <Option type="Map" name="outlineColor">
                   <Option value="true" type="bool" name="active"/>
-                  <Option value="if(IsActive is NULL, '#232323',if(IsActive !=0, '#232323','#999999'))" type="QString" name="expression"/>
+                  <Option value="with_variable('meterStrokeColor', '#232323', with_variable('inactiveMeterStrokeColor', '#999999', if(IsActive is NULL, @meterStrokeColor, if(IsActive != 0, @meterStrokeColor, @inactiveMeterStrokeColor))))" type="QString" name="expression"/>
                   <Option value="3" type="int" name="type"/>
                 </Option>
                 <Option type="Map" name="width">
                   <Option value="true" type="bool" name="active"/>
-                  <Option value="if(@id is NULL, NULL, with_variable('mt', coalesce(attribute($currentfeature,'MeterType'),attribute($currentfeature,'Type')), if (@mt is NULL, 0, if (@mt = 'StatusSensor', 5, 0))))" type="QString" name="expression"/>
+                  <Option value="if(@id is NULL, NULL, with_variable('statusSensorMeterSize', 5, with_variable('mt', coalesce(attribute($currentfeature,'MeterType'),attribute($currentfeature,'Type')), if(@mt is NULL, 0, if(@mt = 'StatusSensor', @statusSensorMeterSize, 0)))))" type="QString" name="expression"/>
                   <Option value="3" type="int" name="type"/>
                 </Option>
               </Option>
@@ -361,17 +361,17 @@
               <Option type="Map" name="properties">
                 <Option type="Map" name="fillColor">
                   <Option value="true" type="bool" name="active"/>
-                  <Option value="if(IsActive is NULL, '#f7c7ac',if(IsActive !=0, '#f7c7ac','#cccccc'))" type="QString" name="expression"/>
+                  <Option value="with_variable('tachometerMeterColor', '#f7c7ac', with_variable('inactiveMeterColor', '#cccccc', if(IsActive is NULL, @tachometerMeterColor, if(IsActive != 0, @tachometerMeterColor, @inactiveMeterColor))))" type="QString" name="expression"/>
                   <Option value="3" type="int" name="type"/>
                 </Option>
                 <Option type="Map" name="outlineColor">
                   <Option value="true" type="bool" name="active"/>
-                  <Option value="if(IsActive is NULL, '#232323',if(IsActive !=0, '#232323','#999999'))" type="QString" name="expression"/>
+                  <Option value="with_variable('meterStrokeColor', '#232323', with_variable('inactiveMeterStrokeColor', '#999999', if(IsActive is NULL, @meterStrokeColor, if(IsActive != 0, @meterStrokeColor, @inactiveMeterStrokeColor))))" type="QString" name="expression"/>
                   <Option value="3" type="int" name="type"/>
                 </Option>
                 <Option type="Map" name="width">
                   <Option value="true" type="bool" name="active"/>
-                  <Option value="if(@id is NULL, NULL, with_variable('mt', coalesce(attribute($currentfeature,'MeterType'),attribute($currentfeature,'Type')), if (@mt is NULL, 0, if (@mt = 'Tachometer', 5, 0))))" type="QString" name="expression"/>
+                  <Option value="if(@id is NULL, NULL, with_variable('tachometerMeterSize', 5, with_variable('mt', coalesce(attribute($currentfeature,'MeterType'),attribute($currentfeature,'Type')), if(@mt is NULL, 0, if(@mt = 'Tachometer', @tachometerMeterSize, 0)))))" type="QString" name="expression"/>
                   <Option value="3" type="int" name="type"/>
                 </Option>
               </Option>
@@ -406,17 +406,17 @@
               <Option type="Map" name="properties">
                 <Option type="Map" name="fillColor">
                   <Option value="true" type="bool" name="active"/>
-                  <Option value="if(IsActive is NULL, '#82d5f6',if(IsActive !=0, '#82d5f6','#cccccc'))" type="QString" name="expression"/>
+                  <Option value="with_variable('countermeterMeterColor', '#82d5f6', with_variable('inactiveMeterColor', '#cccccc', if(IsActive is NULL, @countermeterMeterColor, if(IsActive != 0, @countermeterMeterColor, @inactiveMeterColor))))" type="QString" name="expression"/>
                   <Option value="3" type="int" name="type"/>
                 </Option>
                 <Option type="Map" name="outlineColor">
                   <Option value="true" type="bool" name="active"/>
-                  <Option value="if(IsActive is NULL, '#232323',if(IsActive !=0, '#232323','#999999'))" type="QString" name="expression"/>
+                  <Option value="with_variable('meterStrokeColor', '#232323', with_variable('inactiveMeterStrokeColor', '#999999', if(IsActive is NULL, @meterStrokeColor, if(IsActive != 0, @meterStrokeColor, @inactiveMeterStrokeColor))))" type="QString" name="expression"/>
                   <Option value="3" type="int" name="type"/>
                 </Option>
                 <Option type="Map" name="width">
                   <Option value="true" type="bool" name="active"/>
-                  <Option value="if(@id is NULL, NULL, with_variable('mt', coalesce(attribute($currentfeature,'MeterType'),attribute($currentfeature,'Type')), if (@mt is NULL, 0, if (@mt = 'Countermeter', 5, 0))))" type="QString" name="expression"/>
+                  <Option value="if(@id is NULL, NULL, with_variable('countermeterMeterSize', 5, with_variable('mt', coalesce(attribute($currentfeature,'MeterType'),attribute($currentfeature,'Type')), if(@mt is NULL, 0, if(@mt = 'Countermeter', @countermeterMeterSize, 0)))))" type="QString" name="expression"/>
                   <Option value="3" type="int" name="type"/>
                 </Option>
               </Option>
@@ -451,17 +451,17 @@
               <Option type="Map" name="properties">
                 <Option type="Map" name="fillColor">
                   <Option value="true" type="bool" name="active"/>
-                  <Option value="if(IsActive is NULL, '#b8e7fa',if(IsActive !=0, '#b8e7fa','#cccccc'))" type="QString" name="expression"/>
+                  <Option value="with_variable('flowmeterMeterColor', '#b8e7fa', with_variable('inactiveMeterColor', '#cccccc', if(IsActive is NULL, @flowmeterMeterColor, if(IsActive != 0, @flowmeterMeterColor, @inactiveMeterColor))))" type="QString" name="expression"/>
                   <Option value="3" type="int" name="type"/>
                 </Option>
                 <Option type="Map" name="outlineColor">
                   <Option value="true" type="bool" name="active"/>
-                  <Option value="if(IsActive is NULL, '#232323',if(IsActive !=0, '#232323','#999999'))" type="QString" name="expression"/>
+                  <Option value="with_variable('meterStrokeColor', '#232323', with_variable('inactiveMeterStrokeColor', '#999999', if(IsActive is NULL, @meterStrokeColor, if(IsActive != 0, @meterStrokeColor, @inactiveMeterStrokeColor))))" type="QString" name="expression"/>
                   <Option value="3" type="int" name="type"/>
                 </Option>
                 <Option type="Map" name="width">
                   <Option value="true" type="bool" name="active"/>
-                  <Option value="if(@id is NULL, NULL, with_variable('mt', coalesce(attribute($currentfeature,'MeterType'),attribute($currentfeature,'Type')), if (@mt is NULL, 0, if (@mt = 'Flowmeter', 5, 0))))" type="QString" name="expression"/>
+                  <Option value="if(@id is NULL, NULL, with_variable('flowmeterMeterSize', 5, with_variable('mt', coalesce(attribute($currentfeature,'MeterType'),attribute($currentfeature,'Type')), if(@mt is NULL, 0, if(@mt = 'Flowmeter', @flowmeterMeterSize, 0)))))" type="QString" name="expression"/>
                   <Option value="3" type="int" name="type"/>
                 </Option>
               </Option>
@@ -496,17 +496,17 @@
               <Option type="Map" name="properties">
                 <Option type="Map" name="fillColor">
                   <Option value="true" type="bool" name="active"/>
-                  <Option value="if(IsActive is NULL, '#bcb7ef',if(IsActive !=0, '#bcb7ef','#cccccc'))" type="QString" name="expression"/>
+                  <Option value="with_variable('qualitySensorMeterColor', '#bcb7ef', with_variable('inactiveMeterColor', '#cccccc', if(IsActive is NULL, @qualitySensorMeterColor, if(IsActive != 0, @qualitySensorMeterColor, @inactiveMeterColor))))" type="QString" name="expression"/>
                   <Option value="3" type="int" name="type"/>
                 </Option>
                 <Option type="Map" name="outlineColor">
                   <Option value="true" type="bool" name="active"/>
-                  <Option value="if(IsActive is NULL, '#232323',if(IsActive !=0, '#232323','#999999'))" type="QString" name="expression"/>
+                  <Option value="with_variable('meterStrokeColor', '#232323', with_variable('inactiveMeterStrokeColor', '#999999', if(IsActive is NULL, @meterStrokeColor, if(IsActive != 0, @meterStrokeColor, @inactiveMeterStrokeColor))))" type="QString" name="expression"/>
                   <Option value="3" type="int" name="type"/>
                 </Option>
                 <Option type="Map" name="width">
                   <Option value="true" type="bool" name="active"/>
-                  <Option value="if(@id is NULL, NULL, with_variable('mt', coalesce(attribute($currentfeature,'MeterType'),attribute($currentfeature,'Type')), if (@mt is NULL, 0, if (@mt = 'QualitySensor', 5, 0))))" type="QString" name="expression"/>
+                  <Option value="if(@id is NULL, NULL, with_variable('qualitySensorMeterSize', 5, with_variable('mt', coalesce(attribute($currentfeature,'MeterType'),attribute($currentfeature,'Type')), if(@mt is NULL, 0, if(@mt = 'QualitySensor', @qualitySensorMeterSize, 0)))))" type="QString" name="expression"/>
                   <Option value="3" type="int" name="type"/>
                 </Option>
               </Option>
@@ -541,17 +541,17 @@
               <Option type="Map" name="properties">
                 <Option type="Map" name="fillColor">
                   <Option value="true" type="bool" name="active"/>
-                  <Option value="if(IsActive is NULL, '#edbde8',if(IsActive !=0, '#edbde8','#cccccc'))" type="QString" name="expression"/>
+                  <Option value="with_variable('levelSensorMeterColor', '#edbde8', with_variable('inactiveMeterColor', '#cccccc', if(IsActive is NULL, @levelSensorMeterColor, if(IsActive != 0, @levelSensorMeterColor, @inactiveMeterColor))))" type="QString" name="expression"/>
                   <Option value="3" type="int" name="type"/>
                 </Option>
                 <Option type="Map" name="outlineColor">
                   <Option value="true" type="bool" name="active"/>
-                  <Option value="if(IsActive is NULL, '#232323',if(IsActive !=0, '#232323','#999999'))" type="QString" name="expression"/>
+                  <Option value="with_variable('meterStrokeColor', '#232323', with_variable('inactiveMeterStrokeColor', '#999999', if(IsActive is NULL, @meterStrokeColor, if(IsActive != 0, @meterStrokeColor, @inactiveMeterStrokeColor))))" type="QString" name="expression"/>
                   <Option value="3" type="int" name="type"/>
                 </Option>
                 <Option type="Map" name="width">
                   <Option value="true" type="bool" name="active"/>
-                  <Option value="if(@id is NULL, NULL, with_variable('mt', coalesce(attribute($currentfeature,'MeterType'),attribute($currentfeature,'Type')), if (@mt is NULL, 0, if (@mt = 'LevelSensor', 5, 0))))" type="QString" name="expression"/>
+                  <Option value="if(@id is NULL, NULL, with_variable('levelSensorMeterSize', 5, with_variable('mt', coalesce(attribute($currentfeature,'MeterType'),attribute($currentfeature,'Type')), if(@mt is NULL, 0, if(@mt = 'LevelSensor', @levelSensorMeterSize, 0)))))" type="QString" name="expression"/>
                   <Option value="3" type="int" name="type"/>
                 </Option>
               </Option>
@@ -586,17 +586,17 @@
               <Option type="Map" name="properties">
                 <Option type="Map" name="fillColor">
                   <Option value="true" type="bool" name="active"/>
-                  <Option value="if(IsActive is NULL, '#baf4c9',if(IsActive !=0, '#baf4c9','#cccccc'))" type="QString" name="expression"/>
+                  <Option value="with_variable('manometerMeterColor', '#baf4c9', with_variable('inactiveMeterColor', '#cccccc', if(IsActive is NULL, @manometerMeterColor, if(IsActive != 0, @manometerMeterColor, @inactiveMeterColor))))" type="QString" name="expression"/>
                   <Option value="3" type="int" name="type"/>
                 </Option>
                 <Option type="Map" name="outlineColor">
                   <Option value="true" type="bool" name="active"/>
-                  <Option value="if(IsActive is NULL, '#232323',if(IsActive !=0, '#232323','#999999'))" type="QString" name="expression"/>
+                  <Option value="with_variable('meterStrokeColor', '#232323', with_variable('inactiveMeterStrokeColor', '#999999', if(IsActive is NULL, @meterStrokeColor, if(IsActive != 0, @meterStrokeColor, @inactiveMeterStrokeColor))))" type="QString" name="expression"/>
                   <Option value="3" type="int" name="type"/>
                 </Option>
                 <Option type="Map" name="width">
                   <Option value="true" type="bool" name="active"/>
-                  <Option value="if(@id is NULL, NULL, with_variable('mt', coalesce(attribute($currentfeature,'MeterType'),attribute($currentfeature,'Type')), if (@mt is NULL, 5, if (@mt = 'Manometer', 5, 0))))" type="QString" name="expression"/>
+                  <Option value="if(@id is NULL, NULL, with_variable('manometerMeterSize', 5, with_variable('mt', coalesce(attribute($currentfeature,'MeterType'),attribute($currentfeature,'Type')), if(@mt is NULL, @manometerMeterSize, if(@mt = 'Manometer', @manometerMeterSize, 0)))))" type="QString" name="expression"/>
                   <Option value="3" type="int" name="type"/>
                 </Option>
               </Option>

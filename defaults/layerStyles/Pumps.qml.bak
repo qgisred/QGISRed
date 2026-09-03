@@ -57,7 +57,7 @@
                 </Option>
                 <Option type="Map" name="outlineColor">
                   <Option type="bool" name="active" value="true"/>
-                  <Option type="QString" name="expression" value="if(IniStatus is NULL, '#85b66f',if(IniStatus !='CLOSED', '#85b66f','#ff0f13'))"/>
+                  <Option type="QString" name="expression" value="with_variable('openPumpColor', '#85b66f', with_variable('closedPumpColor', '#ff0f13', if(IniStatus is NULL, @openPumpColor, if(IniStatus != 'CLOSED', @openPumpColor, @closedPumpColor))))"/>
                   <Option type="int" name="type" value="3"/>
                 </Option>
               </Option>
@@ -126,7 +126,7 @@
                   <Option type="Map" name="properties">
                     <Option type="Map" name="fillColor">
                       <Option type="bool" name="active" value="true"/>
-                      <Option type="QString" name="expression" value="if(IniStatus is NULL, '#85b66f',if(IniStatus !='CLOSED', '#85b66f','#ff0f13'))"/>
+                      <Option type="QString" name="expression" value="with_variable('openPumpColor', '#85b66f', with_variable('closedPumpColor', '#ff0f13', if(IniStatus is NULL, @openPumpColor, if(IniStatus != 'CLOSED', @openPumpColor, @closedPumpColor))))"/>
                       <Option type="int" name="type" value="3"/>
                     </Option>
                   </Option>

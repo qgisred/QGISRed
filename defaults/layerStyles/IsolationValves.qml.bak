@@ -44,7 +44,7 @@
               <Option name="properties" type="Map">
                 <Option name="fillColor" type="Map">
                   <Option name="active" type="bool" value="true"/>
-                  <Option name="expression" type="QString" value="if( &quot;Available&quot;!=0,if( coalesce(attribute($currentfeature,'IniStatus'),attribute($currentfeature,'Status'))='CLOSED',color_rgb(255,19,19), if(&quot;LossCoeff&quot; = 0, color_rgb(18,180,37),color_rgb(246,185,18))),color_rgb(125,139,143))"/>
+                  <Option name="expression" type="QString" value="with_variable('openIsolationValveColor', '#12b425', with_variable('closedIsolationValveColor', '#ff1313', with_variable('lossIsolationValveColor', '#f6b912', with_variable('unavailableIsolationValveColor', '#7d8b8f', if(&quot;Available&quot; != 0, if(coalesce(attribute($currentfeature,'IniStatus'),attribute($currentfeature,'Status')) = 'CLOSED', @closedIsolationValveColor, if(&quot;LossCoeff&quot; = 0, @openIsolationValveColor, @lossIsolationValveColor)), @unavailableIsolationValveColor)))))"/>
                   <Option name="type" type="int" value="3"/>
                 </Option>
               </Option>
