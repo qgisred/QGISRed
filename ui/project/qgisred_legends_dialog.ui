@@ -126,7 +126,7 @@
       </widget>
      </item>
      <item>
-      <widget class="QLabel" name="labelMeterType">
+      <widget class="QLabel" name="labelVariant">
        <property name="text">
         <string>Meter Type</string>
        </property>
@@ -134,12 +134,12 @@
         <set>Qt::AlignRight|Qt::AlignTrailing|Qt::AlignVCenter</set>
        </property>
        <property name="buddy">
-        <cstring>cbMeterType</cstring>
+        <cstring>cbVariant</cstring>
        </property>
       </widget>
      </item>
      <item>
-      <widget class="QComboBox" name="cbMeterType">
+      <widget class="QComboBox" name="cbVariant">
        <property name="minimumSize">
         <size>
          <width>130</width>
@@ -767,7 +767,7 @@
   <tabstop>cbGroups</tabstop>
   <tabstop>cbLegendLayer</tabstop>
   <tabstop>cbLegendsType</tabstop>
-  <tabstop>cbMeterType</tabstop>
+  <tabstop>cbVariant</tabstop>
   <tabstop>tableView</tabstop>
   <tabstop>btUp</tabstop>
   <tabstop>btDown</tabstop>

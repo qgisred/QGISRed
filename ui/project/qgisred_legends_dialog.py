@@ -260,6 +260,48 @@ class QGISRedLegendsDialog(QDialog, formClass):
         "ValveOpening",
     )
 
+    SOURCE_TYPES = ("MASS", "FLOWPACED", "CONCEN", "SETPOINT")
+
+    # Style variable the color swatch edits, per input layer and selector variant
+    # (None: the layer has no selector). Meters use meterStyleVariable(type, "Color").
+    INPUT_COLOR_VARIABLES = {
+        "qgisred_pipes": {None: "openPipeColor"},
+        "qgisred_pumps": {None: "openPumpColor"},
+        "qgisred_valves": {None: "openValveColor"},
+        "qgisred_junctions": {
+            "positive": "positiveDemandJunctionColor",
+            "negative": "negativeDemandJunctionColor",
+        },
+        "qgisred_demands": {None: "positiveDemandColor"},
+        "qgisred_isolationvalves": {None: "openIsolationValveColor"},
+        "qgisred_serviceconnections": {
+            "line": "activeServiceConnectionColor",
+            "circle": "activeDemandServiceConnectionColor",
+        },
+        "qgisred_sources": {
+            "MASS": "massSourceColor",
+            "FLOWPACED": "flowpacedSourceColor",
+            "CONCEN": "concenSourceColor",
+            "SETPOINT": "setpointSourceColor",
+        },
+    }
+
+    # Size variables the size cell scales together, per selector variant; the cell
+    # shows the first one. Meters use meterStyleVariable(type, "Size").
+    INPUT_SIZE_VARIABLES = {
+        "qgisred_junctions": {
+            "positive": (
+                "junctionSize", "negativeDemandJunctionSize",
+                "emitterJunctionSize", "negativeDemandEmitterJunctionSize",
+            ),
+            "negative": (
+                "negativeDemandJunctionSize", "junctionSize",
+                "emitterJunctionSize", "negativeDemandEmitterJunctionSize",
+            ),
+        },
+        "qgisred_demands": {None: ("demandSize", "negativeDemandSize")},
+    }
+
     INPUT_LAYER_IDENTIFIERS = frozenset({
         "qgisred_pipes", "qgisred_pumps", "qgisred_valves",
         "qgisred_junctions", "qgisred_reservoirs", "qgisred_tanks",
@@ -498,7 +540,7 @@ class QGISRedLegendsDialog(QDialog, formClass):
         self.populateGroups()
         self.setupClassCountField()
         self.setupClassifyAllButton()
-        self.setupMeterTypeCombo()
+        self.setupVariantCombo()
         self.setupAdvancedUi()
         self.loadStyleDatabase()
         self.applyConsistentStyling()
@@ -576,33 +618,46 @@ class QGISRedLegendsDialog(QDialog, formClass):
         self.btClassifyAll.setToolTip(self.tr("Classify All Unique Values"))
         self.btClassifyAll.clicked.connect(self.classifyAllUniqueValues)
 
-    def setupMeterTypeCombo(self):
-        self.cbMeterType.addItem(self.tr("All types"), None)
-        for meterType in self.METER_TYPES:
-            self.cbMeterType.addItem(meterType, meterType)
-        self.cbMeterType.currentIndexChanged.connect(self.onMeterTypeChanged)
-        self.labelMeterType.setVisible(False)
-        self.cbMeterType.setVisible(False)
+    def setupVariantCombo(self):
+        self.cbVariant.currentIndexChanged.connect(self.onVariantChanged)
+        self.labelVariant.setVisible(False)
+        self.cbVariant.setVisible(False)
 
-    def getSelectedMeterType(self):
-        """Return the meter type selected in the dropdown, or None for 'All types'."""
-        if not hasattr(self, "cbMeterType"):
+    def inputVariantItems(self, identifier):
+        """(label, [(text, data)]) of the selector for input layers with several editable variants, or None."""
+        if identifier == "qgisred_meters":
+            return self.tr("Meter Type"), [(self.tr("All types"), None)] + [(t, t) for t in self.METER_TYPES]
+        if identifier == "qgisred_junctions":
+            return self.tr("Demand"), [(self.tr("Positive (> 0)"), "positive"), (self.tr("Negative (< 0)"), "negative")]
+        if identifier == "qgisred_sources":
+            return self.tr("Source Type"), [(sourceType, sourceType) for sourceType in self.SOURCE_TYPES]
+        if identifier == "qgisred_serviceconnections":
+            return self.tr("Component"), [(self.tr("Line"), "line"), (self.tr("Demand circle"), "circle")]
+        return None
+
+    def getSelectedVariant(self):
+        """Data of the selected variant (meter type, demand sign, ...), or None."""
+        if not hasattr(self, "cbVariant"):
             return None
-        return self.cbMeterType.currentData()
+        return self.cbVariant.currentData()
 
-    def updateMeterTypeControls(self, identifier=None):
-        if not hasattr(self, "cbMeterType"):
+    def updateVariantControls(self, identifier=None):
+        if not hasattr(self, "cbVariant"):
             return
-        isMeters = identifier == "qgisred_meters"
-        self.labelMeterType.setVisible(isMeters)
-        self.cbMeterType.setVisible(isMeters)
-        if not isMeters and self.cbMeterType.currentIndex() != 0:
-            self.cbMeterType.blockSignals(True)
-            self.cbMeterType.setCurrentIndex(0)
-            self.cbMeterType.blockSignals(False)
+        variant = self.inputVariantItems(identifier) if identifier else None
+        self.cbVariant.blockSignals(True)
+        self.cbVariant.clear()
+        if variant:
+            label, items = variant
+            self.labelVariant.setText(label)
+            for text, data in items:
+                self.cbVariant.addItem(text, data)
+        self.cbVariant.blockSignals(False)
+        self.labelVariant.setVisible(variant is not None)
+        self.cbVariant.setVisible(variant is not None)
 
-    def onMeterTypeChanged(self):
-        if self.currentLayer and self.currentLayer.customProperty("qgisred_identifier") == "qgisred_meters":
+    def onVariantChanged(self):
+        if self.currentLayer and self.isInputLayer():
             self.populateLegendTable()
 
     def setupAdvancedUi(self):
@@ -879,7 +934,7 @@ class QGISRedLegendsDialog(QDialog, formClass):
         self.currentFieldType, self.currentFieldName = self.detectFieldType(layer)
         self.frameLegends.setEnabled(True)
 
-        self.updateMeterTypeControls(layer.customProperty("qgisred_identifier"))
+        self.updateVariantControls(layer.customProperty("qgisred_identifier"))
         self.updateFrameLegendLabel(layer)
         self.populateLegendTypes(layer)
         self.syncLegendTypeComboBox(layer)
@@ -2002,7 +2057,7 @@ class QGISRedLegendsDialog(QDialog, formClass):
     def resetToEmptyState(self):
         self.frameLegends.setEnabled(False)
         self.labelFrameLegends.setVisible(False)
-        self.updateMeterTypeControls(None)
+        self.updateVariantControls(None)
         self.currentLayer = None
         self.currentFieldType = self.FIELD_TYPE_UNKNOWN
         self.clearTable()
