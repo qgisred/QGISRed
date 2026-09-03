@@ -73,6 +73,18 @@ class TestEnsureStyleDatabase:
 
         assert open(workingPath, "rb").read() == b"tracked-v1"
 
+    def test_a_reload_with_no_style_changes_never_touches_the_open_working_copy(
+            self, pluginDefaults, installDefaults):
+        # QGIS holds the working copy open for the whole session, so an ordinary plugin
+        # reload (which never edits the .bak) must not attempt os.replace on it at all —
+        # otherwise every such reload would hit a locked file for no reason.
+        QGISRedStylingUtils.ensureStyleDatabase()
+
+        with patch("os.replace") as replace:
+            QGISRedStylingUtils.ensureStyleDatabase()
+
+        replace.assert_not_called()
+
     def test_a_release_regenerates_nothing(self, pluginDefaults, installDefaults):
         os.remove(str(pluginDefaults / (STYLE_DATABASE_NAME + ".bak")))
 
@@ -172,3 +184,52 @@ class TestRegisterStyleDatabaseInProject:
         stale = "/opt/QGISRed/defaults/" + STYLE_DATABASE_NAME
 
         assert self.register(styleSettings, [stale]) == []
+
+
+class TestUnregisterStyleDatabaseFromProject:
+    """Removing the path is what lets QGIS release its file handle on unload.
+
+    A literal string compare against what styleDatabasePaths() hands back is not
+    enough: QGIS is free to return the path in a different case or separator style
+    than the one styleDatabasePath() computes fresh, and a compare that then fails
+    to match leaves the database registered forever, so QGIS never releases the
+    handle and every reload hits "another instance is using the style database".
+    """
+
+    @pytest.fixture
+    def styleSettings(self):
+        from unittest.mock import MagicMock
+        settings = MagicMock()
+        settings.styleDatabasePaths.return_value = []
+        project = MagicMock()
+        project.styleSettings.return_value = settings
+        with patch("QGISRed.tools.utils.qgisred_styling_utils.QgsProject") as qgsProject:
+            qgsProject.instance.return_value = project
+            yield settings
+
+    def test_it_drops_this_machines_database(self, pluginDefaults, installDefaults, styleSettings):
+        QGISRedStylingUtils.ensureStyleDatabase()
+        styleSettings.styleDatabasePaths.return_value = [QGISRedStylingUtils.styleDatabasePath()]
+
+        QGISRedStylingUtils.unregisterStyleDatabaseFromProject()
+
+        assert styleSettings.setStyleDatabasePaths.call_args[0][0] == []
+
+    @pytest.mark.skipif(os.altsep is None, reason="path separator styles only differ on Windows")
+    def test_it_drops_the_database_even_when_qgis_returns_the_other_separator_style(
+            self, pluginDefaults, installDefaults, styleSettings):
+        QGISRedStylingUtils.ensureStyleDatabase()
+        reshaped = QGISRedStylingUtils.styleDatabasePath().replace(os.sep, os.altsep)
+        styleSettings.styleDatabasePaths.return_value = [reshaped]
+
+        QGISRedStylingUtils.unregisterStyleDatabaseFromProject()
+
+        assert styleSettings.setStyleDatabasePaths.call_args[0][0] == []
+
+    def test_a_database_that_is_not_ours_is_left_alone(self, pluginDefaults, installDefaults, styleSettings):
+        foreign = "/home/someone/my_own_symbols.db"
+        styleSettings.styleDatabasePaths.return_value = [foreign]
+
+        QGISRedStylingUtils.unregisterStyleDatabaseFromProject()
+
+        assert not styleSettings.setStyleDatabasePaths.called

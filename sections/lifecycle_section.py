@@ -11,7 +11,7 @@ import urllib.request
 import urllib.parse
 import ssl
 
-from qgis.core import QgsProject, QgsMessageLog, QgsApplication, QgsTask
+from qgis.core import Qgis, QgsProject, QgsMessageLog, QgsApplication, QgsTask
 from qgis.PyQt.QtGui import QIcon
 from qgis.PyQt.QtWidgets import QMessageBox, QMenu, QToolButton
 from qgis.PyQt.QtCore import Qt, QTranslator, qVersion, QCoreApplication, QTimer
@@ -412,8 +412,12 @@ class LifecycleSection:
             QgsProject.instance().readProject.disconnect(QGISRedStylingUtils.registerStyleDatabaseInProject)
         with suppress(Exception):
             QgsProject.instance().cleared.disconnect(QGISRedStylingUtils.registerStyleDatabaseInProject)
-        with suppress(Exception):
+        try:
             QGISRedStylingUtils.unregisterStyleDatabaseFromProject()
+        except Exception as error:
+            QgsMessageLog.logMessage(
+                "unregisterStyleDatabaseFromProject failed during unload: %s" % error,
+                "QGISRed", Qgis.MessageLevel.Warning)
 
         QGISRedFileSystemUtils().removeFolder(self.tempFolder)
 

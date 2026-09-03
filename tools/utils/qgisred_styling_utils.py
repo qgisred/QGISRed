@@ -1,5 +1,6 @@
 # -*- coding: utf-8 -*-
 from contextlib import suppress
+import filecmp
 import hashlib
 import math
 import os
@@ -929,18 +930,25 @@ class QGISRedStylingUtils:
     def ensureStyleDatabase():
         """Regenerate the working .db from the tracked .bak. Called once per plugin load.
 
-        The .bak is the source of truth and nothing of the user's lives in the copy, so it is
-        rewritten every time rather than compared. A released plugin has no .bak and this does
-        nothing: there the installer's database is opened where it lies, outside any checkout.
+        The .bak is the source of truth and nothing of the user's lives in the copy. Content
+        is compared first rather than blindly rewriting: QGIS holds the working copy open for
+        the whole session once it is registered (see unregisterStyleDatabaseFromProject), and
+        whether that handle is actually released on a same-instance plugin reload is outside
+        this plugin's control. Skipping the write when nothing changed keeps the ordinary
+        reload — which never touches the .bak — from tripping the locked-file warning below
+        for no reason. A released plugin has no .bak and this does nothing: there the
+        installer's database is opened where it lies, outside any checkout.
 
-        os.replace is what keeps a second QGIS instance safe — it fails rather than writing
-        under the handle that instance still holds, and the instance keeps reading a valid
-        database until the next start.
+        os.replace is what keeps a second QGIS instance safe when the .bak did change — it
+        fails rather than writing under the handle that instance still holds, and the instance
+        keeps reading a valid database until the next start.
         """
         developmentPath = QGISRedStylingUtils.developmentStyleDatabasePath()
         if not os.path.exists(developmentPath):
             return
         workingPath = QGISRedStylingUtils.styleDatabasePath()
+        if os.path.exists(workingPath) and filecmp.cmp(developmentPath, workingPath, shallow=False):
+            return
         stagedPath = "%s.%d.new" % (workingPath, os.getpid())
         try:
             shutil.copy2(developmentPath, stagedPath)
@@ -966,10 +974,12 @@ class QGISRedStylingUtils:
         Without this a plugin reload cannot refresh the working copy in a checkout: this very
         QGIS would still hold the .db open and Windows would refuse the replace.
         """
-        databasePath = QGISRedStylingUtils.styleDatabasePath()
+        currentKey = os.path.normcase(os.path.normpath(QGISRedStylingUtils.styleDatabasePath()))
         styleSettings = QgsProject.instance().styleSettings()
-        remaining = [path for path in styleSettings.styleDatabasePaths() if path != databasePath]
-        if len(remaining) != len(styleSettings.styleDatabasePaths()):
+        registered = list(styleSettings.styleDatabasePaths())
+        remaining = [path for path in registered
+                     if os.path.normcase(os.path.normpath(path)) != currentKey]
+        if remaining != registered:
             styleSettings.setStyleDatabasePaths(remaining)
 
     def getMaterialColorFromDb(self, materialValue):
