@@ -2,7 +2,7 @@ from contextlib import suppress
 from ...ui.queries.qgisred_element_explorer_dock import QGISRedElementExplorerDock
 from qgis.gui import QgsMapToolIdentify, QgsHighlight
 from qgis.utils import iface
-from qgis.core import QgsProject, QgsVectorLayer
+from qgis.core import QgsProject
 from qgis.PyQt.QtCore import Qt, pyqtSignal
 from qgis.PyQt.QtGui import QColor
 from qgis.core import QgsPointXY, QgsSnappingConfig, QgsTolerance
@@ -162,14 +162,6 @@ class QGISRedIdentifyFeature(QgsMapToolIdentify):
         sortedResults.sort(key=lambda x: x[0])
         return sortedResults
 
-    def clearSelections(self):
-        for lyr in QgsProject.instance().mapLayers().values():
-            if isinstance(lyr, QgsVectorLayer):
-                lyr.removeSelection()
-
-    def selectFeature(self, layer, feature):
-        layer.select(feature.id())
-
     def highlightFeature(self, layer, feature):
         self.clearHighlights()
         self.currentHighlight = QgsHighlight(self.canvas, feature.geometry(), layer)
@@ -182,9 +174,7 @@ class QGISRedIdentifyFeature(QgsMapToolIdentify):
         """Take this tool's highlight off the canvas and nothing else.
 
         The Element Explorer suspends through this one when the arbiter hands the canvas to
-        another panel. The selection on the layers is shared state other docks read — dropping
-        it fires selectionChanged and the Statistics preview recomputes itself away — and a
-        full canvas refresh reads as a blink, so neither belongs in a suspend.
+        another panel. A full canvas refresh reads as a blink, so it doesn't belong in a suspend.
         """
         if self.currentHighlight is not None:
             self.currentHighlight.hide()
@@ -195,7 +185,6 @@ class QGISRedIdentifyFeature(QgsMapToolIdentify):
     def clearHighlights(self):
         self.clearHighlightGraphics()
         iface.mapCanvas().refresh()
-        self.clearSelections()
 
     # -------------------------------
     # Dock Handling Methods
@@ -209,9 +198,7 @@ class QGISRedIdentifyFeature(QgsMapToolIdentify):
         if resolvedLayer != layer:
             layer = resolvedLayer
             feature = resolvedFeature
-            # Re-apply highlight and selection on the resolved Inputs element
-            self.clearSelections()
-            self.selectFeature(layer, feature)
+            # Re-apply the highlight on the resolved Inputs element
             self.highlightFeature(layer, feature)
 
         wasHidden = not self.dock.isVisible()
@@ -252,8 +239,6 @@ class QGISRedIdentifyFeature(QgsMapToolIdentify):
                 self.dock.deselectElement()
             return
 
-        self.clearSelections()
-        self.selectFeature(selectedLayer, selectedFeature)
         self.highlightFeature(selectedLayer, selectedFeature)
         self.showFeatureInDock(selectedLayer, selectedFeature, selectedHandler)
 
@@ -277,8 +262,6 @@ class QGISRedIdentifyFeature(QgsMapToolIdentify):
         identifier = selectedLayer.customProperty("qgisred_identifier")
         selectedHandler = handlers.get(identifier, None)
 
-        self.clearSelections()
-        self.selectFeature(selectedLayer, selectedFeature)
         self.highlightFeature(selectedLayer, selectedFeature)
         self.showFeatureInDock(selectedLayer, selectedFeature, selectedHandler)
 

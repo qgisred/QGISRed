@@ -282,7 +282,7 @@ class QGISRedElementExplorerDock(QGISRedHighlightOwnerMixin, QDockWidget, FORM_C
             self.scrollArea.ensureWidgetVisible(self.mElementPropertiesGroupBox)
 
     def reHighlightCurrentElement(self):
-        """Re-apply the red highlight and selection on the current element, if any."""
+        """Re-apply the red highlight on the current element, if any."""
         if not self.isLayerValid(self.currentLayer) or not self.currentFeature:
             return False
         try:
@@ -293,7 +293,6 @@ class QGISRedElementExplorerDock(QGISRedHighlightOwnerMixin, QDockWidget, FORM_C
             highlight.show()
             self.mainHighlight = highlight
             self.removeHighlightItems(oldHighlights)
-            self.selectOnLayer(self.currentLayer, [self.currentFeature.id()])
             self.notifyHighlightDrawn()
             return True
         except Exception:
@@ -623,15 +622,6 @@ class QGISRedElementExplorerDock(QGISRedHighlightOwnerMixin, QDockWidget, FORM_C
         if hasattr(self, 'dataTableWidget'):
             self.dataTableWidget.clearContents()
             self.dataTableWidget.setRowCount(0)
-
-    def selectOnLayer(self, layer, featureIds):
-        """Select features and remember the layer, so clearAllLayerSelections
-        can undo exactly what this dock did and nothing else."""
-        if layer is None:
-            return
-        layer.selectByIds(list(featureIds))
-        if not any(lyr is layer for lyr in self._selectedLayers):
-            self._selectedLayers.append(layer)
 
     def clearAllLayerSelections(self):
         for lyr in list(self._selectedLayers):
@@ -1632,7 +1622,6 @@ class QGISRedElementExplorerDock(QGISRedHighlightOwnerMixin, QDockWidget, FORM_C
         self.currentLayer = layer
         self.currentFeature = feature
         self.demandPageIndex = 0
-        self.selectOnLayer(layer, [feature.id()])
         self.populateDataTableWidget()
         self.updateResultsTabVisibility()
         self.populateResultsTable()

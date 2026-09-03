@@ -589,7 +589,7 @@ class QGISRedStatisticsDock(QGISRedHighlightOwnerMixin, QDockWidget, formClass):
     def scheduleReactiveFilterPreview(self, *args):
         """Recompute the preview after a change this dock did not initiate.
 
-        The Element Explorer selects the element it identifies, which lands
+        A selection made elsewhere (e.g. QGIS's native select tool) lands
         here through selectionChanged. Redrawing while suspended would claim
         the canvas straight back, and the two docks would trade it every
         150 ms. Edits the user makes in this dock go to scheduleFilterPreview
