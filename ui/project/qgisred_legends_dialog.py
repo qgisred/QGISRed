@@ -104,77 +104,30 @@ def scaleNumericLiterals(expr, scale, precision=3):
     return _NUMERIC_LITERAL_PATTERN.sub(replaceLiteral, expr)
 
 
-_METER_TYPE_PATTERN = re.compile(r"(?:@mt|\"?Type\"?)\s*=\s*'([^']+)'")
-_METER_TYPE_SIZE_PATTERN = re.compile(r"((?:@mt|\"?Type\"?)\s*=\s*'[^']+'\s*,\s*)(\d+(?:\.\d+)?)")
-_METER_NULL_SIZE_PATTERN = re.compile(r"((?:@mt|\"?Type\"?)\s+is\s+NULL\s*,\s*)(\d+(?:\.\d+)?)")
+# The shipped input styles (defaults/layerStyles/*.qml.bak) declare every editable color and
+# size as a named variable at the top of their expressions, e.g.
+# with_variable('openPipeColor', '#0f1291', ...). The editor rewrites only those declared
+# values; the status rules and the fixed colors stay exactly as shipped.
+def styleVariablePattern(name, isText):
+    """Regex whose group 1 is the literal declared by with_variable('name', <literal>, ...)."""
+    literal = r"'([^']*)'" if isText else r"(-?\d+(?:\.\d+)?)"
+    return re.compile(r"with_variable\(\s*'" + re.escape(name) + r"'\s*,\s*" + literal)
 
 
-def extractMeterTypeFromExpression(expr):
-    """Return the meter type gating a Meters size/width expression, or None."""
-    match = _METER_TYPE_PATTERN.search(expr or "")
-    return match.group(1) if match else None
+def meterStyleVariable(meterType, suffix):
+    """Variable the Meters style declares for one type: energySensorMeterColor, flowmeterMeterSize, ..."""
+    return meterType[0].lower() + meterType[1:] + "Meter" + suffix
 
 
-def rewriteMeterSizeExpression(expr, newSize, onlyType=None):
-    """Rewrite the visible-size literals of a Meters type-gate expression in place.
-
-    Handles both the legacy flat form (if (Type = 'X', 5, 0)) and the shipped
-    with_variable('mt', coalesce("MeterType", "Type"), ...) form without
-    touching the wrapper. Zero literals (the "hide this layer" branches) are
-    preserved; the non-zero NULL branch (Manometer default) follows the new
-    size. Returns (newExpr, meterType); expr is returned unchanged when the
-    layer's type does not match onlyType.
-    """
-    meterType = extractMeterTypeFromExpression(expr)
-    if meterType is None:
-        return expr, None
-    if onlyType is not None and meterType != onlyType:
-        return expr, meterType
-    sizeText = formatExpressionNumber(newSize)
-
-    def replaceTypeBranch(match):
-        return match.group(1) + sizeText
-
-    def replaceNullBranch(match):
-        if float(match.group(2)) == 0:
-            return match.group(0)
-        return match.group(1) + sizeText
-
-    newExpr = _METER_TYPE_SIZE_PATTERN.sub(replaceTypeBranch, expr)
-    newExpr = _METER_NULL_SIZE_PATTERN.sub(replaceNullBranch, newExpr)
-    return newExpr, meterType
-
-
-# Substitution targets inside the shipped style expressions. Each pattern captures
-# exactly the color/size literal to replace as group 1; everything around it stays.
-SERVICE_CONNECTION_ACTIVE_STROKE_PATTERNS = (
-    re.compile(r"IsActive\s+is\s+NULL\s*,\s*'(#[0-9a-fA-F]{3,6})'"),
-    re.compile(r"IsActive\s*>\s*0\s*,\s*'(#[0-9a-fA-F]{3,6})'"),
-)
-SERVICE_CONNECTION_ACTIVE_FILL_PATTERN = re.compile(
-    r"IsActive\s+is\s+NULL\s+or\s+IsActive\s*>\s*0\s*,\s*'(#[0-9a-fA-F]{3,6})'"
-)
-ISOLATION_VALVE_GREEN_PATTERN = re.compile(
-    r"\"?LossCoeff\"?\s*=\s*0\s*,\s*(color_rgb\(\s*\d+\s*,\s*\d+\s*,\s*\d+\s*\))"
-)
-# The shipped Isolation Valves fill expression (defaults/layerStyles/IsolationValves.qml.bak):
-# red when closed, {green} when open without loss, amber with loss, grey when
-# not available. Used to restore the expression on symbols that lost it.
+# The shipped Isolation Valves fill expression (defaults/layerStyles/IsolationValves.qml.bak),
+# restored on symbols that lost it (older builds applied flat colors over the expression).
 ISOLATION_VALVE_FILL_TEMPLATE = (
-    'if( "Available"!=0,'
-    "if( coalesce(attribute($currentfeature,'IniStatus'),attribute($currentfeature,'Status'))='CLOSED',"
-    "color_rgb(255,19,19),"
-    ' if("LossCoeff" = 0, {green},color_rgb(246,185,18))),'
-    "color_rgb(125,139,143))"
-)
-# The positive-demand branch of the Multiple Demands fill expression (the
-# '#fdbf6f' slot, like Junctions). The negative color and white base stay fixed.
-DEMAND_POSITIVE_FILL_PATTERN = re.compile(
-    r"(?:@bd|\"?Base(?:Value|Demand|Dem)\"?)\s*>\s*0\s*,\s*'(#[0-9a-fA-F]{3,6})'"
-)
-METER_ACTIVE_FILL_PATTERNS = (
-    re.compile(r"IsActive\s+is\s+NULL\s*,\s*'(#[0-9a-fA-F]{3,6})'"),
-    re.compile(r"IsActive\s*!=\s*0\s*,\s*'(#[0-9a-fA-F]{3,6})'"),
+    "with_variable('openIsolationValveColor', '#12b425', with_variable('closedIsolationValveColor', '#ff1313', "
+    "with_variable('lossIsolationValveColor', '#f6b912', with_variable('unavailableIsolationValveColor', '#7d8b8f', "
+    'if("Available" != 0, '
+    "if(coalesce(attribute($currentfeature,'IniStatus'),attribute($currentfeature,'Status')) = 'CLOSED', "
+    '@closedIsolationValveColor, if("LossCoeff" = 0, @openIsolationValveColor, @lossIsolationValveColor)), '
+    "@unavailableIsolationValveColor)))))"
 )
 
 
@@ -2257,6 +2210,8 @@ class QGISRedLegendsDialog(QDialog, formClass):
         strokeColorOnly = False
         if self.isInputLayer():
             color = self._readInputLayerColor(symbol, identifier)
+            # Sources color their stroke, so the swatch previews the pick there
+            strokeColorOnly = identifier == "qgisred_sources"
         if identifier == self.TREE_NODES_IDENTIFIER:
             # The edited color is the outer circle's stroke; preview the circle
             # alone so the swatch does not show the star on top of it.
@@ -2279,9 +2234,12 @@ class QGISRedLegendsDialog(QDialog, formClass):
             "Pick color",
             doubleClickOnly=True,
             actualSymbol=previewSymbol,
-            # Multiple Demands: preview the picked color on the inner circle
-            # (the expression-driven layer) and keep the outer circle as is.
-            colorExpressionLayersOnly=(identifier == "qgisred_demands"),
+            # Multiple Demands and the Service Connections demand circle: preview the
+            # picked color on the expression-driven circle only, the rest stays as is.
+            colorExpressionLayersOnly=(
+                identifier == "qgisred_demands"
+                or (identifier == "qgisred_serviceconnections" and self.getSelectedVariant() == "circle")
+            ),
             strokeColorOnly=strokeColorOnly,
         )
         colorSelector.setEnabled(self.isEditing)
@@ -2304,9 +2262,9 @@ class QGISRedLegendsDialog(QDialog, formClass):
 
     def setSizeWidget(self, row, symbol, geometryHint):
         size = self._getLineWidth(symbol) if geometryHint == "line" else self._getNodeSize(symbol)
-        meterTypeSize = self._readSelectedMeterTypeSize(symbol)
-        if meterTypeSize is not None:
-            size = meterTypeSize
+        variableSize = self._readInputLayerSize(symbol)
+        if variableSize is not None:
+            size = variableSize
         sizeWidget = QLineEdit(f"{size:.1f}")
         sizeWidget.setEnabled(self.isEditing)
         sizeWidget.setAlignment(Qt.AlignmentFlag.AlignCenter)
@@ -3556,32 +3514,64 @@ class QGISRedLegendsDialog(QDialog, formClass):
             if sl.layerType() == "SimpleLine":
                 sl.setWidth(newWidth)
 
-    INPUT_COLOR_READERS = {
-        "qgisred_junctions": (SL_PROP_FILL_COLOR, r"BaseDem\s*>\s*0\s*,\s*'(#[0-9a-fA-F]{6})'"),
-        "qgisred_demands": (
-            SL_PROP_FILL_COLOR,
-            r"(?:@bd|\"?Base(?:Value|Demand|Dem)\"?)\s*>\s*0\s*,\s*'(#[0-9a-fA-F]{3,6})'",
-        ),
-        "qgisred_pipes": (SL_PROP_STROKE_COLOR, r"IniStatus is NULL\s*,\s*'(#[0-9a-fA-F]{6})'"),
-        "qgisred_valves": (SL_PROP_STROKE_COLOR, r"IniStatus is NULL\s*,\s*'(#[0-9a-fA-F]{6})'"),
-        "qgisred_pumps": (SL_PROP_STROKE_COLOR, r"IniStatus is NULL\s*,\s*'(#[0-9a-fA-F]{6})'"),
-        "qgisred_meters": (SL_PROP_FILL_COLOR, r"IsActive is NULL\s*,\s*'(#[0-9a-fA-F]{6})'"),
-        "qgisred_serviceconnections": (SL_PROP_STROKE_COLOR, r"IsActive is NULL\s*,\s*'(#[0-9a-fA-F]{6})'"),
-        "qgisred_isolationvalves": (SL_PROP_FILL_COLOR, r'LossCoeff"\s*=\s*0\s*,\s*color_rgb\((\d+)\s*,\s*(\d+)\s*,\s*(\d+)\)'),
-    }
+    STYLE_VARIABLE_PROPERTY_KEYS = (SL_PROP_STROKE_COLOR, SL_PROP_FILL_COLOR, SL_PROP_SIZE, SL_PROP_WIDTH)
+
+    def inputColorVariables(self, identifier):
+        """Color variables the swatch edits for the selected variant; the first one is shown."""
+        if identifier == "qgisred_meters":
+            selected = self.getSelectedVariant()
+            types = [selected] if selected else list(self.METER_TYPES)
+            return tuple(meterStyleVariable(meterType, "Color") for meterType in types)
+        variables = self.INPUT_COLOR_VARIABLES.get(identifier, {})
+        variable = variables.get(self.getSelectedVariant())
+        return (variable,) if variable else ()
+
+    def inputSizeVariables(self, identifier):
+        """Size variables the size cell sets or scales for the selected variant; the first one is shown."""
+        if identifier == "qgisred_meters":
+            selected = self.getSelectedVariant()
+            types = [selected] if selected else list(self.METER_TYPES)
+            return tuple(meterStyleVariable(meterType, "Size") for meterType in types)
+        variants = self.INPUT_SIZE_VARIABLES.get(identifier, {})
+        return variants.get(self.getSelectedVariant(), ())
+
+    def _readStyleVariable(self, symbol, name, isText=True):
+        """Literal declared for a style variable in any color/size expression of the symbol, or None."""
+        pattern = styleVariablePattern(name, isText)
+        for propertyKey in self.STYLE_VARIABLE_PROPERTY_KEYS:
+            match = self._findExpressionMatch(symbol, propertyKey, pattern)
+            if match:
+                return match.group(1)
+        return None
+
+    def _substituteStyleVariable(self, symbol, name, newLiteral, isText=True):
+        """Rewrite the declared value of a style variable in every expression of the symbol."""
+        pattern = styleVariablePattern(name, isText)
+        changed = False
+        for propertyKey in self.STYLE_VARIABLE_PROPERTY_KEYS:
+            if self._substituteExpressionOnLayers(symbol, propertyKey, pattern, newLiteral):
+                changed = True
+        return changed
+
+    def _scaleStyleVariables(self, symbol, names, factor):
+        for name in names:
+            current = self._readStyleVariable(symbol, name, isText=False)
+            if current is not None:
+                scaled = formatExpressionNumber(float(current) * factor)
+                self._substituteStyleVariable(symbol, name, scaled, isText=False)
 
     def _readInputLayerColor(self, symbol, identifier):
-        entry = self.INPUT_COLOR_READERS.get(identifier)
-        if not entry:
+        variables = self.inputColorVariables(identifier)
+        literal = self._readStyleVariable(symbol, variables[0]) if variables else None
+        return QColor(literal) if literal else None
+
+    def _readInputLayerSize(self, symbol):
+        """Declared value of the size variable the cell shows, or None when the layer has none."""
+        if not self.currentLayer:
             return None
-        propertyKey, regex = entry
-        match = self._findExpressionMatch(symbol, propertyKey, re.compile(regex))
-        if not match:
-            return None
-        groups = match.groups()
-        if len(groups) == 1:
-            return QColor(groups[0])
-        return QColor(int(groups[0]), int(groups[1]), int(groups[2]))
+        variables = self.inputSizeVariables(self.currentLayer.customProperty("qgisred_identifier"))
+        literal = self._readStyleVariable(symbol, variables[0], isText=False) if variables else None
+        return float(literal) if literal is not None else None
 
     def _findExpressionMatch(self, symbol, propertyKey, pattern):
         for i in range(symbol.symbolLayerCount()):
@@ -3797,12 +3787,9 @@ class QGISRedLegendsDialog(QDialog, formClass):
 
     PIPE_DEFAULT_WIDTH = 1.5
     PIPE_DEFAULT_CV_SIZE = 5
-    JUNCTION_DEFAULT_SIZE = 1.3
-    DEMANDS_DEFAULT_SIZE = 1.6
     VALVE_PUMP_DEFAULT_MARKER_SIZE = 5
     SERVICE_CONNECTION_DEFAULT_LINE_WIDTH = 1.4
     SERVICE_CONNECTION_DEFAULT_DOT_SIZE = 1.5
-    SERVICE_CONNECTION_LIGHTEN_FRACTION = 0.10
 
     def buildSingleSymbolRenderer(self):
         # Mutate a clone, never the live renderer's symbol: the canvas render
@@ -3902,27 +3889,6 @@ class QGISRedLegendsDialog(QDialog, formClass):
             if hasattr(sl, 'subSymbol') and sl.subSymbol():
                 self._forceExpressionOnLayers(sl.subSymbol(), propertyKey, expression)
 
-    def _lightenColor(self, color, fraction):
-        red = int(color.red() + (255 - color.red()) * fraction)
-        green = int(color.green() + (255 - color.green()) * fraction)
-        blue = int(color.blue() + (255 - color.blue()) * fraction)
-        return QColor(red, green, blue)
-
-    def _scalePipeCvMarker(self, symbol, newWidth):
-        if newWidth <= 0:
-            return
-        scaleFactor = newWidth / self.PIPE_DEFAULT_WIDTH
-        newCvSize = round(self.PIPE_DEFAULT_CV_SIZE * scaleFactor, 3)
-        for i in range(symbol.symbolLayerCount()):
-            sl = symbol.symbolLayer(i)
-            if sl.layerType() == "MarkerLine":
-                markerSymbol = sl.subSymbol()
-                if markerSymbol:
-                    for j in range(markerSymbol.symbolLayerCount()):
-                        ml = markerSymbol.symbolLayer(j)
-                        expr = f"if(IniStatus is NULL, 0,if(IniStatus !='CV', 0,{newCvSize}))"
-                        ml.setDataDefinedProperty(SL_PROP_SIZE, QgsProperty.fromExpression(expr))
-
     def _scaleMarkerLineMarkerSize(self, symbol, defaultMarkerSize, newWidth, defaultWidth):
         """Scale every marker layer inside a MarkerLine proportionally to the line width."""
         if newWidth <= 0 or defaultWidth <= 0:
@@ -3938,65 +3904,42 @@ class QGISRedLegendsDialog(QDialog, formClass):
                         if hasattr(ml, "setSize"):
                             ml.setSize(newSize)
 
+    def _applyInputColor(self, symbol, identifier, color):
+        """Write the picked color into every color variable of the selected variant."""
+        for variable in self.inputColorVariables(identifier):
+            self._substituteStyleVariable(symbol, variable, color.name().lower())
+
+    def _applyInputSize(self, symbol, identifier, size, proportional):
+        """Set the size variables of the selected variant, or scale them all from the shown one."""
+        if size is None or size <= 0:
+            return
+        variables = self.inputSizeVariables(identifier)
+        if not proportional:
+            for variable in variables:
+                self._substituteStyleVariable(symbol, variable, formatExpressionNumber(size), isText=False)
+            return
+        current = self._readStyleVariable(symbol, variables[0], isText=False) if variables else None
+        if current and float(current) > 0 and abs(size - float(current)) > 1e-9:
+            factor = size / float(current)
+            self._scaleStyleVariables(symbol, variables, factor)
+            self._scaleBaseSizes(symbol, factor)
+
     def _applyJunctionsLegend(self, symbol, color, size):
         if color is not None:
-            userHex = color.name().lower()
-            fillExpr = (
-                f"if (BaseDem is NULL, '#ffffff', if( BaseDem >0, '{userHex}', "
-                f"if (BaseDem <0 , '#78b3dc', '#ffffff')))"
-            )
-            self._setExpressionOnLayers(symbol, SL_PROP_FILL_COLOR, fillExpr)
-        if size is not None:
-            scale = size / self.JUNCTION_DEFAULT_SIZE
-            self._rebuildJunctionSize(symbol, scale)
-
-    def _rebuildJunctionSize(self, symbol, scale):
-        smallNoEmit = round(1.3 * scale, 3)
-        bigNoEmit = round(3.5 * scale, 3)
-        smallEmit = round(2.2 * scale, 3)
-        bigEmit = round(4 * scale, 3)
-        emitterExpr = (
-            f"if (EmittCoef> 0, if (BaseDem is NULL, {smallEmit}, "
-            f"if( BaseDem >0, {smallEmit}, if (BaseDem <0 , {bigEmit}, {smallEmit}))),0)"
-        )
-        noEmitterExpr = (
-            f"if (EmittCoef>0, 0, if (BaseDem is NULL, {smallNoEmit}, "
-            f"if( BaseDem >0, {smallNoEmit}, if (BaseDem <0 , {bigNoEmit}, {smallNoEmit}))))"
-        )
-        for i in range(symbol.symbolLayerCount()):
-            sl = symbol.symbolLayer(i)
-            existing = sl.dataDefinedProperties().property(SL_PROP_SIZE)
-            if existing and existing.propertyType() == QgsProperty.ExpressionBasedProperty:
-                expr = existing.expressionString()
-                if re.search(r'EmittCoef\s*>\s*0\s*,\s*0\s*,', expr):
-                    newExpr = noEmitterExpr
-                else:
-                    newExpr = emitterExpr
-                sl.setDataDefinedProperty(SL_PROP_SIZE, QgsProperty.fromExpression(newExpr))
-            if hasattr(sl, 'subSymbol') and sl.subSymbol():
-                self._rebuildJunctionSize(sl.subSymbol(), scale)
+            self._applyInputColor(symbol, "qgisred_junctions", color)
+        self._applyInputSize(symbol, "qgisred_junctions", size, proportional=True)
 
     def _applyPipesLegend(self, symbol, color, size):
         if color is not None:
-            userHex = color.name().lower()
-            strokeExpr = f"if(IniStatus is NULL, '{userHex}',if(IniStatus !='CLOSED', '{userHex}','#ff0f13'))"
-            self._setExpressionOnLayers(symbol, SL_PROP_STROKE_COLOR, strokeExpr)
-            # The CV SvgMarker carries the same color rule on its fill — keep it in sync
-            self._setExpressionOnLayers(symbol, SL_PROP_FILL_COLOR, strokeExpr)
+            self._applyInputColor(symbol, "qgisred_pipes", color)
         if size is not None:
             self._setLineWidth(symbol, size)
-            self._scalePipeCvMarker(symbol, size)
+            cvSize = formatExpressionNumber(self.PIPE_DEFAULT_CV_SIZE * size / self.PIPE_DEFAULT_WIDTH)
+            self._substituteStyleVariable(symbol, "cvPipeSize", cvSize, isText=False)
 
     def _applyValvesLegend(self, symbol, color, size):
         if color is not None:
-            userHex = color.name().lower()
-            colorExpr = (
-                f"if(IniStatus is NULL, '{userHex}',"
-                f"if(IniStatus is 'CLOSED', '#ff0f13', "
-                f"if(IniStatus !='ACTIVE', '{userHex}','#ff9900')))"
-            )
-            self._setExpressionOnLayers(symbol, SL_PROP_STROKE_COLOR, colorExpr)
-            self._setExpressionOnLayers(symbol, SL_PROP_FILL_COLOR, colorExpr)
+            self._applyInputColor(symbol, "qgisred_valves", color)
         if size is not None:
             self._setLineWidth(symbol, size)
             self._scaleMarkerLineMarkerSize(
@@ -4005,10 +3948,7 @@ class QGISRedLegendsDialog(QDialog, formClass):
 
     def _applyPumpsLegend(self, symbol, color, size):
         if color is not None:
-            userHex = color.name().lower()
-            colorExpr = f"if(IniStatus is NULL, '{userHex}',if(IniStatus !='CLOSED', '{userHex}','#ff0f13'))"
-            self._setExpressionOnLayers(symbol, SL_PROP_STROKE_COLOR, colorExpr)
-            self._setExpressionOnLayers(symbol, SL_PROP_FILL_COLOR, colorExpr)
+            self._applyInputColor(symbol, "qgisred_pumps", color)
         if size is not None:
             self._setLineWidth(symbol, size)
             self._scaleMarkerLineMarkerSize(
@@ -4016,89 +3956,14 @@ class QGISRedLegendsDialog(QDialog, formClass):
             )
 
     def _applyMetersLegend(self, symbol, color, size):
-        selectedType = self.getSelectedMeterType()
         if color is not None:
-            userHex = color.name().lower()
-            self._applyMeterFill(symbol, userHex, selectedType)
-        if size is not None:
-            self._rebuildMeterSizes(symbol, size, selectedType)
-
-    def _meterLayerType(self, sl):
-        """Return the meter type gating this symbol layer's size/width expression, or None."""
-        for propertyKey in (SL_PROP_SIZE, SL_PROP_WIDTH):
-            prop = sl.dataDefinedProperties().property(propertyKey)
-            if prop and prop.propertyType() == QgsProperty.ExpressionBasedProperty:
-                meterType = extractMeterTypeFromExpression(prop.expressionString())
-                if meterType:
-                    return meterType
-        return None
-
-    def _applyMeterFill(self, symbol, userHex, onlyType=None):
-        """Substitute the active-branch fill colors in place, optionally for one meter type only."""
-        for i in range(symbol.symbolLayerCount()):
-            sl = symbol.symbolLayer(i)
-            if onlyType is None or self._meterLayerType(sl) == onlyType:
-                existing = sl.dataDefinedProperties().property(SL_PROP_FILL_COLOR)
-                if existing and existing.propertyType() == QgsProperty.ExpressionBasedProperty:
-                    expr = existing.expressionString()
-                    changedAny = False
-                    for pattern in METER_ACTIVE_FILL_PATTERNS:
-                        expr, changed = substituteCapturedGroup(expr, pattern, userHex)
-                        changedAny = changedAny or changed
-                    if changedAny:
-                        sl.setDataDefinedProperty(
-                            SL_PROP_FILL_COLOR, QgsProperty.fromExpression(expr)
-                        )
-            if hasattr(sl, 'subSymbol') and sl.subSymbol():
-                self._applyMeterFill(sl.subSymbol(), userHex, onlyType)
-
-    def _rebuildMeterSizes(self, symbol, newSize, onlyType=None):
-        # The Meters QML binds the size expression to "width" on SvgMarker layers,
-        # so probe both keys and write back to whichever holds the rule.
-        sizeKeys = (SL_PROP_SIZE, SL_PROP_WIDTH)
-        for i in range(symbol.symbolLayerCount()):
-            sl = symbol.symbolLayer(i)
-            for propertyKey in sizeKeys:
-                existing = sl.dataDefinedProperties().property(propertyKey)
-                if not existing or existing.propertyType() != QgsProperty.ExpressionBasedProperty:
-                    continue
-                expr = existing.expressionString()
-                newExpr, meterType = rewriteMeterSizeExpression(expr, newSize, onlyType)
-                if meterType is not None and newExpr != expr:
-                    sl.setDataDefinedProperty(propertyKey, QgsProperty.fromExpression(newExpr))
-            if hasattr(sl, 'subSymbol') and sl.subSymbol():
-                self._rebuildMeterSizes(sl.subSymbol(), newSize, onlyType)
-
-    def _readSelectedMeterTypeSize(self, symbol):
-        """Current visible size of the selected meter type, or None when not applicable."""
-        if not self.currentLayer or self.currentLayer.customProperty("qgisred_identifier") != "qgisred_meters":
-            return None
-        meterType = self.getSelectedMeterType()
-        if not meterType:
-            return None
-        pattern = re.compile(
-            r"(?:@mt|\"?Type\"?)\s*=\s*'" + re.escape(meterType) + r"'\s*,\s*(\d+(?:\.\d+)?)"
-        )
-        for propertyKey in (SL_PROP_SIZE, SL_PROP_WIDTH):
-            match = self._findExpressionMatch(symbol, propertyKey, pattern)
-            if match:
-                return float(match.group(1))
-        return None
+            self._applyInputColor(symbol, "qgisred_meters", color)
+        self._applyInputSize(symbol, "qgisred_meters", size, proportional=False)
 
     def _applyServiceConnectionsLegend(self, symbol, color, size):
         if color is not None:
-            userHex = color.name().lower()
-            lighterColor = self._lightenColor(color, self.SERVICE_CONNECTION_LIGHTEN_FRACTION)
-            lighterHex = lighterColor.name().lower()
-            for pattern in SERVICE_CONNECTION_ACTIVE_STROKE_PATTERNS:
-                self._substituteExpressionOnLayers(
-                    symbol, SL_PROP_STROKE_COLOR, pattern, userHex
-                )
-            self._substituteExpressionOnLayers(
-                symbol, SL_PROP_FILL_COLOR,
-                SERVICE_CONNECTION_ACTIVE_FILL_PATTERN, lighterHex
-            )
-            self._recolorServiceConnectionBaseLayers(symbol, color, lighterColor)
+            self._applyInputColor(symbol, "qgisred_serviceconnections", color)
+            self._recolorServiceConnectionBaseLayers(symbol, color, self.getSelectedVariant() == "circle")
         if size is not None:
             self._setLineWidth(symbol, size)
             self._scaleMarkerLineMarkerSize(
@@ -4106,38 +3971,28 @@ class QGISRedLegendsDialog(QDialog, formClass):
                 size, self.SERVICE_CONNECTION_DEFAULT_LINE_WIDTH
             )
 
-    def _recolorServiceConnectionBaseLayers(self, symbol, userColor, lighterColor):
+    def _recolorServiceConnectionBaseLayers(self, symbol, color, circleFill):
         """Recolor the base (non-expression) colors so the legend swatch matches the user pick."""
         for i in range(symbol.symbolLayerCount()):
             sl = symbol.symbolLayer(i)
-            if sl.layerType() == "SimpleLine":
-                sl.setColor(userColor)
+            if sl.layerType() == "SimpleLine" and not circleFill:
+                sl.setColor(color)
             elif sl.layerType() == "MarkerLine" and sl.subSymbol():
                 markerSymbol = sl.subSymbol()
                 for j in range(markerSymbol.symbolLayerCount()):
                     ml = markerSymbol.symbolLayer(j)
-                    ml.setColor(lighterColor)
-                    if hasattr(ml, "setStrokeColor"):
-                        ml.setStrokeColor(userColor)
+                    if circleFill:
+                        ml.setColor(color)
+                    elif hasattr(ml, "setStrokeColor"):
+                        ml.setStrokeColor(color)
 
     def _applyIsolationValvesLegend(self, symbol, color, size):
         if color is not None:
-            rgb = f"color_rgb({color.red()},{color.green()},{color.blue()})"
-            # Only the "LossCoeff" = 0 green branch changes; the closed/loss/unavailable
-            # colors and any coalesce() retro-compat wrapper stay as they are.
-            changed = self._substituteExpressionOnLayers(
-                symbol, SL_PROP_FILL_COLOR, ISOLATION_VALVE_GREEN_PATTERN, rgb
-            )
-            if not changed:
-                # The status expression is gone (older builds applied flat colors
-                # over it, freezing every valve on one color): restore the shipped
-                # expression with the picked color in the green slot so closed /
-                # with-loss / unavailable valves get their status colors back.
-                self._forceExpressionOnLayers(
-                    symbol,
-                    SL_PROP_FILL_COLOR,
-                    ISOLATION_VALVE_FILL_TEMPLATE.format(green=rgb),
-                )
+            if not self._substituteStyleVariable(symbol, "openIsolationValveColor", color.name().lower()):
+                # The status expression is gone (older builds applied flat colors over it,
+                # freezing every valve on one color): restore the shipped one, then color it.
+                self._forceExpressionOnLayers(symbol, SL_PROP_FILL_COLOR, ISOLATION_VALVE_FILL_TEMPLATE)
+                self._substituteStyleVariable(symbol, "openIsolationValveColor", color.name().lower())
             # Keep the base color in sync: the Layers Panel icon shows it, and
             # QGIS falls back to it if the expression ever fails to evaluate.
             symbol.setColor(color)
@@ -4145,6 +4000,8 @@ class QGISRedLegendsDialog(QDialog, formClass):
             self.applySizeToSymbol(symbol, size)
 
     def _applySourcesLegend(self, symbol, color, size):
+        if color is not None:
+            self._applyInputColor(symbol, "qgisred_sources", color)
         if size is not None:
             self.applySizeToSymbol(symbol, size)
 
@@ -4221,24 +4078,8 @@ class QGISRedLegendsDialog(QDialog, formClass):
 
     def _applyDemandsLegend(self, symbol, color, size):
         if color is not None:
-            userHex = color.name().lower()
-            # Only the inner marker carries the fill expression, and only its
-            # positive-demand branch takes the new color (like Junctions); the
-            # negative color, the white base branches, strokes and the outer
-            # marker stay untouched.
-            self._substituteExpressionOnLayers(
-                symbol, SL_PROP_FILL_COLOR, DEMAND_POSITIVE_FILL_PATTERN, userHex
-            )
-        if size is not None and size > 0:
-            # The size cell shows the overall symbol size, so an untouched cell must
-            # be a strict no-op: scale expressions and base sizes only on a real change.
-            currentSize = None
-            with suppress(Exception):
-                currentSize = float(symbol.size())
-            if currentSize and currentSize > 0 and abs(size - currentSize) > 1e-9:
-                self._scaleSizeExpressionsOnLayers(symbol, SL_PROP_SIZE, size / currentSize)
-                with suppress(Exception):
-                    symbol.setSize(size)
+            self._applyInputColor(symbol, "qgisred_demands", color)
+        self._applyInputSize(symbol, "qgisred_demands", size, proportional=True)
 
     def _scaleSizeExpressionsOnLayers(self, symbol, propertyKey, factor):
         """Scale every numeric literal of each layer's size expression by factor (recursive)."""
