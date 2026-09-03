@@ -570,7 +570,11 @@ class LifecycleSection:
     def _fetchNews(self, force):
         """Download the news, or None if there is nothing new to show. Runs off the GUI thread."""
         language = "es" if QgsApplication.locale()[0:2] == "es" else "en"
-        news_url = "https://qgisred.upv.es/files/news/" + language + "/news.json"
+        # Production version
+        # news_json = "news.json"
+        # Development version
+        news_json = "news_dev.json"
+        news_url = "https://qgisred.upv.es/files/news/" + language + "/" + news_json
         _ctx = ssl.create_default_context()
 
         with urllib.request.urlopen(news_url, timeout=10, context=_ctx) as response:  # nosec B310 — news_url is a hardcoded https:// constant
