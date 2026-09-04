@@ -218,9 +218,9 @@ class QGISRedLegendsDialog(QDialog, formClass):
     # Style variable the color swatch edits, per input layer and selector variant
     # (None: the layer has no selector). Meters use meterStyleVariable(type, "Color").
     INPUT_COLOR_VARIABLES = {
-        "qgisred_pipes": {None: "openPipeColor"},
-        "qgisred_pumps": {None: "openPumpColor"},
-        "qgisred_valves": {None: "openValveColor"},
+        "qgisred_pipes": {None: "openPipeColor", "line": "openPipeColor", "marker": "openPipeColor"},
+        "qgisred_pumps": {None: "openPumpColor", "line": "openPumpColor", "marker": "openPumpColor"},
+        "qgisred_valves": {None: "openValveColor", "line": "openValveColor", "marker": "openValveColor"},
         "qgisred_junctions": {
             "positive": "positiveDemandJunctionColor",
             "negative": "negativeDemandJunctionColor",
@@ -242,6 +242,7 @@ class QGISRedLegendsDialog(QDialog, formClass):
     # Size variables the size cell scales together, per selector variant; the cell
     # shows the first one. Meters use meterStyleVariable(type, "Size").
     INPUT_SIZE_VARIABLES = {
+        "qgisred_pipes": {"marker": ("cvPipeSize",)},
         "qgisred_junctions": {
             "positive": (
                 "junctionSize", "negativeDemandJunctionSize",
@@ -254,6 +255,9 @@ class QGISRedLegendsDialog(QDialog, formClass):
         },
         "qgisred_demands": {None: ("demandSize", "negativeDemandSize")},
     }
+
+    # Link layers drawn as a line plus a marker on it (check valve, pump and valve icons)
+    LINK_LAYER_IDENTIFIERS = frozenset({"qgisred_pipes", "qgisred_pumps", "qgisred_valves"})
 
     INPUT_LAYER_IDENTIFIERS = frozenset({
         "qgisred_pipes", "qgisred_pumps", "qgisred_valves",
@@ -586,6 +590,10 @@ class QGISRedLegendsDialog(QDialog, formClass):
             return self.tr("Source Type"), [(self.tr("All types"), None)] + [(t, t) for t in self.SOURCE_TYPES]
         if identifier == "qgisred_serviceconnections":
             return self.tr("Component"), [(self.tr("Line"), "line"), (self.tr("Demand circle"), "circle")]
+        if identifier in self.LINK_LAYER_IDENTIFIERS:
+            return self.tr("Component"), [
+                (self.tr("Both"), None), (self.tr("Line"), "line"), (self.tr("Marker"), "marker")
+            ]
         return None
 
     def getSelectedVariant(self):
@@ -593,6 +601,10 @@ class QGISRedLegendsDialog(QDialog, formClass):
         if not hasattr(self, "cbVariant"):
             return None
         return self.cbVariant.currentData()
+
+    def isLinkMarkerComponentSelected(self):
+        identifier = self.currentLayer.customProperty("qgisred_identifier") if self.currentLayer else None
+        return identifier in self.LINK_LAYER_IDENTIFIERS and self.getSelectedVariant() == "marker"
 
     def updateVariantControls(self, identifier=None):
         if not hasattr(self, "cbVariant"):
@@ -696,6 +708,8 @@ class QGISRedLegendsDialog(QDialog, formClass):
     def setupStyleMenus(self):
         loadMenu = QMenu(self)
         loadMenu.addAction(self.tr("Project Style"), self.loadProjectStyle)
+        loadMenu.addAction(self.tr("Global Style"), self.loadGlobalStyle)
+        loadMenu.addAction(self.tr("Default Style"), self.loadDefaultStyle)
         loadMenu.addSeparator()
         self.actionRevertOriginal = loadMenu.addAction(self.tr("Revert to Original Legend"), self.revertToOriginalStyle)
         self.actionRevertOriginal.setToolTip(self.tr("Show the legend the layer had when this dialog was opened; press Apply to update the layer"))
@@ -706,8 +720,8 @@ class QGISRedLegendsDialog(QDialog, formClass):
         applyNote = self.tr("Saves the legend as shown in the dialog; the layer itself only changes with Apply")
         actionSaveProject = saveMenu.addAction(self.tr("To Project…"), self.saveProjectStyle)
         actionSaveProject.setToolTip(applyNote)
-        loadMenu.addAction(self.tr("Global Style"), self.loadGlobalStyle)
-        loadMenu.addAction(self.tr("Default Style"), self.loadDefaultStyle)
+        actionSaveGlobal = saveMenu.addAction(self.tr("To Global…"), self.saveGlobalStyle)
+        actionSaveGlobal.setToolTip(applyNote)
         self.btSaveMenu.setMenu(saveMenu)
 
     def setupTooltips(self):
@@ -720,8 +734,6 @@ class QGISRedLegendsDialog(QDialog, formClass):
             self.btRefreshColors.setToolTip(self.tr("Refresh color ramp"))
 
         self.btLoadMenu.setToolTip(self.tr("Load a saved style or revert to the original legend"))
-        actionSaveGlobal = saveMenu.addAction(self.tr("To Global…"), self.saveGlobalStyle)
-        actionSaveGlobal.setToolTip(applyNote)
         self.btSaveMenu.setToolTip(self.tr("Save the current legend as a style"))
         self.btAcceptLegend.setToolTip(self.tr("Apply changes to layer and close"))
         self.btApplyLegend.setToolTip(self.tr("Apply changes to layer"))
@@ -2265,6 +2277,8 @@ class QGISRedLegendsDialog(QDialog, formClass):
         variableSize = self._readInputLayerSize(symbol)
         if variableSize is not None:
             size = variableSize
+        elif self.isLinkMarkerComponentSelected():
+            size = self._readMarkerLineMarkerSize(symbol) or size
         sizeWidget = QLineEdit(f"{size:.1f}")
         sizeWidget.setEnabled(self.isEditing)
         sizeWidget.setAlignment(Qt.AlignmentFlag.AlignCenter)
@@ -3553,6 +3567,12 @@ class QGISRedLegendsDialog(QDialog, formClass):
                 changed = True
         return changed
 
+    def _substituteStyleVariableOnLayer(self, symbolLayer, name, newLiteral, isText=True):
+        """Rewrite the declared value of a style variable in the expressions of this one layer only."""
+        pattern = styleVariablePattern(name, isText)
+        for propertyKey in self.STYLE_VARIABLE_PROPERTY_KEYS:
+            self._substituteExpressionOnLayer(symbolLayer, propertyKey, pattern, newLiteral)
+
     def _scaleStyleVariables(self, symbol, names, factor):
         for name in names:
             current = self._readStyleVariable(symbol, name, isText=False)
@@ -3864,16 +3884,22 @@ class QGISRedLegendsDialog(QDialog, formClass):
         anyChanged = False
         for i in range(symbol.symbolLayerCount()):
             sl = symbol.symbolLayer(i)
-            existing = sl.dataDefinedProperties().property(propertyKey)
-            if existing and existing.propertyType() == QgsProperty.ExpressionBasedProperty:
-                newExpr, changed = substituteCapturedGroup(existing.expressionString(), pattern, newText)
-                if changed:
-                    sl.setDataDefinedProperty(propertyKey, QgsProperty.fromExpression(newExpr))
-                    anyChanged = True
+            if self._substituteExpressionOnLayer(sl, propertyKey, pattern, newText):
+                anyChanged = True
             if hasattr(sl, 'subSymbol') and sl.subSymbol():
                 if self._substituteExpressionOnLayers(sl.subSymbol(), propertyKey, pattern, newText):
                     anyChanged = True
         return anyChanged
+
+    def _substituteExpressionOnLayer(self, symbolLayer, propertyKey, pattern, newText):
+        """Substitute group 1 of pattern inside this one layer's expression for propertyKey; True when it changed."""
+        existing = symbolLayer.dataDefinedProperties().property(propertyKey)
+        if not existing or existing.propertyType() != QgsProperty.ExpressionBasedProperty:
+            return False
+        newExpr, changed = substituteCapturedGroup(existing.expressionString(), pattern, newText)
+        if changed:
+            symbolLayer.setDataDefinedProperty(propertyKey, QgsProperty.fromExpression(newExpr))
+        return changed
 
     def _forceExpressionOnLayers(self, symbol, propertyKey, expression):
         """Set the data-defined expression on every symbol layer (recursive), creating it when missing.
@@ -3893,7 +3919,9 @@ class QGISRedLegendsDialog(QDialog, formClass):
         """Scale every marker layer inside a MarkerLine proportionally to the line width."""
         if newWidth <= 0 or defaultWidth <= 0:
             return
-        newSize = round(defaultMarkerSize * (newWidth / defaultWidth), 3)
+        self._setMarkerLineMarkerSize(symbol, round(defaultMarkerSize * (newWidth / defaultWidth), 3))
+
+    def _setMarkerLineMarkerSize(self, symbol, newSize):
         for i in range(symbol.symbolLayerCount()):
             sl = symbol.symbolLayer(i)
             if sl.layerType() == "MarkerLine":
@@ -3904,10 +3932,51 @@ class QGISRedLegendsDialog(QDialog, formClass):
                         if hasattr(ml, "setSize"):
                             ml.setSize(newSize)
 
+    def _readMarkerLineMarkerSize(self, symbol):
+        """Size of the first marker layer inside a MarkerLine, or None."""
+        for i in range(symbol.symbolLayerCount()):
+            sl = symbol.symbolLayer(i)
+            if sl.layerType() == "MarkerLine" and sl.subSymbol():
+                markerSymbol = sl.subSymbol()
+                for j in range(markerSymbol.symbolLayerCount()):
+                    ml = markerSymbol.symbolLayer(j)
+                    if hasattr(ml, "size"):
+                        return ml.size()
+        return None
+
     def _applyInputColor(self, symbol, identifier, color):
         """Write the picked color into every color variable of the selected variant."""
         for variable in self.inputColorVariables(identifier):
             self._substituteStyleVariable(symbol, variable, color.name().lower())
+
+    def _applyLinkComponentColor(self, symbol, identifier, color):
+        """Color the line, the marker on it, or both, following the Component selector."""
+        component = self.getSelectedVariant()
+        if component is None:
+            self._applyInputColor(symbol, identifier, color)
+            return
+        hexName = color.name().lower()
+        for i in range(symbol.symbolLayerCount()):
+            symbolLayer = symbol.symbolLayer(i)
+            for variable in self.inputColorVariables(identifier):
+                if component == "line" and symbolLayer.layerType() == "SimpleLine":
+                    self._substituteStyleVariableOnLayer(symbolLayer, variable, hexName)
+                elif component == "marker" and symbolLayer.layerType() == "MarkerLine" and symbolLayer.subSymbol():
+                    self._substituteStyleVariable(symbolLayer.subSymbol(), variable, hexName)
+
+    def _applyLinkComponentMarkerSize(self, symbol, size):
+        """Pumps and valves: resize the line, the icon on it, or both scaled together."""
+        if size is None:
+            return
+        component = self.getSelectedVariant()
+        if component == "marker":
+            self._setMarkerLineMarkerSize(symbol, size)
+            return
+        self._setLineWidth(symbol, size)
+        if component is None:
+            self._scaleMarkerLineMarkerSize(
+                symbol, self.VALVE_PUMP_DEFAULT_MARKER_SIZE, size, self.PIPE_DEFAULT_WIDTH
+            )
 
     def _applyInputSize(self, symbol, identifier, size, proportional):
         """Set the size variables of the selected variant, or scale them all from the shown one."""
@@ -3931,29 +4000,27 @@ class QGISRedLegendsDialog(QDialog, formClass):
 
     def _applyPipesLegend(self, symbol, color, size):
         if color is not None:
-            self._applyInputColor(symbol, "qgisred_pipes", color)
-        if size is not None:
-            self._setLineWidth(symbol, size)
+            self._applyLinkComponentColor(symbol, "qgisred_pipes", color)
+        if size is None:
+            return
+        component = self.getSelectedVariant()
+        if component == "marker":
+            self._substituteStyleVariable(symbol, "cvPipeSize", formatExpressionNumber(size), isText=False)
+            return
+        self._setLineWidth(symbol, size)
+        if component is None:
             cvSize = formatExpressionNumber(self.PIPE_DEFAULT_CV_SIZE * size / self.PIPE_DEFAULT_WIDTH)
             self._substituteStyleVariable(symbol, "cvPipeSize", cvSize, isText=False)
 
     def _applyValvesLegend(self, symbol, color, size):
         if color is not None:
-            self._applyInputColor(symbol, "qgisred_valves", color)
-        if size is not None:
-            self._setLineWidth(symbol, size)
-            self._scaleMarkerLineMarkerSize(
-                symbol, self.VALVE_PUMP_DEFAULT_MARKER_SIZE, size, self.PIPE_DEFAULT_WIDTH
-            )
+            self._applyLinkComponentColor(symbol, "qgisred_valves", color)
+        self._applyLinkComponentMarkerSize(symbol, size)
 
     def _applyPumpsLegend(self, symbol, color, size):
         if color is not None:
-            self._applyInputColor(symbol, "qgisred_pumps", color)
-        if size is not None:
-            self._setLineWidth(symbol, size)
-            self._scaleMarkerLineMarkerSize(
-                symbol, self.VALVE_PUMP_DEFAULT_MARKER_SIZE, size, self.PIPE_DEFAULT_WIDTH
-            )
+            self._applyLinkComponentColor(symbol, "qgisred_pumps", color)
+        self._applyLinkComponentMarkerSize(symbol, size)
 
     def _applyMetersLegend(self, symbol, color, size):
         if color is not None:

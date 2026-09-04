@@ -395,8 +395,12 @@ class TestShippedStyles:
 class TestInputVariables:
     @pytest.mark.parametrize("identifier, variant, expected", [
         ("qgisred_pipes", None, ("openPipeColor",)),
+        ("qgisred_pipes", "line", ("openPipeColor",)),
+        ("qgisred_pipes", "marker", ("openPipeColor",)),
         ("qgisred_pumps", None, ("openPumpColor",)),
+        ("qgisred_pumps", "marker", ("openPumpColor",)),
         ("qgisred_valves", None, ("openValveColor",)),
+        ("qgisred_valves", "line", ("openValveColor",)),
         ("qgisred_junctions", "positive", ("positiveDemandJunctionColor",)),
         ("qgisred_junctions", "negative", ("negativeDemandJunctionColor",)),
         ("qgisred_demands", None, ("positiveDemandColor",)),
@@ -420,6 +424,41 @@ class TestInputVariables:
         dialog = _dialog(monkeypatch, "qgisred_meters", "Tachometer")
         assert dialog.inputSizeVariables("qgisred_meters") == ("tachometerMeterSize",)
         assert _dialog(monkeypatch, "qgisred_pipes").inputSizeVariables("qgisred_pipes") == ()
+        assert _dialog(monkeypatch, "qgisred_pipes", "line").inputSizeVariables("qgisred_pipes") == ()
+        assert _dialog(monkeypatch, "qgisred_pipes", "marker").inputSizeVariables("qgisred_pipes") == ("cvPipeSize",)
+
+    def test_reads_the_marker_size_inside_the_marker_line(self, monkeypatch):
+        marker = FakeSymbolLayer("SvgMarker", size=5)
+        markerLine = FakeSymbolLayer("MarkerLine", subSymbol=FakeSymbol([marker]))
+        symbol = FakeSymbol([FakeSymbolLayer("SimpleLine", size=1.5), markerLine])
+        dialog = _dialog(monkeypatch, "qgisred_pumps", "marker")
+        assert dialog._readMarkerLineMarkerSize(symbol) == 5
+        assert dialog.isLinkMarkerComponentSelected()
+        assert not _dialog(monkeypatch, "qgisred_pumps", "line").isLinkMarkerComponentSelected()
+        assert not _dialog(monkeypatch, "qgisred_serviceconnections", "marker").isLinkMarkerComponentSelected()
+
+
+class TestVariantItems:
+    def _items(self, monkeypatch, identifier):
+        dialog = _dialog(monkeypatch, identifier)
+        dialog.tr = lambda text: text
+        return dialog.inputVariantItems(identifier)
+
+    @pytest.mark.parametrize("identifier", ["qgisred_pipes", "qgisred_pumps", "qgisred_valves"])
+    def test_links_offer_both_line_and_marker(self, monkeypatch, identifier):
+        label, items = self._items(monkeypatch, identifier)
+        assert label == "Component"
+        assert items == [("Both", None), ("Line", "line"), ("Marker", "marker")]
+
+    def test_sources_offer_all_types_first(self, monkeypatch):
+        label, items = self._items(monkeypatch, "qgisred_sources")
+        assert label == "Source Type"
+        assert items[0] == ("All types", None)
+        assert [data for _, data in items[1:]] == list(QGISRedLegendsDialog.SOURCE_TYPES)
+
+    @pytest.mark.parametrize("identifier", ["qgisred_reservoirs", "qgisred_tanks"])
+    def test_reservoirs_and_tanks_have_no_selector(self, monkeypatch, identifier):
+        assert self._items(monkeypatch, identifier) is None
 
     def test_reads_the_declared_color_and_size(self, monkeypatch):
         monkeypatch.setattr(legendsModule, "QColor", lambda hexName: hexName)
@@ -441,12 +480,28 @@ class TestInputVariables:
 # ---------------------------------------------------------------------------
 
 class TestPipesApplier:
-    def _apply(self, monkeypatch, color, size):
+    def _apply(self, monkeypatch, color, size, component=None):
         marker = FakeSymbolLayer("SvgMarker", {FILL_KEY: PIPE_COLOR, SIZE_KEY: PIPE_CV_SIZE})
         markerLine = FakeSymbolLayer("MarkerLine", {WIDTH_KEY: PIPE_CV_SIZE}, subSymbol=FakeSymbol([marker]))
         line = FakeSymbolLayer("SimpleLine", {STROKE_KEY: PIPE_COLOR}, size=1.5)
-        _dialog(monkeypatch, "qgisred_pipes")._applyPipesLegend(FakeSymbol([line, markerLine]), color, size)
+        _dialog(monkeypatch, "qgisred_pipes", component)._applyPipesLegend(FakeSymbol([line, markerLine]), color, size)
         return line, markerLine, marker
+
+    def test_line_component_changes_only_the_line(self, monkeypatch):
+        line, markerLine, marker = self._apply(monkeypatch, FakeHexColor("#123456"), 2.0, "line")
+        assert line.width() == 2.0
+        assert declared(line.expression(STROKE_KEY), "openPipeColor") == "#123456"
+        assert marker.expression(FILL_KEY) == PIPE_COLOR
+        assert markerLine.expression(WIDTH_KEY) == PIPE_CV_SIZE
+        assert marker.expression(SIZE_KEY) == PIPE_CV_SIZE
+
+    def test_marker_component_changes_only_the_cv_marker(self, monkeypatch):
+        line, markerLine, marker = self._apply(monkeypatch, FakeHexColor("#123456"), 7, "marker")
+        assert line.width() == 1.5
+        assert line.expression(STROKE_KEY) == PIPE_COLOR
+        assert declared(marker.expression(FILL_KEY), "openPipeColor") == "#123456"
+        for expr in (markerLine.expression(WIDTH_KEY), marker.expression(SIZE_KEY)):
+            assert declared(expr, "cvPipeSize", isText=False) == "7"
 
     def test_color_reaches_the_line_stroke_and_the_cv_marker_fill(self, monkeypatch):
         line, markerLine, marker = self._apply(monkeypatch, FakeHexColor("#123456"), None)
@@ -469,24 +524,48 @@ class TestPipesApplier:
         assert markerLine.expression(WIDTH_KEY) == PIPE_CV_SIZE
 
 
+PUMPS_AND_VALVES = pytest.mark.parametrize("identifier, colorExpr, applier, variable, fixed", [
+    ("qgisred_pumps", PUMP_COLOR, "_applyPumpsLegend", "openPumpColor", ("closedPumpColor",)),
+    ("qgisred_valves", VALVE_COLOR, "_applyValvesLegend", "openValveColor",
+     ("closedValveColor", "activeValveColor")),
+])
+
+
 class TestPumpsAndValvesApplier:
-    @pytest.mark.parametrize("identifier, colorExpr, applier, variable, fixed", [
-        ("qgisred_pumps", PUMP_COLOR, "_applyPumpsLegend", "openPumpColor", ("closedPumpColor",)),
-        ("qgisred_valves", VALVE_COLOR, "_applyValvesLegend", "openValveColor",
-         ("closedValveColor", "activeValveColor")),
-    ])
-    def test_only_the_open_color_changes_on_line_and_marker(self, monkeypatch, identifier, colorExpr, applier, variable,
-                                                            fixed):
+    def _apply(self, monkeypatch, identifier, colorExpr, applier, component=None):
         marker = FakeSymbolLayer("SvgMarker", {FILL_KEY: colorExpr}, size=5)
         markerLine = FakeSymbolLayer("MarkerLine", subSymbol=FakeSymbol([marker]))
         line = FakeSymbolLayer("SimpleLine", {STROKE_KEY: colorExpr}, size=1.5)
-        getattr(_dialog(monkeypatch, identifier), applier)(FakeSymbol([line, markerLine]), FakeHexColor("#123456"), 3.0)
+        dialog = _dialog(monkeypatch, identifier, component)
+        getattr(dialog, applier)(FakeSymbol([line, markerLine]), FakeHexColor("#123456"), 3.0)
+        return line, marker
+
+    @PUMPS_AND_VALVES
+    def test_only_the_open_color_changes_on_line_and_marker(self, monkeypatch, identifier, colorExpr, applier, variable,
+                                                            fixed):
+        line, marker = self._apply(monkeypatch, identifier, colorExpr, applier)
         for expr in (line.expression(STROKE_KEY), marker.expression(FILL_KEY)):
             assert declared(expr, variable) == "#123456"
             for name in fixed:
                 assert declared(expr, name) == declared(colorExpr, name)
         assert line.width() == 3.0
         assert marker.size() == 10  # 5 mm at 1.5 px, scaled with the line
+
+    @PUMPS_AND_VALVES
+    def test_line_component_leaves_the_marker_alone(self, monkeypatch, identifier, colorExpr, applier, variable, fixed):
+        line, marker = self._apply(monkeypatch, identifier, colorExpr, applier, "line")
+        assert line.width() == 3.0
+        assert declared(line.expression(STROKE_KEY), variable) == "#123456"
+        assert marker.size() == 5
+        assert marker.expression(FILL_KEY) == colorExpr
+
+    @PUMPS_AND_VALVES
+    def test_marker_component_leaves_the_line_alone(self, monkeypatch, identifier, colorExpr, applier, variable, fixed):
+        line, marker = self._apply(monkeypatch, identifier, colorExpr, applier, "marker")
+        assert line.width() == 1.5
+        assert line.expression(STROKE_KEY) == colorExpr
+        assert marker.size() == 3.0
+        assert declared(marker.expression(FILL_KEY), variable) == "#123456"
 
 
 class TestJunctionsApplier:
