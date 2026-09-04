@@ -695,8 +695,6 @@ class QGISRedLegendsDialog(QDialog, formClass):
 
     def setupStyleMenus(self):
         loadMenu = QMenu(self)
-        loadMenu.addAction(self.tr("Default Style"), self.loadDefaultStyle)
-        loadMenu.addAction(self.tr("Global Style"), self.loadGlobalStyle)
         loadMenu.addAction(self.tr("Project Style"), self.loadProjectStyle)
         loadMenu.addSeparator()
         self.actionRevertOriginal = loadMenu.addAction(self.tr("Revert to Original Legend"), self.revertToOriginalStyle)
@@ -706,10 +704,10 @@ class QGISRedLegendsDialog(QDialog, formClass):
         saveMenu = QMenu(self)
         saveMenu.setToolTipsVisible(True)
         applyNote = self.tr("Saves the legend as shown in the dialog; the layer itself only changes with Apply")
-        actionSaveGlobal = saveMenu.addAction(self.tr("To Global…"), self.saveGlobalStyle)
-        actionSaveGlobal.setToolTip(applyNote)
         actionSaveProject = saveMenu.addAction(self.tr("To Project…"), self.saveProjectStyle)
         actionSaveProject.setToolTip(applyNote)
+        loadMenu.addAction(self.tr("Global Style"), self.loadGlobalStyle)
+        loadMenu.addAction(self.tr("Default Style"), self.loadDefaultStyle)
         self.btSaveMenu.setMenu(saveMenu)
 
     def setupTooltips(self):
@@ -722,6 +720,8 @@ class QGISRedLegendsDialog(QDialog, formClass):
             self.btRefreshColors.setToolTip(self.tr("Refresh color ramp"))
 
         self.btLoadMenu.setToolTip(self.tr("Load a saved style or revert to the original legend"))
+        actionSaveGlobal = saveMenu.addAction(self.tr("To Global…"), self.saveGlobalStyle)
+        actionSaveGlobal.setToolTip(applyNote)
         self.btSaveMenu.setToolTip(self.tr("Save the current legend as a style"))
         self.btAcceptLegend.setToolTip(self.tr("Apply changes to layer and close"))
         self.btApplyLegend.setToolTip(self.tr("Apply changes to layer"))
