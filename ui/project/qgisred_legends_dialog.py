@@ -583,7 +583,7 @@ class QGISRedLegendsDialog(QDialog, formClass):
         if identifier == "qgisred_junctions":
             return self.tr("Demand"), [(self.tr("Positive (> 0)"), "positive"), (self.tr("Negative (< 0)"), "negative")]
         if identifier == "qgisred_sources":
-            return self.tr("Source Type"), [(sourceType, sourceType) for sourceType in self.SOURCE_TYPES]
+            return self.tr("Source Type"), [(self.tr("All types"), None)] + [(t, t) for t in self.SOURCE_TYPES]
         if identifier == "qgisred_serviceconnections":
             return self.tr("Component"), [(self.tr("Line"), "line"), (self.tr("Demand circle"), "circle")]
         return None
@@ -5242,7 +5242,7 @@ class QGISRedLegendsDialog(QDialog, formClass):
         """Apply per-element-type color/size column restrictions for input layers."""
         identifier = self.currentLayer.customProperty("qgisred_identifier") if self.currentLayer else ""
 
-        COLOR_LOCKED = {"qgisred_reservoirs", "qgisred_tanks", "qgisred_sources"} | (
+        COLOR_LOCKED = {"qgisred_reservoirs", "qgisred_tanks", "qgisred_sources", "qgisred_meters"} | (
             self.SIZE_ONLY_QUERY_IDENTIFIERS - {self.TREE_NODES_IDENTIFIER}
         )
 
