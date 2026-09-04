@@ -433,6 +433,8 @@ class TestInputVariables:
         symbol = FakeSymbol([FakeSymbolLayer("SimpleLine", size=1.5), markerLine])
         dialog = _dialog(monkeypatch, "qgisred_pumps", "marker")
         assert dialog._readMarkerLineMarkerSize(symbol) == 5
+        assert dialog._markerLineSubSymbol(symbol) is markerLine.subSymbol()
+        assert dialog._markerLineSubSymbol(FakeSymbol([FakeSymbolLayer("SimpleLine")])) is None
         assert dialog.isLinkMarkerComponentSelected()
         assert not _dialog(monkeypatch, "qgisred_pumps", "line").isLinkMarkerComponentSelected()
         assert not _dialog(monkeypatch, "qgisred_serviceconnections", "marker").isLinkMarkerComponentSelected()

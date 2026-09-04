@@ -2224,6 +2224,14 @@ class QGISRedLegendsDialog(QDialog, formClass):
             color = self._readInputLayerColor(symbol, identifier)
             # Sources color their stroke, so the swatch previews the pick there
             strokeColorOnly = identifier == "qgisred_sources"
+        if identifier in self.LINK_LAYER_IDENTIFIERS:
+            # Preview only the component being edited: the line alone, or the marker drawn on it
+            component = self.getSelectedVariant()
+            if component == "line":
+                previewSymbol = self._lineOnlySymbol(symbol)
+            elif component == "marker" and self._markerLineSubSymbol(symbol):
+                previewSymbol = self._markerLineSubSymbol(symbol)
+                geometryHint = "marker"
         if identifier == self.TREE_NODES_IDENTIFIER:
             # The edited color is the outer circle's stroke; preview the circle
             # alone so the swatch does not show the star on top of it.
@@ -2251,6 +2259,7 @@ class QGISRedLegendsDialog(QDialog, formClass):
             colorExpressionLayersOnly=(
                 identifier == "qgisred_demands"
                 or (identifier == "qgisred_serviceconnections" and self.getSelectedVariant() == "circle")
+                or self.isLinkMarkerComponentSelected()
             ),
             strokeColorOnly=strokeColorOnly,
         )
@@ -4091,6 +4100,22 @@ class QGISRedLegendsDialog(QDialog, formClass):
             if not (symbolLayer.layerType() == "SimpleMarker" and symbolLayer.properties().get("name") == "circle"):
                 preview.deleteSymbolLayer(i)
         return preview
+
+    def _lineOnlySymbol(self, symbol):
+        """A clone of symbol keeping only its SimpleLine layers."""
+        preview = symbol.clone()
+        for i in range(preview.symbolLayerCount() - 1, -1, -1):
+            if preview.symbolLayer(i).layerType() != "SimpleLine":
+                preview.deleteSymbolLayer(i)
+        return preview
+
+    def _markerLineSubSymbol(self, symbol):
+        """The marker symbol drawn along the first MarkerLine layer, or None."""
+        for i in range(symbol.symbolLayerCount()):
+            sl = symbol.symbolLayer(i)
+            if sl.layerType() == "MarkerLine" and sl.subSymbol():
+                return sl.subSymbol()
+        return None
 
     def _applyTreeNodesLegend(self, symbol, color, size):
         """Tree nodes: the color goes to the outer circle's stroke only (the star
