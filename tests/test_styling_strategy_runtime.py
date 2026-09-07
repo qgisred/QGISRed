@@ -56,6 +56,12 @@ class FakeSymbol:
     def setColor(self, color):
         self.appliedColor = color
 
+    def symbolLayerCount(self):
+        return 1
+
+    def symbolLayer(self, index):
+        return self
+
 
 class FakeCategory:
     def __init__(self, value, label="lbl", render=True):

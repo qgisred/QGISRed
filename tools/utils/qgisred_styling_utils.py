@@ -1,5 +1,6 @@
 # -*- coding: utf-8 -*-
 from contextlib import suppress
+import base64
 import filecmp
 import hashlib
 import math
@@ -39,6 +40,11 @@ def _plugin_root():
 _DEMAND_SECTOR_COLOR_CACHE = {}
 
 STYLE_DATABASE_NAME = "qgisred_symbology_style.db"
+
+# Root id stamped on the "frame" half of a split tank/reservoir results icon
+# (see defaults/layerStyles/icons/*Results_frame.svg) -- see _isFrameSvgLayer.
+FRAME_SVG_MARKER = 'id="qgisred_frame"'
+FRAME_DARKEN_FACTOR = 160
 
 
 def create_combined_cursor(icon, iface=None, icon_size=24):
@@ -424,7 +430,7 @@ class QGISRedStylingUtils:
             symbol = templateSymbol.clone()
             color = QColor(classInfo.get("color"))
             if color.isValid():
-                symbol.setColor(color)
+                self._setSymbolColor(symbol, color)
             size = classInfo.get("size")
             if size is not None:
                 if geometryType == 1:
@@ -471,12 +477,12 @@ class QGISRedStylingUtils:
         for index, value in enumerate(nonNullValues):
             symbol = templateSymbol.clone()
             color = self.resolveCategoryColor(value, index, valueCount, ramp, invertRamp)
-            symbol.setColor(color)
+            self._setSymbolColor(symbol, color)
             categories.append(QgsRendererCategory(value, symbol, self._translateCategoryLabel(value, field)))
 
         if nullValues:
             symbol = templateSymbol.clone()
-            symbol.setColor(QColor.fromRgb(192, 192, 192))
+            self._setSymbolColor(symbol, QColor.fromRgb(192, 192, 192))
             categories.append(QgsRendererCategory(nullValues[0], symbol, "#NA"))
 
         layer.setRenderer(QgsCategorizedSymbolRenderer(field, categories))
@@ -517,12 +523,13 @@ class QGISRedStylingUtils:
         for position, index in enumerate(realIndexes):
             category = categories[index]
             symbol = category.symbol().clone()
-            symbol.setColor(self.resolveCategoryColor(category.value(), position, realCount, ramp, invertRamp))
+            color = self.resolveCategoryColor(category.value(), position, realCount, ramp, invertRamp)
+            self._setSymbolColor(symbol, color)
             renderer.updateCategorySymbol(index, symbol)
         for index, category in enumerate(categories):
             if category.value() == NULL:
                 symbol = category.symbol().clone()
-                symbol.setColor(QColor.fromRgb(192, 192, 192))
+                self._setSymbolColor(symbol, QColor.fromRgb(192, 192, 192))
                 renderer.updateCategorySymbol(index, symbol)
 
     def applyGraduatedColors(self, layer, colorsBlock):
@@ -550,7 +557,7 @@ class QGISRedStylingUtils:
         for index in range(len(ranges)):
             position = 0.0 if rangeCount <= 1 else index / float(rangeCount - 1)
             symbol = ranges[index].symbol().clone()
-            symbol.setColor(ramp.color(position))
+            self._setSymbolColor(symbol, ramp.color(position))
             renderer.updateRangeSymbol(index, symbol)
 
     def applySizesStrategy(self, layer, sizesBlock):
@@ -611,6 +618,43 @@ class QGISRedStylingUtils:
             symbol.setWidth(size)
         else:
             symbol.setSize(size)
+
+    @staticmethod
+    def _isFrameSvgLayer(symbolLayer):
+        """True for the "frame" half of a split tank/reservoir results icon.
+
+        Tank/reservoir results icons are two stacked SvgMarker layers (water + frame,
+        see defaults/layerStyles/icons/*Results_*.svg) so the frame can render a darker
+        shade of the same colour instead of flattening the whole icon to one flat blob.
+        The frame SVG is identified by a stamped root id, read back either from an
+        embedded base64 style ("base64:...") or from a plain file path. Duck-typed on
+        path() (only SvgMarker/RasterMarker layers have it) rather than isinstance(),
+        since the class is a MagicMock stand-in under the mocked test environment.
+        """
+        getPath = getattr(symbolLayer, "path", None)
+        if not callable(getPath):
+            return False
+        try:
+            path = getPath() or ""
+            if path.startswith("base64:"):
+                content = base64.b64decode(path[len("base64:"):]).decode("utf-8", "ignore")
+            else:
+                with open(path, "r", encoding="utf-8") as svgFile:
+                    content = svgFile.read()
+        except Exception:
+            return False
+        return FRAME_SVG_MARKER in content
+
+    @classmethod
+    def _setSymbolColor(cls, symbol, color):
+        """Colour every layer of `symbol` with `color`, except tank/reservoir frame
+        layers, which get a darker shade so the icon keeps its silhouette instead of
+        turning into a single flat-coloured blob (see _isFrameSvgLayer)."""
+        for index in range(symbol.symbolLayerCount()):
+            symbolLayer = symbol.symbolLayer(index)
+            target = color.darker(FRAME_DARKEN_FACTOR) if cls._isFrameSvgLayer(symbolLayer) else color
+            with suppress(Exception):
+                symbolLayer.setColor(target)
 
     def resolveCategoryColor(self, value, index, valueCount, ramp, invertRamp):
         if ramp is not None:

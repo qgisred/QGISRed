@@ -1,0 +1,16 @@
+<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<svg
+   xmlns="http://www.w3.org/2000/svg"
+   id="qgisred_water"
+   height="154mm"
+   width="154mm"
+   version="1.0">
+  <path
+     id="path5"
+     d="  M 78.399419,174.47871   L 78.399419,181.59865   L 78.399419,446.39669   L 503.43627,446.39669   L 503.43627,174.47871   z "
+     stroke-width="param(outline-width) 0"
+     stroke-opacity="param(outline-opacity)"
+     stroke="param(outline) #FFF"
+     fill-opacity="param(fill-opacity)"
+     fill="param(fill) #1496be" />
+</svg>
