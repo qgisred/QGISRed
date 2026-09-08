@@ -6,6 +6,7 @@ expression. Fixtures are the exact expressions from defaults/layerStyles/*.qml.b
 (guarded below): the editor must change only the declared value it edits and keep
 the rest of the expression untouched.
 """
+import base64
 import os
 import xml.etree.ElementTree as ET
 
@@ -225,6 +226,22 @@ class FakeSymbolLayer:
         self.strokeColorCalls.append(color)
 
 
+class FakeSvgLayer(FakeSymbolLayer):
+    """An SvgMarker layer embedding an SVG whose root carries the given id (qgisred_water / qgisred_frame)."""
+
+    def __init__(self, svgId, color="BASE"):
+        super().__init__("SvgMarker", size=7)
+        self._svgId = svgId
+        self._color = color
+
+    def path(self):
+        svg = f'<svg id="{self._svgId}"></svg>'
+        return "base64:" + base64.b64encode(svg.encode("utf-8")).decode("ascii")
+
+    def color(self):
+        return self._color
+
+
 class FakeSymbol:
     def __init__(self, layers):
         self._layers = layers
@@ -368,6 +385,18 @@ class TestShippedStyles:
         [(_, exprs, _)] = _rendererLayers("Sources.qml.bak")
         assert exprs == {"outlineColor": SOURCE_STROKE, "size": SOURCE_SIZE}
 
+    @pytest.mark.parametrize("fileName", ["Reservoirs.qml.bak", "Tanks.qml.bak"])
+    def test_reservoirs_and_tanks_stack_a_water_and_a_frame_svg(self, fileName):
+        path = os.path.join(PLUGIN_ROOT, "defaults", "layerStyles", fileName)
+        symbol = ET.parse(path).getroot().find("renderer-v2/symbols/symbol")
+        svgIds = []
+        for layerElement in symbol.findall("layer"):
+            assert layerElement.get("class") == "SvgMarker"
+            encoded = layerElement.find("Option/Option[@name='name']").get("value")
+            content = base64.b64decode(encoded[len("base64:"):]).decode("utf-8")
+            svgIds.append("qgisred_water" if 'id="qgisred_water"' in content else "qgisred_frame")
+        assert svgIds == ["qgisred_water", "qgisred_frame"]
+
     def test_isolation_valves_match_the_repair_template(self):
         [(_, exprs, _)] = _rendererLayers("IsolationValves.qml.bak")
         assert exprs == {"fillColor": ISOLATION_VALVE_FILL_TEMPLATE}
@@ -462,8 +491,8 @@ class TestInputVariables:
         ("qgisred_pipes", None, False),
         ("qgisred_meters", None, True),
         ("qgisred_meters", "Flowmeter", True),
-        ("qgisred_tanks", None, True),
-        ("qgisred_reservoirs", None, True),
+        ("qgisred_tanks", None, False),
+        ("qgisred_reservoirs", None, False),
         ("qgisred_tree_nodes", None, False),
         ("qgisred_isolatedsegments_links", None, True),
     ])
@@ -534,6 +563,12 @@ class TestVariantItems:
         symbol = FakeSymbol([FakeSymbolLayer("SimpleLine", {STROKE_KEY: legacy})])
         assert dialog._readInputLayerColor(symbol, "qgisred_pipes") is None
         assert dialog._readInputLayerSize(symbol) is None
+
+    def test_reads_the_water_color_of_a_tank(self, monkeypatch):
+        dialog = _dialog(monkeypatch, "qgisred_tanks")
+        symbol = FakeSymbol([FakeSvgLayer("qgisred_water", color="WATER"), FakeSvgLayer("qgisred_frame", color="FRAME")])
+        assert dialog._readWaterMarkerColor(symbol) == "WATER"
+        assert dialog._readWaterMarkerColor(FakeSymbol([FakeSvgLayer("qgisred_frame")])) is None
 
 
 # ---------------------------------------------------------------------------
@@ -864,6 +899,23 @@ class TestSourcesApplier:
         symbol, layer = self._symbol()
         _dialog(monkeypatch, "qgisred_sources")._applySourcesLegend(symbol, FakeHexColor("#123456"), None)
         assert layer.expression(STROKE_KEY) == SOURCE_STROKE
+
+
+class TestWaterMarkerApplier:
+    """Reservoirs and tanks: the color fills the water half of the icon, the frame stays as it is."""
+
+    def test_color_reaches_the_water_layer_only(self, monkeypatch):
+        water, frame = FakeSvgLayer("qgisred_water"), FakeSvgLayer("qgisred_frame")
+        dialog = _dialog(monkeypatch, "qgisred_reservoirs")
+        dialog._applyWaterMarkerLegend(FakeSymbol([water, frame]), "PICKED", None)
+        assert water.colorCalls == ["PICKED"] and frame.colorCalls == []
+
+    def test_size_goes_through_the_whole_symbol(self, monkeypatch):
+        dialog = _dialog(monkeypatch, "qgisred_tanks")
+        dialog.sizes = []
+        dialog.applySizeToSymbol = lambda symbol, size: dialog.sizes.append(size)
+        dialog._applyWaterMarkerLegend(FakeSymbol([FakeSvgLayer("qgisred_water")]), None, 9)
+        assert dialog.sizes == [9]
 
 
 class TestDemandsSwatchPreview:

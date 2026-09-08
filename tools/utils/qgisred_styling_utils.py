@@ -41,9 +41,10 @@ _DEMAND_SECTOR_COLOR_CACHE = {}
 
 STYLE_DATABASE_NAME = "qgisred_symbology_style.db"
 
-# Root id stamped on the "frame" half of a split tank/reservoir results icon
-# (see defaults/layerStyles/icons/*Results_frame.svg) -- see _isFrameSvgLayer.
+# Root ids stamped on the two halves of a split tank/reservoir icon
+# (see defaults/layerStyles/icons/*_frame.svg and *_water.svg) -- see _isFrameSvgLayer.
 FRAME_SVG_MARKER = 'id="qgisred_frame"'
+WATER_SVG_MARKER = 'id="qgisred_water"'
 FRAME_DARKEN_FACTOR = 160
 
 
@@ -620,30 +621,40 @@ class QGISRedStylingUtils:
             symbol.setSize(size)
 
     @staticmethod
-    def _isFrameSvgLayer(symbolLayer):
+    def _svgLayerContent(symbolLayer):
+        """SVG text of an SvgMarker layer, embedded ("base64:...") or read from its file; "" otherwise.
+
+        Duck-typed on path() (only SvgMarker/RasterMarker layers have it) rather than
+        isinstance(), since the class is a MagicMock stand-in under the mocked test environment.
+        """
+        getPath = getattr(symbolLayer, "path", None)
+        if not callable(getPath):
+            return ""
+        try:
+            path = getPath() or ""
+            if path.startswith("base64:"):
+                return base64.b64decode(path[len("base64:"):]).decode("utf-8", "ignore")
+            with open(path, "r", encoding="utf-8") as svgFile:
+                return svgFile.read()
+        except Exception:
+            return ""
+
+    @classmethod
+    def _isFrameSvgLayer(cls, symbolLayer):
         """True for the "frame" half of a split tank/reservoir results icon.
 
         Tank/reservoir results icons are two stacked SvgMarker layers (water + frame,
         see defaults/layerStyles/icons/*Results_*.svg) so the frame can render a darker
         shade of the same colour instead of flattening the whole icon to one flat blob.
         The frame SVG is identified by a stamped root id, read back either from an
-        embedded base64 style ("base64:...") or from a plain file path. Duck-typed on
-        path() (only SvgMarker/RasterMarker layers have it) rather than isinstance(),
-        since the class is a MagicMock stand-in under the mocked test environment.
+        embedded base64 style ("base64:...") or from a plain file path.
         """
-        getPath = getattr(symbolLayer, "path", None)
-        if not callable(getPath):
-            return False
-        try:
-            path = getPath() or ""
-            if path.startswith("base64:"):
-                content = base64.b64decode(path[len("base64:"):]).decode("utf-8", "ignore")
-            else:
-                with open(path, "r", encoding="utf-8") as svgFile:
-                    content = svgFile.read()
-        except Exception:
-            return False
-        return FRAME_SVG_MARKER in content
+        return FRAME_SVG_MARKER in cls._svgLayerContent(symbolLayer)
+
+    @classmethod
+    def isWaterSvgLayer(cls, symbolLayer):
+        """True for the "water" half of a split tank/reservoir icon, the one the Legend Editor colours."""
+        return WATER_SVG_MARKER in cls._svgLayerContent(symbolLayer)
 
     @classmethod
     def _setSymbolColor(cls, symbol, color):

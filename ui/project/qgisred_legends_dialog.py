@@ -272,8 +272,11 @@ class QGISRedLegendsDialog(QDialog, formClass):
     # Link layers drawn as a line plus a marker on it (check valve, pump and valve icons)
     LINK_LAYER_IDENTIFIERS = frozenset({"qgisred_pipes", "qgisred_pumps", "qgisred_valves"})
 
+    # Node layers drawn as a frame SVG over a water SVG: the color edits the water half
+    WATER_MARKER_IDENTIFIERS = frozenset({"qgisred_reservoirs", "qgisred_tanks"})
+
     # Input layers whose colors the editor never edits
-    COLOR_LOCKED_INPUT_IDENTIFIERS = frozenset({"qgisred_meters", "qgisred_reservoirs", "qgisred_tanks"})
+    COLOR_LOCKED_INPUT_IDENTIFIERS = frozenset({"qgisred_meters"})
 
     INPUT_LAYER_IDENTIFIERS = frozenset({
         "qgisred_pipes", "qgisred_pumps", "qgisred_valves",
@@ -2248,10 +2251,15 @@ class QGISRedLegendsDialog(QDialog, formClass):
         color = None
         previewSymbol = symbol
         strokeColorOnly = False
+        colorLayerFilter = None
         if self.isInputLayer():
             color = self._readInputLayerColor(symbol, identifier)
             # Sources color their stroke, so the swatch previews the pick there
             strokeColorOnly = identifier == "qgisred_sources"
+        if identifier in self.WATER_MARKER_IDENTIFIERS:
+            # Reservoirs and tanks: the pick fills the water half, the frame stays black
+            color = self._readWaterMarkerColor(symbol)
+            colorLayerFilter = QGISRedStylingUtils.isWaterSvgLayer
         if identifier in self.LINK_LAYER_IDENTIFIERS:
             # Preview only the component being edited: the line alone, or the marker drawn on it
             component = self.getSelectedVariant()
@@ -2290,6 +2298,7 @@ class QGISRedLegendsDialog(QDialog, formClass):
                 or self.isLinkMarkerComponentSelected()
             ),
             strokeColorOnly=strokeColorOnly,
+            colorLayerFilter=colorLayerFilter,
         )
         colorSelector.setEnabled(self.isEditing)
         colorSelector.colorChanged.connect(self.onRowColorChanged)
@@ -3630,6 +3639,19 @@ class QGISRedLegendsDialog(QDialog, formClass):
         literal = self._readStyleVariable(symbol, variables[0], isText=False) if variables else None
         return float(literal) if literal is not None else None
 
+    @staticmethod
+    def _waterMarkerLayers(symbol):
+        """The water SvgMarker layers of a reservoir/tank symbol (see QGISRedStylingUtils.isWaterSvgLayer)."""
+        return [
+            symbol.symbolLayer(i)
+            for i in range(symbol.symbolLayerCount())
+            if QGISRedStylingUtils.isWaterSvgLayer(symbol.symbolLayer(i))
+        ]
+
+    def _readWaterMarkerColor(self, symbol):
+        waterLayers = self._waterMarkerLayers(symbol)
+        return waterLayers[0].color() if waterLayers else None
+
     def _findExpressionMatch(self, symbol, propertyKey, pattern):
         for i in range(symbol.symbolLayerCount()):
             sl = symbol.symbolLayer(i)
@@ -3882,6 +3904,8 @@ class QGISRedLegendsDialog(QDialog, formClass):
             "qgisred_isolationvalves": self._applyIsolationValvesLegend,
             "qgisred_sources": self._applySourcesLegend,
             "qgisred_demands": self._applyDemandsLegend,
+            "qgisred_reservoirs": self._applyWaterMarkerLegend,
+            "qgisred_tanks": self._applyWaterMarkerLegend,
         }
         for sizeOnlyIdentifier in self.SIZE_ONLY_QUERY_IDENTIFIERS:
             inputAppliers[sizeOnlyIdentifier] = self._applySizeOnlyQueryLegend
@@ -4131,6 +4155,14 @@ class QGISRedLegendsDialog(QDialog, formClass):
             symbol, "qgisred_sources", size, proportional=True,
             scaleBaseSizes=self.getSelectedVariant() is None,
         )
+
+    def _applyWaterMarkerLegend(self, symbol, color, size):
+        """Reservoirs and tanks: the color fills the water half of the icon, the frame keeps its own."""
+        if color is not None:
+            for waterLayer in self._waterMarkerLayers(symbol):
+                waterLayer.setColor(color)
+        if size is not None:
+            self.applySizeToSymbol(symbol, size)
 
     @staticmethod
     def _circleMarkerLayers(symbol):
