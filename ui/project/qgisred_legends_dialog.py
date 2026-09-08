@@ -119,6 +119,12 @@ def meterStyleVariable(meterType, suffix):
     return meterType[0].lower() + meterType[1:] + "Meter" + suffix
 
 
+def softenColor(color, lightening=0.45):
+    """A paler shade of the color: same hue, lightness pulled towards white (a fill under a colored stroke)."""
+    hue, saturation, lightness, alpha = color.getHslF()
+    return QColor.fromHslF(hue, saturation, lightness + (1.0 - lightness) * lightening, alpha)
+
+
 # The shipped Isolation Valves fill expression (defaults/layerStyles/IsolationValves.qml.bak),
 # restored on symbols that lost it (older builds applied flat colors over the expression).
 ISOLATION_VALVE_FILL_TEMPLATE = (
@@ -227,7 +233,9 @@ class QGISRedLegendsDialog(QDialog, formClass):
         },
         "qgisred_demands": {None: "positiveDemandColor"},
         "qgisred_isolationvalves": {None: "openIsolationValveColor"},
+        # All: the line and the circle stroke share this one, the circle fill gets a softer shade of it
         "qgisred_serviceconnections": {
+            None: "activeServiceConnectionColor",
             "line": "activeServiceConnectionColor",
             "circle": "activeDemandServiceConnectionColor",
         },
@@ -244,20 +252,28 @@ class QGISRedLegendsDialog(QDialog, formClass):
     INPUT_SIZE_VARIABLES = {
         "qgisred_pipes": {"marker": ("cvPipeSize",)},
         "qgisred_junctions": {
-            "positive": (
+            None: (
                 "junctionSize", "negativeDemandJunctionSize",
                 "emitterJunctionSize", "negativeDemandEmitterJunctionSize",
             ),
-            "negative": (
-                "negativeDemandJunctionSize", "junctionSize",
-                "emitterJunctionSize", "negativeDemandEmitterJunctionSize",
-            ),
+            "positive": ("junctionSize", "emitterJunctionSize"),
+            "negative": ("negativeDemandJunctionSize", "negativeDemandEmitterJunctionSize"),
         },
         "qgisred_demands": {None: ("demandSize", "negativeDemandSize")},
+        "qgisred_sources": {
+            None: ("massSourceSize", "flowpacedSourceSize", "concenSourceSize", "setpointSourceSize"),
+            "MASS": ("massSourceSize",),
+            "FLOWPACED": ("flowpacedSourceSize",),
+            "CONCEN": ("concenSourceSize",),
+            "SETPOINT": ("setpointSourceSize",),
+        },
     }
 
     # Link layers drawn as a line plus a marker on it (check valve, pump and valve icons)
     LINK_LAYER_IDENTIFIERS = frozenset({"qgisred_pipes", "qgisred_pumps", "qgisred_valves"})
+
+    # Input layers whose colors the editor never edits
+    COLOR_LOCKED_INPUT_IDENTIFIERS = frozenset({"qgisred_meters", "qgisred_reservoirs", "qgisred_tanks"})
 
     INPUT_LAYER_IDENTIFIERS = frozenset({
         "qgisred_pipes", "qgisred_pumps", "qgisred_valves",
@@ -585,14 +601,18 @@ class QGISRedLegendsDialog(QDialog, formClass):
         if identifier == "qgisred_meters":
             return self.tr("Meter Type"), [(self.tr("All types"), None)] + [(t, t) for t in self.METER_TYPES]
         if identifier == "qgisred_junctions":
-            return self.tr("Demand"), [(self.tr("Positive (> 0)"), "positive"), (self.tr("Negative (< 0)"), "negative")]
+            return self.tr("Demand"), [
+                (self.tr("All"), None), (self.tr("Positive (> 0)"), "positive"), (self.tr("Negative (< 0)"), "negative")
+            ]
         if identifier == "qgisred_sources":
             return self.tr("Source Type"), [(self.tr("All types"), None)] + [(t, t) for t in self.SOURCE_TYPES]
         if identifier == "qgisred_serviceconnections":
-            return self.tr("Component"), [(self.tr("Line"), "line"), (self.tr("Demand circle"), "circle")]
+            return self.tr("Component"), [
+                (self.tr("All"), None), (self.tr("Line"), "line"), (self.tr("Demand circle"), "circle")
+            ]
         if identifier in self.LINK_LAYER_IDENTIFIERS:
             return self.tr("Component"), [
-                (self.tr("Both"), None), (self.tr("Line"), "line"), (self.tr("Marker"), "marker")
+                (self.tr("All"), None), (self.tr("Line"), "line"), (self.tr("Marker"), "marker")
             ]
         return None
 
@@ -605,6 +625,13 @@ class QGISRedLegendsDialog(QDialog, formClass):
     def isLinkMarkerComponentSelected(self):
         identifier = self.currentLayer.customProperty("qgisred_identifier") if self.currentLayer else None
         return identifier in self.LINK_LAYER_IDENTIFIERS and self.getSelectedVariant() == "marker"
+
+    def isMarkerComponentSelected(self):
+        """The marker drawn along the line is being edited: a link icon or the service connection demand circle."""
+        identifier = self.currentLayer.customProperty("qgisred_identifier") if self.currentLayer else None
+        return self.isLinkMarkerComponentSelected() or (
+            identifier == "qgisred_serviceconnections" and self.getSelectedVariant() == "circle"
+        )
 
     def updateVariantControls(self, identifier=None):
         if not hasattr(self, "cbVariant"):
@@ -624,6 +651,7 @@ class QGISRedLegendsDialog(QDialog, formClass):
     def onVariantChanged(self):
         if self.currentLayer and self.isInputLayer():
             self.populateLegendTable()
+            self.updateInputElementColumnRestrictions()
 
     def setupAdvancedUi(self):
         self.setupSizeControls()
@@ -2286,7 +2314,7 @@ class QGISRedLegendsDialog(QDialog, formClass):
         variableSize = self._readInputLayerSize(symbol)
         if variableSize is not None:
             size = variableSize
-        elif self.isLinkMarkerComponentSelected():
+        elif self.isMarkerComponentSelected():
             size = self._readMarkerLineMarkerSize(symbol) or size
         sizeWidget = QLineEdit(f"{size:.1f}")
         sizeWidget.setEnabled(self.isEditing)
@@ -3817,8 +3845,6 @@ class QGISRedLegendsDialog(QDialog, formClass):
     PIPE_DEFAULT_WIDTH = 1.5
     PIPE_DEFAULT_CV_SIZE = 5
     VALVE_PUMP_DEFAULT_MARKER_SIZE = 5
-    SERVICE_CONNECTION_DEFAULT_LINE_WIDTH = 1.4
-    SERVICE_CONNECTION_DEFAULT_DOT_SIZE = 1.5
 
     def buildSingleSymbolRenderer(self):
         # Mutate a clone, never the live renderer's symbol: the canvas render
@@ -3987,8 +4013,11 @@ class QGISRedLegendsDialog(QDialog, formClass):
                 symbol, self.VALVE_PUMP_DEFAULT_MARKER_SIZE, size, self.PIPE_DEFAULT_WIDTH
             )
 
-    def _applyInputSize(self, symbol, identifier, size, proportional):
-        """Set the size variables of the selected variant, or scale them all from the shown one."""
+    def _applyInputSize(self, symbol, identifier, size, proportional, scaleBaseSizes=True):
+        """Set the size variables of the selected variant, or scale them all from the shown one.
+
+        scaleBaseSizes: whether the static sizes (what the Layers Panel icon draws) follow the factor.
+        """
         if size is None or size <= 0:
             return
         variables = self.inputSizeVariables(identifier)
@@ -4000,12 +4029,17 @@ class QGISRedLegendsDialog(QDialog, formClass):
         if current and float(current) > 0 and abs(size - float(current)) > 1e-9:
             factor = size / float(current)
             self._scaleStyleVariables(symbol, variables, factor)
-            self._scaleBaseSizes(symbol, factor)
+            if scaleBaseSizes:
+                self._scaleBaseSizes(symbol, factor)
 
     def _applyJunctionsLegend(self, symbol, color, size):
         if color is not None:
             self._applyInputColor(symbol, "qgisred_junctions", color)
-        self._applyInputSize(symbol, "qgisred_junctions", size, proportional=True)
+        # The panel icon draws the positive size, so it stays put when only negatives change
+        self._applyInputSize(
+            symbol, "qgisred_junctions", size, proportional=True,
+            scaleBaseSizes=self.getSelectedVariant() != "negative",
+        )
 
     def _applyPipesLegend(self, symbol, color, size):
         if color is not None:
@@ -4037,28 +4071,42 @@ class QGISRedLegendsDialog(QDialog, formClass):
         self._applyInputSize(symbol, "qgisred_meters", size, proportional=False)
 
     def _applyServiceConnectionsLegend(self, symbol, color, size):
+        """All: line and circle stroke take the color, the circle fill a softer shade, sizes scale
+        together; Line: width and stroke color; Demand circle: its size and fill color."""
+        component = self.getSelectedVariant()
         if color is not None:
             self._applyInputColor(symbol, "qgisred_serviceconnections", color)
-            self._recolorServiceConnectionBaseLayers(symbol, color, self.getSelectedVariant() == "circle")
-        if size is not None:
-            self._setLineWidth(symbol, size)
-            self._scaleMarkerLineMarkerSize(
-                symbol, self.SERVICE_CONNECTION_DEFAULT_DOT_SIZE,
-                size, self.SERVICE_CONNECTION_DEFAULT_LINE_WIDTH
-            )
+            if component is None:
+                self._substituteStyleVariable(
+                    symbol, "activeDemandServiceConnectionColor", softenColor(color).name().lower()
+                )
+            self._recolorServiceConnectionBaseLayers(symbol, color, component)
+        if size is None or size <= 0:
+            return
+        if component == "circle":
+            self._setMarkerLineMarkerSize(symbol, size)
+            return
+        currentWidth = self._getLineWidth(symbol)
+        self._setLineWidth(symbol, size)
+        circleSize = self._readMarkerLineMarkerSize(symbol)
+        if component is None and currentWidth > 0 and circleSize:
+            self._setMarkerLineMarkerSize(symbol, round(circleSize * size / currentWidth, 3))
 
-    def _recolorServiceConnectionBaseLayers(self, symbol, color, circleFill):
+    def _recolorServiceConnectionBaseLayers(self, symbol, color, component):
         """Recolor the base (non-expression) colors so the legend swatch matches the user pick."""
         for i in range(symbol.symbolLayerCount()):
             sl = symbol.symbolLayer(i)
-            if sl.layerType() == "SimpleLine" and not circleFill:
+            if sl.layerType() == "SimpleLine" and component != "circle":
                 sl.setColor(color)
             elif sl.layerType() == "MarkerLine" and sl.subSymbol():
                 markerSymbol = sl.subSymbol()
                 for j in range(markerSymbol.symbolLayerCount()):
                     ml = markerSymbol.symbolLayer(j)
-                    if circleFill:
+                    if component == "circle":
                         ml.setColor(color)
+                    elif component is None:
+                        ml.setColor(softenColor(color))
+                        ml.setStrokeColor(color)
                     elif hasattr(ml, "setStrokeColor"):
                         ml.setStrokeColor(color)
 
@@ -4078,8 +4126,11 @@ class QGISRedLegendsDialog(QDialog, formClass):
     def _applySourcesLegend(self, symbol, color, size):
         if color is not None:
             self._applyInputColor(symbol, "qgisred_sources", color)
-        if size is not None:
-            self.applySizeToSymbol(symbol, size)
+        # All types scale every type together (and the panel icon with them); one type changes alone
+        self._applyInputSize(
+            symbol, "qgisred_sources", size, proportional=True,
+            scaleBaseSizes=self.getSelectedVariant() is None,
+        )
 
     @staticmethod
     def _circleMarkerLayers(symbol):
@@ -5332,14 +5383,17 @@ class QGISRedLegendsDialog(QDialog, formClass):
 
     def updateInputElementColumnRestrictions(self):
         """Apply per-element-type color/size column restrictions for input layers."""
-        identifier = self.currentLayer.customProperty("qgisred_identifier") if self.currentLayer else ""
-
-        COLOR_LOCKED = {"qgisred_reservoirs", "qgisred_tanks", "qgisred_sources", "qgisred_meters"} | (
-            self.SIZE_ONLY_QUERY_IDENTIFIERS - {self.TREE_NODES_IDENTIFIER}
-        )
-
-        if identifier in COLOR_LOCKED:
+        if self.isColorLocked():
             self._disableColorColumnInTable()
+
+    def isColorLocked(self):
+        """Fixed colors, or a selector variant (Sources and Junctions "All") that edits sizes only."""
+        identifier = self.currentLayer.customProperty("qgisred_identifier") if self.currentLayer else ""
+        if identifier in self.COLOR_LOCKED_INPUT_IDENTIFIERS:
+            return True
+        if identifier in self.SIZE_ONLY_QUERY_IDENTIFIERS and identifier != self.TREE_NODES_IDENTIFIER:
+            return True
+        return identifier in self.INPUT_COLOR_VARIABLES and not self.inputColorVariables(identifier)
 
     def _disableColorColumnInTable(self):
         """Disable color button (col 1) for every row in the table."""

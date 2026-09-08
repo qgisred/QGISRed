@@ -72,6 +72,13 @@ SOURCE_STROKE = (
     "if(@st = 'FLOWPACED', @flowpacedSourceColor, "
     "if(@st = 'CONCEN', @concenSourceColor, @setpointSourceColor))))))))))))"
 )
+SOURCE_SIZE = (
+    "if(@id is NULL, NULL, with_variable('massSourceSize', 2.6, with_variable('flowpacedSourceSize', 2.6, "
+    "with_variable('concenSourceSize', 2.6, with_variable('setpointSourceSize', 2.6, "
+    "with_variable('st', coalesce(attribute($currentfeature,'SourceType'),attribute($currentfeature,'Type')), "
+    "if(@st = 'MASS', @massSourceSize, if(@st = 'FLOWPACED', @flowpacedSourceSize, "
+    "if(@st = 'CONCEN', @concenSourceSize, @setpointSourceSize)))))))))"
+)
 SERVICE_CONNECTION_STROKE = (
     "with_variable('activeServiceConnectionColor', '#85b66f', "
     "with_variable('inactiveServiceConnectionColor', '#ff0f13', "
@@ -359,7 +366,7 @@ class TestShippedStyles:
 
     def test_sources(self):
         [(_, exprs, _)] = _rendererLayers("Sources.qml.bak")
-        assert exprs == {"outlineColor": SOURCE_STROKE}
+        assert exprs == {"outlineColor": SOURCE_STROKE, "size": SOURCE_SIZE}
 
     def test_isolation_valves_match_the_repair_template(self):
         [(_, exprs, _)] = _rendererLayers("IsolationValves.qml.bak")
@@ -401,12 +408,15 @@ class TestInputVariables:
         ("qgisred_pumps", "marker", ("openPumpColor",)),
         ("qgisred_valves", None, ("openValveColor",)),
         ("qgisred_valves", "line", ("openValveColor",)),
+        ("qgisred_junctions", None, ()),
         ("qgisred_junctions", "positive", ("positiveDemandJunctionColor",)),
         ("qgisred_junctions", "negative", ("negativeDemandJunctionColor",)),
         ("qgisred_demands", None, ("positiveDemandColor",)),
         ("qgisred_isolationvalves", None, ("openIsolationValveColor",)),
+        ("qgisred_serviceconnections", None, ("activeServiceConnectionColor",)),
         ("qgisred_serviceconnections", "line", ("activeServiceConnectionColor",)),
         ("qgisred_serviceconnections", "circle", ("activeDemandServiceConnectionColor",)),
+        ("qgisred_sources", None, ()),
         ("qgisred_sources", "FLOWPACED", ("flowpacedSourceColor",)),
         ("qgisred_meters", "Flowmeter", ("flowmeterMeterColor",)),
         ("qgisred_tanks", None, ()),
@@ -426,6 +436,45 @@ class TestInputVariables:
         assert _dialog(monkeypatch, "qgisred_pipes").inputSizeVariables("qgisred_pipes") == ()
         assert _dialog(monkeypatch, "qgisred_pipes", "line").inputSizeVariables("qgisred_pipes") == ()
         assert _dialog(monkeypatch, "qgisred_pipes", "marker").inputSizeVariables("qgisred_pipes") == ("cvPipeSize",)
+
+    def test_junction_sizes_split_by_demand_sign_and_join_under_all(self, monkeypatch):
+        assert _dialog(monkeypatch, "qgisred_junctions", "positive").inputSizeVariables("qgisred_junctions") == (
+            "junctionSize", "emitterJunctionSize"
+        )
+        assert _dialog(monkeypatch, "qgisred_junctions", "negative").inputSizeVariables("qgisred_junctions") == (
+            "negativeDemandJunctionSize", "negativeDemandEmitterJunctionSize"
+        )
+        assert len(_dialog(monkeypatch, "qgisred_junctions").inputSizeVariables("qgisred_junctions")) == 4
+
+    def test_source_sizes_one_per_type_and_all_of_them_under_all_types(self, monkeypatch):
+        assert _dialog(monkeypatch, "qgisred_sources", "CONCEN").inputSizeVariables("qgisred_sources") == (
+            "concenSourceSize",
+        )
+        allTypes = _dialog(monkeypatch, "qgisred_sources").inputSizeVariables("qgisred_sources")
+        assert allTypes[0] == "massSourceSize" and len(allTypes) == 4
+
+    @pytest.mark.parametrize("identifier, variant, locked", [
+        ("qgisred_sources", None, True),
+        ("qgisred_sources", "MASS", False),
+        ("qgisred_junctions", None, True),
+        ("qgisred_junctions", "positive", False),
+        ("qgisred_serviceconnections", None, False),
+        ("qgisred_pipes", None, False),
+        ("qgisred_meters", None, True),
+        ("qgisred_meters", "Flowmeter", True),
+        ("qgisred_tanks", None, True),
+        ("qgisred_reservoirs", None, True),
+        ("qgisred_tree_nodes", None, False),
+        ("qgisred_isolatedsegments_links", None, True),
+    ])
+    def test_color_lock_follows_the_selected_variant(self, monkeypatch, identifier, variant, locked):
+        assert _dialog(monkeypatch, identifier, variant).isColorLocked() is locked
+
+    def test_marker_component_covers_link_icons_and_the_demand_circle(self, monkeypatch):
+        assert _dialog(monkeypatch, "qgisred_valves", "marker").isMarkerComponentSelected()
+        assert _dialog(monkeypatch, "qgisred_serviceconnections", "circle").isMarkerComponentSelected()
+        assert not _dialog(monkeypatch, "qgisred_serviceconnections", "line").isMarkerComponentSelected()
+        assert not _dialog(monkeypatch, "qgisred_serviceconnections").isMarkerComponentSelected()
 
     def test_reads_the_marker_size_inside_the_marker_line(self, monkeypatch):
         marker = FakeSymbolLayer("SvgMarker", size=5)
@@ -447,16 +496,26 @@ class TestVariantItems:
         return dialog.inputVariantItems(identifier)
 
     @pytest.mark.parametrize("identifier", ["qgisred_pipes", "qgisred_pumps", "qgisred_valves"])
-    def test_links_offer_both_line_and_marker(self, monkeypatch, identifier):
+    def test_links_offer_all_line_and_marker(self, monkeypatch, identifier):
         label, items = self._items(monkeypatch, identifier)
         assert label == "Component"
-        assert items == [("Both", None), ("Line", "line"), ("Marker", "marker")]
+        assert items == [("All", None), ("Line", "line"), ("Marker", "marker")]
 
     def test_sources_offer_all_types_first(self, monkeypatch):
         label, items = self._items(monkeypatch, "qgisred_sources")
         assert label == "Source Type"
         assert items[0] == ("All types", None)
         assert [data for _, data in items[1:]] == list(QGISRedLegendsDialog.SOURCE_TYPES)
+
+    def test_junctions_offer_all_then_the_demand_signs(self, monkeypatch):
+        label, items = self._items(monkeypatch, "qgisred_junctions")
+        assert label == "Demand"
+        assert items == [("All", None), ("Positive (> 0)", "positive"), ("Negative (< 0)", "negative")]
+
+    def test_service_connections_offer_all_line_and_demand_circle(self, monkeypatch):
+        label, items = self._items(monkeypatch, "qgisred_serviceconnections")
+        assert label == "Component"
+        assert items == [("All", None), ("Line", "line"), ("Demand circle", "circle")]
 
     @pytest.mark.parametrize("identifier", ["qgisred_reservoirs", "qgisred_tanks"])
     def test_reservoirs_and_tanks_have_no_selector(self, monkeypatch, identifier):
@@ -592,9 +651,9 @@ class TestJunctionsApplier:
         assert declared(emitter.expression(FILL_KEY), "negativeDemandJunctionColor") == "#123456"
         assert declared(emitter.expression(FILL_KEY), "positiveDemandJunctionColor") == "#fdbf6f"
 
-    def test_size_scales_every_size_variable_from_the_shown_one(self, monkeypatch):
+    def test_all_scales_every_size_variable_from_the_shown_one(self, monkeypatch):
         symbol, emitter, base = self._symbol()
-        _dialog(monkeypatch, "qgisred_junctions", "positive")._applyJunctionsLegend(symbol, None, 2.6)
+        _dialog(monkeypatch, "qgisred_junctions")._applyJunctionsLegend(symbol, None, 2.6)
         assert declared(base.expression(SIZE_KEY), "junctionSize", isText=False) == "2.6"
         assert declared(base.expression(SIZE_KEY), "negativeDemandJunctionSize", isText=False) == "7"
         assert declared(emitter.expression(SIZE_KEY), "emitterJunctionSize", isText=False) == "4.4"
@@ -602,11 +661,28 @@ class TestJunctionsApplier:
         assert emitter.size() == base.size() == 2.6  # base sizes follow, for the legend icon
         assert emitter.expression(SIZE_KEY).endswith("@emitterJunctionSize))), 0)))")
 
-    def test_negative_scenario_scales_from_the_negative_size(self, monkeypatch):
-        symbol, _emitter, base = self._symbol()
+    def test_all_never_takes_a_color(self, monkeypatch):
+        symbol, emitter, base = self._symbol()
+        _dialog(monkeypatch, "qgisred_junctions")._applyJunctionsLegend(symbol, FakeHexColor("#123456"), None)
+        assert emitter.expression(FILL_KEY) == JUNCTION_COLOR and base.expression(FILL_KEY) == JUNCTION_COLOR
+
+    def test_positive_scenario_scales_the_positive_sizes_only(self, monkeypatch):
+        symbol, emitter, base = self._symbol()
+        _dialog(monkeypatch, "qgisred_junctions", "positive")._applyJunctionsLegend(symbol, None, 2.6)
+        assert declared(base.expression(SIZE_KEY), "junctionSize", isText=False) == "2.6"
+        assert declared(base.expression(SIZE_KEY), "negativeDemandJunctionSize", isText=False) == "3.5"
+        assert declared(emitter.expression(SIZE_KEY), "emitterJunctionSize", isText=False) == "4.4"
+        assert declared(emitter.expression(SIZE_KEY), "negativeDemandEmitterJunctionSize", isText=False) == "4"
+        assert emitter.size() == base.size() == 2.6
+
+    def test_negative_scenario_scales_the_negative_sizes_only(self, monkeypatch):
+        symbol, emitter, base = self._symbol()
         _dialog(monkeypatch, "qgisred_junctions", "negative")._applyJunctionsLegend(symbol, None, 7.0)
         assert declared(base.expression(SIZE_KEY), "negativeDemandJunctionSize", isText=False) == "7"
-        assert declared(base.expression(SIZE_KEY), "junctionSize", isText=False) == "2.6"
+        assert declared(base.expression(SIZE_KEY), "junctionSize", isText=False) == "1.3"
+        assert declared(emitter.expression(SIZE_KEY), "negativeDemandEmitterJunctionSize", isText=False) == "8"
+        assert declared(emitter.expression(SIZE_KEY), "emitterJunctionSize", isText=False) == "2.2"
+        assert emitter.size() == base.size() == 1.3  # the panel icon keeps the positive size
 
     def test_an_untouched_size_is_a_no_op(self, monkeypatch):
         symbol, emitter, base = self._symbol()
@@ -695,10 +771,32 @@ class TestServiceConnectionsApplier:
         assert line.expression(STROKE_KEY) == SERVICE_CONNECTION_STROKE
         assert marker.colorCalls == [color] and line.colorCalls == [] and marker.strokeColorCalls == []
 
-    def test_size_scales_the_line_and_the_dot_together(self, monkeypatch):
+    def test_all_colors_the_strokes_and_softens_the_circle_fill(self, monkeypatch):
+        monkeypatch.setattr(legendsModule, "softenColor", lambda color: FakeHexColor("#abcdef"))
+        symbol, line, marker = self._symbol()
+        color = FakeHexColor("#123456")
+        _dialog(monkeypatch, "qgisred_serviceconnections")._applyServiceConnectionsLegend(symbol, color, None)
+        for expr in (line.expression(STROKE_KEY), marker.expression(STROKE_KEY)):
+            assert declared(expr, "activeServiceConnectionColor") == "#123456"
+        assert declared(marker.expression(FILL_KEY), "activeDemandServiceConnectionColor") == "#abcdef"
+        assert declared(marker.expression(FILL_KEY), "inactiveDemandServiceConnectionColor") == "#c7cbc5"
+        assert line.colorCalls == [color] and marker.strokeColorCalls == [color]
+        assert [c.name() for c in marker.colorCalls] == ["#abcdef"]
+
+    def test_all_scales_the_line_and_the_circle_together(self, monkeypatch):
+        symbol, line, marker = self._symbol()
+        _dialog(monkeypatch, "qgisred_serviceconnections")._applyServiceConnectionsLegend(symbol, None, 2.8)
+        assert line.width() == 2.8 and marker.size() == 3
+
+    def test_line_variant_resizes_the_line_only(self, monkeypatch):
         symbol, line, marker = self._symbol()
         _dialog(monkeypatch, "qgisred_serviceconnections", "line")._applyServiceConnectionsLegend(symbol, None, 2.8)
-        assert line.width() == 2.8 and marker.size() == 3
+        assert line.width() == 2.8 and marker.size() == 1.5
+
+    def test_circle_variant_resizes_the_circle_only(self, monkeypatch):
+        symbol, line, marker = self._symbol()
+        _dialog(monkeypatch, "qgisred_serviceconnections", "circle")._applyServiceConnectionsLegend(symbol, None, 3)
+        assert line.width() == 1.4 and marker.size() == 3
 
 
 class TestIsolationValvesApplier:
@@ -738,6 +836,34 @@ class TestSourcesApplier:
         assert declared(expr, "setpointSourceColor") == "#cb0f96"
         assert declared(expr, "noQualitySourceColor") == "#9d979d"
         assert "with_variable('bq', coalesce(" in expr and "with_variable('st', coalesce(" in expr
+
+    def _symbol(self):
+        layer = FakeSymbolLayer(expressions={STROKE_KEY: SOURCE_STROKE, SIZE_KEY: SOURCE_SIZE}, size=2.6)
+        return FakeSymbol([layer]), layer
+
+    def test_one_type_takes_its_own_size(self, monkeypatch):
+        symbol, layer = self._symbol()
+        _dialog(monkeypatch, "qgisred_sources", "CONCEN")._applySourcesLegend(symbol, None, 5)
+        expr = layer.expression(SIZE_KEY)
+        assert declared(expr, "concenSourceSize", isText=False) == "5"
+        for name in ("massSourceSize", "flowpacedSourceSize", "setpointSourceSize"):
+            assert declared(expr, name, isText=False) == "2.6"
+        assert expr.startswith("if(@id is NULL, NULL, ") and expr.endswith("@setpointSourceSize)))))))))")
+        assert layer.size() == 2.6  # the panel icon follows All types only
+
+    def test_all_types_scale_every_size_together(self, monkeypatch):
+        symbol, layer = self._symbol()
+        _dialog(monkeypatch, "qgisred_sources")._applySourcesLegend(symbol, None, 5.2)
+        expr = layer.expression(SIZE_KEY)
+        for name in ("massSourceSize", "flowpacedSourceSize", "concenSourceSize", "setpointSourceSize"):
+            assert declared(expr, name, isText=False) == "5.2"
+        assert layer.size() == 5.2
+        assert layer.expression(STROKE_KEY) == SOURCE_STROKE
+
+    def test_all_types_never_takes_a_color(self, monkeypatch):
+        symbol, layer = self._symbol()
+        _dialog(monkeypatch, "qgisred_sources")._applySourcesLegend(symbol, FakeHexColor("#123456"), None)
+        assert layer.expression(STROKE_KEY) == SOURCE_STROKE
 
 
 class TestDemandsSwatchPreview:
