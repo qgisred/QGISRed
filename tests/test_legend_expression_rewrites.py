@@ -571,6 +571,73 @@ class TestVariantItems:
         assert dialog._readWaterMarkerColor(FakeSymbol([FakeSvgLayer("qgisred_frame")])) is None
 
 
+class FakeStyledLayer:
+    def __init__(self, identifier, symbol, rendererType="singleSymbol"):
+        self._identifier = identifier
+        self._symbol = symbol
+        self._rendererType = rendererType
+
+    def customProperty(self, key):
+        return self._identifier if key == "qgisred_identifier" else None
+
+    def renderer(self):
+        layer = self
+
+        class _Renderer:
+            def type(self):
+                return layer._rendererType
+
+            def symbol(self):
+                return layer._symbol
+
+        return _Renderer()
+
+
+class TestEditableInputStyle:
+    """Styles saved by older builds declare no variables: the editor restores the default first."""
+
+    def test_the_shipped_declarations_are_editable(self, monkeypatch):
+        dialog = _dialog(monkeypatch, "qgisred_pipes")
+        marker = FakeSymbolLayer("SvgMarker", {FILL_KEY: PIPE_COLOR, SIZE_KEY: PIPE_CV_SIZE})
+        markerLine = FakeSymbolLayer("MarkerLine", subSymbol=FakeSymbol([marker]))
+        symbol = FakeSymbol([FakeSymbolLayer("SimpleLine", {STROKE_KEY: PIPE_COLOR}), markerLine])
+        assert dialog.hasEditableInputStyle(FakeStyledLayer("qgisred_pipes", symbol))
+
+    def test_a_legacy_expression_is_not(self, monkeypatch):
+        dialog = _dialog(monkeypatch, "qgisred_pipes")
+        legacy = "if(IniStatus is NULL, '#0f1291', '#ff0f13')"
+        symbol = FakeSymbol([FakeSymbolLayer("SimpleLine", {STROKE_KEY: legacy})])
+        assert not dialog.hasEditableInputStyle(FakeStyledLayer("qgisred_pipes", symbol))
+
+    def test_every_declared_variable_must_be_there(self, monkeypatch):
+        # A Sources style from before the per-type sizes has the colors but not the sizes
+        dialog = _dialog(monkeypatch, "qgisred_sources")
+        symbol = FakeSymbol([FakeSymbolLayer(expressions={STROKE_KEY: SOURCE_STROKE})])
+        assert not dialog.hasEditableInputStyle(FakeStyledLayer("qgisred_sources", symbol))
+        symbol = FakeSymbol([FakeSymbolLayer(expressions={STROKE_KEY: SOURCE_STROKE, SIZE_KEY: SOURCE_SIZE})])
+        assert dialog.hasEditableInputStyle(FakeStyledLayer("qgisred_sources", symbol))
+
+    def test_tanks_need_the_split_water_and_frame_icon(self, monkeypatch):
+        dialog = _dialog(monkeypatch, "qgisred_tanks")
+        split = FakeSymbol([FakeSvgLayer("qgisred_water"), FakeSvgLayer("qgisred_frame")])
+        assert dialog.hasEditableInputStyle(FakeStyledLayer("qgisred_tanks", split))
+        single = FakeSymbol([FakeSymbolLayer("SvgMarker")])
+        assert not dialog.hasEditableInputStyle(FakeStyledLayer("qgisred_tanks", single))
+
+    def test_meters_check_every_type(self, monkeypatch):
+        dialog = _dialog(monkeypatch, "qgisred_meters")
+        layers = [
+            FakeSymbolLayer("SvgMarker", {FILL_KEY: meterFill(t), STROKE_KEY: METER_STROKE, WIDTH_KEY: meterSize(t)})
+            for t in QGISRedLegendsDialog.METER_TYPES
+        ]
+        assert dialog.hasEditableInputStyle(FakeStyledLayer("qgisred_meters", FakeSymbol(layers)))
+        assert not dialog.hasEditableInputStyle(FakeStyledLayer("qgisred_meters", FakeSymbol(layers[:-1])))
+
+    def test_only_single_symbol_renderers_are_checked(self, monkeypatch):
+        dialog = _dialog(monkeypatch, "qgisred_pipes")
+        assert dialog.hasEditableInputStyle(FakeStyledLayer("qgisred_pipes", FakeSymbol([]), "categorizedSymbol"))
+
+
 # ---------------------------------------------------------------------------
 # Appliers
 # ---------------------------------------------------------------------------

@@ -328,6 +328,7 @@ class QGISRedLegendsDialog(QDialog, formClass):
         self.lastValidLayerId = None
         self.lastValidLayerIdentifier = None
         self.layerListRefreshPending = False
+        self.restoredLegacyStyle = False
         self.initialRenderers = {}
         self.isClosing = False
         self.hasAppliedChanges = False
@@ -998,6 +999,9 @@ class QGISRedLegendsDialog(QDialog, formClass):
         self.lastValidLayerIdentifier = layer.customProperty("qgisred_identifier")
         self.currentLayer = layer
         self._workingRenderer = None
+        self.restoredLegacyStyle = False
+        if self.isInputLayer() and not self.hasEditableInputStyle(layer):
+            self.restoreEditableInputStyle()
         self.originalRenderer = layer.renderer().clone() if layer.renderer() else None
         # Pristine snapshot for "Revert to Original Legend": taken once per layer,
         # never touched by Apply/Save (unlike originalRenderer).
@@ -1016,6 +1020,7 @@ class QGISRedLegendsDialog(QDialog, formClass):
         self.updateButtonStates()
         self.updateInputLayerRestrictions()
         self.updateAppearanceWarning()
+        self.updateLegacyStyleNotice()
 
     def updateFrameLegendLabel(self, layer):
         layerName = layer.name()
@@ -3732,6 +3737,53 @@ class QGISRedLegendsDialog(QDialog, formClass):
     def _readWaterMarkerColor(self, symbol):
         waterLayers = self._waterMarkerLayers(symbol)
         return waterLayers[0].color() if waterLayers else None
+
+    def expectedStyleVariables(self, identifier):
+        """(color names, size names) the shipped style of an input layer declares for the editor."""
+        if identifier == "qgisred_meters":
+            colorNames = {meterStyleVariable(meterType, "Color") for meterType in self.METER_TYPES}
+            sizeNames = {meterStyleVariable(meterType, "Size") for meterType in self.METER_TYPES}
+            return colorNames, sizeNames
+        colorNames = set(self.INPUT_COLOR_VARIABLES.get(identifier, {}).values())
+        sizeNames = {name for names in self.INPUT_SIZE_VARIABLES.get(identifier, {}).values() for name in names}
+        return colorNames, sizeNames
+
+    def hasEditableInputStyle(self, layer):
+        """Whether the layer's style declares what the editor edits; styles from older builds do not."""
+        renderer = layer.renderer()
+        if not renderer or renderer.type() != "singleSymbol" or not renderer.symbol():
+            return True
+        symbol = renderer.symbol()
+        identifier = layer.customProperty("qgisred_identifier")
+        if identifier in self.WATER_MARKER_IDENTIFIERS:
+            return bool(self._waterMarkerLayers(symbol))
+        colorNames, sizeNames = self.expectedStyleVariables(identifier)
+        return all(self._readStyleVariable(symbol, name) is not None for name in colorNames) and all(
+            self._readStyleVariable(symbol, name, isText=False) is not None for name in sizeNames
+        )
+
+    def restoreEditableInputStyle(self):
+        """Put the shipped default back on a layer whose style predates the editable variables."""
+        path = self.findStylePath("default")[0]
+        if not path:
+            return
+        self.currentLayer.loadNamedStyle(path)
+        self.currentLayer.triggerRepaint()
+        self.restoredLegacyStyle = True
+
+    def updateLegacyStyleNotice(self):
+        if not self.restoredLegacyStyle:
+            return
+        # duration=0: stays until another layer is selected
+        self.appearanceWarningBanner.pushMessage(
+            self.tr("Style restored"),
+            self.tr(
+                "This layer carried a style from an older version that the Legend Editor cannot edit, "
+                "so its default style has been loaded again."
+            ),
+            level=0,
+            duration=0,
+        )
 
     def _findExpressionMatch(self, symbol, propertyKey, pattern):
         for i in range(symbol.symbolLayerCount()):
