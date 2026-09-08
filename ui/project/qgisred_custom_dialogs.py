@@ -1,12 +1,15 @@
 # -*- coding: utf-8 -*-
 
-from qgis.PyQt.QtGui import QColor, QPixmap, QPainter, QIcon
+from contextlib import suppress
+
+from qgis.PyQt.QtGui import QColor, QPixmap, QPainter, QIcon, QDoubleValidator
 from ...compat import PAINTER_ANTIALIASING, STYLE_CC_COMBOBOX, STYLE_CE_COMBOBOXLABEL, SL_PROP_FILL_COLOR
 from ...compat import SL_PROP_SIZE, SL_PROP_WIDTH, SL_PROP_STROKE_WIDTH, RENDER_UNIT_MILLIMETERS
 from qgis.PyQt.QtWidgets import QDialog, QDialogButtonBox, QDoubleSpinBox, QLabel, QVBoxLayout
 from qgis.PyQt.QtWidgets import QToolButton, QComboBox, QApplication, QStylePainter, QStyleOptionComboBox, QSizePolicy
-from qgis.PyQt.QtWidgets import QCheckBox
+from qgis.PyQt.QtWidgets import QCheckBox, QLineEdit
 from qgis.PyQt.QtCore import pyqtSignal, Qt, QEvent, QSize, QObject, QPoint, QItemSelectionModel, QItemSelection
+from qgis.PyQt.QtCore import QLocale
 
 from qgis.gui import QgsSymbolButton, QgsColorDialog
 from qgis.core import QgsMarkerSymbol, QgsLineSymbol, QgsFillSymbol, QgsColorRamp, QgsProperty
@@ -321,6 +324,50 @@ class QGISRedSymbolColorSelector(QgsSymbolButton):
         newColor = QgsColorDialog.getColor(self.activeColor, self, self.dialogTitle, self.allowAlpha)
         if newColor.isValid():
             self.setSelectorColor(newColor)
+
+
+class QGISRedSizeLineEdit(QLineEdit):
+    """Size cell of the legend table: takes numbers only, and an entry that is
+    not a number goes back to the last value the cell held."""
+
+    maximumSize = 1000000.0
+    decimals = 3
+
+    def __init__(self, text, parent=None):
+        super().__init__(text, parent)
+        self.lastValidText = text
+        self.setValidator(self.createValidator())
+        self.textChanged.connect(self.rememberValidText)
+
+    def createValidator(self):
+        validator = QDoubleValidator(0.0, self.maximumSize, self.decimals, self)
+        validator.setNotation(QDoubleValidator.Notation.StandardNotation)
+        # Sizes are shown with a point, whatever the system locale says
+        locale = QLocale.c()
+        locale.setNumberOptions(QLocale.NumberOption.RejectGroupSeparator)
+        validator.setLocale(locale)
+        return validator
+
+    def setText(self, text):
+        super().setText(text)
+        self.rememberValidText(text)
+
+    def rememberValidText(self, text):
+        with suppress(ValueError, TypeError):
+            float(text)
+            self.lastValidText = text
+
+    def revertInvalidText(self):
+        try:
+            float(self.text())
+        except (ValueError, TypeError):
+            self.setText(self.lastValidText)
+
+    def focusOutEvent(self, event):
+        # editingFinished is silent while the entry is incomplete ("", "3."), so the
+        # revert is tied to the focus leaving the cell instead.
+        super().focusOutEvent(event)
+        self.revertInvalidText()
 
 
 class QGISRedColorRampSelector(QComboBox):

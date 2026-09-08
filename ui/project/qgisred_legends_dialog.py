@@ -48,7 +48,7 @@ from ..analysis.qgisred_results_rendering import apply_junction_size, read_node_
 from .qgisred_custom_dialogs import QGISRedRangeEditDialog, QGISRedSymbolColorSelector
 from .qgisred_custom_dialogs import QGISRedColorRampSelector, QGISRedRowSelectionFilter
 from .qgisred_custom_dialogs import QGISRedPaletteEmulator, QGISRedSizePaletteEmulator
-from .qgisred_custom_dialogs import QGISRedSaveStrategyDialog
+from .qgisred_custom_dialogs import QGISRedSaveStrategyDialog, QGISRedSizeLineEdit
 
 formClass, _ = uic.loadUiType(os.path.join(os.path.dirname(__file__), "qgisred_legends_dialog.ui"))
 
@@ -1026,7 +1026,8 @@ class QGISRedLegendsDialog(QDialog, formClass):
         layerName = layer.name()
         prefix = self.tr("Legend for")
         boldLayer = f"<b><span style='font-size:larger'>{layerName}</span></b>"
-        units = self.getLayerUnits()
+        # A single symbol has no values to put units on
+        units = "" if self.currentFieldType == self.FIELD_TYPE_SINGLE else self.getLayerUnits()
 
         if units:
             self.labelFrameLegends.setText(f"{prefix} {boldLayer} | {units} units")
@@ -2411,14 +2412,16 @@ class QGISRedLegendsDialog(QDialog, formClass):
             size = variableSize
         elif self.isMarkerComponentSelected():
             size = self._readMarkerLineMarkerSize(symbol) or size
-        sizeWidget = QLineEdit(f"{size:.1f}")
+        self.tableView.setCellWidget(row, 2, self.createSizeLineEdit(f"{size:.1f}", row))
+
+    def createSizeLineEdit(self, text, row):
+        sizeWidget = QGISRedSizeLineEdit(text)
         sizeWidget.setEnabled(self.isEditing)
         sizeWidget.setAlignment(Qt.AlignmentFlag.AlignCenter)
         sizeWidget.setStyleSheet(self.getBaseLineEditStyle())
         sizeWidget.installEventFilter(self.rowSelectionFilter)
         sizeWidget.textChanged.connect(lambda text, r=row: self.onSizeChanged(r, text))
-
-        self.tableView.setCellWidget(row, 2, sizeWidget)
+        return sizeWidget
 
     def setValueWidget(self, row, valueText, isReadOnlyValue):
         valueWidget = QLineEdit(valueText)
@@ -2977,6 +2980,10 @@ class QGISRedLegendsDialog(QDialog, formClass):
         isReadOnly = data[2]
         hasDoubleClick = data[3] if len(data) > 3 else False
 
+        if column == 2:
+            self.tableView.setCellWidget(row, column, self.createSizeLineEdit(text, row))
+            return
+
         lineEdit = QLineEdit(text)
         lineEdit.setEnabled(self.isEditing)
 
@@ -2995,10 +3002,6 @@ class QGISRedLegendsDialog(QDialog, formClass):
                 lineEdit.setStyleSheet(self.getBaseLineEditStyle())
         else:
             lineEdit.setStyleSheet(self.getBaseLineEditStyle())
-
-        if column == 2:
-            lineEdit.setAlignment(Qt.AlignmentFlag.AlignCenter)
-            lineEdit.textChanged.connect(lambda t, r=row: self.onSizeChanged(r, t))
 
         lineEdit.installEventFilter(self.rowSelectionFilter)
         self.tableView.setCellWidget(row, column, lineEdit)
