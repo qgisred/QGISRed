@@ -182,6 +182,23 @@ class TestStyleNameForIdentifier:
         assert _dialog().getStyleNameForIdentifier("") is None
 
 
+class TestStyleBasename:
+    def _dialog(self, identifier, styleURI):
+        dialog = _dialog(None)
+        properties = {"qgisred_identifier": identifier, "styleURI": styleURI}
+        dialog.currentLayer.customProperty.side_effect = lambda key, *a: properties.get(key)
+        return dialog
+
+    def test_thematic_maps_take_the_file_recorded_in_style_uri(self):
+        dialog = self._dialog("qgisred_query_pipes_material", "/styles/pipe_material.qml.bak")
+        assert dialog.getStyleBasename("Mapa temático") == "pipe_material"
+
+    def test_other_layers_ignore_a_stale_style_uri(self):
+        # A styleURI copied along with an old QML sent Service Connections after demand.qml
+        dialog = self._dialog("qgisred_serviceconnections", "/styles/demand.qml")
+        assert dialog.getStyleBasename("serviceconnections") == "serviceconnections"
+
+
 class TestElementNameForIdentifier:
     def test_result_layer_ignores_the_translated_layer_name(self):
         dialog = _dialog("Pressure", layerName="Nudo Presión")

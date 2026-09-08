@@ -222,12 +222,16 @@ class TestLoadBranching:
                 return "Pipes"
 
         dialog.currentLayer = _Layer()
+        dialog.tr = lambda text: text
         dialog.getElementNameForIdentifier = lambda identifier: "Pipes"
         dialog.getProjectStyleFilename = lambda name: "Net_Pipes.qml"
+        dialog.getStyleBasename = lambda name: name
         dialog.getProjectDirectoryFromUtils = lambda: "/project"
+        dialog.getStyleFolder = lambda globalStyle: "/global"
         dialog.readStrategyFromStyleFile = lambda path: strategy
-        dialog.loadLiteralStyleIntoDialog = lambda path: dialog.calls.append("literal")
+        dialog.applyStyleFileToLayer = lambda path: dialog.calls.append("file")
         dialog.applyStrategyToDialog = lambda s: dialog.calls.append("strategy")
+        dialog.applyLegend = lambda: dialog.calls.append("apply")
         # The loader resolves the file through QGISRedStylingUtils.findStyleFile, which
         # lists the folder and matches in lowercase — so the stub is listdir, not exists.
         monkeypatch.setattr(os, "listdir", lambda folder: ["Net_Pipes.qml"])
@@ -236,17 +240,37 @@ class TestLoadBranching:
     def _strategy(self, parts):
         return {"schema": "qgisred.legendStrategy.v2", "mode": "categorized", "field": "Class", "parts": parts}
 
-    def test_pure_snapshot_loads_as_literal_only(self, monkeypatch):
+    def test_pure_snapshot_goes_straight_onto_the_layer(self, monkeypatch):
         dialog = self._dialog(monkeypatch, self._strategy(["allClasses"]))
         dialog.loadProjectStyle()
-        assert dialog.calls == ["literal"]
+        assert dialog.calls == ["file"]
 
     def test_combined_strategy_pins_classes_then_applies_parts(self, monkeypatch):
         dialog = self._dialog(monkeypatch, self._strategy(["allClasses", "colors", "sizes"]))
         dialog.loadProjectStyle()
-        assert dialog.calls == ["literal", "strategy"]
+        assert dialog.calls == ["file", "strategy", "apply"]
 
-    def test_dynamic_strategy_skips_the_literal_load(self, monkeypatch):
+    def test_dynamic_strategy_regenerates_on_top_of_the_saved_classes(self, monkeypatch):
         dialog = self._dialog(monkeypatch, self._strategy(["colors"]))
         dialog.loadProjectStyle()
-        assert dialog.calls == ["strategy"]
+        assert dialog.calls == ["file", "strategy", "apply"]
+
+    def test_default_style_never_reads_a_strategy(self, monkeypatch):
+        dialog = self._dialog(monkeypatch, self._strategy(["colors"]))
+        dialog.pluginFolder = "/plugin"
+        monkeypatch.setattr(os, "listdir", lambda folder: ["Pipes.qml.bak"])
+        dialog.loadDefaultStyle()
+        assert dialog.calls == ["file"]
+
+    @pytest.mark.parametrize("load, expected", [
+        ("loadProjectStyle", "No style has been saved for this layer in the layerStyles folder of the project."),
+        ("loadGlobalStyle", "No style has been saved for this layer at the global level."),
+    ])
+    def test_a_missing_saved_style_gets_its_own_message(self, monkeypatch, load, expected):
+        dialog = self._dialog(monkeypatch, None)
+        monkeypatch.setattr(os, "listdir", lambda folder: [])
+        getattr(dialog, load)()
+        assert dialog.calls == []
+        warning = legendsModule.QMessageBox.warning
+        warning.assert_called_once()
+        assert warning.call_args[0][2] == expected

@@ -745,7 +745,7 @@ class QGISRedLegendsDialog(QDialog, formClass):
         loadMenu.addAction(self.tr("Default Style"), self.loadDefaultStyle)
         loadMenu.addSeparator()
         self.actionRevertOriginal = loadMenu.addAction(self.tr("Revert to Original Legend"), self.revertToOriginalStyle)
-        self.actionRevertOriginal.setToolTip(self.tr("Show the legend the layer had when this dialog was opened; press Apply to update the layer"))
+        self.actionRevertOriginal.setToolTip(self.tr("Restore the legend the layer had when this dialog was opened"))
         self.btLoadMenu.setMenu(loadMenu)
 
         saveMenu = QMenu(self)
@@ -4770,18 +4770,6 @@ class QGISRedLegendsDialog(QDialog, formClass):
             return True
         return self.strategyParts(strategy) == ["allClasses"]
 
-    def loadLiteralStyleIntoDialog(self, path):
-        # Load the style into a detached copy of the layer so the live layer
-        # stays untouched; the dialog previews the legend and only Apply commits it.
-        tempLayer = QgsVectorLayer(self.currentLayer.source(), self.currentLayer.name(), self.currentLayer.providerType())
-        if not tempLayer.isValid():
-            return
-        tempLayer.loadNamedStyle(path)
-        renderer = tempLayer.renderer().clone() if tempLayer.renderer() else None
-        if renderer is None:
-            return
-        self.populateDialogFromRenderer(renderer)
-
     def populateDialogFromRenderer(self, renderer):
         """Show the given renderer in the dialog without touching the live layer."""
         self.currentFieldType, self.currentFieldName = self.detectFieldType(self.currentLayer, renderer)
@@ -4793,13 +4781,21 @@ class QGISRedLegendsDialog(QDialog, formClass):
         self.updateButtonStates()
         self.updateInputLayerRestrictions()
 
+    STYLE_SCOPE_DEFAULT = "default"
+    STYLE_SCOPE_GLOBAL = "global"
+    STYLE_SCOPE_PROJECT = "project"
+
     def loadDefaultStyle(self):
-        self.loadStyle(isDefault=True)
+        self.loadStyle(self.STYLE_SCOPE_DEFAULT)
 
     def loadGlobalStyle(self):
-        self.loadStyle(isDefault=False)
+        self.loadStyle(self.STYLE_SCOPE_GLOBAL)
 
     def loadProjectStyle(self):
+        self.loadStyle(self.STYLE_SCOPE_PROJECT)
+
+    def loadStyle(self, scope):
+        """Put the project, global or default style straight onto the layer and show it in the dialog."""
         if not self.currentLayer:
             return
 
@@ -4821,98 +4817,68 @@ class QGISRedLegendsDialog(QDialog, formClass):
             )
             return
 
-        filename = self.getProjectStyleFilename(name)
-        projectDir = self.getProjectDirectoryFromUtils()
-
-        if not projectDir:
+        if scope == self.STYLE_SCOPE_PROJECT and not self.getProjectDirectoryFromUtils():
             QMessageBox.warning(self, self.tr("No Project"), self.tr("Project directory not set."))
             return
 
-        folder = os.path.join(projectDir, "layerStyles")
-        # Same lookup setStyle uses, so this finds whatever it would load.
-        path = QGISRedStylingUtils.findStyleFile(folder, [filename])
-
+        path, filename = self.findStylePath(scope, name)
         if not path:
-            QMessageBox.warning(self, self.tr("Not Found"),
-                                self.tr("Style file not found: %1").replace("%1", os.path.join(folder, filename)))
+            self.showMissingStyleMessage(scope, filename)
             return
 
-        strategy = self.readStrategyFromStyleFile(path)
-        if self.isLiteralStyle(strategy):
-            self.loadLiteralStyleIntoDialog(path)
-            message = self.tr("Legend loaded into the dialog from %1. Press Apply to update the layer.").replace("%1", filename)
-        else:
-            if "allClasses" in self.strategyParts(strategy):
-                # Pin the saved classes from the QML, then regenerate colors/sizes on top.
-                self.loadLiteralStyleIntoDialog(path)
+        # The file goes onto the live layer: it must rebuild the shipped expressions,
+        # symbol layers and labels, which the dialog table cannot recreate on its own.
+        strategy = None if scope == self.STYLE_SCOPE_DEFAULT else self.readStrategyFromStyleFile(path)
+        self.applyStyleFileToLayer(path)
+        if not self.isLiteralStyle(strategy):
+            # The saved classes are on the layer now; regenerate colors/sizes/intervals on top.
             self.applyStrategyToDialog(strategy)
-            message = self.tr("Strategy loaded into the dialog from %1. Press Apply to update the layer.").replace("%1", filename)
+            self.applyLegend()
+        message = self.tr("Style applied to the layer from %1.").replace("%1", filename)
         QMessageBox.information(self, self.tr("Loaded"), message)
 
-    def loadStyle(self, isDefault):
-        if not self.currentLayer:
-            return
+    def findStylePath(self, scope, name=None):
+        """(path or None, file name) of the current layer's style in the given scope.
 
-        identifier = self.currentLayer.customProperty("qgisred_identifier")
-        if not identifier:
-            QMessageBox.warning(
-                self,
-                self.tr("Cannot Load"),
-                self.tr("This layer is not managed by QGISRed and its style cannot be loaded here."),
-            )
-            return
-
-        name = self.getElementNameForIdentifier(identifier)
+        Same lookup setStyle uses, so this finds whatever it would load.
+        """
+        if name is None:
+            name = self.getElementNameForIdentifier(self.currentLayer.customProperty("qgisred_identifier"))
         if not name:
-            QMessageBox.warning(
-                self,
-                self.tr("Cannot Load"),
-                self.tr("Loading styles from this dialog is not supported for this layer type."),
-            )
-            return
-
-        filename = self.getStyleBasename(name) + ".qml" + (".bak" if isDefault else "")
-        subfolder = os.path.join("defaults", "layerStyles") if isDefault else "layerStyles"
-        folder = os.path.join(self.pluginFolder if isDefault else self.getQGISRedDirectoryFromUtils(), subfolder)
-        # Same lookup setStyle uses, so this finds whatever it would load.
-        path = QGISRedStylingUtils.findStyleFile(folder, [filename])
-
-        if not path:
-            QMessageBox.warning(self, self.tr("Not Found"),
-                                self.tr("Style file not found: %1").replace("%1", os.path.join(folder, filename)))
-            return
-
-        if isDefault:
-            # Restoring the default must rebuild the shipped expressions, symbol layers
-            # and labels, which the dialog cannot recreate, so the file goes straight
-            # onto the live layer instead of only into the dialog table.
-            self.applyStyleFileToLayer(path)
-            message = self.tr("Default style applied to the layer from %1.").replace("%1", filename)
-            QMessageBox.information(self, self.tr("Loaded"), message)
-            return
-
-        strategy = self.readStrategyFromStyleFile(path)
-        if self.isLiteralStyle(strategy):
-            self.loadLiteralStyleIntoDialog(path)
-            message = self.tr("Legend loaded into the dialog from %1. Press Apply to update the layer.").replace("%1", filename)
+            return None, ""
+        if scope == self.STYLE_SCOPE_DEFAULT:
+            filename = self.getStyleBasename(name) + ".qml.bak"
+            folder = os.path.join(self.pluginFolder, "defaults", "layerStyles")
+        elif scope == self.STYLE_SCOPE_GLOBAL:
+            filename = self.getStyleBasename(name) + ".qml"
+            folder = self.getStyleFolder(globalStyle=True)
         else:
-            if "allClasses" in self.strategyParts(strategy):
-                # Pin the saved classes from the QML, then regenerate colors/sizes on top.
-                self.loadLiteralStyleIntoDialog(path)
-            self.applyStrategyToDialog(strategy)
-            message = self.tr("Strategy loaded into the dialog from %1. Press Apply to update the layer.").replace("%1", filename)
-        QMessageBox.information(self, self.tr("Loaded"), message)
+            filename = self.getProjectStyleFilename(name)
+            folder = os.path.join(self.getProjectDirectoryFromUtils(), "layerStyles")
+        return QGISRedStylingUtils.findStyleFile(folder, [filename]), filename
+
+    def showMissingStyleMessage(self, scope, filename):
+        if scope == self.STYLE_SCOPE_PROJECT:
+            message = self.tr("No style has been saved for this layer in the layerStyles folder of the project.")
+        elif scope == self.STYLE_SCOPE_GLOBAL:
+            message = self.tr("No style has been saved for this layer at the global level.")
+        else:
+            message = self.tr("Style file not found: %1").replace("%1", filename)
+        QMessageBox.warning(self, self.tr("Not Found"), message)
 
     def applyStyleFileToLayer(self, path):
         self.currentLayer.loadNamedStyle(path)
         self.restoreResultNullClass()
+        self.showAppliedLayerStyle()
+
+    def showAppliedLayerStyle(self):
+        """After a style was put on the layer outside Apply: repaint it and show that style in the dialog."""
         self.currentLayer.triggerRepaint()
         self.ensureLayerVisible(self.currentLayer)
         self.originalRenderer = self.currentLayer.renderer().clone() if self.currentLayer.renderer() else None
         self.hasAppliedChanges = True
-        renderer = self.currentLayer.renderer().clone() if self.currentLayer.renderer() else None
-        if renderer is not None:
-            self.populateDialogFromRenderer(renderer)
+        if self.originalRenderer is not None:
+            self.populateDialogFromRenderer(self.originalRenderer.clone())
 
     # Appearance settings that rewrite a result layer's symbols, with the value that means
     # "untouched". Decimals and labels also live in that file but change nothing here, so
@@ -4982,7 +4948,11 @@ class QGISRedLegendsDialog(QDialog, formClass):
             self.appearanceWarningBanner.hide()
 
     def getStyleBasename(self, name):
-        styleURI = self.currentLayer.customProperty("styleURI") if self.currentLayer else None
+        # Only thematic maps record the file they were styled from in styleURI; on any
+        # other layer it is a leftover copied along with an old QML and must not win.
+        identifier = self.currentLayer.customProperty("qgisred_identifier") if self.currentLayer else None
+        isThematicMap = bool(identifier) and identifier.startswith("qgisred_query_")
+        styleURI = self.currentLayer.customProperty("styleURI") if isThematicMap else None
         if styleURI:
             basename = os.path.basename(styleURI)
             if basename.endswith(".bak"):
@@ -5845,8 +5815,8 @@ class QGISRedLegendsDialog(QDialog, formClass):
         snapshot = self.initialRenderers.get(self.currentLayer.id())
         if snapshot is None:
             return
-        # Preview only: the layer itself changes when Apply is pressed.
-        self.populateDialogFromRenderer(snapshot.clone())
+        self.currentLayer.setRenderer(snapshot.clone())
+        self.showAppliedLayerStyle()
 
     def eventFilter(self, obj, event):
         if obj == self.btClassPlus and event.type() == QEvent.Type.MouseButtonPress:
