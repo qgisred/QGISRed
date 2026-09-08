@@ -26,7 +26,7 @@ from qgis.core import QgsCategorizedSymbolRenderer, QgsRendererRange, QgsRendere
 from qgis.core import QgsLayerTreeGroup, QgsLayerTreeLayer, QgsGradientColorRamp, QgsClassificationJenks
 from qgis.core import QgsClassificationPrettyBreaks, QgsStyle, QgsPresetSchemeColorRamp, QgsProperty
 from qgis.core import QgsRuleBasedRenderer, QgsFillSymbolLayer, QgsMapLayerStyle, QgsRandomColorRamp, NULL
-from qgis.core import QgsLineSymbol, QgsMarkerSymbol, QgsFillSymbol
+from qgis.core import QgsLineSymbol, QgsMarkerSymbol, QgsFillSymbol, QgsIconUtils
 from qgis.utils import iface
 
 from ...compat import WKB_LINE_GEOMETRY, WKB_POINT_GEOMETRY
@@ -326,6 +326,8 @@ class QGISRedLegendsDialog(QDialog, formClass):
         self.layerTreeRoot = None
         self.style = None
         self.lastValidLayerId = None
+        self.lastValidLayerIdentifier = None
+        self.layerListRefreshPending = False
         self.initialRenderers = {}
         self.isClosing = False
         self.hasAppliedChanges = False
@@ -500,8 +502,8 @@ class QGISRedLegendsDialog(QDialog, formClass):
         self.fieldUtils = QGISRedFieldUtils(projectDirectory, networkName, qgisInterface)
         self.fsUtils = QGISRedFileSystemUtils(projectDirectory, networkName, qgisInterface)
 
-        if self.cbLegendLayer.currentLayer():
-            self.onLayerChanged(self.cbLegendLayer.currentLayer())
+        if self.currentLegendLayer():
+            self.onLayerChanged(self.currentLegendLayer())
 
     # ============================================================
     # UI INITIALIZATION
@@ -806,7 +808,7 @@ class QGISRedLegendsDialog(QDialog, formClass):
 
     def connectSignals(self):
         self.cbGroups.currentIndexChanged.connect(self.onGroupChanged)
-        self.cbLegendLayer.layerChanged.connect(self.onLayerChanged)
+        self.cbLegendLayer.currentIndexChanged.connect(self.onLayerComboChanged)
         self.btAcceptLegend.clicked.connect(self.acceptAndClose)
         self.btApplyLegend.clicked.connect(self.applyLegend)
         self.btCancelLegend.clicked.connect(self.cancelAndClose)
@@ -820,10 +822,44 @@ class QGISRedLegendsDialog(QDialog, formClass):
         self.tableView.cellDoubleClicked.connect(self.onCellDoubleClicked)
         self.tableView.itemSelectionChanged.connect(self.updateButtonStates)
         self.connectLayerTreeSignal()
+        self.connectProjectLayerSignals()
 
     def connectLayerTreeSignal(self):
         if iface and iface.layerTreeView():
             self.layerTreeViewConnection = iface.layerTreeView().currentLayerChanged.connect(self.onQgisLayerSelectionChanged)
+
+    def connectProjectLayerSignals(self):
+        # The layer combo is filled by hand, so it has to follow layers coming and going
+        project = QgsProject.instance()
+        project.layersAdded.connect(self.scheduleLayerListRefresh)
+        project.layersRemoved.connect(self.scheduleLayerListRefresh)
+
+    def disconnectProjectLayerSignals(self):
+        project = QgsProject.instance()
+        with suppress(Exception):
+            project.layersAdded.disconnect(self.scheduleLayerListRefresh)
+        with suppress(Exception):
+            project.layersRemoved.disconnect(self.scheduleLayerListRefresh)
+
+    def scheduleLayerListRefresh(self, *_):
+        # One refresh once the batch of additions/removals has gone through the event loop
+        if self.isClosing or self.layerListRefreshPending:
+            return
+        self.layerListRefreshPending = True
+        QTimer.singleShot(0, self.refreshLayerLists)
+
+    def refreshLayerLists(self):
+        """Rebuild the group and layer combos after the project's layers changed, keeping the selection."""
+        self.layerListRefreshPending = False
+        if self.isClosing:
+            return
+        groupPath = self.cbGroups.currentData()
+        self.populateGroups()
+        if self.cbGroups.count() == 0:
+            return
+        if groupPath is not None:
+            self.setGroupByPath(groupPath)
+        self.selectGroupLayers(keepCurrentLayer=True)
 
     def loadInitialState(self):
         self.labelFrameLegends.setText(self.tr("Legend"))
@@ -833,15 +869,21 @@ class QGISRedLegendsDialog(QDialog, formClass):
         # preselectGroupAndLayer -> onGroupChanged already runs the full layer
         # selection (populate, legend types, label) exactly once.
         self.preselectGroupAndLayer()
-        self.frameLegends.setEnabled(bool(self.cbLegendLayer.currentLayer()))
+        self.frameLegends.setEnabled(bool(self.currentLegendLayer()))
         self.updateClassCount()
 
     # ============================================================
     # EVENT HANDLERS - LAYER AND GROUP
     # ============================================================
 
+    def isPluginLayerOperationInProgress(self):
+        """The plugin is reopening or reordering its layers: the panel's active layer is not a user pick then."""
+        return bool(getattr(self.parentPlugin, "layerOperationInProgress", False))
+
     def onQgisLayerSelectionChanged(self, layer):
         if not layer or not isinstance(layer, QgsVectorLayer):
+            return
+        if self.isPluginLayerOperationInProgress():
             return
 
         layerNode = QgsProject.instance().layerTreeRoot().findLayer(layer)
@@ -868,31 +910,37 @@ class QGISRedLegendsDialog(QDialog, formClass):
             self.setGroupByPath(groupPath)
             self.onGroupChanged()
 
-        if self.cbLegendLayer.currentLayer() != layer:
-            self.cbLegendLayer.setLayer(layer)
+        if self.currentLegendLayer() != layer:
+            self.setLegendLayer(layer)
 
     def onGroupChanged(self):
-        allowedLayers = self.getRenderableLayersInSelectedGroup()
-        allLayers = list(QgsProject.instance().mapLayers().values())
-        exceptedLayers = [layer for layer in allLayers if layer not in allowedLayers]
+        self.selectGroupLayers()
 
-        targetLayer = self.determineTargetLayer(allowedLayers)
+    def selectGroupLayers(self, keepCurrentLayer=False):
+        allowedLayers = self.getRenderableLayersInSelectedGroup()
+        targetLayer = self.determineTargetLayer(allowedLayers, keepCurrentLayer)
+        rememberedId, rememberedIdentifier = self.lastValidLayerId, self.lastValidLayerIdentifier
 
         self.cbLegendLayer.blockSignals(True)
-        # Filter first: setExceptedLayerList resets the combo's model, and clearing
-        # the index afterwards keeps the combo blank when the group has no target.
-        self.cbLegendLayer.setExceptedLayerList(exceptedLayers)
-        self.cbLegendLayer.setCurrentIndex(-1)
-        if targetLayer:
-            self.cbLegendLayer.setLayer(targetLayer)
+        self.populateLayerCombo(allowedLayers)
+        self.setLegendLayer(targetLayer)
         self.cbLegendLayer.blockSignals(False)
         self.onLayerChanged(targetLayer)
 
-    def determineTargetLayer(self, allowedLayers):
-        currentLayer = self.cbLegendLayer.currentLayer()
+        # A refresh that fell back to another layer (the remembered one is closed for the
+        # moment) keeps remembering it, so it is picked up again once it is reopened.
+        isFallback = targetLayer is None or targetLayer.customProperty("qgisred_identifier") != rememberedIdentifier
+        if keepCurrentLayer and isFallback:
+            self.lastValidLayerId, self.lastValidLayerIdentifier = rememberedId, rememberedIdentifier
+
+    def determineTargetLayer(self, allowedLayers, keepCurrentLayer=False):
+        """The layer to select in the group: the panel's active layer unless the
+        selection must survive a refresh, then the last one selected here, found
+        again by id or, once reopened under a new id, by identifier."""
+        currentLayer = self.currentLegendLayer()
         targetLayer = None
 
-        activeNode = self.getActiveLayerFromTree()
+        activeNode = self.getActiveLayerFromTree() if not keepCurrentLayer else None
         if activeNode:
             activeLayer = activeNode.layer()
             if activeLayer in allowedLayers:
@@ -904,6 +952,12 @@ class QGISRedLegendsDialog(QDialog, formClass):
                     targetLayer = layer
                     break
 
+        if targetLayer is None and keepCurrentLayer and self.lastValidLayerIdentifier:
+            for layer in allowedLayers:
+                if layer.customProperty("qgisred_identifier") == self.lastValidLayerIdentifier:
+                    targetLayer = layer
+                    break
+
         if targetLayer is None and currentLayer and currentLayer in allowedLayers:
             targetLayer = currentLayer
 
@@ -911,6 +965,27 @@ class QGISRedLegendsDialog(QDialog, formClass):
             targetLayer = allowedLayers[0]
 
         return targetLayer
+
+    def populateLayerCombo(self, layers):
+        self.cbLegendLayer.clear()
+        for layer in layers:
+            self.cbLegendLayer.addItem(self.layerComboIcon(layer), layer.name(), layer.id())
+
+    def layerComboIcon(self, layer):
+        with suppress(Exception):
+            return QgsIconUtils.iconForLayer(layer)
+        return QIcon()
+
+    def currentLegendLayer(self):
+        layerId = self.cbLegendLayer.currentData()
+        return QgsProject.instance().mapLayer(layerId) if layerId else None
+
+    def setLegendLayer(self, layer):
+        index = self.cbLegendLayer.findData(layer.id()) if layer else -1
+        self.cbLegendLayer.setCurrentIndex(index)
+
+    def onLayerComboChanged(self, _index=None):
+        self.onLayerChanged(self.currentLegendLayer())
 
     def onLayerChanged(self, layer):
         if layer and isinstance(layer, QgsVectorLayer):
@@ -920,6 +995,7 @@ class QGISRedLegendsDialog(QDialog, formClass):
 
     def handleValidLayerSelection(self, layer):
         self.lastValidLayerId = layer.id()
+        self.lastValidLayerIdentifier = layer.customProperty("qgisred_identifier")
         self.currentLayer = layer
         self._workingRenderer = None
         self.originalRenderer = layer.renderer().clone() if layer.renderer() else None
@@ -1707,8 +1783,7 @@ class QGISRedLegendsDialog(QDialog, formClass):
         self.cbGroups.setCurrentIndex(-1)
 
         self.cbLegendLayer.blockSignals(True)
-        self.cbLegendLayer.setExceptedLayerList(list(QgsProject.instance().mapLayers().values()))
-        self.cbLegendLayer.setLayer(None)
+        self.populateLayerCombo([])
         self.cbLegendLayer.blockSignals(False)
 
         self.frameLegends.setEnabled(False)
@@ -1773,6 +1848,12 @@ class QGISRedLegendsDialog(QDialog, formClass):
         layers = []
         self.collectRenderableLayersRecursive(group, layers, recurseIntoSubgroups, isQueriesGroup)
 
+        # Inputs are offered in drawing order (pipes first, the bottom of the group);
+        # the other groups alphabetically
+        if identifier == "qgisred_inputs":
+            layers.reverse()
+        else:
+            layers.sort(key=lambda layer: layer.name().lower())
         return layers
 
     def collectRenderableLayersRecursive(self, group, layers, recurseIntoSubgroups, isQueriesGroup=False):
@@ -1833,8 +1914,8 @@ class QGISRedLegendsDialog(QDialog, formClass):
         # panel's active layer and falls back to the group's first layer.
         self.onGroupChanged()
 
-        if targetLayer and self.cbLegendLayer.currentLayer() != targetLayer:
-            self.cbLegendLayer.setLayer(targetLayer)
+        if targetLayer and self.currentLegendLayer() != targetLayer:
+            self.setLegendLayer(targetLayer)
 
     def getActiveLayerFromTree(self):
         if iface and iface.layerTreeView():
@@ -5785,6 +5866,7 @@ class QGISRedLegendsDialog(QDialog, formClass):
 
     def closeEvent(self, event):
         self.disconnectLayerTreeSignal()
+        self.disconnectProjectLayerSignals()
         self.cleanupParentReference()
         super().closeEvent(event)
 
