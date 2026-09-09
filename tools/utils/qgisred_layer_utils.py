@@ -76,6 +76,8 @@ class QGISRedLayerUtils:
         'qgisred_query_pipes_roughness',
     }
 
+    _MAX_GROUP_ANCESTRY_DEPTH = 25
+
     @classmethod
     def getLayerSupportsCategorized(cls, layerIdentifier: str) -> bool:
         """Return True if the layer supports categorized legend classification."""
@@ -477,13 +479,29 @@ class QGISRedLayerUtils:
         layer = self._findLayerByPath(layerPath)
         if layer is not None:
             layer.dataProvider().reloadData()
-            layer.setDataSource(layerPath, layer.name(), "ogr", QgsDataProvider.ProviderOptions())
-            layer.setAttributeTableConfig(QgsAttributeTableConfig())
-            layer.updateFields()
+            if self._isUnderAuxiliaryLayersGroup(layer):
+                layer.setDataSource(layerPath, layer.name(), "ogr", QgsDataProvider.ProviderOptions())
+                layer.setAttributeTableConfig(QgsAttributeTableConfig())
+                layer.updateFields()
             layer.updateExtents()
             layer.triggerRepaint()
         self.refreshThematicMapLayers(layerPath)
         return layer
+
+    def _isUnderAuxiliaryLayersGroup(self, layer):
+        """True if *layer* sits anywhere under the "Auxiliary Layers" legend group,
+        however deep — checked by ancestry so a future subgroup needs no extra case here."""
+        auxiliaryIdentifier = self.groupIdentifiers.get("Auxiliary Layers")
+        root = QgsProject.instance().layerTreeRoot()
+        node = root.findLayer(layer.id())
+        parent = node.parent() if node is not None else None
+        depth = 0
+        while parent and parent != root and depth < self._MAX_GROUP_ANCESTRY_DEPTH:
+            if parent.customProperty("qgisred_identifier") == auxiliaryIdentifier:
+                return True
+            parent = parent.parent()
+            depth += 1
+        return False
 
     def refreshThematicMapLayers(self, layerPath):
         """Reload and repaint open thematic-map layers whose source file is *layerPath*.

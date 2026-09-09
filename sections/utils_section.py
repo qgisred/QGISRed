@@ -233,23 +233,57 @@ class UtilsSection:
         return True
 
     def setSelectedFeaturesById(self):
+        """Re-select, after a reload, whatever getSelectedFeaturesIds() captured before it.
+
+        Matches by the layer's stable ID field (PipeID, JunctionID...) rather than the old
+        feature IDs: reloadData() drops a layer's selection outright (QGIS can't assume FIDs
+        survived a provider reload), even when the file content and feature order didn't
+        actually change, so the FIDs captured before the reload are unusable either way.
+        """
+        if not self.selectedIds:
+            return
+
         layers = self.getLayers()
 
-        for layer in layers:
-            openedLayerPath = self.getLayerPath(layer)
+        def restoreForLayerNames(layerNames, skip=()):
+            for layer in layers:
+                openedLayerPath = self.getLayerPath(layer)
 
-            for layerName in self.ownMainLayers:
-                layerPath = self.generatePath(
-                    self.ProjectDirectory,
-                    self.NetworkName + "_" + layerName + ".shp"
-                )
+                for layerName in layerNames:
+                    if layerName in skip:
+                        continue
 
-                if layerName == "Sources" or layerName == "Demands":
-                    continue
+                    layerPath = self.generatePath(
+                        self.ProjectDirectory,
+                        self.NetworkName + "_" + layerName + ".shp"
+                    )
 
-                if openedLayerPath == layerPath:
-                    if layerName in self.selectedFids:
-                        layer.selectByIds(self.selectedFids[layerName])
+                    if openedLayerPath != layerPath:
+                        continue
+
+                    ids = self.selectedIds.get(layerName)
+                    if not ids:
+                        continue
+
+                    idFieldName = self._getIdFieldName(layerName, layer)
+                    if idFieldName is None:
+                        continue
+
+                    wantedIds = set(ids)
+                    fids = [
+                        feature.id()
+                        for feature in layer.getFeatures()
+                        if str(feature[idFieldName]) in wantedIds
+                    ]
+
+                    if fids:
+                        layer.selectByIds(fids)
+
+        restoreForLayerNames(self.ownMainLayers, skip=("Sources", "Demands"))
+        restoreForLayerNames(self.complementaryLayers)
+
+        self.selectedFids = {}
+        self.selectedIds = {}
 
     def zoomToElementFromProperties(self, layerName, elementId):
         layers = self.getLayers()

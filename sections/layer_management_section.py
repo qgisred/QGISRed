@@ -733,6 +733,7 @@ class LayerManagementSection:
         else:
             self.layerOperationInProgress = False
 
+        self.setSelectedFeaturesById()
         self._staleLayerManager.forceCheck()
 
     def onStaleIndicatorClicked(self, layerId, kind):
