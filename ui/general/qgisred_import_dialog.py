@@ -1288,7 +1288,8 @@ class QGISRedImportDialog(QDialog, FORM_CLASS):
                     return
 
             self.close()
-            self.parent.zoomToFullExtent = True
+            if self.NewProject:
+                self.parent.zoomToFullExtent = True
 
             epsg = self.crs.authid().replace("EPSG:", "")
             shapes = self.createShpsNames()
