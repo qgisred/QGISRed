@@ -5,6 +5,8 @@ thematic symbology that gives them their meaning."""
 import json
 from unittest.mock import MagicMock
 
+import pytest
+
 from QGISRed.tools.utils.qgisred_filesystem_utils import QGISRedFileSystemUtils
 from QGISRed.tools.utils import qgisred_layer_utils as layer_utils_module
 from QGISRed.tools.utils.qgisred_layer_utils import QGISRedLayerUtils
@@ -257,6 +259,7 @@ class TestGraduatedThematicMaps:
 
 
 class TestTryReloadExistingLayer:
+    @pytest.mark.mock_only
     def test_delegates_after_reloading_the_main_layer(self):
         utils = _utils([])
         mainLayer = _mockLayer("qgisred_pipes", PIPES_PATH)
