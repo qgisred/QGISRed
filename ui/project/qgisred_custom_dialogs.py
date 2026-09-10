@@ -1,5 +1,6 @@
 # -*- coding: utf-8 -*-
 
+import math
 from contextlib import suppress
 
 from qgis.PyQt.QtGui import QColor, QPixmap, QPainter, QIcon, QDoubleValidator
@@ -144,6 +145,8 @@ class QGISRedSymbolColorSelector(QgsSymbolButton):
         self.strokeColorOnly = bool(strokeColorOnly)
         # Predicate over symbol layers: only the ones it accepts take the picked color
         self.colorLayerFilter = colorLayerFilter
+        # Value of the row's size cell; the preview eases between its bounds with it
+        self.previewSizeValue = None
 
         self.configureWidgetStyle()
         self.refreshSymbolDisplay()
@@ -260,13 +263,26 @@ class QGISRedSymbolColorSelector(QgsSymbolButton):
             "color": rgba, "outline_color": "60,60,60,255", "outline_width": "0.3"
         })
 
-    # Fixed preview sizes (mm): the swatch is 44x26 px, so the drawn symbol must
-    # not follow the user-entered size or it overflows/vanishes. The preview is
-    # decoupled from the size cell entirely: it is normalized once and never
-    # updated afterwards.
-    previewMarkerSize = 3.6
-    previewLineWidth = 1.0
+    # Preview sizes (mm): the swatch is 44x26 px, so the drawn symbol cannot follow
+    # the user-entered size or it overflows/vanishes. Instead it eases smoothly
+    # from the smallest to the largest bound as the size cell value grows.
+    previewMarkerSizeRange = (3.4, 4.5)
+    previewLineWidthRange = (0.7, 1.2)
+    # Size cell value at which the preview has covered about two thirds of its range
+    previewMarkerEasingScale = 2.5
+    previewLineEasingScale = 1.5
     disabledOpacity = 0.3
+
+    def setPreviewSizeValue(self, sizeValue):
+        self.previewSizeValue = sizeValue
+        self.refreshSymbolDisplay()
+
+    def easedPreviewSize(self, bounds, easingScale):
+        smallest, largest = bounds
+        if not self.previewSizeValue or self.previewSizeValue <= 0:
+            return smallest
+        fraction = 1.0 - math.exp(-self.previewSizeValue / easingScale)
+        return smallest + (largest - smallest) * fraction
 
     def applySizeScaling(self, symbol):
         # An active data-defined size/width beats setSize/setWidth when the
@@ -277,14 +293,15 @@ class QGISRedSymbolColorSelector(QgsSymbolButton):
         # same number would draw different thicknesses: normalize the unit first.
         if self.geometryType == self.lineType:
             symbol.setOutputUnit(RENDER_UNIT_MILLIMETERS)
-            symbol.setWidth(self.previewLineWidth)
-        elif self.geometryType == self.markerType:
+            symbol.setWidth(self.easedPreviewSize(self.previewLineWidthRange, self.previewLineEasingScale))
+        elif hasattr(symbol, "setSize"):
+            # Anything that is not a line (circles, stars, SVG icons...) eases like a marker.
             # Only the size unit: a stroke declared in pixels (Sources) would swell to millimetres
             for i in range(symbol.symbolLayerCount()):
                 symbolLayer = symbol.symbolLayer(i)
                 if hasattr(symbolLayer, "setSizeUnit"):
                     symbolLayer.setSizeUnit(RENDER_UNIT_MILLIMETERS)
-            symbol.setSize(self.previewMarkerSize)
+            symbol.setSize(self.easedPreviewSize(self.previewMarkerSizeRange, self.previewMarkerEasingScale))
 
     def _clearSizeExpressions(self, symbol):
         for i in range(symbol.symbolLayerCount()):

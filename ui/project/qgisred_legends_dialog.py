@@ -2432,6 +2432,7 @@ class QGISRedLegendsDialog(QDialog, formClass):
         sizeWidget.setStyleSheet(self.getBaseLineEditStyle())
         sizeWidget.installEventFilter(self.rowSelectionFilter)
         sizeWidget.textChanged.connect(lambda text, r=row: self.onSizeChanged(r, text))
+        self.syncColorPreviewSize(row, text)
         return sizeWidget
 
     def setValueWidget(self, row, valueText, isReadOnlyValue):
@@ -3463,6 +3464,7 @@ class QGISRedLegendsDialog(QDialog, formClass):
     def onSizeChanged(self, row, text):
         with suppress(Exception):
             float(text)
+            self.syncColorPreviewSize(row, text)
 
             # Update size palette when in automatic interval mode with manual sizes
             sizeMode = self.cbSizes.currentText() if hasattr(self, "cbSizes") else "Manual"
@@ -3473,6 +3475,13 @@ class QGISRedLegendsDialog(QDialog, formClass):
                 currentSizes = self.collectCurrentTableSizes()
                 if len(currentSizes) >= 2:
                     self.sizePaletteEmulator.setPaletteFromSizes(currentSizes)
+
+    def syncColorPreviewSize(self, row, text):
+        colorContainer = self.tableView.cellWidget(row, 1)
+        colorWidget = colorContainer.findChild(QGISRedSymbolColorSelector) if colorContainer else None
+        if colorWidget:
+            with suppress(ValueError, TypeError):
+                colorWidget.setPreviewSizeValue(float(text))
 
     # ============================================================
     # RENDERER CONVERSION
