@@ -138,6 +138,7 @@ class QGISRedSymbolColorSelector(QgsSymbolButton):
         self.dialogTitle = dialogTitle
         self.useDoubleClick = doubleClickOnly
         self.activeColor = self.parseInitialColor(initialColor)
+        self.initialColor = QColor(self.activeColor)
         self._actualSymbol = actualSymbol.clone() if actualSymbol else None
         self.colorExpressionLayersOnly = bool(colorExpressionLayersOnly)
         self.strokeColorOnly = bool(strokeColorOnly)
@@ -286,6 +287,10 @@ class QGISRedSymbolColorSelector(QgsSymbolButton):
             self.activeColor = QColor(newColor)
             self.refreshSymbolDisplay()
             self.colorChanged.emit(self.activeColor)
+
+    def hasPickedColor(self):
+        """Whether the shown color differs from the one the swatch was created with."""
+        return self.activeColor != self.initialColor
 
     def isValidNewColor(self, color):
         return isinstance(color, QColor) and color.isValid() and color != self.activeColor

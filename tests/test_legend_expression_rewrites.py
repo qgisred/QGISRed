@@ -445,7 +445,7 @@ class TestInputVariables:
         ("qgisred_serviceconnections", None, ("activeServiceConnectionColor",)),
         ("qgisred_serviceconnections", "line", ("activeServiceConnectionColor",)),
         ("qgisred_serviceconnections", "circle", ("activeDemandServiceConnectionColor",)),
-        ("qgisred_sources", None, ()),
+        ("qgisred_sources", None, ("massSourceColor", "flowpacedSourceColor", "concenSourceColor", "setpointSourceColor")),
         ("qgisred_sources", "FLOWPACED", ("flowpacedSourceColor",)),
         ("qgisred_meters", "Flowmeter", ("flowmeterMeterColor",)),
         ("qgisred_tanks", None, ()),
@@ -483,14 +483,14 @@ class TestInputVariables:
         assert allTypes[0] == "massSourceSize" and len(allTypes) == 4
 
     @pytest.mark.parametrize("identifier, variant, locked", [
-        ("qgisred_sources", None, True),
+        ("qgisred_sources", None, False),
         ("qgisred_sources", "MASS", False),
         ("qgisred_junctions", None, True),
         ("qgisred_junctions", "positive", False),
         ("qgisred_serviceconnections", None, False),
         ("qgisred_pipes", None, False),
-        ("qgisred_meters", None, True),
-        ("qgisred_meters", "Flowmeter", True),
+        ("qgisred_meters", None, False),
+        ("qgisred_meters", "Flowmeter", False),
         ("qgisred_tanks", None, False),
         ("qgisred_reservoirs", None, False),
         ("qgisred_tree_nodes", None, False),
@@ -953,8 +953,10 @@ class TestSourcesApplier:
         assert expr.startswith("if(@id is NULL, NULL, ") and expr.endswith("@setpointSourceSize)))))))))")
         assert layer.size() == 2.6  # the panel icon follows All types only
 
-    def test_all_types_scale_every_size_together(self, monkeypatch):
+    def test_all_types_give_every_type_the_same_size(self, monkeypatch):
         symbol, layer = self._symbol()
+        # Types already differ: All types still levels them to the typed value
+        _dialog(monkeypatch, "qgisred_sources", "CONCEN")._applySourcesLegend(symbol, None, 4)
         _dialog(monkeypatch, "qgisred_sources")._applySourcesLegend(symbol, None, 5.2)
         expr = layer.expression(SIZE_KEY)
         for name in ("massSourceSize", "flowpacedSourceSize", "concenSourceSize", "setpointSourceSize"):
@@ -962,10 +964,33 @@ class TestSourcesApplier:
         assert layer.size() == 5.2
         assert layer.expression(STROKE_KEY) == SOURCE_STROKE
 
-    def test_all_types_never_takes_a_color(self, monkeypatch):
+    def test_all_types_take_one_uniform_color(self, monkeypatch):
         symbol, layer = self._symbol()
         _dialog(monkeypatch, "qgisred_sources")._applySourcesLegend(symbol, FakeHexColor("#123456"), None)
-        assert layer.expression(STROKE_KEY) == SOURCE_STROKE
+        expr = layer.expression(STROKE_KEY)
+        for name in ("massSourceColor", "flowpacedSourceColor", "concenSourceColor", "setpointSourceColor"):
+            assert declared(expr, name) == "#123456"
+        assert declared(expr, "noQualitySourceColor") == "#9d979d"
+        assert layer.expression(SIZE_KEY) == SOURCE_SIZE
+
+
+class TestMetersColorApplier:
+    def _symbol(self):
+        layers = [FakeSymbolLayer("SvgMarker", expressions={FILL_KEY: meterFill(t)}) for t in ("Flowmeter", "Manometer")]
+        return FakeSymbol(layers), layers
+
+    def test_one_type_colors_its_own_layer_only(self, monkeypatch):
+        symbol, (flowmeter, manometer) = self._symbol()
+        _dialog(monkeypatch, "qgisred_meters", "Flowmeter")._applyMetersLegend(symbol, FakeHexColor("#123456"), None)
+        assert declared(flowmeter.expression(FILL_KEY), "flowmeterMeterColor") == "#123456"
+        assert manometer.expression(FILL_KEY) == meterFill("Manometer")
+
+    def test_all_types_take_one_uniform_color(self, monkeypatch):
+        symbol, (flowmeter, manometer) = self._symbol()
+        _dialog(monkeypatch, "qgisred_meters")._applyMetersLegend(symbol, FakeHexColor("#123456"), None)
+        assert declared(flowmeter.expression(FILL_KEY), "flowmeterMeterColor") == "#123456"
+        assert declared(manometer.expression(FILL_KEY), "manometerMeterColor") == "#123456"
+        assert declared(manometer.expression(FILL_KEY), "inactiveMeterColor") == "#cccccc"
 
 
 class TestWaterMarkerApplier:

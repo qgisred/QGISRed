@@ -221,29 +221,32 @@ class QGISRedLegendsDialog(QDialog, formClass):
 
     SOURCE_TYPES = ("MASS", "FLOWPACED", "CONCEN", "SETPOINT")
 
-    # Style variable the color swatch edits, per input layer and selector variant
-    # (None: the layer has no selector). Meters use meterStyleVariable(type, "Color").
+    # Style variables the color swatch writes the picked color into, per input layer and
+    # selector variant (None: the layer has no selector, or its "All" variant); the swatch
+    # shows the first one. Meters use meterStyleVariable(type, "Color").
     INPUT_COLOR_VARIABLES = {
-        "qgisred_pipes": {None: "openPipeColor", "line": "openPipeColor", "marker": "openPipeColor"},
-        "qgisred_pumps": {None: "openPumpColor", "line": "openPumpColor", "marker": "openPumpColor"},
-        "qgisred_valves": {None: "openValveColor", "line": "openValveColor", "marker": "openValveColor"},
+        "qgisred_pipes": {None: ("openPipeColor",), "line": ("openPipeColor",), "marker": ("openPipeColor",)},
+        "qgisred_pumps": {None: ("openPumpColor",), "line": ("openPumpColor",), "marker": ("openPumpColor",)},
+        "qgisred_valves": {None: ("openValveColor",), "line": ("openValveColor",), "marker": ("openValveColor",)},
         "qgisred_junctions": {
-            "positive": "positiveDemandJunctionColor",
-            "negative": "negativeDemandJunctionColor",
+            "positive": ("positiveDemandJunctionColor",),
+            "negative": ("negativeDemandJunctionColor",),
         },
-        "qgisred_demands": {None: "positiveDemandColor"},
-        "qgisred_isolationvalves": {None: "openIsolationValveColor"},
+        "qgisred_demands": {None: ("positiveDemandColor",)},
+        "qgisred_isolationvalves": {None: ("openIsolationValveColor",)},
         # All: the line and the circle stroke share this one, the circle fill gets a softer shade of it
         "qgisred_serviceconnections": {
-            None: "activeServiceConnectionColor",
-            "line": "activeServiceConnectionColor",
-            "circle": "activeDemandServiceConnectionColor",
+            None: ("activeServiceConnectionColor",),
+            "line": ("activeServiceConnectionColor",),
+            "circle": ("activeDemandServiceConnectionColor",),
         },
+        # All types: one uniform color for every type
         "qgisred_sources": {
-            "MASS": "massSourceColor",
-            "FLOWPACED": "flowpacedSourceColor",
-            "CONCEN": "concenSourceColor",
-            "SETPOINT": "setpointSourceColor",
+            None: ("massSourceColor", "flowpacedSourceColor", "concenSourceColor", "setpointSourceColor"),
+            "MASS": ("massSourceColor",),
+            "FLOWPACED": ("flowpacedSourceColor",),
+            "CONCEN": ("concenSourceColor",),
+            "SETPOINT": ("setpointSourceColor",),
         },
     }
 
@@ -274,9 +277,6 @@ class QGISRedLegendsDialog(QDialog, formClass):
 
     # Node layers drawn as a frame SVG over a water SVG: the color edits the water half
     WATER_MARKER_IDENTIFIERS = frozenset({"qgisred_reservoirs", "qgisred_tanks"})
-
-    # Input layers whose colors the editor never edits
-    COLOR_LOCKED_INPUT_IDENTIFIERS = frozenset({"qgisred_meters"})
 
     INPUT_LAYER_IDENTIFIERS = frozenset({
         "qgisred_pipes", "qgisred_pumps", "qgisred_valves",
@@ -3672,8 +3672,7 @@ class QGISRedLegendsDialog(QDialog, formClass):
             types = [selected] if selected else list(self.METER_TYPES)
             return tuple(meterStyleVariable(meterType, "Color") for meterType in types)
         variables = self.INPUT_COLOR_VARIABLES.get(identifier, {})
-        variable = variables.get(self.getSelectedVariant())
-        return (variable,) if variable else ()
+        return variables.get(self.getSelectedVariant(), ())
 
     def inputSizeVariables(self, identifier):
         """Size variables the size cell sets or scales for the selected variant; the first one is shown."""
@@ -3747,7 +3746,7 @@ class QGISRedLegendsDialog(QDialog, formClass):
             colorNames = {meterStyleVariable(meterType, "Color") for meterType in self.METER_TYPES}
             sizeNames = {meterStyleVariable(meterType, "Size") for meterType in self.METER_TYPES}
             return colorNames, sizeNames
-        colorNames = set(self.INPUT_COLOR_VARIABLES.get(identifier, {}).values())
+        colorNames = {name for names in self.INPUT_COLOR_VARIABLES.get(identifier, {}).values() for name in names}
         sizeNames = {name for names in self.INPUT_SIZE_VARIABLES.get(identifier, {}).values() for name in names}
         return colorNames, sizeNames
 
@@ -4025,6 +4024,10 @@ class QGISRedLegendsDialog(QDialog, formClass):
         colorWidget = colorContainer.findChild(QGISRedSymbolColorSelector) if colorContainer else None
         if colorWidget and colorWidget.isEnabled():
             newColor = colorWidget.activeColor
+            # The swatch shows one type's color: it becomes the uniform color of every type
+            # ("All types" of Sources and Meters) only when the user actually picked one
+            if len(self.inputColorVariables(identifier)) > 1 and not colorWidget.hasPickedColor():
+                newColor = None
 
         newSize = None
         with suppress(Exception):
@@ -4286,11 +4289,13 @@ class QGISRedLegendsDialog(QDialog, formClass):
     def _applySourcesLegend(self, symbol, color, size):
         if color is not None:
             self._applyInputColor(symbol, "qgisred_sources", color)
-        # All types scale every type together (and the panel icon with them); one type changes alone
-        self._applyInputSize(
-            symbol, "qgisred_sources", size, proportional=True,
-            scaleBaseSizes=self.getSelectedVariant() is None,
-        )
+        if size is None or size <= 0:
+            return
+        # All types gives every type the same size (and the panel icon too); one type changes alone
+        self._applyInputSize(symbol, "qgisred_sources", size, proportional=False)
+        if self.getSelectedVariant() is None:
+            for i in range(symbol.symbolLayerCount()):
+                symbol.symbolLayer(i).setSize(size)
 
     def _applyWaterMarkerLegend(self, symbol, color, size):
         """Reservoirs and tanks: the color fills the water half of the icon, the frame keeps its own."""
@@ -5525,10 +5530,8 @@ class QGISRedLegendsDialog(QDialog, formClass):
             self._disableColorColumnInTable()
 
     def isColorLocked(self):
-        """Fixed colors, or a selector variant (Sources and Junctions "All") that edits sizes only."""
+        """Fixed colors, or a selector variant (Junctions "All") that edits sizes only."""
         identifier = self.currentLayer.customProperty("qgisred_identifier") if self.currentLayer else ""
-        if identifier in self.COLOR_LOCKED_INPUT_IDENTIFIERS:
-            return True
         if identifier in self.SIZE_ONLY_QUERY_IDENTIFIERS and identifier != self.TREE_NODES_IDENTIFIER:
             return True
         return identifier in self.INPUT_COLOR_VARIABLES and not self.inputColorVariables(identifier)
