@@ -182,7 +182,7 @@ class MenuSection:
         self.add_to_dropdown(action, projectDropButton)
 
         action = self._make_action(
-            ":/images/iconThematicMaps.svg",
+            ":/images/iconLegends.svg",
             self.tr("Legend editor..."),
             self.runLegends,
             parent=self.iface.mainWindow(),

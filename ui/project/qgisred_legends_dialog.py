@@ -545,7 +545,7 @@ class QGISRedLegendsDialog(QDialog, formClass):
         self.dialogLayout.insertWidget(self.APPEARANCE_WARNING_ROW, self.appearanceWarningBanner)
 
     def configureWindow(self):
-        self.setWindowIcon(QIcon(":/images/iconThematicMaps.svg"))
+        self.setWindowIcon(QIcon(":/images/iconLegends.svg"))
         self.setWindowTitle(self.tr("QGISRed: Legend Editor"))
         self.setWindowFlags(Qt.WindowType.Window | Qt.WindowType.WindowStaysOnTopHint | Qt.WindowType.WindowCloseButtonHint)
         self.btClassPlus.setIcon(QIcon(":/images/iconClassAdd.svg"))
