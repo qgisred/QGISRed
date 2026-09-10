@@ -1396,37 +1396,53 @@ class QGISRedLegendsDialog(QDialog, formClass):
         return self.calculateInterpolatedSizes(mode, rows)
 
     def calculateProportionalSizes(self, rows):
-        minSize = self.spinSizeMin.value()
-        maxSize = self.spinSizeMax.value()
-
-        rangeAverageValues = []
-        for row in range(rows):
-            rangeValues = self.getRangeValues(row)
-            if rangeValues:
-                lowerBound, upperBound = rangeValues
-                rangeAverageValues.append((lowerBound + upperBound) / 2.0)
-            else:
-                rangeAverageValues.append(0.0)
-
+        """Size each class the way the map will draw its values (see applyProportionalSizeExpression)."""
+        firstSize, secondSize = self.getProportionalSizeBounds()
         globalValueMin, globalValueMax = self.getLayerMinMax()
 
         sizes = []
-        for averageValue in rangeAverageValues:
-            calculatedSize = self.computeProportionalSize(minSize, maxSize, globalValueMin, globalValueMax, averageValue)
-            sizes.append(calculatedSize)
-
-        if self.ckSizeInvert.isChecked():
-            sizes.reverse()
+        for row in range(rows):
+            rowValue = self.getRowProportionalValue(row)
+            if rowValue is None:
+                sizes.append(firstSize)
+            else:
+                sizes.append(
+                    self.computeProportionalSize(firstSize, secondSize, globalValueMin, globalValueMax, rowValue)
+                )
 
         return sizes
 
-    def computeProportionalSize(self, minSize, maxSize, globalValueMin, globalValueMax, averageValue):
-        valueRange = globalValueMax - globalValueMin
-        if valueRange == 0:
-            return minSize
+    def getProportionalSizeBounds(self):
+        minSize = self.spinSizeMin.value()
+        maxSize = self.spinSizeMax.value()
+        if self.ckSizeInvert.isChecked():
+            return maxSize, minSize
+        return minSize, maxSize
 
-        calculatedSize = minSize + ((maxSize - minSize) / valueRange) * (averageValue - globalValueMin)
-        return max(minSize, min(maxSize, calculatedSize))
+    def getRowProportionalValue(self, row):
+        """The value a class stands for: the range midpoint when graduated, the category itself when categorized."""
+        if self.currentFieldType == self.FIELD_TYPE_CATEGORICAL:
+            valueWidget = self.tableView.cellWidget(row, 3)
+            if not isinstance(valueWidget, QLineEdit):
+                return None
+            try:
+                return float(valueWidget.text())
+            except (ValueError, TypeError):
+                return None
+
+        rangeValues = self.getRangeValues(row)
+        if not rangeValues:
+            return None
+        lowerBound, upperBound = rangeValues
+        return (lowerBound + upperBound) / 2.0
+
+    def computeProportionalSize(self, firstSize, secondSize, globalValueMin, globalValueMax, value):
+        valueRange = globalValueMax - globalValueMin
+        if valueRange <= 0:
+            return firstSize
+
+        position = max(0.0, min(1.0, (value - globalValueMin) / valueRange))
+        return firstSize + (secondSize - firstSize) * (position ** PROPORTIONAL_SIZE_EXPONENT)
 
     def calculateInterpolatedSizes(self, mode, rows):
         minSize = self.spinSizeMin.value()
@@ -4481,15 +4497,10 @@ class QGISRedLegendsDialog(QDialog, formClass):
         return None
 
     def applyProportionalSizeExpression(self, symbol):
-        minSize = self.spinSizeMin.value()
-        maxSize = self.spinSizeMax.value()
+        firstSize, secondSize = self.getProportionalSizeBounds()
         fieldName = self.currentFieldName
         isLine = self.currentLayer.geometryType() == WKB_LINE_GEOMETRY
 
-        if self.ckSizeInvert.isChecked():
-            firstSize, secondSize = maxSize, minSize
-        else:
-            firstSize, secondSize = minSize, maxSize
         expression = (
             f'coalesce(scale_polynomial("{fieldName}", minimum("{fieldName}"), maximum("{fieldName}"), '
             f"{firstSize}, {secondSize}, {PROPORTIONAL_SIZE_EXPONENT}), {firstSize})"
@@ -4521,6 +4532,7 @@ class QGISRedLegendsDialog(QDialog, formClass):
             return self.buildRuleBasedCategoricalRenderer()
 
         categories = []
+        isProportionalMode = self.cbSizes.currentText() == "Proportional to Value"
 
         # Get existing renderer to clone symbols from (preserving complex symbol structures)
         existingRenderer = self.currentLayer.renderer()
@@ -4557,9 +4569,15 @@ class QGISRedLegendsDialog(QDialog, formClass):
             if colorWidget:
                 self.applyColorToSymbol(symbol, colorWidget.activeColor)
 
+            if self.discardProportionalSizes and not isProportionalMode:
+                self.clearProportionalSizeExpression(symbol)
+
             with suppress(Exception):
                 size = float(sizeWidget.text())
                 self.applySizeToSymbol(symbol, size)
+
+            if isProportionalMode:
+                self.applyProportionalSizeExpression(symbol)
 
             category = QgsRendererCategory(realValue, symbol, label)
             category.setRenderState(checkbox.isChecked() if checkbox else True)
@@ -4578,6 +4596,7 @@ class QGISRedLegendsDialog(QDialog, formClass):
         """
         renderer = self._sourceRuleRenderer.clone()
         rootRule = renderer.rootRule()
+        isProportionalMode = self.cbSizes.currentText() == "Proportional to Value"
 
         ruleByValue = {}
         for rule in rootRule.children():
@@ -4613,9 +4632,13 @@ class QGISRedLegendsDialog(QDialog, formClass):
 
             if colorWidget:
                 self.applyColorToSymbol(symbol, colorWidget.activeColor)
+            if self.discardProportionalSizes and not isProportionalMode:
+                self.clearProportionalSizeExpression(symbol)
             with suppress(Exception):
                 size = float(sizeWidget.text())
                 self.applySizeToSymbol(symbol, size)
+            if isProportionalMode:
+                self.applyProportionalSizeExpression(symbol)
 
             if rule is not None:
                 rule.setSymbol(symbol)
