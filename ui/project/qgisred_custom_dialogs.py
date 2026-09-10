@@ -186,7 +186,15 @@ class QGISRedSymbolColorSelector(QgsSymbolButton):
             symbol = self.createGeometrySpecificSymbol()
             self.applySizeScaling(symbol)
 
+        if not self.isEnabled():
+            symbol.setOpacity(self.disabledOpacity)
         self.setSymbol(symbol)
+
+    def changeEvent(self, event):
+        super().changeEvent(event)
+        # QgsSymbolButton keeps its full-color icon when disabled: redraw it faded
+        if event.type() == QEvent.Type.EnabledChange:
+            self.refreshSymbolDisplay()
 
     def applyStrokeColorToLayers(self, symbol, color):
         """Color only the strokes (e.g. the Tree nodes outer circle); fills stay."""
@@ -252,12 +260,13 @@ class QGISRedSymbolColorSelector(QgsSymbolButton):
             "color": rgba, "outline_color": "60,60,60,255", "outline_width": "0.3"
         })
 
-    # Fixed preview sizes (mm): the swatch is 30x20 px, so the drawn symbol must
+    # Fixed preview sizes (mm): the swatch is 44x26 px, so the drawn symbol must
     # not follow the user-entered size or it overflows/vanishes. The preview is
     # decoupled from the size cell entirely: it is normalized once and never
     # updated afterwards.
-    previewMarkerSize = 2.0
-    previewLineWidth = 0.6
+    previewMarkerSize = 3.6
+    previewLineWidth = 1.0
+    disabledOpacity = 0.3
 
     def applySizeScaling(self, symbol):
         # An active data-defined size/width beats setSize/setWidth when the
@@ -266,10 +275,15 @@ class QGISRedSymbolColorSelector(QgsSymbolButton):
         self._clearSizeExpressions(symbol)
         # Styles mix Pixel and MM width units (query links are in pixels), so the
         # same number would draw different thicknesses: normalize the unit first.
-        symbol.setOutputUnit(RENDER_UNIT_MILLIMETERS)
         if self.geometryType == self.lineType:
+            symbol.setOutputUnit(RENDER_UNIT_MILLIMETERS)
             symbol.setWidth(self.previewLineWidth)
         elif self.geometryType == self.markerType:
+            # Only the size unit: a stroke declared in pixels (Sources) would swell to millimetres
+            for i in range(symbol.symbolLayerCount()):
+                symbolLayer = symbol.symbolLayer(i)
+                if hasattr(symbolLayer, "setSizeUnit"):
+                    symbolLayer.setSizeUnit(RENDER_UNIT_MILLIMETERS)
             symbol.setSize(self.previewMarkerSize)
 
     def _clearSizeExpressions(self, symbol):

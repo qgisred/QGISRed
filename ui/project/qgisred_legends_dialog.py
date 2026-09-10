@@ -149,6 +149,10 @@ class QGISRedLegendsDialog(QDialog, formClass):
     # Same size used by QGISRED_COMBO_STYLE, so every input matches the comboboxes
     CONTROL_FONT_SIZE = "8pt"
 
+    # Pixels of the color swatch in the table (the symbol preview draws inside it)
+    COLOR_SWATCH_SIZE = (44, 26)
+    COLOR_COLUMN_WIDTH = 54
+
     ALLOWED_GROUP_IDENTIFIERS = [
         "qgisred_thematicmaps",
         "qgisred_results",
@@ -558,7 +562,7 @@ class QGISRedLegendsDialog(QDialog, formClass):
 
         # Color
         header.setSectionResizeMode(1, QHeaderView.ResizeMode.Fixed)
-        self.tableView.setColumnWidth(1, 40)
+        self.tableView.setColumnWidth(1, self.COLOR_COLUMN_WIDTH)
 
         # Size
         header.setSectionResizeMode(2, QHeaderView.ResizeMode.Fixed)
@@ -2390,7 +2394,7 @@ class QGISRedLegendsDialog(QDialog, formClass):
         colorSelector.setEnabled(self.isEditing)
         colorSelector.colorChanged.connect(self.onRowColorChanged)
         colorSelector.setAutoFillBackground(False)
-        colorSelector.setFixedSize(30, 20)
+        colorSelector.setFixedSize(*self.COLOR_SWATCH_SIZE)
 
         container = QWidget(self.tableView)
         layout = QHBoxLayout(container)
@@ -2962,7 +2966,7 @@ class QGISRedLegendsDialog(QDialog, formClass):
         )
         colorSelector.setEnabled(self.isEditing)
         colorSelector.setAutoFillBackground(False)
-        colorSelector.setFixedSize(30, 20)
+        colorSelector.setFixedSize(*self.COLOR_SWATCH_SIZE)
 
         container = QWidget(self.tableView)
         layout = QHBoxLayout(container)
