@@ -993,6 +993,25 @@ class TestMetersColorApplier:
         assert declared(manometer.expression(FILL_KEY), "inactiveMeterColor") == "#cccccc"
 
 
+class TestProportionalSizeDiscard:
+    """Leaving Proportional to Value drops the scale_polynomial expression on Apply, nothing else."""
+
+    PROPORTIONAL = 'coalesce(scale_polynomial("Pressure", minimum("Pressure"), maximum("Pressure"), 1, 5, 0.57), 1)'
+
+    def test_only_the_proportional_expression_goes(self, monkeypatch):
+        proportional = FakeSymbolLayer(expressions={SIZE_KEY: self.PROPORTIONAL, FILL_KEY: JUNCTION_COLOR})
+        junction = FakeSymbolLayer(expressions={SIZE_KEY: JUNCTION_BASE_SIZE})
+        _dialog(monkeypatch, "qgisred_node_pressure").clearProportionalSizeExpression(FakeSymbol([proportional, junction]))
+        assert proportional.expression(SIZE_KEY) is None
+        assert proportional.expression(FILL_KEY) == JUNCTION_COLOR
+        assert junction.expression(SIZE_KEY) == JUNCTION_BASE_SIZE
+
+    def test_line_widths_are_cleared_too(self, monkeypatch):
+        line = FakeSymbolLayer("SimpleLine", expressions={legendsModule.SL_PROP_STROKE_WIDTH: self.PROPORTIONAL})
+        _dialog(monkeypatch, "qgisred_link_flow").clearProportionalSizeExpression(FakeSymbol([line]))
+        assert line.expression(legendsModule.SL_PROP_STROKE_WIDTH) is None
+
+
 class TestWaterMarkerApplier:
     """Reservoirs and tanks: the color fills the water half of the icon, the frame stays as it is."""
 

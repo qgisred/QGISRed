@@ -199,7 +199,7 @@ class QGISRedLegendsDialog(QDialog, formClass):
     # detectFieldType must accept exactly what the group enumeration lists.
     EDITABLE_QUERY_IDENTIFIERS = SIZE_ONLY_QUERY_IDENTIFIERS | SINGLE_EDITABLE_QUERY_IDENTIFIERS
 
-    # Layer-identifier prefixes of every query family the dialog handles
+    # Layer-identifier prefixes of every query family the dialog handles (thematic maps included)
     QUERY_LAYER_IDENTIFIER_PREFIXES = (
         "qgisred_connectivity",
         "qgisred_hydraulicsectors",
@@ -207,6 +207,7 @@ class QGISRedLegendsDialog(QDialog, formClass):
         "qgisred_isolatedsegments",
         "qgisred_tree",
         "qgisred_demandbuilder",
+        "qgisred_query",
     )
 
     # Meter types gating the stacked SvgMarker layers in the Meters style
@@ -348,6 +349,7 @@ class QGISRedLegendsDialog(QDialog, formClass):
         self.sizePaletteEmulator = QGISRedSizePaletteEmulator(self)
         self.previousClassificationMode = None
         self.previousSizeMode = None
+        self.discardProportionalSizes = False
 
     # ============================================================
     # RESULTS LAYER DETECTION AND VALUE EXTRACTION
@@ -1019,6 +1021,7 @@ class QGISRedLegendsDialog(QDialog, formClass):
         self.populateLegendTypes(layer)
         self.syncLegendTypeComboBox(layer)
         self.resetAllModesToManual()
+        self.discardProportionalSizes = False
         self.updateUiBasedOnFieldType()
         self.populateLegendTable()
         self.updateButtonStates()
@@ -1312,6 +1315,10 @@ class QGISRedLegendsDialog(QDialog, formClass):
             currentSizes = self.collectCurrentTableSizes()
             if len(currentSizes) >= 2:
                 self.sizePaletteEmulator.setPaletteFromSizes(currentSizes)
+
+        # Leaving Proportional to Value: the next Apply drops the size expression it wrote
+        if self.previousSizeMode == "Proportional to Value" and mode != self.previousSizeMode:
+            self.discardProportionalSizes = True
 
         self.previousSizeMode = mode
 
@@ -4444,6 +4451,9 @@ class QGISRedLegendsDialog(QDialog, formClass):
             if colorWidget:
                 self.applyColorToSymbol(symbol, colorWidget.activeColor)
 
+            if self.discardProportionalSizes and not isProportionalMode:
+                self.clearProportionalSizeExpression(symbol)
+
             with suppress(Exception):
                 size = float(sizeWidget.text())
                 self.applySizeToSymbol(symbol, size)
@@ -4484,6 +4494,18 @@ class QGISRedLegendsDialog(QDialog, formClass):
                 symbolLayer.setDataDefinedProperty(SL_PROP_STROKE_WIDTH, sizeProperty)
             else:
                 symbolLayer.setDataDefinedProperty(SL_PROP_SIZE, sizeProperty)
+
+    def clearProportionalSizeExpression(self, symbol):
+        """Drop the scale_polynomial expression a proportional Apply wrote, so the class sizes draw again."""
+        for i in range(symbol.symbolLayerCount()):
+            symbolLayer = symbol.symbolLayer(i)
+            for propertyKey in (SL_PROP_SIZE, SL_PROP_STROKE_WIDTH):
+                prop = symbolLayer.dataDefinedProperties().property(propertyKey)
+                if (
+                    prop and prop.propertyType() == QgsProperty.ExpressionBasedProperty
+                    and "scale_polynomial(" in prop.expressionString()
+                ):
+                    symbolLayer.setDataDefinedProperty(propertyKey, QgsProperty())
 
     def buildCategoricalRenderer(self):
         if self._sourceRuleRenderer is not None:
