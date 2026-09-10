@@ -396,6 +396,7 @@ class ProjectManagementSection:
         self.opendedLayers = False
         self.especificComplementaryLayers = []
         self.selectedFids = {}
+        self.selectedIds = {}
 
         # Run the dialog event loop
         dlg.exec()
@@ -427,6 +428,7 @@ class ProjectManagementSection:
         self.opendedLayers = False
         self.especificComplementaryLayers = []
         self.selectedFids = {}
+        self.selectedIds = {}
 
         dlg = QGISRedImportProjectDialog()
         icon_path = ":/images/iconOpenProject.svg"
@@ -486,6 +488,7 @@ class ProjectManagementSection:
         self.opendedLayers = False
         self.especificComplementaryLayers = []
         self.selectedFids = {}
+        self.selectedIds = {}
         dlg = QGISRedCreateProjectDialog()
         dlg.config(self.iface, self.ProjectDirectory, self.NetworkName, self)
         dlg.exec()
