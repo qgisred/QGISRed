@@ -1524,6 +1524,7 @@ class QGISRedLegendsDialog(QDialog, formClass):
                 sizeWidget.blockSignals(True)
                 sizeWidget.setText(f"{sizes[row]:.1f}")
                 sizeWidget.blockSignals(False)
+                self.syncColorPreviewSize(row, sizeWidget.text())
 
     # ============================================================
     # COLOR LOGIC
@@ -5727,6 +5728,7 @@ class QGISRedLegendsDialog(QDialog, formClass):
             sizeWidget.blockSignals(True)
             sizeWidget.setText(f"{size:.2f}")
             sizeWidget.blockSignals(False)
+            self.syncColorPreviewSize(row, sizeWidget.text())
 
     def getDefaultSize(self):
         """Returns the default size based on geometry type."""

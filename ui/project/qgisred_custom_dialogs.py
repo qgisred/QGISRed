@@ -270,8 +270,8 @@ class QGISRedSymbolColorSelector(QgsSymbolButton):
     # Preview sizes (mm): the swatch is 44x26 px, so the drawn symbol cannot follow
     # the user-entered size or it overflows/vanishes. Instead it eases smoothly
     # from the smallest to the largest bound as the size cell value grows.
-    previewMarkerSizeRange = (3.4, 4.5)
-    previewLineWidthRange = (0.7, 1.2)
+    previewMarkerSizeRange = (0.8, 4.7)
+    previewLineWidthRange = (0.4, 2.2)
     # Size cell value at which the preview has covered about two thirds of its range
     previewMarkerEasingScale = 2.5
     previewLineEasingScale = 1.5
