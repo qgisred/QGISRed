@@ -69,7 +69,6 @@ class QGISRedLayerUtils:
     MAIN_GROUP_ORDER = ["Results", "Queries", "Issues", "Auxiliary Layers", "Inputs"]
 
     _CATEGORIZED_LAYER_IDS = {
-        'qgisred_query_pipes_length',
         'qgisred_query_pipes_diameter',
         'qgisred_query_pipes_installyear',
         'qgisred_query_pipes_age',

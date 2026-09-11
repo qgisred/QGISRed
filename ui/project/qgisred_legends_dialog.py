@@ -177,6 +177,17 @@ class QGISRedLegendsDialog(QDialog, formClass):
         "qgisred_isolatedsegments",
     )
 
+    # Thematic maps are listed in this order; any other map follows alphabetically
+    THEMATIC_MAPS_LAYER_ORDER = (
+        "qgisred_query_pipes_diameter",
+        "qgisred_query_pipes_length",
+        "qgisred_query_pipes_material",
+        "qgisred_query_pipes_installyear",
+        "qgisred_query_pipes_age",
+        "qgisred_query_junctions_elevation",
+        "qgisred_query_junctions_totalbasedemand",
+    )
+
     # Query layers editable as a single symbol but restricted to size changes only.
     # Their colors are driven by data-defined expressions (Status/ElemType/...),
     # so a generic color edit would be invisible yet destructive.
@@ -1933,9 +1944,17 @@ class QGISRedLegendsDialog(QDialog, formClass):
         # the other groups alphabetically
         if identifier == "qgisred_inputs":
             layers.reverse()
+        elif identifier == "qgisred_thematicmaps":
+            layers.sort(key=self.thematicMapSortKey)
         else:
             layers.sort(key=lambda layer: layer.name().lower())
         return layers
+
+    def thematicMapSortKey(self, layer):
+        identifier = layer.customProperty("qgisred_identifier")
+        if identifier in self.THEMATIC_MAPS_LAYER_ORDER:
+            return (0, self.THEMATIC_MAPS_LAYER_ORDER.index(identifier), "")
+        return (1, 0, layer.name().lower())
 
     def collectRenderableLayersRecursive(self, group, layers, recurseIntoSubgroups, isQueriesGroup=False):
         """Collects renderable layers from a group, optionally recursing into subgroups."""
