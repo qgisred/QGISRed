@@ -1093,12 +1093,32 @@ class QGISRedLegendsDialog(QDialog, formClass):
         prefix = self.tr("Legend for")
         boldLayer = f"<b><span style='font-size:larger'>{layerName}</span></b>"
         # A single symbol has no values to put units on
-        units = "" if self.currentFieldType == self.FIELD_TYPE_SINGLE else self.getLayerUnits()
+        units = "" if self.currentFieldType == self.FIELD_TYPE_SINGLE else self.getLegendUnitsText()
 
         if units:
-            self.labelFrameLegends.setText(f"{prefix} {boldLayer} | {units} units")
+            self.labelFrameLegends.setText(f"{prefix} {boldLayer} | {units}")
         else:
             self.labelFrameLegends.setText(f"{prefix} {boldLayer}")
+
+    def getLegendUnitsText(self):
+        """"SI units (m)" for a thematic map, "SI units" for any other layer.
+
+        Empty for thematic maps whose values read the same in both unit systems:
+        materials, installation years, ages and the H-W or C-M roughness coefficients.
+        """
+        units = self.getLayerUnits()
+        if not units:
+            return ""
+        unitsText = units + " " + self.tr("units")
+        identifier = self.currentLayer.customProperty("qgisred_identifier") or ""
+        if not identifier.startswith("qgisred_query_"):
+            return unitsText
+        if identifier == "qgisred_query_pipes_age":
+            return ""
+        if identifier == "qgisred_query_pipes_roughness" and QGISRedProjectUtils.getHeadlossFormula() != "D-W":
+            return ""
+        abbreviation = self.getCurrentLayerUnitAbbr()
+        return f"{unitsText} ({abbreviation})" if abbreviation else ""
 
     def syncLegendTypeComboBox(self, layer, renderer=None):
         renderer = renderer if renderer is not None else layer.renderer()
