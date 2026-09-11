@@ -581,6 +581,11 @@ class ProjectManagementSection:
             return
         if self.isLayerOnEdition():
             return
+        # The open editor keeps live project connections: a second one would double them
+        if getattr(self, "legendsDialog", None) is not None:
+            self.legendsDialog.raise_()
+            self.legendsDialog.activateWindow()
+            return
 
         self.legendsDialog = QGISRedLegendsDialog()
         self.legendsDialog.config(self.iface, self.ProjectDirectory, self.NetworkName, self)

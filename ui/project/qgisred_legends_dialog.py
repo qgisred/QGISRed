@@ -838,15 +838,49 @@ class QGISRedLegendsDialog(QDialog, formClass):
     def connectProjectLayerSignals(self):
         # The layer combo is filled by hand, so it has to follow layers coming and going
         project = QgsProject.instance()
+        project.layersWillBeRemoved.connect(self.onLayersWillBeRemoved)
         project.layersAdded.connect(self.scheduleLayerListRefresh)
         project.layersRemoved.connect(self.scheduleLayerListRefresh)
+        project.cleared.connect(self.reject)
+        # Renaming or moving a layer in the panel changes the tree, not the project's layers
+        root = project.layerTreeRoot()
+        root.nameChanged.connect(self.scheduleLayerListRefresh)
+        root.addedChildren.connect(self.scheduleLayerListRefresh)
+        root.removedChildren.connect(self.scheduleLayerListRefresh)
 
     def disconnectProjectLayerSignals(self):
         project = QgsProject.instance()
         with suppress(Exception):
+            project.layersWillBeRemoved.disconnect(self.onLayersWillBeRemoved)
+        with suppress(Exception):
             project.layersAdded.disconnect(self.scheduleLayerListRefresh)
         with suppress(Exception):
             project.layersRemoved.disconnect(self.scheduleLayerListRefresh)
+        with suppress(Exception):
+            project.cleared.disconnect(self.reject)
+        root = project.layerTreeRoot()
+        with suppress(Exception):
+            root.nameChanged.disconnect(self.scheduleLayerListRefresh)
+        with suppress(Exception):
+            root.addedChildren.disconnect(self.scheduleLayerListRefresh)
+        with suppress(Exception):
+            root.removedChildren.disconnect(self.scheduleLayerListRefresh)
+
+    def onLayersWillBeRemoved(self, layers):
+        """Drops every reference to the layers while they still exist: the refresh that
+        layersRemoved schedules picks the next layer, and nothing in between can touch
+        a deleted one. PyQt may deliver either the ids or the layers themselves."""
+        if self.isClosing:
+            return
+        removedIds = {item if isinstance(item, str) else item.id() for item in layers}
+        for layerId in removedIds:
+            self.initialRenderers.pop(layerId, None)
+        self._syncedSiblingIds -= removedIds
+        if self.currentLayer is not None and self.currentLayer.id() in removedIds:
+            self.cbLegendLayer.blockSignals(True)
+            self.cbLegendLayer.setCurrentIndex(-1)
+            self.cbLegendLayer.blockSignals(False)
+            self.resetToEmptyState()
 
     def scheduleLayerListRefresh(self, *_):
         # One refresh once the batch of additions/removals has gone through the event loop
@@ -864,8 +898,10 @@ class QGISRedLegendsDialog(QDialog, formClass):
         self.populateGroups()
         if self.cbGroups.count() == 0:
             return
-        if groupPath is not None:
-            self.setGroupByPath(groupPath)
+        # A renamed or removed group loses its path: the group holding the last layer
+        # selected here is the next best entry
+        if groupPath is None or not self.setGroupByPath(groupPath):
+            self.setGroupByPath(self.findGroupPathForLayerId(self.lastValidLayerId))
         self.selectGroupLayers(keepCurrentLayer=True)
 
     def loadInitialState(self):
@@ -891,6 +927,15 @@ class QGISRedLegendsDialog(QDialog, formClass):
         if not layer or not isinstance(layer, QgsVectorLayer):
             return
         if self.isPluginLayerOperationInProgress():
+            return
+        # The panel emits this from inside its own model updates (a removal, a drag), so
+        # the editor follows one turn later, once the tree has settled
+        layerId = layer.id()
+        QTimer.singleShot(0, lambda: self.syncToTreeLayer(layerId))
+
+    def syncToTreeLayer(self, layerId):
+        layer = QgsProject.instance().mapLayer(layerId)
+        if self.isClosing or not isinstance(layer, QgsVectorLayer):
             return
 
         layerNode = QgsProject.instance().layerTreeRoot().findLayer(layer)
@@ -932,7 +977,10 @@ class QGISRedLegendsDialog(QDialog, formClass):
         self.populateLayerCombo(allowedLayers)
         self.setLegendLayer(targetLayer)
         self.cbLegendLayer.blockSignals(False)
-        self.onLayerChanged(targetLayer)
+        # A refresh that lands on the layer already shown keeps its unapplied edits
+        isSameLayer = targetLayer is not None and self.currentLayer is not None and targetLayer.id() == self.currentLayer.id()
+        if not (keepCurrentLayer and isSameLayer):
+            self.onLayerChanged(targetLayer)
 
         # A refresh that fell back to another layer (the remembered one is closed for the
         # moment) keeps remembering it, so it is picked up again once it is reopened.
@@ -1858,12 +1906,15 @@ class QGISRedLegendsDialog(QDialog, formClass):
         return any(isinstance(child, QgsLayerTreeLayer) for child in group.children())
 
     def groupHasRenderableLayers(self, group):
+        return len(self.getRenderableLayersInGroup(group)) > 0
+
+    def getRenderableLayersInGroup(self, group):
         identifier = group.customProperty("qgisred_identifier") or ""
         isQueriesGroup = self.isQueriesGroup(identifier) or self.isTreeChildGroup(group)
         recurseIntoSubgroups = identifier == "qgisred_results" or isQueriesGroup
         layers = []
         self.collectRenderableLayersRecursive(group, layers, recurseIntoSubgroups, isQueriesGroup)
-        return len(layers) > 0
+        return layers
 
     def getRenderableLayersInSelectedGroup(self):
         path = self.cbGroups.currentData()
@@ -1875,11 +1926,7 @@ class QGISRedLegendsDialog(QDialog, formClass):
             return []
 
         identifier = group.customProperty("qgisred_identifier") or ""
-        isQueriesGroup = self.isQueriesGroup(identifier) or self.isTreeChildGroup(group)
-        recurseIntoSubgroups = identifier == "qgisred_results" or isQueriesGroup
-
-        layers = []
-        self.collectRenderableLayersRecursive(group, layers, recurseIntoSubgroups, isQueriesGroup)
+        layers = self.getRenderableLayersInGroup(group)
 
         # Inputs are offered in drawing order (pipes first, the bottom of the group);
         # the other groups alphabetically
@@ -1958,17 +2005,20 @@ class QGISRedLegendsDialog(QDialog, formClass):
         return None
 
     def findGroupPathForLayer(self, layerNode):
+        # Result layers sit in a scenario subgroup that is not listed itself, so the
+        # nearest listed ancestor offering the layer is the entry to select
+        listedPaths = [self.cbGroups.itemData(i) for i in range(self.cbGroups.count())]
         parent = layerNode.parent()
-        while parent and not isinstance(parent, QgsLayerTreeGroup):
-            parent = parent.parent()
-
-        if isinstance(parent, QgsLayerTreeGroup):
+        while isinstance(parent, QgsLayerTreeGroup):
             path = self.buildGroupPath(parent)
-            for i in range(self.cbGroups.count()):
-                if self.cbGroups.itemData(i) == path:
-                    return path
-
+            if path in listedPaths and layerNode.layer() in self.getRenderableLayersInGroup(parent):
+                return path
+            parent = parent.parent()
         return None
+
+    def findGroupPathForLayerId(self, layerId):
+        layerNode = QgsProject.instance().layerTreeRoot().findLayer(layerId) if layerId else None
+        return self.findGroupPathForLayer(layerNode) if layerNode else None
 
     def buildGroupPath(self, group):
         parts = []
@@ -1986,7 +2036,8 @@ class QGISRedLegendsDialog(QDialog, formClass):
                 self.cbGroups.blockSignals(True)
                 self.cbGroups.setCurrentIndex(i)
                 self.cbGroups.blockSignals(False)
-                break
+                return True
+        return False
 
     # ============================================================
     # TABLE POPULATION

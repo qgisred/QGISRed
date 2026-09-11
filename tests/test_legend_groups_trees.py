@@ -31,9 +31,13 @@ class FakeLayer:
 class FakeLayerNode:
     def __init__(self, layer):
         self._layer = layer
+        self._parent = None
 
     def layer(self):
         return self._layer
+
+    def parent(self):
+        return self._parent
 
 
 class FakeGroup:
@@ -43,8 +47,7 @@ class FakeGroup:
         self._children = children or []
         self._parent = None
         for child in self._children:
-            if isinstance(child, FakeGroup):
-                child._parent = self
+            child._parent = self
 
     def name(self):
         return self._name
@@ -161,6 +164,44 @@ class TestIsolatedSegmentsGroup:
         layers = []
         _dialog().collectRenderableLayersRecursive(group, layers, True, isQueriesGroup=True)
         assert len(layers) == 3
+
+
+class FakeGroupsCombo:
+    def __init__(self, paths):
+        self._paths = paths
+
+    def count(self):
+        return len(self._paths)
+
+    def itemData(self, index):
+        return self._paths[index]
+
+
+class TestGroupPathForLayer:
+    """The panel click and the preselection map a layer node to a combo entry."""
+
+    def _dialogWithGroups(self, root):
+        dialog = _dialog()
+        dialog.cbGroups = FakeGroupsCombo([path for _label, path, _group in _collect(root)])
+        return dialog
+
+    def test_result_layer_in_scenario_subgroup_maps_to_the_results_entry(self):
+        nodeLayer = FakeLayerNode(FakeLayer("qgisred_node_pressure", "graduatedSymbol"))
+        base = FakeGroup("Base", identifier="qgisred_base", children=[nodeLayer])
+        results = FakeGroup("Results", identifier="qgisred_results", children=[base])
+        root = FakeGroup("", children=[FakeGroup("Network", children=[results])])
+
+        assert self._dialogWithGroups(root).findGroupPathForLayer(nodeLayer) == "Network / Results"
+
+    def test_layer_in_an_unlisted_subgroup_of_inputs_is_not_matched(self):
+        oddLayer = FakeLayerNode(FakeLayer("qgisred_junctions", "singleSymbol"))
+        pipes = FakeLayerNode(FakeLayer("qgisred_pipes", "singleSymbol"))
+        inputs = FakeGroup("Inputs", identifier="qgisred_inputs", children=[pipes, FakeGroup("Odd", children=[oddLayer])])
+        root = FakeGroup("", children=[FakeGroup("Network", children=[inputs])])
+        dialog = self._dialogWithGroups(root)
+
+        assert dialog.findGroupPathForLayer(pipes) == "Network / Inputs"
+        assert dialog.findGroupPathForLayer(oddLayer) is None
 
 
 class TestPanelAndDialogParity:
