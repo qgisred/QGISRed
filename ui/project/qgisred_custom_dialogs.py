@@ -5,7 +5,7 @@ from contextlib import suppress
 
 from qgis.PyQt.QtGui import QColor, QPixmap, QPainter, QIcon, QDoubleValidator
 from ...compat import PAINTER_ANTIALIASING, STYLE_CC_COMBOBOX, STYLE_CE_COMBOBOXLABEL, SL_PROP_FILL_COLOR
-from ...compat import SL_PROP_SIZE, SL_PROP_WIDTH, SL_PROP_STROKE_WIDTH, RENDER_UNIT_MILLIMETERS
+from ...compat import SL_PROP_SIZE, SL_PROP_WIDTH, SL_PROP_STROKE_WIDTH, RENDER_UNIT_MILLIMETERS, sip
 from qgis.PyQt.QtWidgets import QDialog, QDialogButtonBox, QDoubleSpinBox, QLabel, QVBoxLayout
 from qgis.PyQt.QtWidgets import QToolButton, QComboBox, QApplication, QStylePainter, QStyleOptionComboBox, QSizePolicy
 from qgis.PyQt.QtWidgets import QCheckBox, QLineEdit
@@ -192,6 +192,10 @@ class QGISRedSymbolColorSelector(QgsSymbolButton):
         if not self.isEnabled():
             symbol.setOpacity(self.disabledOpacity)
         self.setSymbol(symbol)
+        # setSymbol hands the symbol to C++ and sip keeps its wrapper alive as a child of
+        # this button; once C++ frees it, the stale wrapper can be handed back for a new
+        # symbol reusing that address, under the wrong Python class. Detach it instead.
+        sip.transferto(symbol, None)
 
     def changeEvent(self, event):
         super().changeEvent(event)
