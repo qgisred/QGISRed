@@ -1083,6 +1083,7 @@ class QGISRedLegendsDialog(QDialog, formClass):
         self.discardProportionalSizes = False
         self.updateUiBasedOnFieldType()
         self.populateLegendTable()
+        self.applyDefaultClassificationMode()
         self.updateButtonStates()
         self.updateInputLayerRestrictions()
         self.updateAppearanceWarning()
@@ -5294,6 +5295,14 @@ class QGISRedLegendsDialog(QDialog, formClass):
 
         self.onSizeModeChanged()
         self.onColorModeChanged()
+
+    def applyDefaultClassificationMode(self):
+        # Results start from Pretty Breaks over their values rather than the classes shipped in the style
+        if not self.isResultsLayer() or self.currentFieldType != self.FIELD_TYPE_NUMERIC:
+            return
+        index = self.cbMode.findData("Pretty")
+        if index >= 0:
+            self.cbMode.setCurrentIndex(index)
 
     def updateUiBasedOnFieldType(self):
         isNumeric = self.currentFieldType == self.FIELD_TYPE_NUMERIC
