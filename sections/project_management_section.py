@@ -395,7 +395,6 @@ class ProjectManagementSection:
         # if we need to create project
         self.opendedLayers = False
         self.especificComplementaryLayers = []
-        self.selectedFids = {}
         self.selectedIds = {}
 
         # Run the dialog event loop
@@ -427,7 +426,6 @@ class ProjectManagementSection:
 
         self.opendedLayers = False
         self.especificComplementaryLayers = []
-        self.selectedFids = {}
         self.selectedIds = {}
 
         dlg = QGISRedImportProjectDialog()
@@ -487,7 +485,6 @@ class ProjectManagementSection:
 
         self.opendedLayers = False
         self.especificComplementaryLayers = []
-        self.selectedFids = {}
         self.selectedIds = {}
         dlg = QGISRedCreateProjectDialog()
         dlg.config(self.iface, self.ProjectDirectory, self.NetworkName, self)

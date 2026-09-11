@@ -320,7 +320,6 @@ class ToolsSection:
         QApplication.restoreOverrideCursor()
 
         self.processCsharpResult(resMessage, "", layerType="demandBuilder")
-        self.selectedFids = {}
 
     def runScenarioManager(self):
         if not self.checkDependencies():

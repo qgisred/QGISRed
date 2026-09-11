@@ -139,7 +139,6 @@ class UtilsSection:
     def getSelectedFeaturesIds(self):
         linkIdsList = []
         nodeIdsList = []
-        self.selectedFids = {}
         self.selectedIds = {}
 
         layers = self.getLayers()
@@ -162,16 +161,13 @@ class UtilsSection:
                     if idFieldName is None:
                         continue
 
-                    fids = []
                     ids = []
 
                     for feature in layer.getSelectedFeatures():
-                        fids.append(feature.id())
-
                         id = str(feature[idFieldName])
 
                         if id == "NULL":
-                            self.selectedFids = {}
+                            self.selectedIds = {}
                             return False
 
                         ids.append(id)
@@ -180,9 +176,6 @@ class UtilsSection:
                             nodeIdsList.append(id)
                         else:
                             linkIdsList.append(id)
-
-                    if len(fids) > 0:
-                        self.selectedFids[layerName] = fids
 
                     if len(ids) > 0:
                         self.selectedIds[layerName] = ids
@@ -202,22 +195,16 @@ class UtilsSection:
                     if idFieldName is None:
                         continue
 
-                    fids = []
                     ids = []
 
                     for feature in layer.getSelectedFeatures():
-                        fids.append(feature.id())
-
                         id = str(feature[idFieldName])
 
                         if id == "NULL":
-                            self.selectedFids = {}
+                            self.selectedIds = {}
                             return False
 
                         ids.append(id)
-
-                    if len(fids) > 0:
-                        self.selectedFids[layerName] = fids
 
                     if len(ids) > 0:
                         self.selectedIds[layerName] = ids
@@ -282,7 +269,6 @@ class UtilsSection:
         restoreForLayerNames(self.ownMainLayers, skip=("Sources", "Demands"))
         restoreForLayerNames(self.complementaryLayers)
 
-        self.selectedFids = {}
         self.selectedIds = {}
 
     def zoomToElementFromProperties(self, layerName, elementId):

@@ -621,7 +621,6 @@ class NetworkEditingSection:
         resMessage = GISRed.RemoveElements(self.ProjectDirectory, self.NetworkName, self.tempFolder, pointText, ids)
         QApplication.restoreOverrideCursor()
 
-        self.selectedFids = {}
         self.processCsharpResult(resMessage, "")
 
     def runSelectPointProperties(self):

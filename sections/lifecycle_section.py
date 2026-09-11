@@ -224,7 +224,6 @@ class LifecycleSection:
         self.hasToOpenSectorLayers = False
         self.hasToOpenIsolatedSegmentsLayers = False
         self.hasToOpenTreeLayers = False
-        self.selectedFids = {}
         self.selectedIds = {}
 
         self.zoomToFullExtent = False
