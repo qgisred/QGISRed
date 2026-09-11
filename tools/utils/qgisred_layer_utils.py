@@ -1,5 +1,6 @@
 # -*- coding: utf-8 -*-
 import json
+import math
 import os
 
 from qgis.PyQt.QtCore import QCoreApplication, QTimer
@@ -7,7 +8,7 @@ from qgis.core import (
     QgsProject, QgsLayerTreeGroup, QgsLayerTreeLayer,
     QgsVectorLayer, QgsCoordinateReferenceSystem, QgsDataProvider,
     QgsAttributeTableConfig, QgsCategorizedSymbolRenderer,
-    QgsGraduatedSymbolRenderer, QgsMessageLog
+    QgsGraduatedSymbolRenderer, QgsMessageLog, QgsUnitTypes
 )
 
 from ...compat import QGIS_WARNING
@@ -1054,3 +1055,26 @@ class QGISRedLayerUtils:
                 if val_str and val_str not in ("NULL", "None", ""):
                     return val_str
         return None
+
+    _METERS_PER_DEGREE_LATITUDE = 111_320.0  # WGS84 mean; plenty for a sub-metre tolerance
+
+    @staticmethod
+    def metersToMapUnits(crs, point, meters=0.1):
+        """Real-world `meters` expressed as a length in `crs` map units at `point`.
+
+        A fixed tolerance in map units only means the same real distance when the CRS is
+        projected in metres. In a geographic CRS (degrees) the same tolerance would cover
+        kilometres instead of centimetres, so it must be measured at the point being
+        compared: a degree of longitude shrinks towards the poles while a degree of
+        latitude stays roughly constant. Ellipsoidal precision is not needed here, only
+        enough accuracy to tell "the same point" from "a different node".
+        """
+        if crs.isGeographic():
+            metersPerDegreeLongitude = QGISRedLayerUtils._METERS_PER_DEGREE_LATITUDE * max(
+                abs(math.cos(math.radians(point.y()))), 1e-6
+            )
+            metersPerDegree = min(QGISRedLayerUtils._METERS_PER_DEGREE_LATITUDE, metersPerDegreeLongitude)
+            return meters / metersPerDegree
+
+        factor = QgsUnitTypes.fromUnitToUnitFactor(QgsUnitTypes.DistanceMeters, crs.mapUnits())
+        return meters * factor if factor > 0 else meters

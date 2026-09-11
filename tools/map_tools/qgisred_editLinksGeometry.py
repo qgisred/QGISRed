@@ -144,7 +144,7 @@ class QGISRedEditLinksGeometryTool(QgsMapTool):
         return QGISRedLayerUtils().getLayers()
 
     def areOverlapedPoints(self, point1, point2):
-        tolerance = 0.1
+        tolerance = getattr(self, "_overlapTolerance", 0.1)
         if point1.distance(point2) < tolerance:
             return True
         else:
@@ -391,6 +391,9 @@ class QGISRedEditLinksGeometryTool(QgsMapTool):
                     self.selectedLayer = layer
 
                     vertex = matchSnapper.point()
+                    self._overlapTolerance = QGISRedLayerUtils.metersToMapUnits(
+                        QgsProject.instance().crs(), vertex
+                    )
                     featureId = matchSnapper.featureId()
                     request = QgsFeatureRequest().setFilterFid(featureId)
                     nodes = list(layer.getFeatures(request))

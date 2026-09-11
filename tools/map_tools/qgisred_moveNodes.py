@@ -145,7 +145,7 @@ class QGISRedMoveNodesTool(QgsMapTool):
         return adjacentElements
 
     def areOverlapedPoints(self, point1, point2):
-        tolerance = 0.1
+        tolerance = getattr(self, "_overlapTolerance", 0.1)
         if point1.distance(point2) < tolerance:
             return True
         else:
@@ -222,6 +222,9 @@ class QGISRedMoveNodesTool(QgsMapTool):
         if event.button() == Qt.MouseButton.LeftButton:
             self.mouseClicked = True
             self.clickedPoint = self.objectSnapped.point()
+            self._overlapTolerance = QGISRedLayerUtils.metersToMapUnits(
+                QgsProject.instance().crs(), self.clickedPoint
+            )
 
             self.selectedNodeFeature = None
             self.adjacentFeatures = None
