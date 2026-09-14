@@ -37,6 +37,9 @@ class QGISRedNewsDialog(QDialog):
         layout.addLayout(bottom)
 
     def _openLink(self, url: QUrl):
+        if not url.scheme() and url.hasFragment():
+            self._browser.scrollToAnchor(url.fragment())
+            return
         webbrowser.open(url.toString())
 
     def dontShowAgain(self):
