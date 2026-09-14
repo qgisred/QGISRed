@@ -184,6 +184,7 @@ class QGISRedLegendsDialog(QDialog, formClass):
         "qgisred_query_pipes_material",
         "qgisred_query_pipes_installyear",
         "qgisred_query_pipes_age",
+        "qgisred_query_pipes_roughness",
         "qgisred_query_junctions_elevation",
         "qgisred_query_junctions_totalbasedemand",
     )
@@ -1967,6 +1968,8 @@ class QGISRedLegendsDialog(QDialog, formClass):
             layers.reverse()
         elif identifier == "qgisred_thematicmaps":
             layers.sort(key=self.thematicMapSortKey)
+        elif identifier == "qgisred_results":
+            layers.sort(key=self.resultsLayerSortKey)
         else:
             layers.sort(key=lambda layer: layer.name().lower())
         return layers
@@ -1976,6 +1979,10 @@ class QGISRedLegendsDialog(QDialog, formClass):
         if identifier in self.THEMATIC_MAPS_LAYER_ORDER:
             return (0, self.THEMATIC_MAPS_LAYER_ORDER.index(identifier), "")
         return (1, 0, layer.name().lower())
+
+    def resultsLayerSortKey(self, layer):
+        name = layer.name()
+        return (0 if name.endswith("_Node") else 1, name.lower())
 
     def collectRenderableLayersRecursive(self, group, layers, recurseIntoSubgroups, isQueriesGroup=False):
         """Collects renderable layers from a group, optionally recursing into subgroups."""
