@@ -1248,5 +1248,5 @@ class MenuSection:
 
     def runNewsletter(self):
         locale = QgsApplication.locale()[0:2]
-        url = "https://qgisred.upv.es/#newsletter" if locale == "es" else "https://qgisred.upv.es/en/#newsletter"
-        webbrowser.open(url)
+        language = locale if locale in ("es", "fr", "pt") else "en"
+        webbrowser.open(f"https://qgisred.upv.es/{language}/#newsletter")
