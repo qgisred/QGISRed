@@ -989,10 +989,14 @@ class QGISRedLegendsDialog(QDialog, formClass):
         self.populateLayerCombo(allowedLayers)
         self.setLegendLayer(targetLayer)
         self.cbLegendLayer.blockSignals(False)
-        # A refresh that lands on the layer already shown keeps its unapplied edits
+        # A refresh that lands on the layer already shown keeps its unapplied edits, unless
+        # the Results panel meanwhile restyled that same layer for another variable
         isSameLayer = targetLayer is not None and self.currentLayer is not None and targetLayer.id() == self.currentLayer.id()
-        if not (keepCurrentLayer and isSameLayer):
-            self.onLayerChanged(targetLayer)
+        if keepCurrentLayer and isSameLayer:
+            if self.currentLayerShowsAnotherVariable():
+                self.reloadCurrentLayer()
+            return
+        self.onLayerChanged(targetLayer)
 
         # A refresh that fell back to another layer (the remembered one is closed for the
         # moment) keeps remembering it, so it is picked up again once it is reopened.
@@ -1032,6 +1036,17 @@ class QGISRedLegendsDialog(QDialog, formClass):
             targetLayer = allowedLayers[0]
 
         return targetLayer
+
+    def currentLayerShowsAnotherVariable(self):
+        """The Results panel restyles its layer in place when the variable changes: same id, other field."""
+        if not self.isResultsLayer():
+            return False
+        return self.detectFieldType(self.currentLayer) != self.detectFieldType(self.currentLayer, self.originalRenderer)
+
+    def reloadCurrentLayer(self):
+        # The pristine snapshot belongs to the variable shown before, so Cancel must not restore it
+        self.initialRenderers.pop(self.currentLayer.id(), None)
+        self.onLayerChanged(self.currentLayer)
 
     def populateLayerCombo(self, layers):
         self.cbLegendLayer.clear()

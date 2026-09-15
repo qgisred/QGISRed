@@ -7,10 +7,11 @@ from QGISRed.ui.project.qgisred_legends_dialog import QGISRedLegendsDialog
 
 
 class FakeLayer:
-    def __init__(self, identifier=None, rendererType="categorizedSymbol", name=""):
+    def __init__(self, identifier=None, rendererType="categorizedSymbol", name="", renderer=None):
         self._identifier = identifier
         self._rendererType = rendererType
         self._name = name
+        self._renderer = renderer
 
     def customProperty(self, key, default=None):
         if key == "qgisred_identifier":
@@ -20,7 +21,12 @@ class FakeLayer:
     def name(self):
         return self._name
 
+    def id(self):
+        return "id_" + self._name
+
     def renderer(self):
+        if self._renderer is not None:
+            return self._renderer
         if self._rendererType is None:
             return None
         layer = self
@@ -254,3 +260,48 @@ class TestResultsLayerOrder:
         ]
         ordered = sorted(layers, key=_dialog().resultsLayerSortKey)
         assert [layer.name() for layer in ordered] == ["Net_Base_Node", "Node Pressure", "Link Flow", "Net_Base_Link"]
+
+
+class FakeGraduatedRenderer:
+    def __init__(self, field):
+        self._field = field
+
+    def classAttribute(self):
+        return self._field
+
+    def type(self):
+        return "graduatedSymbol"
+
+
+class TestResultsVariableSwitch:
+    """The Results panel keeps the same layer when its variable changes, so a refresh must notice."""
+
+    def _dialogShowing(self, monkeypatch, loadedField, layerField, identifier="qgisred_node_pressure"):
+        monkeypatch.setattr(legendsModule, "QgsGraduatedSymbolRenderer", FakeGraduatedRenderer)
+        monkeypatch.setattr(legendsModule, "QgsRuleBasedRenderer", type("_Rule", (), {}))
+        monkeypatch.setattr(legendsModule, "QgsCategorizedSymbolRenderer", type("_Categorized", (), {}))
+        dialog = _dialog()
+        dialog.currentLayer = FakeLayer(identifier, name="Node", renderer=FakeGraduatedRenderer(layerField))
+        dialog.originalRenderer = FakeGraduatedRenderer(loadedField)
+        return dialog
+
+    def test_same_field_keeps_the_dialog_as_it_is(self, monkeypatch):
+        assert not self._dialogShowing(monkeypatch, "Head", "Head").currentLayerShowsAnotherVariable()
+
+    def test_other_field_means_the_variable_changed(self, monkeypatch):
+        assert self._dialogShowing(monkeypatch, "Head", "Pressure").currentLayerShowsAnotherVariable()
+
+    def test_only_result_layers_are_watched(self, monkeypatch):
+        dialog = self._dialogShowing(monkeypatch, "Material", "Diameter", identifier="qgisred_query_pipes_material")
+        assert not dialog.currentLayerShowsAnotherVariable()
+
+    def test_reload_drops_the_old_snapshot_and_reloads_the_layer(self, monkeypatch):
+        dialog = self._dialogShowing(monkeypatch, "Head", "Pressure")
+        dialog.initialRenderers = {dialog.currentLayer.id(): "head snapshot", "other": "kept"}
+        reloaded = []
+        dialog.onLayerChanged = reloaded.append
+
+        dialog.reloadCurrentLayer()
+
+        assert dialog.initialRenderers == {"other": "kept"}
+        assert reloaded == [dialog.currentLayer]
