@@ -1981,8 +1981,9 @@ class QGISRedLegendsDialog(QDialog, formClass):
         return (1, 0, layer.name().lower())
 
     def resultsLayerSortKey(self, layer):
-        name = layer.name()
-        return (0 if name.endswith("_Node") else 1, name.lower())
+        # The name follows the variable shown ("Node Pressure"), the identifier keeps the element
+        identifier = layer.customProperty("qgisred_identifier") or ""
+        return (0 if identifier.startswith("qgisred_node") else 1, layer.name().lower())
 
     def collectRenderableLayersRecursive(self, group, layers, recurseIntoSubgroups, isQueriesGroup=False):
         """Collects renderable layers from a group, optionally recursing into subgroups."""

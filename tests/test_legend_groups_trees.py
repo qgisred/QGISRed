@@ -7,14 +7,18 @@ from QGISRed.ui.project.qgisred_legends_dialog import QGISRedLegendsDialog
 
 
 class FakeLayer:
-    def __init__(self, identifier=None, rendererType="categorizedSymbol"):
+    def __init__(self, identifier=None, rendererType="categorizedSymbol", name=""):
         self._identifier = identifier
         self._rendererType = rendererType
+        self._name = name
 
     def customProperty(self, key, default=None):
         if key == "qgisred_identifier":
             return self._identifier if self._identifier is not None else default
         return default
+
+    def name(self):
+        return self._name
 
     def renderer(self):
         if self._rendererType is None:
@@ -236,3 +240,17 @@ class TestPanelAndDialogParity:
             QGISRedLegendsDialog.SIZE_ONLY_QUERY_IDENTIFIERS
             | QGISRedLegendsDialog.SINGLE_EDITABLE_QUERY_IDENTIFIERS
         )
+
+
+class TestResultsLayerOrder:
+    """The Results entry lists node layers first, then link layers, whatever they are named."""
+
+    def test_node_layers_come_before_link_layers(self):
+        layers = [
+            FakeLayer("qgisred_link_flow", name="Link Flow"),
+            FakeLayer("qgisred_node_pressure", name="Node Pressure"),
+            FakeLayer("qgisred_link", name="Net_Base_Link"),
+            FakeLayer("qgisred_node", name="Net_Base_Node"),
+        ]
+        ordered = sorted(layers, key=_dialog().resultsLayerSortKey)
+        assert [layer.name() for layer in ordered] == ["Net_Base_Node", "Node Pressure", "Link Flow", "Net_Base_Link"]
