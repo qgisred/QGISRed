@@ -16,7 +16,10 @@ from ..tools.utils.qgisred_filesystem_utils import (
     LAYER_TYPE_CONFIG, QGISRedFileSystemUtils,
 )
 from ..tools.qgisred_dependencies import QGISRedDependencies as GISRed
-from ..tools.utils.qgisred_stale_layer_manager import KIND_RESULTS, KIND_THEMATIC
+from ..tools.utils.qgisred_stale_layer_manager import (
+    KIND_RESULTS, KIND_THEMATIC, KIND_TREE, KIND_CONNECTIVITY, KIND_DEMAND_SECTORS,
+    KIND_ISOLATED_SEGMENTS, KIND_HYDRAULIC_SECTORS,
+)
 
 
 class LayerManagementSection:
@@ -744,19 +747,58 @@ class LayerManagementSection:
         """
         QTimer.singleShot(0, lambda: self._runStaleIndicatorAction(layerId, kind))
 
+    def _staleIndicatorActions(self, layerId):
+        """Per warning kind: the confirmation to ask, and what runs when the user accepts."""
+        return {
+            KIND_RESULTS: (
+                self.tr("Outdated results"),
+                self.tr(
+                    "These results no longer match the network: the inputs have changed since "
+                    "the simulation was run.\n\nDo you want to run the simulation again?"),
+                lambda: self.runModel()),
+            KIND_THEMATIC: (
+                self.tr("Outdated thematic map"),
+                self.tr(
+                    "This thematic map was built with project settings that have changed since."
+                    "\n\nDo you want to rebuild it now?"),
+                lambda: self._rebuildStaleThematicMap(layerId)),
+            KIND_TREE: (
+                self.tr("Outdated tree"),
+                self.tr(
+                    "This tree no longer matches the network: the inputs have changed since "
+                    "it was computed.\n\nDo you want to compute a new tree?"),
+                lambda: self.runTree(False)),
+            KIND_CONNECTIVITY: (
+                self.tr("Outdated connectivity check"),
+                self.tr(
+                    "This connectivity check no longer matches the network: the inputs have "
+                    "changed since it was run.\n\nDo you want to check connectivity again?"),
+                lambda: self.runCheckConnectivity()),
+            KIND_DEMAND_SECTORS: (
+                self.tr("Outdated demand sectors"),
+                self.tr(
+                    "These demand sectors no longer match the network: the inputs have "
+                    "changed since they were built.\n\nDo you want to build them again?"),
+                lambda: self.runDemandSectors()),
+            KIND_ISOLATED_SEGMENTS: (
+                self.tr("Outdated isolated segments"),
+                self.tr(
+                    "These isolated segments no longer match the network: the inputs have "
+                    "changed since they were computed.\n\nDo you want to compute them again?"),
+                lambda: self.runIsolatedSegments(False)),
+            KIND_HYDRAULIC_SECTORS: (
+                self.tr("Outdated hydraulic sectors"),
+                self.tr(
+                    "These hydraulic sectors no longer match the network: the inputs have "
+                    "changed since they were checked.\n\nDo you want to check them again?"),
+                lambda: self.runHydraulicSectors()),
+        }
+
     def _runStaleIndicatorAction(self, layerId, kind):
-        if kind == KIND_RESULTS:
-            title = self.tr("Outdated results")
-            question = self.tr(
-                "These results no longer match the network: the inputs have changed since "
-                "the simulation was run.\n\nDo you want to run the simulation again?")
-        elif kind == KIND_THEMATIC:
-            title = self.tr("Outdated thematic map")
-            question = self.tr(
-                "This thematic map was built with project settings that have changed since."
-                "\n\nDo you want to rebuild it now?")
-        else:
+        action = self._staleIndicatorActions(layerId).get(kind)
+        if action is None:
             return
+        title, question, run = action
 
         reply = QMessageBox.question(
             self.iface.mainWindow(),
@@ -767,11 +809,9 @@ class LayerManagementSection:
         )
         if reply != QMessageBox.StandardButton.Yes:
             return
+        run()
 
-        if kind == KIND_RESULTS:
-            self.runModel()
-            return
-
+    def _rebuildStaleThematicMap(self, layerId):
         layer = QgsProject.instance().mapLayer(layerId)
         identifier = layer.customProperty("qgisred_identifier") if layer is not None else None
         if not identifier or not str(identifier).startswith("qgisred_query_"):

@@ -23,33 +23,54 @@ from qgis.gui import QgsLayerTreeViewIndicator
 from qgis.PyQt.QtCore import Qt, QEvent, QObject, QTimer, QCoreApplication
 from qgis.PyQt.QtGui import QIcon
 
-from .qgisred_filesystem_utils import DIR_ISSUES, DIR_QUERIES, DIR_RESULTS, DIR_AUXILIARY_LAYERS
+from .qgisred_filesystem_utils import DIR_ISSUES, DIR_QUERIES, DIR_RESULTS, LAYER_TYPE_CONFIG
 from .qgisred_project_utils import QGISRedProjectUtils
 
 # Layers the DLL derives from the network: if an input has been edited since they were
 # written, what they show no longer describes the current network.
 MONITORED_SUBDIRS = (DIR_ISSUES, DIR_QUERIES, DIR_RESULTS)
 
-# The Demand Builder's themes live here. They are the user's own working data — imported
-# consumption points, billing sectors — not something the plugin recomputes from the
-# network, so an input edited afterwards says nothing about whether they are still valid.
-EXCLUDED_SUBDIRS = (DIR_AUXILIARY_LAYERS,)
+# Monitored for their direct children only. The DLL writes the demand sectors straight into
+# this folder; its subfolders hold the sectorizations the demand sector builders make from
+# the user's own data, which no input edit can invalidate.
+MONITORED_FLAT_SUBDIRS = (LAYER_TYPE_CONFIG["DemandSectors"]["subdir"],)
 
-# The same exclusion by qgisred_identifier, for a theme opened from somewhere else (the
-# Demands Manager can add layers to the group from outside the project folder).
-EXCLUDED_IDENTIFIER_PREFIXES = ("qgisred_demandbuilder", "qgisred_demandsectors")
+# The Demand Builder's themes are the user's own working data — imported consumption
+# points, billing sectors — not something the plugin recomputes from the network, so an
+# input edited afterwards says nothing about whether they are still valid. Excluded by
+# qgisred_identifier because the Demands Manager can add them to the group from anywhere,
+# a monitored folder included.
+EXCLUDED_IDENTIFIER_PREFIXES = ("qgisred_demandbuilder",)
 
 # Thematic maps whose legend class labels embed a length unit, so the units they were
 # built with can be recovered for layers created before the qgisred_theme_units stamp.
 LEGACY_UNITS_IDENTIFIERS = ("qgisred_query_pipes_length", "qgisred_query_pipes_diameter")
 UNIT_SYSTEM_BY_TOKEN = {"m": "SI", "mm": "SI", "ft": "US", "in": "US"}
 
-# What a warning means, and therefore what clicking it can offer to do. Results and
-# thematic maps have a one-click way back to a valid state; everything else is a report.
+# What a warning means, and therefore what clicking it can offer to do. Every kind but
+# KIND_DERIVED has a one-click way back to a valid state — the tool that wrote the layer;
+# the rest is a report.
 KIND_RESULTS = "results"
 KIND_THEMATIC = "thematic"
+KIND_TREE = "tree"
+KIND_CONNECTIVITY = "connectivity"
+KIND_DEMAND_SECTORS = "demandSectors"
+KIND_ISOLATED_SEGMENTS = "isolatedSegments"
+KIND_HYDRAULIC_SECTORS = "hydraulicSectors"
 KIND_DERIVED = "derived"
-ACTIONABLE_KINDS = (KIND_RESULTS, KIND_THEMATIC)
+ACTIONABLE_KINDS = (KIND_RESULTS, KIND_THEMATIC, KIND_TREE, KIND_CONNECTIVITY, KIND_DEMAND_SECTORS,
+                    KIND_ISOLATED_SEGMENTS, KIND_HYDRAULIC_SECTORS)
+
+# Which tool a stale file belongs to, by the folder that tool writes into. A stale file in
+# a monitored folder that matches none of these is KIND_DERIVED.
+KIND_BY_SUBDIR = (
+    (DIR_RESULTS, KIND_RESULTS),
+    (os.path.join(DIR_QUERIES, "Trees"), KIND_TREE),
+    (LAYER_TYPE_CONFIG["Connectivity"]["subdir"], KIND_CONNECTIVITY),
+    (LAYER_TYPE_CONFIG["DemandSectors"]["subdir"], KIND_DEMAND_SECTORS),
+    (LAYER_TYPE_CONFIG["IsolatedSegments"]["subdir"], KIND_ISOLATED_SEGMENTS),
+    (LAYER_TYPE_CONFIG["HydraulicSectors"]["subdir"], KIND_HYDRAULIC_SECTORS),
+)
 
 # Marks an indicator as this plugin's. The tooltip used to be that mark, but it is
 # translated and now differs per kind, which would turn ownership into a list of strings to
@@ -122,8 +143,8 @@ class _IndicatorHoverFilter(QObject):
 
 
 class StaleLayerManager:
-    """Polls every 5 s and marks Issues/Queries/Results layers whose files are older than
-    the newest input shapefile."""
+    """Polls every 5 s and marks Issues/Queries/Results and demand sector layers whose files
+    are older than the newest input shapefile."""
 
     def __init__(self, iface, getProjectInfo, onIndicatorClicked=None):
         """
@@ -193,9 +214,15 @@ class StaleLayerManager:
 
     @classmethod
     def _isMonitoredPath(cls, normFile, projDir):
-        if any(cls._isUnder(normFile, projDir, excluded) for excluded in EXCLUDED_SUBDIRS):
-            return False
-        return any(cls._isUnder(normFile, projDir, monitored) for monitored in MONITORED_SUBDIRS)
+        if any(cls._isUnder(normFile, projDir, monitored) for monitored in MONITORED_SUBDIRS):
+            return True
+        return any(os.path.dirname(normFile) == os.path.normcase(os.path.join(projDir, flat))
+                   for flat in MONITORED_FLAT_SUBDIRS)
+
+    @classmethod
+    def _kindForPath(cls, normFile, projDir):
+        return next((kind for subdir, kind in KIND_BY_SUBDIR if cls._isUnder(normFile, projDir, subdir)),
+                    KIND_DERIVED)
 
     @staticmethod
     def _isExcludedIdentifier(layer):
@@ -239,8 +266,7 @@ class StaleLayerManager:
                 continue
 
             if newestInput > os.path.getmtime(layerFile):
-                stale[layer.id()] = (KIND_RESULTS if self._isUnder(normFile, projDir, DIR_RESULTS)
-                                     else KIND_DERIVED)
+                stale[layer.id()] = self._kindForPath(normFile, projDir)
 
         return stale
 
@@ -324,12 +350,31 @@ class StaleLayerManager:
         return self._iface.layerTreeView()
 
     def _tooltip(self, kind=KIND_DERIVED):
-        if kind == KIND_RESULTS:
-            return (self.tr("Results may be outdated — the network has changed since the last simulation")
-                    + "\n" + self.tr("Click this icon to run the simulation again"))
-        if kind == KIND_THEMATIC:
-            return (self.tr("Thematic map may be outdated — project settings have changed since it was built")
-                    + "\n" + self.tr("Click this icon to rebuild it"))
+        actionable = {
+            KIND_RESULTS:
+                self.tr("Results may be outdated — the network has changed since the last simulation")
+                + "\n" + self.tr("Click this icon to run the simulation again"),
+            KIND_THEMATIC:
+                self.tr("Thematic map may be outdated — project settings have changed since it was built")
+                + "\n" + self.tr("Click this icon to rebuild it"),
+            KIND_TREE:
+                self.tr("Tree may be outdated — the network has changed since it was computed")
+                + "\n" + self.tr("Click this icon to compute a new tree"),
+            KIND_CONNECTIVITY:
+                self.tr("Connectivity check may be outdated — the network has changed since it was run")
+                + "\n" + self.tr("Click this icon to check connectivity again"),
+            KIND_DEMAND_SECTORS:
+                self.tr("Demand sectors may be outdated — the network has changed since they were built")
+                + "\n" + self.tr("Click this icon to build them again"),
+            KIND_ISOLATED_SEGMENTS:
+                self.tr("Isolated segments may be outdated — the network has changed since they were computed")
+                + "\n" + self.tr("Click this icon to compute them again"),
+            KIND_HYDRAULIC_SECTORS:
+                self.tr("Hydraulic sectors may be outdated — the network has changed since they were checked")
+                + "\n" + self.tr("Click this icon to check them again"),
+        }
+        if kind in actionable:
+            return actionable[kind]
         return self.tr("Layer may be outdated — inputs have changed since last generation")
 
     def _isOurs(self, indicator):

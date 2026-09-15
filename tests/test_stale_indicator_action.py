@@ -3,14 +3,17 @@
 
 The manager only says *which* layer went stale and *how*; this is the half that asks the
 user and then runs the right tool — a simulation for results, a rebuild for a thematic map,
-and nothing at all for the layers that have no one-click way back.
+the tool that wrote the layer for the rest, and nothing at all for the layers that have no
+one-click way back.
 """
 from unittest.mock import MagicMock, patch
 
 import pytest
 
 from QGISRed.sections.layer_management_section import LayerManagementSection
-from QGISRed.tools.utils.qgisred_stale_layer_manager import KIND_RESULTS, KIND_THEMATIC, KIND_DERIVED
+from QGISRed.tools.utils.qgisred_stale_layer_manager import (
+    KIND_RESULTS, KIND_THEMATIC, KIND_TREE, KIND_CONNECTIVITY, KIND_DEMAND_SECTORS,
+    KIND_ISOLATED_SEGMENTS, KIND_HYDRAULIC_SECTORS, KIND_DERIVED)
 
 # Patched on the module under test, never on qgis.PyQt.QtWidgets: patch() on Python 3.9
 # walks getattr from __import__("qgis"), which on the mocked qgis package hands out a
@@ -21,6 +24,15 @@ _TIMER = "QGISRed.sections.layer_management_section.QTimer"
 
 THEME_ID = "qgisred_query_pipes_diameter"
 
+# Kind → the tool entry point a click re-runs, with the arguments its menu action passes.
+TOOL_RERUNS = [
+    (KIND_TREE, "runTree", (False,)),
+    (KIND_CONNECTIVITY, "runCheckConnectivity", ()),
+    (KIND_DEMAND_SECTORS, "runDemandSectors", ()),
+    (KIND_ISOLATED_SEGMENTS, "runIsolatedSegments", (False,)),
+    (KIND_HYDRAULIC_SECTORS, "runHydraulicSectors", ()),
+]
+
 
 def _section():
     section = object.__new__(LayerManagementSection)
@@ -28,6 +40,8 @@ def _section():
     section.tr = lambda message: message
     section.runModel = MagicMock()
     section.runRebuildThematicMaps = MagicMock(return_value=True)
+    for _kind, runner, _args in TOOL_RERUNS:
+        setattr(section, runner, MagicMock())
     section._staleLayerManager = MagicMock()
     return section
 
@@ -105,6 +119,40 @@ class TestConfirmation:
         messageBox.question.assert_not_called()
         section.runModel.assert_not_called()
         section.runRebuildThematicMaps.assert_not_called()
+
+
+class TestToolRerun:
+    """A tool's warning re-runs that tool, exactly as its menu entry would."""
+
+    @pytest.mark.parametrize("kind, runner, args", TOOL_RERUNS)
+    def test_accepting_runs_the_tool_again(self, answer, project, kind, runner, args):
+        section = _section()
+        answer(1)
+
+        section._runStaleIndicatorAction("layer", kind)
+
+        getattr(section, runner).assert_called_once_with(*args)
+        section.runModel.assert_not_called()
+        section.runRebuildThematicMaps.assert_not_called()
+
+    @pytest.mark.parametrize("kind, runner, args", TOOL_RERUNS)
+    def test_declining_leaves_the_tool_alone(self, answer, project, kind, runner, args):
+        section = _section()
+        answer(2)
+
+        section._runStaleIndicatorAction("layer", kind)
+
+        getattr(section, runner).assert_not_called()
+
+    def test_the_warning_is_left_to_the_tool_to_clear(self, answer, project):
+        """The tool re-checks itself once its files are written; a cancelled dialog writes
+        nothing, and the warning has to stay up."""
+        section = _section()
+        answer(1)
+
+        section._runStaleIndicatorAction("layer", KIND_CONNECTIVITY)
+
+        section._staleLayerManager.forceCheck.assert_not_called()
 
 
 class TestThematicRebuild:

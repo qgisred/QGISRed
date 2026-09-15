@@ -7,7 +7,8 @@ from unittest.mock import MagicMock, patch
 import pytest
 
 from QGISRed.tools.utils.qgisred_stale_layer_manager import (
-    StaleLayerManager, KIND_RESULTS, KIND_THEMATIC, KIND_DERIVED)
+    StaleLayerManager, KIND_RESULTS, KIND_THEMATIC, KIND_TREE, KIND_CONNECTIVITY, KIND_DEMAND_SECTORS,
+    KIND_ISOLATED_SEGMENTS, KIND_HYDRAULIC_SECTORS, KIND_DERIVED)
 from QGISRed.tools.utils.qgisred_project_utils import QGISRedProjectUtils
 
 
@@ -204,11 +205,22 @@ def project(tmp_path):
         "results": _write(os.path.join(projDir, "Results", NET + "_Base_Node.shp"), old),
         "issues": _write(os.path.join(projDir, "Issues", NET + "_Pipes_Issues.shp"), old),
         "queries": _write(os.path.join(projDir, "Queries", "Trees", NET + "_Tree_1_Nodes.shp"), old),
+        "connectivity": _write(
+            os.path.join(projDir, "Issues", "Connectivity", NET + "_Connectivity_Links.shp"), old),
+        "hydraulicSectors": _write(
+            os.path.join(projDir, "Issues", "HydraulicSectors", NET + "_HydraulicSectors_Links.shp"), old),
+        "isolatedSegments": _write(
+            os.path.join(projDir, "Queries", "IsolatedSegments", NET + "_IsolatedSegments_Links.shp"), old),
         "auxiliary": _write(
             os.path.join(projDir, "Auxiliary Layers", "DemandBuilder",
                          NET + "_DemandBuilder_Sectors_sec1.shp"), old),
         "demandSectors": _write(
             os.path.join(projDir, "Auxiliary Layers", "DemandSectors", NET + "_DemandSectors_Nodes.shp"), old),
+        # A sectorization the user named after the network, so the input-prefix rule alone
+        # would not keep it out.
+        "sectorization": _write(
+            os.path.join(projDir, "Auxiliary Layers", "DemandSectors", NET + "_sec1", NET + "_sec1_Nodes.shp"),
+            old),
     }
     return projDir, paths
 
@@ -287,13 +299,24 @@ class TestRelevance:
         item.manager._check()
         assert item.flagged() == set()
 
-    def test_auxiliary_folder_is_never_flagged(self, project, harness):
+    def test_demand_builder_folder_is_never_flagged(self, project, harness):
         """The Demand Builder's themes are the user's data, not something derived."""
         _projDir, paths = project
-        item = harness([
-            _FakeLayer("aux", paths["auxiliary"]),
-            _FakeLayer("demSec", paths["demandSectors"]),
-        ])
+        item = harness([_FakeLayer("aux", paths["auxiliary"])])
+        item.manager._check()
+        assert item.flagged() == set()
+
+    def test_demand_sectors_are_flagged(self, project, harness):
+        _projDir, paths = project
+        item = harness([_FakeLayer("demSec", paths["demandSectors"])])
+        item.manager._check()
+        assert item.flagged() == {"demSec"}
+
+    def test_a_sectorization_theme_is_never_flagged(self, project, harness):
+        """The demand sector builders keep the user's sectorizations one folder below the
+        DLL's demand sectors; nothing there is recomputed from the network."""
+        _projDir, paths = project
+        item = harness([_FakeLayer("theme", paths["sectorization"])])
         item.manager._check()
         assert item.flagged() == set()
 
@@ -612,14 +635,29 @@ class TestStalenessKinds:
 
         assert item.manager._kindByLayerId() == {"results": KIND_RESULTS}
 
-    def test_issues_and_queries_are_only_reported(self, project, harness):
+    def test_issues_are_only_reported(self, project, harness):
+        _projDir, paths = project
+        item = harness([_FakeLayer("issues", paths["issues"])])
+
+        assert item.manager._kindByLayerId() == {"issues": KIND_DERIVED}
+
+    def test_each_tool_folder_has_its_own_kind(self, project, harness):
         _projDir, paths = project
         item = harness([
-            _FakeLayer("issues", paths["issues"]),
-            _FakeLayer("queries", paths["queries"]),
+            _FakeLayer("tree", paths["queries"]),
+            _FakeLayer("connectivity", paths["connectivity"]),
+            _FakeLayer("demandSectors", paths["demandSectors"]),
+            _FakeLayer("isolatedSegments", paths["isolatedSegments"]),
+            _FakeLayer("hydraulicSectors", paths["hydraulicSectors"]),
         ])
 
-        assert item.manager._kindByLayerId() == {"issues": KIND_DERIVED, "queries": KIND_DERIVED}
+        assert item.manager._kindByLayerId() == {
+            "tree": KIND_TREE,
+            "connectivity": KIND_CONNECTIVITY,
+            "demandSectors": KIND_DEMAND_SECTORS,
+            "isolatedSegments": KIND_ISOLATED_SEGMENTS,
+            "hydraulicSectors": KIND_HYDRAULIC_SECTORS,
+        }
 
     def test_an_outdated_theme_is_its_own_kind(self, project, harness):
         _projDir, paths = project
@@ -640,6 +678,11 @@ class TestStalenessKinds:
 
             assert "Click" in manager._tooltip(KIND_RESULTS)
             assert "Click" in manager._tooltip(KIND_THEMATIC)
+            assert "Click" in manager._tooltip(KIND_TREE)
+            assert "Click" in manager._tooltip(KIND_CONNECTIVITY)
+            assert "Click" in manager._tooltip(KIND_DEMAND_SECTORS)
+            assert "Click" in manager._tooltip(KIND_ISOLATED_SEGMENTS)
+            assert "Click" in manager._tooltip(KIND_HYDRAULIC_SECTORS)
             assert "Click" not in manager._tooltip(KIND_DERIVED)
             assert manager._tooltip() == manager._tooltip(KIND_DERIVED)
 
@@ -674,6 +717,16 @@ class TestIndicatorClicks:
         item.clickSlot("theme")(MagicMock())
 
         onClick.assert_called_once_with("theme", KIND_THEMATIC)
+
+    def test_a_tool_warning_dispatches_its_layer_and_kind(self, project, harness):
+        _projDir, paths = project
+        onClick = MagicMock()
+        item = harness([_FakeLayer("connectivity", paths["connectivity"])], onClick=onClick)
+        item.manager._check()
+
+        item.clickSlot("connectivity")(MagicMock())
+
+        onClick.assert_called_once_with("connectivity", KIND_CONNECTIVITY)
 
     def test_an_informational_warning_is_never_connected(self, project, harness):
         _projDir, paths = project
