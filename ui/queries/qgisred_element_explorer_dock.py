@@ -406,8 +406,7 @@ class QGISRedElementExplorerDock(QGISRedHighlightOwnerMixin, QDockWidget, FORM_C
 
     def setDockStyle(self):
         iconName = 'iconFindElements.svg' if 'Find' in self.__class__.__name__ else 'iconElementProperties.svg'
-        iconPath = os.path.join(os.path.dirname(__file__), '..', '..', 'images', iconName)
-        self.setWindowIcon(QIcon(iconPath))
+        self.setWindowIcon(QIcon(f":/images/{iconName}"))
 
         if hasattr(self, 'leElementMask'):
             searchIcon = QIcon(":/images/iconFilter.svg")

@@ -600,9 +600,8 @@ class QGISRedGroupEditDialog(QGISRedHighlightOwnerMixin, QDialog, FORM_CLASS):
             self._setDateValue(self._defaultDateValue())
 
     def _setupDateCalendarButton(self):
-        iconPath = os.path.join(os.path.dirname(__file__), "..", "..", "images", "iconCalendar.svg")
         self.btDateCalendar = QToolButton(self)
-        self.btDateCalendar.setIcon(QIcon(iconPath))
+        self.btDateCalendar.setIcon(QIcon(":/images/iconCalendar.svg"))
         self.btDateCalendar.setIconSize(QSize(16, 16))
         self.btDateCalendar.setFixedSize(20, 20)
         self.btDateCalendar.setAutoRaise(True)
