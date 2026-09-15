@@ -645,9 +645,9 @@ class QGISRedLayerUtils:
             styling.setSectorsStyle(layer)
 
     def _applyConnectivityStyle(self, styling, layer, originalName):
-        # Computed like demand sectors: random colour per subnet, saved style wins.
-        if not styling.setSavedStyle(layer, originalName):
-            styling.setConnectivityStyle(layer)
+        # The style gives the look; the subnets only exist after the check runs.
+        styling.setStyle(layer, originalName)
+        styling.fillCategoriesFromData(layer, "SubNet")
 
     def openLayer(self, group, name, ext=".shp", results=False, toEnd=False, sectors=False, issues=False,
                   demandBuilder=False):

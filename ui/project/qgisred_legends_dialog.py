@@ -5245,6 +5245,8 @@ class QGISRedLegendsDialog(QDialog, formClass):
         thematicName = self.getThematicQueryStyleName(identifier)
         if thematicName:
             return thematicName
+        if identifier == "qgisred_connectivity_links":
+            return "ConnectLinks"
         prefix = "qgisred_"
         if not identifier.startswith(prefix) or identifier.startswith(prefix + "query_"):
             return None

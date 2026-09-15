@@ -97,6 +97,12 @@ class FakeCategorizedRenderer:
     def categories(self):
         return list(self._categories)
 
+    def sourceSymbol(self):
+        return None
+
+    def sourceColorRamp(self):
+        return None
+
     def classAttribute(self):
         return self._field
 

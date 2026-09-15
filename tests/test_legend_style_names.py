@@ -156,6 +156,7 @@ class TestStyleNameForIdentifier:
         ("qgisred_isolatedsegments_isolateddemands", "isolatedSegmentsIsolatedDemands.qml.bak"),
         ("qgisred_tree_links", "TreeLinks.qml.bak"),
         ("qgisred_tree_nodes", "TreeNodes.qml.bak"),
+        ("qgisred_connectivity_links", "ConnectLinks.qml.bak"),
     ]
 
     @pytest.mark.parametrize("identifier, defaultFile", STYLED_IDENTIFIERS)

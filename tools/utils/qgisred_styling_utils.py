@@ -22,7 +22,7 @@ from qgis.core import (
     QgsGraduatedSymbolRenderer, QgsRuleBasedRenderer, QgsRenderContext,
     QgsMapLayerLegend, QgsMessageLog, QgsStyle, QgsExpression, QgsProject,
     QgsSingleSymbolRenderer, QgsPalLayerSettings, QgsTextFormat, QgsProperty,
-    QgsVectorLayerSimpleLabeling
+    QgsVectorLayerSimpleLabeling, QgsLimitedRandomColorRamp
 )
 from qgis.gui import QgsAttributeTableFilterModel, QgsAttributeTableModel, QgsAttributeTableView
 from qgis.utils import iface as _iface
@@ -709,10 +709,20 @@ class QGISRedStylingUtils:
                 rebuilt = QgsRendererCategory(category.value(), category.symbol().clone(), label)
                 rebuilt.setRenderState(category.renderState())
                 categories.append(rebuilt)
-            layer.setRenderer(QgsCategorizedSymbolRenderer(renderer.classAttribute(), categories))
+            layer.setRenderer(self._rebuildCategorizedRenderer(renderer, categories))
 
         elif isinstance(renderer, QgsRuleBasedRenderer):
             self._translateRuleLabels(renderer.rootRule())
+
+    @staticmethod
+    def _rebuildCategorizedRenderer(renderer, categories):
+        # The source symbol and ramp are the template for categories added later from data.
+        rebuilt = QgsCategorizedSymbolRenderer(renderer.classAttribute(), categories)
+        if renderer.sourceSymbol() is not None:
+            rebuilt.setSourceSymbol(renderer.sourceSymbol().clone())
+        if renderer.sourceColorRamp() is not None:
+            rebuilt.setSourceColorRamp(renderer.sourceColorRamp().clone())
+        return rebuilt
 
     def _translateRuleLabels(self, rule):
         if rule is None:
@@ -923,43 +933,37 @@ class QGISRedStylingUtils:
             layer.setRenderer(renderer)
         layer.setLabelsEnabled(False)
 
-    def setConnectivityStyle(self, layer):
-        field = "SubNet"
-        fni = layer.fields().indexFromName(field)
-        if fni == -1:
+    def fillCategoriesFromData(self, layer, field):
+        """Add a category for every value of `field` the loaded style does not list yet.
+
+        The style (shipped or saved by the user) carries the look — source symbol, colour
+        ramp, map tip — but the values only exist once the data is computed, so they are
+        appended here. Categories already in the style keep their own colour.
+        """
+        renderer = layer.renderer()
+        fieldIndex = layer.fields().indexFromName(field)
+        if not isinstance(renderer, QgsCategorizedSymbolRenderer) or fieldIndex == -1:
             return
-        uniqueValues = sorted(layer.dataProvider().uniqueValues(fni))
-
-        categories = []
-        for uniqueValue in uniqueValues:
-            valueColor = QColor(randrange(0, 256), randrange(0, 256), randrange(0, 256))  # nosec B311 — cosmetic connectivity color, not security-sensitive
-            if layer.geometryType() == 0:  # Point
-                symbol = QgsSymbol.defaultSymbol(layer.geometryType())
-                layerStyle = {
-                    "color": "%d, %d, %d" % (valueColor.red(), valueColor.green(), valueColor.blue()),
-                    "size": str(0.6),
-                }
-                symbol.changeSymbolLayer(0, QgsSimpleMarkerSymbolLayer.create(layerStyle))
-            else:
-                symbol = QgsLineSymbol().createSimple({})
-                symbol.deleteSymbolLayer(0)
-                lineSymbol = QgsSimpleLineSymbolLayer()
-                lineSymbol.setWidth(0.6)
-                lineSymbol.setColor(valueColor)
-                symbol.appendSymbolLayer(lineSymbol)
-
-            categories.append(QgsRendererCategory(uniqueValue, symbol, self._translateCategoryLabel(uniqueValue, field)))
-
-        layer.setRenderer(QgsCategorizedSymbolRenderer(field, categories))
-        layer.setLabelsEnabled(False)
-        self.saveDefaultConnectivityStyle(layer)
-
-    def saveDefaultConnectivityStyle(self, layer):
-        # Shipped defaults are never rewritten, so the generated one is only created once.
-        qmlPath = os.path.join(_plugin_root(), "defaults", "layerStyles", "ConnectivityLinks.qml.bak")
-        if os.path.exists(qmlPath):
+        knownValues = {category.value() for category in renderer.categories()}
+        uniqueValues = sorted(layer.dataProvider().uniqueValues(fieldIndex))
+        newValues = [value for value in uniqueValues if value not in knownValues]
+        if not newValues:
             return
-        layer.saveNamedStyle(qmlPath)
+
+        ramp = renderer.sourceColorRamp()
+        categories = list(renderer.categories())
+        template = renderer.sourceSymbol() or (categories[-1].symbol() if categories else None)
+        if template is None:
+            return
+        if isinstance(ramp, QgsLimitedRandomColorRamp):  # one distinct colour per new value
+            ramp.setCount(len(newValues))
+        for position, value in enumerate(newValues):
+            symbol = template.clone()
+            if ramp is not None:
+                symbol.setColor(ramp.color(position / max(len(newValues) - 1, 1)))
+            categories.append(QgsRendererCategory(value, symbol, self._translateCategoryLabel(value, field)))
+
+        layer.setRenderer(self._rebuildCategorizedRenderer(renderer, categories))
 
     @staticmethod
     def developmentStyleDatabasePath():
