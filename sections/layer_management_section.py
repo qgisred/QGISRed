@@ -18,7 +18,7 @@ from ..tools.utils.qgisred_filesystem_utils import (
 from ..tools.qgisred_dependencies import QGISRedDependencies as GISRed
 from ..tools.utils.qgisred_stale_layer_manager import (
     KIND_RESULTS, KIND_THEMATIC, KIND_TREE, KIND_CONNECTIVITY, KIND_DEMAND_SECTORS,
-    KIND_ISOLATED_SEGMENTS, KIND_HYDRAULIC_SECTORS,
+    KIND_ISOLATED_SEGMENTS, KIND_HYDRAULIC_SECTORS, TOOL_RERUN_BY_KIND,
 )
 
 
@@ -747,52 +747,55 @@ class LayerManagementSection:
         """
         QTimer.singleShot(0, lambda: self._runStaleIndicatorAction(layerId, kind))
 
+    def _staleIndicatorRunner(self, kind, layerId):
+        if kind == KIND_THEMATIC:
+            return lambda: self._rebuildStaleThematicMap(layerId)
+        method, arguments = TOOL_RERUN_BY_KIND[kind]
+        return lambda: getattr(self, method)(*arguments)
+
     def _staleIndicatorActions(self, layerId):
         """Per warning kind: the confirmation to ask, and what runs when the user accepts."""
-        return {
+        # Kept as literal self.tr() calls rather than a table of strings so pylupdate5 can
+        # still extract them.
+        prompts = {
             KIND_RESULTS: (
                 self.tr("Outdated results"),
                 self.tr(
                     "These results no longer match the network: the inputs have changed since "
-                    "the simulation was run.\n\nDo you want to run the simulation again?"),
-                lambda: self.runModel()),
+                    "the simulation was run.\n\nDo you want to run the simulation again?")),
             KIND_THEMATIC: (
                 self.tr("Outdated thematic map"),
                 self.tr(
                     "This thematic map was built with project settings that have changed since."
-                    "\n\nDo you want to rebuild it now?"),
-                lambda: self._rebuildStaleThematicMap(layerId)),
+                    "\n\nDo you want to rebuild it now?")),
             KIND_TREE: (
                 self.tr("Outdated tree"),
                 self.tr(
                     "This tree no longer matches the network: the inputs have changed since "
-                    "it was computed.\n\nDo you want to compute a new tree?"),
-                lambda: self.runTree(False)),
+                    "it was computed.\n\nDo you want to compute a new tree?")),
             KIND_CONNECTIVITY: (
                 self.tr("Outdated connectivity check"),
                 self.tr(
                     "This connectivity check no longer matches the network: the inputs have "
-                    "changed since it was run.\n\nDo you want to check connectivity again?"),
-                lambda: self.runCheckConnectivity()),
+                    "changed since it was run.\n\nDo you want to check connectivity again?")),
             KIND_DEMAND_SECTORS: (
                 self.tr("Outdated demand sectors"),
                 self.tr(
                     "These demand sectors no longer match the network: the inputs have "
-                    "changed since they were built.\n\nDo you want to build them again?"),
-                lambda: self.runDemandSectors()),
+                    "changed since they were built.\n\nDo you want to build them again?")),
             KIND_ISOLATED_SEGMENTS: (
                 self.tr("Outdated isolated segments"),
                 self.tr(
                     "These isolated segments no longer match the network: the inputs have "
-                    "changed since they were computed.\n\nDo you want to compute them again?"),
-                lambda: self.runIsolatedSegments(False)),
+                    "changed since they were computed.\n\nDo you want to compute them again?")),
             KIND_HYDRAULIC_SECTORS: (
                 self.tr("Outdated hydraulic sectors"),
                 self.tr(
                     "These hydraulic sectors no longer match the network: the inputs have "
-                    "changed since they were checked.\n\nDo you want to check them again?"),
-                lambda: self.runHydraulicSectors()),
+                    "changed since they were checked.\n\nDo you want to check them again?")),
         }
+        return {kind: (title, question, self._staleIndicatorRunner(kind, layerId))
+                for kind, (title, question) in prompts.items()}
 
     def _runStaleIndicatorAction(self, layerId, kind):
         action = self._staleIndicatorActions(layerId).get(kind)

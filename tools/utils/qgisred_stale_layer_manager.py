@@ -61,6 +61,21 @@ KIND_DERIVED = "derived"
 ACTIONABLE_KINDS = (KIND_RESULTS, KIND_THEMATIC, KIND_TREE, KIND_CONNECTIVITY, KIND_DEMAND_SECTORS,
                     KIND_ISOLATED_SEGMENTS, KIND_HYDRAULIC_SECTORS)
 
+# The tool a click re-runs, per kind: the plugin method and the arguments its menu entry
+# passes. The methods live in other section mixins, so they exist only on the composed
+# plugin class and are looked up by name at click time — nothing but
+# tests/test_stale_indicator_action.py would catch one that was renamed or re-arged.
+# KIND_THEMATIC is absent on purpose: it rebuilds one specific layer rather than re-running
+# a tool, so it needs the clicked layer id and is handled by the caller.
+TOOL_RERUN_BY_KIND = {
+    KIND_RESULTS: ("runModel", ()),
+    KIND_TREE: ("runTree", (False,)),
+    KIND_CONNECTIVITY: ("runCheckConnectivity", ()),
+    KIND_DEMAND_SECTORS: ("runDemandSectors", ()),
+    KIND_ISOLATED_SEGMENTS: ("runIsolatedSegments", (False,)),
+    KIND_HYDRAULIC_SECTORS: ("runHydraulicSectors", ()),
+}
+
 # Which tool a stale file belongs to, by the folder that tool writes into. A stale file in
 # a monitored folder that matches none of these is KIND_DERIVED.
 KIND_BY_SUBDIR = (

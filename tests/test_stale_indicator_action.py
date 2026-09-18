@@ -6,14 +6,15 @@ user and then runs the right tool — a simulation for results, a rebuild for a 
 the tool that wrote the layer for the rest, and nothing at all for the layers that have no
 one-click way back.
 """
+import inspect
 from unittest.mock import MagicMock, patch
 
 import pytest
 
+from QGISRed.qgisred import QGISRed
 from QGISRed.sections.layer_management_section import LayerManagementSection
 from QGISRed.tools.utils.qgisred_stale_layer_manager import (
-    KIND_RESULTS, KIND_THEMATIC, KIND_TREE, KIND_CONNECTIVITY, KIND_DEMAND_SECTORS,
-    KIND_ISOLATED_SEGMENTS, KIND_HYDRAULIC_SECTORS, KIND_DERIVED)
+    KIND_RESULTS, KIND_THEMATIC, KIND_CONNECTIVITY, KIND_DERIVED, TOOL_RERUN_BY_KIND)
 
 # Patched on the module under test, never on qgis.PyQt.QtWidgets: patch() on Python 3.9
 # walks getattr from __import__("qgis"), which on the mocked qgis package hands out a
@@ -24,24 +25,22 @@ _TIMER = "QGISRed.sections.layer_management_section.QTimer"
 
 THEME_ID = "qgisred_query_pipes_diameter"
 
-# Kind → the tool entry point a click re-runs, with the arguments its menu action passes.
-TOOL_RERUNS = [
-    (KIND_TREE, "runTree", (False,)),
-    (KIND_CONNECTIVITY, "runCheckConnectivity", ()),
-    (KIND_DEMAND_SECTORS, "runDemandSectors", ()),
-    (KIND_ISOLATED_SEGMENTS, "runIsolatedSegments", (False,)),
-    (KIND_HYDRAULIC_SECTORS, "runHydraulicSectors", ()),
-]
+# Results have a confirmation test of their own, and the parametrised ones below assert that
+# nothing but the tool they asked for ran.
+TOOL_RERUNS = [(kind, method, args) for kind, (method, args) in TOOL_RERUN_BY_KIND.items()
+               if kind != KIND_RESULTS]
+
+# Every plugin method this feature calls by name, with the arguments it passes.
+PLUGIN_ENTRY_POINTS = list(TOOL_RERUN_BY_KIND.values()) + [("runRebuildThematicMaps", ([THEME_ID],))]
 
 
 def _section():
     section = object.__new__(LayerManagementSection)
     section.iface = MagicMock()
     section.tr = lambda message: message
-    section.runModel = MagicMock()
     section.runRebuildThematicMaps = MagicMock(return_value=True)
-    for _kind, runner, _args in TOOL_RERUNS:
-        setattr(section, runner, MagicMock())
+    for method, _args in TOOL_RERUN_BY_KIND.values():
+        setattr(section, method, MagicMock())
     section._staleLayerManager = MagicMock()
     return section
 
@@ -218,3 +217,16 @@ class TestDeferral:
             deferred()
 
         section.runModel.assert_called_once_with()
+
+
+class TestEntryPointsExist:
+    """The tools live in sibling section mixins and are reached through getattr on the
+    composed plugin, so a rename would only surface when a user clicks that one warning."""
+
+    @pytest.mark.parametrize("method", [method for method, _args in PLUGIN_ENTRY_POINTS])
+    def test_the_plugin_has_the_method(self, method):
+        assert hasattr(QGISRed, method), f"QGISRed has no {method}()"
+
+    @pytest.mark.parametrize("method, args", PLUGIN_ENTRY_POINTS)
+    def test_the_method_takes_the_arguments_the_click_passes(self, method, args):
+        inspect.signature(getattr(QGISRed, method)).bind(MagicMock(), *args)
