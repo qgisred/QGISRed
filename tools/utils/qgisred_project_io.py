@@ -122,14 +122,13 @@ class QGISRedProjectIO:
                     return cfg
         return None
 
+    _TREE_GROUP_RE = re.compile(r'^Queries/(?:Tree_|Trees/)')
+
     def _openGroupByName(self, groupName, layerNames):
         from .qgisred_layer_utils import QGISRedLayerUtils
         from .qgisred_styling_utils import QGISRedStylingUtils
 
-        # Special case: Tree subgroups — old style "Queries/Tree_*" or new style "Queries/Trees/Tree: ..."
-        if re.match(r'^Queries/(?:Tree_|Trees/Tree:)', groupName):
-            # Layer names are sanitized ASCII (e.g. "Nodes_Tree_J5_Union").
-            # Recover the actual tree name (e.g. "J5-Unión") by scanning its subfolder.
+        if self._TREE_GROUP_RE.match(groupName):
             import glob as _glob
             import unicodedata as _ud
             sanitized_tree = None
@@ -138,17 +137,20 @@ class QGISRedProjectIO:
                 if m:
                     sanitized_tree = m.group(1)
                     break
+                m = re.match(r'^(.+)_(?:Nodes|Links)$', name)
+                if m:
+                    sanitized_tree = m.group(1)
+                    break
             if sanitized_tree is None:
                 return
             queries_dir = os.path.join(self.ProjectDirectory, DIR_QUERIES)
             tree_name = None
             tree_dir = None
-            # Each tree lives in Queries/Trees/ as files named with the full tree name.
             patterns = [
                 os.path.join(queries_dir, "Trees", self.NetworkName + "_Nodes_Tree_*.shp"),
                 os.path.join(queries_dir, "Trees", self.NetworkName + "_Links_Tree_*.shp"),
-                os.path.join(queries_dir, "Trees", self.NetworkName + "_Tree_*_Nodes.shp"),
-                os.path.join(queries_dir, "Trees", self.NetworkName + "_Tree_*_Links.shp"),
+                os.path.join(queries_dir, "Trees", self.NetworkName + "_*_Nodes.shp"),
+                os.path.join(queries_dir, "Trees", self.NetworkName + "_*_Links.shp"),
             ]
             for pattern in patterns:
                 for path in _glob.glob(pattern):
@@ -156,7 +158,7 @@ class QGISRedProjectIO:
                     candidate = None
                     prefix1 = self.NetworkName + "_Nodes_Tree_"
                     prefix2 = self.NetworkName + "_Links_Tree_"
-                    prefix3 = self.NetworkName + "_Tree_"
+                    prefix3 = self.NetworkName + "_"
                     if basename.startswith(prefix1):
                         candidate = basename[len(prefix1):]
                     elif basename.startswith(prefix2):
@@ -181,7 +183,8 @@ class QGISRedProjectIO:
             # Create a group named with the tree name
             group = utils.getOrCreateNestedGroup([self.NetworkName, "Queries", "Trees", tree_name])
             for name in reversed(layerNames):
-                is_link = name.lower().startswith("links")
+                lowered = name.lower()
+                is_link = lowered.startswith("links") or lowered.endswith("_links")
                 utils.openTreeLayer(group, "Links" if is_link else "Nodes", tree_name, link=is_link)
             return
 
