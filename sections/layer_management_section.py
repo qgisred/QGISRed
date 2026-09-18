@@ -750,6 +750,8 @@ class LayerManagementSection:
     def _staleIndicatorRunner(self, kind, layerId):
         if kind == KIND_THEMATIC:
             return lambda: self._rebuildStaleThematicMap(layerId)
+        if kind == KIND_TREE:
+            return lambda: self.runAutoTree(layerId)
         method, arguments = TOOL_RERUN_BY_KIND[kind]
         return lambda: getattr(self, method)(*arguments)
 

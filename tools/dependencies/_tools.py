@@ -225,6 +225,22 @@ class QGISRedToolsMixin:
         return _to_string(b)
 
     @staticmethod
+    def AutoTree(projectFolder, networkName, tempFolder, treeName, root, functionCostCode, ignoreClosedPipes):
+        projectFolder = _encode(projectFolder)
+        networkName = _encode(networkName)
+        tempFolder = _encode(tempFolder)
+        treeName = _encode(treeName)
+        root = _encode(root)
+        functionCostCode = _encode(functionCostCode)
+        ignoreClosedPipes = _encode(ignoreClosedPipes)
+
+        mydll = _load_dll()
+        mydll.AutoTree.argtypes = (c_char_p, c_char_p, c_char_p, c_char_p, c_char_p, c_char_p, c_char_p)
+        mydll.AutoTree.restype = c_char_p
+        b = mydll.AutoTree(projectFolder, networkName, tempFolder, treeName, root, functionCostCode, ignoreClosedPipes)
+        return _to_string(b)
+
+    @staticmethod
     def UpdateDemandSectorThemesFromSource(projectFolder, networkName, sectorizationName, sourceTheme):
         projectFolder = _encode(projectFolder)
         networkName = _encode(networkName)

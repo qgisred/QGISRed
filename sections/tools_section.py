@@ -6,13 +6,14 @@ from qgis.PyQt.QtCore import Qt
 from qgis.PyQt.QtGui import QColor
 from qgis.core import (
     QgsProject, QgsLayerTreeGroup, QgsSymbol, QgsCategorizedSymbolRenderer,
-    QgsRendererCategory, Qgis,
+    QgsRendererCategory, Qgis, QgsVectorLayer, NULL,
 )
 import hashlib
 import os
 
 from ..tools.utils.qgisred_layer_utils import QGISRedLayerUtils
 from ..tools.utils.qgisred_styling_utils import QGISRedStylingUtils
+from ..tools.utils.qgisred_filesystem_utils import DIR_QUERIES
 from ..tools.qgisred_dependencies import QGISRedDependencies as GISRed
 from ..tools.map_tools.qgisred_selectPoint import QGISRedSelectPointTool, SelectPointType
 from ..compat import LAYER_TYPE_VECTOR
@@ -972,6 +973,33 @@ class ToolsSection:
         resMessage = GISRed.Tree(self.ProjectDirectory, self.NetworkName, self.tempFolder, point1)
         QApplication.restoreOverrideCursor()
 
+        self._handleTreeResult(resMessage)
+
+    def runAutoTree(self, layerId):
+        if not self.checkDependencies():
+            return
+        self.defineCurrentProject()
+        if not self.isValidProject():
+            return
+        if self.isLayerOnEdition():
+            return
+
+        treeInfo = self._readAutoTreeInfo(layerId)
+        if treeInfo is None:
+            self.runTree(False)
+            return
+        treeName, root, functionCostCode, ignoreClosedPipes = treeInfo
+
+        QApplication.setOverrideCursor(Qt.CursorShape.WaitCursor)
+        resMessage = GISRed.AutoTree(
+            self.ProjectDirectory, self.NetworkName, self.tempFolder,
+            treeName, root, functionCostCode, ignoreClosedPipes
+        )
+        QApplication.restoreOverrideCursor()
+
+        self._handleTreeResult(resMessage)
+
+    def _handleTreeResult(self, resMessage):
         if resMessage in ("False", "Cancelled"):
             return
         if resMessage == "Select":
@@ -981,6 +1009,57 @@ class ToolsSection:
             self.treeName = resMessage.split("^")[1]
             resMessage = "shps"
         self.processCsharpResult(resMessage, "", layerType="tree")
+
+    def _readAutoTreeInfo(self, layerId):
+        """(treeName, root, functionCostCode, ignoreClosedPipes) read off the tree's own Nodes
+        shapefile, or None when any of it is missing -- e.g. a tree built before AutoTree
+        existed, whose Nodes shapefile carries no CostFn/IgnClosed columns at all."""
+        layer = QgsProject.instance().mapLayer(layerId)
+        if layer is None:
+            return None
+        treeName = self._treeNameFromLayerPath(layer.dataProvider().dataSourceUri().split("|")[0].strip())
+        if not treeName:
+            return None
+
+        nodesPath = os.path.join(
+            self.ProjectDirectory, DIR_QUERIES, "Trees",
+            self.NetworkName + "_" + treeName + "_Nodes.shp"
+        )
+        if not os.path.exists(nodesPath):
+            return None
+
+        nodesLayer = QgsVectorLayer(nodesPath, "temp", "ogr")
+        if not nodesLayer.isValid():
+            return None
+        fields = nodesLayer.fields()
+        if any(fields.indexFromName(name) < 0 for name in ("Id", "NodeType", "CostFn", "IgnClosed")):
+            return None
+
+        for feature in nodesLayer.getFeatures():
+            if feature["NodeType"] != "ROOT":
+                continue
+            root = feature["Id"]
+            functionCostCode = feature["CostFn"]
+            ignoreClosedPipes = feature["IgnClosed"]
+            if root == NULL or functionCostCode == NULL or ignoreClosedPipes == NULL:
+                return None
+            return treeName, root, functionCostCode, ignoreClosedPipes
+
+        return None
+
+    def _treeNameFromLayerPath(self, layerPath):
+        """Recovers the tree's own name from `{Network}_{TreeName}_Nodes.shp` or `..._Links.shp`,
+        the naming WriteTree uses on the C# side -- the tree's identifier is the same for every
+        tree ("qgisred_tree_nodes"/"qgisred_tree_links"), so only the file name tells them apart."""
+        basename = os.path.splitext(os.path.basename(layerPath))[0]
+        prefix = self.NetworkName + "_"
+        if not basename.startswith(prefix):
+            return None
+        rest = basename[len(prefix):]
+        for suffix in ("_Nodes", "_Links"):
+            if rest.endswith(suffix):
+                return rest[:-len(suffix)]
+        return None
 
     def selectPointToTree(self):
         tool = "treeNode"

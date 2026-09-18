@@ -67,9 +67,10 @@ ACTIONABLE_KINDS = (KIND_RESULTS, KIND_THEMATIC, KIND_TREE, KIND_CONNECTIVITY, K
 # tests/test_stale_indicator_action.py would catch one that was renamed or re-arged.
 # KIND_THEMATIC is absent on purpose: it rebuilds one specific layer rather than re-running
 # a tool, so it needs the clicked layer id and is handled by the caller.
+# KIND_TREE is not here: unlike these, it needs the clicked layer's id (to find that
+# specific tree's Nodes shapefile) -- see _staleIndicatorRunner's special case for it.
 TOOL_RERUN_BY_KIND = {
     KIND_RESULTS: ("runModel", ()),
-    KIND_TREE: ("runTree", (False,)),
     KIND_CONNECTIVITY: ("runCheckConnectivity", ()),
     KIND_DEMAND_SECTORS: ("runDemandSectors", ()),
     KIND_ISOLATED_SEGMENTS: ("runIsolatedSegments", (False,)),

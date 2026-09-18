@@ -14,7 +14,7 @@ import pytest
 from QGISRed.qgisred import QGISRed
 from QGISRed.sections.layer_management_section import LayerManagementSection
 from QGISRed.tools.utils.qgisred_stale_layer_manager import (
-    KIND_RESULTS, KIND_THEMATIC, KIND_CONNECTIVITY, KIND_DERIVED, TOOL_RERUN_BY_KIND)
+    KIND_RESULTS, KIND_THEMATIC, KIND_TREE, KIND_CONNECTIVITY, KIND_DERIVED, TOOL_RERUN_BY_KIND)
 
 # Patched on the module under test, never on qgis.PyQt.QtWidgets: patch() on Python 3.9
 # walks getattr from __import__("qgis"), which on the mocked qgis package hands out a
@@ -24,6 +24,7 @@ _PROJECT = "QGISRed.sections.layer_management_section.QgsProject"
 _TIMER = "QGISRed.sections.layer_management_section.QTimer"
 
 THEME_ID = "qgisred_query_pipes_diameter"
+TREE_LAYER_ID = "tree_nodes_layer_id"
 
 # Results have a confirmation test of their own, and the parametrised ones below assert that
 # nothing but the tool they asked for ran.
@@ -31,7 +32,10 @@ TOOL_RERUNS = [(kind, method, args) for kind, (method, args) in TOOL_RERUN_BY_KI
                if kind != KIND_RESULTS]
 
 # Every plugin method this feature calls by name, with the arguments it passes.
-PLUGIN_ENTRY_POINTS = list(TOOL_RERUN_BY_KIND.values()) + [("runRebuildThematicMaps", ([THEME_ID],))]
+PLUGIN_ENTRY_POINTS = list(TOOL_RERUN_BY_KIND.values()) + [
+    ("runRebuildThematicMaps", ([THEME_ID],)),
+    ("runAutoTree", (TREE_LAYER_ID,)),
+]
 
 
 def _section():
@@ -39,6 +43,7 @@ def _section():
     section.iface = MagicMock()
     section.tr = lambda message: message
     section.runRebuildThematicMaps = MagicMock(return_value=True)
+    section.runAutoTree = MagicMock()
     for method, _args in TOOL_RERUN_BY_KIND.values():
         setattr(section, method, MagicMock())
     section._staleLayerManager = MagicMock()
@@ -193,6 +198,27 @@ class TestThematicRebuild:
         section._runStaleIndicatorAction("theme", KIND_THEMATIC)
 
         section.runRebuildThematicMaps.assert_not_called()
+
+
+class TestTreeAutoRefresh:
+    """Unlike the other tools, Tree needs to know *which* tree went stale -- there is no
+    fixed-args table entry for it, see TOOL_RERUN_BY_KIND's comment."""
+
+    def test_a_tree_warning_calls_auto_tree_with_the_layer_id_when_accepted(self, answer, project):
+        section = _section()
+        answer(1)
+
+        section._runStaleIndicatorAction(TREE_LAYER_ID, KIND_TREE)
+
+        section.runAutoTree.assert_called_once_with(TREE_LAYER_ID)
+
+    def test_declining_leaves_the_tree_alone(self, answer, project):
+        section = _section()
+        answer(2)
+
+        section._runStaleIndicatorAction(TREE_LAYER_ID, KIND_TREE)
+
+        section.runAutoTree.assert_not_called()
 
 
 class TestDeferral:
