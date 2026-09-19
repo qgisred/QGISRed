@@ -150,6 +150,34 @@ are added by Python.
 
 ---
 
+## 5b. Stale spatial indexes — `.qix` after an in-place overwrite
+
+`_tryReloadExistingLayer()` (§3) and the results reload in `qgisred_results_dock.py`
+(§5) both call `reloadData()` on a shapefile just overwritten in place, but neither one
+touches a sidecar spatial index (`.qix`). GDAL does not update a `.qix` incrementally —
+a copy of it built for a previous feature count/order/extent can make the renderer
+silently skip features that are still very much in the file, until the index is rebuilt
+or QGIS is restarted. QGIS itself never creates a `.qix`; building one is always an
+explicit user action (Layer Properties > Source > "Create Spatial Index"), so this only
+bites a project where the user (or a prior version of this plugin) built one at some
+point.
+
+`tools/utils/qgisred_spatial_index_rebuilder.py` handles it: `maybeRebuildSpatialIndex(path)`,
+called right after every `reloadData()` on a shapefile written in place, is a no-op unless
+that path already had a `.qix` — nothing is indexed that was not indexed before. If one
+existed, it drops the stale `.qix`/`.sbn`/`.sbx` synchronously (GDAL will just scan the
+file unindexed on the next read, which is always correct, only slower on very large
+layers) and queues a background `QgsTask` that rebuilds it via raw GDAL (`osgeo.ogr`,
+never a `QgsVectorLayer` — nothing Qt may be touched off the main thread).
+
+A reload landing while a rebuild for that same path is still in flight does not delete
+anything (the file may be mid-write; deleting it under GDAL is not safe and not
+possible on Windows) — it is queued and replayed the moment the in-flight build's
+`on_finished` callback fires, so a rapid string of DLL runs collapses to one rebuild at
+a time instead of racing.
+
+---
+
 ## 6. Group visibility — automatic activation via `getOrCreateNestedGroup`
 
 ### Goal

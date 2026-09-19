@@ -12,6 +12,7 @@ from ...compat import sip, FIELD_TYPE_STRING, FIELD_TYPE_DOUBLE, ATCOL_TYPE_FIEL
 
 from ...tools.utils.qgisred_filesystem_utils import QGISRedFileSystemUtils, DIR_RESULTS
 from ...tools.utils.qgisred_layer_utils import QGISRedLayerUtils
+from ...tools.utils.qgisred_spatial_index_rebuilder import maybeRebuildSpatialIndex
 from ...tools.utils.qgisred_ui_utils import QGISRedUIUtils
 from ...tools.utils.qgisred_field_utils import QGISRedFieldUtils
 from ...tools.utils.qgisred_project_utils import QGISRedProjectUtils
@@ -742,6 +743,7 @@ class QGISRedResultsDock(
                     # updateFields() syncs the layer's field cache with the provider so that
                     # prepareResultFields() correctly detects the missing fields and re-adds them.
                     existingLayer.dataProvider().reloadData()
+                    maybeRebuildSpatialIndex(resultLayerPath)
                     existingLayer.updateExtents()
                     existingLayer.updateFields()
             if existingLayer is not None:

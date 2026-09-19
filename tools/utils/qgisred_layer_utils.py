@@ -12,6 +12,7 @@ from qgis.core import (
 )
 
 from ...compat import QGIS_WARNING
+from .qgisred_spatial_index_rebuilder import maybeRebuildSpatialIndex
 
 
 class QGISRedLayerUtils:
@@ -479,6 +480,7 @@ class QGISRedLayerUtils:
         layer = self._findLayerByPath(layerPath)
         if layer is not None:
             layer.dataProvider().reloadData()
+            maybeRebuildSpatialIndex(layerPath)
             if self._isUnderAuxiliaryLayersGroup(layer):
                 layer.setDataSource(layerPath, layer.name(), "ogr", QgsDataProvider.ProviderOptions())
                 layer.setAttributeTableConfig(QgsAttributeTableConfig())
