@@ -68,7 +68,7 @@ TOOL_RERUN_BY_KIND = {
     KIND_RESULTS: ("runModel", ()),
     KIND_CONNECTIVITY: ("runCheckConnectivity", ()),
     KIND_DEMAND_SECTORS: ("runDemandSectors", ()),
-    KIND_ISOLATED_SEGMENTS: ("runIsolatedSegments", (False,)),
+    KIND_ISOLATED_SEGMENTS: ("runAutoIsolatedSegments", ()),
     KIND_HYDRAULIC_SECTORS: ("runHydraulicSectors", ()),
 }
 

@@ -13,7 +13,7 @@ import os
 
 from ..tools.utils.qgisred_layer_utils import QGISRedLayerUtils
 from ..tools.utils.qgisred_styling_utils import QGISRedStylingUtils
-from ..tools.utils.qgisred_filesystem_utils import DIR_QUERIES
+from ..tools.utils.qgisred_filesystem_utils import DIR_QUERIES, LAYER_TYPE_CONFIG
 from ..tools.qgisred_dependencies import QGISRedDependencies as GISRed
 from ..tools.map_tools.qgisred_selectPoint import QGISRedSelectPointTool, SelectPointType
 from ..compat import LAYER_TYPE_VECTOR
@@ -473,21 +473,43 @@ class ToolsSection:
             return
 
         resMessage = "Select"
-        tool = "pointIsolatedSegment"
         if point is True or point is False:
             point = ""
             self.gisredDll = None
         if not point == "":
             point = self.transformPoint(point)
-            point = str(point.x()) + ":" + str(point.y())
+            pointCode = str(point.x()) + ":" + str(point.y())
+            resMessage = self._computeIsolatedSegments(pointCode)
 
-            # Process
-            if self.gisredDll is None:
-                self.gisredDll = GISRed.CreateInstance()
-            QApplication.setOverrideCursor(Qt.CursorShape.WaitCursor)
-            resMessage = GISRed.IsolatedSegments(self.gisredDll, self.ProjectDirectory, self.NetworkName, self.tempFolder, point)
-            QApplication.restoreOverrideCursor()
+        self._handleIsolatedSegmentsResult(resMessage, "pointIsolatedSegment")
 
+    def runAutoIsolatedSegments(self):
+        if not self.checkDependencies():
+            return
+        self.defineCurrentProject()
+        if not self.isValidProject():
+            return
+        if self.isLayerOnEdition():
+            return
+
+        pointCode = self._readIncidencePoint()
+        if pointCode is None:
+            self.runIsolatedSegments(False)
+            return
+
+        self.gisredDll = None
+        resMessage = self._computeIsolatedSegments(pointCode)
+        self._handleIsolatedSegmentsResult(resMessage, "pointIsolatedSegment")
+
+    def _computeIsolatedSegments(self, pointCode):
+        if self.gisredDll is None:
+            self.gisredDll = GISRed.CreateInstance()
+        QApplication.setOverrideCursor(Qt.CursorShape.WaitCursor)
+        resMessage = GISRed.IsolatedSegments(self.gisredDll, self.ProjectDirectory, self.NetworkName, self.tempFolder, pointCode)
+        QApplication.restoreOverrideCursor()
+        return resMessage
+
+    def _handleIsolatedSegmentsResult(self, resMessage, tool):
         if resMessage in ("False", "Cancelled"):
             return
         if resMessage == "Select":
@@ -502,6 +524,32 @@ class ToolsSection:
             self.gisredDll = None
         self.blockLayers(False)
         self.processCsharpResult(resMessage, "", layerType="isolatedSegments")
+
+    def _readIncidencePoint(self):
+        """The "x:y" string IsolatedSegments needs, read off the INCIDENCE node
+        WriteIsolatedNodes stamps on its own run -- the exact point the user originally
+        clicked. It's already in the project's own CRS (the one the DLL writes shapefiles
+        in), so unlike a fresh canvas click it needs no transformPoint."""
+        nodesPath = os.path.join(
+            self.ProjectDirectory, LAYER_TYPE_CONFIG["IsolatedSegments"]["subdir"],
+            self.NetworkName + "_IsolatedSegments_Nodes.shp"
+        )
+        if not os.path.exists(nodesPath):
+            return None
+
+        nodesLayer = QgsVectorLayer(nodesPath, "temp", "ogr")
+        if not nodesLayer.isValid():
+            return None
+        if nodesLayer.fields().indexFromName("NodeType") < 0:
+            return None
+
+        for feature in nodesLayer.getFeatures():
+            if feature["NodeType"] != "INCIDENCE":
+                continue
+            point = feature.geometry().asPoint()
+            return str(point.x()) + ":" + str(point.y())
+
+        return None
 
     def _applyDemandBuilderStyle(self, vlayer, sourceName=""):
         """Paint a Demand Builder auxiliary layer.
