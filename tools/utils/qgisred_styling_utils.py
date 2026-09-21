@@ -691,6 +691,11 @@ class QGISRedStylingUtils:
                 return self.tr("Closed Links")
             if field in ("Type", "ValveType"):
                 return getValveTypeName(value)
+            if field == "ArcType":
+                if value == "Branch":
+                    return self.tr("Branches")
+                if value == "Chord":
+                    return self.tr("Chords")
         return str(value)
 
     def translateRendererLabels(self, layer):

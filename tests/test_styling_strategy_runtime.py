@@ -205,7 +205,7 @@ class TestDeterministicRandomColor:
 
 
 class TestTranslateRendererLabels:
-    def _translate(self, monkeypatch, categories):
+    def _translate(self, monkeypatch, categories, field="Class"):
         monkeypatch.setattr(stylingModule, "QgsCategorizedSymbolRenderer", FakeCategorizedRenderer)
 
         class FakeRendererCategory:
@@ -230,7 +230,7 @@ class TestTranslateRendererLabels:
         monkeypatch.setattr(stylingModule, "QgsRendererCategory", FakeRendererCategory)
         utils = _utils()
         utils.tr = lambda message: message
-        layer = FakeLayer(FakeCategorizedRenderer(categories))
+        layer = FakeLayer(FakeCategorizedRenderer(field, categories))
         utils.translateRendererLabels(layer)
         return layer.setRenderers[0]._categories
 
@@ -243,3 +243,9 @@ class TestTranslateRendererLabels:
     def test_special_values_are_still_translated(self, monkeypatch):
         rebuiltCategories = self._translate(monkeypatch, [FakeCategory("ClosedLinks", label="whatever")])
         assert rebuiltCategories[0].label() == "Closed Links"
+
+    def test_tree_branch_and_chord_are_translated(self, monkeypatch):
+        categories = [FakeCategory("Branch", label="Ramas"), FakeCategory("Chord", label="Cuerdas")]
+        rebuiltCategories = self._translate(monkeypatch, categories, field="ArcType")
+        assert rebuiltCategories[0].label() == "Branches"
+        assert rebuiltCategories[1].label() == "Chords"

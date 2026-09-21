@@ -2,8 +2,8 @@
 <qgis version="3.40.14-Bratislava" styleCategories="Symbology|Labeling|MapTips" labelsEnabled="0">
   <renderer-v2 symbollevels="0" referencescale="-1" type="categorizedSymbol" enableorderby="0" attr="ArcType" forceraster="0">
     <categories>
-      <category value="Branch" label="Ramas" render="true" uuid="{c898d5eb-1b85-4b39-bebb-3630fff3dcd7}" symbol="0" type="string"/>
-      <category value="Chord" label="Cuerdas" render="true" uuid="{d78e43b7-c5b5-436a-9ce0-e1648edfabad}" symbol="1" type="string"/>
+      <category value="Branch" label="Branches" render="true" uuid="{c898d5eb-1b85-4b39-bebb-3630fff3dcd7}" symbol="0" type="string"/>
+      <category value="Chord" label="Chords" render="true" uuid="{d78e43b7-c5b5-436a-9ce0-e1648edfabad}" symbol="1" type="string"/>
     </categories>
     <symbols>
       <symbol is_animated="0" alpha="1" frame_rate="10" name="0" clip_to_extent="1" type="line" force_rhr="0">
