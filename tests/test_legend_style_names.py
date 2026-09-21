@@ -144,16 +144,16 @@ class TestStyleNameForIdentifier:
         ("qgisred_sources", "Sources.qml.bak"),
         ("qgisred_meters", "Meters.qml.bak"),
         # These two were saved as MultipleDemands.qml and ServiceConnection.qml (singular).
-        ("qgisred_demands", "demands.qml.bak"),
+        ("qgisred_demands", "Demands.qml.bak"),
         ("qgisred_serviceconnections", "ServiceConnections.qml.bak"),
         ("qgisred_isolationvalves", "IsolationValves.qml.bak"),
         # And this whole family was saved with short names full of underscores.
         ("qgisred_hydraulicsectors_links", "HydraulicSectorsLinks.qml.bak"),
         ("qgisred_hydraulicsectors_nodes", "HydraulicSectorsNodes.qml.bak"),
         ("qgisred_hydraulicsectors_isolateddemands", "HydraulicSectorsIsolatedDemands.qml.bak"),
-        ("qgisred_isolatedsegments_links", "isolatedSegmentsLinks.qml.bak"),
-        ("qgisred_isolatedsegments_nodes", "isolatedSegmentsNodes.qml.bak"),
-        ("qgisred_isolatedsegments_isolateddemands", "isolatedSegmentsIsolatedDemands.qml.bak"),
+        ("qgisred_isolatedsegments_links", "IsolatedSegmentsLinks.qml.bak"),
+        ("qgisred_isolatedsegments_nodes", "IsolatedSegmentsNodes.qml.bak"),
+        ("qgisred_isolatedsegments_isolateddemands", "IsolatedSegmentsIsolatedDemands.qml.bak"),
         ("qgisred_tree_links", "TreeLinks.qml.bak"),
         ("qgisred_tree_nodes", "TreeNodes.qml.bak"),
         ("qgisred_connectivity_links", "ConnectLinks.qml.bak"),
@@ -208,7 +208,7 @@ class TestElementNameForIdentifier:
 
     def test_input_layer_ignores_the_translated_layer_name_too(self):
         # It used to come from identifierToElementName, which gave names setStyle never
-        # asks for ("Multiple Demands" against demands.qml).
+        # asks for ("Multiple Demands" against Demands.qml).
         dialog = _dialog(None, layerName="Tuberías")
 
         assert dialog.getElementNameForIdentifier("qgisred_pipes") == "pipes"

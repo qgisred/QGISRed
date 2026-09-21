@@ -407,7 +407,7 @@ class TestShippedStyles:
         assert markerExprs == {"fillColor": SERVICE_CONNECTION_FILL, "outlineColor": SERVICE_CONNECTION_STROKE}
 
     def test_multiple_demands(self):
-        (_, outerExprs, _), (_, innerExprs, _) = _rendererLayers("demands.qml.bak")
+        (_, outerExprs, _), (_, innerExprs, _) = _rendererLayers("Demands.qml.bak")
         assert outerExprs == {}
         assert innerExprs == {"fillColor": DEMANDS_FILL, "size": DEMANDS_SIZE}
 

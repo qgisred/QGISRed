@@ -45,7 +45,7 @@ class TestFieldRetrocompatInExpressions:
     SHIPPED_STYLES = [
         ("ServiceConnections.qml.bak", "BaseDem", "BaseDemand"),
         ("IsolationValves.qml.bak", "IniStatus", "Status"),
-        ("demands.qml.bak", "BaseDem", "BaseValue"),
+        ("Demands.qml.bak", "BaseDem", "BaseValue"),
         ("Meters.qml.bak", "MeterType", "Type"),
     ]
 
