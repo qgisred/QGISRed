@@ -215,9 +215,9 @@ def project(tmp_path):
             os.path.join(projDir, "Auxiliary Layers", "DemandBuilder",
                          NET + "_DemandBuilder_Sectors_sec1.shp"), old),
         "demandSectors": _write(
-            os.path.join(projDir, "Auxiliary Layers", "DemandSectors", NET + "_DemandSectors_Nodes.shp"), old),
-        # A sectorization the user named after the network, so the input-prefix rule alone
-        # would not keep it out.
+            os.path.join(projDir, "Queries", "DemandSectors", NET + "_DemandSectors_Nodes.shp"), old),
+        # The demand sector builder's own sectorizations, unrelated to the quick DLL tool
+        # above: they live under Auxiliary Layers, which is never monitored.
         "sectorization": _write(
             os.path.join(projDir, "Auxiliary Layers", "DemandSectors", NET + "_sec1", NET + "_sec1_Nodes.shp"),
             old),
@@ -313,8 +313,8 @@ class TestRelevance:
         assert item.flagged() == {"demSec"}
 
     def test_a_sectorization_theme_is_never_flagged(self, project, harness):
-        """The demand sector builders keep the user's sectorizations one folder below the
-        DLL's demand sectors; nothing there is recomputed from the network."""
+        """The demand sector builder's sectorizations are the user's own generated groups
+        under Auxiliary Layers, which is never monitored."""
         _projDir, paths = project
         item = harness([_FakeLayer("theme", paths["sectorization"])])
         item.manager._check()

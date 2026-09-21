@@ -30,11 +30,6 @@ from .qgisred_project_utils import QGISRedProjectUtils
 # written, what they show no longer describes the current network.
 MONITORED_SUBDIRS = (DIR_ISSUES, DIR_QUERIES, DIR_RESULTS)
 
-# Monitored for their direct children only. The DLL writes the demand sectors straight into
-# this folder; its subfolders hold the sectorizations the demand sector builders make from
-# the user's own data, which no input edit can invalidate.
-MONITORED_FLAT_SUBDIRS = (LAYER_TYPE_CONFIG["DemandSectors"]["subdir"],)
-
 # The Demand Builder's themes are the user's own working data — imported consumption
 # points, billing sectors — not something the plugin recomputes from the network, so an
 # input edited afterwards says nothing about whether they are still valid. Excluded by
@@ -230,10 +225,7 @@ class StaleLayerManager:
 
     @classmethod
     def _isMonitoredPath(cls, normFile, projDir):
-        if any(cls._isUnder(normFile, projDir, monitored) for monitored in MONITORED_SUBDIRS):
-            return True
-        return any(os.path.dirname(normFile) == os.path.normcase(os.path.join(projDir, flat))
-                   for flat in MONITORED_FLAT_SUBDIRS)
+        return any(cls._isUnder(normFile, projDir, monitored) for monitored in MONITORED_SUBDIRS)
 
     @classmethod
     def _kindForPath(cls, normFile, projDir):

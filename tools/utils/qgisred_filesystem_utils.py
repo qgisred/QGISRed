@@ -47,8 +47,8 @@ LAYER_TYPE_CONFIG = {
         "flags":     {"sectors": True},
     },
     "DemandSectors": {
-        "subdir":    os.path.join(DIR_AUXILIARY_LAYERS, DIR_DEMAND_SECTORS),
-        "tree_path": ["Auxiliary Layers", "DemandSectors"],
+        "subdir":    os.path.join(DIR_QUERIES, DIR_DEMAND_SECTORS),
+        "tree_path": ["Queries", "Demand Sectors"],
         "flags":     {"sectors": True},
     },
     "Connectivity": {
