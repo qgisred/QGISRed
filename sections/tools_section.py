@@ -1005,10 +1005,48 @@ class ToolsSection:
         if resMessage == "Select":
             self.selectPointToTree()
             return
+        if resMessage.startswith("removeTree^"):
+            treeName = resMessage.split("^", 1)[1]
+            utils = QGISRedLayerUtils(self.ProjectDirectory, self.NetworkName, self.iface)
+            utils.runTask(
+                lambda: self._removeTreeLayersFromMap(treeName),
+                lambda: self.runTree(False),
+            )
+            return
         if "shps" in resMessage:
             self.treeName = resMessage.split("^")[1]
             resMessage = "shps"
         self.processCsharpResult(resMessage, "", layerType="tree")
+
+    def _removeTreeLayersFromMap(self, treeName):
+        """Unload a tree's Nodes/Links layers (and their now-empty groups) from QGIS.
+
+        DeleteSelectedTree (C# side) defers the actual file deletion when it finds the
+        shapefiles still open as QGIS layers, closes the dialog and returns
+        "removeTree^<name>" instead. removeMapLayer() only *schedules* the layer's
+        destruction -- the OGR file handle isn't released until one turn of the event
+        loop runs (same reason qgisred_layermanagement_dialog.deleteAuxiliaryTheme defers
+        its own file deletion) -- so the caller reopens Tree() only after that turn, via
+        QGISRedLayerUtils.runTask(), or C# would find the shapefiles still locked.
+        """
+        QGISRedLayerUtils.stopRenderingForRemoval(self.iface)
+
+        treesFolder = os.path.join(self.ProjectDirectory, DIR_QUERIES, "Trees")
+        targetPaths = {
+            os.path.normcase(os.path.join(treesFolder, self.NetworkName + "_" + treeName + suffix + ".shp"))
+            for suffix in ("_Nodes", "_Links")
+        }
+
+        for layer in list(QgsProject.instance().mapLayers().values()):
+            try:
+                layerPath = layer.dataProvider().dataSourceUri().split("|")[0].strip()
+            except AttributeError:
+                continue
+            if os.path.normcase(layerPath) in targetPaths:
+                QgsProject.instance().removeMapLayer(layer.id())
+
+        self.removeEmptyQuerySubGroup(treeName)
+        self.removeEmptyQuerySubGroup("Trees")
 
     def _readAutoTreeInfo(self, layerId):
         """(treeName, root, functionCostCode, ignoreClosedPipes) read off the tree's own Nodes
