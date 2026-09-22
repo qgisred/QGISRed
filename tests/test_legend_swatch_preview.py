@@ -104,12 +104,12 @@ class TestTrueLineSize:
         assert line.width() == pytest.approx(1.6)
         assert markerLine.icon.size() == pytest.approx(10)
 
-    def test_a_hairline_is_still_visible(self):
+    def test_a_hairline_is_drawn_as_thin_as_typed(self):
         line = _FakeLine(0.8)
 
         _selector(0.01).applyTrueLineSize(_FakeLineSymbol(line))
 
-        assert line.width() == pytest.approx(QGISRedSymbolColorSelector.minimumPreviewLineWidth)
+        assert line.width() == pytest.approx(0.01)
 
     def test_a_line_without_a_width_yet_takes_the_cell_value(self):
         line = _FakeLine(0)
@@ -117,33 +117,6 @@ class TestTrueLineSize:
         _selector(0.6).applyTrueLineSize(_FakeLineSymbol(line))
 
         assert line.width() == pytest.approx(0.6)
-
-
-class TestFitToSwatch:
-    def test_a_symbol_that_fits_is_left_at_its_true_size(self):
-        line, markerLine = _FakeLine(0.8), _FakeMarkerLine(5)
-
-        reduced = _selector(None).fitPreviewToSwatch(_FakeLineSymbol(line, markerLine), 7.0)
-
-        assert reduced is False
-        assert (line.width(), markerLine.icon.size()) == (0.8, 5)
-
-    def test_a_symbol_too_big_is_reduced_as_a_whole(self):
-        line, markerLine = _FakeLine(1.6), _FakeMarkerLine(10)
-
-        reduced = _selector(None).fitPreviewToSwatch(_FakeLineSymbol(line, markerLine), 5.0)
-
-        assert reduced is True
-        assert markerLine.icon.size() == pytest.approx(5.0)
-        assert line.width() == pytest.approx(0.8)  # same proportion to the icon as before
-
-    def test_a_marker_too_big_is_reduced(self):
-        tank = _FakeMarkerSymbol(7)
-
-        reduced = _selector(None).fitPreviewToSwatch(tank, 4.2)
-
-        assert reduced is True
-        assert tank.size() == pytest.approx(4.2)
 
 
 class TestMapAndScreenDpi:
@@ -167,8 +140,7 @@ class TestMapAndScreenDpi:
 
 
 class TestNoSkewedWidthCall:
-    @pytest.mark.parametrize("method", ["applySizeScaling", "applyTrueLineSize", "scaleLineSymbol",
-                                        "fitPreviewToSwatch"])
+    @pytest.mark.parametrize("method", ["applySizeScaling", "applyTrueLineSize", "scaleLineSymbol"])
     def test_the_preview_never_sets_the_width_of_the_whole_symbol(self, method):
         source = inspect.getsource(getattr(QGISRedSymbolColorSelector, method))
         code = "\n".join(line.split("#")[0] for line in source.splitlines())
