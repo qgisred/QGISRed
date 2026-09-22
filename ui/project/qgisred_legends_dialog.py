@@ -4773,7 +4773,7 @@ class QGISRedLegendsDialog(QDialog, formClass):
 
         path = os.path.join(folder, filename)
 
-        selectedParts = self.promptForStrategyParts(globalStyle)
+        selectedParts = self.promptForStrategyParts(globalStyle, path)
         if selectedParts is None:
             return
 
@@ -4822,21 +4822,23 @@ class QGISRedLegendsDialog(QDialog, formClass):
             tempLayer.removeCustomProperty("qgisred_legend_strategy")
         tempLayer.saveNamedStyle(path)
 
-    def promptForStrategyParts(self, globalStyle):
-        applicableParts = self.getBuildableStrategyParts()
-        if not applicableParts:
+    def promptForStrategyParts(self, globalStyle, path):
+        """Parts to save as a strategy: [] for a fixed legend, None when the user cancels.
+
+        Every classified legend is asked, whatever its modes are set to: a part that cannot
+        be recalculated is shown greyed with the reason, instead of the question vanishing.
+        """
+        if self.currentFieldType not in (self.FIELD_TYPE_NUMERIC, self.FIELD_TYPE_CATEGORICAL):
             return []
 
-        isCategorical = self.currentFieldType == self.FIELD_TYPE_CATEGORICAL
-        structuralApplicable = "allClasses" in applicableParts or "intervals" in applicableParts
-
+        previousStrategy = self.readStrategyFromStyleFile(path) if os.path.exists(path) else None
         dialog = QGISRedSaveStrategyDialog(
             self.currentLayer.name(),
+            os.path.basename(path),
             globalStyle,
-            isCategorical,
-            structuralApplicable,
-            "sizes" in applicableParts,
-            "colors" in applicableParts,
+            self.currentFieldType == self.FIELD_TYPE_CATEGORICAL,
+            self.describeStrategyParts(),
+            initialParts=self.strategyParts(previousStrategy) if previousStrategy else (),
             parent=self,
         )
         if dialog.exec_() != QDialog.DialogCode.Accepted:
@@ -5316,36 +5318,100 @@ class QGISRedLegendsDialog(QDialog, formClass):
             self.applySizeLogic()
             self.applyColorLogic()
 
-    def getBuildableStrategyParts(self):
-        if not self.currentFieldName:
-            return []
-        parts = []
-        if (
-            self.currentFieldType == self.FIELD_TYPE_CATEGORICAL
-            and self.tableView.rowCount() > 0
-            and self._sourceRuleRenderer is None  # rule-based classes cannot be snapshotted
-        ):
-            parts.append("allClasses")
-        if self.canBuildIntervalsPart():
-            parts.append("intervals")
-        if self.canBuildSizesPart():
-            parts.append("sizes")
-        if self.canBuildColorsPart():
-            parts.append("colors")
-        return parts
-
     def canBuildIntervalsPart(self):
         if self.currentFieldType != self.FIELD_TYPE_NUMERIC:
             return False
         return self.cbMode.currentData() in ("EqualInterval", "Quantile", "Jenks", "StdDev", "Pretty")
 
+    def isRuleBasedCategoricalLegend(self):
+        # Replaying colors or sizes would rebuild these as plain categories and lose their rules.
+        return self.currentFieldType == self.FIELD_TYPE_CATEGORICAL and self._sourceRuleRenderer is not None
+
     def canBuildSizesPart(self):
         if self.currentFieldType not in (self.FIELD_TYPE_NUMERIC, self.FIELD_TYPE_CATEGORICAL):
             return False
+        if self.isRuleBasedCategoricalLegend():
+            return False
         return self.cbSizes.currentText() in ("Equal", "Linear", "Quadratic", "Exponential", "Proportional to Value")
+
+    def canRebuildClassesFromValues(self):
+        """Classes are rebuilt from the values of a column, and only while coloring them."""
+        if not self.canBuildColorsPart():
+            return False
+        return self.currentLayer.fields().indexFromName(self.currentFieldName) != -1
+
+    def describeStrategyParts(self):
+        """For each part of an automatic legend: what it would store, and why it cannot if so."""
+        if self.currentFieldType == self.FIELD_TYPE_CATEGORICAL:
+            structuralName = self.tr("Classes")
+            structuralSummary = (self.tr("Classes: rebuilt from the values of the layer (%1 now)")
+                                 .replace("%1", str(self.tableView.rowCount())))
+            structuralReason = self.classesPartReason()
+        else:
+            structuralName = self.tr("Intervals")
+            structuralSummary = (self.tr("Intervals: %1, %2 classes").replace("%1", self.cbMode.currentText())
+                                 .replace("%2", str(int(self.leClassCount.value()))))
+            structuralReason = self.intervalsPartReason()
+        return {
+            "structural": self.strategyPartOption(structuralName, structuralSummary, structuralReason),
+            "sizes": self.strategyPartOption(self.tr("Sizes"), self.describeSizesPart(), self.sizesPartReason()),
+            "colors": self.strategyPartOption(self.tr("Colors"), self.describeColorsPart(), self.colorsPartReason()),
+        }
+
+    def strategyPartOption(self, partName, summary, reason):
+        if reason:
+            return self.tr("%1: kept as shown").replace("%1", partName), reason
+        return summary, ""
+
+    def describeSizesPart(self):
+        if self.cbSizes.currentText() == "Equal":
+            return self.tr("Sizes: %1 mm for every class").replace("%1", self.formatSizeText(self.spinSizeEqual.value()))
+        return (self.tr("Sizes: %1, from %2 to %3 mm").replace("%1", self.cbSizes.currentText())
+                .replace("%2", self.formatSizeText(self.spinSizeMin.value()))
+                .replace("%3", self.formatSizeText(self.spinSizeMax.value())))
+
+    def describeColorsPart(self):
+        if self.currentColorMode() == "Random":
+            return self.tr("Colors: random")
+        summary = (self.tr("Colors: %1, %2").replace("%1", self.cbColors.currentText())
+                   .replace("%2", str(self.btnColorRamp.activeRampName)))
+        return summary + self.tr(" (inverted)") if self.ckColorInvert.isChecked() else summary
+
+    def ruleBasedLegendReason(self):
+        return self.tr("This legend follows rules set by the plugin, so it is always saved as shown.")
+
+    def intervalsPartReason(self):
+        if self.canBuildIntervalsPart():
+            return ""
+        return self.tr("The intervals are set by hand. Choose a mode that calculates them to have them recalculated.")
+
+    def classesPartReason(self):
+        if self.isRuleBasedCategoricalLegend():
+            return self.ruleBasedLegendReason()
+        if not self.canBuildColorsPart():
+            return self.tr("Classes are rebuilt while coloring them: choose Random, a ramp or a palette in Colors first.")
+        if not self.canRebuildClassesFromValues():
+            return self.tr("These classes come from a formula, not from a column, so they cannot be rebuilt.")
+        return ""
+
+    def sizesPartReason(self):
+        if self.isRuleBasedCategoricalLegend():
+            return self.ruleBasedLegendReason()
+        if self.canBuildSizesPart():
+            return ""
+        return self.tr("The sizes are set by hand. Choose Equal, Linear or another mode in Sizes to have them recalculated.")
+
+    def colorsPartReason(self):
+        if self.isRuleBasedCategoricalLegend():
+            return self.ruleBasedLegendReason()
+        if self.canBuildColorsPart():
+            return ""
+        return self.tr("The colors are set by hand. Choose Random, a ramp or a palette in Colors to have them recalculated.")
 
     def canBuildColorsPart(self):
         if self.currentFieldType not in (self.FIELD_TYPE_NUMERIC, self.FIELD_TYPE_CATEGORICAL):
+            return False
+        if self.isRuleBasedCategoricalLegend():
             return False
         mode = self.currentColorMode()
         return mode == "Random" or self.isRampOrPaletteMode(mode)

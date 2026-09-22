@@ -9,7 +9,7 @@ from ...compat import SL_PROP_SIZE, SL_PROP_WIDTH, SL_PROP_STROKE_WIDTH, sip
 from ...tools.utils.qgisred_styling_utils import QGISRedStylingUtils
 from qgis.PyQt.QtWidgets import QDialog, QDialogButtonBox, QDoubleSpinBox, QLabel, QVBoxLayout
 from qgis.PyQt.QtWidgets import QToolButton, QComboBox, QApplication, QStylePainter, QStyleOptionComboBox, QSizePolicy
-from qgis.PyQt.QtWidgets import QCheckBox, QLineEdit
+from qgis.PyQt.QtWidgets import QCheckBox, QLineEdit, QRadioButton
 from qgis.PyQt.QtCore import pyqtSignal, Qt, QEvent, QSize, QObject, QPoint, QItemSelectionModel, QItemSelection
 from qgis.PyQt.QtCore import QLocale
 
@@ -67,42 +67,59 @@ class QGISRedRangeEditDialog(QDialog):
 
 
 class QGISRedSaveStrategyDialog(QDialog):
-    def __init__(self, layerName, isGlobal, isCategorical,
-                 structuralApplicable, sizesApplicable, colorsApplicable,
-                 initialStructural=False, initialSizes=False, initialColors=False, parent=None):
+    """Asks how a classified legend is saved: fixed as shown, or recalculated on load.
+
+    partOptions maps "structural", "sizes" and "colors" to (what the part would store, why
+    it cannot be recalculated); an empty reason means the part can be ticked. A tick
+    always means "recalculated when the style is loaded".
+    """
+
+    def __init__(self, layerName, fileName, isGlobal, isCategorical, partOptions, initialParts=(), parent=None):
         super().__init__(parent)
 
         self.layerName = layerName
+        self.fileName = fileName
         self.isGlobal = isGlobal
         self.isCategorical = isCategorical
+        self.partOptions = partOptions
 
-        structuralLabel = self.tr("Save strategy for All Classes") if isCategorical else self.tr("Save strategy for Intervals")
-        self.ckStructural = self.createPartCheckBox(structuralLabel, structuralApplicable, initialStructural)
-        self.ckSizes = self.createPartCheckBox(self.tr("Save strategy for Sizes"), sizesApplicable, initialSizes)
-        self.ckColors = self.createPartCheckBox(self.tr("Save strategy for Colors"), colorsApplicable, initialColors)
+        self.rbFixedLegend = QRadioButton(self.tr("Fixed legend: save it exactly as shown"))
+        self.rbAutomaticLegend = QRadioButton(self.tr("Automatic legend: recalculate it when the style is loaded"))
+        self.ckStructural = self.createPartCheckBox("structural")
+        self.ckSizes = self.createPartCheckBox("sizes")
+        self.ckColors = self.createPartCheckBox("colors")
 
         self.initializeInterface()
+        self.restoreInitialParts(initialParts)
 
     def initializeInterface(self):
         title = self.tr("Save legend for %1").replace("%1", self.layerName)
         self.setWindowTitle(title)
         self.setupLayout()
+        self.rbAutomaticLegend.toggled.connect(self.updatePartsEnabled)
+        self.ckColors.toggled.connect(self.updatePartsEnabled)
 
-    def createPartCheckBox(self, label, applicable, initialChecked):
-        checkBox = QCheckBox(label)
-        checkBox.setEnabled(bool(applicable))
-        checkBox.setChecked(bool(applicable) and bool(initialChecked))
+    def createPartCheckBox(self, part):
+        summary, reason = self.partOptions[part]
+        checkBox = QCheckBox(summary)
+        checkBox.setToolTip(reason)
         return checkBox
+
+    def isPartApplicable(self, part):
+        return not self.partOptions[part][1]
 
     def setupLayout(self):
         layout = QVBoxLayout(self)
         levelText = self.tr("Global level") if self.isGlobal else self.tr("Project level")
-        intro = self.tr("The current legend will be saved exactly as shown, at %1.").replace("%1", levelText)
+        intro = self.tr("Saving at %1 as %2").replace("%1", levelText).replace("%2", self.fileName)
         layout.addWidget(QLabel(intro))
-        layout.addWidget(QLabel(self.tr("To save a strategy that regenerates the legend automatically instead, tick the parts to keep:")))
-        layout.addWidget(self.ckStructural)
-        layout.addWidget(self.ckSizes)
-        layout.addWidget(self.ckColors)
+        layout.addWidget(self.rbFixedLegend)
+        layout.addWidget(self.rbAutomaticLegend)
+        partsLayout = QVBoxLayout()
+        partsLayout.setContentsMargins(24, 0, 0, 0)
+        for checkBox in (self.ckStructural, self.ckSizes, self.ckColors):
+            partsLayout.addWidget(checkBox)
+        layout.addLayout(partsLayout)
         self.addStandardButtons(layout)
 
     def addStandardButtons(self, layout):
@@ -111,15 +128,45 @@ class QGISRedSaveStrategyDialog(QDialog):
         buttonBox.rejected.connect(self.reject)
         layout.addWidget(buttonBox)
 
+    def restoreInitialParts(self, initialParts):
+        """Start from what the file being overwritten holds, as far as it still applies."""
+        applicable = [part for part in ("structural", "sizes", "colors") if self.isPartApplicable(part)]
+        self.rbAutomaticLegend.setEnabled(bool(applicable))
+        if not applicable:
+            self.rbAutomaticLegend.setToolTip(self.tr("Nothing in this legend can be recalculated: hover each line to see why."))
+        self.ckSizes.setChecked("sizes" in initialParts and "sizes" in applicable)
+        self.ckColors.setChecked("colors" in initialParts and "colors" in applicable)
+        rebuildsClasses = "colors" in initialParts and "allClasses" not in initialParts
+        structuralTicked = rebuildsClasses if self.isCategorical else "intervals" in initialParts
+        self.ckStructural.setChecked(structuralTicked and "structural" in applicable)
+        isAutomatic = any(box.isChecked() for box in (self.ckStructural, self.ckSizes, self.ckColors))
+        self.rbAutomaticLegend.setChecked(isAutomatic)
+        self.rbFixedLegend.setChecked(not isAutomatic)
+        self.updatePartsEnabled()
+
+    def updatePartsEnabled(self, _checked=None):
+        isAutomatic = self.rbAutomaticLegend.isChecked()
+        self.ckSizes.setEnabled(isAutomatic and self.isPartApplicable("sizes"))
+        self.ckColors.setEnabled(isAutomatic and self.isPartApplicable("colors"))
+        # Classes are rebuilt from the values while coloring them, so only along with the colors.
+        needsColors = self.isCategorical and not self.ckColors.isChecked()
+        structuralEnabled = isAutomatic and self.isPartApplicable("structural") and not needsColors
+        self.ckStructural.setEnabled(structuralEnabled)
+        if not structuralEnabled:
+            self.ckStructural.setChecked(False)
+
     def selectedParts(self):
+        if not self.rbAutomaticLegend.isChecked():
+            return []
         parts = []
-        if self.ckStructural.isChecked():
-            parts.append("allClasses" if self.isCategorical else "intervals")
         if self.ckSizes.isChecked():
             parts.append("sizes")
         if self.ckColors.isChecked():
             parts.append("colors")
-        return parts
+        if not self.isCategorical:
+            return (["intervals"] if self.ckStructural.isChecked() else []) + parts
+        # Classes that are not rebuilt are pinned, so the other parts are applied on top of them.
+        return parts if self.ckStructural.isChecked() or not parts else ["allClasses"] + parts
 
 
 class QGISRedSymbolColorSelector(QgsSymbolButton):

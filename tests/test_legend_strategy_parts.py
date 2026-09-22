@@ -18,17 +18,37 @@ def _dialog():
 
 
 class FakeCheckBox:
-    def __init__(self, checked):
+    def __init__(self, checked=False):
         self._checked = checked
+        self.enabled = True
+        self.toolTip = ""
 
     def isChecked(self):
         return self._checked
 
+    def setChecked(self, checked):
+        self._checked = bool(checked)
+
+    def setEnabled(self, enabled):
+        self.enabled = bool(enabled)
+
+    def setToolTip(self, text):
+        self.toolTip = text
+
+
+APPLICABLE = {"structural": ("S", ""), "sizes": ("Z", ""), "colors": ("C", "")}
+
 
 class TestSaveStrategyDialog:
-    def _strategyDialog(self, isCategorical, structural, sizes, colors):
+    """A tick always means "recalculated when the style is loaded", for every part."""
+
+    def _strategyDialog(self, isCategorical, structural=False, sizes=False, colors=False, automatic=True,
+                        partOptions=APPLICABLE):
         dialog = QGISRedSaveStrategyDialog.__new__(QGISRedSaveStrategyDialog)
         dialog.isCategorical = isCategorical
+        dialog.partOptions = partOptions
+        dialog.rbAutomaticLegend = FakeCheckBox(automatic)
+        dialog.rbFixedLegend = FakeCheckBox(not automatic)
         dialog.ckStructural = FakeCheckBox(structural)
         dialog.ckSizes = FakeCheckBox(sizes)
         dialog.ckColors = FakeCheckBox(colors)
@@ -38,13 +58,54 @@ class TestSaveStrategyDialog:
         # vars(), not hasattr(): the QDialog test stub answers any attribute.
         assert "onStructuralToggled" not in vars(QGISRedSaveStrategyDialog)
 
-    def test_all_three_parts_can_be_selected_together(self):
-        dialog = self._strategyDialog(True, True, True, True)
-        assert dialog.selectedParts() == ["allClasses", "sizes", "colors"]
+    def test_a_fixed_legend_saves_no_strategy_whatever_is_ticked(self):
+        dialog = self._strategyDialog(False, True, True, True, automatic=False)
+        assert dialog.selectedParts() == []
 
-    def test_numeric_structural_maps_to_intervals(self):
-        dialog = self._strategyDialog(False, True, True, True)
-        assert dialog.selectedParts() == ["intervals", "sizes", "colors"]
+    def test_numeric_parts_are_the_ticked_ones(self):
+        assert self._strategyDialog(False, True, True, True).selectedParts() == ["intervals", "sizes", "colors"]
+        assert self._strategyDialog(False, colors=True).selectedParts() == ["colors"]
+
+    def test_categories_that_are_not_rebuilt_are_pinned(self):
+        # "All Classes" used to be a tick meaning the opposite of the other two.
+        assert self._strategyDialog(True, sizes=True, colors=True).selectedParts() == ["allClasses", "sizes", "colors"]
+
+    def test_categories_rebuilt_from_the_values_are_not_pinned(self):
+        assert self._strategyDialog(True, structural=True, colors=True).selectedParts() == ["colors"]
+
+    def test_automatic_with_nothing_ticked_is_a_fixed_legend(self):
+        assert self._strategyDialog(True).selectedParts() == []
+
+    def test_classes_can_only_be_rebuilt_along_with_the_colors(self):
+        dialog = self._strategyDialog(True, structural=True, colors=False)
+        dialog.updatePartsEnabled()
+        assert dialog.ckStructural.enabled is False and dialog.ckStructural.isChecked() is False
+
+    def test_a_part_that_cannot_be_recalculated_stays_greyed(self):
+        options = dict(APPLICABLE, sizes=("Sizes: kept as shown", "The sizes are set by hand."))
+        dialog = self._strategyDialog(False, partOptions=options)
+        dialog.updatePartsEnabled()
+        assert dialog.ckSizes.enabled is False and dialog.ckColors.enabled is True
+
+    def test_it_starts_from_what_the_overwritten_file_holds(self):
+        dialog = self._strategyDialog(True, automatic=False)
+        dialog.restoreInitialParts(["colors"])
+        assert dialog.selectedParts() == ["colors"]  # colors without pinned classes: rebuilt
+
+        pinned = self._strategyDialog(True, automatic=False)
+        pinned.restoreInitialParts(["allClasses", "colors"])
+        assert pinned.selectedParts() == ["allClasses", "colors"]
+
+    def test_a_new_file_starts_as_a_fixed_legend(self):
+        dialog = self._strategyDialog(False)
+        dialog.restoreInitialParts(())
+        assert dialog.rbFixedLegend.isChecked() and dialog.selectedParts() == []
+
+    def test_automatic_is_not_offered_when_nothing_can_be_recalculated(self):
+        nothing = {part: ("kept as shown", "why") for part in APPLICABLE}
+        dialog = self._strategyDialog(True, partOptions=nothing)
+        dialog.restoreInitialParts(["colors"])
+        assert dialog.rbAutomaticLegend.enabled is False and dialog.selectedParts() == []
 
 
 class TestBuildCategoricalStrategy:
@@ -184,26 +245,45 @@ class TestBuildAllClassesPart:
         assert dialog.buildAllClassesPart("rule-based") is None
 
 
-class TestBuildableParts:
-    def _dialog(self, sourceRuleRenderer):
+class TestStrategyPartReasons:
+    """Why a part cannot be recalculated; an empty reason means it can."""
+
+    def _dialog(self, sourceRuleRenderer=None, colorsSetByHand=False, fieldIndex=2):
         dialog = _dialog()
         dialog._sourceRuleRenderer = sourceRuleRenderer
-
-        class _Table:
-            def rowCount(self):
-                return 3
-
-        dialog.tableView = _Table()
-        dialog.canBuildIntervalsPart = lambda: False
-        dialog.canBuildSizesPart = lambda: False
-        dialog.canBuildColorsPart = lambda: False
+        dialog.tr = lambda text: text
+        dialog.currentColorMode = lambda: "Manual" if colorsSetByHand else "Random"
+        dialog.cbSizes = MagicMock()
+        dialog.cbSizes.currentText.return_value = "Linear"
+        dialog.currentLayer = MagicMock()
+        dialog.currentLayer.fields.return_value.indexFromName.return_value = fieldIndex
         return dialog
 
-    def test_all_classes_offered_for_plain_categorized(self):
-        assert self._dialog(None).getBuildableStrategyParts() == ["allClasses"]
+    def test_a_plain_categorized_legend_can_recalculate_everything(self):
+        dialog = self._dialog()
+        assert (dialog.classesPartReason(), dialog.sizesPartReason(), dialog.colorsPartReason()) == ("", "", "")
 
-    def test_all_classes_not_offered_for_rule_based_layers(self):
-        assert self._dialog("RULES").getBuildableStrategyParts() == []
+    def test_a_rule_based_legend_is_always_saved_as_shown(self):
+        # Replaying colors would rebuild Link Status or the hydraulic sectors as plain
+        # categories and lose their rules; sizes would silently do nothing.
+        dialog = self._dialog(sourceRuleRenderer="RULES")
+        reasons = {dialog.classesPartReason(), dialog.sizesPartReason(), dialog.colorsPartReason()}
+        assert reasons == {dialog.ruleBasedLegendReason()}
+        assert not dialog.canBuildColorsPart() and not dialog.canBuildSizesPart()
+
+    def test_colors_set_by_hand_say_how_to_change_that(self):
+        dialog = self._dialog(colorsSetByHand=True)
+        assert "Choose Random, a ramp or a palette" in dialog.colorsPartReason()
+        assert "choose Random, a ramp or a palette in Colors first" in dialog.classesPartReason()
+
+    def test_classes_from_a_formula_cannot_be_rebuilt(self):
+        # Demand Builder classifies a CASE expression: there is no column to read values from.
+        assert "formula" in self._dialog(fieldIndex=-1).classesPartReason()
+
+    def test_a_kept_part_is_shown_as_such(self):
+        dialog = self._dialog()
+        assert dialog.strategyPartOption("Sizes", "Sizes: Linear", "why") == ("%1: kept as shown".replace("%1", "Sizes"), "why")
+        assert dialog.strategyPartOption("Sizes", "Sizes: Linear", "") == ("Sizes: Linear", "")
 
 
 class TestLoadBranching:
