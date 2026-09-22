@@ -15,7 +15,7 @@ from random import randrange
 from qgis.PyQt.QtCore import QCoreApplication
 from ...compat import PAINTER_ANTIALIASING, PAL_PROPERTY_COLOR, PAL_PLACEMENT_LINE
 from ...compat import RENDER_UNIT_MILLIMETERS, RENDER_UNIT_PIXELS, RENDER_UNIT_POINTS
-from ...compat import SL_PROP_SIZE, SL_PROP_STROKE_WIDTH, SL_PROP_WIDTH
+from ...compat import SL_PROP_SIZE, SL_PROP_STROKE_WIDTH, SL_PROP_WIDTH, STYLE_ENTITY_COLORRAMP
 from qgis.PyQt.QtGui import QColor
 from qgis.core import (
     QgsVectorLayer, QgsSymbol, Qgis,
@@ -44,6 +44,20 @@ _DEMAND_SECTOR_COLOR_CACHE = {}
 
 STYLE_DATABASE_NAME = "qgisred_symbology_style.db"
 CONNECTIVITY_STYLE_NAME = "ConnectLinks"
+
+# Kinds of color ramps and palettes, spelled like the tags scripts/build_style_db.py gives
+# them in the style database. A ramp is told apart by its number of colors; a palette by
+# how its colors reach the classes: Spread distributes them over the classes keeping the
+# first and the last, Sequential hands them out in the order they are declared, Labeled
+# gives each class the color labeled with its value.
+RAMP_KIND_TWO_COLORS = "2 colors Ramps"
+RAMP_KIND_THREE_COLORS = "3 colors Ramps"
+RAMP_KIND_MORE_COLORS = "More than 3 colors Ramps"
+PALETTE_KIND_SPREAD = "Spread Palettes"
+PALETTE_KIND_SEQUENTIAL = "Sequential Palettes"
+PALETTE_KIND_LABELED = "Labeled Palettes"
+RAMP_KINDS = (RAMP_KIND_TWO_COLORS, RAMP_KIND_THREE_COLORS, RAMP_KIND_MORE_COLORS)
+PALETTE_KINDS = (PALETTE_KIND_SPREAD, PALETTE_KIND_SEQUENTIAL, PALETTE_KIND_LABELED)
 
 # Root ids stamped on the two halves of a split tank/reservoir icon
 # (see defaults/layerStyles/icons/*_frame.svg and *_water.svg) -- see _isFrameSvgLayer.
@@ -491,9 +505,10 @@ class QGISRedStylingUtils:
         templateSymbol = self.cloneRendererTemplateSymbol(layer)
         categories = []
         valueCount = max(len(nonNullValues), 1)
+        kind = self.findColorRampKind(rampName) if ramp is not None else None
         for index, value in enumerate(nonNullValues):
             symbol = templateSymbol.clone()
-            color = self.resolveCategoryColor(value, index, valueCount, ramp, invertRamp)
+            color = self.resolveCategoryColor(value, index, valueCount, ramp, invertRamp, kind)
             self._setSymbolColor(symbol, color)
             categories.append(QgsRendererCategory(value, symbol, self._translateCategoryLabel(value, field)))
 
@@ -537,10 +552,11 @@ class QGISRedStylingUtils:
             if category.value() != NULL and category.value() != ""
         ]
         realCount = max(len(realIndexes), 1)
+        kind = self.findColorRampKind(rampName) if ramp is not None else None
         for position, index in enumerate(realIndexes):
             category = categories[index]
             symbol = category.symbol().clone()
-            color = self.resolveCategoryColor(category.value(), position, realCount, ramp, invertRamp)
+            color = self.resolveCategoryColor(category.value(), position, realCount, ramp, invertRamp, kind)
             self._setSymbolColor(symbol, color)
             renderer.updateCategorySymbol(index, symbol)
         for index, category in enumerate(categories):
@@ -566,15 +582,16 @@ class QGISRedStylingUtils:
                 Qgis.MessageLevel.Warning,
             )
             return
-        if invertRamp:
-            ramp.invert()
 
+        kind = self.findColorRampKind(rampName)
         ranges = renderer.ranges()
         rangeCount = max(len(ranges), 1)
         for index in range(len(ranges)):
-            position = 0.0 if rangeCount <= 1 else index / float(rangeCount - 1)
+            color = self.rampClassColor(ramp, kind, ranges[index].label(), index, rangeCount, invertRamp)
+            if color is None:
+                continue
             symbol = ranges[index].symbol().clone()
-            self._setSymbolColor(symbol, ramp.color(position))
+            self._setSymbolColor(symbol, color)
             renderer.updateRangeSymbol(index, symbol)
 
     def applySizesStrategy(self, layer, sizesBlock):
@@ -773,12 +790,11 @@ class QGISRedStylingUtils:
             with suppress(Exception):
                 symbolLayer.setColor(target)
 
-    def resolveCategoryColor(self, value, index, valueCount, ramp, invertRamp):
+    def resolveCategoryColor(self, value, index, valueCount, ramp, invertRamp, kind=None):
         if ramp is not None:
-            position = 0.0 if valueCount <= 1 else index / float(valueCount - 1)
-            if invertRamp:
-                position = 1.0 - position
-            return ramp.color(position)
+            color = self.rampClassColor(ramp, kind, value, index, valueCount, invertRamp)
+            if color is not None:
+                return color
         # crc32, not hash(): str hashes are salted per process, and the color
         # must stay the same for a given value across QGIS restarts.
         seed = zlib.crc32(str(value).encode("utf-8"))
@@ -788,6 +804,81 @@ class QGISRedStylingUtils:
             seededRandom.randint(0, 255),
             seededRandom.randint(0, 255),
         )
+
+    def rampClassColor(self, ramp, kind, value, index, classCount, invertRamp):
+        """Color of one class out of a ramp or a palette, following its kind.
+
+        None when a Labeled palette has no color for `value`. Inverting hands the same
+        colors out in the opposite order, which a Labeled palette has no use for.
+        """
+        if kind == PALETTE_KIND_LABELED:
+            namedColors = ramp.fetchColors()
+            match = self.labeledPaletteIndex([label for _, label in namedColors], value)
+            return None if match is None else QColor(namedColors[match][0])
+        if invertRamp:
+            index = classCount - 1 - index
+        if kind == PALETTE_KIND_SEQUENTIAL:
+            colors = ramp.colors()
+            return QColor(colors[index % len(colors)])
+        if kind == PALETTE_KIND_SPREAD:
+            colors = ramp.colors()
+            return self.paletteColorAt(colors, self.spreadPalettePosition(len(colors), classCount, index))
+        return ramp.color(0.0 if classCount <= 1 else index / float(classCount - 1))
+
+    @staticmethod
+    def spreadPalettePosition(colorCount, classCount, index):
+        """Where a class falls along a Spread palette; first and last colors are always taken.
+
+        With no more classes than colors it lands on a real color of the palette; with more
+        classes than colors it falls between two of them, to be blended.
+        """
+        if classCount <= 1 or colorCount <= 1:
+            return 0.0
+        position = index * (colorCount - 1) / float(classCount - 1)
+        if classCount <= colorCount:
+            return float(math.floor(position + 0.5))
+        return min(position, float(colorCount - 1))
+
+    @staticmethod
+    def paletteColorAt(colors, position):
+        lower = int(math.floor(position))
+        share = position - lower
+        if share < 1e-9 or lower + 1 >= len(colors):
+            return QColor(colors[lower])
+        first, second = colors[lower], colors[lower + 1]
+        return QColor(
+            int(round(first.red() + (second.red() - first.red()) * share)),
+            int(round(first.green() + (second.green() - first.green()) * share)),
+            int(round(first.blue() + (second.blue() - first.blue()) * share)),
+        )
+
+    @staticmethod
+    def labeledPaletteIndex(labels, value):
+        """Index of the palette color labeled with `value`, or None.
+
+        A label lists every spelling of its value separated by commas ("CI, FG, FF"); case
+        does not matter, and a missing value goes by the label NULL.
+        """
+        wanted = "null" if value is None or value == NULL or str(value).strip() in ("", "#NA") else str(value)
+        wanted = wanted.strip().lower()
+        for index, label in enumerate(labels):
+            if wanted in [alias.strip().lower() for alias in label.split(",")]:
+                return index
+        return None
+
+    @staticmethod
+    def colorRampKind(style, rampName):
+        """Kind of a ramp or palette of `style`: counted for a ramp, read from its tags for a palette."""
+        ramp = style.colorRamp(rampName)
+        if ramp is None:
+            return None
+        if hasattr(ramp, "stops"):
+            colorCount = len(ramp.stops()) + 2
+            if colorCount == 2:
+                return RAMP_KIND_TWO_COLORS
+            return RAMP_KIND_THREE_COLORS if colorCount == 3 else RAMP_KIND_MORE_COLORS
+        tags = style.tagsOfSymbol(STYLE_ENTITY_COLORRAMP, rampName)
+        return next((kind for kind in PALETTE_KINDS if kind in tags), PALETTE_KIND_SPREAD)
 
     def _translateCategoryLabel(self, value, field=None):
         if isinstance(value, str):
@@ -1162,6 +1253,14 @@ class QGISRedStylingUtils:
             finally:
                 connection.close()
         return None
+
+    @classmethod
+    def findColorRampKind(cls, rampName):
+        pluginStyle = QgsStyle()
+        databasePath = QGISRedStylingUtils.styleDatabasePath()
+        if os.path.exists(databasePath) and pluginStyle.load(databasePath) and pluginStyle.colorRamp(rampName) is not None:
+            return cls.colorRampKind(pluginStyle, rampName)
+        return cls.colorRampKind(QgsStyle.defaultStyle(), rampName)
 
     @staticmethod
     def findColorRamp(rampName):

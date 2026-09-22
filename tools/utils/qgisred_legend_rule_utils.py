@@ -55,6 +55,9 @@ def unwrapClassAttribute(attr):
 def parseRangeFilter(expression, openBound=OPEN_RANGE_BOUND):
     """(column, lower, upper) of a range rule, or None when the rule is not a range."""
     expression = expression or ""
+    # A value may itself carry a comparison ("Status" = 'Closed (Q<0)'): that is a category.
+    if parseCategoricalRuleFilter(expression):
+        return None
     attribute = _RANGE_ATTRIBUTE.match(expression)
     if not attribute:
         return None

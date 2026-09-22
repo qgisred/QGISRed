@@ -31,6 +31,9 @@ from qgis.utils import iface
 
 from ...compat import WKB_LINE_GEOMETRY, WKB_POINT_GEOMETRY
 from ...tools.utils.qgisred_styling_utils import _NULL_RULE_LABEL, CONNECTIVITY_STYLE_NAME, QGISRedStylingUtils
+from ...tools.utils.qgisred_styling_utils import RAMP_KINDS, PALETTE_KINDS, RAMP_KIND_TWO_COLORS, RAMP_KIND_THREE_COLORS
+from ...tools.utils.qgisred_styling_utils import RAMP_KIND_MORE_COLORS, PALETTE_KIND_SPREAD, PALETTE_KIND_SEQUENTIAL
+from ...tools.utils.qgisred_styling_utils import PALETTE_KIND_LABELED
 from ...tools.utils.qgisred_legend_rule_utils import (
     OPEN_RANGE_BOUND as _OPEN_RANGE_BOUND,
     formatExpressionNumber,
@@ -521,8 +524,8 @@ class QGISRedLegendsDialog(QDialog, formClass):
         self.setupClassCountField()
         self.setupClassifyAllButton()
         self.setupVariantCombo()
-        self.setupAdvancedUi()
         self.loadStyleDatabase()
+        self.setupAdvancedUi()
         self.applyConsistentStyling()
         self.setupStyleMenus()
         self.setupTooltips()
@@ -690,14 +693,85 @@ class QGISRedLegendsDialog(QDialog, formClass):
         self.updateSizeSpinBoxConstraints()
 
     def setupColorControls(self):
-        colorModes = ["Manual", "Equal", "Random", "Ramp", "Palette"]
-        self.cbColors.addItems(colorModes)
+        self.populateColorModes()
         self.cbColors.currentIndexChanged.connect(self.onColorModeChanged)
         self.btColorEqual.setColor(QColor("red"))
         self.btColorEqual.colorChanged.connect(self.applyColorLogic)
         self.ckColorInvert.toggled.connect(self.applyColorLogic)
         self.btRefreshColors.setIcon(QIcon(":/images/themes/default/mActionRefresh.svg"))
         self.btRefreshColors.clicked.connect(lambda: self.applyColorLogic(forceRefresh=True))
+
+    def populateColorModes(self):
+        # The item data is the mode the code goes by; ramps and palettes go by their kind.
+        self.cbColors.addItem(self.tr("Manual"), "Manual")
+        self.cbColors.addItem(self.tr("Equal"), "Equal")
+        self.cbColors.addItem(self.tr("Random"), "Random")
+        self.cbColors.addItem(self.tr("2 colors Ramps"), RAMP_KIND_TWO_COLORS)
+        self.cbColors.addItem(self.tr("3 colors Ramps"), RAMP_KIND_THREE_COLORS)
+        self.cbColors.addItem(self.tr("More than 3 colors Ramps"), RAMP_KIND_MORE_COLORS)
+        self.cbColors.addItem(self.tr("Spread Palettes"), PALETTE_KIND_SPREAD)
+        self.cbColors.addItem(self.tr("Sequential Palettes"), PALETTE_KIND_SEQUENTIAL)
+        self.cbColors.addItem(self.tr("Labeled Palettes"), PALETTE_KIND_LABELED)
+
+    def currentColorMode(self):
+        return self.cbColors.currentData() if hasattr(self, "cbColors") else "Manual"
+
+    def setColorMode(self, mode):
+        self.cbColors.setCurrentIndex(self.cbColors.findData(mode))
+
+    @staticmethod
+    def isRampOrPaletteMode(mode):
+        return mode in RAMP_KINDS or mode in PALETTE_KINDS
+
+    def refreshColorModeItems(self):
+        """Hide the kinds the library has nothing for, and Labeled where classes are numbers."""
+        isNumeric = self.currentFieldType == self.FIELD_TYPE_NUMERIC
+        for row in range(self.cbColors.count()):
+            mode = self.cbColors.itemData(row)
+            if not self.isRampOrPaletteMode(mode):
+                continue
+            hidden = not self.loadColorRampsOfKind(mode) or (isNumeric and mode == PALETTE_KIND_LABELED)
+            self.cbColors.view().setRowHidden(row, hidden)
+            self.cbColors.model().item(row).setEnabled(not hidden)
+
+    def recommendedColorMode(self):
+        """Palette kind that suits the legend: Spread for numbers, Labeled when a labeled
+        palette knows the values of the classes, Sequential for any other categories."""
+        if self.currentFieldType == self.FIELD_TYPE_NUMERIC:
+            return PALETTE_KIND_SPREAD
+        if self.currentFieldType != self.FIELD_TYPE_CATEGORICAL:
+            return None
+        return PALETTE_KIND_LABELED if self.findMatchingLabeledPalette() else PALETTE_KIND_SEQUENTIAL
+
+    def updateRecommendedColorMode(self):
+        recommended = self.recommendedColorMode()
+        for row in range(self.cbColors.count()):
+            isRecommended = self.cbColors.itemData(row) == recommended
+            font = self.cbColors.font()
+            font.setBold(isRecommended)
+            self.cbColors.setItemData(row, font, Qt.ItemDataRole.FontRole)
+            tip = self.tr("Recommended for this legend") if isRecommended else None
+            self.cbColors.setItemData(row, tip, Qt.ItemDataRole.ToolTipRole)
+
+    def findMatchingLabeledPalette(self):
+        """Name of the labeled palette that knows at least half of the legend's values, or None."""
+        values = [value for value in self.legendClassValues() if value != self.tr("Other Values")]
+        bestName, bestShare = None, 0.0
+        for name, palette in self.loadColorRampsOfKind(PALETTE_KIND_LABELED).items():
+            labels = [label for _color, label in palette.fetchColors()]
+            known = [value for value in values if QGISRedStylingUtils.labeledPaletteIndex(labels, value) is not None]
+            share = len(known) / len(values) if values else 0.0
+            if share > bestShare:
+                bestName, bestShare = name, share
+        return bestName if bestShare >= 0.5 else None
+
+    def legendClassValues(self):
+        rowValues = [self.getRowClassValue(row) for row in range(self.tableView.rowCount())]
+        return [value for value in rowValues if value] + list(getattr(self, "availableUniqueValues", []))
+
+    def getRowClassValue(self, row):
+        valueWidget = self.tableView.cellWidget(row, 3)
+        return valueWidget.text() if isinstance(valueWidget, QLineEdit) else ""
 
     def setupColorRampButton(self):
         self.btnColorRamp = QGISRedColorRampSelector(self)
@@ -782,11 +856,15 @@ class QGISRedLegendsDialog(QDialog, formClass):
 
     def loadStyleDatabase(self):
         self.style = QgsStyle()
+        self.colorRampKinds = {}
         dbPath = QGISRedStylingUtils.styleDatabasePath()
 
         if os.path.exists(dbPath):
             try:
                 success = self.style.load(dbPath)
+                if success:
+                    self.colorRampKinds = {name: QGISRedStylingUtils.colorRampKind(self.style, name)
+                                           for name in self.style.colorRampNames()}
                 if not success:
                     QgsMessageLog.logMessage(
                         f"Failed to load style database: {dbPath}",
@@ -1144,6 +1222,7 @@ class QGISRedLegendsDialog(QDialog, formClass):
             self.populateSingleSymbolLegend()
         else:
             self.clearTable()
+        self.updateRecommendedColorMode()
 
     # ============================================================
     # EVENT HANDLERS - MODE AND TYPE CHANGES
@@ -1407,12 +1486,13 @@ class QGISRedLegendsDialog(QDialog, formClass):
         self.applySizeLogic()
 
     def onColorModeChanged(self):
-        mode = self.cbColors.currentText()
+        mode = self.currentColorMode()
         self.btColorEqual.setVisible(mode == "Equal")
 
-        isRampOrPalette = mode in ["Ramp", "Palette"]
+        isRampOrPalette = self.isRampOrPaletteMode(mode)
         self.btnColorRamp.setVisible(isRampOrPalette)
-        self.ckColorInvert.setVisible(isRampOrPalette)
+        # A labeled palette colors by value: there is no order to invert.
+        self.ckColorInvert.setVisible(isRampOrPalette and mode != PALETTE_KIND_LABELED)
         self.btRefreshColors.setVisible(mode == "Random")
 
         if isRampOrPalette:
@@ -1430,7 +1510,7 @@ class QGISRedLegendsDialog(QDialog, formClass):
         emulator with current colors so subsequent class additions/removals
         will interpolate from the updated palette.
         """
-        colorMode = self.cbColors.currentText() if hasattr(self, "cbColors") else "Manual"
+        colorMode = self.currentColorMode()
         modeId = self.cbMode.currentData()
         isAutomaticIntervalMode = modeId is not None and modeId != "Manual"
 
@@ -1568,7 +1648,7 @@ class QGISRedLegendsDialog(QDialog, formClass):
         if not hasattr(self, "cbColors"):
             return
 
-        mode = self.cbColors.currentText()
+        mode = self.currentColorMode()
         rows = self.tableView.rowCount()
 
         if rows == 0:
@@ -1590,11 +1670,8 @@ class QGISRedLegendsDialog(QDialog, formClass):
         if mode == "Random":
             return self.calculateRandomColors(rows, forceRefresh)
 
-        if mode == "Ramp":
-            return self.calculateRampColors(rows)
-
-        if mode == "Palette":
-            return self.calculatePaletteColors(rows)
+        if self.isRampOrPaletteMode(mode):
+            return self.calculateRampColors(rows, mode)
 
         return self.generateShuffledRandomColors(rows)
 
@@ -1618,29 +1695,18 @@ class QGISRedLegendsDialog(QDialog, formClass):
         ramp.setTotalColorCount(count)
         return [ramp.color(0.0 if count <= 1 else i / (count - 1)) for i in range(count)]
 
-    def calculateRampColors(self, rows):
+    def calculateRampColors(self, rows, kind):
+        """One color per row out of the chosen ramp or palette, the way its kind hands them out.
+
+        Same rule the replay of a saved strategy follows, so both always agree.
+        """
         ramp = self.btnColorRamp.getActiveRampClone()
-        if isinstance(ramp, QgsGradientColorRamp):
-            colors = self.algorithmRamp(ramp, rows)
-        else:
-            colors = [self.generateRandomColor() for _ in range(rows)]
-
-        if self.ckColorInvert.isChecked():
-            colors.reverse()
-
-        return colors
-
-    def calculatePaletteColors(self, rows):
-        palette = self.btnColorRamp.getActiveRampClone()
-        if isinstance(palette, QgsPresetSchemeColorRamp):
-            colors = self.algorithmPalette(palette, rows)
-        else:
-            colors = [self.generateRandomColor() for _ in range(rows)]
-
-        if self.ckColorInvert.isChecked():
-            colors.reverse()
-
-        return colors
+        if ramp is None:
+            return [self.generateRandomColor() for _ in range(rows)]
+        styling = QGISRedStylingUtils()
+        invert = self.ckColorInvert.isChecked()
+        return [styling.resolveCategoryColor(self.getRowClassValue(row), row, rows, ramp, invert, kind)
+                for row in range(rows)]
 
     def calculateEmulatedPaletteColors(self, rows, previousColors):
         """Generates interpolated colors using the palette emulator from existing colors."""
@@ -1692,7 +1758,7 @@ class QGISRedLegendsDialog(QDialog, formClass):
         the palette emulation based on current colors and applies it.
         Otherwise, falls back to standard color logic.
         """
-        colorMode = self.cbColors.currentText() if hasattr(self, "cbColors") else "Manual"
+        colorMode = self.currentColorMode()
         modeId = self.cbMode.currentData()
         isAutomaticIntervalMode = modeId is not None and modeId != "Manual"
 
@@ -1736,145 +1802,38 @@ class QGISRedLegendsDialog(QDialog, formClass):
 
         self.applySizeLogic()
 
-    def algorithmPalette(self, paletteRamp, numClasses):
-        """Interpolates colors from a discrete palette for the specified number of classes."""
-        if numClasses < 1:
-            return []
-
-        palColors = paletteRamp.colors()
-        if not palColors:
-            return [QColor("black")] * numClasses
-
-        numColPaleta = len(palColors)
-
-        increment = 0.0
-        if numClasses > 1:
-            increment = (numColPaleta - 1) / (numClasses - 1)
-
-        indColor = []
-        for i in range(numClasses):
-            idx = int(math.floor(increment * i))
-            idx = max(0, min(idx, numColPaleta - 1))
-            indColor.append(idx)
-
-        finalColors = [QColor()] * numClasses
-
-        i = 0
-        while i < numClasses:
-            currentPalIdx = indColor[i]
-
-            j = i
-            while j < numClasses and indColor[j] == currentPalIdx:
-                j += 1
-
-            groupSize = j - i
-
-            colorStart = palColors[currentPalIdx]
-            if currentPalIdx + 1 < numColPaleta:
-                colorEnd = palColors[currentPalIdx + 1]
-            else:
-                colorEnd = colorStart
-
-            for k in range(groupSize):
-                globalIdx = i + k
-                factor = (k) / (groupSize + 1) if (groupSize + 1) > 0 else 0
-
-                r = int(
-                    colorStart.red()
-                    + (colorEnd.red() - colorStart.red()) * factor
-                )
-                g = int(
-                    colorStart.green()
-                    + (colorEnd.green() - colorStart.green()) * factor
-                )
-                b = int(
-                    colorStart.blue()
-                    + (colorEnd.blue() - colorStart.blue()) * factor
-                )
-
-                finalColors[globalIdx] = QColor(r, g, b)
-
-            i = j
-
-        return finalColors
-
-    def algorithmRamp(self, gradientRamp, numClasses):
-        if numClasses < 1:
-            return []
-
-        colors = []
-        for i in range(numClasses):
-            position = 0.0
-            if numClasses > 1:
-                position = i / (numClasses - 1)
-            colors.append(gradientRamp.color(position))
-
-        return colors
-
     def syncColorRampButton(self):
         self.btnColorRamp.clearRamps()
-        mode = self.cbColors.currentText()
-
-        if mode == "Ramp":
-            ramps = self.loadGradientRampsFromStyle()
-        elif mode == "Palette":
-            ramps = self.loadPaletteRampsFromStyle()
-        else:
+        mode = self.currentColorMode()
+        ramps = self.loadColorRampsOfKind(mode)
+        if not ramps:
             return
+        self.btnColorRamp.addColorRamps(ramps)
+        matching = self.findMatchingLabeledPalette() if mode == PALETTE_KIND_LABELED else None
+        self.btnColorRamp.setActiveRampByName(matching or list(ramps.keys())[0])
 
-        if ramps:
-            self.btnColorRamp.addColorRamps(ramps)
-            firstName = list(ramps.keys())[0]
-            self.btnColorRamp.setActiveRampByName(firstName)
+    def loadColorRampsOfKind(self, kind):
+        if not self.colorRampKinds:
+            return self.fallbackColorRamps().get(kind, {})
+        return {name: self.style.colorRamp(name) for name, rampKind in self.colorRampKinds.items() if rampKind == kind}
 
-    def loadGradientRampsFromStyle(self):
-        ramps = {}
-
-        if self.style:
-            names = self.style.colorRampNames()
-            for name in names:
-                ramp = self.style.colorRamp(name)
-                if isinstance(ramp, QgsGradientColorRamp):
-                    ramps[name] = ramp
-
-        if not ramps:
-            ramps["Default (Blue to Red)"] = QgsGradientColorRamp(QColor(0, 0, 255), QColor(255, 0, 0))
-            ramps["Default (Green to Yellow)"] = QgsGradientColorRamp(QColor(0, 128, 0), QColor(255, 255, 0))
-
-        return ramps
-
-    def loadPaletteRampsFromStyle(self):
-        ramps = {}
-
-        if self.style:
-            names = self.style.colorRampNames()
-            for name in names:
-                ramp = self.style.colorRamp(name)
-                if isinstance(ramp, QgsPresetSchemeColorRamp):
-                    ramps[name] = ramp
-
-        if not ramps:
-            primaryColors = [
-                QColor(255, 0, 0),
-                QColor(0, 255, 0),
-                QColor(0, 0, 255),
-                QColor(255, 255, 0),
-                QColor(255, 0, 255),
-                QColor(0, 255, 255),
-            ]
-            ramps["Primary Colors"] = QgsPresetSchemeColorRamp(primaryColors)
-
-            warmColors = [
-                QColor(255, 87, 51),
-                QColor(255, 140, 0),
-                QColor(255, 195, 0),
-                QColor(220, 60, 60),
-                QColor(255, 165, 79),
-                QColor(238, 130, 98),
-            ]
-            ramps["Warm Colors"] = QgsPresetSchemeColorRamp(warmColors)
-
-        return ramps
+    @staticmethod
+    def fallbackColorRamps():
+        """Something to offer when the style database could not be read."""
+        primaryColors = [QColor(255, 0, 0), QColor(0, 255, 0), QColor(0, 0, 255),
+                         QColor(255, 255, 0), QColor(255, 0, 255), QColor(0, 255, 255)]
+        warmColors = [QColor(255, 87, 51), QColor(255, 140, 0), QColor(255, 195, 0),
+                      QColor(220, 60, 60), QColor(255, 165, 79), QColor(238, 130, 98)]
+        return {
+            RAMP_KIND_TWO_COLORS: {
+                "Default (Blue to Red)": QgsGradientColorRamp(QColor(0, 0, 255), QColor(255, 0, 0)),
+                "Default (Green to Yellow)": QgsGradientColorRamp(QColor(0, 128, 0), QColor(255, 255, 0)),
+            },
+            PALETTE_KIND_SEQUENTIAL: {
+                "Primary Colors": QgsPresetSchemeColorRamp(primaryColors),
+                "Warm Colors": QgsPresetSchemeColorRamp(warmColors),
+            },
+        }
 
     # ============================================================
     # LAYER AND GROUP MANAGEMENT
@@ -2717,7 +2676,7 @@ class QGISRedLegendsDialog(QDialog, formClass):
         lower, upper = self.calculateInitialRangeForNewRow(insertionRow)
 
         modeId = self.cbMode.currentData()
-        colorMode = self.cbColors.currentText() if hasattr(self, "cbColors") else "Manual"
+        colorMode = self.currentColorMode()
         sizeMode = self.cbSizes.currentText() if hasattr(self, "cbSizes") else "Manual"
         isManualMode = modeId is None or modeId == "Manual"
 
@@ -4965,13 +4924,16 @@ class QGISRedLegendsDialog(QDialog, formClass):
         rampName = colorsBlock.get("rampName")
         invertRamp = colorsBlock.get("invertRamp", False)
         if source == "ramp":
-            self.cbColors.setCurrentText("Ramp")
-            if rampName:
-                self.btnColorRamp.setActiveRampByName(rampName)
+            # The strategy only names the ramp: its kind says which entry of the list it is.
+            kind = self.colorRampKinds.get(rampName)
+            if kind is None:
+                return
+            self.setColorMode(kind)
+            self.btnColorRamp.setActiveRampByName(rampName)
             self.ckColorInvert.setChecked(bool(invertRamp))
             self.applyColorLogic()
         elif source == "random":
-            self.cbColors.setCurrentText("Random")
+            self.setColorMode("Random")
             self.applyColorLogic(forceRefresh=True)
 
     def readStrategyFromStyleFile(self, path):
@@ -5338,6 +5300,7 @@ class QGISRedLegendsDialog(QDialog, formClass):
         )
 
         self.updateModeVisibility(isNumeric, isFixedInterval)
+        self.refreshColorModeItems()
         self.updateClassButtonsVisibility(isCategorical, isNumeric, isFixedInterval)
         self.updateNavigationButtonsVisibility(isCategorical)
         self.updateClassCountEditability(isCategorical, isNumeric, isManualNumeric)
@@ -5384,7 +5347,8 @@ class QGISRedLegendsDialog(QDialog, formClass):
     def canBuildColorsPart(self):
         if self.currentFieldType not in (self.FIELD_TYPE_NUMERIC, self.FIELD_TYPE_CATEGORICAL):
             return False
-        return self.cbColors.currentText() in ("Random", "Ramp", "Palette")
+        mode = self.currentColorMode()
+        return mode == "Random" or self.isRampOrPaletteMode(mode)
 
     def buildStrategyFromCurrentUi(self, parts, renderer=None):
         if not parts or not self.currentFieldName:
@@ -5462,7 +5426,7 @@ class QGISRedLegendsDialog(QDialog, formClass):
         }
 
     def buildColorsPart(self):
-        mode = self.cbColors.currentText()
+        mode = self.currentColorMode()
         if mode == "Random":
             return {
                 "source": "random",
@@ -5470,7 +5434,7 @@ class QGISRedLegendsDialog(QDialog, formClass):
                 "invertRamp": False,
                 "deterministic": True,
             }
-        if mode in ("Ramp", "Palette"):
+        if self.isRampOrPaletteMode(mode):
             return {
                 "source": "ramp",
                 "rampName": self.btnColorRamp.activeRampName,

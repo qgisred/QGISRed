@@ -151,7 +151,7 @@ class TestInPlaceRecolor:
         utils = _utils()
         utils.resolved = []
 
-        def resolveCategoryColor(value, index, count, ramp, invertRamp):
+        def resolveCategoryColor(value, index, count, ramp, invertRamp, kind=None):
             utils.resolved.append((value, index, count))
             return f"color:{value}"
 

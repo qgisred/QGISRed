@@ -268,6 +268,18 @@ except AttributeError:
     RENDER_UNIT_PIXELS       = _QgsUnitTypes.RenderPixels
 
 # ---------------------------------------------------------------------------
+# QgsStyle entity constant (what kind of item a style database tag is asked about).
+# QGIS 3: QgsStyle.ColorrampEntity (flat)
+# QGIS 4: QgsStyle.StyleEntity.ColorrampEntity (scoped)
+# ---------------------------------------------------------------------------
+from qgis.core import QgsStyle as _QgsStyle
+
+try:
+    STYLE_ENTITY_COLORRAMP = _QgsStyle.ColorrampEntity
+except AttributeError:
+    STYLE_ENTITY_COLORRAMP = _QgsStyle.StyleEntity.ColorrampEntity
+
+# ---------------------------------------------------------------------------
 # QgsTextBackgroundSettings enum constants (label background shape/size).
 # QGIS 3: QgsTextBackgroundSettings.ShapeRectangle / SizeBuffer (flat)
 # QGIS 4: QgsTextBackgroundSettings.ShapeType.ShapeRectangle /

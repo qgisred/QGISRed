@@ -164,6 +164,14 @@ class TestRulesThatAreNotRanges:
     def test_a_renderer_with_no_rules_yields_nothing(self):
         assert _convert(_FakeRuleBasedRenderer()) is None
 
+    @pytest.mark.parametrize("status", ["Closed (Q<0)", "Closed (Pup<Pset)", "Open (Q>Qmax)", "Closed (H>Hmax)"])
+    def test_a_comparison_inside_a_value_is_not_a_range(self, status):
+        # The shipped Link Status legend: 'Closed (Q<0)' was read as the range "up to 0", which
+        # turned the whole legend into a numeric one with that single class.
+        renderer = _FakeRuleBasedRenderer(_FakeRule("\"Status\" = 'Open'"), _FakeRule("\"Status\" = '%s'" % status))
+
+        assert _convert(renderer) is None
+
 
 class TestUnwrapClassAttribute:
     @pytest.mark.parametrize("raw, expected", [
