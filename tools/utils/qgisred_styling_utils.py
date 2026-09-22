@@ -40,6 +40,7 @@ def _plugin_root():
 _DEMAND_SECTOR_COLOR_CACHE = {}
 
 STYLE_DATABASE_NAME = "qgisred_symbology_style.db"
+CONNECTIVITY_STYLE_NAME = "ConnectLinks"
 
 # Root ids stamped on the two halves of a split tank/reservoir icon
 # (see defaults/layerStyles/icons/*_frame.svg and *_water.svg) -- see _isFrameSvgLayer.
@@ -145,7 +146,7 @@ class QGISRedStylingUtils:
         from .qgisred_filesystem_utils import QGISRedFileSystemUtils
         return QGISRedFileSystemUtils(self.ProjectDirectory, self.NetworkName, self.iface).getQGISRedFolder()
 
-    def projectStyleFileNames(self, qmlFile):
+    def projectStyleFileNames(self, qmlFile, variant=""):
         """File names to probe in the project's layerStyles folder, best match first.
 
         A project style belongs to one network, so it is stored prefixed with the network
@@ -153,9 +154,18 @@ class QGISRedStylingUtils:
         still accepted afterwards, both for styles saved before the prefix existed and for
         folders shared by hand between networks.
         """
+        qmlFile = self.variantStyleFileName(qmlFile, variant)
         if self.NetworkName:
             return [self.NetworkName + "_" + qmlFile, qmlFile]
         return [qmlFile]
+
+    @staticmethod
+    def variantStyleFileName(fileName, variant):
+        # Trees share one identifier, so each one's project style carries its tree name.
+        if not variant:
+            return fileName
+        stem, extension = os.path.splitext(fileName)
+        return stem + "_" + variant + extension
 
     @staticmethod
     def findStyleFile(folder, fileNames):
@@ -183,12 +193,14 @@ class QGISRedStylingUtils:
         self.applyStrategyFromLayer(layer, field)
         self.translateRendererLabels(layer)
 
-    def setStyle(self, layer, name, field=None):
+    def setStyle(self, layer, name, field=None, variant=""):
         """Load the QML style called `name` on `layer`.
 
         field: column (or expression) the legend must classify, when the caller knows it.
         It overrides the field recorded inside the style's legend strategy — see
         applyLegendStrategy.
+        variant: narrows the project style to one layer among several sharing `name`
+        (a tree's name); global and default styles stay common to all of them.
         """
         if name == "":
             return
@@ -196,7 +208,7 @@ class QGISRedStylingUtils:
 
         # 1- project style (network-prefixed first, see projectStyleFileNames)
         projectStylePath = os.path.join(self.ProjectDirectory, "layerStyles")
-        qmlPath = self.findStyleFile(projectStylePath, self.projectStyleFileNames(name + ".qml"))
+        qmlPath = self.findStyleFile(projectStylePath, self.projectStyleFileNames(name + ".qml", variant))
         if qmlPath:
             self._loadStyleFile(layer, qmlPath, field)
             return

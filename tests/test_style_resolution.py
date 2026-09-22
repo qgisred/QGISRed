@@ -52,6 +52,45 @@ class TestProjectStyleFileNames:
         utils = _makeUtils(tmp_path, networkName="")
         assert utils.projectStyleFileNames("Pipes.qml") == ["Pipes.qml"]
 
+    def test_a_variant_is_added_as_a_suffix(self, tmp_path):
+        utils = _makeUtils(tmp_path)
+        assert utils.projectStyleFileNames("TreeLinks.qml", "J5_Union") == [
+            "Net_TreeLinks_J5_Union.qml", "TreeLinks_J5_Union.qml"]
+
+
+class TestPerTreeProjectStyle:
+    """Every tree shares one identifier, so its project style is told apart by the tree name."""
+
+    def test_a_tree_loads_its_own_project_style(self, tmp_path):
+        utils = _makeUtils(tmp_path)
+        projectFolder = os.path.join(str(tmp_path / "project"), "layerStyles")
+        expected = _writeStyle(projectFolder, "Net_TreeLinks_J5_Union.qml")
+
+        layer = _FakeLayer()
+        utils.setStyle(layer, "Tree_Links", variant="J5_Union")
+
+        assert layer.loadedPath == expected
+
+    def test_a_tree_ignores_the_style_of_another_tree(self, tmp_path):
+        utils = _makeUtils(tmp_path)
+        projectFolder = os.path.join(str(tmp_path / "project"), "layerStyles")
+        _writeStyle(projectFolder, "Net_TreeLinks_J5_Union.qml")
+
+        layer = _FakeLayer()
+        utils.setStyle(layer, "Tree_Links", variant="T12")
+
+        assert layer.loadedPath.endswith(os.path.join("defaults", "layerStyles", "TreeLinks.qml.bak"))
+
+    def test_the_global_style_is_shared_by_every_tree(self, tmp_path):
+        globalFolder = str(tmp_path / "global")
+        utils = _makeUtils(tmp_path, globalFolder=globalFolder)
+        expected = _writeStyle(os.path.join(globalFolder, "layerStyles"), "TreeLinks.qml")
+
+        layer = _FakeLayer()
+        utils.setStyle(layer, "Tree_Links", variant="J5_Union")
+
+        assert layer.loadedPath == expected
+
 
 class TestSetStyle:
     def test_prefers_network_prefixed_project_style(self, tmp_path):

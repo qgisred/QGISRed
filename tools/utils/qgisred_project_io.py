@@ -179,7 +179,7 @@ class QGISRedProjectIO:
                     break
             if tree_name is None or tree_dir is None:
                 return
-            utils = QGISRedLayerUtils(tree_dir, self.NetworkName, self.iface)
+            utils = QGISRedLayerUtils(tree_dir, self.NetworkName, self.iface, self.ProjectDirectory)
             # Create a group named with the tree name
             group = utils.getOrCreateNestedGroup([self.NetworkName, "Queries", "Trees", tree_name])
             for name in reversed(layerNames):
@@ -210,7 +210,7 @@ class QGISRedProjectIO:
 
         top = groupName.split("/")[0]
         layersDir = os.path.join(self.ProjectDirectory, subdir) if subdir else self.ProjectDirectory
-        utils = QGISRedLayerUtils(layersDir, self.NetworkName, self.iface)
+        utils = QGISRedLayerUtils(layersDir, self.NetworkName, self.iface, self.ProjectDirectory)
         group = utils.getOrCreateNestedGroup([self.NetworkName] + full_tree_path)
 
         if top == "Results":

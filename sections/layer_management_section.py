@@ -174,14 +174,14 @@ class LayerManagementSection:
     def openConnectivityLayer(self):
         cfg = LAYER_TYPE_CONFIG["Connectivity"]
         connFolder = os.path.join(self.ProjectDirectory, cfg["subdir"])
-        utils = QGISRedLayerUtils(connFolder, self.NetworkName, self.iface)
+        utils = QGISRedLayerUtils(connFolder, self.NetworkName, self.iface, self.ProjectDirectory)
         connGroup = utils.getOrCreateNestedGroup([self.NetworkName] + cfg["tree_path"])
         utils.openLayer(connGroup, "Connectivity_Links")
 
     def openSectorLayers(self):
         cfg = LAYER_TYPE_CONFIG[self.Sectors]
         sectorFolder = os.path.join(self.ProjectDirectory, cfg["subdir"])
-        utils = QGISRedLayerUtils(sectorFolder, self.NetworkName, self.iface)
+        utils = QGISRedLayerUtils(sectorFolder, self.NetworkName, self.iface, self.ProjectDirectory)
         if os.path.exists(os.path.join(sectorFolder, self.NetworkName + "_" + self.Sectors + "_Links.shp")):
             sectorGroup = utils.getOrCreateNestedGroup([self.NetworkName] + cfg["tree_path"])
             utils.openLayer(sectorGroup, self.Sectors + "_Links", **cfg["flags"])
@@ -193,7 +193,7 @@ class LayerManagementSection:
     def openIsolatedSegmentsLayers(self):
         isoGroup = self.getIsolatedSegmentsGroup()
         isoFolder = os.path.join(self.ProjectDirectory, LAYER_TYPE_CONFIG["IsolatedSegments"]["subdir"])
-        utils = QGISRedLayerUtils(isoFolder, self.NetworkName, self.iface)
+        utils = QGISRedLayerUtils(isoFolder, self.NetworkName, self.iface, self.ProjectDirectory)
         utils.openLayer(isoGroup, "IsolatedSegments_Links")
         utils.openLayer(isoGroup, "IsolatedSegments_Nodes")
         utils.openLayer(isoGroup, "IsolatedSegments_IsolatedDemands")
@@ -533,7 +533,7 @@ class LayerManagementSection:
     def openTreeLayers(self):
         treeGroup = self.getTreeGroup()
         treeFolder = os.path.join(self.ProjectDirectory, DIR_QUERIES, "Trees")
-        utils = QGISRedLayerUtils(treeFolder, self.NetworkName, self.iface)
+        utils = QGISRedLayerUtils(treeFolder, self.NetworkName, self.iface, self.ProjectDirectory)
         utils.openTreeLayer(treeGroup, "Links", self.treeName, link=True)
         utils.openTreeLayer(treeGroup, "Nodes", self.treeName)
 

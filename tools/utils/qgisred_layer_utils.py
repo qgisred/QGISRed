@@ -84,9 +84,10 @@ class QGISRedLayerUtils:
         """Return True if the layer supports categorized legend classification."""
         return layerIdentifier in cls._CATEGORIZED_LAYER_IDS
 
-    def __init__(self, directory="", networkName="", iface=None):
+    def __init__(self, directory="", networkName="", iface=None, projectRoot=""):
         self.iface = iface
         self.ProjectDirectory = directory
+        self.ProjectRoot = projectRoot or directory
         self.NetworkName = networkName
 
         self.identifierToGroupName = {
@@ -147,8 +148,9 @@ class QGISRedLayerUtils:
         return QGISRedFileSystemUtils(self.ProjectDirectory, self.NetworkName, self.iface)
 
     def _styling(self):
+        # Styles live in the project root even when the layers sit in a sub-folder of it.
         from .qgisred_styling_utils import QGISRedStylingUtils
-        return QGISRedStylingUtils(self.ProjectDirectory, self.NetworkName, self.iface)
+        return QGISRedStylingUtils(self.ProjectRoot, self.NetworkName, self.iface)
 
     def _identifiers(self):
         from .qgisred_identifier_utils import QGISRedIdentifierUtils
@@ -648,7 +650,8 @@ class QGISRedLayerUtils:
 
     def _applyConnectivityStyle(self, styling, layer, originalName):
         # The style gives the look; the subnets only exist after the check runs.
-        styling.setStyle(layer, originalName)
+        from .qgisred_styling_utils import CONNECTIVITY_STYLE_NAME
+        styling.setStyle(layer, CONNECTIVITY_STYLE_NAME)
         styling.fillCategoriesFromData(layer, "SubNet")
 
     def openLayer(self, group, name, ext=".shp", results=False, toEnd=False, sectors=False, issues=False,
@@ -732,14 +735,29 @@ class QGISRedLayerUtils:
             return
         vlayer = QgsVectorLayer(layerPath, showName, "ogr")
         if link:
-            self._styling().setStyle(vlayer, "Tree_Links")
+            self._styling().setStyle(vlayer, "Tree_Links", variant=treeName)
         else:
-            self._styling().setStyle(vlayer, "Tree_Nodes")
+            self._styling().setStyle(vlayer, "Tree_Nodes", variant=treeName)
         QgsProject.instance().addMapLayer(vlayer, group is None)
         identifiers.setLayerIdentifier(vlayer, identifierKey)
         if group is not None:
             group.insertChildNode(0, QgsLayerTreeLayer(vlayer))
         del vlayer
+
+    @staticmethod
+    def treeNameFromLayerPath(layerPath, networkName):
+        """Recovers the tree's own name from `{Network}_{TreeName}_Nodes.shp` or `..._Links.shp`,
+        the naming WriteTree uses on the C# side -- the tree's identifier is the same for every
+        tree ("qgisred_tree_nodes"/"qgisred_tree_links"), so only the file name tells them apart."""
+        basename = os.path.splitext(os.path.basename(layerPath))[0]
+        prefix = networkName + "_"
+        if not basename.startswith(prefix):
+            return None
+        rest = basename[len(prefix):]
+        for suffix in ("_Nodes", "_Links"):
+            if rest.endswith(suffix):
+                return rest[:-len(suffix)]
+        return None
 
     def openGroupLayers(self, groupName, layerNames):
         styling = self._styling()

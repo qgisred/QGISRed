@@ -200,6 +200,30 @@ class TestStyleBasename:
         assert dialog.getStyleBasename("serviceconnections") == "serviceconnections"
 
 
+class TestProjectStyleFilename:
+    def _dialog(self, identifier, source):
+        dialog = _dialog(None)
+        dialog.networkName = "Net"
+        properties = {"qgisred_identifier": identifier}
+        dialog.currentLayer.customProperty.side_effect = lambda key, *a: properties.get(key)
+        dialog.currentLayer.source.return_value = source
+        return dialog
+
+    def test_a_tree_layer_carries_its_tree_name(self):
+        dialog = self._dialog("qgisred_tree_links", "C:/proj/Queries/Trees/Net_J5_Union_Links.shp")
+        assert dialog.getProjectStyleFilename("treelinks") == "Net_treelinks_J5_Union.qml"
+
+    def test_two_trees_get_two_files(self):
+        first = self._dialog("qgisred_tree_nodes", "C:/proj/Queries/Trees/Net_J5_Union_Nodes.shp")
+        second = self._dialog("qgisred_tree_nodes", "C:/proj/Queries/Trees/Net_T12_Nodes.shp|layername=x")
+        assert first.getProjectStyleFilename("treenodes") == "Net_treenodes_J5_Union.qml"
+        assert second.getProjectStyleFilename("treenodes") == "Net_treenodes_T12.qml"
+
+    def test_other_layers_keep_the_plain_name(self):
+        dialog = self._dialog("qgisred_pipes", "C:/proj/Net_Pipes.shp")
+        assert dialog.getProjectStyleFilename("pipes") == "Net_pipes.qml"
+
+
 class TestElementNameForIdentifier:
     def test_result_layer_ignores_the_translated_layer_name(self):
         dialog = _dialog("Pressure", layerName="Nudo Presión")

@@ -30,7 +30,7 @@ from qgis.core import QgsLineSymbol, QgsMarkerSymbol, QgsFillSymbol, QgsIconUtil
 from qgis.utils import iface
 
 from ...compat import WKB_LINE_GEOMETRY, WKB_POINT_GEOMETRY
-from ...tools.utils.qgisred_styling_utils import _NULL_RULE_LABEL, QGISRedStylingUtils
+from ...tools.utils.qgisred_styling_utils import _NULL_RULE_LABEL, CONNECTIVITY_STYLE_NAME, QGISRedStylingUtils
 from ...tools.utils.qgisred_legend_rule_utils import (
     OPEN_RANGE_BOUND as _OPEN_RANGE_BOUND,
     parseCategoricalRuleFilter,
@@ -5246,7 +5246,7 @@ class QGISRedLegendsDialog(QDialog, formClass):
         if thematicName:
             return thematicName
         if identifier == "qgisred_connectivity_links":
-            return "ConnectLinks"
+            return CONNECTIVITY_STYLE_NAME
         prefix = "qgisred_"
         if not identifier.startswith(prefix) or identifier.startswith(prefix + "query_"):
             return None
@@ -5278,11 +5278,18 @@ class QGISRedLegendsDialog(QDialog, formClass):
             return self.currentLayer.name()
         return None
 
+    def getStyleVariant(self):
+        """Tree name for a tree layer, so each tree keeps its own project style; "" otherwise."""
+        identifier = self.currentLayer.customProperty("qgisred_identifier") if self.currentLayer else None
+        if not identifier or not identifier.startswith("qgisred_tree_"):
+            return ""
+        layerPath = self.currentLayer.source().split("|")[0].strip()
+        return QGISRedLayerUtils.treeNameFromLayerPath(layerPath, self.networkName or "") or ""
+
     def getProjectStyleFilename(self, name):
         base = self.getStyleBasename(name)
-        if self.networkName:
-            return f"{self.networkName}_{base}.qml"
-        return base + ".qml"
+        fileName = f"{self.networkName}_{base}.qml" if self.networkName else base + ".qml"
+        return QGISRedStylingUtils.variantStyleFileName(fileName, self.getStyleVariant())
 
     def getStyleFolder(self, globalStyle):
         if globalStyle:

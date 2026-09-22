@@ -1134,18 +1134,7 @@ class ToolsSection:
         return None
 
     def _treeNameFromLayerPath(self, layerPath):
-        """Recovers the tree's own name from `{Network}_{TreeName}_Nodes.shp` or `..._Links.shp`,
-        the naming WriteTree uses on the C# side -- the tree's identifier is the same for every
-        tree ("qgisred_tree_nodes"/"qgisred_tree_links"), so only the file name tells them apart."""
-        basename = os.path.splitext(os.path.basename(layerPath))[0]
-        prefix = self.NetworkName + "_"
-        if not basename.startswith(prefix):
-            return None
-        rest = basename[len(prefix):]
-        for suffix in ("_Nodes", "_Links"):
-            if rest.endswith(suffix):
-                return rest[:-len(suffix)]
-        return None
+        return QGISRedLayerUtils.treeNameFromLayerPath(layerPath, self.NetworkName)
 
     def selectPointToTree(self):
         tool = "treeNode"
