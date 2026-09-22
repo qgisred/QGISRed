@@ -131,6 +131,9 @@ class QGISRedLegendsDialog(QDialog, formClass):
 
     # Pixels of the color swatch in the table (the symbol preview draws inside it)
     COLOR_SWATCH_SIZE = (44, 26)
+    # A single-symbol layer has one row, so it can afford a swatch tall enough to draw
+    # tank, pump and valve icons at the size the map draws them.
+    COLOR_SWATCH_SIZE_SINGLE = (44, 40)
     COLOR_COLUMN_WIDTH = 54
 
     ALLOWED_GROUP_IDENTIFIERS = [
@@ -2515,7 +2518,11 @@ class QGISRedLegendsDialog(QDialog, formClass):
         colorSelector.setEnabled(self.isEditing)
         colorSelector.colorChanged.connect(self.onRowColorChanged)
         colorSelector.setAutoFillBackground(False)
-        colorSelector.setFixedSize(*self.COLOR_SWATCH_SIZE)
+        if self.currentFieldType == self.FIELD_TYPE_SINGLE:
+            colorSelector.setFixedSize(*self.COLOR_SWATCH_SIZE_SINGLE)
+            self.tableView.setRowHeight(row, self.COLOR_SWATCH_SIZE_SINGLE[1] + 4)
+        else:
+            colorSelector.setFixedSize(*self.COLOR_SWATCH_SIZE)
 
         container = QWidget(self.tableView)
         layout = QHBoxLayout(container)
@@ -4139,10 +4146,6 @@ class QGISRedLegendsDialog(QDialog, formClass):
                 node.setItemVisibilityChecked(True)
             node = node.parent()
 
-    PIPE_DEFAULT_WIDTH = 1.5
-    PIPE_DEFAULT_CV_SIZE = 5
-    VALVE_PUMP_DEFAULT_MARKER_SIZE = 5
-
     def buildSingleSymbolRenderer(self):
         # Mutate a clone, never the live renderer's symbol: the canvas render
         # jobs and the Layers Panel legend nodes share state with the live
@@ -4253,11 +4256,13 @@ class QGISRedLegendsDialog(QDialog, formClass):
             if hasattr(sl, 'subSymbol') and sl.subSymbol():
                 self._forceExpressionOnLayers(sl.subSymbol(), propertyKey, expression)
 
-    def _scaleMarkerLineMarkerSize(self, symbol, defaultMarkerSize, newWidth, defaultWidth):
-        """Scale every marker layer inside a MarkerLine proportionally to the line width."""
-        if newWidth <= 0 or defaultWidth <= 0:
-            return
-        self._setMarkerLineMarkerSize(symbol, round(defaultMarkerSize * (newWidth / defaultWidth), 3))
+    def _scaleLineAndMarkerTogether(self, symbol, newWidth):
+        """Set the line width and keep the marker drawn on it in the proportion it had to the line."""
+        currentWidth = self._getLineWidth(symbol)
+        markerSize = self._readMarkerLineMarkerSize(symbol)
+        self._setLineWidth(symbol, newWidth)
+        if currentWidth > 0 and markerSize:
+            self._setMarkerLineMarkerSize(symbol, round(markerSize * newWidth / currentWidth, 3))
 
     def _setMarkerLineMarkerSize(self, symbol, newSize):
         for i in range(symbol.symbolLayerCount()):
@@ -4309,12 +4314,10 @@ class QGISRedLegendsDialog(QDialog, formClass):
         component = self.getSelectedVariant()
         if component == "marker":
             self._setMarkerLineMarkerSize(symbol, size)
-            return
-        self._setLineWidth(symbol, size)
-        if component is None:
-            self._scaleMarkerLineMarkerSize(
-                symbol, self.VALVE_PUMP_DEFAULT_MARKER_SIZE, size, self.PIPE_DEFAULT_WIDTH
-            )
+        elif component == "line":
+            self._setLineWidth(symbol, size)
+        else:
+            self._scaleLineAndMarkerTogether(symbol, size)
 
     def _applyInputSize(self, symbol, identifier, size, proportional, scaleBaseSizes=True):
         """Set the size variables of the selected variant, or scale them all from the shown one.
@@ -4353,10 +4356,10 @@ class QGISRedLegendsDialog(QDialog, formClass):
         if component == "marker":
             self._substituteStyleVariable(symbol, "cvPipeSize", formatExpressionNumber(size), isText=False)
             return
+        currentWidth = self._getLineWidth(symbol)
         self._setLineWidth(symbol, size)
-        if component is None:
-            cvSize = formatExpressionNumber(self.PIPE_DEFAULT_CV_SIZE * size / self.PIPE_DEFAULT_WIDTH)
-            self._substituteStyleVariable(symbol, "cvPipeSize", cvSize, isText=False)
+        if component is None and currentWidth > 0:
+            self._scaleStyleVariables(symbol, ("cvPipeSize",), size / currentWidth)
 
     def _applyValvesLegend(self, symbol, color, size):
         if color is not None:
@@ -4388,12 +4391,10 @@ class QGISRedLegendsDialog(QDialog, formClass):
             return
         if component == "circle":
             self._setMarkerLineMarkerSize(symbol, size)
-            return
-        currentWidth = self._getLineWidth(symbol)
-        self._setLineWidth(symbol, size)
-        circleSize = self._readMarkerLineMarkerSize(symbol)
-        if component is None and currentWidth > 0 and circleSize:
-            self._setMarkerLineMarkerSize(symbol, round(circleSize * size / currentWidth, 3))
+        elif component == "line":
+            self._setLineWidth(symbol, size)
+        else:
+            self._scaleLineAndMarkerTogether(symbol, size)
 
     def _recolorServiceConnectionBaseLayers(self, symbol, color, component):
         """Recolor the base (non-expression) colors so the legend swatch matches the user pick."""

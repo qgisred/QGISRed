@@ -1,11 +1,12 @@
 # -*- coding: utf-8 -*-
 
-import math
+import sys
 from contextlib import suppress
 
 from qgis.PyQt.QtGui import QColor, QPixmap, QPainter, QIcon, QDoubleValidator
 from ...compat import PAINTER_ANTIALIASING, STYLE_CC_COMBOBOX, STYLE_CE_COMBOBOXLABEL, SL_PROP_FILL_COLOR
-from ...compat import SL_PROP_SIZE, SL_PROP_WIDTH, SL_PROP_STROKE_WIDTH, RENDER_UNIT_MILLIMETERS, sip
+from ...compat import SL_PROP_SIZE, SL_PROP_WIDTH, SL_PROP_STROKE_WIDTH, sip
+from ...tools.utils.qgisred_styling_utils import QGISRedStylingUtils
 from qgis.PyQt.QtWidgets import QDialog, QDialogButtonBox, QDoubleSpinBox, QLabel, QVBoxLayout
 from qgis.PyQt.QtWidgets import QToolButton, QComboBox, QApplication, QStylePainter, QStyleOptionComboBox, QSizePolicy
 from qgis.PyQt.QtWidgets import QCheckBox, QLineEdit
@@ -14,6 +15,7 @@ from qgis.PyQt.QtCore import QLocale
 
 from qgis.gui import QgsSymbolButton, QgsColorDialog
 from qgis.core import QgsMarkerSymbol, QgsLineSymbol, QgsFillSymbol, QgsColorRamp, QgsProperty
+from qgis.utils import iface
 from typing import List, Tuple
 
 
@@ -184,14 +186,16 @@ class QGISRedSymbolColorSelector(QgsSymbolButton):
                 self.applyColorToFilteredLayers(symbol, self.activeColor)
             elif not self.colorExpressionLayersOnly or not self.applyColorToExpressionLayers(symbol, self.activeColor):
                 symbol.setColor(self.activeColor)
-            self.applySizeScaling(symbol)
         else:
             symbol = self.createGeometrySpecificSymbol()
-            self.applySizeScaling(symbol)
+        reduced = self.applySizeScaling(symbol)
 
         if not self.isEnabled():
             symbol.setOpacity(self.disabledOpacity)
         self.setSymbol(symbol)
+        if reduced:
+            # setSymbol just replaced the tooltip with a large preview of the symbol: add to it.
+            self.setToolTip(self.toolTip() + "<br>" + self.tr("Shown smaller than on the map to fit here."))
         # setSymbol hands the symbol to C++ and sip keeps its wrapper alive as a child of
         # this button; once C++ frees it, the stale wrapper can be handed back for a new
         # symbol reusing that address, under the wrong Python class. Detach it instead.
@@ -267,45 +271,94 @@ class QGISRedSymbolColorSelector(QgsSymbolButton):
             "color": rgba, "outline_color": "60,60,60,255", "outline_width": "0.3"
         })
 
-    # Preview sizes (mm): the swatch is 44x26 px, so the drawn symbol cannot follow
-    # the user-entered size or it overflows/vanishes. Instead it eases smoothly
-    # from the smallest to the largest bound as the size cell value grows.
-    previewMarkerSizeRange = (0.8, 4.7)
-    previewLineWidthRange = (0.4, 2.2)
-    # Size cell value at which the preview has covered about two thirds of its range
-    previewMarkerEasingScale = 2.5
-    previewLineEasingScale = 1.5
+    # The swatch draws the symbol at the size the map will draw it (mm). Too thin to be
+    # seen it is raised to these floors, too big for the button it is reduced as a whole.
+    minimumPreviewLineWidth = 0.26
+    minimumPreviewMarkerSize = 0.5
     disabledOpacity = 0.3
 
     def setPreviewSizeValue(self, sizeValue):
         self.previewSizeValue = sizeValue
         self.refreshSymbolDisplay()
 
-    def easedPreviewSize(self, bounds, easingScale):
-        smallest, largest = bounds
-        if not self.previewSizeValue or self.previewSizeValue <= 0:
-            return smallest
-        fraction = 1.0 - math.exp(-self.previewSizeValue / easingScale)
-        return smallest + (largest - smallest) * fraction
-
     def applySizeScaling(self, symbol):
+        """Size the preview like the map draws it. True when it had to be reduced to fit."""
         # An active data-defined size/width beats setSize/setWidth when the
         # preview renders, so the swatch would still follow the layer's size
         # expression (e.g. Tree nodes). Preview clone only: drop them first.
         self._clearSizeExpressions(symbol)
-        # Styles mix Pixel and MM width units (query links are in pixels), so the
-        # same number would draw different thicknesses: normalize the unit first.
-        if self.geometryType == self.lineType:
-            symbol.setOutputUnit(RENDER_UNIT_MILLIMETERS)
-            symbol.setWidth(self.easedPreviewSize(self.previewLineWidthRange, self.previewLineEasingScale))
-        elif hasattr(symbol, "setSize"):
-            # Anything that is not a line (circles, stars, SVG icons...) eases like a marker.
-            # Only the size unit: a stroke declared in pixels (Sources) would swell to millimetres
-            for i in range(symbol.symbolLayerCount()):
-                symbolLayer = symbol.symbolLayer(i)
-                if hasattr(symbolLayer, "setSizeUnit"):
-                    symbolLayer.setSizeUnit(RENDER_UNIT_MILLIMETERS)
-            symbol.setSize(self.easedPreviewSize(self.previewMarkerSizeRange, self.previewMarkerEasingScale))
+        QGISRedStylingUtils.convertSymbolSizesToMillimeters(symbol)
+        if self.previewSizeValue and self.previewSizeValue > 0:
+            if self.geometryType == self.lineType:
+                self.applyTrueLineSize(symbol)
+            elif hasattr(symbol, "setSize"):
+                symbol.setSize(max(self.previewSizeValue, self.minimumPreviewMarkerSize))
+        self.scalePreviewSymbol(symbol, self.mapDpi() / self.swatchDpi())
+        return self.fitPreviewToSwatch(symbol, self.maximumPreviewMillimeters())
+
+    def swatchDpi(self):
+        # QgsSymbolButton renders its icon at the physical dpi of the screen it is on...
+        screen = self.screen()
+        return screen.physicalDotsPerInch() if screen else self.logicalDpiY()
+
+    def mapDpi(self):
+        # ...while the map canvas has its own, so a millimetre is not the same pixels in both.
+        return iface.mapCanvas().mapSettings().outputDpi() if iface else self.logicalDpiY()
+
+    def applyTrueLineSize(self, symbol):
+        """Draw the line at the size cell value; whatever is drawn on it grows in proportion."""
+        lineLayers = [symbolLayer for symbolLayer in symbol.symbolLayers() if symbolLayer.layerType() == "SimpleLine"]
+        if not lineLayers:
+            return
+        width = max(self.previewSizeValue, self.minimumPreviewLineWidth)
+        referenceWidth = lineLayers[0].width()
+        if referenceWidth > 0:
+            self.scaleLineSymbol(symbol, width / referenceWidth)
+        else:
+            lineLayers[0].setWidth(width)
+
+    @staticmethod
+    def scaleLineSymbol(symbol, ratio):
+        # Never symbol.setWidth(): a marker line reports its marker size as its width,
+        # which made the line of pumps and valves shrink and their icon vanish.
+        for symbolLayer in symbol.symbolLayers():
+            subSymbol = symbolLayer.subSymbol()
+            if subSymbol is not None and hasattr(subSymbol, "setSize"):
+                subSymbol.setSize(subSymbol.size() * ratio)
+            elif subSymbol is None and hasattr(symbolLayer, "setWidth"):
+                symbolLayer.setWidth(symbolLayer.width() * ratio)
+
+    def maximumPreviewMillimeters(self):
+        # QgsSymbolButton draws into the button minus its frame; a pixel per side is kept for strokes.
+        iconHeight = self.height() - (6 if sys.platform == "win32" else 12)
+        return (iconHeight - 2) * 25.4 / self.swatchDpi()
+
+    def fitPreviewToSwatch(self, symbol, maximumMillimeters):
+        """Reduce a symbol taller than the swatch as a whole, keeping its proportions. True when reduced."""
+        largest = self.largestPreviewSize(symbol)
+        if largest <= maximumMillimeters:
+            return False
+        self.scalePreviewSymbol(symbol, maximumMillimeters / largest)
+        return True
+
+    def scalePreviewSymbol(self, symbol, ratio):
+        if hasattr(symbol, "setSize"):
+            symbol.setSize(symbol.size() * ratio)
+        else:
+            self.scaleLineSymbol(symbol, ratio)
+
+    @staticmethod
+    def largestPreviewSize(symbol):
+        if hasattr(symbol, "size"):
+            return symbol.size()
+        sizes = [0.0]
+        for symbolLayer in symbol.symbolLayers():
+            subSymbol = symbolLayer.subSymbol()
+            if subSymbol is not None and hasattr(subSymbol, "size"):
+                sizes.append(subSymbol.size())
+            elif subSymbol is None and hasattr(symbolLayer, "width"):
+                sizes.append(symbolLayer.width())
+        return max(sizes)
 
     def _clearSizeExpressions(self, symbol):
         for i in range(symbol.symbolLayerCount()):
