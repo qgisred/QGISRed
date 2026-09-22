@@ -474,6 +474,34 @@ Rules:
    ever bites, the fix is to stop excluding the `.bak` from the ZIP — the checkout branch
    above already takes precedence over the installer's copy.
 
+### Tags — what the Legends dialog reads from it
+
+Every ramp and palette carries two tags, written by `scripts/build_style_db.py`: the broad
+one (`Ramps` / `Palettes`, for the Style Manager) and its **kind**, which is what the Colors
+list of the Legends dialog is built from.
+
+| Kind tag | Given to | How colors reach the classes |
+|---|---|---|
+| `2 colors Ramps`, `3 colors Ramps`, `More than 3 colors Ramps` | gradient ramps, by their number of stops | sampled evenly end to end |
+| `Spread Palettes` | palettes for numeric legends | distributed over the classes, first and last colors always kept |
+| `Sequential Palettes` | palettes for free categories | handed out in the order they are declared, starting over when they run out |
+| `Labeled Palettes` | palettes whose colors are named after values | each class takes the color labeled with its value |
+
+A ramp's kind is counted from its stops at run time, so it cannot disagree with its tag; a
+palette's kind only exists as a tag (`QGISRedStylingUtils.colorRampKind`), and an untagged
+palette counts as Spread. A label lists every spelling of its value separated by commas
+(`"CI, FG, FF"`), matched without regard to case; `NULL` stands for a missing value.
+
+The constants live in `qgisred_styling_utils.py` (`RAMP_KINDS`, `PALETTE_KINDS`) and are
+spelled exactly like the tags. One function, `rampClassColor`, turns (ramp, kind, class
+value, class index, class count) into a color. Both the dialog and the replay of a saved
+strategy go through it — before that they each had their own rule and a saved palette came
+back with different colors than the dialog had shown. A saved strategy only names its ramp;
+the kind is looked up again on load, so strategies saved before kinds existed keep working.
+
+`tests/test_style_database_tags.py` fails if a ramp or palette is left without exactly one
+kind, or if a name that saved strategies may refer to disappears.
+
 ### If the plugin is ever allowed to write to it
 
 Today the runtime only reads: `getMaterialColorFromDb()` does a `SELECT`, `findColorRamp()`
@@ -496,3 +524,61 @@ If user-writable ramps are ever needed, in order of preference:
 2. If a shared writable database is genuinely required: enable WAL on it, and never hold a
    writable `QgsStyle` open across user interaction — open, write, close, and reload the
    catalog before each write so no decision is taken on a stale list.
+
+---
+
+## 13. Style files — where they are looked up, and in which unit
+
+`QGISRedStylingUtils.setStyle` resolves a layer's `.qml` in three places, first hit wins:
+
+1. `<project>/layerStyles/{Network}_{Name}.qml`, then `{Name}.qml` — what *Save → To Project…* writes
+2. `<QGISRedFolder>/layerStyles/{Name}.qml` — *Save → To Global…*
+3. `<plugin>/defaults/layerStyles/{Name}.qml.bak` — shipped
+
+### The project folder is the project **root**
+
+Tool outputs keep their data in a sub-folder (`Issues/Connectivity`, `Queries/Trees`, …) and
+build their `QGISRedLayerUtils` on it. The styling utils used to inherit that folder and
+probed `<sub-folder>/layerStyles`, where nothing is ever saved: project styles were silently
+ignored for connectivity, sectors, isolated segments, trees and the Demand Builder reopen,
+while global ones worked. `QGISRedLayerUtils` now takes the project root as a fourth
+argument and `_styling()` is built on it. **Any new opener working on a sub-folder must pass
+the root.** Deriving it by stripping a known sub-folder was rejected: trees and issues are
+not in `LAYER_TYPE_CONFIG`, demand sectorizations use dynamic folders, and Demand Builder
+themes can live outside the project.
+
+### The name asked for must be the name saved
+
+The Legends dialog derives the file name from the layer identifier
+(`getStyleNameForIdentifier`); `openLayer` passes its own. They have to reduce to the same
+thing (underscores are stripped, case is ignored). Connectivity once drifted — the runtime
+asked for `ConnectivityLinks` while the dialog and the only shipped file said `ConnectLinks`,
+so not even the shipped default loaded — and both now use `CONNECTIVITY_STYLE_NAME`.
+`tests/test_tool_output_style_lookup.py` holds a parity table per tool family that catches
+the next drift.
+
+### One project style per tree
+
+Every tree shares the identifiers `qgisred_tree_links` / `qgisred_tree_nodes`, and all of
+them live flat in `Queries/Trees` as `{Network}_{Tree}_Links.shp`. Their project style
+carries the tree name as a suffix — `{Network}_treelinks_{Tree}.qml` — through
+`setStyle(..., variant=treeName)`; the global and shipped styles stay common to every tree.
+The tree name is read from the **file name** (`QGISRedLayerUtils.treeNameFromLayerPath`),
+never from the Layers-panel group, which the user can rename. The style of a removed tree is
+left alone, so a tree recomputed under the same name gets it back.
+
+### Every size is in millimetres
+
+Shipped styles used to mix pixels and millimetres, so the same number in the Legends dialog
+meant different thicknesses from one layer to the next. They are all millimetres now
+(`tests/test_style_millimeters.py` refuses a `Pixel` unit in any `.qml.bak`). A style the
+user saved earlier is brought over when it is loaded, keeping its look
+(`convertRendererSizesToMillimeters`: 25.4/96 per pixel, 25.4/72 per point, including the
+numbers inside the matching data-defined size expression). A marker line reports its
+marker's size as its `width()`, so its width is never converted nor set directly — that same
+quirk is why the Legends swatch must not call `symbol.setWidth()`.
+
+The swatch draws symbols at the size the map draws them. `QgsSymbolButton` renders its icon
+at the screen's *physical* dpi while the canvas uses the *logical* one unless "respect screen
+dpi" is on, so the preview is scaled by `mapDpi() / swatchDpi()`; without that a millimetre
+is not the same pixels in both.
