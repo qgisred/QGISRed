@@ -33,8 +33,10 @@ from ...compat import WKB_LINE_GEOMETRY, WKB_POINT_GEOMETRY
 from ...tools.utils.qgisred_styling_utils import _NULL_RULE_LABEL, CONNECTIVITY_STYLE_NAME, QGISRedStylingUtils
 from ...tools.utils.qgisred_legend_rule_utils import (
     OPEN_RANGE_BOUND as _OPEN_RANGE_BOUND,
+    formatExpressionNumber,
     parseCategoricalRuleFilter,
     parseRangeFilter as _parseRangeFilter,
+    scaleNumericLiterals,
     unwrapClassAttribute as _unwrapClassAttribute,
 )
 from ...tools.utils.qgisred_ui_utils import QGISRedUIUtils, QGISRedBanner
@@ -54,14 +56,6 @@ formClass, _ = uic.loadUiType(os.path.join(os.path.dirname(__file__), "qgisred_l
 
 # Flannery-like exponent used by the shipped proportional size themes (e.g. JunctionTotalBaseDemands)
 PROPORTIONAL_SIZE_EXPONENT = 0.57
-
-
-def formatExpressionNumber(value, precision=3):
-    """Format a number for use inside a QGIS expression, trimming trailing zeros."""
-    rounded = round(float(value), precision)
-    if rounded == int(rounded):
-        return str(int(rounded))
-    return repr(rounded)
 
 
 def substituteCapturedGroup(expr, pattern, newText):
@@ -88,20 +82,6 @@ def substituteCapturedGroup(expr, pattern, newText):
         return expr, False
     parts.append(expr[last:])
     return "".join(parts), True
-
-
-_NUMERIC_LITERAL_PATTERN = re.compile(r"(?<![\w.'])\d+(?:\.\d+)?(?![\w.'])")
-
-
-def scaleNumericLiterals(expr, scale, precision=3):
-    """Scale every bare numeric literal in a size expression, keeping its structure.
-
-    Zeros stay zero, so branches that hide a symbol layer are preserved.
-    """
-    def replaceLiteral(match):
-        return formatExpressionNumber(float(match.group(0)) * scale, precision)
-
-    return _NUMERIC_LITERAL_PATTERN.sub(replaceLiteral, expr)
 
 
 # The shipped input styles (defaults/layerStyles/*.qml.bak) declare every editable color and
@@ -565,7 +545,7 @@ class QGISRedLegendsDialog(QDialog, formClass):
 
     def setupTableView(self):
         self.tableView.setColumnCount(5)
-        self.tableView.setHorizontalHeaderLabels(["", self.tr("Color"), self.tr("Size"), self.tr("Value"), self.tr("Legend")])
+        self.tableView.setHorizontalHeaderLabels(["", self.tr("Color"), self.tr("Size (mm)"), self.tr("Value"), self.tr("Legend")])
         self.rowSelectionFilter = QGISRedRowSelectionFilter(self.tableView)
 
         header = self.tableView.horizontalHeader()
@@ -580,7 +560,7 @@ class QGISRedLegendsDialog(QDialog, formClass):
 
         # Size
         header.setSectionResizeMode(2, QHeaderView.ResizeMode.Fixed)
-        self.tableView.setColumnWidth(2, 60)
+        self.tableView.setColumnWidth(2, 75)
 
         header.setSectionResizeMode(3, QHeaderView.ResizeMode.Stretch)  # Value
         header.setSectionResizeMode(4, QHeaderView.ResizeMode.Stretch)  # Legend
@@ -696,6 +676,8 @@ class QGISRedLegendsDialog(QDialog, formClass):
 
         self.cbSizes.addItems(sizeModes)
         self.cbSizes.currentIndexChanged.connect(self.onSizeModeChanged)
+        for sizeSpinBox in (self.spinSizeEqual, self.spinSizeMin, self.spinSizeMax):
+            sizeSpinBox.setSuffix(" " + self.tr("mm"))
         self.spinSizeEqual.valueChanged.connect(self.applySizeLogic)
         self.spinSizeMin.valueChanged.connect(self.applySizeLogic)
         self.spinSizeMin.valueChanged.connect(self.updateSizeSpinBoxConstraints)
@@ -1083,6 +1065,7 @@ class QGISRedLegendsDialog(QDialog, formClass):
         self.restoredLegacyStyle = False
         if self.isInputLayer() and not self.hasEditableInputStyle(layer):
             self.restoreEditableInputStyle()
+        QGISRedStylingUtils().convertRendererSizesToMillimeters(layer)
         self.originalRenderer = layer.renderer().clone() if layer.renderer() else None
         # Pristine snapshot for "Revert to Original Legend": taken once per layer,
         # never touched by Apply/Save (unlike originalRenderer).
@@ -1570,7 +1553,7 @@ class QGISRedLegendsDialog(QDialog, formClass):
 
             if sizeWidget:
                 sizeWidget.blockSignals(True)
-                sizeWidget.setText(f"{sizes[row]:.1f}")
+                sizeWidget.setText(self.formatSizeText(sizes[row]))
                 sizeWidget.blockSignals(False)
                 self.syncColorPreviewSize(row, sizeWidget.text())
 
@@ -2554,7 +2537,13 @@ class QGISRedLegendsDialog(QDialog, formClass):
             size = variableSize
         elif self.isMarkerComponentSelected():
             size = self._readMarkerLineMarkerSize(symbol) or size
-        self.tableView.setCellWidget(row, 2, self.createSizeLineEdit(f"{size:.1f}", row))
+        self.tableView.setCellWidget(row, 2, self.createSizeLineEdit(self.formatSizeText(size), row))
+
+    @staticmethod
+    def formatSizeText(size):
+        # Two decimals: millimetre widths such as 0.26 must survive an Apply untouched.
+        text = f"{size:.2f}"
+        return text[:-1] if text.endswith("0") else text
 
     def createSizeLineEdit(self, text, row):
         sizeWidget = QGISRedSizeLineEdit(text)
@@ -5101,6 +5090,7 @@ class QGISRedLegendsDialog(QDialog, formClass):
 
     def applyStyleFileToLayer(self, path):
         self.currentLayer.loadNamedStyle(path)
+        QGISRedStylingUtils().convertRendererSizesToMillimeters(self.currentLayer)
         self.restoreResultNullClass()
         self.showAppliedLayerStyle()
 
@@ -5467,6 +5457,7 @@ class QGISRedLegendsDialog(QDialog, formClass):
             "min": float(self.spinSizeMin.value()),
             "max": float(self.spinSizeMax.value()),
             "invert": bool(self.ckSizeInvert.isChecked()),
+            "unit": "MM",
         }
 
     def buildColorsPart(self):

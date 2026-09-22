@@ -158,9 +158,9 @@
           <Option type="Map">
             <Option value="0" name="align_dash_pattern" type="QString"/>
             <Option value="square" name="capstyle" type="QString"/>
-            <Option value="5000;0" name="customdash" type="QString"/>
+            <Option value="2700;0" name="customdash" type="QString"/>
             <Option value="3x:0,0,0,0,0,0" name="customdash_map_unit_scale" type="QString"/>
-            <Option value="Pixel" name="customdash_unit" type="QString"/>
+            <Option value="MM" name="customdash_unit" type="QString"/>
             <Option value="0" name="dash_pattern_offset" type="QString"/>
             <Option value="3x:0,0,0,0,0,0" name="dash_pattern_offset_map_unit_scale" type="QString"/>
             <Option value="MM" name="dash_pattern_offset_unit" type="QString"/>
@@ -168,11 +168,11 @@
             <Option value="bevel" name="joinstyle" type="QString"/>
             <Option value="133,182,111,255,rgb:0.52156862745098043,0.71372549019607845,0.43529411764705883,1" name="line_color" type="QString"/>
             <Option value="solid" name="line_style" type="QString"/>
-            <Option value="1.4" name="line_width" type="QString"/>
-            <Option value="Pixel" name="line_width_unit" type="QString"/>
+            <Option value="0.75" name="line_width" type="QString"/>
+            <Option value="MM" name="line_width_unit" type="QString"/>
             <Option value="0" name="offset" type="QString"/>
             <Option value="3x:0,0,0,0,0,0" name="offset_map_unit_scale" type="QString"/>
-            <Option value="Pixel" name="offset_unit" type="QString"/>
+            <Option value="MM" name="offset_unit" type="QString"/>
             <Option value="0" name="ring_filter" type="QString"/>
             <Option value="0" name="trim_distance_end" type="QString"/>
             <Option value="3x:0,0,0,0,0,0" name="trim_distance_end_map_unit_scale" type="QString"/>
@@ -190,7 +190,7 @@
               <Option name="properties" type="Map">
                 <Option name="customDash" type="Map">
                   <Option value="true" name="active" type="bool"/>
-                  <Option value="if(IsActive = 0, '5;5', '5000;0')" name="expression" type="QString"/>
+                  <Option value="if(IsActive = 0, '2.7;2.7', '2700;0')" name="expression" type="QString"/>
                   <Option value="3" name="type" type="int"/>
                 </Option>
                 <Option name="outlineColor" type="Map">

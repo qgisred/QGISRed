@@ -94,7 +94,7 @@ FORBIDDEN_QGIS3_ENUMS = [
     (r"(?<![\w.])Qgis\.(?:Info|Warning|Critical|Success)\b", "QGIS_INFO / QGIS_WARNING / … from compat"),
     (r"QgsMapLayer\.(?:RasterLayer|VectorLayer)\b", "LAYER_TYPE_RASTER / LAYER_TYPE_VECTOR from compat"),
     (r"QgsWkbTypes\.(?:LineGeometry|PointGeometry)\b", "WKB_LINE_GEOMETRY / WKB_POINT_GEOMETRY from compat"),
-    (r"QgsUnitTypes\.Render(?:Points|Millimeters)\b", "RENDER_UNIT_* from compat"),
+    (r"QgsUnitTypes\.Render(?:Points|Millimeters|Pixels)\b", "RENDER_UNIT_* from compat"),
     (r"QgsLayerTreeNode\.Node(?:Layer|Group)\b", "NODE_TYPE_LAYER / NODE_TYPE_GROUP from compat"),
     (r"QgsSnappingConfig\.(?:Vertex|Segment|VertexAndSegment)\b", "SNAP_TYPE_* from compat"),
     (r"(?<![\w.])QVariant\.(?:String|Double|Int|LongLong)\b", "QVariantString / QVariantDouble / … from compat"),

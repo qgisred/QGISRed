@@ -12,8 +12,8 @@
           <prop v="bevel" k="joinstyle"/>
           <prop v="255,153,0,255" k="line_color"/>
           <prop v="solid" k="line_style"/>
-          <prop v="2.6" k="line_width"/>
-          <prop v="Pixel" k="line_width_unit"/>
+          <prop v="1.4" k="line_width"/>
+          <prop v="MM" k="line_width_unit"/>
           <prop v="0" k="offset"/>
           <prop v="3x:0,0,0,0,0,0" k="offset_map_unit_scale"/>
           <prop v="MM" k="offset_unit"/>
@@ -36,7 +36,7 @@
                 </Option>
                 <Option type="Map" name="outlineWidth">
                   <Option value="true" type="bool" name="active"/>
-                  <Option value="if(@id is NULL, NULL, if(coalesce(attribute($currentfeature,'LinkType'),attribute($currentfeature,'ElemType'))='SERVICECONNECTION', 2, 0))" type="QString" name="expression"/>
+                  <Option value="if(@id is NULL, NULL, if(coalesce(attribute($currentfeature,'LinkType'),attribute($currentfeature,'ElemType'))='SERVICECONNECTION', 1.1, 0))" type="QString" name="expression"/>
                   <Option value="3" type="int" name="type"/>
                 </Option>
               </Option>
@@ -79,9 +79,9 @@
               <prop v="MM" k="offset_unit"/>
               <prop v="255,153,0,255" k="outline_color"/>
               <prop v="solid" k="outline_style"/>
-              <prop v="2" k="outline_width"/>
+              <prop v="0.5" k="outline_width"/>
               <prop v="3x:0,0,0,0,0,0" k="outline_width_map_unit_scale"/>
-              <prop v="Pixel" k="outline_width_unit"/>
+              <prop v="MM" k="outline_width_unit"/>
               <prop v="diameter" k="scale_method"/>
               <prop v="0" k="size"/>
               <prop v="3x:0,0,0,0,0,0" k="size_map_unit_scale"/>
@@ -117,8 +117,8 @@
           <prop v="bevel" k="joinstyle"/>
           <prop v="255,153,0,255" k="line_color"/>
           <prop v="solid" k="line_style"/>
-          <prop v="2.6" k="line_width"/>
-          <prop v="Pixel" k="line_width_unit"/>
+          <prop v="1.4" k="line_width"/>
+          <prop v="MM" k="line_width_unit"/>
           <prop v="0" k="offset"/>
           <prop v="3x:0,0,0,0,0,0" k="offset_map_unit_scale"/>
           <prop v="MM" k="offset_unit"/>

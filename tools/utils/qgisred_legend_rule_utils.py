@@ -86,3 +86,25 @@ def parseCategoricalRuleFilter(filterExpr):
         field, value, _secondField, op, secondValue = match.groups()
         return field, secondValue if op == "=" else value
     return None
+
+
+def formatExpressionNumber(value, precision=3):
+    """Format a number for use inside a QGIS expression, trimming trailing zeros."""
+    rounded = round(float(value), precision)
+    if rounded == int(rounded):
+        return str(int(rounded))
+    return repr(rounded)
+
+
+_NUMERIC_LITERAL_PATTERN = re.compile(r"(?<![\w.'])\d+(?:\.\d+)?(?![\w.'])")
+
+
+def scaleNumericLiterals(expr, scale, precision=3):
+    """Scale every bare numeric literal in a size expression, keeping its structure.
+
+    Zeros stay zero, so branches that hide a symbol layer are preserved.
+    """
+    def replaceLiteral(match):
+        return formatExpressionNumber(float(match.group(0)) * scale, precision)
+
+    return _NUMERIC_LITERAL_PATTERN.sub(replaceLiteral, expr)

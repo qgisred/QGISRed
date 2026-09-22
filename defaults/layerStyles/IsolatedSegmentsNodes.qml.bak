@@ -343,9 +343,9 @@
             <Option value="MM" type="QString" name="offset_unit"/>
             <Option value="255,0,255,255,rgb:1,0,1,1" type="QString" name="outline_color"/>
             <Option value="solid" type="QString" name="outline_style"/>
-            <Option value="2" type="QString" name="outline_width"/>
+            <Option value="0.5" type="QString" name="outline_width"/>
             <Option value="3x:0,0,0,0,0,0" type="QString" name="outline_width_map_unit_scale"/>
-            <Option value="Pixel" type="QString" name="outline_width_unit"/>
+            <Option value="MM" type="QString" name="outline_width_unit"/>
             <Option value="diameter" type="QString" name="scale_method"/>
             <Option value="2" type="QString" name="size"/>
             <Option value="3x:0,0,0,0,0,0" type="QString" name="size_map_unit_scale"/>
@@ -389,9 +389,9 @@
             <Option value="MM" type="QString" name="offset_unit"/>
             <Option value="255,153,0,255,rgb:1,0.6,0,1" type="QString" name="outline_color"/>
             <Option value="solid" type="QString" name="outline_style"/>
-            <Option value="2" type="QString" name="outline_width"/>
+            <Option value="0.5" type="QString" name="outline_width"/>
             <Option value="3x:0,0,0,0,0,0" type="QString" name="outline_width_map_unit_scale"/>
-            <Option value="Pixel" type="QString" name="outline_width_unit"/>
+            <Option value="MM" type="QString" name="outline_width_unit"/>
             <Option value="diameter" type="QString" name="scale_method"/>
             <Option value="2" type="QString" name="size"/>
             <Option value="3x:0,0,0,0,0,0" type="QString" name="size_map_unit_scale"/>

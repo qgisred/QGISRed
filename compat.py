@@ -254,16 +254,18 @@ except AttributeError:
 
 # ---------------------------------------------------------------------------
 # Render-unit constants (label/symbol size and distance units).
-# QGIS 3: QgsUnitTypes.RenderPoints / RenderMillimeters
-# QGIS 4: Qgis.RenderUnit.RenderPoints / RenderMillimeters
+# QGIS 3: QgsUnitTypes.RenderPoints / RenderMillimeters / RenderPixels
+# QGIS 4: Qgis.RenderUnit.RenderPoints / RenderMillimeters / RenderPixels
 # ---------------------------------------------------------------------------
 try:
     RENDER_UNIT_POINTS       = _Qgis.RenderUnit.RenderPoints
     RENDER_UNIT_MILLIMETERS  = _Qgis.RenderUnit.RenderMillimeters
+    RENDER_UNIT_PIXELS       = _Qgis.RenderUnit.RenderPixels
 except AttributeError:
     from qgis.core import QgsUnitTypes as _QgsUnitTypes
     RENDER_UNIT_POINTS       = _QgsUnitTypes.RenderPoints
     RENDER_UNIT_MILLIMETERS  = _QgsUnitTypes.RenderMillimeters
+    RENDER_UNIT_PIXELS       = _QgsUnitTypes.RenderPixels
 
 # ---------------------------------------------------------------------------
 # QgsTextBackgroundSettings enum constants (label background shape/size).

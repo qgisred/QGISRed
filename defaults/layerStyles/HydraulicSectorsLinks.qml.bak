@@ -31,8 +31,8 @@
             <Option type="QString" value="bevel" name="joinstyle"/>
             <Option type="QString" value="77,255,136,255,rgb:0.30196078431372547,1,0.53333333333333333,1" name="line_color"/>
             <Option type="QString" value="solid" name="line_style"/>
-            <Option type="QString" value="3" name="line_width"/>
-            <Option type="QString" value="Pixel" name="line_width_unit"/>
+            <Option type="QString" value="1.6" name="line_width"/>
+            <Option type="QString" value="MM" name="line_width_unit"/>
             <Option type="QString" value="0" name="offset"/>
             <Option type="QString" value="3x:0,0,0,0,0,0" name="offset_map_unit_scale"/>
             <Option type="QString" value="MM" name="offset_unit"/>
@@ -78,8 +78,8 @@
             <Option type="QString" value="bevel" name="joinstyle"/>
             <Option type="QString" value="128,255,255,255,rgb:0.50196078431372548,1,1,1" name="line_color"/>
             <Option type="QString" value="solid" name="line_style"/>
-            <Option type="QString" value="3" name="line_width"/>
-            <Option type="QString" value="Pixel" name="line_width_unit"/>
+            <Option type="QString" value="1.6" name="line_width"/>
+            <Option type="QString" value="MM" name="line_width_unit"/>
             <Option type="QString" value="0" name="offset"/>
             <Option type="QString" value="3x:0,0,0,0,0,0" name="offset_map_unit_scale"/>
             <Option type="QString" value="MM" name="offset_unit"/>
@@ -125,8 +125,8 @@
             <Option type="QString" value="bevel" name="joinstyle"/>
             <Option type="QString" value="255,139,253,255,rgb:1,0.5450980392156862,0.9921568627450981,1" name="line_color"/>
             <Option type="QString" value="solid" name="line_style"/>
-            <Option type="QString" value="3" name="line_width"/>
-            <Option type="QString" value="Pixel" name="line_width_unit"/>
+            <Option type="QString" value="1.6" name="line_width"/>
+            <Option type="QString" value="MM" name="line_width_unit"/>
             <Option type="QString" value="0" name="offset"/>
             <Option type="QString" value="3x:0,0,0,0,0,0" name="offset_map_unit_scale"/>
             <Option type="QString" value="MM" name="offset_unit"/>
@@ -172,8 +172,8 @@
             <Option type="QString" value="bevel" name="joinstyle"/>
             <Option type="QString" value="255,211,82,255,rgb:1,0.82726787212939645,0.31979858091096358,1" name="line_color"/>
             <Option type="QString" value="solid" name="line_style"/>
-            <Option type="QString" value="3" name="line_width"/>
-            <Option type="QString" value="Pixel" name="line_width_unit"/>
+            <Option type="QString" value="1.6" name="line_width"/>
+            <Option type="QString" value="MM" name="line_width_unit"/>
             <Option type="QString" value="0" name="offset"/>
             <Option type="QString" value="3x:0,0,0,0,0,0" name="offset_map_unit_scale"/>
             <Option type="QString" value="MM" name="offset_unit"/>
@@ -219,8 +219,8 @@
             <Option type="QString" value="bevel" name="joinstyle"/>
             <Option type="QString" value="219,219,219,255,hsv:0,0,0.86047150377660797,1" name="line_color"/>
             <Option type="QString" value="solid" name="line_style"/>
-            <Option type="QString" value="2" name="line_width"/>
-            <Option type="QString" value="Pixel" name="line_width_unit"/>
+            <Option type="QString" value="1.1" name="line_width"/>
+            <Option type="QString" value="MM" name="line_width_unit"/>
             <Option type="QString" value="0" name="offset"/>
             <Option type="QString" value="3x:0,0,0,0,0,0" name="offset_map_unit_scale"/>
             <Option type="QString" value="MM" name="offset_unit"/>

@@ -14,6 +14,8 @@ from random import randrange
 
 from qgis.PyQt.QtCore import QCoreApplication
 from ...compat import PAINTER_ANTIALIASING, PAL_PROPERTY_COLOR, PAL_PLACEMENT_LINE
+from ...compat import RENDER_UNIT_MILLIMETERS, RENDER_UNIT_PIXELS, RENDER_UNIT_POINTS
+from ...compat import SL_PROP_SIZE, SL_PROP_STROKE_WIDTH, SL_PROP_WIDTH
 from qgis.PyQt.QtGui import QColor
 from qgis.core import (
     QgsVectorLayer, QgsSymbol, Qgis,
@@ -29,6 +31,7 @@ from qgis.utils import iface as _iface
 
 from .qgisred_base_demand_fields import resolveBaseDemandField
 from .qgisred_field_utils import QGISRedFieldUtils
+from .qgisred_legend_rule_utils import scaleNumericLiterals
 from .qgisred_valve_types import getValveTypeName
 
 
@@ -191,6 +194,7 @@ class QGISRedStylingUtils:
         layer.loadNamedStyle(qmlPath)
         layer.setLabelsEnabled(False)
         self.applyStrategyFromLayer(layer, field)
+        self.convertRendererSizesToMillimeters(layer)
         self.translateRendererLabels(layer)
 
     def setStyle(self, layer, name, field=None, variant=""):
@@ -632,6 +636,96 @@ class QGISRedStylingUtils:
         else:
             symbol.setSize(size)
 
+    # Screen pixels at the 96 dpi the old styles were drawn for, and typographic points.
+    UNIT_TO_MILLIMETERS = {RENDER_UNIT_PIXELS: 25.4 / 96, RENDER_UNIT_POINTS: 25.4 / 72}
+
+    # value getter, value setter, unit getter, unit setter, data-defined sizes in that unit
+    SIZE_UNIT_ACCESSORS = (
+        ("width", "setWidth", "widthUnit", "setWidthUnit", (SL_PROP_STROKE_WIDTH, SL_PROP_WIDTH)),
+        ("size", "setSize", "sizeUnit", "setSizeUnit", (SL_PROP_SIZE,)),
+        ("strokeWidth", "setStrokeWidth", "strokeWidthUnit", "setStrokeWidthUnit", (SL_PROP_STROKE_WIDTH,)),
+        ("offset", "setOffset", "offsetUnit", "setOffsetUnit", ()),
+    )
+
+    @classmethod
+    def convertSymbolSizesToMillimeters(cls, symbol):
+        """Rewrite the pixel and point sizes of `symbol` in millimetres, keeping its look.
+
+        Returns the factor of the first size converted, or None when nothing had to change.
+        """
+        appliedFactor = None
+        for symbolLayer in symbol.symbolLayers():
+            subSymbol = symbolLayer.subSymbol()
+            for accessor in cls.SIZE_UNIT_ACCESSORS:
+                # A marker line reports its marker's size as its width: the sub symbol owns it.
+                if subSymbol is not None and accessor[0] == "width":
+                    continue
+                factor = cls._convertSizeToMillimeters(symbolLayer, accessor)
+                appliedFactor = appliedFactor or factor
+            if subSymbol is not None:
+                factor = cls.convertSymbolSizesToMillimeters(subSymbol)
+                appliedFactor = appliedFactor or factor
+        return appliedFactor
+
+    @classmethod
+    def _convertSizeToMillimeters(cls, symbolLayer, accessor):
+        getter, setter, unitGetter, unitSetter, propertyKeys = accessor
+        if not hasattr(symbolLayer, unitGetter):
+            return None
+        factor = cls.UNIT_TO_MILLIMETERS.get(getattr(symbolLayer, unitGetter)())
+        if factor is None:
+            return None
+        value = getattr(symbolLayer, getter)()
+        # Marker offsets are points (x, y), every other size is a plain number.
+        converted = round(value * factor, 3) if isinstance(value, (int, float)) else value * factor
+        getattr(symbolLayer, setter)(converted)
+        getattr(symbolLayer, unitSetter)(RENDER_UNIT_MILLIMETERS)
+        for propertyKey in propertyKeys:
+            cls._scaleDataDefinedSize(symbolLayer, propertyKey, factor)
+        return factor
+
+    @staticmethod
+    def _scaleDataDefinedSize(symbolLayer, propertyKey, factor):
+        sizeProperty = symbolLayer.dataDefinedProperties().property(propertyKey)
+        if sizeProperty and sizeProperty.isActive() and sizeProperty.expressionString():
+            scaledExpression = scaleNumericLiterals(sizeProperty.expressionString(), factor)
+            symbolLayer.setDataDefinedProperty(propertyKey, QgsProperty.fromExpression(scaledExpression))
+
+    def convertRendererSizesToMillimeters(self, layer):
+        """Bring a style saved in pixels or points to millimetres. True when the layer changed."""
+        renderer = layer.renderer()
+        if renderer is None:
+            return False
+        # The live symbols are owned by the layer: convert a copy and hand it back whole.
+        converted = renderer.clone()
+        symbols = list(converted.symbols(QgsRenderContext()))
+        sourceSymbol = converted.sourceSymbol() if hasattr(converted, "sourceSymbol") else None
+        if sourceSymbol is not None:
+            symbols.append(sourceSymbol)
+        appliedFactor = None
+        for symbol in symbols:
+            factor = self.convertSymbolSizesToMillimeters(symbol)
+            appliedFactor = appliedFactor or factor
+        if appliedFactor is None:
+            return False
+        layer.setRenderer(converted)
+        self._convertStrategySizesToMillimeters(layer, appliedFactor)
+        return True
+
+    def _convertStrategySizesToMillimeters(self, layer, factor):
+        # A strategy saved before sizes were in millimetres carries no unit: scale it once.
+        rawStrategy = layer.customProperty("qgisred_legend_strategy")
+        if not rawStrategy:
+            return
+        strategy = json.loads(rawStrategy)
+        sizesBlock = strategy.get("sizes")
+        if not isinstance(sizesBlock, dict) or sizesBlock.get("unit"):
+            return
+        for key in ("value", "min", "max"):
+            sizesBlock[key] = round(float(sizesBlock.get(key) or 0.0) * factor, 3)
+        sizesBlock["unit"] = "MM"
+        layer.setCustomProperty("qgisred_legend_strategy", json.dumps(strategy))
+
     @staticmethod
     def _svgLayerContent(symbolLayer):
         """SVG text of an SvgMarker layer, embedded ("base64:...") or read from its file; "" otherwise.
@@ -931,11 +1025,7 @@ class QGISRedStylingUtils:
                 symbol = QgsLineSymbol().createSimple({})
                 symbol.deleteSymbolLayer(0)
                 lineSymbol = QgsSimpleLineSymbolLayer()
-                try:  # From QGis 3.30
-                    lineSymbol.setWidthUnit(Qgis.RenderUnit.RenderPixels)  # Pixels
-                except Exception:
-                    lineSymbol.setWidthUnit(2)  # Pixels
-                lineSymbol.setWidth(2)
+                lineSymbol.setWidth(1.1)
                 lineSymbol.setColor(value_color)
                 symbol.appendSymbolLayer(lineSymbol)
 
