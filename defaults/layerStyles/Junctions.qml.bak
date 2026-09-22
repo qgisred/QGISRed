@@ -171,7 +171,7 @@
             <Option name="outline_width_map_unit_scale" type="QString" value="3x:0,0,0,0,0,0"/>
             <Option name="outline_width_unit" type="QString" value="MM"/>
             <Option name="scale_method" type="QString" value="diameter"/>
-            <Option name="size" type="QString" value="1.3"/>
+            <Option name="size" type="QString" value="1.6"/>
             <Option name="size_map_unit_scale" type="QString" value="3x:0,0,0,0,0,0"/>
             <Option name="size_unit" type="QString" value="MM"/>
             <Option name="vertical_anchor_point" type="QString" value="1"/>
@@ -187,7 +187,7 @@
                 </Option>
                 <Option name="size" type="Map">
                   <Option name="active" type="bool" value="true"/>
-                  <Option name="expression" type="QString" value="with_variable('emitterJunctionSize', 2.2, with_variable('negativeDemandEmitterJunctionSize', 4, if(EmittCoef > 0, if(BaseDem is NULL, @emitterJunctionSize, if(BaseDem > 0, @emitterJunctionSize, if(BaseDem &lt; 0, @negativeDemandEmitterJunctionSize, @emitterJunctionSize))), 0)))"/>
+                  <Option name="expression" type="QString" value="with_variable('emitterJunctionSize', 2.7, with_variable('negativeDemandEmitterJunctionSize', 4, if(EmittCoef > 0, if(BaseDem is NULL, @emitterJunctionSize, if(BaseDem > 0, @emitterJunctionSize, if(BaseDem &lt; 0, @negativeDemandEmitterJunctionSize, @emitterJunctionSize))), 0)))"/>
                   <Option name="type" type="int" value="3"/>
                 </Option>
               </Option>
@@ -212,7 +212,7 @@
             <Option name="outline_width_map_unit_scale" type="QString" value="3x:0,0,0,0,0,0"/>
             <Option name="outline_width_unit" type="QString" value="MM"/>
             <Option name="scale_method" type="QString" value="diameter"/>
-            <Option name="size" type="QString" value="1.3"/>
+            <Option name="size" type="QString" value="1.6"/>
             <Option name="size_map_unit_scale" type="QString" value="3x:0,0,0,0,0,0"/>
             <Option name="size_unit" type="QString" value="MM"/>
             <Option name="vertical_anchor_point" type="QString" value="1"/>
@@ -228,7 +228,7 @@
                 </Option>
                 <Option name="size" type="Map">
                   <Option name="active" type="bool" value="true"/>
-                  <Option name="expression" type="QString" value="with_variable('junctionSize', 1.3, with_variable('negativeDemandJunctionSize', 3.5, if(EmittCoef > 0, 0, if(BaseDem is NULL, @junctionSize, if(BaseDem > 0, @junctionSize, if(BaseDem &lt; 0, @negativeDemandJunctionSize, @junctionSize))))))"/>
+                  <Option name="expression" type="QString" value="with_variable('junctionSize', 1.6, with_variable('negativeDemandJunctionSize', 3.5, if(EmittCoef > 0, 0, if(BaseDem is NULL, @junctionSize, if(BaseDem > 0, @junctionSize, if(BaseDem &lt; 0, @negativeDemandJunctionSize, @junctionSize))))))"/>
                   <Option name="type" type="int" value="3"/>
                 </Option>
               </Option>

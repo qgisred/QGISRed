@@ -168,7 +168,7 @@
             <Option value="bevel" name="joinstyle" type="QString"/>
             <Option value="133,182,111,255,rgb:0.52156862745098043,0.71372549019607845,0.43529411764705883,1" name="line_color" type="QString"/>
             <Option value="solid" name="line_style" type="QString"/>
-            <Option value="0.75" name="line_width" type="QString"/>
+            <Option value="0.4" name="line_width" type="QString"/>
             <Option value="MM" name="line_width_unit" type="QString"/>
             <Option value="0" name="offset" type="QString"/>
             <Option value="3x:0,0,0,0,0,0" name="offset_map_unit_scale" type="QString"/>
@@ -254,7 +254,7 @@
                 <Option value="3x:0,0,0,0,0,0" name="outline_width_map_unit_scale" type="QString"/>
                 <Option value="MM" name="outline_width_unit" type="QString"/>
                 <Option value="diameter" name="scale_method" type="QString"/>
-                <Option value="1.5" name="size" type="QString"/>
+                <Option value="1.6" name="size" type="QString"/>
                 <Option value="3x:0,0,0,0,0,0" name="size_map_unit_scale" type="QString"/>
                 <Option value="MM" name="size_unit" type="QString"/>
                 <Option value="1" name="vertical_anchor_point" type="QString"/>

@@ -53,12 +53,12 @@ JUNCTION_COLOR = (
     "if(BaseDem < 0, @negativeDemandJunctionColor, @noDemandJunctionColor))))))"
 )
 JUNCTION_EMITTER_SIZE = (
-    "with_variable('emitterJunctionSize', 2.2, with_variable('negativeDemandEmitterJunctionSize', 4, "
+    "with_variable('emitterJunctionSize', 2.7, with_variable('negativeDemandEmitterJunctionSize', 4, "
     "if(EmittCoef > 0, if(BaseDem is NULL, @emitterJunctionSize, if(BaseDem > 0, @emitterJunctionSize, "
     "if(BaseDem < 0, @negativeDemandEmitterJunctionSize, @emitterJunctionSize))), 0)))"
 )
 JUNCTION_BASE_SIZE = (
-    "with_variable('junctionSize', 1.3, with_variable('negativeDemandJunctionSize', 3.5, "
+    "with_variable('junctionSize', 1.6, with_variable('negativeDemandJunctionSize', 3.5, "
     "if(EmittCoef > 0, 0, if(BaseDem is NULL, @junctionSize, if(BaseDem > 0, @junctionSize, "
     "if(BaseDem < 0, @negativeDemandJunctionSize, @junctionSize))))))"
 )
@@ -74,8 +74,8 @@ SOURCE_STROKE = (
     "if(@st = 'CONCEN', @concenSourceColor, @setpointSourceColor))))))))))))"
 )
 SOURCE_SIZE = (
-    "if(@id is NULL, NULL, with_variable('massSourceSize', 2.6, with_variable('flowpacedSourceSize', 2.6, "
-    "with_variable('concenSourceSize', 2.6, with_variable('setpointSourceSize', 2.6, "
+    "if(@id is NULL, NULL, with_variable('massSourceSize', 3, with_variable('flowpacedSourceSize', 3, "
+    "with_variable('concenSourceSize', 3, with_variable('setpointSourceSize', 3, "
     "with_variable('st', coalesce(attribute($currentfeature,'SourceType'),attribute($currentfeature,'Type')), "
     "if(@st = 'MASS', @massSourceSize, if(@st = 'FLOWPACED', @flowpacedSourceSize, "
     "if(@st = 'CONCEN', @concenSourceSize, @setpointSourceSize)))))))))"
@@ -101,7 +101,7 @@ DEMANDS_FILL = (
     "if(@bd < 0, @negativeDemandColor, @noDemandColor))))))))"
 )
 DEMANDS_SIZE = (
-    "if(@id is NULL, NULL, with_variable('demandSize', 1.6, with_variable('negativeDemandSize', 3.5, "
+    "if(@id is NULL, NULL, with_variable('demandSize', 1.8, with_variable('negativeDemandSize', 3.5, "
     "with_variable('bd', " + BASE_VALUE + ", "
     "if(@bd is NULL, @demandSize, if(@bd > 0, @demandSize, if(@bd < 0, @negativeDemandSize, @demandSize)))))))"
 )
@@ -297,12 +297,12 @@ class TestStyleVariablePattern:
 
     def test_number_pattern_captures_the_number(self):
         assert declared(PIPE_CV_SIZE, "cvPipeSize", isText=False) == "5"
-        assert declared(JUNCTION_EMITTER_SIZE, "emitterJunctionSize", isText=False) == "2.2"
+        assert declared(JUNCTION_EMITTER_SIZE, "emitterJunctionSize", isText=False) == "2.7"
 
     def test_each_pattern_matches_only_its_own_declaration(self):
         assert declared(PIPE_CV_SIZE, "openPipeColor") is None
         assert declared(PIPE_COLOR, "cvPipeSize", isText=False) is None
-        assert declared(JUNCTION_BASE_SIZE, "junctionSize", isText=False) == "1.3"
+        assert declared(JUNCTION_BASE_SIZE, "junctionSize", isText=False) == "1.6"
         assert declared(JUNCTION_BASE_SIZE, "negativeDemandJunctionSize", isText=False) == "3.5"
 
     def test_substitution_changes_only_the_declared_value(self):
@@ -753,8 +753,8 @@ class TestPumpsAndValvesApplier:
 
 class TestJunctionsApplier:
     def _symbol(self):
-        emitter = FakeSymbolLayer(expressions={FILL_KEY: JUNCTION_COLOR, SIZE_KEY: JUNCTION_EMITTER_SIZE}, size=1.3)
-        base = FakeSymbolLayer(expressions={FILL_KEY: JUNCTION_COLOR, SIZE_KEY: JUNCTION_BASE_SIZE}, size=1.3)
+        emitter = FakeSymbolLayer(expressions={FILL_KEY: JUNCTION_COLOR, SIZE_KEY: JUNCTION_EMITTER_SIZE}, size=1.6)
+        base = FakeSymbolLayer(expressions={FILL_KEY: JUNCTION_COLOR, SIZE_KEY: JUNCTION_BASE_SIZE}, size=1.6)
         return FakeSymbol([emitter, base]), emitter, base
 
     def test_positive_scenario_colors_only_the_positive_branch(self, monkeypatch):
@@ -775,12 +775,12 @@ class TestJunctionsApplier:
 
     def test_all_scales_every_size_variable_from_the_shown_one(self, monkeypatch):
         symbol, emitter, base = self._symbol()
-        _dialog(monkeypatch, "qgisred_junctions")._applyJunctionsLegend(symbol, None, 2.6)
-        assert declared(base.expression(SIZE_KEY), "junctionSize", isText=False) == "2.6"
+        _dialog(monkeypatch, "qgisred_junctions")._applyJunctionsLegend(symbol, None, 3.2)
+        assert declared(base.expression(SIZE_KEY), "junctionSize", isText=False) == "3.2"
         assert declared(base.expression(SIZE_KEY), "negativeDemandJunctionSize", isText=False) == "7"
-        assert declared(emitter.expression(SIZE_KEY), "emitterJunctionSize", isText=False) == "4.4"
+        assert declared(emitter.expression(SIZE_KEY), "emitterJunctionSize", isText=False) == "5.4"
         assert declared(emitter.expression(SIZE_KEY), "negativeDemandEmitterJunctionSize", isText=False) == "8"
-        assert emitter.size() == base.size() == 2.6  # base sizes follow, for the legend icon
+        assert emitter.size() == base.size() == 3.2  # base sizes follow, for the legend icon
         assert emitter.expression(SIZE_KEY).endswith("@emitterJunctionSize))), 0)))")
 
     def test_all_never_takes_a_color(self, monkeypatch):
@@ -790,32 +790,32 @@ class TestJunctionsApplier:
 
     def test_positive_scenario_scales_the_positive_sizes_only(self, monkeypatch):
         symbol, emitter, base = self._symbol()
-        _dialog(monkeypatch, "qgisred_junctions", "positive")._applyJunctionsLegend(symbol, None, 2.6)
-        assert declared(base.expression(SIZE_KEY), "junctionSize", isText=False) == "2.6"
+        _dialog(monkeypatch, "qgisred_junctions", "positive")._applyJunctionsLegend(symbol, None, 3.2)
+        assert declared(base.expression(SIZE_KEY), "junctionSize", isText=False) == "3.2"
         assert declared(base.expression(SIZE_KEY), "negativeDemandJunctionSize", isText=False) == "3.5"
-        assert declared(emitter.expression(SIZE_KEY), "emitterJunctionSize", isText=False) == "4.4"
+        assert declared(emitter.expression(SIZE_KEY), "emitterJunctionSize", isText=False) == "5.4"
         assert declared(emitter.expression(SIZE_KEY), "negativeDemandEmitterJunctionSize", isText=False) == "4"
-        assert emitter.size() == base.size() == 2.6
+        assert emitter.size() == base.size() == 3.2
 
     def test_negative_scenario_scales_the_negative_sizes_only(self, monkeypatch):
         symbol, emitter, base = self._symbol()
         _dialog(monkeypatch, "qgisred_junctions", "negative")._applyJunctionsLegend(symbol, None, 7.0)
         assert declared(base.expression(SIZE_KEY), "negativeDemandJunctionSize", isText=False) == "7"
-        assert declared(base.expression(SIZE_KEY), "junctionSize", isText=False) == "1.3"
+        assert declared(base.expression(SIZE_KEY), "junctionSize", isText=False) == "1.6"
         assert declared(emitter.expression(SIZE_KEY), "negativeDemandEmitterJunctionSize", isText=False) == "8"
-        assert declared(emitter.expression(SIZE_KEY), "emitterJunctionSize", isText=False) == "2.2"
-        assert emitter.size() == base.size() == 1.3  # the panel icon keeps the positive size
+        assert declared(emitter.expression(SIZE_KEY), "emitterJunctionSize", isText=False) == "2.7"
+        assert emitter.size() == base.size() == 1.6  # the panel icon keeps the positive size
 
     def test_an_untouched_size_is_a_no_op(self, monkeypatch):
         symbol, emitter, base = self._symbol()
-        _dialog(monkeypatch, "qgisred_junctions", "positive")._applyJunctionsLegend(symbol, None, 1.3)
+        _dialog(monkeypatch, "qgisred_junctions", "positive")._applyJunctionsLegend(symbol, None, 1.6)
         assert base.expression(SIZE_KEY) == JUNCTION_BASE_SIZE and emitter.expression(SIZE_KEY) == JUNCTION_EMITTER_SIZE
 
 
 class TestDemandsApplier:
     def _symbol(self):
-        outer = FakeSymbolLayer(size=2.8)
-        inner = FakeSymbolLayer(expressions={FILL_KEY: DEMANDS_FILL, SIZE_KEY: DEMANDS_SIZE}, size=1.6)
+        outer = FakeSymbolLayer(size=3.15)
+        inner = FakeSymbolLayer(expressions={FILL_KEY: DEMANDS_FILL, SIZE_KEY: DEMANDS_SIZE}, size=1.8)
         return FakeSymbol([outer, inner]), outer, inner
 
     def test_color_goes_to_the_positive_branch_only(self, monkeypatch):
@@ -829,10 +829,10 @@ class TestDemandsApplier:
 
     def test_size_scales_both_symbols(self, monkeypatch):
         symbol, outer, inner = self._symbol()
-        _dialog(monkeypatch, "qgisred_demands")._applyDemandsLegend(symbol, None, 3.2)
-        assert declared(inner.expression(SIZE_KEY), "demandSize", isText=False) == "3.2"
+        _dialog(monkeypatch, "qgisred_demands")._applyDemandsLegend(symbol, None, 3.6)
+        assert declared(inner.expression(SIZE_KEY), "demandSize", isText=False) == "3.6"
         assert declared(inner.expression(SIZE_KEY), "negativeDemandSize", isText=False) == "7"
-        assert outer.size() == 5.6 and inner.size() == 3.2
+        assert outer.size() == 6.3 and inner.size() == 3.6
 
 
 class TestMetersApplier:
@@ -960,7 +960,7 @@ class TestSourcesApplier:
         assert "with_variable('bq', coalesce(" in expr and "with_variable('st', coalesce(" in expr
 
     def _symbol(self):
-        layer = FakeSymbolLayer(expressions={STROKE_KEY: SOURCE_STROKE, SIZE_KEY: SOURCE_SIZE}, size=2.6)
+        layer = FakeSymbolLayer(expressions={STROKE_KEY: SOURCE_STROKE, SIZE_KEY: SOURCE_SIZE}, size=3)
         return FakeSymbol([layer]), layer
 
     def test_one_type_takes_its_own_size(self, monkeypatch):
@@ -969,9 +969,9 @@ class TestSourcesApplier:
         expr = layer.expression(SIZE_KEY)
         assert declared(expr, "concenSourceSize", isText=False) == "5"
         for name in ("massSourceSize", "flowpacedSourceSize", "setpointSourceSize"):
-            assert declared(expr, name, isText=False) == "2.6"
+            assert declared(expr, name, isText=False) == "3"
         assert expr.startswith("if(@id is NULL, NULL, ") and expr.endswith("@setpointSourceSize)))))))))")
-        assert layer.size() == 2.6  # the panel icon follows All types only
+        assert layer.size() == 3  # the panel icon follows All types only
 
     def test_all_types_give_every_type_the_same_size(self, monkeypatch):
         symbol, layer = self._symbol()

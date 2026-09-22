@@ -171,7 +171,7 @@
             <Option value="3x:0,0,0,0,0,0" name="outline_width_map_unit_scale" type="QString"/>
             <Option value="MM" name="outline_width_unit" type="QString"/>
             <Option value="diameter" name="scale_method" type="QString"/>
-            <Option value="2.8" name="size" type="QString"/>
+            <Option value="3.15" name="size" type="QString"/>
             <Option value="3x:0,0,0,0,0,0" name="size_map_unit_scale" type="QString"/>
             <Option value="MM" name="size_unit" type="QString"/>
             <Option value="1" name="vertical_anchor_point" type="QString"/>
@@ -201,7 +201,7 @@
             <Option value="3x:0,0,0,0,0,0" name="outline_width_map_unit_scale" type="QString"/>
             <Option value="MM" name="outline_width_unit" type="QString"/>
             <Option value="diameter" name="scale_method" type="QString"/>
-            <Option value="1.6" name="size" type="QString"/>
+            <Option value="1.8" name="size" type="QString"/>
             <Option value="3x:0,0,0,0,0,0" name="size_map_unit_scale" type="QString"/>
             <Option value="MM" name="size_unit" type="QString"/>
             <Option value="1" name="vertical_anchor_point" type="QString"/>
@@ -217,7 +217,7 @@
                 </Option>
                 <Option name="size" type="Map">
                   <Option value="true" name="active" type="bool"/>
-                  <Option value="if(@id is NULL, NULL, with_variable('demandSize', 1.6, with_variable('negativeDemandSize', 3.5, with_variable('bd', coalesce(attribute($currentfeature,'BaseDem'),attribute($currentfeature,'BaseValue')), if(@bd is NULL, @demandSize, if(@bd > 0, @demandSize, if(@bd &lt; 0, @negativeDemandSize, @demandSize)))))))" name="expression" type="QString"/>
+                  <Option value="if(@id is NULL, NULL, with_variable('demandSize', 1.8, with_variable('negativeDemandSize', 3.5, with_variable('bd', coalesce(attribute($currentfeature,'BaseDem'),attribute($currentfeature,'BaseValue')), if(@bd is NULL, @demandSize, if(@bd > 0, @demandSize, if(@bd &lt; 0, @negativeDemandSize, @demandSize)))))))" name="expression" type="QString"/>
                   <Option value="3" name="type" type="int"/>
                 </Option>
               </Option>
