@@ -589,6 +589,10 @@ class QGISRedStylingUtils:
             return
 
         kind = self.findColorRampKind(rampName)
+        if kind == PALETTE_KIND_LABELED:
+            # Labeled palettes match a value to a discrete category; a graduated legend has
+            # numeric ranges instead, which never match, so spread the palette by position.
+            kind = PALETTE_KIND_SPREAD
         ranges = renderer.ranges()
         rangeCount = max(len(ranges), 1)
         for index in range(len(ranges)):
