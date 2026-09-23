@@ -4928,7 +4928,15 @@ class QGISRedLegendsDialog(QDialog, formClass):
         if source == "ramp":
             # The strategy only names the ramp: its kind says which entry of the list it is.
             kind = self.colorRampKinds.get(rampName)
+            if kind is None and rampName:
+                kind = QGISRedStylingUtils.colorRampKind(self.style, rampName)
             if kind is None:
+                QgsMessageLog.logMessage(
+                    self.tr("Color ramp '%1' not found; keeping the previous color mode")
+                        .replace("%1", rampName or ""),
+                    "QGISRed",
+                    QGIS_WARNING,
+                )
                 return
             self.setColorMode(kind)
             self.btnColorRamp.setActiveRampByName(rampName)
