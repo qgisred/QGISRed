@@ -828,9 +828,11 @@ class QGISRedStylingUtils:
             index = classCount - 1 - index
         if kind == PALETTE_KIND_SEQUENTIAL:
             colors = ramp.colors()
-            return QColor(colors[index % len(colors)])
+            return None if not colors else QColor(colors[index % len(colors)])
         if kind == PALETTE_KIND_SPREAD:
             colors = ramp.colors()
+            if not colors:
+                return None
             return self.paletteColorAt(colors, self.spreadPalettePosition(len(colors), classCount, index))
         return ramp.color(0.0 if classCount <= 1 else index / float(classCount - 1))
 
