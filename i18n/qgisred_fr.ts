@@ -2612,7 +2612,7 @@ Voulez-vous les vérifier à nouveau ?</translation>
     <message>
         <location filename="../sections/menu_section.py" line="704"/>
         <source>Obtain demand sectors</source>
-        <translation type="obsolete">Obtenir des secteurs de demande</translation>
+        <translation type="unfinished">Obtenir des secteurs de demande</translation>
     </message>
     <message>
         <location filename="../sections/menu_section.py" line="819"/>
@@ -2918,11 +2918,6 @@ Voulez-vous les vérifier à nouveau ?</translation>
         <location filename="../sections/menu_section.py" line="713"/>
         <source>Demand sector builder (to be removed in future)...</source>
         <translation type="obsolete">Constructeur de secteurs de demande (sera supprimé à l'avenir)...</translation>
-    </message>
-    <message>
-        <location filename="../sections/menu_section.py" line="704"/>
-        <source>Demand sector...</source>
-        <translation type="unfinished"></translation>
     </message>
 </context>
 <context>
@@ -6312,32 +6307,32 @@ Voulez-vous continuer ?</translation>
     <message>
         <location filename="../ui/project/qgisred_legends_dialog.py" line="5381"/>
         <source>This legend follows rules set by the plugin, so it is always saved as shown.</source>
-        <translation>Cette légende suit des règles définies par le plugin ; elle est donc toujours enregistrée telle qu&apos;affichée.</translation>
+        <translation>Cette légende suit des règles définies par le plugin ; elle est donc toujours enregistrée telle qu'affichée.</translation>
     </message>
     <message>
         <location filename="../ui/project/qgisred_legends_dialog.py" line="5386"/>
         <source>The intervals are set by hand. Choose a mode that calculates them to have them recalculated.</source>
-        <translation>Les intervalles sont définis à la main. Choisissez un mode qui les calcule pour qu&apos;ils soient recalculés.</translation>
+        <translation>Les intervalles sont définis à la main. Choisissez un mode qui les calcule pour qu'ils soient recalculés.</translation>
     </message>
     <message>
         <location filename="../ui/project/qgisred_legends_dialog.py" line="5392"/>
         <source>Classes are rebuilt while coloring them: choose Random, a ramp or a palette in Colors first.</source>
-        <translation>Les classes sont reconstruites lors de leur coloration : choisissez d&apos;abord Aléatoire, un dégradé ou une palette dans Couleurs.</translation>
+        <translation>Les classes sont reconstruites lors de leur coloration : choisissez d'abord Aléatoire, un dégradé ou une palette dans Couleurs.</translation>
     </message>
     <message>
         <location filename="../ui/project/qgisred_legends_dialog.py" line="5394"/>
         <source>These classes come from a formula, not from a column, so they cannot be rebuilt.</source>
-        <translation>Ces classes proviennent d&apos;une formule et non d&apos;une colonne ; elles ne peuvent donc pas être reconstruites.</translation>
+        <translation>Ces classes proviennent d'une formule et non d'une colonne ; elles ne peuvent donc pas être reconstruites.</translation>
     </message>
     <message>
         <location filename="../ui/project/qgisred_legends_dialog.py" line="5402"/>
         <source>The sizes are set by hand. Choose Equal, Linear or another mode in Sizes to have them recalculated.</source>
-        <translation>Les tailles sont définies à la main. Choisissez Equal, Linear ou un autre mode dans Tailles pour qu&apos;elles soient recalculées.</translation>
+        <translation>Les tailles sont définies à la main. Choisissez Equal, Linear ou un autre mode dans Tailles pour qu'elles soient recalculées.</translation>
     </message>
     <message>
         <location filename="../ui/project/qgisred_legends_dialog.py" line="5409"/>
         <source>The colors are set by hand. Choose Random, a ramp or a palette in Colors to have them recalculated.</source>
-        <translation>Les couleurs sont définies à la main. Choisissez Aléatoire, un dégradé ou une palette dans Couleurs pour qu&apos;elles soient recalculées.</translation>
+        <translation>Les couleurs sont définies à la main. Choisissez Aléatoire, un dégradé ou une palette dans Couleurs pour qu'elles soient recalculées.</translation>
     </message>
 </context>
 <context>
@@ -8311,7 +8306,7 @@ Voulez-vous continuer ?</translation>
     <message>
         <location filename="../ui/project/qgisred_custom_dialogs.py" line="86"/>
         <source>Fixed legend: save it exactly as shown</source>
-        <translation>Légende fixe : l&apos;enregistrer exactement comme affichée</translation>
+        <translation>Légende fixe : l'enregistrer exactement comme affichée</translation>
     </message>
     <message>
         <location filename="../ui/project/qgisred_custom_dialogs.py" line="87"/>

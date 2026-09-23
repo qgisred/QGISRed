@@ -2652,7 +2652,7 @@ Deseja verificá-los novamente?</translation>
     <message>
         <location filename="../sections/menu_section.py" line="704"/>
         <source>Obtain demand sectors</source>
-        <translation type="obsolete">Obter setores de consumo</translation>
+        <translation type="unfinished">Obter setores de consumo</translation>
     </message>
     <message>
         <location filename="../sections/menu_section.py" line="819"/>
@@ -2963,11 +2963,6 @@ Deseja verificá-los novamente?</translation>
         <location filename="../sections/menu_section.py" line="713"/>
         <source>Demand sector builder (to be removed in future)...</source>
         <translation type="obsolete">Construtor de setores de consumo (será removido no futuro)...</translation>
-    </message>
-    <message>
-        <location filename="../sections/menu_section.py" line="704"/>
-        <source>Demand sector...</source>
-        <translation type="unfinished"></translation>
     </message>
 </context>
 <context>

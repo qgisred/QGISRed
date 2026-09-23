@@ -2752,7 +2752,7 @@ Do you want to check them again?</source>
     </message>
     <message>
         <location filename="../sections/menu_section.py" line="704"/>
-        <source>Demand sector...</source>
+        <source>Obtain demand sectors</source>
         <translation type="unfinished"></translation>
     </message>
 </context>

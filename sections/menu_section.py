@@ -703,7 +703,7 @@ class MenuSection:
 
         action = self._make_action(
             ":/images/iconDemandSectors.svg",
-            self.tr("Demand sector..."),
+            self.tr("Obtain demand sectors"),
             self.runDemandSectors,
             parent=self.iface.mainWindow(),
         )
