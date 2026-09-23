@@ -36,8 +36,13 @@ from .qgisred_valve_types import getValveTypeName
 
 
 def _plugin_root():
-    """Returns the plugin root directory (two levels up from tools/utils/)."""
-    return os.path.dirname(os.path.dirname(os.path.dirname(__file__)))
+    """Returns the plugin root directory (two levels up from tools/utils/).
+
+    realpath matters here: dev checkouts import this module through a `QGISRed ->
+    git_repo` symlink (see tests/conftest.py) so `import QGISRed...` matches a real
+    install, and __file__ preserves that symlinked path rather than resolving it.
+    """
+    return os.path.dirname(os.path.dirname(os.path.dirname(os.path.realpath(__file__))))
 
 
 _DEMAND_SECTOR_COLOR_CACHE = {}
