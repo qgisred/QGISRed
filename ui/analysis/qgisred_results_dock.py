@@ -695,7 +695,7 @@ class QGISRedResultsDock(
 
     def _openOrReloadLayerResults(self, scenario, nameLayer=None):
         resultPath = self.getResultsPath()
-        utils = QGISRedLayerUtils(resultPath, self.NetworkName + "_" + scenario, self.iface)
+        utils = QGISRedLayerUtils(resultPath, self.NetworkName + "_" + scenario, self.iface, self.ProjectDirectory)
         # Navigation utils uses the plain NetworkName so getOrCreateNestedGroup can match
         # the network root group and apply group-visibility logic along the path.
         navUtils = QGISRedLayerUtils(self.ProjectDirectory, self.NetworkName, self.iface)
