@@ -7,7 +7,7 @@
 *.db.*.new
 scripts/.ftp_credentials
 CLAUDE.md
-.claude/
+.claude/settings.local.json
 ._*
 .DS_Store
 .venv/
