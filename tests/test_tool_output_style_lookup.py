@@ -65,7 +65,7 @@ class TestProjectRoot:
         subFolder = str(tmp_path / "Queries" / "Trees")
         utils = QGISRedLayerUtils(subFolder, "Net", MagicMock(), str(tmp_path))
 
-        assert utils.ProjectDirectory == subFolder
+        assert utils.LayersDirectory == subFolder
         assert utils._styling().ProjectDirectory == str(tmp_path)
 
 

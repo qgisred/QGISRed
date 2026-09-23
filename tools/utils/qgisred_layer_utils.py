@@ -84,10 +84,10 @@ class QGISRedLayerUtils:
         """Return True if the layer supports categorized legend classification."""
         return layerIdentifier in cls._CATEGORIZED_LAYER_IDS
 
-    def __init__(self, directory="", networkName="", iface=None, projectRoot=""):
+    def __init__(self, layersDirectory="", networkName="", iface=None, projectRoot=""):
         self.iface = iface
-        self.ProjectDirectory = directory
-        self.ProjectRoot = projectRoot or directory
+        self.LayersDirectory = layersDirectory
+        self.ProjectRoot = projectRoot or layersDirectory
         self.NetworkName = networkName
 
         self.identifierToGroupName = {
@@ -145,7 +145,7 @@ class QGISRedLayerUtils:
 
     def _fs(self):
         from .qgisred_filesystem_utils import QGISRedFileSystemUtils
-        return QGISRedFileSystemUtils(self.ProjectDirectory, self.NetworkName, self.iface)
+        return QGISRedFileSystemUtils(self.LayersDirectory, self.NetworkName, self.iface)
 
     def _styling(self):
         # Styles live in the project root even when the layers sit in a sub-folder of it.
@@ -154,14 +154,14 @@ class QGISRedLayerUtils:
 
     def _identifiers(self):
         from .qgisred_identifier_utils import QGISRedIdentifierUtils
-        return QGISRedIdentifierUtils(self.ProjectDirectory, self.NetworkName, self.iface)
+        return QGISRedIdentifierUtils(self.LayersDirectory, self.NetworkName, self.iface)
 
-    def getProjectDirectory(self):
-        return self.ProjectDirectory
+    def getLayersDirectory(self):
+        return self.LayersDirectory
 
     def getProjectCrs(self):
         fs = self._fs()
-        layerPath = fs.generatePath(self.ProjectDirectory, self.NetworkName + "_Pipes.shp")
+        layerPath = fs.generatePath(self.LayersDirectory, self.NetworkName + "_Pipes.shp")
         for layer in self.getLayers():
             if layerPath == fs.getLayerPath(layer):
                 return layer.crs()
@@ -453,7 +453,7 @@ class QGISRedLayerUtils:
         identifiers = self._identifiers()
         layers = self.getLayers()
         originalLayerName = identifiers.getOriginalNameFromLayerName(layerName)
-        layerPath = fs.generatePath(self.ProjectDirectory, self.NetworkName + "_" + originalLayerName + ".shp")
+        layerPath = fs.generatePath(self.LayersDirectory, self.NetworkName + "_" + originalLayerName + ".shp")
 
         for layer in layers:
             if identifiers.isThematicMapsLayer(layer):
@@ -615,7 +615,7 @@ class QGISRedLayerUtils:
         fs = self._fs()
         identifiers = self._identifiers()
         originalLayerName = identifiers.getOriginalNameFromLayerName(layerName)
-        layerPath = fs.generatePath(self.ProjectDirectory, self.NetworkName + "_" + originalLayerName + ".shp")
+        layerPath = fs.generatePath(self.LayersDirectory, self.NetworkName + "_" + originalLayerName + ".shp")
         self._tryReloadExistingLayer(layerPath)
 
     def openElementsLayers(self, group, ownMainLayers, processOnly=False):
@@ -671,7 +671,7 @@ class QGISRedLayerUtils:
             showName = identifiers.getTranslatedNameForIdentifier(identifier) or self.tr(self.getLayerNameToLegend(name))
         originalName = identifiers.getOriginalNameFromLayerName(name)
         layerName = self.NetworkName + "_" + originalName
-        layerPath = os.path.join(self.ProjectDirectory, layerName + ext)
+        layerPath = os.path.join(self.LayersDirectory, layerName + ext)
         if os.path.exists(layerPath):
             # If the layer is already open, reload its data in-place (no duplicate added)
             reloaded = self._tryReloadExistingLayer(layerPath)
@@ -722,7 +722,7 @@ class QGISRedLayerUtils:
         showName = identifiers.getTranslatedNameForIdentifier(identifier) or self.tr(name)
         originalName = identifiers.getOriginalNameFromLayerName(name)
         candidates = [
-            os.path.join(self.ProjectDirectory, self.NetworkName + "_" + treeName + "_" + originalName + ".shp"),
+            os.path.join(self.LayersDirectory, self.NetworkName + "_" + treeName + "_" + originalName + ".shp"),
         ]
         layerPath = None
         for candidate in candidates:
@@ -767,7 +767,7 @@ class QGISRedLayerUtils:
         for lay in layerNames:
             layerName = lay
             showName = self.tr(self.getLayerNameToLegend(layerName))
-            layerPath = os.path.join(self.ProjectDirectory, self.NetworkName + "_" + layerName + ".shp")
+            layerPath = os.path.join(self.LayersDirectory, self.NetworkName + "_" + layerName + ".shp")
             if not os.path.exists(layerPath):
                 continue
 
@@ -835,7 +835,7 @@ class QGISRedLayerUtils:
         identifiers = self._identifiers()
         layers = self.getLayers()
         originalLayerName = identifiers.getOriginalNameFromLayerName(name)
-        layerPath = fs.generatePath(self.ProjectDirectory, self.NetworkName + "_" + originalLayerName + ext)
+        layerPath = fs.generatePath(self.LayersDirectory, self.NetworkName + "_" + originalLayerName + ext)
 
         for layer in layers:
             if identifiers.isThematicMapsLayer(layer):
