@@ -111,6 +111,7 @@ PRESET_PALETTES = (
     labeledPalette("QGISRed Initial Status", INITIAL_STATUS_PALETTE),
     ("QGISRed Qualitative 10", ("#e41a1c", "#377eb8", "#4daf4a", "#984ea3", "#ff7f00",
                                 "#a65628", "#f781bf", "#999999", "#66c2a5", "#ffd92f"), None, SEQUENTIAL),
+    ("QGISRed EPANET Results", ("#0000ff", "#00ffff", "#00ff00", "#ffa500", "#ff0000"), None, INTERPOLATED),
 )
 
 

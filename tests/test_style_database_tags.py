@@ -26,7 +26,7 @@ DATABASE = os.path.join(PLUGIN_ROOT, "defaults", "qgisred_symbology_style.db.bak
 NAMES_IN_SAVED_STRATEGIES = [
     "QGISRed Elevation", "QGISRed Pressure", "QGISRed Velocity", "QGISRed Blue to Green", "QGISRed Grayscale",
     "QGISRed Pipe Diameters", "QGISRed Pipe Ages", "QGISRed Pipe Roughness", "QGISRed Pipe Materials",
-    "QGISRed Qualitative 10",
+    "QGISRed Qualitative 10", "QGISRed EPANET Results",
 ]
 
 
