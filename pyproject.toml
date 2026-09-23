@@ -1,6 +1,6 @@
 [tool.bandit]
-# Exclude test code and release scripts — not plugin code
-exclude_dirs = ["tests", "scripts"]
+# Exclude test code, release scripts and Claude Code tooling — not plugin code
+exclude_dirs = ["tests", "scripts", ".claude"]
 # B101: assert in tests (pytest pattern, excluded via exclude_dirs anyway)
 # B311: random for non-crypto use in tests
 # B405/B314: xml.etree used on plugin-generated XML, not untrusted input
