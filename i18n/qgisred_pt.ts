@@ -6281,8 +6281,8 @@ Deseja continuar?</translation>
     </message>
     <message>
         <location filename="../ui/project/qgisred_legends_dialog.py" line="712"/>
-        <source>Spread Palettes</source>
-        <translation>Paletas distribuídas</translation>
+        <source>Interpolated Palettes</source>
+        <translation>Paletas interpoladas</translation>
     </message>
     <message>
         <location filename="../ui/project/qgisred_legends_dialog.py" line="713"/>

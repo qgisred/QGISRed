@@ -483,13 +483,13 @@ list of the Legends dialog is built from.
 | Kind tag | Given to | How colors reach the classes |
 |---|---|---|
 | `2 colors Ramps`, `3 colors Ramps`, `More than 3 colors Ramps` | gradient ramps, by their number of stops | sampled evenly end to end |
-| `Spread Palettes` | palettes for numeric legends | distributed over the classes, first and last colors always kept |
+| `Interpolated Palettes` | palettes for numeric legends | distributed over the classes, first and last colors always kept |
 | `Sequential Palettes` | palettes for free categories | handed out in the order they are declared, starting over when they run out |
 | `Labeled Palettes` | palettes whose colors are named after values | each class takes the color labeled with its value |
 
 A ramp's kind is counted from its stops at run time, so it cannot disagree with its tag; a
 palette's kind only exists as a tag (`QGISRedStylingUtils.colorRampKind`), and an untagged
-palette counts as Spread. A label lists every spelling of its value separated by commas
+palette counts as Interpolated. A label lists every spelling of its value separated by commas
 (`"CI, FG, FF"`), matched without regard to case; `NULL` stands for a missing value.
 
 The constants live in `qgisred_styling_utils.py` (`RAMP_KINDS`, `PALETTE_KINDS`) and are

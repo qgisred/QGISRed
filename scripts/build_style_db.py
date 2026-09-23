@@ -87,10 +87,10 @@ INITIAL_STATUS_PALETTE = (
     (("ACTIVE",), "#ff9900"),
 )
 
-# How the colors of a palette reach the classes of a legend: Spread distributes them over
+# How the colors of a palette reach the classes of a legend: Interpolated spreads them over
 # the classes, always keeping the first and the last; Sequential hands them out in the
 # order they are declared; Labeled gives each class the color labeled with its value.
-SPREAD, SEQUENTIAL, LABELED = "Spread Palettes", "Sequential Palettes", "Labeled Palettes"
+INTERPOLATED, SEQUENTIAL, LABELED = "Interpolated Palettes", "Sequential Palettes", "Labeled Palettes"
 
 
 def labeledPalette(name, entries):
@@ -101,9 +101,9 @@ def labeledPalette(name, entries):
 # kind) with labels None to show the hex codes. The first three mirror the shipped
 # thematic legend colors.
 PRESET_PALETTES = (
-    ("QGISRed Pipe Diameters", ("#cdcae2", "#2abad4", "#8f5cd9", "#6ac12b", "#cbe314", "#ffcc4a", "#ff0000"), None, SPREAD),
-    ("QGISRed Pipe Ages", ("#9dcbe7", "#579eca", "#abdda4", "#fdae61", "#ec6b6d", "#444444", "#d3d3d3"), None, SPREAD),
-    ("QGISRed Pipe Roughness", ("#b72dcc", "#446ee7", "#2dcae5", "#7cd76c", "#f6cb5e", "#fc3a54"), None, SPREAD),
+    ("QGISRed Pipe Diameters", ("#cdcae2", "#2abad4", "#8f5cd9", "#6ac12b", "#cbe314", "#ffcc4a", "#ff0000"), None, INTERPOLATED),
+    ("QGISRed Pipe Ages", ("#9dcbe7", "#579eca", "#abdda4", "#fdae61", "#ec6b6d", "#444444", "#d3d3d3"), None, INTERPOLATED),
+    ("QGISRed Pipe Roughness", ("#b72dcc", "#446ee7", "#2dcae5", "#7cd76c", "#f6cb5e", "#fc3a54"), None, INTERPOLATED),
     ("QGISRed Pipe Materials",
      tuple(color for _, _, color in MATERIAL_PALETTE),
      tuple(", ".join(abbreviations) for abbreviations, _, _ in MATERIAL_PALETTE), LABELED),

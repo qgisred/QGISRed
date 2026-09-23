@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 """How the colors of a ramp or a palette reach the classes of a legend, by kind.
 
-Spread distributes the palette over the classes and always keeps its first and last
+Interpolated spreads the palette over the classes and always keeps its first and last
 colors; Sequential hands the colors out in the order they are declared; Labeled gives
 each class the color labeled with its value. The legend editor and the replay of a saved
 strategy both go through these, so they cannot disagree.
@@ -14,7 +14,7 @@ from QGISRed.tools.utils.qgisred_styling_utils import (
     QGISRedStylingUtils,
     PALETTE_KIND_LABELED,
     PALETTE_KIND_SEQUENTIAL,
-    PALETTE_KIND_SPREAD,
+    PALETTE_KIND_INTERPOLATED,
     RAMP_KIND_MORE_COLORS,
     RAMP_KIND_THREE_COLORS,
     RAMP_KIND_TWO_COLORS,
@@ -82,27 +82,27 @@ def _reds(palette, kind, values, invert=False):
 SEVEN = [0, 10, 20, 30, 40, 50, 60]
 
 
-class TestSpreadPalette:
+class TestInterpolatedPalette:
     def test_as_many_classes_as_colors_takes_them_all_in_order(self):
-        assert _reds(FakePalette(SEVEN), PALETTE_KIND_SPREAD, list("abcdefg")) == SEVEN
+        assert _reds(FakePalette(SEVEN), PALETTE_KIND_INTERPOLATED, list("abcdefg")) == SEVEN
 
     def test_fewer_classes_pick_real_colors_and_keep_both_ends(self):
-        assert _reds(FakePalette(SEVEN), PALETTE_KIND_SPREAD, list("abcde")) == [0, 20, 30, 50, 60]
+        assert _reds(FakePalette(SEVEN), PALETTE_KIND_INTERPOLATED, list("abcde")) == [0, 20, 30, 50, 60]
 
     @pytest.mark.parametrize("classCount", range(2, 8))
     def test_the_last_color_is_never_lost(self, classCount):
         # The old algorithm floored the position and could stop short of the last color.
-        reds = _reds(FakePalette(SEVEN), PALETTE_KIND_SPREAD, ["x"] * classCount)
+        reds = _reds(FakePalette(SEVEN), PALETTE_KIND_INTERPOLATED, ["x"] * classCount)
         assert (reds[0], reds[-1]) == (0, 60)
 
     def test_more_classes_than_colors_blend_between_neighbours(self):
-        assert _reds(FakePalette([0, 100]), PALETTE_KIND_SPREAD, list("abcde")) == [0, 25, 50, 75, 100]
+        assert _reds(FakePalette([0, 100]), PALETTE_KIND_INTERPOLATED, list("abcde")) == [0, 25, 50, 75, 100]
 
     def test_a_single_class_takes_the_first_color(self):
-        assert _reds(FakePalette(SEVEN), PALETTE_KIND_SPREAD, ["a"]) == [0]
+        assert _reds(FakePalette(SEVEN), PALETTE_KIND_INTERPOLATED, ["a"]) == [0]
 
     def test_invert_hands_the_same_colors_out_backwards(self):
-        assert _reds(FakePalette(SEVEN), PALETTE_KIND_SPREAD, list("abcde"), invert=True) == [60, 50, 30, 20, 0]
+        assert _reds(FakePalette(SEVEN), PALETTE_KIND_INTERPOLATED, list("abcde"), invert=True) == [60, 50, 30, 20, 0]
 
 
 class TestSequentialPalette:
@@ -180,13 +180,13 @@ class TestColorRampKind:
         style = FakeStyle({"ramp": FakeGradient(innerStops)})
         assert QGISRedStylingUtils.colorRampKind(style, "ramp") == kind
 
-    @pytest.mark.parametrize("kind", [PALETTE_KIND_SPREAD, PALETTE_KIND_SEQUENTIAL, PALETTE_KIND_LABELED])
+    @pytest.mark.parametrize("kind", [PALETTE_KIND_INTERPOLATED, PALETTE_KIND_SEQUENTIAL, PALETTE_KIND_LABELED])
     def test_a_palette_is_told_by_its_tag(self, kind):
         style = FakeStyle({"palette": FakePalette(SEVEN)}, {"palette": ["Palettes", kind]})
         assert QGISRedStylingUtils.colorRampKind(style, "palette") == kind
 
-    def test_an_untagged_palette_is_spread(self):
-        assert QGISRedStylingUtils.colorRampKind(FakeStyle({"palette": FakePalette(SEVEN)}), "palette") == PALETTE_KIND_SPREAD
+    def test_an_untagged_palette_is_interpolated(self):
+        assert QGISRedStylingUtils.colorRampKind(FakeStyle({"palette": FakePalette(SEVEN)}), "palette") == PALETTE_KIND_INTERPOLATED
 
     def test_an_unknown_ramp_has_no_kind(self):
         assert QGISRedStylingUtils.colorRampKind(FakeStyle({}), "missing") is None
