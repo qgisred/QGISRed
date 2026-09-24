@@ -11,10 +11,11 @@ from qgis.PyQt.QtWidgets import QDialog, QDialogButtonBox, QDoubleSpinBox, QLabe
 from qgis.PyQt.QtWidgets import QToolButton, QComboBox, QApplication, QStylePainter, QStyleOptionComboBox, QSizePolicy
 from qgis.PyQt.QtWidgets import QCheckBox, QLineEdit, QRadioButton
 from qgis.PyQt.QtCore import pyqtSignal, Qt, QEvent, QSize, QObject, QPoint, QItemSelectionModel, QItemSelection
-from qgis.PyQt.QtCore import QLocale, QRegularExpression
+from qgis.PyQt.QtCore import QLocale, QRegularExpression, QRectF
 
 from qgis.gui import QgsSymbolButton, QgsColorDialog
 from qgis.core import QgsMarkerSymbol, QgsLineSymbol, QgsFillSymbol, QgsColorRamp, QgsProperty
+from qgis.core import QgsPresetSchemeColorRamp
 from qgis.utils import iface
 from typing import List, Tuple
 
@@ -498,7 +499,7 @@ class QGISRedColorRampSelector(QComboBox):
 
     preferredWidth = 150
     preferredHeight = 24
-    iconWidth = 50
+    iconWidth = 90
     iconHeight = 16
     arrowPadding = 20
 
@@ -507,9 +508,14 @@ class QGISRedColorRampSelector(QComboBox):
 
         self.colorRampCache = {}
         self.activeRampName = None
+        self.numberedBlocks = False
 
         self.configureDimensions()
         self.currentIndexChanged.connect(self.onSelectionChanged)
+
+    def setNumberedBlocks(self, enabled):
+        """Whether palettes print the position (1, 2, 3...) of each color on its block."""
+        self.numberedBlocks = enabled
 
     def configureDimensions(self):
         self.setMinimumWidth(self.preferredWidth)
@@ -601,7 +607,10 @@ class QGISRedColorRampSelector(QComboBox):
         painter = QPainter(pixmap)
         painter.setRenderHint(PAINTER_ANTIALIASING)
 
-        self.drawRampLines(painter, ramp, width, height)
+        if isinstance(ramp, QgsPresetSchemeColorRamp):
+            self.drawPaletteBlocks(painter, ramp, width, height)
+        else:
+            self.drawRampLines(painter, ramp, width, height)
 
         painter.end()
         return pixmap
@@ -612,6 +621,27 @@ class QGISRedColorRampSelector(QComboBox):
         for x in range(width):
             painter.setPen(ramp.color(x / maxWidth))
             painter.drawLine(x, 0, x, height)
+
+    def drawPaletteBlocks(self, painter, ramp, width, height):
+        """One block per palette color, numbered in reading order when asked to."""
+        colors = [color for color, _label in ramp.fetchColors()]
+        if not colors:
+            return
+        blockWidth = width / len(colors)
+        font = painter.font()
+        font.setPixelSize(max(6, min(height - 4, int(blockWidth) - 2)))
+        painter.setFont(font)
+        for index, color in enumerate(colors):
+            block = QRectF(index * blockWidth, 0, blockWidth, height)
+            painter.fillRect(block, color)
+            if self.numberedBlocks:
+                painter.setPen(self.contrastingTextColor(color))
+                painter.drawText(block, Qt.AlignmentFlag.AlignCenter, str(index + 1))
+
+    @staticmethod
+    def contrastingTextColor(color):
+        luminance = 0.299 * color.red() + 0.587 * color.green() + 0.114 * color.blue()
+        return Qt.GlobalColor.black if luminance > 150 else Qt.GlobalColor.white
 
 
 class QGISRedRowSelectionFilter(QObject):

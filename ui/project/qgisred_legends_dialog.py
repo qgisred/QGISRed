@@ -1853,6 +1853,7 @@ class QGISRedLegendsDialog(QDialog, formClass):
         ramps = self.loadColorRampsOfKind(mode)
         if not ramps:
             return
+        self.btnColorRamp.setNumberedBlocks(mode in (PALETTE_KIND_INTERPOLATED, PALETTE_KIND_SEQUENTIAL))
         self.btnColorRamp.addColorRamps(ramps)
         matching = self.findMatchingLabeledPalette() if mode == PALETTE_KIND_LABELED else None
         self.btnColorRamp.setActiveRampByName(matching or list(ramps.keys())[0])
