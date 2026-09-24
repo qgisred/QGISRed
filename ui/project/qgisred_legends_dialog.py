@@ -275,6 +275,27 @@ class QGISRedLegendsDialog(QDialog, formClass):
         },
     }
 
+    # Shipped size (defaults/layerStyles/*.qml.bak) the "All" variant of the selector is
+    # measured against: its size cell shows a factor of it and applies default x factor
+    # to every component. Links and service connections: the line width; junctions,
+    # sources and meters: the first size variable; tree nodes: the junction circle.
+    DEFAULT_ANCHOR_SIZES = {
+        "qgisred_pipes": 0.5,
+        "qgisred_pumps": 0.5,
+        "qgisred_valves": 0.5,
+        "qgisred_serviceconnections": 0.4,
+        "qgisred_junctions": 1.6,
+        "qgisred_sources": 3.0,
+        "qgisred_meters": 5.0,
+        "qgisred_tree_nodes": 2.0,
+    }
+    FACTOR_SUFFIX = "×"
+
+    # Tree nodes selector variants and the SimpleMarker shape each one edits
+    TREE_NODE_MARKERS = {"junction": "circle", "root": "star"}
+    # The size a Tree nodes layer draws for its node type: if("NodeType" = 'ROOT', 8, 0)
+    TREE_NODE_SIZE_PATTERN = re.compile(r"'\w+'\s*,\s*(\d+(?:\.\d+)?)\s*,\s*0\s*\)")
+
     # Link layers drawn as a line plus a marker on it (check valve, pump and valve icons)
     LINK_LAYER_IDENTIFIERS = frozenset({"qgisred_pipes", "qgisred_pumps", "qgisred_valves"})
 
@@ -317,6 +338,7 @@ class QGISRedLegendsDialog(QDialog, formClass):
         self.currentLayer = None
         self.pluginFolder = os.path.dirname(os.path.dirname(os.path.dirname(__file__)))
         self.isEditing = True
+        self.factorPreviewAnchor = 1.0
         self.originalRenderer = None
         self._workingRenderer = None
         self._sourceRuleRenderer = None
@@ -624,6 +646,10 @@ class QGISRedLegendsDialog(QDialog, formClass):
             return self.tr("Component"), [
                 (self.tr("All"), None), (self.tr("Line"), "line"), (self.tr("Marker"), "marker")
             ]
+        if identifier == self.TREE_NODES_IDENTIFIER:
+            return self.tr("Node"), [
+                (self.tr("All"), None), (self.tr("Junctions"), "junction"), (self.tr("Root node"), "root")
+            ]
         return None
 
     def getSelectedVariant(self):
@@ -659,9 +685,22 @@ class QGISRedLegendsDialog(QDialog, formClass):
         self.cbVariant.setVisible(variant is not None)
 
     def onVariantChanged(self):
-        if self.currentLayer and self.isInputLayer():
+        if self.currentLayer and (self.isInputLayer() or self.isTreeNodesLayer()):
             self.populateLegendTable()
             self.updateInputElementColumnRestrictions()
+
+    def isTreeNodesLayer(self):
+        identifier = self.currentLayer.customProperty("qgisred_identifier") if self.currentLayer else None
+        return identifier == self.TREE_NODES_IDENTIFIER
+
+    def isFactorCell(self):
+        """The size cell of a single-symbol legend whose selector is on All shows a factor of the shipped sizes."""
+        identifier = self.currentLayer.customProperty("qgisred_identifier") if self.currentLayer else None
+        return (
+            identifier in self.DEFAULT_ANCHOR_SIZES
+            and self.currentFieldType == self.FIELD_TYPE_SINGLE
+            and self.getSelectedVariant() is None
+        )
 
     def setupAdvancedUi(self):
         self.setupSizeControls()
@@ -1223,6 +1262,12 @@ class QGISRedLegendsDialog(QDialog, formClass):
         else:
             self.clearTable()
         self.updateRecommendedColorMode()
+        self.updateSizeHeader()
+
+    def updateSizeHeader(self):
+        header = self.tableView.horizontalHeaderItem(2)
+        if header:
+            header.setText(self.tr("Size (× default)") if self.isFactorCell() else self.tr("Size (mm)"))
 
     # ============================================================
     # EVENT HANDLERS - MODE AND TYPE CHANGES
@@ -2443,13 +2488,14 @@ class QGISRedLegendsDialog(QDialog, formClass):
                 previewSymbol = self._markerLineSubSymbol(symbol)
                 geometryHint = "marker"
         if identifier == self.TREE_NODES_IDENTIFIER:
-            # The edited color is the outer circle's stroke; preview the circle
-            # alone so the swatch does not show the star on top of it.
-            circles = self._circleMarkerLayers(symbol)
-            if circles:
-                color = circles[0].strokeColor()
-                previewSymbol = self._circleOnlySymbol(symbol)
-                strokeColorOnly = True
+            # Junctions edit the outer circle's stroke, Root node the star's fill: preview
+            # that marker alone so the swatch does not stack the others on top of it.
+            markerName = self.TREE_NODE_MARKERS.get(self.getSelectedVariant())
+            markers = self._circleMarkerLayers(symbol, markerName) if markerName else []
+            if markers:
+                strokeColorOnly = markerName == "circle"
+                color = markers[0].strokeColor() if strokeColorOnly else markers[0].color()
+                previewSymbol = self._circleOnlySymbol(symbol, markerName)
         if color is None:
             if symbol.symbolLayerCount() > 0:
                 color = symbol.symbolLayer(0).color()
@@ -2498,12 +2544,33 @@ class QGISRedLegendsDialog(QDialog, formClass):
 
     def setSizeWidget(self, row, symbol, geometryHint):
         size = self._getLineWidth(symbol) if geometryHint == "line" else self._getNodeSize(symbol)
-        variableSize = self._readInputLayerSize(symbol)
-        if variableSize is not None:
-            size = variableSize
+        anchor = self._readAnchorSize(symbol)
+        if anchor is not None:
+            size = anchor
         elif self.isMarkerComponentSelected():
             size = self._readMarkerLineMarkerSize(symbol) or size
+        if self.isFactorCell():
+            factorText = self.formatSizeText(self._sizeFactor(symbol, size))
+            self.tableView.setCellWidget(row, 2, self.createSizeLineEdit(factorText, row, self.FACTOR_SUFFIX))
+            return
         self.tableView.setCellWidget(row, 2, self.createSizeLineEdit(self.formatSizeText(size), row))
+
+    def _readAnchorSize(self, symbol):
+        """The size the cell shows before any factor: a style variable, or the Tree nodes marker literal."""
+        if self.isTreeNodesLayer():
+            markerName = self.TREE_NODE_MARKERS.get(self.getSelectedVariant(), "circle")
+            markers = self._circleMarkerLayers(symbol, markerName)
+            return self._readTreeNodeSize(markers[0]) if markers else None
+        return self._readInputLayerSize(symbol)
+
+    def _sizeFactor(self, symbol, currentAnchor):
+        """How many times the shipped default the layer's All anchor is drawn at; remembers
+        the millimetres the swatch draws at 1x so the preview can follow the typed factor."""
+        identifier = self.currentLayer.customProperty("qgisred_identifier")
+        factor = currentAnchor / self.DEFAULT_ANCHOR_SIZES[identifier]
+        previewSize = self._getNodeSize(symbol) if self.isTreeNodesLayer() else currentAnchor
+        self.factorPreviewAnchor = previewSize / factor if factor > 0 else previewSize
+        return factor
 
     @staticmethod
     def formatSizeText(size):
@@ -2511,13 +2578,15 @@ class QGISRedLegendsDialog(QDialog, formClass):
         text = f"{size:.2f}"
         return text[:-1] if text.endswith("0") else text
 
-    def createSizeLineEdit(self, text, row):
-        sizeWidget = QGISRedSizeLineEdit(text)
+    def createSizeLineEdit(self, text, row, suffix=""):
+        sizeWidget = QGISRedSizeLineEdit(text, suffix=suffix)
         sizeWidget.setEnabled(self.isEditing)
         sizeWidget.setAlignment(Qt.AlignmentFlag.AlignCenter)
         sizeWidget.setStyleSheet(self.getBaseLineEditStyle())
         sizeWidget.installEventFilter(self.rowSelectionFilter)
-        sizeWidget.textChanged.connect(lambda text, r=row: self.onSizeChanged(r, text))
+        if suffix:
+            sizeWidget.setToolTip(self.tr("Times the default sizes: 1× draws every component as shipped."))
+        sizeWidget.textChanged.connect(lambda _text, r=row, w=sizeWidget: self.onSizeChanged(r, w.text()))
         self.syncColorPreviewSize(row, text)
         return sizeWidget
 
@@ -3567,7 +3636,10 @@ class QGISRedLegendsDialog(QDialog, formClass):
         colorWidget = colorContainer.findChild(QGISRedSymbolColorSelector) if colorContainer else None
         if colorWidget:
             with suppress(ValueError, TypeError):
-                colorWidget.setPreviewSizeValue(float(text))
+                value = float(text)
+                if self.isFactorCell():
+                    value *= self.factorPreviewAnchor
+                colorWidget.setPreviewSizeValue(value)
 
     # ============================================================
     # RENDERER CONVERSION
@@ -4134,6 +4206,8 @@ class QGISRedLegendsDialog(QDialog, formClass):
         newSize = None
         with suppress(Exception):
             newSize = float(sizeWidget.text())
+            if self.isFactorCell():
+                newSize *= self.DEFAULT_ANCHOR_SIZES[identifier]
 
         inputAppliers = {
             "qgisred_junctions": self._applyJunctionsLegend,
@@ -4406,24 +4480,32 @@ class QGISRedLegendsDialog(QDialog, formClass):
             self.applySizeToSymbol(symbol, size)
 
     @staticmethod
-    def _circleMarkerLayers(symbol):
-        """The SimpleMarker circle layers of a stacked marker symbol (e.g. the
+    def _circleMarkerLayers(symbol, markerName="circle"):
+        """The SimpleMarker layers of one shape in a stacked marker symbol (e.g. the
         Tree nodes outer circle, drawn under the star and the element icons)."""
         return [
             symbol.symbolLayer(i)
             for i in range(symbol.symbolLayerCount())
             if symbol.symbolLayer(i).layerType() == "SimpleMarker"
-            and symbol.symbolLayer(i).properties().get("name") == "circle"
+            and symbol.symbolLayer(i).properties().get("name") == markerName
         ]
 
-    def _circleOnlySymbol(self, symbol):
-        """A clone of symbol keeping only its SimpleMarker circle layers."""
+    def _circleOnlySymbol(self, symbol, markerName="circle"):
+        """A clone of symbol keeping only its SimpleMarker layers of one shape."""
         preview = symbol.clone()
         for i in range(preview.symbolLayerCount() - 1, -1, -1):
             symbolLayer = preview.symbolLayer(i)
-            if not (symbolLayer.layerType() == "SimpleMarker" and symbolLayer.properties().get("name") == "circle"):
+            if not (symbolLayer.layerType() == "SimpleMarker" and symbolLayer.properties().get("name") == markerName):
                 preview.deleteSymbolLayer(i)
         return preview
+
+    def _readTreeNodeSize(self, symbolLayer):
+        """Size a Tree nodes marker layer draws for its node type, or None."""
+        sizeProperty = symbolLayer.dataDefinedProperties().property(SL_PROP_SIZE)
+        if not sizeProperty or sizeProperty.propertyType() != QgsProperty.ExpressionBasedProperty:
+            return None
+        match = self.TREE_NODE_SIZE_PATTERN.search(sizeProperty.expressionString())
+        return float(match.group(1)) if match else None
 
     def _lineOnlySymbol(self, symbol):
         """A clone of symbol keeping only its SimpleLine layers."""
@@ -4442,13 +4524,29 @@ class QGISRedLegendsDialog(QDialog, formClass):
         return None
 
     def _applyTreeNodesLegend(self, symbol, color, size):
-        """Tree nodes: the color goes to the outer circle's stroke only (the star
-        and the element icons keep theirs); size rescales like the other
-        size-only query layers."""
-        if color is not None:
-            for circle in self._circleMarkerLayers(symbol):
-                circle.setStrokeColor(color)
-        self._applySizeOnlyQueryLegend(symbol, None, size)
+        """Tree nodes: Junctions color the outer circle's stroke and size the circle, Root
+        node the star's fill and size; All scales every node from the circle, colors kept."""
+        markerName = self.TREE_NODE_MARKERS.get(self.getSelectedVariant())
+        markers = self._circleMarkerLayers(symbol, markerName or "circle")
+        if not markers:
+            return
+        target = markers[0]
+        if color is not None and markerName == "circle":
+            target.setStrokeColor(color)
+        elif color is not None and markerName:
+            target.setColor(color)
+        current = self._readTreeNodeSize(target)
+        if size is None or size <= 0 or not current or abs(size - current) < 1e-9:
+            return
+        factor = size / current
+        if markerName:
+            newLiteral = formatExpressionNumber(size)
+            self._substituteExpressionOnLayer(target, SL_PROP_SIZE, self.TREE_NODE_SIZE_PATTERN, newLiteral)
+            target.setSize(target.size() * factor)
+            return
+        for propertyKey in (SL_PROP_SIZE, SL_PROP_WIDTH, SL_PROP_STROKE_WIDTH):
+            self._scaleSizeExpressionsOnLayers(symbol, propertyKey, factor)
+        self._scaleBaseSizes(symbol, factor)
 
     def _applySizeOnlyQueryLegend(self, symbol, color, size):
         """Proportionally rescale a size-only query layer (tree nodes, isolated segments...).
@@ -5752,7 +5850,9 @@ class QGISRedLegendsDialog(QDialog, formClass):
     def isColorLocked(self):
         """Fixed colors, or a selector variant (Junctions "All") that edits sizes only."""
         identifier = self.currentLayer.customProperty("qgisred_identifier") if self.currentLayer else ""
-        if identifier in self.SIZE_ONLY_QUERY_IDENTIFIERS and identifier != self.TREE_NODES_IDENTIFIER:
+        if identifier == self.TREE_NODES_IDENTIFIER:
+            return self.getSelectedVariant() is None
+        if identifier in self.SIZE_ONLY_QUERY_IDENTIFIERS:
             return True
         return identifier in self.INPUT_COLOR_VARIABLES and not self.inputColorVariables(identifier)
 

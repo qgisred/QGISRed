@@ -493,7 +493,9 @@ class TestInputVariables:
         ("qgisred_meters", "Flowmeter", False),
         ("qgisred_tanks", None, False),
         ("qgisred_reservoirs", None, False),
-        ("qgisred_tree_nodes", None, False),
+        ("qgisred_tree_nodes", None, True),
+        ("qgisred_tree_nodes", "junction", False),
+        ("qgisred_tree_nodes", "root", False),
         ("qgisred_isolatedsegments_links", None, True),
     ])
     def test_color_lock_follows_the_selected_variant(self, monkeypatch, identifier, variant, locked):
@@ -1047,6 +1049,91 @@ class TestWaterMarkerApplier:
         dialog.applySizeToSymbol = lambda symbol, size: dialog.sizes.append(size)
         dialog._applyWaterMarkerLegend(FakeSymbol([FakeSvgLayer("qgisred_water")]), None, 9)
         assert dialog.sizes == [9]
+
+
+class FakeTreeMarker(FakeSymbolLayer):
+    """A Tree nodes SimpleMarker layer (circle or star) sized by its node type."""
+
+    def __init__(self, name, nodeType, literal, size):
+        super().__init__(expressions={SIZE_KEY: f"if(\"NodeType\" = '{nodeType}', {literal}, 0)"}, size=size)
+        self._name = name
+
+    def properties(self):
+        return {"name": self._name}
+
+
+class TestTreeNodesApplier:
+    def _symbol(self):
+        circle = FakeTreeMarker("circle", "Junction", 2, 2)
+        star = FakeTreeMarker("star", "ROOT", 8, 4)
+        return FakeSymbol([circle, star]), circle, star
+
+    def test_junctions_color_the_circle_stroke_and_size_the_circle_only(self, monkeypatch):
+        symbol, circle, star = self._symbol()
+        _dialog(monkeypatch, "qgisred_tree_nodes", "junction")._applyTreeNodesLegend(symbol, "PICKED", 3)
+        assert circle.strokeColorCalls == ["PICKED"] and circle.colorCalls == []
+        assert circle.expression(SIZE_KEY) == "if(\"NodeType\" = 'Junction', 3, 0)" and circle.size() == 3
+        assert star.expression(SIZE_KEY) == "if(\"NodeType\" = 'ROOT', 8, 0)" and star.size() == 4
+
+    def test_root_node_colors_the_star_fill_and_sizes_the_star_only(self, monkeypatch):
+        symbol, circle, star = self._symbol()
+        _dialog(monkeypatch, "qgisred_tree_nodes", "root")._applyTreeNodesLegend(symbol, "PICKED", 12)
+        assert star.colorCalls == ["PICKED"] and star.strokeColorCalls == []
+        assert star.expression(SIZE_KEY) == "if(\"NodeType\" = 'ROOT', 12, 0)" and star.size() == 6
+        assert circle.expression(SIZE_KEY) == "if(\"NodeType\" = 'Junction', 2, 0)" and circle.size() == 2
+
+    def test_all_scales_every_node_from_the_circle_and_keeps_colors(self, monkeypatch):
+        symbol, circle, star = self._symbol()
+        _dialog(monkeypatch, "qgisred_tree_nodes")._applyTreeNodesLegend(symbol, "PICKED", 4)
+        assert circle.colorCalls == circle.strokeColorCalls == star.colorCalls == []
+        assert circle.expression(SIZE_KEY) == "if(\"NodeType\" = 'Junction', 4, 0)" and circle.size() == 4
+        assert star.expression(SIZE_KEY) == "if(\"NodeType\" = 'ROOT', 16, 0)" and star.size() == 8
+
+    def test_an_untouched_size_is_a_no_op(self, monkeypatch):
+        symbol, circle, star = self._symbol()
+        _dialog(monkeypatch, "qgisred_tree_nodes", "root")._applyTreeNodesLegend(symbol, None, 8)
+        assert star.size() == 4 and circle.size() == 2
+
+    def test_reads_the_size_of_the_selected_node(self, monkeypatch):
+        symbol, _circle, _star = self._symbol()
+        assert _dialog(monkeypatch, "qgisred_tree_nodes", "root")._readAnchorSize(symbol) == 8
+        assert _dialog(monkeypatch, "qgisred_tree_nodes", "junction")._readAnchorSize(symbol) == 2
+        assert _dialog(monkeypatch, "qgisred_tree_nodes")._readAnchorSize(symbol) == 2
+
+
+class TestFactorCell:
+    """With the selector on All the size cell shows a factor of the shipped default sizes."""
+
+    def _dialog(self, monkeypatch, identifier, variant=None, fieldType="single"):
+        dialog = _dialog(monkeypatch, identifier, variant)
+        dialog.currentFieldType = fieldType
+        return dialog
+
+    @pytest.mark.parametrize("identifier, variant, fieldType, expected", [
+        ("qgisred_pipes", None, "single", True),
+        ("qgisred_pipes", "line", "single", False),
+        ("qgisred_junctions", None, "single", True),
+        ("qgisred_junctions", "positive", "single", False),
+        ("qgisred_meters", None, "single", True),
+        ("qgisred_tree_nodes", None, "single", True),
+        ("qgisred_tree_nodes", "root", "single", False),
+        ("qgisred_demands", None, "single", False),
+        ("qgisred_tanks", None, "single", False),
+        ("qgisred_pipes", None, "numeric", False),
+    ])
+    def test_which_cells_show_a_factor(self, monkeypatch, identifier, variant, fieldType, expected):
+        assert self._dialog(monkeypatch, identifier, variant, fieldType).isFactorCell() is expected
+
+    def test_the_factor_is_the_anchor_over_the_shipped_default(self, monkeypatch):
+        dialog = self._dialog(monkeypatch, "qgisred_pipes")
+        assert dialog._sizeFactor(None, 1.0) == pytest.approx(2.0)
+        assert dialog.factorPreviewAnchor == pytest.approx(0.5)  # the swatch draws the line at 0.5 mm per 1x
+
+    def test_tree_nodes_preview_follows_the_whole_symbol(self, monkeypatch):
+        dialog = self._dialog(monkeypatch, "qgisred_tree_nodes")
+        dialog._getNodeSize = lambda symbol: 8.0
+        assert dialog._sizeFactor(None, 4.0) == pytest.approx(2.0)
+        assert dialog.factorPreviewAnchor == pytest.approx(4.0)
 
 
 class TestDemandsSwatchPreview:

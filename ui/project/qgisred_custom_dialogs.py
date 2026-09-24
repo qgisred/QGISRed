@@ -1,8 +1,9 @@
 # -*- coding: utf-8 -*-
 
+import re
 from contextlib import suppress
 
-from qgis.PyQt.QtGui import QColor, QPixmap, QPainter, QIcon, QDoubleValidator
+from qgis.PyQt.QtGui import QColor, QPixmap, QPainter, QIcon, QDoubleValidator, QRegularExpressionValidator
 from ...compat import PAINTER_ANTIALIASING, STYLE_CC_COMBOBOX, STYLE_CE_COMBOBOXLABEL, SL_PROP_FILL_COLOR
 from ...compat import SL_PROP_SIZE, SL_PROP_WIDTH, SL_PROP_STROKE_WIDTH, sip
 from ...tools.utils.qgisred_styling_utils import QGISRedStylingUtils
@@ -10,7 +11,7 @@ from qgis.PyQt.QtWidgets import QDialog, QDialogButtonBox, QDoubleSpinBox, QLabe
 from qgis.PyQt.QtWidgets import QToolButton, QComboBox, QApplication, QStylePainter, QStyleOptionComboBox, QSizePolicy
 from qgis.PyQt.QtWidgets import QCheckBox, QLineEdit, QRadioButton
 from qgis.PyQt.QtCore import pyqtSignal, Qt, QEvent, QSize, QObject, QPoint, QItemSelectionModel, QItemSelection
-from qgis.PyQt.QtCore import QLocale
+from qgis.PyQt.QtCore import QLocale, QRegularExpression
 
 from qgis.gui import QgsSymbolButton, QgsColorDialog
 from qgis.core import QgsMarkerSymbol, QgsLineSymbol, QgsFillSymbol, QgsColorRamp, QgsProperty
@@ -434,18 +435,25 @@ class QGISRedSymbolColorSelector(QgsSymbolButton):
 
 class QGISRedSizeLineEdit(QLineEdit):
     """Size cell of the legend table: takes numbers only, and an entry that is
-    not a number goes back to the last value the cell held."""
+    not a number goes back to the last value the cell held. With a suffix
+    ("×" for a factor) the cell displays it after the number, while text()
+    keeps handing out the bare number."""
 
     maximumSize = 1000000.0
     decimals = 3
 
-    def __init__(self, text, parent=None):
-        super().__init__(text, parent)
+    def __init__(self, text, parent=None, suffix=""):
+        super().__init__(parent)
+        self.suffix = suffix
         self.lastValidText = text
         self.setValidator(self.createValidator())
+        self.setText(text)
         self.textChanged.connect(self.rememberValidText)
 
     def createValidator(self):
+        if self.suffix:
+            pattern = r"\d{0,7}(\.\d{0,%d})?%s?" % (self.decimals, re.escape(self.suffix))
+            return QRegularExpressionValidator(QRegularExpression(pattern), self)
         validator = QDoubleValidator(0.0, self.maximumSize, self.decimals, self)
         validator.setNotation(QDoubleValidator.Notation.StandardNotation)
         # Sizes are shown with a point, whatever the system locale says
@@ -454,20 +462,29 @@ class QGISRedSizeLineEdit(QLineEdit):
         validator.setLocale(locale)
         return validator
 
+    def text(self):
+        return self.stripSuffix(super().text())
+
+    def stripSuffix(self, text):
+        return text[:-len(self.suffix)] if self.suffix and text.endswith(self.suffix) else text
+
     def setText(self, text):
-        super().setText(text)
+        super().setText(self.stripSuffix(text) + self.suffix)
         self.rememberValidText(text)
 
     def rememberValidText(self, text):
         with suppress(ValueError, TypeError):
-            float(text)
-            self.lastValidText = text
+            float(self.stripSuffix(text))
+            self.lastValidText = self.stripSuffix(text)
 
     def revertInvalidText(self):
         try:
             float(self.text())
         except (ValueError, TypeError):
             self.setText(self.lastValidText)
+        else:
+            if self.suffix and not super().text().endswith(self.suffix):
+                self.setText(self.text())
 
     def focusOutEvent(self, event):
         # editingFinished is silent while the entry is incomplete ("", "3."), so the
