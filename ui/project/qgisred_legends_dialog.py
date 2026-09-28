@@ -12,7 +12,7 @@ import xml.etree.ElementTree as ET  # nosec B405 — parses a local settings fil
 from qgis.PyQt.QtGui import QIcon, QColor, QKeySequence
 from qgis.PyQt.QtWidgets import QDialog, QMessageBox, QHeaderView, QLineEdit, QAbstractItemView, QLabel
 from qgis.PyQt.QtWidgets import QCheckBox, QApplication, QProgressDialog, QWidget, QHBoxLayout, QMenu
-from qgis.PyQt.QtWidgets import QToolButton
+from qgis.PyQt.QtWidgets import QToolButton, QAbstractSpinBox
 from qgis.PyQt.QtCore import Qt, QTimer, QEvent
 from qgis.PyQt import uic
 from ...compat import (
@@ -674,10 +674,6 @@ class QGISRedLegendsDialog(QDialog, formClass):
         self.leClassCount.setMinimum(0)
         self.leClassCount.setMaximum(self.MAX_CLASSES)
         self.leClassCount.valueChanged.connect(self.onClassCountChanged)
-        # A count the user cannot set reads as plain text, not as a greyed spin box
-        self.labelClassCountText = QLabel(self)
-        self.labelClassCountText.setToolTip(self.tr("The number of classes is set by the data or the chosen method"))
-        self.classControlsLayout.insertWidget(1, self.labelClassCountText)
         self.classCountRowVisible = False
         self.setClassCountEditable(False)
 
@@ -6064,11 +6060,17 @@ class QGISRedLegendsDialog(QDialog, formClass):
     def setClassCountEditable(self, editable):
         self.classCountEditable = editable
         self.leClassCount.setReadOnly(not editable)
+        # A count the user cannot set shows without arrows
+        if editable:
+            self.leClassCount.setButtonSymbols(QAbstractSpinBox.ButtonSymbols.UpDownArrows)
+            self.leClassCount.setToolTip("")
+        else:
+            self.leClassCount.setButtonSymbols(QAbstractSpinBox.ButtonSymbols.NoButtons)
+            self.leClassCount.setToolTip(self.tr("The number of classes is set by the data or the chosen method"))
         self.updateClassCountWidgetsVisibility()
 
     def updateClassCountWidgetsVisibility(self):
-        self.leClassCount.setVisible(self.classCountRowVisible and self.classCountEditable)
-        self.labelClassCountText.setVisible(self.classCountRowVisible and not self.classCountEditable)
+        self.leClassCount.setVisible(self.classCountRowVisible)
 
     def modeHasVariableClassCount(self):
         if self.currentFieldType == self.FIELD_TYPE_CATEGORICAL:
@@ -6159,7 +6161,6 @@ class QGISRedLegendsDialog(QDialog, formClass):
             self.leClassCount.setMaximum(rowCount)
         self.leClassCount.setValue(rowCount)
         self.leClassCount.blockSignals(False)
-        self.labelClassCountText.setText(self.tr("%1 classes").replace("%1", str(rowCount)))
 
     # ============================================================
     # INPUT LAYER RESTRICTIONS
