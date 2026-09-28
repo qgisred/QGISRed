@@ -106,7 +106,7 @@ def _read_dbf_records_binary(path: str) -> List[dict]:
             for name, ftype, length, decimals in fields:
                 chunk = raw[offset:offset + length]
                 offset += length
-                text = chunk.decode("ascii", errors="replace").strip()
+                text = chunk.decode("utf-8", errors="replace").strip()
                 if ftype == "N":
                     record[name] = float(text) if text else None
                 else:

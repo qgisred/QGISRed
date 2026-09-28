@@ -81,7 +81,7 @@ def _read_ids(f, count):
             raw_id = raw_data[:null_index]
         else:
             raw_id = raw_data
-        ids.append(raw_id.decode('ascii', errors='ignore').strip())
+        ids.append(raw_id.decode('cp1252', errors='replace').strip())
     return ids
 
 
