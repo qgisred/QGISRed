@@ -15,6 +15,8 @@ from ...tools.utils.qgisred_filesystem_utils import DIR_RESULTS
 from ...tools.utils.qgisred_ui_utils import QGISRedUIUtils
 from ...tools.utils.qgisred_highlight_manager import QGISRedHighlightOwnerMixin
 from ...tools.utils.qgisred_valve_types import getValveTypeAbbreviation
+from ...tools.utils.qgisred_meter_types import getMeterTypeName
+from ...tools.utils.qgisred_source_types import getSourceTypeName
 from ..analysis.qgisred_results_dock import QGISRedResultsDock
 from ...compat import LINEEDIT_LEADING_POSITION, sip
 
@@ -1421,6 +1423,10 @@ class QGISRedElementExplorerDock(QGISRedHighlightOwnerMixin, QDockWidget, FORM_C
             # Abbreviation, not the long name: this table's value column is narrow
             # and read-only, unlike the editable combos in Group Edit/Queries.
             return getValveTypeAbbreviation(str(rawValue))
+        if layerIdentifier == "qgisred_meters" and fieldName in ("Type", "MeterType"):
+            return getMeterTypeName(str(rawValue))
+        if layerIdentifier == "qgisred_sources" and fieldName in ("Type", "SourceType"):
+            return getSourceTypeName(str(rawValue))
         if utils.isTextField(normalize_element(layerIdentifier), fieldName):
             return str(rawValue)
         try:

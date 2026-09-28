@@ -33,6 +33,8 @@ from .qgisred_base_demand_fields import resolveBaseDemandField
 from .qgisred_field_utils import QGISRedFieldUtils
 from .qgisred_legend_rule_utils import scaleNumericLiterals
 from .qgisred_valve_types import getValveTypeName, getValveTypeAbbreviation, VALVE_TYPE_LONG_NAMES
+from .qgisred_meter_types import getMeterTypeName, METER_TYPE_LABELS
+from .qgisred_source_types import getSourceTypeName, SOURCE_TYPE_LABELS
 
 
 def _plugin_root():
@@ -73,26 +75,6 @@ FRAME_DARKEN_FACTOR = 160
 _MAPTIP_ELEMENT_WORDS = (
     "Isolation Valve", "Service Connection", "Junction", "Reservoir", "Tank", "Pipe", "Pump", "Source",
 )
-
-_METER_TYPE_LABELS = {
-    "Manometer": "Manometer",
-    "Flowmeter": "Flowmeter",
-    "Countermeter": "Countermeter",
-    "LevelSensor": "Level Sensor",
-    "DifferentialManometer": "Differential Manometer",
-    "QualitySensor": "Quality Sensor",
-    "EnergySensor": "Energy Sensor",
-    "StatusSensor": "Status Sensor",
-    "ValveOpening": "Valve Opening",
-    "Tachometer": "Tachometer",
-}
-
-_SOURCE_TYPE_LABELS = {
-    "CONCEN": "Concentration",
-    "MASS": "Mass Booster",
-    "FLOWPACED": "Flow Paced Booster",
-    "SETPOINT": "Set Point Booster",
-}
 
 _METER_TYPE_EXPR = "coalesce(attribute($currentfeature,'MeterType'),attribute($currentfeature,'Type'))"
 _VALVE_TYPE_EXPR = "coalesce(attribute($currentfeature,'ValveType'), attribute($currentfeature,'Type'))"
@@ -967,7 +949,7 @@ class QGISRedStylingUtils:
         self._translateMapTipLeadingWord(layer)
         self._translateMapTipTypeCode(
             layer, _METER_TYPE_EXPR,
-            {code: self.tr(label) for code, label in _METER_TYPE_LABELS.items()},
+            {code: getMeterTypeName(code) for code in METER_TYPE_LABELS},
         )
         self._translateMapTipTypeCode(
             layer, _VALVE_TYPE_EXPR,
@@ -978,7 +960,7 @@ class QGISRedStylingUtils:
         )
         self._translateMapTipTypeCode(
             layer, _SOURCE_TYPE_EXPR,
-            {code: self.tr(label) for code, label in _SOURCE_TYPE_LABELS.items()},
+            {code: getSourceTypeName(code) for code in SOURCE_TYPE_LABELS},
         )
 
     def _translateMapTipLeadingWord(self, layer):

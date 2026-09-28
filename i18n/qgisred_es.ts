@@ -2946,6 +2946,59 @@ Do you want to check them again?</source>
     </message>
 </context>
 <context>
+    <name>MeterTypeNames</name>
+    <message>
+        <location filename="../tools/qgisred_translatable_strings.py" line="391"/>
+        <source>Manometer</source>
+        <translation type="unfinished">Manómetro</translation>
+    </message>
+    <message>
+        <location filename="../tools/qgisred_translatable_strings.py" line="392"/>
+        <source>Flowmeter</source>
+        <translation type="unfinished">Caudalímetro</translation>
+    </message>
+    <message>
+        <location filename="../tools/qgisred_translatable_strings.py" line="393"/>
+        <source>Countermeter</source>
+        <translation type="unfinished">Contador</translation>
+    </message>
+    <message>
+        <location filename="../tools/qgisred_translatable_strings.py" line="394"/>
+        <source>Level Sensor</source>
+        <translation type="unfinished">Sensor de nivel</translation>
+    </message>
+    <message>
+        <location filename="../tools/qgisred_translatable_strings.py" line="395"/>
+        <source>Differential Manometer</source>
+        <translation type="unfinished">Manómetro diferencial</translation>
+    </message>
+    <message>
+        <location filename="../tools/qgisred_translatable_strings.py" line="396"/>
+        <source>Quality Sensor</source>
+        <translation type="unfinished">Sensor de calidad</translation>
+    </message>
+    <message>
+        <location filename="../tools/qgisred_translatable_strings.py" line="397"/>
+        <source>Energy Sensor</source>
+        <translation type="unfinished">Sensor de energía</translation>
+    </message>
+    <message>
+        <location filename="../tools/qgisred_translatable_strings.py" line="398"/>
+        <source>Status Sensor</source>
+        <translation type="unfinished">Sensor de estado</translation>
+    </message>
+    <message>
+        <location filename="../tools/qgisred_translatable_strings.py" line="399"/>
+        <source>Valve Opening</source>
+        <translation type="unfinished">Apertura de válvula</translation>
+    </message>
+    <message>
+        <location filename="../tools/qgisred_translatable_strings.py" line="400"/>
+        <source>Tachometer</source>
+        <translation type="unfinished">Tacómetro</translation>
+    </message>
+</context>
+<context>
     <name>NetworkEditingSection</name>
     <message>
         <location filename="../sections/network_editing_section.py" line="333"/>
@@ -3910,122 +3963,122 @@ La información de sectores existente podría ser reemplazada.
 <context>
     <name>QGISRedElementExplorerDock</name>
     <message>
-        <location filename="../ui/queries/qgisred_element_explorer_dock.py" line="93"/>
+        <location filename="../ui/queries/qgisred_element_explorer_dock.py" line="95"/>
         <source>Pipe</source>
         <translation>Tubería</translation>
     </message>
     <message>
-        <location filename="../ui/queries/qgisred_element_explorer_dock.py" line="94"/>
+        <location filename="../ui/queries/qgisred_element_explorer_dock.py" line="96"/>
         <source>Junction</source>
         <translation>Unión</translation>
     </message>
     <message>
-        <location filename="../ui/queries/qgisred_element_explorer_dock.py" line="96"/>
+        <location filename="../ui/queries/qgisred_element_explorer_dock.py" line="98"/>
         <source>Reservoir</source>
         <translation>Embalse</translation>
     </message>
     <message>
-        <location filename="../ui/queries/qgisred_element_explorer_dock.py" line="97"/>
+        <location filename="../ui/queries/qgisred_element_explorer_dock.py" line="99"/>
         <source>Tank</source>
         <translation>Depósito</translation>
     </message>
     <message>
-        <location filename="../ui/queries/qgisred_element_explorer_dock.py" line="98"/>
+        <location filename="../ui/queries/qgisred_element_explorer_dock.py" line="100"/>
         <source>Pump</source>
         <translation>Bomba</translation>
     </message>
     <message>
-        <location filename="../ui/queries/qgisred_element_explorer_dock.py" line="99"/>
+        <location filename="../ui/queries/qgisred_element_explorer_dock.py" line="101"/>
         <source>Valve</source>
         <translation>Válvula</translation>
     </message>
     <message>
-        <location filename="../ui/queries/qgisred_element_explorer_dock.py" line="100"/>
+        <location filename="../ui/queries/qgisred_element_explorer_dock.py" line="102"/>
         <source>Source</source>
         <translation>Fuente</translation>
     </message>
     <message>
-        <location filename="../ui/queries/qgisred_element_explorer_dock.py" line="101"/>
+        <location filename="../ui/queries/qgisred_element_explorer_dock.py" line="103"/>
         <source>Service Connection</source>
         <translation>Acometida</translation>
     </message>
     <message>
-        <location filename="../ui/queries/qgisred_element_explorer_dock.py" line="102"/>
+        <location filename="../ui/queries/qgisred_element_explorer_dock.py" line="104"/>
         <source>Isolation Valve</source>
         <translation>Válvula de seccionamiento</translation>
     </message>
     <message>
-        <location filename="../ui/queries/qgisred_element_explorer_dock.py" line="103"/>
+        <location filename="../ui/queries/qgisred_element_explorer_dock.py" line="105"/>
         <source>Meter</source>
         <translation>Medidor</translation>
     </message>
     <message>
-        <location filename="../ui/queries/qgisred_element_explorer_dock.py" line="1126"/>
+        <location filename="../ui/queries/qgisred_element_explorer_dock.py" line="1128"/>
         <source>Info</source>
         <translation>Información</translation>
     </message>
     <message>
-        <location filename="../ui/queries/qgisred_element_explorer_dock.py" line="1126"/>
+        <location filename="../ui/queries/qgisred_element_explorer_dock.py" line="1128"/>
         <source>Feature not found</source>
         <translation>Característica no encontrada</translation>
     </message>
     <message>
-        <location filename="../ui/queries/qgisred_element_explorer_dock.py" line="2692"/>
+        <location filename="../ui/queries/qgisred_element_explorer_dock.py" line="2698"/>
         <source>Property</source>
         <translation>Propiedad</translation>
     </message>
     <message>
-        <location filename="../ui/queries/qgisred_element_explorer_dock.py" line="2692"/>
+        <location filename="../ui/queries/qgisred_element_explorer_dock.py" line="2698"/>
         <source>Value</source>
         <translation>Valor</translation>
     </message>
     <message>
-        <location filename="../ui/queries/qgisred_element_explorer_dock.py" line="2692"/>
+        <location filename="../ui/queries/qgisred_element_explorer_dock.py" line="2698"/>
         <source>Units</source>
         <translation>Unidades</translation>
     </message>
     <message>
-        <location filename="../ui/queries/qgisred_element_explorer_dock.py" line="2568"/>
+        <location filename="../ui/queries/qgisred_element_explorer_dock.py" line="2574"/>
         <source>No Layers Found</source>
         <translation>No se ha encontrado ninguna capa</translation>
     </message>
     <message>
-        <location filename="../ui/queries/qgisred_element_explorer_dock.py" line="2568"/>
+        <location filename="../ui/queries/qgisred_element_explorer_dock.py" line="2574"/>
         <source>No layers found in the Inputs or Results group.</source>
         <translation>No se ha encontrado ninguna capa en el grupo de Inputs o Results.</translation>
     </message>
     <message>
-        <location filename="../ui/queries/qgisred_element_explorer_dock.py" line="95"/>
+        <location filename="../ui/queries/qgisred_element_explorer_dock.py" line="97"/>
         <source>Multiple Demand</source>
         <translation>Demanda Multiple</translation>
     </message>
     <message>
-        <location filename="../ui/queries/qgisred_element_explorer_dock.py" line="1314"/>
+        <location filename="../ui/queries/qgisred_element_explorer_dock.py" line="1316"/>
         <source>Total Demands</source>
         <translation>Demandas Totales</translation>
     </message>
     <message>
-        <location filename="../ui/queries/qgisred_element_explorer_dock.py" line="1477"/>
+        <location filename="../ui/queries/qgisred_element_explorer_dock.py" line="1483"/>
         <source>Previous demand</source>
         <translation>Demanda anterior</translation>
     </message>
     <message>
-        <location filename="../ui/queries/qgisred_element_explorer_dock.py" line="1484"/>
+        <location filename="../ui/queries/qgisred_element_explorer_dock.py" line="1490"/>
         <source>Next demand</source>
         <translation>Siguiente demanda</translation>
     </message>
     <message>
-        <location filename="../ui/queries/qgisred_element_explorer_dock.py" line="2088"/>
+        <location filename="../ui/queries/qgisred_element_explorer_dock.py" line="2094"/>
         <source>(Source)</source>
         <translation>(Fuente)</translation>
     </message>
     <message>
-        <location filename="../ui/queries/qgisred_element_explorer_dock.py" line="2090"/>
+        <location filename="../ui/queries/qgisred_element_explorer_dock.py" line="2096"/>
         <source>(Mult.Dem)</source>
         <translation>(Dem.Múlt.)</translation>
     </message>
     <message>
-        <location filename="../ui/queries/qgisred_element_explorer_dock.py" line="2680"/>
+        <location filename="../ui/queries/qgisred_element_explorer_dock.py" line="2686"/>
         <source>Time</source>
         <translation type="unfinished">Instante</translation>
     </message>
@@ -9047,52 +9100,52 @@ Do you want to proceed?</source>
 <context>
     <name>QGISRedStylingUtils</name>
     <message>
-        <location filename="../tools/utils/qgisred_styling_utils.py" line="1401"/>
+        <location filename="../tools/utils/qgisred_styling_utils.py" line="1383"/>
         <source>%1 field not found in layer %2</source>
         <translation>Campo %1 no encontrado en capa %2</translation>
     </message>
     <message>
-        <location filename="../tools/utils/qgisred_styling_utils.py" line="933"/>
+        <location filename="../tools/utils/qgisred_styling_utils.py" line="915"/>
         <source>Branches</source>
         <translation type="unfinished">Ramas</translation>
     </message>
     <message>
-        <location filename="../tools/utils/qgisred_styling_utils.py" line="935"/>
+        <location filename="../tools/utils/qgisred_styling_utils.py" line="917"/>
         <source>Chords</source>
         <translation type="unfinished">Cuerdas</translation>
     </message>
     <message>
-        <location filename="../tools/utils/qgisred_styling_utils.py" line="321"/>
+        <location filename="../tools/utils/qgisred_styling_utils.py" line="303"/>
         <source>Failed to apply legend strategy for layer %1: %2</source>
         <translation>Fallo al aplicar la estrategia de leyenda para la capa %1: %2</translation>
     </message>
     <message>
-        <location filename="../tools/utils/qgisred_styling_utils.py" line="353"/>
+        <location filename="../tools/utils/qgisred_styling_utils.py" line="335"/>
         <source>Unsupported legend strategy schema: %1</source>
         <translation>Esquema de estrategia de leyenda no soportado: %1</translation>
     </message>
     <message>
-        <location filename="../tools/utils/qgisred_styling_utils.py" line="366"/>
+        <location filename="../tools/utils/qgisred_styling_utils.py" line="348"/>
         <source>Legend strategy field &apos;%1&apos; not found on layer &apos;%2&apos;</source>
         <translation>Campo de estrategia de leyenda '%1' no encontrado en la capa '%2'</translation>
     </message>
     <message>
-        <location filename="../tools/utils/qgisred_styling_utils.py" line="576"/>
+        <location filename="../tools/utils/qgisred_styling_utils.py" line="558"/>
         <source>Color ramp &apos;%1&apos; not found; falling back to random colors</source>
         <translation>Rampa de color '%1' no encontrada; volviendo a colores aleatorios</translation>
     </message>
     <message>
-        <location filename="../tools/utils/qgisred_styling_utils.py" line="447"/>
+        <location filename="../tools/utils/qgisred_styling_utils.py" line="429"/>
         <source>Unsupported classification mode: %1</source>
         <translation type="unfinished">Modo de clasificación no compatible: %1</translation>
     </message>
     <message>
-        <location filename="../tools/utils/qgisred_styling_utils.py" line="612"/>
+        <location filename="../tools/utils/qgisred_styling_utils.py" line="594"/>
         <source>Color ramp &apos;%1&apos; not found; colors strategy skipped</source>
         <translation type="unfinished">Rampa de colores '%1' no encontrada; se omite la estrategia de colores</translation>
     </message>
     <message>
-        <location filename="../tools/utils/qgisred_styling_utils.py" line="928"/>
+        <location filename="../tools/utils/qgisred_styling_utils.py" line="910"/>
         <source>Closed Links</source>
         <translation>Líneas Cerradas</translation>
     </message>
@@ -9102,7 +9155,7 @@ Do you want to proceed?</source>
         <translation type="obsolete">Indefinido</translation>
     </message>
     <message>
-        <location filename="../tools/utils/qgisred_styling_utils.py" line="926"/>
+        <location filename="../tools/utils/qgisred_styling_utils.py" line="908"/>
         <source>Uncategorized</source>
         <translation>Sin categoría</translation>
     </message>
@@ -9600,6 +9653,29 @@ Do you want to proceed?</source>
         <location filename="../tools/qgisred_translatable_strings.py" line="341"/>
         <source>Value</source>
         <translation>Valor</translation>
+    </message>
+</context>
+<context>
+    <name>SourceTypeNames</name>
+    <message>
+        <location filename="../tools/qgisred_translatable_strings.py" line="404"/>
+        <source>Concentration</source>
+        <translation type="unfinished">Concentración</translation>
+    </message>
+    <message>
+        <location filename="../tools/qgisred_translatable_strings.py" line="405"/>
+        <source>Mass Booster</source>
+        <translation type="unfinished">Booster de masa fija</translation>
+    </message>
+    <message>
+        <location filename="../tools/qgisred_translatable_strings.py" line="406"/>
+        <source>Flow Paced Booster</source>
+        <translation type="unfinished">Booster proporcional al caudal</translation>
+    </message>
+    <message>
+        <location filename="../tools/qgisred_translatable_strings.py" line="407"/>
+        <source>Set Point Booster</source>
+        <translation type="unfinished">Booster por consigna</translation>
     </message>
 </context>
 <context>
@@ -10902,47 +10978,47 @@ Do you want to proceed?</source>
         <translation type="obsolete">Ha habido algún error en el proceso de aplicar el estilo a la capa %1</translation>
     </message>
     <message>
-        <location filename="../ui/analysis/qgisred_results_rendering.py" line="710"/>
+        <location filename="../ui/analysis/qgisred_results_rendering.py" line="726"/>
         <source>Closed</source>
         <translation type="unfinished">Cerrada</translation>
     </message>
     <message>
-        <location filename="../ui/analysis/qgisred_results_rendering.py" line="711"/>
+        <location filename="../ui/analysis/qgisred_results_rendering.py" line="727"/>
         <source>Active</source>
         <translation type="unfinished">Activa</translation>
     </message>
     <message>
-        <location filename="../ui/analysis/qgisred_results_rendering.py" line="514"/>
+        <location filename="../ui/analysis/qgisred_results_rendering.py" line="539"/>
         <source>Max</source>
         <translation type="unfinished">Máximo</translation>
     </message>
     <message>
-        <location filename="../ui/analysis/qgisred_results_rendering.py" line="515"/>
+        <location filename="../ui/analysis/qgisred_results_rendering.py" line="540"/>
         <source>Min</source>
         <translation type="unfinished">Mínimo</translation>
     </message>
     <message>
-        <location filename="../ui/analysis/qgisred_results_rendering.py" line="516"/>
+        <location filename="../ui/analysis/qgisred_results_rendering.py" line="541"/>
         <source>Avg</source>
         <translation type="unfinished">Promedio</translation>
     </message>
     <message>
-        <location filename="../ui/analysis/qgisred_results_rendering.py" line="517"/>
+        <location filename="../ui/analysis/qgisred_results_rendering.py" line="542"/>
         <source>Rng</source>
         <translation type="unfinished">Rango</translation>
     </message>
     <message>
-        <location filename="../ui/analysis/qgisred_results_rendering.py" line="518"/>
+        <location filename="../ui/analysis/qgisred_results_rendering.py" line="543"/>
         <source>Std</source>
         <translation type="unfinished">Desv. estándar</translation>
     </message>
     <message>
-        <location filename="../ui/analysis/qgisred_results_rendering.py" line="1062"/>
+        <location filename="../ui/analysis/qgisred_results_rendering.py" line="1078"/>
         <source>%1 symbols of layer %2 do not match its geometry and were not resized</source>
         <translation>%1 símbolos de la capa %2 no corresponden a su geometría y no se han redimensionado</translation>
     </message>
     <message>
-        <location filename="../ui/analysis/qgisred_results_rendering.py" line="1106"/>
+        <location filename="../ui/analysis/qgisred_results_rendering.py" line="1122"/>
         <source>No values to classify in field &apos;%1&apos; of layer %2: the legend was left empty</source>
         <translation>No hay valores que clasificar en el campo '%1' de la capa %2: la leyenda se ha dejado vacía</translation>
     </message>

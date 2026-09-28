@@ -384,3 +384,24 @@ QCoreApplication.translate('ValveTypeAbbreviations', "FCV")
 QCoreApplication.translate('ValveTypeAbbreviations', "TCV")
 QCoreApplication.translate('ValveTypeAbbreviations', "GPV")
 QCoreApplication.translate('ValveTypeAbbreviations', "CV")
+
+# Meter type names (see tools/utils/qgisred_meter_types.py — METER_TYPE_LABELS
+# values mirrored here so pylupdate5 can see them; the module itself only
+# ever calls translate() with a variable, which pylupdate can't extract).
+QCoreApplication.translate('MeterTypeNames', "Manometer")
+QCoreApplication.translate('MeterTypeNames', "Flowmeter")
+QCoreApplication.translate('MeterTypeNames', "Countermeter")
+QCoreApplication.translate('MeterTypeNames', "Level Sensor")
+QCoreApplication.translate('MeterTypeNames', "Differential Manometer")
+QCoreApplication.translate('MeterTypeNames', "Quality Sensor")
+QCoreApplication.translate('MeterTypeNames', "Energy Sensor")
+QCoreApplication.translate('MeterTypeNames', "Status Sensor")
+QCoreApplication.translate('MeterTypeNames', "Valve Opening")
+QCoreApplication.translate('MeterTypeNames', "Tachometer")
+
+# Source type names (see tools/utils/qgisred_source_types.py — SOURCE_TYPE_LABELS
+# values mirrored here for the same reason).
+QCoreApplication.translate('SourceTypeNames', "Concentration")
+QCoreApplication.translate('SourceTypeNames', "Mass Booster")
+QCoreApplication.translate('SourceTypeNames', "Flow Paced Booster")
+QCoreApplication.translate('SourceTypeNames', "Set Point Booster")

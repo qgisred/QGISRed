@@ -15,6 +15,8 @@ import pytest
 
 from QGISRed.tools.utils.qgisred_field_utils import PLURAL_PROPERTY_NAMES
 from QGISRed.tools.utils.qgisred_valve_types import VALVE_TYPE_LONG_NAMES
+from QGISRed.tools.utils.qgisred_meter_types import METER_TYPE_LABELS
+from QGISRed.tools.utils.qgisred_source_types import SOURCE_TYPE_LABELS
 
 _PLUGIN_ROOT = os.path.abspath(os.path.join(os.path.dirname(__file__), ".."))
 _STRINGS_FILE = os.path.join(_PLUGIN_ROOT, "tools", "qgisred_translatable_strings.py")
@@ -107,4 +109,26 @@ class TestValveTypeNamesAreTranslatable:
             "Valve type codes in VALVE_TYPE_LONG_NAMES with no "
             "QCoreApplication.translate('ValveTypeAbbreviations', ...) call in "
             "tools/qgisred_translatable_strings.py: {}".format(", ".join(missing))
+        )
+
+
+class TestMeterTypeNamesAreTranslatable:
+    def test_every_label_is_mirrored(self):
+        literals = _translated_literals("MeterTypeNames")
+        missing = sorted(set(METER_TYPE_LABELS.values()) - literals)
+        assert not missing, (
+            "Meter type labels in METER_TYPE_LABELS with no "
+            "QCoreApplication.translate() call in tools/qgisred_translatable_strings.py: "
+            "{}".format(", ".join(missing))
+        )
+
+
+class TestSourceTypeNamesAreTranslatable:
+    def test_every_label_is_mirrored(self):
+        literals = _translated_literals("SourceTypeNames")
+        missing = sorted(set(SOURCE_TYPE_LABELS.values()) - literals)
+        assert not missing, (
+            "Source type labels in SOURCE_TYPE_LABELS with no "
+            "QCoreApplication.translate() call in tools/qgisred_translatable_strings.py: "
+            "{}".format(", ".join(missing))
         )

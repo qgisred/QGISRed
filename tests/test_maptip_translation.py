@@ -73,14 +73,18 @@ class TestTranslateMapTip:
         utils.translateMapTip(layer)
         assert layer.mapTipTemplate() == "Tank [% \"Id\" %]"
 
-    def test_wraps_the_meter_type_attribute_in_a_translated_case(self):
+    def test_wraps_the_meter_type_attribute_in_a_translated_case(self, monkeypatch):
+        monkeypatch.setattr(
+            stylingModule, "getMeterTypeName",
+            lambda code: {"Manometer": "Manómetro"}.get(code, code),
+        )
         template = (
             "[[% coalesce(attribute($currentfeature,'MeterType'),attribute($currentfeature,'Type')) %]]"
             " [% coalesce(attribute($currentfeature,'MeterID'), attribute($currentfeature,'Id')) %]"
         )
         layer = FakeLayer(template)
         utils = QGISRedStylingUtils("", "")
-        utils.tr = lambda message: {"Manometer": "Manómetro"}.get(message, message)
+        utils.tr = lambda message: message
         utils.translateMapTip(layer)
         result = layer.mapTipTemplate()
         assert "WHEN @qgisred_type = 'Manometer' THEN 'Manómetro'" in result
@@ -102,24 +106,28 @@ class TestTranslateMapTip:
         QGISRedStylingUtils("", "").translateMapTip(layer)
         assert "WHEN @qgisred_type = 'PBV' THEN 'VRC'" in layer.mapTipTemplate()
 
-    def test_an_unrecognized_type_code_falls_back_to_the_raw_value_at_hover_time(self):
+    def test_an_unrecognized_type_code_falls_back_to_the_raw_value_at_hover_time(self, monkeypatch):
+        monkeypatch.setattr(stylingModule, "getMeterTypeName", lambda code: code)
         template = "[[% coalesce(attribute($currentfeature,'MeterType'),attribute($currentfeature,'Type')) %]] [% \"Id\" %]"
         layer = FakeLayer(template)
         _utils().translateMapTip(layer)
         assert layer.mapTipTemplate().rstrip().endswith("ELSE @qgisred_type END) %]] [% \"Id\" %]")
 
-    def test_wraps_the_source_type_attribute_and_translates_the_leading_word(self):
+    def test_wraps_the_source_type_attribute_and_translates_the_leading_word(self, monkeypatch):
+        monkeypatch.setattr(
+            stylingModule, "getSourceTypeName",
+            lambda code: {
+                "CONCEN": "Concentración",
+                "MASS": "Booster de masa fija",
+            }.get(code, code),
+        )
         template = (
             "Source [% coalesce(attribute($currentfeature,'SourceType'), attribute($currentfeature,'Type')) %]"
             " [% coalesce(attribute($currentfeature,'SourceQual'), attribute($currentfeature,'BaseValue')) %]"
         )
         layer = FakeLayer(template)
         utils = QGISRedStylingUtils("", "")
-        utils.tr = lambda message: {
-            "Source": "Fuente",
-            "Concentration": "Concentración",
-            "Mass Booster": "Booster de masa fija",
-        }.get(message, message)
+        utils.tr = lambda message: {"Source": "Fuente"}.get(message, message)
         utils.translateMapTip(layer)
         result = layer.mapTipTemplate()
         assert result.startswith("Fuente [%")
