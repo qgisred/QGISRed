@@ -37,10 +37,10 @@ class QGISRedRangeEditDialog(QDialog):
     def setupLayout(self):
         layout = QVBoxLayout(self)
 
-        layout.addWidget(QLabel(self.formatLabelText("Lower Value")))
+        layout.addWidget(QLabel(self.formatLabelText(self.tr("Lower Value"))))
         layout.addWidget(self.lowerValueSpinBox)
 
-        layout.addWidget(QLabel(self.formatLabelText("Upper Value")))
+        layout.addWidget(QLabel(self.formatLabelText(self.tr("Upper Value"))))
         layout.addWidget(self.upperValueSpinBox)
 
         self.addStandardButtons(layout)
@@ -423,10 +423,17 @@ class QGISRedSymbolColorSelector(QgsSymbolButton):
 
     def handleSingleClickLogic(self, event):
         if event.type() == QEvent.Type.MouseButtonPress and event.button() == Qt.MouseButton.LeftButton:
-            self.openColorPicker()
+            if self.isEnabled():
+                self.openColorPicker()
             return True
 
         return False
+
+    def keyPressEvent(self, event):
+        if event.key() in (Qt.Key.Key_Space, Qt.Key.Key_Return, Qt.Key.Key_Enter) and self.isEnabled():
+            self.openColorPicker()
+            return
+        super().keyPressEvent(event)
 
     def openColorPicker(self):
         newColor = QgsColorDialog.getColor(self.activeColor, self, self.dialogTitle, self.allowAlpha)
