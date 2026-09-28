@@ -29,6 +29,12 @@ try:
 except ImportError:
     from qgis.PyQt.QtWidgets import QAction   # noqa: F401  Qt5 / PyQt5, re-exported for other plugin files
 
+# QShortcut made the same move.
+try:
+    from qgis.PyQt.QtGui import QShortcut     # Qt6 / PyQt6
+except ImportError:
+    from qgis.PyQt.QtWidgets import QShortcut  # noqa: F401  Qt5 / PyQt5, re-exported for other plugin files
+
 # ---------------------------------------------------------------------------
 # QVariant type constants.
 # In PyQt5 / QGIS 3, QVariant exposes .String, .Double, .Int, .LongLong.
