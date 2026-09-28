@@ -255,6 +255,7 @@ class TestStrategyPartReasons:
         dialog.currentColorMode = lambda: "Manual" if colorsSetByHand else "Random"
         dialog.cbSizes = MagicMock()
         dialog.cbSizes.currentText.return_value = "Linear"
+        dialog.cbSizes.currentData.return_value = "Linear"
         dialog.currentLayer = MagicMock()
         dialog.currentLayer.fields.return_value.indexFromName.return_value = fieldIndex
         return dialog
@@ -302,6 +303,7 @@ class TestLoadBranching:
                 return "Pipes"
 
         dialog.currentLayer = _Layer()
+        dialog.hasUnappliedEdits = False
         dialog.tr = lambda text: text
         dialog.getElementNameForIdentifier = lambda identifier: "Pipes"
         dialog.getProjectStyleFilename = lambda name: "Net_Pipes.qml"

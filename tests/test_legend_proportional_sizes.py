@@ -72,6 +72,9 @@ class FakeCombo:
     def currentText(self):
         return self._text
 
+    def currentData(self):
+        return self._text
+
 
 class FakeTable:
     """Rows as (size text, value text, label); cells the builders read but the

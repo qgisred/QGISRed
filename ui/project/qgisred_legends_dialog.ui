@@ -119,7 +119,7 @@
       <widget class="QComboBox" name="cbVariant">
        <property name="minimumSize">
         <size>
-         <width>130</width>
+         <width>150</width>
          <height>0</height>
         </size>
        </property>
@@ -289,7 +289,10 @@
               <number>0</number>
              </property>
              <item>
-              <layout class="QFormLayout" name="classificationForm">
+              <layout class="QGridLayout" name="optionsGrid">
+               <property name="horizontalSpacing">
+                <number>8</number>
+               </property>
                <item row="0" column="0">
                 <widget class="QLabel" name="labelMode">
                  <property name="text">
@@ -302,6 +305,12 @@
                </item>
                <item row="0" column="1">
                 <widget class="QComboBox" name="cbMode">
+                 <property name="sizePolicy">
+                  <sizepolicy hsizetype="Expanding" vsizetype="Fixed">
+                   <horstretch>1</horstretch>
+                   <verstretch>0</verstretch>
+                  </sizepolicy>
+                 </property>
                  <property name="minimumSize">
                   <size>
                    <width>150</width>
@@ -328,23 +337,25 @@
                    <height>0</height>
                   </size>
                  </property>
+                 <property name="maximumSize">
+                  <size>
+                   <width>150</width>
+                   <height>16777215</height>
+                  </size>
+                 </property>
                  <property name="maximum">
                   <double>9999999999999999583119736832.000000000000000</double>
                  </property>
                 </widget>
                </item>
-              </layout>
-             </item>
-             <item>
-              <widget class="Line" name="line_4">
-               <property name="orientation">
-                <enum>Qt::Horizontal</enum>
-               </property>
-              </widget>
-             </item>
-             <item>
-              <layout class="QFormLayout" name="sizesForm">
-               <item row="0" column="0">
+               <item row="2" column="0" colspan="2">
+                <widget class="Line" name="line_4">
+                 <property name="orientation">
+                  <enum>Qt::Horizontal</enum>
+                 </property>
+                </widget>
+               </item>
+               <item row="3" column="0">
                 <widget class="QLabel" name="labelSizes">
                  <property name="text">
                   <string>Sizes</string>
@@ -354,8 +365,14 @@
                  </property>
                 </widget>
                </item>
-               <item row="0" column="1">
+               <item row="3" column="1">
                 <widget class="QComboBox" name="cbSizes">
+                 <property name="sizePolicy">
+                  <sizepolicy hsizetype="Expanding" vsizetype="Fixed">
+                   <horstretch>1</horstretch>
+                   <verstretch>0</verstretch>
+                  </sizepolicy>
+                 </property>
                  <property name="minimumSize">
                   <size>
                    <width>150</width>
@@ -364,7 +381,7 @@
                  </property>
                 </widget>
                </item>
-               <item row="1" column="0">
+               <item row="4" column="0">
                 <widget class="QLabel" name="labelSizeValue">
                  <property name="text">
                   <string>Value</string>
@@ -374,12 +391,18 @@
                  </property>
                 </widget>
                </item>
-               <item row="1" column="1">
+               <item row="4" column="1">
                 <widget class="QDoubleSpinBox" name="spinSizeEqual">
                  <property name="minimumSize">
                   <size>
                    <width>90</width>
                    <height>0</height>
+                  </size>
+                 </property>
+                 <property name="maximumSize">
+                  <size>
+                   <width>150</width>
+                   <height>16777215</height>
                   </size>
                  </property>
                  <property name="maximum">
@@ -393,7 +416,7 @@
                  </property>
                 </widget>
                </item>
-               <item row="2" column="0">
+               <item row="5" column="0">
                 <widget class="QLabel" name="labelSpinMin">
                  <property name="text">
                   <string>Min</string>
@@ -403,8 +426,11 @@
                  </property>
                 </widget>
                </item>
-               <item row="2" column="1">
+               <item row="5" column="1">
                 <layout class="QHBoxLayout" name="sizeRangeLayout">
+                 <property name="spacing">
+                  <number>6</number>
+                 </property>
                  <item>
                   <widget class="QDoubleSpinBox" name="spinSizeMin">
                    <property name="minimumSize">
@@ -412,6 +438,9 @@
                      <width>65</width>
                      <height>0</height>
                     </size>
+                   </property>
+                   <property name="maximum">
+                    <double>20.000000000000000</double>
                    </property>
                    <property name="singleStep">
                     <double>0.100000000000000</double>
@@ -457,20 +486,29 @@
                    </property>
                   </widget>
                  </item>
+                 <item>
+                  <spacer name="sizeRangeSpacer">
+                   <property name="orientation">
+                    <enum>Qt::Horizontal</enum>
+                   </property>
+                   <property name="sizeHint" stdset="0">
+                    <size>
+                     <width>0</width>
+                     <height>0</height>
+                    </size>
+                   </property>
+                  </spacer>
+                 </item>
                 </layout>
                </item>
-              </layout>
-             </item>
-             <item>
-              <widget class="Line" name="line_5">
-               <property name="orientation">
-                <enum>Qt::Horizontal</enum>
-               </property>
-              </widget>
-             </item>
-             <item>
-              <layout class="QFormLayout" name="colorsForm">
-               <item row="0" column="0">
+               <item row="6" column="0" colspan="2">
+                <widget class="Line" name="line_5">
+                 <property name="orientation">
+                  <enum>Qt::Horizontal</enum>
+                 </property>
+                </widget>
+               </item>
+               <item row="7" column="0">
                 <widget class="QLabel" name="labelColors">
                  <property name="text">
                   <string>Colors</string>
@@ -480,10 +518,19 @@
                  </property>
                 </widget>
                </item>
-               <item row="0" column="1">
+               <item row="7" column="1">
                 <layout class="QHBoxLayout" name="colorControlsLayout">
+                 <property name="spacing">
+                  <number>6</number>
+                 </property>
                  <item>
                   <widget class="QComboBox" name="cbColors">
+                   <property name="sizePolicy">
+                    <sizepolicy hsizetype="Expanding" vsizetype="Fixed">
+                     <horstretch>1</horstretch>
+                     <verstretch>0</verstretch>
+                    </sizepolicy>
+                   </property>
                    <property name="minimumSize">
                     <size>
                      <width>150</width>
@@ -536,21 +583,17 @@
                  </item>
                 </layout>
                </item>
-              </layout>
-             </item>
-             <item>
-              <layout class="QHBoxLayout" name="palletesHorizontalLayout"/>
-             </item>
-             <item>
-              <widget class="Line" name="line_7">
-               <property name="orientation">
-                <enum>Qt::Horizontal</enum>
-               </property>
-              </widget>
-             </item>
-             <item>
-              <layout class="QFormLayout" name="classesForm">
-               <item row="0" column="0">
+               <item row="8" column="1">
+                <layout class="QHBoxLayout" name="palletesHorizontalLayout"/>
+               </item>
+               <item row="9" column="0" colspan="2">
+                <widget class="Line" name="line_7">
+                 <property name="orientation">
+                  <enum>Qt::Horizontal</enum>
+                 </property>
+                </widget>
+               </item>
+               <item row="10" column="0">
                 <widget class="QLabel" name="labelClass">
                  <property name="text">
                   <string>Classes</string>
@@ -560,8 +603,11 @@
                  </property>
                 </widget>
                </item>
-               <item row="0" column="1">
+               <item row="10" column="1">
                 <layout class="QHBoxLayout" name="classControlsLayout">
+                 <property name="spacing">
+                  <number>6</number>
+                 </property>
                  <item>
                   <widget class="QSpinBox" name="leClassCount">
                    <property name="minimumSize">
@@ -582,7 +628,7 @@
                    </property>
                    <property name="maximumSize">
                     <size>
-                     <width>28</width>
+                     <width>16777215</width>
                      <height>28</height>
                     </size>
                    </property>
@@ -624,8 +670,8 @@
                    </property>
                    <property name="sizeHint" stdset="0">
                     <size>
-                     <width>10</width>
-                     <height>10</height>
+                     <width>0</width>
+                     <height>0</height>
                     </size>
                    </property>
                   </spacer>
@@ -658,20 +704,13 @@
     </widget>
    </item>
    <item>
-    <widget class="Line" name="line">
-     <property name="orientation">
-      <enum>Qt::Horizontal</enum>
-     </property>
-    </widget>
-   </item>
-   <item>
     <layout class="QHBoxLayout" name="buttonsLayout">
      <item>
       <widget class="QToolButton" name="btLoadMenu">
        <property name="minimumSize">
         <size>
          <width>90</width>
-         <height>0</height>
+         <height>23</height>
         </size>
        </property>
        <property name="text">
@@ -690,7 +729,7 @@
        <property name="minimumSize">
         <size>
          <width>90</width>
-         <height>0</height>
+         <height>23</height>
         </size>
        </property>
        <property name="text">
