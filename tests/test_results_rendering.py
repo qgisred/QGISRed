@@ -423,6 +423,49 @@ class TestMapTipOccurrenceTime:
         assert "'&lt;'" in value_line and "'&gt;'" in value_line
 
 
+class TestRefreshMagnitudeLabelsAlsoSetsMapTip:
+    """_refreshMagnitudeLabels runs instead of paintIntervalTimeResults() when a project
+    is restored without a full render -- most notably right after reopening a project
+    saved without a .qgs (metadata.txt), whose result layers come back from a fresh QML
+    load with no map tip at all. It must not skip the map tip the way it used to."""
+
+    def _make_dock(self):
+        dock = MockDock()
+        dock._statsMode = False
+        dock.cbNodes = MagicMock()
+        dock.cbNodes.currentIndex.return_value = 0  # nothing selected on the Node side
+        dock.cbLinks = MagicMock()
+        dock.cbLinks.currentIndex.return_value = 1
+        dock.cbLinks.currentText.return_value = "Flow"
+        dock._link_field_map = {"Flow": "Flow"}
+        dock._node_field_map = {}
+        return dock
+
+    def test_sets_the_map_tip_for_the_layer_with_a_selected_variable(self):
+        dock = self._make_dock()
+        link_layer = MagicMock()
+        dock._findResultLayer = MagicMock(side_effect=lambda name: link_layer if name == "Link" else None)
+
+        with patch("QGISRed.ui.analysis.qgisred_results_rendering.QGISRedFieldUtils") as MockFieldUtils:
+            MockFieldUtils.return_value.getUnitAbbreviation.return_value = ""
+            dock._refreshMagnitudeLabels()
+
+        assert link_layer.setMapTipTemplate.call_args is not None
+        assert "Flow" in link_layer.setMapTipTemplate.call_args[0][0]
+
+    def test_does_not_touch_the_layer_when_nothing_is_selected(self):
+        dock = self._make_dock()
+        dock.cbLinks.currentIndex.return_value = 0
+        link_layer = MagicMock()
+        dock._findResultLayer = MagicMock(side_effect=lambda name: link_layer if name == "Link" else None)
+
+        with patch("QGISRed.ui.analysis.qgisred_results_rendering.QGISRedFieldUtils") as MockFieldUtils:
+            MockFieldUtils.return_value.getUnitAbbreviation.return_value = ""
+            dock._refreshMagnitudeLabels()
+
+        link_layer.setMapTipTemplate.assert_not_called()
+
+
 # Regression test for a bug where switching a result variable to/from a rule-based
 # renderer (Status) silently kept the previous style. Root cause: paintIntervalTimeResults
 # used to overwrite self.displayingLinkField/NodeField with the NEW field *before* calling

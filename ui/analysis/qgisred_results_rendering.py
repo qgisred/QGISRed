@@ -502,58 +502,12 @@ class _ResultsRenderingMixin:
                     # Set layer name in legend
                     layer_to_paint.setName(display_name)
 
-                    # Configure map tip
-                    time_field = None
-                    stat_prefix = ""
-                    if self._statsMode:
-                        current_stat = self.cbStatistics.currentText()
-                        if current_stat in (self.lbl_maximum, self.lbl_minimum):
-                            time_field = time_field_name(field, nameLayer)
-                        # Prefix the value with the statistic being shown
-                        stat_prefix = {
-                            self.lbl_maximum: self.tr("Max"),
-                            self.lbl_minimum: self.tr("Min"),
-                            self.lbl_average: self.tr("Avg"),
-                            self.lbl_range: self.tr("Rng"),
-                            self.lbl_std_deviation: self.tr("Std"),
-                        }.get(current_stat, "")
-                        if stat_prefix:
-                            stat_prefix += " "
-
                     element = "Nodes" if "Node" in nameLayer else "Links"
                     unit_field = "Flow" if field in ("Flow_Sig", "Flow_Unsig") else field
                     unit = QGISRedFieldUtils().getUnitAbbreviation(element, unit_field)
-                    unit_suffix = " " + unit if unit else ""
 
                     self._setMagnitudeLabel(nameLayer, selected_variable_text, unit, field)
-
-                    if field == "Flow":
-                        value_expr = 'abs("Flow")'
-                    elif field == "Status":
-                        # The map label groups the states into Closed/Active; the tooltip
-                        # shows all 13 as stored. The map tip is HTML, so the comparison
-                        # signs in 'Closed (Q<0)' would be read as a tag and swallow the
-                        # rest of the line — they have to travel as entities.
-                        value_expr = 'replace("Status", array(\'<\', \'>\'), array(\'&lt;\', \'&gt;\'))'
-                    else:
-                        value_expr = '"' + field + '"'
-
-                    # NodeType/LinkType and NodeID/LinkID on layers written by a recent DLL;
-                    # Type/Id on projects that have not been simulated since the rename.
-                    type_col = '"' + resultTypeField(layer_to_paint, default="Type") + '"'
-                    id_col = '"' + resultIdField(layer_to_paint) + '"'
-                    _TYPE_KEYS = ["JUNCTION", "RESERVOIR", "TANK", "PIPE", "PUMP", "VALVE"]
-                    cases = " ".join(
-                        "WHEN " + type_col + " = '" + k + "' THEN '" + self.tr(k.title()) + "'"
-                        for k in _TYPE_KEYS
-                    )
-                    type_id_expr = '[% (CASE ' + cases + ' ELSE ' + type_col + ' END) || \' \' || ' + id_col + ' %]'
-
-                    tip_lines = ['<b>' + selected_variable_text + '</b>', type_id_expr]
-                    tip_lines.append(stat_prefix + '[% ' + value_expr + ' %]' + unit_suffix)
-                    if time_field:
-                        tip_lines.append('@ [% "' + time_field + '" %]')
-                    layer_to_paint.setMapTipTemplate('<br>'.join(tip_lines))
+                    self._setResultMapTip(layer_to_paint, field, nameLayer, selected_variable_text)
 
                     # Configure layer labels (occurrence time is shown only in the tooltip)
                     self.setLayerLabels(layer_to_paint, field)
@@ -563,10 +517,69 @@ class _ResultsRenderingMixin:
         if hasattr(self, "_updateEvolutionCheckboxLabels"):
             self._updateEvolutionCheckboxLabels()
 
+    def _setResultMapTip(self, layer_to_paint, field, nameLayer, selected_variable_text):
+        """Build and apply the map tip for a result layer showing `field`.
+
+        The shipped Results QML (NodePressure.qml.bak and siblings) ships with an empty
+        <mapTip> on purpose: its content depends on runtime state (current variable, stats
+        mode, units) that a static style file cannot hold, so this is the only place it is
+        built. Factored out of paintIntervalTimeResults so _refreshMagnitudeLabels can call
+        it too -- reopening a project saved without a .qgs (metadata.txt) re-opens the result
+        layers from a fresh QML load and never re-runs the full render, which used to leave
+        the map tip permanently blank until the next simulation.
+        """
+        time_field = None
+        stat_prefix = ""
+        if self._statsMode:
+            current_stat = self.cbStatistics.currentText()
+            if current_stat in (self.lbl_maximum, self.lbl_minimum):
+                time_field = time_field_name(field, nameLayer)
+            # Prefix the value with the statistic being shown
+            stat_prefix = {
+                self.lbl_maximum: self.tr("Max"),
+                self.lbl_minimum: self.tr("Min"),
+                self.lbl_average: self.tr("Avg"),
+                self.lbl_range: self.tr("Rng"),
+                self.lbl_std_deviation: self.tr("Std"),
+            }.get(current_stat, "")
+            if stat_prefix:
+                stat_prefix += " "
+
+        element = "Nodes" if "Node" in nameLayer else "Links"
+        unit_field = "Flow" if field in ("Flow_Sig", "Flow_Unsig") else field
+        unit = QGISRedFieldUtils().getUnitAbbreviation(element, unit_field)
+        unit_suffix = " " + unit if unit else ""
+
+        if field == "Flow":
+            value_expr = 'abs("Flow")'
+        elif field == "Status":
+            value_expr = 'replace("Status", array(\'<\', \'>\'), array(\'&lt;\', \'&gt;\'))'
+        else:
+            value_expr = '"' + field + '"'
+
+        # NodeType/LinkType and NodeID/LinkID on layers written by a recent DLL;
+        # Type/Id on projects that have not been simulated since the rename.
+        type_col = '"' + resultTypeField(layer_to_paint, default="Type") + '"'
+        id_col = '"' + resultIdField(layer_to_paint) + '"'
+        _TYPE_KEYS = ["JUNCTION", "RESERVOIR", "TANK", "PIPE", "PUMP", "VALVE"]
+        cases = " ".join(
+            "WHEN " + type_col + " = '" + k + "' THEN '" + self.tr(k.title()) + "'"
+            for k in _TYPE_KEYS
+        )
+        type_id_expr = '[% (CASE ' + cases + ' ELSE ' + type_col + ' END) || \' \' || ' + id_col + ' %]'
+
+        tip_lines = ['<b>' + selected_variable_text + '</b>', type_id_expr]
+        tip_lines.append(stat_prefix + '[% ' + value_expr + ' %]' + unit_suffix)
+        if time_field:
+            tip_lines.append('@ [% "' + time_field + '" %]')
+        layer_to_paint.setMapTipTemplate('<br>'.join(tip_lines))
+
     def _refreshMagnitudeLabels(self):
-        """Set the Nodes/Links magnitude+unit labels from the current combo
-        state, without re-rendering. Used on restore, where the combos are
-        populated but paintIntervalTimeResults() is not called."""
+        """Set the Nodes/Links magnitude+unit labels from the current combo state, and
+        the map tip, without a full re-render. Used on restore, where the combos are
+        populated but paintIntervalTimeResults() is not called -- most notably right
+        after reopening a project saved without a .qgs, whose result layers come back
+        from a fresh QML load with no map tip at all (see _setResultMapTip)."""
         for nameLayer in ["Node", "Link"]:
             if "Link" in nameLayer:
                 combo, field_map = self.cbLinks, self._link_field_map
@@ -585,6 +598,9 @@ class _ResultsRenderingMixin:
             if field:
                 unit_field = "Flow" if field in ("Flow_Sig", "Flow_Unsig") else field
                 unit = QGISRedFieldUtils().getUnitAbbreviation(element, unit_field)
+                layer_to_paint = self._findResultLayer(nameLayer)
+                if layer_to_paint:
+                    self._setResultMapTip(layer_to_paint, field, nameLayer, selected_variable_text)
             self._setMagnitudeLabel(nameLayer, selected_variable_text, unit, field)
 
     def _setMagnitudeLabel(self, nameLayer, magnitudeText, unit, field=""):
