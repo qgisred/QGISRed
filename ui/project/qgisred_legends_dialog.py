@@ -103,6 +103,28 @@ def meterStyleVariable(meterType, suffix):
     return meterType[0].lower() + meterType[1:] + "Meter" + suffix
 
 
+def elementSizePattern(elementType):
+    """Regex capturing the size an expression draws one element type with, in the forms the
+    shipped styles use: ='PUMP', 6, 0)   !='JUNCTION', 0,2)   = 'JUNCTION' THEN 3"""
+    quoted = "'" + re.escape(elementType) + "'"
+    number = r"(\d+(?:\.\d+)?)"
+    return re.compile(
+        r"(?<!!)=\s*" + quoted + r"\s*,\s*" + number + r"\s*,\s*0\s*\)"
+        r"|!=\s*" + quoted + r"\s*,\s*0\s*,\s*" + number + r"\s*\)"
+        r"|=\s*" + quoted + r"\s+THEN\s+" + number
+    )
+
+
+def scaleCapturedNumbers(expr, pattern, factor):
+    """Multiply by factor the number every match of pattern captures; the rest of expr stays."""
+    def scaleMatch(match):
+        start, end = match.span(match.lastindex)
+        scaled = formatExpressionNumber(float(match.group(match.lastindex)) * factor)
+        return expr[match.start():start] + scaled + expr[end:match.end()]
+
+    return pattern.sub(scaleMatch, expr)
+
+
 def softenColor(color, lightening=0.45):
     """A paler shade of the color: same hue, lightness pulled towards white (a fill under a colored stroke)."""
     hue, saturation, lightness, alpha = color.getHslF()
@@ -276,28 +298,42 @@ class QGISRedLegendsDialog(QDialog, formClass):
         },
     }
 
-    # Shipped size (defaults/layerStyles/*.qml.bak) the "All" variant of the selector is
-    # measured against: its size cell shows a factor of it and applies default x factor
-    # to every component. Links and service connections: the line width; junctions,
-    # sources and meters: the first size variable; tree nodes: the junction circle.
-    DEFAULT_ANCHOR_SIZES = {
-        "qgisred_pipes": 0.5,
-        "qgisred_pumps": 0.5,
-        "qgisred_valves": 0.5,
-        "qgisred_serviceconnections": 0.4,
-        "qgisred_junctions": 1.6,
-        "qgisred_sources": 3.0,
-        "qgisred_meters": 5.0,
-        "qgisred_tree_nodes": 2.0,
-    }
-
     # Tree nodes selector variants and the SimpleMarker shape each one edits
     TREE_NODE_MARKERS = {"junction": "circle", "root": "star"}
     # The size a Tree nodes layer draws for its node type: if("NodeType" = 'ROOT', 8, 0)
     TREE_NODE_SIZE_PATTERN = re.compile(r"'\w+'\s*,\s*(\d+(?:\.\d+)?)\s*,\s*0\s*\)")
 
+    # Query layers drawing several element types with one symbol, each symbol layer gated
+    # on the type its size expression names: the selector edits one element type at a time
+    ELEMENT_TYPES = {
+        "qgisred_isolatedsegments_links": ("PIPE", "SERVICECONNECTION", "PUMP", "VALVE"),
+        "qgisred_isolatedsegments_nodes": ("JUNCTION", "ISOLATIONVALVE", "TANK", "RESERVOIR", "INCIDENCE"),
+        "qgisred_isolatedsegments_isolateddemands": ("JUNCTION", "CONNECTION"),
+        "qgisred_hydraulicsectors_isolateddemands": ("JUNCTION", "CONNECTION"),
+    }
+    # The element type drawn by the plain lines of the symbol, which no size expression gates
+    PLAIN_LINE_ELEMENT_TYPE = "PIPE"
+    # Elements drawn in one fixed color, which the swatch edits (True: the marker's stroke);
+    # every other element takes its color from the Status of each feature
+    ELEMENT_FIXED_COLORS = {
+        ("qgisred_isolatedsegments_nodes", "INCIDENCE"): False,
+        ("qgisred_isolatedsegments_isolateddemands", None): True,
+        ("qgisred_hydraulicsectors_isolateddemands", None): True,
+    }
+
     # Link layers drawn as a line plus a marker on it (check valve, pump and valve icons)
     LINK_LAYER_IDENTIFIERS = frozenset({"qgisred_pipes", "qgisred_pumps", "qgisred_valves"})
+
+    # Layers offering a selector (see inputVariantItems); on its "All" entry the size cell
+    # shows a percent of the sizes the layer is drawn with
+    VARIANT_SELECTOR_IDENTIFIERS = (
+        LINK_LAYER_IDENTIFIERS
+        | frozenset(ELEMENT_TYPES)
+        | frozenset({
+            "qgisred_serviceconnections", "qgisred_junctions", "qgisred_sources", "qgisred_meters",
+            TREE_NODES_IDENTIFIER,
+        })
+    )
 
     # Node layers drawn as a frame SVG over a water SVG: the color edits the water half
     WATER_MARKER_IDENTIFIERS = frozenset({"qgisred_reservoirs", "qgisred_tanks"})
@@ -597,6 +633,8 @@ class QGISRedLegendsDialog(QDialog, formClass):
         self.rowSelectionFilter = QGISRedRowSelectionFilter(self.tableView)
 
         header = self.tableView.horizontalHeader()
+        # The headers of a selected row would turn bold, which reads as a state the table does not have
+        header.setHighlightSections(False)
 
         # Visibility checkbox
         header.setSectionResizeMode(0, QHeaderView.ResizeMode.Fixed)
@@ -679,7 +717,8 @@ class QGISRedLegendsDialog(QDialog, formClass):
     def inputVariantItems(self, identifier):
         """(label, [(text, data)]) of the selector for input layers with several editable variants, or None."""
         if identifier == "qgisred_meters":
-            return self.tr("Meter Type"), [(self.tr("All types"), None)] + [(t, t) for t in self.METER_TYPES]
+            names = self.meterTypeNames()
+            return self.tr("Meter Type"), [(self.tr("All types"), None)] + [(names[t], t) for t in self.METER_TYPES]
         if identifier == "qgisred_junctions":
             return self.tr("Demand"), [
                 (self.tr("All"), None), (self.tr("Positive (> 0)"), "positive"), (self.tr("Negative (< 0)"), "negative")
@@ -698,7 +737,39 @@ class QGISRedLegendsDialog(QDialog, formClass):
             return self.tr("Node"), [
                 (self.tr("All"), None), (self.tr("Junctions"), "junction"), (self.tr("Root node"), "root")
             ]
+        if identifier in self.ELEMENT_TYPES:
+            names = self.elementTypeNames()
+            elementItems = [(names[t], t) for t in self.ELEMENT_TYPES[identifier]]
+            return self.tr("Element"), [(self.tr("All"), None)] + elementItems
         return None
+
+    def meterTypeNames(self):
+        return {
+            "Countermeter": self.tr("Countermeter"),
+            "DifferentialManometer": self.tr("Differential Manometer"),
+            "EnergySensor": self.tr("Energy Sensor"),
+            "Flowmeter": self.tr("Flowmeter"),
+            "LevelSensor": self.tr("Level Sensor"),
+            "Manometer": self.tr("Manometer"),
+            "QualitySensor": self.tr("Quality Sensor"),
+            "StatusSensor": self.tr("Status Sensor"),
+            "Tachometer": self.tr("Tachometer"),
+            "ValveOpening": self.tr("Valve Opening"),
+        }
+
+    def elementTypeNames(self):
+        return {
+            "PIPE": self.tr("Pipes"),
+            "SERVICECONNECTION": self.tr("Service Connections"),
+            "PUMP": self.tr("Pumps"),
+            "VALVE": self.tr("Valves"),
+            "JUNCTION": self.tr("Junctions"),
+            "ISOLATIONVALVE": self.tr("Isolation Valves"),
+            "TANK": self.tr("Tanks"),
+            "RESERVOIR": self.tr("Reservoirs"),
+            "INCIDENCE": self.tr("Incidence point"),
+            "CONNECTION": self.tr("Service Connections"),
+        }
 
     def getSelectedVariant(self):
         """Data of the selected variant (meter type, demand sign, ...), or None."""
@@ -740,20 +811,27 @@ class QGISRedLegendsDialog(QDialog, formClass):
             self.cbVariant.blockSignals(False)
             return
         self.lastVariantIndex = self.cbVariant.currentIndex()
-        if self.currentLayer and (self.isInputLayer() or self.isTreeNodesLayer()):
-            self.populateLegendTable()
-            self.updateInputElementColumnRestrictions()
-            self.clearLegendEdited()
+        if self.currentLayer and (self.isInputLayer() or self.isTreeNodesLayer() or self.isElementLayer()):
+            self.showLayerLegendInTable()
+
+    def showLayerLegendInTable(self):
+        self.populateLegendTable()
+        self.updateInputElementColumnRestrictions()
+        self.clearLegendEdited()
 
     def isTreeNodesLayer(self):
         identifier = self.currentLayer.customProperty("qgisred_identifier") if self.currentLayer else None
         return identifier == self.TREE_NODES_IDENTIFIER
 
+    def isElementLayer(self):
+        identifier = self.currentLayer.customProperty("qgisred_identifier") if self.currentLayer else None
+        return identifier in self.ELEMENT_TYPES
+
     def isFactorCell(self):
-        """The size cell of a single-symbol legend whose selector is on All shows a factor of the shipped sizes."""
+        """The size cell of a single-symbol legend whose selector is on All shows a percent of the current sizes."""
         identifier = self.currentLayer.customProperty("qgisred_identifier") if self.currentLayer else None
         return (
-            identifier in self.DEFAULT_ANCHOR_SIZES
+            identifier in self.VARIANT_SELECTOR_IDENTIFIERS
             and self.currentFieldType == self.FIELD_TYPE_SINGLE
             and self.getSelectedVariant() is None
         )
@@ -1311,7 +1389,8 @@ class QGISRedLegendsDialog(QDialog, formClass):
 
         caption = f"{prefix} {boldLayer} | {units}" if units else f"{prefix} {boldLayer}"
         if self.hasUnappliedEdits:
-            caption += f" | <span style='color:#b35c00'>{self.tr('Not applied')}</span>"
+            notApplied = self.tr("Not applied")
+            caption += f" | <span style='color:#b35c00'>{notApplied}</span>"
         self.labelFrameLegends.setText(caption)
 
     def markLegendEdited(self):
@@ -1349,7 +1428,7 @@ class QGISRedLegendsDialog(QDialog, formClass):
         units = self.getLayerUnits()
         if not units:
             return ""
-        unitsText = units + " " + self.tr("units")
+        unitsText = self.tr("%1 units").replace("%1", units)
         identifier = self.currentLayer.customProperty("qgisred_identifier") or ""
         if not identifier.startswith("qgisred_query_"):
             return unitsText
@@ -1396,7 +1475,7 @@ class QGISRedLegendsDialog(QDialog, formClass):
             header.setToolTip("")
 
     def percentSizeTooltip(self):
-        return self.tr("Percent of the default sizes: 100 % draws every component as shipped.")
+        return self.tr("Percent of the current sizes: 100 % keeps every component as it is drawn now.")
 
     # ============================================================
     # EVENT HANDLERS - MODE AND TYPE CHANGES
@@ -2239,16 +2318,16 @@ class QGISRedLegendsDialog(QDialog, formClass):
         self.cbMode.addItem(self.tr("Manual"), None)
 
         modes = [
-            ("EqualInterval", "Equal Interval"),
-            ("FixedInterval", "Fixed Interval"),
-            ("Quantile", "Quantile (Equal Count)"),
-            ("Jenks", "Natural Breaks (Jenks)"),
-            ("StdDev", "Standard Deviation"),
-            ("Pretty", "Pretty Breaks"),
+            ("EqualInterval", self.tr("Equal Interval")),
+            ("FixedInterval", self.tr("Fixed Interval")),
+            ("Quantile", self.tr("Quantile (Equal Count)")),
+            ("Jenks", self.tr("Natural Breaks (Jenks)")),
+            ("StdDev", self.tr("Standard Deviation")),
+            ("Pretty", self.tr("Pretty Breaks")),
         ]
 
         for modeId, modeName in modes:
-            self.cbMode.addItem(self.tr(modeName), modeId)
+            self.cbMode.addItem(modeName, modeId)
 
         self.cbMode.blockSignals(False)
 
@@ -2616,14 +2695,23 @@ class QGISRedLegendsDialog(QDialog, formClass):
             # Reservoirs and tanks: the pick fills the water half, the frame stays black
             color = self._readWaterMarkerColor(symbol)
             colorLayerFilter = QGISRedStylingUtils.isWaterSvgLayer
-        if identifier in self.LINK_LAYER_IDENTIFIERS:
+        if identifier in self.LINK_LAYER_IDENTIFIERS or identifier == "qgisred_serviceconnections":
             # Preview only the component being edited: the line alone, or the marker drawn on it
-            component = self.getSelectedVariant()
-            if component == "line":
+            if self.getSelectedVariant() == "line":
                 previewSymbol = self._lineOnlySymbol(symbol)
-            elif component == "marker" and self._markerLineSubSymbol(symbol):
+            elif self.isMarkerComponentSelected() and self._markerLineSubSymbol(symbol):
                 previewSymbol = self._markerLineSubSymbol(symbol)
                 geometryHint = "marker"
+        if identifier in self.ELEMENT_TYPES:
+            # Preview the selected element alone; its color can be picked only where it is a fixed one
+            elementType = self.getSelectedVariant()
+            if elementType:
+                previewSymbol = self._elementOnlySymbol(symbol, elementType)
+                geometryHint = self.effectiveGeometryHint(previewSymbol, geometryHint)
+            if (identifier, elementType) in self.ELEMENT_FIXED_COLORS and previewSymbol.symbolLayerCount() > 0:
+                strokeColorOnly = self.ELEMENT_FIXED_COLORS[(identifier, elementType)]
+                colorLayer = previewSymbol.symbolLayer(0)
+                color = colorLayer.strokeColor() if strokeColorOnly else colorLayer.color()
         if identifier == self.TREE_NODES_IDENTIFIER:
             # Junctions edit the outer circle's stroke, Root node the star's fill: preview
             # that marker alone so the swatch does not stack the others on top of it.
@@ -2655,6 +2743,10 @@ class QGISRedLegendsDialog(QDialog, formClass):
             ),
             strokeColorOnly=strokeColorOnly,
             colorLayerFilter=colorLayerFilter,
+            # Service Connections as a whole: the circle is filled with a softer shade of the line color
+            markerFillShade=(
+                softenColor if identifier == "qgisred_serviceconnections" and not self.getSelectedVariant() else None
+            ),
         )
         colorSelector.colorChanged.connect(self.onRowColorChanged)
         colorSelector.setAutoFillBackground(False)
@@ -2678,34 +2770,33 @@ class QGISRedLegendsDialog(QDialog, formClass):
         self.tableView.setCellWidget(row, 1, container)
 
     def setSizeWidget(self, row, symbol, geometryHint):
-        size = self._getLineWidth(symbol) if geometryHint == "line" else self._getNodeSize(symbol)
-        anchor = self._readAnchorSize(symbol)
-        if anchor is not None:
-            size = anchor
-        elif self.isMarkerComponentSelected():
-            size = self._readMarkerLineMarkerSize(symbol) or size
+        size = self.currentSymbolSize(symbol, geometryHint)
         if self.isFactorCell():
-            factor = self._sizeFactor(symbol, size)
-            self.tableView.setCellWidget(row, 2, self.createSizePercentSpinBox(factor, row))
+            # Millimetres the swatch draws at 100 %, so the preview can follow the typed percent
+            self.factorPreviewAnchor = self._getNodeSize(symbol) if self.isTreeNodesLayer() else size
+            self.tableView.setCellWidget(row, 2, self.createSizePercentSpinBox(row))
             return
         self.tableView.setCellWidget(row, 2, self.createSizeLineEdit(self.formatSizeText(size), row))
 
+    def currentSymbolSize(self, symbol, geometryHint):
+        """Millimetres the selected variant is drawn with: what the size cell shows, or what its 100 % stands for."""
+        anchor = self._readAnchorSize(symbol)
+        if anchor is not None:
+            return anchor
+        size = self._getLineWidth(symbol) if geometryHint == "line" else self._getNodeSize(symbol)
+        if self.isMarkerComponentSelected():
+            return self._readMarkerLineMarkerSize(symbol) or size
+        return size
+
     def _readAnchorSize(self, symbol):
-        """The size the cell shows before any factor: a style variable, or the Tree nodes marker literal."""
+        """The size the cell stands for: a style variable, or the literal a query layer draws the element with."""
         if self.isTreeNodesLayer():
             markerName = self.TREE_NODE_MARKERS.get(self.getSelectedVariant(), "circle")
             markers = self._circleMarkerLayers(symbol, markerName)
             return self._readTreeNodeSize(markers[0]) if markers else None
+        if self.isElementLayer():
+            return self._readElementSize(symbol, self.getSelectedVariant())
         return self._readInputLayerSize(symbol)
-
-    def _sizeFactor(self, symbol, currentAnchor):
-        """How many times the shipped default the layer's All anchor is drawn at; remembers
-        the millimetres the swatch draws at 1x so the preview can follow the typed factor."""
-        identifier = self.currentLayer.customProperty("qgisred_identifier")
-        factor = currentAnchor / self.DEFAULT_ANCHOR_SIZES[identifier]
-        previewSize = self._getNodeSize(symbol) if self.isTreeNodesLayer() else currentAnchor
-        self.factorPreviewAnchor = previewSize / factor if factor > 0 else previewSize
-        return factor
 
     @staticmethod
     def formatSizeText(size):
@@ -2723,14 +2814,14 @@ class QGISRedLegendsDialog(QDialog, formClass):
         self.syncColorPreviewSize(row, text)
         return sizeWidget
 
-    def createSizePercentSpinBox(self, factor, row):
-        sizeWidget = QGISRedSizePercentSpinBox(factor)
+    def createSizePercentSpinBox(self, row):
+        sizeWidget = QGISRedSizePercentSpinBox()
         sizeWidget.setStyleSheet(self.getBaseSpinBoxStyle())
         sizeWidget.setToolTip(self.percentSizeTooltip())
         sizeWidget.installEventFilter(self.rowSelectionFilter)
         sizeWidget.valueChanged.connect(lambda _value, r=row, w=sizeWidget: self.onSizeChanged(r, str(w.factor())))
         sizeWidget.valueChanged.connect(lambda _value: self.markLegendEdited())
-        self.syncColorPreviewSize(row, str(factor))
+        self.syncColorPreviewSize(row, str(sizeWidget.factor()))
         return sizeWidget
 
     def setValueWidget(self, row, valueText, isReadOnlyValue):
@@ -4087,7 +4178,7 @@ class QGISRedLegendsDialog(QDialog, formClass):
         path = self.findStylePath("default")[0]
         if not path:
             return
-        self.currentLayer.loadNamedStyle(path)
+        self.loadStyleKeepingLabelVisibility(path)
         self.currentLayer.triggerRepaint()
         self.restoredLegacyStyle = True
 
@@ -4154,6 +4245,9 @@ class QGISRedLegendsDialog(QDialog, formClass):
         self.ensureLayerVisible(self.currentLayer)
         self.originalRenderer = self.currentLayer.renderer().clone() if self.currentLayer.renderer() else None
         self.rememberAppliedLayer()
+        if self.isFactorCell():
+            # The sizes just applied are the current ones now: the cell goes back to 100 %
+            self.showLayerLegendInTable()
         self.clearLegendEdited()
 
     def rememberAppliedLayer(self):
@@ -4352,7 +4446,8 @@ class QGISRedLegendsDialog(QDialog, formClass):
         newSize = None
         with suppress(Exception):
             if self.isFactorCell():
-                newSize = sizeWidget.factor() * self.DEFAULT_ANCHOR_SIZES[identifier]
+                geometryHint = self.effectiveGeometryHint(symbol, self.getGeometryHint())
+                newSize = sizeWidget.factor() * self.currentSymbolSize(symbol, geometryHint)
             else:
                 newSize = float(sizeWidget.text())
 
@@ -4372,6 +4467,8 @@ class QGISRedLegendsDialog(QDialog, formClass):
         for sizeOnlyIdentifier in self.SIZE_ONLY_QUERY_IDENTIFIERS:
             inputAppliers[sizeOnlyIdentifier] = self._applySizeOnlyQueryLegend
         inputAppliers[self.TREE_NODES_IDENTIFIER] = self._applyTreeNodesLegend
+        for elementsIdentifier in self.ELEMENT_TYPES:
+            inputAppliers[elementsIdentifier] = self._applyElementsLegend
 
         applier = inputAppliers.get(identifier)
         if applier:
@@ -4554,7 +4651,8 @@ class QGISRedLegendsDialog(QDialog, formClass):
     def _applyMetersLegend(self, symbol, color, size):
         if color is not None:
             self._applyInputColor(symbol, "qgisred_meters", color)
-        self._applyInputSize(symbol, "qgisred_meters", size, proportional=False)
+        # All types scales every type from the size it has; one type takes the typed size
+        self._applyInputSize(symbol, "qgisred_meters", size, proportional=self.getSelectedVariant() is None)
 
     def _applyServiceConnectionsLegend(self, symbol, color, size):
         """All: line and circle stroke take the color, the circle fill a softer shade, sizes scale
@@ -4610,13 +4708,8 @@ class QGISRedLegendsDialog(QDialog, formClass):
     def _applySourcesLegend(self, symbol, color, size):
         if color is not None:
             self._applyInputColor(symbol, "qgisred_sources", color)
-        if size is None or size <= 0:
-            return
-        # All types gives every type the same size (and the panel icon too); one type changes alone
-        self._applyInputSize(symbol, "qgisred_sources", size, proportional=False)
-        if self.getSelectedVariant() is None:
-            for i in range(symbol.symbolLayerCount()):
-                symbol.symbolLayer(i).setSize(size)
+        # All types scales every type (and the panel icon) from the size it has; one type changes alone
+        self._applyInputSize(symbol, "qgisred_sources", size, proportional=self.getSelectedVariant() is None)
 
     def _applyWaterMarkerLegend(self, symbol, color, size):
         """Reservoirs and tanks: the color fills the water half of the icon, the frame keeps its own."""
@@ -4724,6 +4817,131 @@ class QGISRedLegendsDialog(QDialog, formClass):
         else:
             with suppress(Exception):
                 symbol.setSize(size)
+
+    ELEMENT_SIZE_PROPERTY_KEYS = (SL_PROP_SIZE, SL_PROP_WIDTH, SL_PROP_STROKE_WIDTH)
+
+    @staticmethod
+    def _sizeExpression(symbolLayer, propertyKey):
+        existing = symbolLayer.dataDefinedProperties().property(propertyKey)
+        if existing and existing.propertyType() == QgsProperty.ExpressionBasedProperty:
+            return existing.expressionString()
+        return None
+
+    def _elementSizeLayers(self, symbol, elementType):
+        """[(symbol layer, property key)] whose size expression draws the element type, sub-symbols included."""
+        pattern = elementSizePattern(elementType)
+        found = []
+        for i in range(symbol.symbolLayerCount()):
+            symbolLayer = symbol.symbolLayer(i)
+            for propertyKey in self.ELEMENT_SIZE_PROPERTY_KEYS:
+                expression = self._sizeExpression(symbolLayer, propertyKey)
+                if expression and pattern.search(expression):
+                    found.append((symbolLayer, propertyKey))
+            if hasattr(symbolLayer, "subSymbol") and symbolLayer.subSymbol():
+                found.extend(self._elementSizeLayers(symbolLayer.subSymbol(), elementType))
+        return found
+
+    def _drawsElement(self, symbolLayer, elementType):
+        """Whether a symbol layer, or the marker it draws along the line, belongs to the element type."""
+        if elementType == self.PLAIN_LINE_ELEMENT_TYPE:
+            hasWidthExpression = bool(self._sizeExpression(symbolLayer, SL_PROP_STROKE_WIDTH))
+            return symbolLayer.layerType() == "SimpleLine" and not hasWidthExpression
+        pattern = elementSizePattern(elementType)
+        expressions = [self._sizeExpression(symbolLayer, key) for key in self.ELEMENT_SIZE_PROPERTY_KEYS]
+        if any(expression and pattern.search(expression) for expression in expressions):
+            return True
+        subSymbol = symbolLayer.subSymbol() if hasattr(symbolLayer, "subSymbol") else None
+        return bool(subSymbol) and bool(self._elementSizeLayers(subSymbol, elementType))
+
+    def _plainLineLayers(self, symbol):
+        """The lines no size expression gates: what the pipes of the Isolated Segments are drawn with."""
+        layers = [symbol.symbolLayer(i) for i in range(symbol.symbolLayerCount())]
+        return [layer for layer in layers if self._drawsElement(layer, self.PLAIN_LINE_ELEMENT_TYPE)]
+
+    def _readElementSize(self, symbol, elementType):
+        """Size the symbol draws one element type with; None for All, or when the style does not name the type."""
+        if elementType is None:
+            return None
+        if elementType == self.PLAIN_LINE_ELEMENT_TYPE:
+            plainLines = self._plainLineLayers(symbol)
+            return plainLines[0].width() if plainLines else None
+        pattern = elementSizePattern(elementType)
+        for symbolLayer, propertyKey in self._elementSizeLayers(symbol, elementType):
+            match = pattern.search(self._sizeExpression(symbolLayer, propertyKey))
+            return float(match.group(match.lastindex))
+        return None
+
+    def _ownsBaseSize(self, expression, elementType):
+        """Whether the base size under a size expression follows this element type: a layer
+        shared by several types (the isolated demands) keeps following the first of them."""
+        elementTypes = self.ELEMENT_TYPES[self.currentLayer.customProperty("qgisred_identifier")]
+        namedTypes = [named for named in elementTypes if elementSizePattern(named).search(expression)]
+        return namedTypes[0] == elementType
+
+    @staticmethod
+    def _scaleLayerBaseSize(symbolLayer, factor):
+        if symbolLayer.layerType() == "SimpleLine":
+            symbolLayer.setWidth(symbolLayer.width() * factor)
+        else:
+            symbolLayer.setSize(symbolLayer.size() * factor)
+
+    def _scaleElementSizes(self, symbol, elementType, factor):
+        """Scale what draws one element type: the size its expressions declare and the base size under them."""
+        for symbolLayer in self._plainLineLayers(symbol) if elementType == self.PLAIN_LINE_ELEMENT_TYPE else []:
+            self._scaleLayerBaseSize(symbolLayer, factor)
+        pattern = elementSizePattern(elementType)
+        for symbolLayer, propertyKey in self._elementSizeLayers(symbol, elementType):
+            expression = self._sizeExpression(symbolLayer, propertyKey)
+            scaled = scaleCapturedNumbers(expression, pattern, factor)
+            symbolLayer.setDataDefinedProperty(propertyKey, QgsProperty.fromExpression(scaled))
+            if self._ownsBaseSize(expression, elementType):
+                self._scaleLayerBaseSize(symbolLayer, factor)
+
+    def _elementOnlySymbol(self, symbol, elementType):
+        """What one element type is drawn with, at the sizes the map draws it: a clone keeping
+        only its layers, or the marker alone when the element is an icon on the line."""
+        preview = symbol.clone()
+        for i in range(preview.symbolLayerCount() - 1, -1, -1):
+            if not self._drawsElement(preview.symbolLayer(i), elementType):
+                preview.deleteSymbolLayer(i)
+        if preview.symbolLayerCount() == 0:
+            return symbol
+        pattern = elementSizePattern(elementType)
+        for symbolLayer, propertyKey in self._elementSizeLayers(preview, elementType):
+            match = pattern.search(self._sizeExpression(symbolLayer, propertyKey))
+            drawnSize = float(match.group(match.lastindex))
+            if symbolLayer.layerType() == "SimpleLine":
+                symbolLayer.setWidth(drawnSize)
+            else:
+                symbolLayer.setSize(drawnSize)
+        markerSymbol = self._markerLineSubSymbol(preview)
+        hasLine = bool(self._lineOnlySymbol(preview).symbolLayerCount())
+        return markerSymbol.clone() if markerSymbol and not hasLine else preview
+
+    def _elementColorLayers(self, symbol, elementType):
+        if elementType is None:
+            return [symbol.symbolLayer(i) for i in range(symbol.symbolLayerCount())]
+        return [symbolLayer for symbolLayer, _propertyKey in self._elementSizeLayers(symbol, elementType)]
+
+    def _applyElementsLegend(self, symbol, color, size):
+        """Query layers with an Element selector: one element resizes its own symbol layers, All
+        rescales the whole symbol; a color is taken only where the element is drawn in a fixed one."""
+        identifier = self.currentLayer.customProperty("qgisred_identifier")
+        elementType = self.getSelectedVariant()
+        strokeColorOnly = self.ELEMENT_FIXED_COLORS.get((identifier, elementType))
+        if color is not None and strokeColorOnly is not None:
+            for symbolLayer in self._elementColorLayers(symbol, elementType):
+                if strokeColorOnly:
+                    symbolLayer.setStrokeColor(color)
+                else:
+                    symbolLayer.setColor(color)
+        if elementType is None:
+            self._applySizeOnlyQueryLegend(symbol, color, size)
+            return
+        current = self._readElementSize(symbol, elementType)
+        if size is None or size <= 0 or not current or abs(size - current) < 1e-9:
+            return
+        self._scaleElementSizes(symbol, elementType, size / current)
 
     def _scaleBaseSizes(self, symbol, factor):
         """Scale every layer's base width/size by factor, preserving per-layer ratios."""
@@ -5034,10 +5252,9 @@ class QGISRedLegendsDialog(QDialog, formClass):
 
         self.saveDialogLegendToFile(path, selectedParts)
         if globalStyle:
-            message = self.tr("The current legend was saved as %1 in the global layerStyles folder.")
+            self.showNotice(self.tr("The current legend has been saved as the Global Style."))
         else:
-            message = self.tr("The current legend was saved as %1 in the layerStyles folder of your project.")
-        self.showNotice(message.replace("%1", filename))
+            self.showNotice(self.tr("The current legend has been saved as the Project Style."))
 
     def saveDialogLegendToFile(self, path, selectedParts):
         """Write the legend shown in the dialog to a QML via a detached copy of the layer.
@@ -5079,7 +5296,6 @@ class QGISRedLegendsDialog(QDialog, formClass):
         previousStrategy = self.readStrategyFromStyleFile(path) if os.path.exists(path) else None
         dialog = QGISRedSaveStrategyDialog(
             self.currentLayer.name(),
-            os.path.basename(path),
             globalStyle,
             self.currentFieldType == self.FIELD_TYPE_CATEGORICAL,
             self.describeStrategyParts(),
@@ -5261,9 +5477,9 @@ class QGISRedLegendsDialog(QDialog, formClass):
             QMessageBox.warning(self, self.tr("No Project"), self.tr("Project directory not set."))
             return
 
-        path, filename = self.findStylePath(scope, name)
+        path = self.findStylePath(scope, name)[0]
         if not path:
-            self.showMissingStyleMessage(scope, filename)
+            self.showMissingStyleMessage(scope)
             return
 
         # The file goes onto the live layer: it must rebuild the shipped expressions,
@@ -5274,7 +5490,14 @@ class QGISRedLegendsDialog(QDialog, formClass):
             # The saved classes are on the layer now; regenerate colors/sizes/intervals on top.
             self.applyStrategyToDialog(strategy)
             self.applyLegend()
-        self.showNotice(self.tr("Style applied to the layer from %1.").replace("%1", filename))
+        self.showNotice(self.loadedStyleMessage(scope))
+
+    def loadedStyleMessage(self, scope):
+        if scope == self.STYLE_SCOPE_PROJECT:
+            return self.tr("The Project Style has been loaded.")
+        if scope == self.STYLE_SCOPE_GLOBAL:
+            return self.tr("The Global Style has been loaded.")
+        return self.tr("The Default Style has been loaded.")
 
     def findStylePath(self, scope, name=None):
         """(path or None, file name) of the current layer's style in the given scope.
@@ -5296,17 +5519,23 @@ class QGISRedLegendsDialog(QDialog, formClass):
             folder = os.path.join(self.getProjectDirectoryFromUtils(), "layerStyles")
         return QGISRedStylingUtils.findStyleFile(folder, [filename]), filename
 
-    def showMissingStyleMessage(self, scope, filename):
+    def showMissingStyleMessage(self, scope):
         if scope == self.STYLE_SCOPE_PROJECT:
-            message = self.tr("No style has been saved for this layer in the layerStyles folder of the project.")
+            message = self.tr("No Project Style has been saved for this layer.")
         elif scope == self.STYLE_SCOPE_GLOBAL:
-            message = self.tr("No style has been saved for this layer at the global level.")
+            message = self.tr("No Global Style has been saved for this layer.")
         else:
-            message = self.tr("Style file not found: %1").replace("%1", filename)
+            message = self.tr("This layer has no Default Style.")
         QMessageBox.warning(self, self.tr("Not Found"), message)
 
-    def applyStyleFileToLayer(self, path):
+    def loadStyleKeepingLabelVisibility(self, path):
+        """A style file also carries whether labels are shown: that stays as the user has it."""
+        labelsShown = self.currentLayer.labelsEnabled()
         self.currentLayer.loadNamedStyle(path)
+        self.currentLayer.setLabelsEnabled(labelsShown)
+
+    def applyStyleFileToLayer(self, path):
+        self.loadStyleKeepingLabelVisibility(path)
         QGISRedStylingUtils().convertRendererSizesToMillimeters(self.currentLayer)
         self.restoreResultNullClass()
         self.showAppliedLayerStyle()
@@ -5984,6 +6213,8 @@ class QGISRedLegendsDialog(QDialog, formClass):
         identifier = self.currentLayer.customProperty("qgisred_identifier") if self.currentLayer else ""
         if identifier == self.TREE_NODES_IDENTIFIER:
             return self.getSelectedVariant() is None
+        if identifier in self.ELEMENT_TYPES:
+            return (identifier, self.getSelectedVariant()) not in self.ELEMENT_FIXED_COLORS
         if identifier in self.SIZE_ONLY_QUERY_IDENTIFIERS:
             return True
         return identifier in self.INPUT_COLOR_VARIABLES and not self.inputColorVariables(identifier)

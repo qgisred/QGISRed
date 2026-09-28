@@ -74,11 +74,10 @@ class QGISRedSaveStrategyDialog(QDialog):
     always means "recalculated when the style is loaded".
     """
 
-    def __init__(self, layerName, fileName, isGlobal, isCategorical, partOptions, initialParts=(), parent=None):
+    def __init__(self, layerName, isGlobal, isCategorical, partOptions, initialParts=(), parent=None):
         super().__init__(parent)
 
         self.layerName = layerName
-        self.fileName = fileName
         self.isGlobal = isGlobal
         self.isCategorical = isCategorical
         self.partOptions = partOptions
@@ -110,8 +109,7 @@ class QGISRedSaveStrategyDialog(QDialog):
 
     def setupLayout(self):
         layout = QVBoxLayout(self)
-        levelText = self.tr("Global level") if self.isGlobal else self.tr("Project level")
-        intro = self.tr("Saving at %1 as %2").replace("%1", levelText).replace("%2", self.fileName)
+        intro = self.tr("Saving as the Global Style") if self.isGlobal else self.tr("Saving as the Project Style")
         layout.addWidget(QLabel(intro))
         layout.addWidget(self.rbFixedLegend)
         layout.addWidget(self.rbAutomaticLegend)
@@ -180,7 +178,7 @@ class QGISRedSymbolColorSelector(QgsSymbolButton):
     def __init__(self, parent=None, geometryHint="fill", initialColor=None,
                  allowAlpha=True, dialogTitle="Pick color", doubleClickOnly=False,
                  actualSymbol=None, colorExpressionLayersOnly=False, strokeColorOnly=False,
-                 colorLayerFilter=None):
+                 colorLayerFilter=None, markerFillShade=None):
         super().__init__(parent)
 
         self.geometryType = self.normalizeGeometryHint(geometryHint)
@@ -194,6 +192,8 @@ class QGISRedSymbolColorSelector(QgsSymbolButton):
         self.strokeColorOnly = bool(strokeColorOnly)
         # Predicate over symbol layers: only the ones it accepts take the picked color
         self.colorLayerFilter = colorLayerFilter
+        # Picked color -> fill of the markers drawn on the line, whose stroke takes the color itself
+        self.markerFillShade = markerFillShade
         # Value of the row's size cell; the preview eases between its bounds with it
         self.previewSizeValue = None
 
@@ -231,6 +231,8 @@ class QGISRedSymbolColorSelector(QgsSymbolButton):
                 self.applyStrokeColorToLayers(symbol, self.activeColor)
             elif self.colorLayerFilter is not None:
                 self.applyColorToFilteredLayers(symbol, self.activeColor)
+            elif self.markerFillShade is not None:
+                self.applyColorWithShadedMarkerFill(symbol, self.activeColor)
             elif not self.colorExpressionLayersOnly or not self.applyColorToExpressionLayers(symbol, self.activeColor):
                 symbol.setColor(self.activeColor)
         else:
@@ -266,6 +268,17 @@ class QGISRedSymbolColorSelector(QgsSymbolButton):
             symbolLayer = symbol.symbolLayer(i)
             if self.colorLayerFilter(symbolLayer):
                 symbolLayer.setColor(color)
+
+    def applyColorWithShadedMarkerFill(self, symbol, color):
+        """Color the line and the stroke of the markers drawn on it; their fill keeps its own
+        color until one is picked, then takes its shade (the Service Connections demand circle)."""
+        markerSymbols = [symbolLayer.subSymbol() for symbolLayer in symbol.symbolLayers() if symbolLayer.subSymbol()]
+        markerLayers = [markerLayer for markerSymbol in markerSymbols for markerLayer in markerSymbol.symbolLayers()]
+        ownFills = [QColor(markerLayer.color()) for markerLayer in markerLayers]
+        symbol.setColor(color)
+        for markerLayer, ownFill in zip(markerLayers, ownFills):
+            markerLayer.setColor(self.markerFillShade(color) if self.hasPickedColor() else ownFill)
+            markerLayer.setStrokeColor(color)
 
     def applyColorToExpressionLayers(self, symbol, color):
         """Color only the layers whose fill is expression-driven (e.g. the inner
@@ -482,20 +495,20 @@ class QGISRedSizeLineEdit(QLineEdit):
 
 
 class QGISRedSizePercentSpinBox(QSpinBox):
-    """Size cell of a layer drawn as a percentage of its shipped default sizes:
-    100 % draws every component as shipped, 200 % doubles them all."""
+    """Size cell of a layer resized as a percentage of the sizes it is drawn with:
+    100 % keeps every component as it is, 200 % doubles them all."""
 
     minimumPercent = 10
     maximumPercent = 1000
     stepPercent = 10
 
-    def __init__(self, factor, parent=None):
+    def __init__(self, parent=None):
         super().__init__(parent)
         self.setRange(self.minimumPercent, self.maximumPercent)
         self.setSingleStep(self.stepPercent)
         self.setSuffix(" %")
         self.setAlignment(Qt.AlignmentFlag.AlignCenter)
-        self.setValue(round(factor * 100))
+        self.setValue(100)
 
     def factor(self):
         return self.value() / 100

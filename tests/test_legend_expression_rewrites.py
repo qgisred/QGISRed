@@ -18,9 +18,11 @@ from QGISRed.ui.project.qgisred_custom_dialogs import QGISRedSymbolColorSelector
 from QGISRed.ui.project.qgisred_legends_dialog import (
     ISOLATION_VALVE_FILL_TEMPLATE,
     QGISRedLegendsDialog,
+    elementSizePattern,
     formatExpressionNumber,
     meterStyleVariable,
     parseCategoricalRuleFilter,
+    scaleCapturedNumbers,
     scaleNumericLiterals,
     styleVariablePattern,
     substituteCapturedGroup,
@@ -838,33 +840,46 @@ class TestDemandsApplier:
 
 
 class TestMetersApplier:
+    METER_TYPES = ("Countermeter", "Flowmeter", "Manometer")
+
     def _symbol(self):
         layers = [
             FakeSymbolLayer("SvgMarker", {FILL_KEY: meterFill(t), STROKE_KEY: METER_STROKE, WIDTH_KEY: meterSize(t)})
-            for t in ("EnergySensor", "Flowmeter", "Manometer")
+            for t in self.METER_TYPES
         ]
         return FakeSymbol(layers), layers
 
+    def _declaredSize(self, layer, meterType):
+        return declared(layer.expression(WIDTH_KEY), meterStyleVariable(meterType, "Size"), isText=False)
+
     def test_selected_type_changes_only_its_own_layer(self, monkeypatch):
-        symbol, (energy, flow, mano) = self._symbol()
+        symbol, (counter, flow, mano) = self._symbol()
         _dialog(monkeypatch, "qgisred_meters", "Flowmeter")._applyMetersLegend(symbol, FakeHexColor("#123456"), 7)
         assert declared(flow.expression(FILL_KEY), "flowmeterMeterColor") == "#123456"
-        assert declared(flow.expression(WIDTH_KEY), "flowmeterMeterSize", isText=False) == "7"
-        assert energy.expression(FILL_KEY) == meterFill("EnergySensor")
+        assert self._declaredSize(flow, "Flowmeter") == "7"
+        assert counter.expression(FILL_KEY) == meterFill("Countermeter")
         assert mano.expression(WIDTH_KEY) == meterSize("Manometer")
-        for layer in (energy, flow, mano):
+        for layer in (counter, flow, mano):
             assert layer.expression(STROKE_KEY) == METER_STROKE
             assert declared(layer.expression(FILL_KEY), "inactiveMeterColor") == "#cccccc"
 
-    def test_all_types_set_every_color_and_size(self, monkeypatch):
+    def test_all_types_take_one_color_and_scale_every_size(self, monkeypatch):
         symbol, layers = self._symbol()
+        _dialog(monkeypatch, "qgisred_meters", "Flowmeter")._applyMetersLegend(symbol, None, 10)
         _dialog(monkeypatch, "qgisred_meters")._applyMetersLegend(symbol, FakeHexColor("#123456"), 6.5)
-        for layer, meterType in zip(layers, ("EnergySensor", "Flowmeter", "Manometer")):
+        for layer, meterType in zip(layers, self.METER_TYPES):
             assert declared(layer.expression(FILL_KEY), meterStyleVariable(meterType, "Color")) == "#123456"
-            assert declared(layer.expression(WIDTH_KEY), meterStyleVariable(meterType, "Size"), isText=False) == "6.5"
+        # 5 mm to 6.5 mm is 130 %: the type the user had made larger stays larger
+        assert [self._declaredSize(layer, t) for layer, t in zip(layers, self.METER_TYPES)] == ["6.5", "13", "6.5"]
         # The Manometer NULL branch follows its own variable, the others stay hidden
         assert "if(@mt is NULL, @manometerMeterSize," in layers[2].expression(WIDTH_KEY)
         assert "if(@mt is NULL, 0," in layers[1].expression(WIDTH_KEY)
+
+    def test_all_types_left_at_the_current_size_change_nothing(self, monkeypatch):
+        symbol, layers = self._symbol()
+        _dialog(monkeypatch, "qgisred_meters", "Flowmeter")._applyMetersLegend(symbol, None, 10)
+        _dialog(monkeypatch, "qgisred_meters")._applyMetersLegend(symbol, None, 5)
+        assert [self._declaredSize(layer, t) for layer, t in zip(layers, self.METER_TYPES)] == ["5", "10", "5"]
 
 
 class TestServiceConnectionsApplier:
@@ -975,16 +990,24 @@ class TestSourcesApplier:
         assert expr.startswith("if(@id is NULL, NULL, ") and expr.endswith("@setpointSourceSize)))))))))")
         assert layer.size() == 3  # the panel icon follows All types only
 
-    def test_all_types_give_every_type_the_same_size(self, monkeypatch):
+    def test_all_types_scale_every_type_from_the_size_it_has(self, monkeypatch):
         symbol, layer = self._symbol()
-        # Types already differ: All types still levels them to the typed value
+        # Types already differ: 3 mm to 6 mm is 200 %, which each type takes from its own size
         _dialog(monkeypatch, "qgisred_sources", "CONCEN")._applySourcesLegend(symbol, None, 4)
-        _dialog(monkeypatch, "qgisred_sources")._applySourcesLegend(symbol, None, 5.2)
+        _dialog(monkeypatch, "qgisred_sources")._applySourcesLegend(symbol, None, 6)
         expr = layer.expression(SIZE_KEY)
-        for name in ("massSourceSize", "flowpacedSourceSize", "concenSourceSize", "setpointSourceSize"):
-            assert declared(expr, name, isText=False) == "5.2"
-        assert layer.size() == 5.2
+        for name in ("massSourceSize", "flowpacedSourceSize", "setpointSourceSize"):
+            assert declared(expr, name, isText=False) == "6"
+        assert declared(expr, "concenSourceSize", isText=False) == "8"
+        assert layer.size() == 6
         assert layer.expression(STROKE_KEY) == SOURCE_STROKE
+
+    def test_all_types_left_at_the_current_size_change_nothing(self, monkeypatch):
+        symbol, layer = self._symbol()
+        _dialog(monkeypatch, "qgisred_sources", "CONCEN")._applySourcesLegend(symbol, None, 4)
+        changed = layer.expression(SIZE_KEY)
+        _dialog(monkeypatch, "qgisred_sources")._applySourcesLegend(symbol, None, 3)
+        assert layer.expression(SIZE_KEY) == changed and layer.size() == 3
 
     def test_all_types_take_one_uniform_color(self, monkeypatch):
         symbol, layer = self._symbol()
@@ -1102,7 +1125,7 @@ class TestTreeNodesApplier:
 
 
 class TestFactorCell:
-    """With the selector on All the size cell shows a factor of the shipped default sizes."""
+    """With the selector on All the size cell shows a percent of the sizes the layer is drawn with."""
 
     def _dialog(self, monkeypatch, identifier, variant=None, fieldType="single"):
         dialog = _dialog(monkeypatch, identifier, variant)
@@ -1117,23 +1140,220 @@ class TestFactorCell:
         ("qgisred_meters", None, "single", True),
         ("qgisred_tree_nodes", None, "single", True),
         ("qgisred_tree_nodes", "root", "single", False),
+        ("qgisred_isolatedsegments_nodes", None, "single", True),
+        ("qgisred_isolatedsegments_nodes", "TANK", "single", False),
         ("qgisred_demands", None, "single", False),
         ("qgisred_tanks", None, "single", False),
         ("qgisred_pipes", None, "numeric", False),
     ])
-    def test_which_cells_show_a_factor(self, monkeypatch, identifier, variant, fieldType, expected):
+    def test_which_cells_show_a_percent(self, monkeypatch, identifier, variant, fieldType, expected):
         assert self._dialog(monkeypatch, identifier, variant, fieldType).isFactorCell() is expected
 
-    def test_the_factor_is_the_anchor_over_the_shipped_default(self, monkeypatch):
-        dialog = self._dialog(monkeypatch, "qgisred_pipes")
-        assert dialog._sizeFactor(None, 1.0) == pytest.approx(2.0)
-        assert dialog.factorPreviewAnchor == pytest.approx(0.5)  # the swatch draws the line at 0.5 mm per 1x
+    def test_a_layer_shows_a_percent_exactly_when_it_has_a_selector(self, monkeypatch):
+        identifiers = QGISRedLegendsDialog.INPUT_LAYER_IDENTIFIERS | QGISRedLegendsDialog.EDITABLE_QUERY_IDENTIFIERS
+        for identifier in identifiers:
+            dialog = self._dialog(monkeypatch, identifier)
+            dialog.tr = lambda text: text
+            assert (dialog.inputVariantItems(identifier) is not None) == dialog.isFactorCell(), identifier
 
-    def test_tree_nodes_preview_follows_the_whole_symbol(self, monkeypatch):
-        dialog = self._dialog(monkeypatch, "qgisred_tree_nodes")
-        dialog._getNodeSize = lambda symbol: 8.0
-        assert dialog._sizeFactor(None, 4.0) == pytest.approx(2.0)
-        assert dialog.factorPreviewAnchor == pytest.approx(4.0)
+    def test_the_percent_of_a_link_stands_for_its_line_width(self, monkeypatch):
+        marker = FakeSymbolLayer("SvgMarker", size=6)
+        markerLine = FakeSymbolLayer("MarkerLine", subSymbol=FakeSymbol([marker]))
+        symbol = FakeSymbol([FakeSymbolLayer("SimpleLine", size=0.8), markerLine])
+        assert self._dialog(monkeypatch, "qgisred_pumps").currentSymbolSize(symbol, "line") == 0.8
+        assert self._dialog(monkeypatch, "qgisred_pumps", "marker").currentSymbolSize(symbol, "line") == 6
+
+    def test_the_percent_of_the_junctions_stands_for_the_size_they_declare(self, monkeypatch):
+        symbol = FakeSymbol([FakeSymbolLayer(expressions={SIZE_KEY: JUNCTION_BASE_SIZE}, size=1.6)])
+        assert self._dialog(monkeypatch, "qgisred_junctions").currentSymbolSize(symbol, "marker") == 1.6
+
+    def test_the_percent_of_the_tree_nodes_stands_for_the_junction_circle(self, monkeypatch):
+        symbol = FakeSymbol([FakeTreeMarker("circle", "Junction", 2, 2), FakeTreeMarker("star", "ROOT", 8, 4)])
+        assert self._dialog(monkeypatch, "qgisred_tree_nodes").currentSymbolSize(symbol, "marker") == 2
+
+
+ISOLATED_LINK_TYPE = "coalesce(attribute($currentfeature,'LinkType'),attribute($currentfeature,'ElemType'))"
+ISOLATED_NODE_TYPE = "coalesce(attribute($currentfeature,'NodeType'),attribute($currentfeature,'ElemType'))"
+ISOLATED_DEMANDS_SIZE = (
+    "CASE WHEN \"ElemType\" = 'JUNCTION' THEN 3 WHEN \"ElemType\" = 'CONNECTION' THEN 2 ELSE 2 END"
+)
+STROKE_WIDTH_KEY = legendsModule.SL_PROP_STROKE_WIDTH
+
+
+def isolatedLinkSize(linkType, size):
+    return f"if(@id is NULL, NULL, if({ISOLATED_LINK_TYPE}='{linkType}', {size}, 0))"
+
+
+def isolatedIconSize(nodeType, size):
+    return f"if(@id is NULL, NULL, if({ISOLATED_NODE_TYPE} ='{nodeType}', {size}, 0))"
+
+
+def isolatedMarkerSize(nodeType, size):
+    return f"if(@id is NULL, NULL, if({ISOLATED_NODE_TYPE} !='{nodeType}', 0,{size}))"
+
+
+def inOneLine(expression):
+    return " ".join(expression.split())
+
+
+class TestShippedElementStyles:
+    """The element selector reads the sizes out of exactly these shipped expressions."""
+
+    def test_isolated_segments_links(self):
+        connectionLine, connectionCircle, pipeLine, pump, valve = _rendererLayers("IsolatedSegmentsLinks.qml.bak")
+        assert connectionLine[1]["outlineWidth"] == isolatedLinkSize("SERVICECONNECTION", 1.1)
+        assert connectionCircle[2][0][1]["size"] == isolatedLinkSize("SERVICECONNECTION", 2)
+        assert pipeLine[0] == "SimpleLine" and "outlineWidth" not in pipeLine[1]
+        assert pump[2][0][1]["size"] == isolatedLinkSize("PUMP", 6)
+        assert valve[2][0][1]["size"] == isolatedLinkSize("VALVE", 6)
+
+    def test_isolated_segments_nodes(self):
+        layers = _rendererLayers("IsolatedSegmentsNodes.qml.bak")
+        assert [exprs.get("width") or exprs.get("size") for _, exprs, _ in layers] == [
+            isolatedIconSize("TANK", 7), isolatedIconSize("TANK", 7),
+            isolatedIconSize("RESERVOIR", 7), isolatedIconSize("RESERVOIR", 7),
+            isolatedMarkerSize("INCIDENCE", 6), isolatedMarkerSize("ISOLATIONVALVE", 2),
+            isolatedMarkerSize("JUNCTION", 2),
+        ]
+
+    @pytest.mark.parametrize("fileName", [
+        "IsolatedSegmentsIsolatedDemands.qml.bak", "HydraulicSectorsIsolatedDemands.qml.bak",
+    ])
+    def test_isolated_demands(self, fileName):
+        [(_, exprs, _)] = _rendererLayers(fileName)
+        assert inOneLine(exprs["size"]) == ISOLATED_DEMANDS_SIZE
+
+
+class TestElementSizePattern:
+    @pytest.mark.parametrize("expression, elementType, size", [
+        (isolatedLinkSize("PUMP", 6), "PUMP", "6"),
+        (isolatedLinkSize("SERVICECONNECTION", 1.1), "SERVICECONNECTION", "1.1"),
+        (isolatedIconSize("TANK", 7), "TANK", "7"),
+        (isolatedMarkerSize("JUNCTION", 2), "JUNCTION", "2"),
+        (ISOLATED_DEMANDS_SIZE, "JUNCTION", "3"),
+        (ISOLATED_DEMANDS_SIZE, "CONNECTION", "2"),
+    ])
+    def test_captures_the_size_of_the_element_type(self, expression, elementType, size):
+        match = elementSizePattern(elementType).search(expression)
+        assert match.group(match.lastindex) == size
+
+    def test_another_element_type_is_not_matched(self):
+        assert elementSizePattern("VALVE").search(isolatedLinkSize("PUMP", 6)) is None
+        assert elementSizePattern("JUNCTION").search(isolatedMarkerSize("ISOLATIONVALVE", 2)) is None
+
+    def test_scaling_changes_the_size_of_that_element_type_only(self):
+        scaled = scaleCapturedNumbers(ISOLATED_DEMANDS_SIZE, elementSizePattern("CONNECTION"), 1.5)
+        assert scaled == ISOLATED_DEMANDS_SIZE.replace("'CONNECTION' THEN 2", "'CONNECTION' THEN 3")
+        scaled = scaleCapturedNumbers(isolatedMarkerSize("JUNCTION", 2), elementSizePattern("JUNCTION"), 1.25)
+        assert scaled == isolatedMarkerSize("JUNCTION", 2.5)
+
+
+class TestElementsApplier:
+    """Isolated Segments: the Element selector resizes one element type and leaves the others."""
+
+    def _links(self):
+        connectionCircle = FakeSymbolLayer(expressions={SIZE_KEY: isolatedLinkSize("SERVICECONNECTION", 2)}, size=2)
+        pump = FakeSymbolLayer("SvgMarker", {SIZE_KEY: isolatedLinkSize("PUMP", 6)}, size=6)
+        valve = FakeSymbolLayer("SvgMarker", {SIZE_KEY: isolatedLinkSize("VALVE", 6)}, size=6)
+        layers = {
+            "connectionLine": FakeSymbolLayer(
+                "SimpleLine", {STROKE_WIDTH_KEY: isolatedLinkSize("SERVICECONNECTION", 1.1)}, size=1.4),
+            "connectionCircle": connectionCircle,
+            "pipeLine": FakeSymbolLayer("SimpleLine", size=1.4),
+            "pump": pump,
+            "valve": valve,
+        }
+        symbol = FakeSymbol([
+            layers["connectionLine"],
+            FakeSymbolLayer("MarkerLine", subSymbol=FakeSymbol([connectionCircle])),
+            layers["pipeLine"],
+            FakeSymbolLayer("MarkerLine", subSymbol=FakeSymbol([pump])),
+            FakeSymbolLayer("MarkerLine", subSymbol=FakeSymbol([valve])),
+        ])
+        return symbol, layers
+
+    def _nodes(self):
+        layers = {
+            "tankWater": FakeSymbolLayer("SvgMarker", {WIDTH_KEY: isolatedIconSize("TANK", 7)}, size=0),
+            "tankFrame": FakeSymbolLayer("SvgMarker", {WIDTH_KEY: isolatedIconSize("TANK", 7)}, size=0),
+            "incidence": FakeSymbolLayer(expressions={SIZE_KEY: isolatedMarkerSize("INCIDENCE", 6)}, size=2),
+            "junction": FakeSymbolLayer(expressions={SIZE_KEY: isolatedMarkerSize("JUNCTION", 2)}, size=2),
+        }
+        return FakeSymbol(list(layers.values())), layers
+
+    def _apply(self, monkeypatch, identifier, elementType, symbol, color=None, size=None):
+        _dialog(monkeypatch, identifier, elementType)._applyElementsLegend(symbol, color, size)
+
+    @pytest.mark.parametrize("elementType, size", [
+        ("PIPE", 1.4), ("SERVICECONNECTION", 1.1), ("PUMP", 6), ("VALVE", 6), (None, None),
+    ])
+    def test_reads_the_size_of_each_link_element(self, monkeypatch, elementType, size):
+        dialog = _dialog(monkeypatch, "qgisred_isolatedsegments_links", elementType)
+        assert dialog._readAnchorSize(self._links()[0]) == size
+
+    def test_pumps_resize_their_icon_only(self, monkeypatch):
+        symbol, layers = self._links()
+        self._apply(monkeypatch, "qgisred_isolatedsegments_links", "PUMP", symbol, size=9)
+        assert layers["pump"].expression(SIZE_KEY) == isolatedLinkSize("PUMP", 9) and layers["pump"].size() == 9
+        assert layers["valve"].expression(SIZE_KEY) == isolatedLinkSize("VALVE", 6) and layers["valve"].size() == 6
+        assert layers["pipeLine"].width() == 1.4
+
+    def test_service_connections_resize_their_line_and_keep_the_circle_in_proportion(self, monkeypatch):
+        symbol, layers = self._links()
+        self._apply(monkeypatch, "qgisred_isolatedsegments_links", "SERVICECONNECTION", symbol, size=2.2)
+        assert layers["connectionLine"].expression(STROKE_WIDTH_KEY) == isolatedLinkSize("SERVICECONNECTION", 2.2)
+        assert layers["connectionCircle"].expression(SIZE_KEY) == isolatedLinkSize("SERVICECONNECTION", 4)
+        assert layers["pipeLine"].width() == 1.4 and layers["pump"].size() == 6
+
+    def test_pipes_resize_the_line_no_expression_gates(self, monkeypatch):
+        symbol, layers = self._links()
+        self._apply(monkeypatch, "qgisred_isolatedsegments_links", "PIPE", symbol, size=2.8)
+        assert layers["pipeLine"].width() == 2.8
+        assert layers["connectionLine"].width() == 1.4
+        assert layers["connectionLine"].expression(STROKE_WIDTH_KEY) == isolatedLinkSize("SERVICECONNECTION", 1.1)
+
+    def test_tanks_resize_both_halves_of_their_icon(self, monkeypatch):
+        symbol, layers = self._nodes()
+        self._apply(monkeypatch, "qgisred_isolatedsegments_nodes", "TANK", symbol, size=10.5)
+        for name in ("tankWater", "tankFrame"):
+            assert layers[name].expression(WIDTH_KEY) == isolatedIconSize("TANK", 10.5)
+        assert layers["junction"].expression(SIZE_KEY) == isolatedMarkerSize("JUNCTION", 2)
+
+    def test_an_untouched_size_is_a_no_op(self, monkeypatch):
+        symbol, layers = self._nodes()
+        self._apply(monkeypatch, "qgisred_isolatedsegments_nodes", "INCIDENCE", symbol, size=6)
+        assert layers["incidence"].expression(SIZE_KEY) == isolatedMarkerSize("INCIDENCE", 6)
+        assert layers["incidence"].size() == 2
+
+    def test_the_incidence_point_takes_the_color_and_the_status_colors_stay(self, monkeypatch):
+        symbol, layers = self._nodes()
+        self._apply(monkeypatch, "qgisred_isolatedsegments_nodes", "INCIDENCE", symbol, color="PICKED")
+        assert layers["incidence"].colorCalls == ["PICKED"]
+        self._apply(monkeypatch, "qgisred_isolatedsegments_nodes", "JUNCTION", symbol, color="PICKED")
+        assert layers["junction"].colorCalls == layers["junction"].strokeColorCalls == []
+
+    def test_isolated_demands_resize_one_element_and_color_their_ring_under_all(self, monkeypatch):
+        ring = FakeSymbolLayer(expressions={SIZE_KEY: ISOLATED_DEMANDS_SIZE}, size=3)
+        identifier = "qgisred_isolatedsegments_isolateddemands"
+        self._apply(monkeypatch, identifier, "CONNECTION", FakeSymbol([ring]), color="PICKED", size=3)
+        assert ring.expression(SIZE_KEY) == ISOLATED_DEMANDS_SIZE.replace("'CONNECTION' THEN 2", "'CONNECTION' THEN 3")
+        assert ring.size() == 3 and ring.strokeColorCalls == []  # the panel icon follows the junctions
+        self._apply(monkeypatch, identifier, "JUNCTION", FakeSymbol([ring]), size=4.5)
+        assert "'JUNCTION' THEN 4.5" in ring.expression(SIZE_KEY) and ring.size() == 4.5
+        self._apply(monkeypatch, identifier, None, FakeSymbol([ring]), color="PICKED")
+        assert ring.strokeColorCalls == ["PICKED"] and ring.colorCalls == []
+
+    @pytest.mark.parametrize("identifier, elementType, locked", [
+        ("qgisred_isolatedsegments_nodes", "INCIDENCE", False),
+        ("qgisred_isolatedsegments_nodes", "JUNCTION", True),
+        ("qgisred_isolatedsegments_nodes", None, True),
+        ("qgisred_isolatedsegments_links", "PUMP", True),
+        ("qgisred_isolatedsegments_isolateddemands", None, False),
+        ("qgisred_isolatedsegments_isolateddemands", "JUNCTION", True),
+        ("qgisred_hydraulicsectors_isolateddemands", None, False),
+    ])
+    def test_only_the_fixed_colors_can_be_picked(self, monkeypatch, identifier, elementType, locked):
+        assert _dialog(monkeypatch, identifier, elementType).isColorLocked() is locked
 
 
 class TestDemandsSwatchPreview:

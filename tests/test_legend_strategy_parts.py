@@ -345,14 +345,53 @@ class TestLoadBranching:
         assert dialog.calls == ["file"]
 
     @pytest.mark.parametrize("load, expected", [
-        ("loadProjectStyle", "No style has been saved for this layer in the layerStyles folder of the project."),
-        ("loadGlobalStyle", "No style has been saved for this layer at the global level."),
+        ("loadProjectStyle", "No Project Style has been saved for this layer."),
+        ("loadGlobalStyle", "No Global Style has been saved for this layer."),
+        ("loadDefaultStyle", "This layer has no Default Style."),
     ])
-    def test_a_missing_saved_style_gets_its_own_message(self, monkeypatch, load, expected):
+    def test_a_missing_style_gets_its_own_message(self, monkeypatch, load, expected):
         dialog = self._dialog(monkeypatch, None)
+        dialog.pluginFolder = "/plugin"
         monkeypatch.setattr(os, "listdir", lambda folder: [])
         getattr(dialog, load)()
         assert dialog.calls == []
         warning = legendsModule.QMessageBox.warning
         warning.assert_called_once()
         assert warning.call_args[0][2] == expected
+
+    @pytest.mark.parametrize("load, fileName, expected", [
+        ("loadProjectStyle", "Net_Pipes.qml", "The Project Style has been loaded."),
+        ("loadGlobalStyle", "Pipes.qml", "The Global Style has been loaded."),
+        ("loadDefaultStyle", "Pipes.qml.bak", "The Default Style has been loaded."),
+    ])
+    def test_a_loaded_style_is_named_by_its_kind_not_by_its_file(self, monkeypatch, load, fileName, expected):
+        dialog = self._dialog(monkeypatch, self._strategy(["allClasses"]))
+        dialog.pluginFolder = "/plugin"
+        dialog.showNotice = MagicMock()
+        monkeypatch.setattr(os, "listdir", lambda folder: [fileName])
+        getattr(dialog, load)()
+        dialog.showNotice.assert_called_once_with(expected)
+
+
+class TestLabelVisibility:
+    """A style file carries whether labels are shown; loading one leaves that as the user has it."""
+
+    class _Layer:
+        def __init__(self, labelsShown):
+            self.labelsShown = labelsShown
+
+        def labelsEnabled(self):
+            return self.labelsShown
+
+        def setLabelsEnabled(self, enabled):
+            self.labelsShown = enabled
+
+        def loadNamedStyle(self, path):
+            self.labelsShown = True
+
+    @pytest.mark.parametrize("labelsShown", [True, False])
+    def test_loading_a_style_keeps_the_labels_as_they_were(self, labelsShown):
+        dialog = _dialog()
+        dialog.currentLayer = self._Layer(labelsShown)
+        dialog.loadStyleKeepingLabelVisibility("/plugin/defaults/layerStyles/Pipes.qml.bak")
+        assert dialog.currentLayer.labelsEnabled() is labelsShown
