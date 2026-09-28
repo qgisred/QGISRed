@@ -9066,6 +9066,116 @@ Do you want to proceed?</source>
         <source>Uncategorized</source>
         <translation>Sin categoría</translation>
     </message>
+    <message>
+        <location filename="../tools/utils/qgisred_styling_utils.py" line="944"/>
+        <source>Junction</source>
+        <translation>Unión</translation>
+    </message>
+    <message>
+        <location filename="../tools/utils/qgisred_styling_utils.py" line="944"/>
+        <source>Reservoir</source>
+        <translation>Embalse</translation>
+    </message>
+    <message>
+        <location filename="../tools/utils/qgisred_styling_utils.py" line="944"/>
+        <source>Tank</source>
+        <translation>Depósito</translation>
+    </message>
+    <message>
+        <location filename="../tools/utils/qgisred_styling_utils.py" line="944"/>
+        <source>Pipe</source>
+        <translation>Tubería</translation>
+    </message>
+    <message>
+        <location filename="../tools/utils/qgisred_styling_utils.py" line="944"/>
+        <source>Pump</source>
+        <translation>Bomba</translation>
+    </message>
+    <message>
+        <location filename="../tools/utils/qgisred_styling_utils.py" line="944"/>
+        <source>Source</source>
+        <translation>Fuente</translation>
+    </message>
+    <message>
+        <location filename="../tools/utils/qgisred_styling_utils.py" line="944"/>
+        <source>Isolation Valve</source>
+        <translation>Válvula de seccionamiento</translation>
+    </message>
+    <message>
+        <location filename="../tools/utils/qgisred_styling_utils.py" line="1003"/>
+        <source>Service Connection</source>
+        <translation>Acometida</translation>
+    </message>
+    <message>
+        <location filename="../tools/utils/qgisred_styling_utils.py" line="969"/>
+        <source>Manometer</source>
+        <translation>Manómetro</translation>
+    </message>
+    <message>
+        <location filename="../tools/utils/qgisred_styling_utils.py" line="969"/>
+        <source>Flowmeter</source>
+        <translation>Caudalímetro</translation>
+    </message>
+    <message>
+        <location filename="../tools/utils/qgisred_styling_utils.py" line="969"/>
+        <source>Countermeter</source>
+        <translation>Contador</translation>
+    </message>
+    <message>
+        <location filename="../tools/utils/qgisred_styling_utils.py" line="969"/>
+        <source>Level Sensor</source>
+        <translation>Sensor de nivel</translation>
+    </message>
+    <message>
+        <location filename="../tools/utils/qgisred_styling_utils.py" line="969"/>
+        <source>Differential Manometer</source>
+        <translation>Manómetro diferencial</translation>
+    </message>
+    <message>
+        <location filename="../tools/utils/qgisred_styling_utils.py" line="969"/>
+        <source>Quality Sensor</source>
+        <translation>Sensor de calidad</translation>
+    </message>
+    <message>
+        <location filename="../tools/utils/qgisred_styling_utils.py" line="969"/>
+        <source>Energy Sensor</source>
+        <translation>Sensor de energía</translation>
+    </message>
+    <message>
+        <location filename="../tools/utils/qgisred_styling_utils.py" line="969"/>
+        <source>Status Sensor</source>
+        <translation>Sensor de estado</translation>
+    </message>
+    <message>
+        <location filename="../tools/utils/qgisred_styling_utils.py" line="969"/>
+        <source>Valve Opening</source>
+        <translation>Apertura de válvula</translation>
+    </message>
+    <message>
+        <location filename="../tools/utils/qgisred_styling_utils.py" line="969"/>
+        <source>Tachometer</source>
+        <translation>Tacómetro</translation>
+    </message>
+    <message>
+        <location filename="../tools/utils/qgisred_styling_utils.py" line="992"/>
+        <source>Concentration</source>
+        <translation>Concentración</translation>
+    </message>
+    <message>
+        <location filename="../tools/utils/qgisred_styling_utils.py" line="992"/>
+        <source>Mass Booster</source>
+        <translation>Booster de masa fija</translation>
+    </message>
+    <message>
+        <location filename="../tools/utils/qgisred_styling_utils.py" line="992"/>
+        <source>Flow Paced Booster</source>
+        <translation>Booster proporcional al caudal</translation>
+    </message>
+    <message>
+        <location filename="../tools/utils/qgisred_styling_utils.py" line="992"/>
+        <source>Set Point Booster</source>
+        <translation>Booster por consigna</translation>
+    </message>
 </context>
 <context>
     <name>QGISRedSymbolColorSelector</name>

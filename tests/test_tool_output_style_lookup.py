@@ -42,6 +42,12 @@ class _FakeLayer:
     def renderer(self):
         return None
 
+    def mapTipTemplate(self):
+        return ""
+
+    def setMapTipTemplate(self, template):
+        pass
+
 
 def _connectivityUtils(tmp_path, globalFolder):
     """Layer utils as openConnectivityLayer builds it, with a real style lookup behind it."""

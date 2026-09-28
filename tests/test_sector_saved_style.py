@@ -44,6 +44,12 @@ class _FakeLayer:
     def renderer(self):
         return None
 
+    def mapTipTemplate(self):
+        return ""
+
+    def setMapTipTemplate(self, template):
+        pass
+
 
 class TestSetSavedStyle:
     def test_a_project_style_is_applied(self, tmp_path):

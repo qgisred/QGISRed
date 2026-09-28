@@ -32,7 +32,7 @@ from qgis.utils import iface as _iface
 from .qgisred_base_demand_fields import resolveBaseDemandField
 from .qgisred_field_utils import QGISRedFieldUtils
 from .qgisred_legend_rule_utils import scaleNumericLiterals
-from .qgisred_valve_types import getValveTypeName
+from .qgisred_valve_types import getValveTypeName, getValveTypeAbbreviation, VALVE_TYPE_LONG_NAMES
 
 
 def _plugin_root():
@@ -69,6 +69,34 @@ PALETTE_KINDS = (PALETTE_KIND_INTERPOLATED, PALETTE_KIND_SEQUENTIAL, PALETTE_KIN
 FRAME_SVG_MARKER = 'id="qgisred_frame"'
 WATER_SVG_MARKER = 'id="qgisred_water"'
 FRAME_DARKEN_FACTOR = 160
+
+_MAPTIP_ELEMENT_WORDS = (
+    "Isolation Valve", "Service Connection", "Junction", "Reservoir", "Tank", "Pipe", "Pump", "Source",
+)
+
+_METER_TYPE_LABELS = {
+    "Manometer": "Manometer",
+    "Flowmeter": "Flowmeter",
+    "Countermeter": "Countermeter",
+    "LevelSensor": "Level Sensor",
+    "DifferentialManometer": "Differential Manometer",
+    "QualitySensor": "Quality Sensor",
+    "EnergySensor": "Energy Sensor",
+    "StatusSensor": "Status Sensor",
+    "ValveOpening": "Valve Opening",
+    "Tachometer": "Tachometer",
+}
+
+_SOURCE_TYPE_LABELS = {
+    "CONCEN": "Concentration",
+    "MASS": "Mass Booster",
+    "FLOWPACED": "Flow Paced Booster",
+    "SETPOINT": "Set Point Booster",
+}
+
+_METER_TYPE_EXPR = "coalesce(attribute($currentfeature,'MeterType'),attribute($currentfeature,'Type'))"
+_VALVE_TYPE_EXPR = "coalesce(attribute($currentfeature,'ValveType'), attribute($currentfeature,'Type'))"
+_SOURCE_TYPE_EXPR = "coalesce(attribute($currentfeature,'SourceType'), attribute($currentfeature,'Type'))"
 
 
 def create_combined_cursor(icon, iface=None, icon_size=24):
@@ -215,6 +243,7 @@ class QGISRedStylingUtils:
         self.applyStrategyFromLayer(layer, field)
         self.convertRendererSizesToMillimeters(layer)
         self.translateRendererLabels(layer)
+        self.translateMapTip(layer)
 
     def setStyle(self, layer, name, field=None, variant=""):
         """Load the QML style called `name` on `layer`.
@@ -926,6 +955,60 @@ class QGISRedStylingUtils:
 
         elif isinstance(renderer, QgsRuleBasedRenderer):
             self._translateRuleLabels(renderer.rootRule())
+
+    def translateMapTip(self, layer):
+        """Localize the map tip the loaded style shipped with: both the fixed
+        element-type word some styles hardcode (Junction, Tank...) and the
+        per-feature type code others pull straight off an attribute (Meters'
+        MeterType, Valves' ValveType, Sources' SourceType), which QGIS would
+        otherwise render as the raw English/abbreviated value stored in the
+        shapefile.
+        """
+        self._translateMapTipLeadingWord(layer)
+        self._translateMapTipTypeCode(
+            layer, _METER_TYPE_EXPR,
+            {code: self.tr(label) for code, label in _METER_TYPE_LABELS.items()},
+        )
+        self._translateMapTipTypeCode(
+            layer, _VALVE_TYPE_EXPR,
+            # The abbreviation, not the long name: same choice as the Element Explorer's
+            # narrow, read-only Type column (qgisred_element_explorer_dock.py) -- the map
+            # tip has just as little room, and each language has its own official siglas.
+            {code: getValveTypeAbbreviation(code) for code in VALVE_TYPE_LONG_NAMES},
+        )
+        self._translateMapTipTypeCode(
+            layer, _SOURCE_TYPE_EXPR,
+            {code: self.tr(label) for code, label in _SOURCE_TYPE_LABELS.items()},
+        )
+
+    def _translateMapTipLeadingWord(self, layer):
+        template = layer.mapTipTemplate()
+        if not template:
+            return
+        for word in _MAPTIP_ELEMENT_WORDS:
+            if template.startswith(word + " "):
+                translated = self.tr(word)
+                if translated != word:
+                    layer.setMapTipTemplate(translated + template[len(word):])
+                return
+
+    @staticmethod
+    def _translateMapTipTypeCode(layer, codeExpr, labels):
+        """Wrap a per-feature type-code expression (e.g. MeterType) in a CASE that
+        maps each known code to its translated label, so the map tip shows it
+        instead of the raw code. `labels` is already translated -- built once,
+        here, from data that does not change per feature -- the CASE itself is
+        what QGIS re-evaluates on every hover.
+        """
+        template = layer.mapTipTemplate()
+        if not template or codeExpr not in template:
+            return
+        cases = " ".join(
+            "WHEN @qgisred_type = '" + code + "' THEN '" + label.replace("'", "''") + "'"
+            for code, label in labels.items()
+        )
+        wrapped = "with_variable('qgisred_type', " + codeExpr + ", CASE " + cases + " ELSE @qgisred_type END)"
+        layer.setMapTipTemplate(template.replace(codeExpr, wrapped, 1))
 
     @staticmethod
     def _rebuildCategorizedRenderer(renderer, categories):

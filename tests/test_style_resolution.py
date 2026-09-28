@@ -23,6 +23,12 @@ class _FakeLayer:
     def renderer(self):
         return None
 
+    def mapTipTemplate(self):
+        return ""
+
+    def setMapTipTemplate(self, template):
+        pass
+
 
 def _makeUtils(tmp_path, networkName="Net", globalFolder=None):
     utils = QGISRedStylingUtils(str(tmp_path / "project"), networkName)
