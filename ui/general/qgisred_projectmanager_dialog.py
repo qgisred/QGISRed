@@ -603,7 +603,9 @@ class QGISRedProjectManagerDialog(QDialog, FORM_CLASS):
                 return
             io = self._getIO(projectPath, projectNetwork)
             qgisBase = io.getQGisProjectBase(projectPath, projectNetwork)
-            dlg = QGISRedRenameProjectDialog(None, projectNetwork, projectPath, qgisBase)
+            metadataFiles = [f for f in os.listdir(projectPath) if f.endswith("_Metadata.txt")]
+            singleProjectInFolder = len(metadataFiles) == 1
+            dlg = QGISRedRenameProjectDialog(None, projectNetwork, projectPath, qgisBase, singleProjectInFolder)
             # Run the dialog event loop
             dlg.exec()
             result = dlg.ProcessDone
@@ -613,8 +615,6 @@ class QGISRedProjectManagerDialog(QDialog, FORM_CLASS):
             newQgisBasename = dlg.NewQGISName if dlg.RenameQGISProject else None
             QApplication.setOverrideCursor(Qt.CursorShape.WaitCursor)
             oldProjectPath = projectPath
-            metadataFiles = [f for f in os.listdir(projectPath) if f.endswith("_Metadata.txt")]
-            canRenameFolder = os.path.basename(projectPath) == projectNetwork and len(metadataFiles) == 1
             newQgisPath = None
             if newQgisBasename and qgisBase:
                 parentDir = os.path.dirname(qgisBase)
@@ -638,7 +638,7 @@ class QGISRedProjectManagerDialog(QDialog, FORM_CLASS):
                 io.processProjectFiles(projectPath, projectNetwork, newProjectName, projectPath, deleteSource=True, excludeDirs=[DIR_BACKUPS])
             if newQgisPath:
                 io.updateMetadataQGisProject(projectPath, newProjectName or projectNetwork, newQgisPath)
-            if newProjectName and canRenameFolder:
+            if newProjectName and dlg.RenameFolder:
                 newProjectPath = os.path.join(os.path.dirname(projectPath), newProjectName)
                 if not os.path.exists(newProjectPath):
                     with suppress(Exception):

@@ -121,6 +121,34 @@
       </widget>
      </item>
      <item>
+      <widget class="QWidget" name="containerRenameFolder">
+       <layout class="QHBoxLayout" name="horizontalLayout_folder">
+        <property name="leftMargin">
+         <number>0</number>
+        </property>
+        <property name="topMargin">
+         <number>0</number>
+        </property>
+        <property name="rightMargin">
+         <number>0</number>
+        </property>
+        <property name="bottomMargin">
+         <number>0</number>
+        </property>
+        <item>
+         <widget class="QCheckBox" name="cbRenameFolder">
+          <property name="text">
+           <string>Rename project folder as well</string>
+          </property>
+          <property name="checked">
+           <bool>false</bool>
+          </property>
+         </widget>
+        </item>
+       </layout>
+      </widget>
+     </item>
+     <item>
       <layout class="QHBoxLayout" name="horizontalLayout_3">
        <item>
         <spacer name="horizontalSpacer">

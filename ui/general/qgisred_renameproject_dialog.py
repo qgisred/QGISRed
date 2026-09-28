@@ -19,8 +19,9 @@ class QGISRedRenameProjectDialog(QDialog, FORM_CLASS):
     RenameProject = False
     RenameQGISProject = False
     RenameBackups = False
+    RenameFolder = False
 
-    def __init__(self, parent=None, oldName="", project="", qgisProjectBase=None):
+    def __init__(self, parent=None, oldName="", project="", qgisProjectBase=None, singleProjectInFolder=False):
         """Constructor."""
         super(QGISRedRenameProjectDialog, self).__init__(parent)
         self.OldNetworkName = oldName
@@ -46,11 +47,20 @@ class QGISRedRenameProjectDialog(QDialog, FORM_CLASS):
                     break
         self.containerBackups.setVisible(hasBackups)
 
+        self.containerRenameFolder.setVisible(singleProjectInFolder)
+        self.cbRenameFolder.setEnabled(self.cbRenameProject.isChecked())
+
         self.cbRenameProject.toggled.connect(self.tbNetworkName.setEnabled)
+        self.cbRenameProject.toggled.connect(self._onRenameProjectToggled)
         self.cbRenameQGISProject.toggled.connect(self.tbQGISName.setEnabled)
 
         self.messageBar = QGISRedBanner.inject(self, self.gridLayout)
         self.adjustSize()
+
+    def _onRenameProjectToggled(self, checked):
+        self.cbRenameFolder.setEnabled(checked)
+        if not checked:
+            self.cbRenameFolder.setChecked(False)
 
     def pushMessage(self, title, text, level=0, duration=5):
         self.messageBar.pushMessage(title, text, level, duration)
@@ -91,8 +101,18 @@ class QGISRedRenameProjectDialog(QDialog, FORM_CLASS):
             self.pushMessage(self.tr("Validations"), self.tr("At least one name must be different from the original"), level=1)
             return
 
+        doRenameFolder = doProject and self.cbRenameFolder.isChecked() and self.containerRenameFolder.isVisible()
+        if doRenameFolder:
+            targetFolder = os.path.join(os.path.dirname(self.ProjectDirectory), self.NewNetworkName)
+            normalizedTarget = os.path.normcase(os.path.normpath(targetFolder))
+            normalizedCurrent = os.path.normcase(os.path.normpath(self.ProjectDirectory))
+            if normalizedTarget != normalizedCurrent and os.path.exists(targetFolder):
+                self.pushMessage(self.tr("Validations"), self.tr("There is already a folder with this name."), level=1)
+                return
+
         self.RenameProject = doProject
         self.RenameQGISProject = doQgis
         self.RenameBackups = self.cbRenameBackups.isChecked() and self.cbRenameBackups.isVisible()
+        self.RenameFolder = doRenameFolder
         self.ProcessDone = True
         self.close()
