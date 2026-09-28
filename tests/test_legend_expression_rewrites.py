@@ -36,7 +36,7 @@ PIPE_COLOR = (
     "with_variable('openPipeColor', '#0f1291', with_variable('closedPipeColor', '#ff0f13', "
     "if(IniStatus is NULL, @openPipeColor, if(IniStatus != 'CLOSED', @openPipeColor, @closedPipeColor))))"
 )
-PIPE_CV_SIZE = "with_variable('cvPipeSize', 5, if(IniStatus is NULL, 0, if(IniStatus != 'CV', 0, @cvPipeSize)))"
+PIPE_CV_SIZE = "with_variable('cvPipeSize', 6, if(IniStatus is NULL, 0, if(IniStatus != 'CV', 0, @cvPipeSize)))"
 PUMP_COLOR = (
     "with_variable('openPumpColor', '#85b66f', with_variable('closedPumpColor', '#ff0f13', "
     "if(IniStatus is NULL, @openPumpColor, if(IniStatus != 'CLOSED', @openPumpColor, @closedPumpColor))))"
@@ -101,7 +101,7 @@ DEMANDS_FILL = (
     "if(@bd < 0, @negativeDemandColor, @noDemandColor))))))))"
 )
 DEMANDS_SIZE = (
-    "if(@id is NULL, NULL, with_variable('demandSize', 1.8, with_variable('negativeDemandSize', 3.5, "
+    "if(@id is NULL, NULL, with_variable('demandSize', 1.6, with_variable('negativeDemandSize', 3.5, "
     "with_variable('bd', " + BASE_VALUE + ", "
     "if(@bd is NULL, @demandSize, if(@bd > 0, @demandSize, if(@bd < 0, @negativeDemandSize, @demandSize)))))))"
 )
@@ -296,7 +296,7 @@ class TestStyleVariablePattern:
         assert declared(PIPE_COLOR, "closedPipeColor") == "#ff0f13"
 
     def test_number_pattern_captures_the_number(self):
-        assert declared(PIPE_CV_SIZE, "cvPipeSize", isText=False) == "5"
+        assert declared(PIPE_CV_SIZE, "cvPipeSize", isText=False) == "6"
         assert declared(JUNCTION_EMITTER_SIZE, "emitterJunctionSize", isText=False) == "2.7"
 
     def test_each_pattern_matches_only_its_own_declaration(self):
@@ -680,7 +680,7 @@ class TestPipesApplier:
         line, markerLine, marker = self._apply(monkeypatch, None, 1.6)
         assert line.width() == 1.6
         for expr in (markerLine.expression(WIDTH_KEY), marker.expression(SIZE_KEY)):
-            assert declared(expr, "cvPipeSize", isText=False) == "10"
+            assert declared(expr, "cvPipeSize", isText=False) == "12"
             assert expr.endswith("if(IniStatus is NULL, 0, if(IniStatus != 'CV', 0, @cvPipeSize)))")
         assert line.expression(STROKE_KEY) == PIPE_COLOR
 
@@ -690,7 +690,7 @@ class TestPipesApplier:
 
     def test_a_cv_size_the_user_chose_keeps_its_proportion_to_the_line(self, monkeypatch):
         # It used to be rebuilt from the shipped 5 mm, throwing the user's own size away.
-        ownCvSize = PIPE_CV_SIZE.replace("'cvPipeSize', 5,", "'cvPipeSize', 7,")
+        ownCvSize = PIPE_CV_SIZE.replace("'cvPipeSize', 6,", "'cvPipeSize', 7,")
         _line, markerLine, marker = self._apply(monkeypatch, None, 1.6, cvSize=ownCvSize)
         for expr in (markerLine.expression(WIDTH_KEY), marker.expression(SIZE_KEY)):
             assert declared(expr, "cvPipeSize", isText=False) == "14"
@@ -816,8 +816,8 @@ class TestJunctionsApplier:
 
 class TestDemandsApplier:
     def _symbol(self):
-        outer = FakeSymbolLayer(size=3.15)
-        inner = FakeSymbolLayer(expressions={FILL_KEY: DEMANDS_FILL, SIZE_KEY: DEMANDS_SIZE}, size=1.8)
+        outer = FakeSymbolLayer(size=3.2)
+        inner = FakeSymbolLayer(expressions={FILL_KEY: DEMANDS_FILL, SIZE_KEY: DEMANDS_SIZE}, size=1.6)
         return FakeSymbol([outer, inner]), outer, inner
 
     def test_color_goes_to_the_positive_branch_only(self, monkeypatch):
@@ -831,10 +831,10 @@ class TestDemandsApplier:
 
     def test_size_scales_both_symbols(self, monkeypatch):
         symbol, outer, inner = self._symbol()
-        _dialog(monkeypatch, "qgisred_demands")._applyDemandsLegend(symbol, None, 3.6)
-        assert declared(inner.expression(SIZE_KEY), "demandSize", isText=False) == "3.6"
+        _dialog(monkeypatch, "qgisred_demands")._applyDemandsLegend(symbol, None, 3.2)
+        assert declared(inner.expression(SIZE_KEY), "demandSize", isText=False) == "3.2"
         assert declared(inner.expression(SIZE_KEY), "negativeDemandSize", isText=False) == "7"
-        assert outer.size() == 6.3 and inner.size() == 3.6
+        assert outer.size() == 6.4 and inner.size() == 3.2
 
 
 class TestMetersApplier:

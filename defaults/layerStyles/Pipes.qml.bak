@@ -90,7 +90,7 @@
               <Option type="Map" name="properties">
                 <Option type="Map" name="width">
                   <Option type="bool" name="active" value="true"/>
-                  <Option type="QString" name="expression" value="with_variable('cvPipeSize', 5, if(IniStatus is NULL, 0, if(IniStatus != 'CV', 0, @cvPipeSize)))"/>
+                  <Option type="QString" name="expression" value="with_variable('cvPipeSize', 6, if(IniStatus is NULL, 0, if(IniStatus != 'CV', 0, @cvPipeSize)))"/>
                   <Option type="int" name="type" value="3"/>
                 </Option>
               </Option>
@@ -137,7 +137,7 @@
                     </Option>
                     <Option type="Map" name="size">
                       <Option type="bool" name="active" value="true"/>
-                      <Option type="QString" name="expression" value="with_variable('cvPipeSize', 5, if(IniStatus is NULL, 0, if(IniStatus != 'CV', 0, @cvPipeSize)))"/>
+                      <Option type="QString" name="expression" value="with_variable('cvPipeSize', 6, if(IniStatus is NULL, 0, if(IniStatus != 'CV', 0, @cvPipeSize)))"/>
                       <Option type="int" name="type" value="3"/>
                     </Option>
                   </Option>
