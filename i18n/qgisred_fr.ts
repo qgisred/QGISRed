@@ -8972,44 +8972,44 @@ Voulez-vous continuer ?</translation>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../tools/utils/qgisred_styling_utils.py" line="944"/>
+        <location filename="../tools/qgisred_translatable_strings.py" line="412"/>
         <source>Junction</source>
-        <translation type="obsolete">Nœud de demande</translation>
+        <translation type="unfinished">Nœud de demande</translation>
     </message>
     <message>
-        <location filename="../tools/utils/qgisred_styling_utils.py" line="944"/>
+        <location filename="../tools/qgisred_translatable_strings.py" line="413"/>
         <source>Reservoir</source>
-        <translation type="obsolete">Bâche</translation>
+        <translation type="unfinished">Bâche</translation>
     </message>
     <message>
-        <location filename="../tools/utils/qgisred_styling_utils.py" line="944"/>
+        <location filename="../tools/qgisred_translatable_strings.py" line="414"/>
         <source>Tank</source>
-        <translation type="obsolete">Réservoir</translation>
+        <translation type="unfinished">Réservoir</translation>
     </message>
     <message>
-        <location filename="../tools/utils/qgisred_styling_utils.py" line="944"/>
+        <location filename="../tools/qgisred_translatable_strings.py" line="415"/>
         <source>Pipe</source>
-        <translation type="obsolete">Conduite</translation>
+        <translation type="unfinished">Conduite</translation>
     </message>
     <message>
-        <location filename="../tools/utils/qgisred_styling_utils.py" line="944"/>
+        <location filename="../tools/qgisred_translatable_strings.py" line="416"/>
         <source>Pump</source>
-        <translation type="obsolete">Pompe</translation>
+        <translation type="unfinished">Pompe</translation>
     </message>
     <message>
-        <location filename="../tools/utils/qgisred_styling_utils.py" line="944"/>
+        <location filename="../tools/qgisred_translatable_strings.py" line="417"/>
         <source>Source</source>
-        <translation type="obsolete">Source</translation>
+        <translation type="unfinished">Source</translation>
     </message>
     <message>
-        <location filename="../tools/utils/qgisred_styling_utils.py" line="944"/>
+        <location filename="../tools/qgisred_translatable_strings.py" line="410"/>
         <source>Isolation Valve</source>
-        <translation type="obsolete">Vanne d’isolement</translation>
+        <translation type="unfinished">Vanne d’isolement</translation>
     </message>
     <message>
-        <location filename="../tools/utils/qgisred_styling_utils.py" line="1003"/>
+        <location filename="../tools/qgisred_translatable_strings.py" line="411"/>
         <source>Service Connection</source>
-        <translation type="obsolete">Branchement</translation>
+        <translation type="unfinished">Branchement</translation>
     </message>
     <message>
         <location filename="../tools/utils/qgisred_styling_utils.py" line="969"/>

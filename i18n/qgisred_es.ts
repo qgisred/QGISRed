@@ -9160,44 +9160,44 @@ Do you want to proceed?</source>
         <translation>Sin categoría</translation>
     </message>
     <message>
-        <location filename="../tools/utils/qgisred_styling_utils.py" line="944"/>
+        <location filename="../tools/qgisred_translatable_strings.py" line="412"/>
         <source>Junction</source>
-        <translation type="obsolete">Unión</translation>
+        <translation type="unfinished">Unión</translation>
     </message>
     <message>
-        <location filename="../tools/utils/qgisred_styling_utils.py" line="944"/>
+        <location filename="../tools/qgisred_translatable_strings.py" line="413"/>
         <source>Reservoir</source>
-        <translation type="obsolete">Embalse</translation>
+        <translation type="unfinished">Embalse</translation>
     </message>
     <message>
-        <location filename="../tools/utils/qgisred_styling_utils.py" line="944"/>
+        <location filename="../tools/qgisred_translatable_strings.py" line="414"/>
         <source>Tank</source>
-        <translation type="obsolete">Depósito</translation>
+        <translation type="unfinished">Depósito</translation>
     </message>
     <message>
-        <location filename="../tools/utils/qgisred_styling_utils.py" line="944"/>
+        <location filename="../tools/qgisred_translatable_strings.py" line="415"/>
         <source>Pipe</source>
-        <translation type="obsolete">Tubería</translation>
+        <translation type="unfinished">Tubería</translation>
     </message>
     <message>
-        <location filename="../tools/utils/qgisred_styling_utils.py" line="944"/>
+        <location filename="../tools/qgisred_translatable_strings.py" line="416"/>
         <source>Pump</source>
-        <translation type="obsolete">Bomba</translation>
+        <translation type="unfinished">Bomba</translation>
     </message>
     <message>
-        <location filename="../tools/utils/qgisred_styling_utils.py" line="944"/>
+        <location filename="../tools/qgisred_translatable_strings.py" line="417"/>
         <source>Source</source>
-        <translation type="obsolete">Fuente</translation>
+        <translation type="unfinished">Fuente</translation>
     </message>
     <message>
-        <location filename="../tools/utils/qgisred_styling_utils.py" line="944"/>
+        <location filename="../tools/qgisred_translatable_strings.py" line="410"/>
         <source>Isolation Valve</source>
-        <translation type="obsolete">Válvula de seccionamiento</translation>
+        <translation type="unfinished">Válvula de seccionamiento</translation>
     </message>
     <message>
-        <location filename="../tools/utils/qgisred_styling_utils.py" line="1003"/>
+        <location filename="../tools/qgisred_translatable_strings.py" line="411"/>
         <source>Service Connection</source>
-        <translation type="obsolete">Acometida</translation>
+        <translation type="unfinished">Acometida</translation>
     </message>
     <message>
         <location filename="../tools/utils/qgisred_styling_utils.py" line="969"/>

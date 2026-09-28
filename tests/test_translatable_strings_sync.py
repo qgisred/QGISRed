@@ -17,6 +17,7 @@ from QGISRed.tools.utils.qgisred_field_utils import PLURAL_PROPERTY_NAMES
 from QGISRed.tools.utils.qgisred_valve_types import VALVE_TYPE_LONG_NAMES
 from QGISRed.tools.utils.qgisred_meter_types import METER_TYPE_LABELS
 from QGISRed.tools.utils.qgisred_source_types import SOURCE_TYPE_LABELS
+from QGISRed.tools.utils.qgisred_styling_utils import _MAPTIP_ELEMENT_WORDS
 
 _PLUGIN_ROOT = os.path.abspath(os.path.join(os.path.dirname(__file__), ".."))
 _STRINGS_FILE = os.path.join(_PLUGIN_ROOT, "tools", "qgisred_translatable_strings.py")
@@ -131,4 +132,16 @@ class TestSourceTypeNamesAreTranslatable:
             "Source type labels in SOURCE_TYPE_LABELS with no "
             "QCoreApplication.translate() call in tools/qgisred_translatable_strings.py: "
             "{}".format(", ".join(missing))
+        )
+
+
+class TestMapTipElementWordsAreTranslatable:
+    def test_every_word_is_mirrored(self):
+        literals = _translated_literals("QGISRedStylingUtils")
+        missing = sorted(set(_MAPTIP_ELEMENT_WORDS) - literals)
+        assert not missing, (
+            "Map tip leading words in _MAPTIP_ELEMENT_WORDS with no "
+            "QCoreApplication.translate('QGISRedStylingUtils', ...) call in "
+            "tools/qgisred_translatable_strings.py (pylupdate5 will mark them obsolete "
+            "and translateMapTip will show them untranslated): {}".format(", ".join(missing))
         )
