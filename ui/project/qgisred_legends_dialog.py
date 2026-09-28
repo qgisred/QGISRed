@@ -54,7 +54,7 @@ from ..analysis.qgisred_results_rendering import apply_junction_size, read_node_
 from .qgisred_custom_dialogs import QGISRedRangeEditDialog, QGISRedSymbolColorSelector
 from .qgisred_custom_dialogs import QGISRedColorRampSelector, QGISRedRowSelectionFilter
 from .qgisred_custom_dialogs import QGISRedPaletteEmulator, QGISRedSizePaletteEmulator
-from .qgisred_custom_dialogs import QGISRedSaveStrategyDialog, QGISRedSizeLineEdit
+from .qgisred_custom_dialogs import QGISRedSaveStrategyDialog, QGISRedSizeLineEdit, QGISRedSizePercentSpinBox
 
 formClass, _ = uic.loadUiType(os.path.join(os.path.dirname(__file__), "qgisred_legends_dialog.ui"))
 
@@ -290,7 +290,6 @@ class QGISRedLegendsDialog(QDialog, formClass):
         "qgisred_meters": 5.0,
         "qgisred_tree_nodes": 2.0,
     }
-    FACTOR_SUFFIX = "×"
 
     # Tree nodes selector variants and the SimpleMarker shape each one edits
     TREE_NODE_MARKERS = {"junction": "circle", "root": "star"}
@@ -1387,8 +1386,17 @@ class QGISRedLegendsDialog(QDialog, formClass):
 
     def updateSizeHeader(self):
         header = self.tableView.horizontalHeaderItem(2)
-        if header:
-            header.setText(self.tr("Size (× default)") if self.isFactorCell() else self.tr("Size (mm)"))
+        if not header:
+            return
+        if self.isFactorCell():
+            header.setText(self.tr("Size (%)"))
+            header.setToolTip(self.percentSizeTooltip())
+        else:
+            header.setText(self.tr("Size (mm)"))
+            header.setToolTip("")
+
+    def percentSizeTooltip(self):
+        return self.tr("Percent of the default sizes: 100 % draws every component as shipped.")
 
     # ============================================================
     # EVENT HANDLERS - MODE AND TYPE CHANGES
@@ -2677,8 +2685,8 @@ class QGISRedLegendsDialog(QDialog, formClass):
         elif self.isMarkerComponentSelected():
             size = self._readMarkerLineMarkerSize(symbol) or size
         if self.isFactorCell():
-            factorText = self.formatSizeText(self._sizeFactor(symbol, size))
-            self.tableView.setCellWidget(row, 2, self.createSizeLineEdit(factorText, row, self.FACTOR_SUFFIX))
+            factor = self._sizeFactor(symbol, size)
+            self.tableView.setCellWidget(row, 2, self.createSizePercentSpinBox(factor, row))
             return
         self.tableView.setCellWidget(row, 2, self.createSizeLineEdit(self.formatSizeText(size), row))
 
@@ -2705,16 +2713,24 @@ class QGISRedLegendsDialog(QDialog, formClass):
         text = f"{size:.2f}"
         return text[:-1] if text.endswith("0") else text
 
-    def createSizeLineEdit(self, text, row, suffix=""):
-        sizeWidget = QGISRedSizeLineEdit(text, suffix=suffix)
+    def createSizeLineEdit(self, text, row):
+        sizeWidget = QGISRedSizeLineEdit(text)
         sizeWidget.setAlignment(Qt.AlignmentFlag.AlignCenter)
         sizeWidget.setStyleSheet(self.getBaseLineEditStyle())
         sizeWidget.installEventFilter(self.rowSelectionFilter)
-        if suffix:
-            sizeWidget.setToolTip(self.tr("Times the default sizes: 1× draws every component as shipped."))
         sizeWidget.textChanged.connect(lambda _text, r=row, w=sizeWidget: self.onSizeChanged(r, w.text()))
         sizeWidget.textEdited.connect(self.markLegendEdited)
         self.syncColorPreviewSize(row, text)
+        return sizeWidget
+
+    def createSizePercentSpinBox(self, factor, row):
+        sizeWidget = QGISRedSizePercentSpinBox(factor)
+        sizeWidget.setStyleSheet(self.getBaseSpinBoxStyle())
+        sizeWidget.setToolTip(self.percentSizeTooltip())
+        sizeWidget.installEventFilter(self.rowSelectionFilter)
+        sizeWidget.valueChanged.connect(lambda _value, r=row, w=sizeWidget: self.onSizeChanged(r, str(w.factor())))
+        sizeWidget.valueChanged.connect(lambda _value: self.markLegendEdited())
+        self.syncColorPreviewSize(row, str(factor))
         return sizeWidget
 
     def setValueWidget(self, row, valueText, isReadOnlyValue):
@@ -2756,6 +2772,20 @@ class QGISRedLegendsDialog(QDialog, formClass):
                 font-size: %s;
             }
             QLineEdit:focus {
+                border: 1px solid #3399ff;
+            }
+        """ % self.CONTROL_FONT_SIZE
+
+    def getBaseSpinBoxStyle(self):
+        return """
+            QSpinBox {
+                background-color: transparent;
+                border: none;
+                padding: 2px;
+                color: #2b2b2b;
+                font-size: %s;
+            }
+            QSpinBox:focus {
                 border: 1px solid #3399ff;
             }
         """ % self.CONTROL_FONT_SIZE
@@ -4321,9 +4351,10 @@ class QGISRedLegendsDialog(QDialog, formClass):
 
         newSize = None
         with suppress(Exception):
-            newSize = float(sizeWidget.text())
             if self.isFactorCell():
-                newSize *= self.DEFAULT_ANCHOR_SIZES[identifier]
+                newSize = sizeWidget.factor() * self.DEFAULT_ANCHOR_SIZES[identifier]
+            else:
+                newSize = float(sizeWidget.text())
 
         inputAppliers = {
             "qgisred_junctions": self._applyJunctionsLegend,
