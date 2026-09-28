@@ -5813,11 +5813,6 @@ Continuar?</translation>
 <context>
     <name>QGISRedLegendsDialog</name>
     <message>
-        <location filename="../ui/project/qgisred_legends_dialog.py" line="601"/>
-        <source>Classify All Unique Values</source>
-        <translation type="obsolete">Classificar Todos os Valores Únicos</translation>
-    </message>
-    <message>
         <location filename="../ui/project/qgisred_legends_dialog.py" line="1037"/>
         <source>Move selected class up</source>
         <translation>Mover classe selecionada para cima</translation>
@@ -5843,39 +5838,9 @@ Continuar?</translation>
         <translation>Atualizar rampa de cores</translation>
     </message>
     <message>
-        <location filename="../ui/project/qgisred_legends_dialog.py" line="422"/>
-        <source>Load default style for this layer</source>
-        <translation type="obsolete">Carregar estilo padrão para esta camada</translation>
-    </message>
-    <message>
-        <location filename="../ui/project/qgisred_legends_dialog.py" line="423"/>
-        <source>Load style from global database</source>
-        <translation type="obsolete">Carregar estilo do banco de dados global</translation>
-    </message>
-    <message>
-        <location filename="../ui/project/qgisred_legends_dialog.py" line="424"/>
-        <source>Save current style to global database</source>
-        <translation type="obsolete">Salvar estilo atual no banco de dados global</translation>
-    </message>
-    <message>
-        <location filename="../ui/project/qgisred_legends_dialog.py" line="425"/>
-        <source>Load style from project database</source>
-        <translation type="obsolete">Carregar estilo do banco de dados do projeto</translation>
-    </message>
-    <message>
-        <location filename="../ui/project/qgisred_legends_dialog.py" line="426"/>
-        <source>Save current style to project database</source>
-        <translation type="obsolete">Salvar estilo atual no banco de dados do projeto</translation>
-    </message>
-    <message>
         <location filename="../ui/project/qgisred_legends_dialog.py" line="1048"/>
         <source>Apply changes to layer</source>
         <translation>Aplicar alterações à camada</translation>
-    </message>
-    <message>
-        <location filename="../ui/project/qgisred_legends_dialog.py" line="428"/>
-        <source>Cancel and close dialog</source>
-        <translation type="obsolete">Cancelar e fechar a caixa de diálogo</translation>
     </message>
     <message>
         <location filename="../ui/project/qgisred_legends_dialog.py" line="2128"/>
@@ -5893,29 +5858,9 @@ Continuar?</translation>
         <translation>Classes em Excesso</translation>
     </message>
     <message>
-        <location filename="../ui/project/qgisred_legends_dialog.py" line="1352"/>
-        <source>The field &apos;{field}&apos; has {uniqueCount} unique values.
-The maximum allowed is {self.MAX_CLASSES}.
-Please filter the data or choose a different field.</source>
-        <translation type="obsolete">O campo '{field}' tem {uniqueCount} valores únicos.
-O máximo permitido é {self.MAX_CLASSES}.
-Filtre os dados ou escolha um campo diferente.</translation>
-    </message>
-    <message>
         <location filename="../ui/project/qgisred_legends_dialog.py" line="1623"/>
         <source>High Class Count Warning</source>
         <translation>Aviso de Alto Número de Classes</translation>
-    </message>
-    <message>
-        <location filename="../ui/project/qgisred_legends_dialog.py" line="1365"/>
-        <source>The field &apos;{field}&apos; has {uniqueCount} unique values.
-Creating a categorized legend with more than {self.WARN_CLASSES} classes may affect performance and readability.
-
-Do you want to proceed?</source>
-        <translation type="obsolete">O campo '{field}' tem {uniqueCount} valores únicos.
-Criar uma legenda categorizada com mais de {self.WARN_CLASSES} classes pode afetar o desempenho e a legibilidade.
-
-Deseja prosseguir?</translation>
     </message>
     <message>
         <location filename="../ui/project/qgisred_legends_dialog.py" line="2379"/>
@@ -5938,11 +5883,6 @@ Deseja prosseguir?</translation>
         <translation>Outros Valores</translation>
     </message>
     <message>
-        <location filename="../ui/project/qgisred_legends_dialog.py" line="2807"/>
-        <source>Info</source>
-        <translation type="obsolete">Info</translation>
-    </message>
-    <message>
         <location filename="../ui/project/qgisred_legends_dialog.py" line="3117"/>
         <source>All values are already classified.</source>
         <translation>Todos os valores já estão classificados.</translation>
@@ -5951,13 +5891,6 @@ Deseja prosseguir?</translation>
         <location filename="../ui/project/qgisred_legends_dialog.py" line="3185"/>
         <source>Limit Exceeded</source>
         <translation>Limite Excedido</translation>
-    </message>
-    <message>
-        <location filename="../ui/project/qgisred_legends_dialog.py" line="2823"/>
-        <source>Adding {uniqueCountToAdd} classes would result in {totalPotential} total classes,
-which exceeds the maximum limit of {self.MAX_CLASSES}.</source>
-        <translation type="obsolete">Adicionar {uniqueCountToAdd} classes resultaria em {totalPotential} classes no total,
-o que excede o limite máximo de {self.MAX_CLASSES}.</translation>
     </message>
     <message>
         <location filename="../ui/project/qgisred_legends_dialog.py" line="3148"/>
@@ -5970,22 +5903,6 @@ o que excede o limite máximo de {self.MAX_CLASSES}.</translation>
         <translation>Cancelar</translation>
     </message>
     <message>
-        <location filename="../ui/project/qgisred_legends_dialog.py" line="5576"/>
-        <source>Right-click: Add a new item above the current selection
-Left-click: Add a new item below the current selection
-Double-click: Add &quot;Other values&quot; option</source>
-        <translation type="obsolete">Clique direito: Adicionar um novo item acima da seleção atual
-Clique esquerdo: Adicionar um novo item abaixo da seleção atual
-Clique duplo: Adicionar a opção &quot;Outros valores&quot;</translation>
-    </message>
-    <message>
-        <location filename="../ui/project/qgisred_legends_dialog.py" line="5584"/>
-        <source>Right-click: Add a new item above the current selection
-Left-click: Add a new item below the current selection</source>
-        <translation type="obsolete">Clique direito: Adicionar um novo item acima da seleção atual
-Clique esquerdo: Adicionar um novo item abaixo da seleção atual</translation>
-    </message>
-    <message>
         <location filename="../ui/project/qgisred_legends_dialog.py" line="625"/>
         <source>QGISRed: Legend Editor</source>
         <translation>QGISRed: Editor de Legendas</translation>
@@ -5994,11 +5911,6 @@ Clique esquerdo: Adicionar um novo item abaixo da seleção atual</translation>
         <location filename="../ui/project/qgisred_legends_dialog.py" line="632"/>
         <source>Color</source>
         <translation>Cor</translation>
-    </message>
-    <message>
-        <location filename="../ui/project/qgisred_legends_dialog.py" line="568"/>
-        <source>Size</source>
-        <translation type="obsolete">Tamanho</translation>
     </message>
     <message>
         <location filename="../ui/project/qgisred_legends_dialog.py" line="632"/>
@@ -6016,11 +5928,6 @@ Clique esquerdo: Adicionar um novo item abaixo da seleção atual</translation>
         <translation>Sobrescrever estilo?</translation>
     </message>
     <message>
-        <location filename="../ui/project/qgisred_legends_dialog.py" line="4795"/>
-        <source>Saved</source>
-        <translation type="obsolete">Salvo</translation>
-    </message>
-    <message>
         <location filename="../ui/project/qgisred_legends_dialog.py" line="5737"/>
         <source>No Project</source>
         <translation>Nenhum Projeto</translation>
@@ -6036,34 +5943,9 @@ Clique esquerdo: Adicionar um novo item abaixo da seleção atual</translation>
         <translation>Não Encontrado</translation>
     </message>
     <message>
-        <location filename="../ui/project/qgisred_legends_dialog.py" line="5025"/>
-        <source>Loaded</source>
-        <translation type="obsolete">Carregado</translation>
-    </message>
-    <message>
         <location filename="../ui/project/qgisred_legends_dialog.py" line="3185"/>
         <source>Maximum of %1 classes reached.</source>
         <translation>Máximo de %1 classes atingido.</translation>
-    </message>
-    <message>
-        <location filename="../ui/project/qgisred_legends_dialog.py" line="3457"/>
-        <source>Style saved as %1 in the layerStyles folder of your project.</source>
-        <translation type="obsolete">Estilo salvo como %1 na pasta layerStyles do seu projeto.</translation>
-    </message>
-    <message>
-        <location filename="../ui/project/qgisred_legends_dialog.py" line="5053"/>
-        <source>Style file not found: %1</source>
-        <translation type="obsolete">Arquivo de estilo não encontrado: %1</translation>
-    </message>
-    <message>
-        <location filename="../ui/project/qgisred_legends_dialog.py" line="3632"/>
-        <source>Style loaded from %1 in the layerStyles folder of your project</source>
-        <translation type="obsolete">Estilo carregado de %1 na pasta layerStyles do seu projeto</translation>
-    </message>
-    <message>
-        <location filename="../ui/project/qgisred_legends_dialog.py" line="3673"/>
-        <source>Style loaded from %1</source>
-        <translation type="obsolete">Estilo carregado de %1</translation>
     </message>
     <message>
         <location filename="../ui/project/qgisred_legends_dialog.py" line="5221"/>
@@ -6096,16 +5978,6 @@ Clique esquerdo: Adicionar um novo item abaixo da seleção atual</translation>
         <translation>Carregar estilos a partir desta caixa de diálogo não é suportado para este tipo de camada.</translation>
     </message>
     <message>
-        <location filename="../ui/project/qgisred_legends_dialog.py" line="3727"/>
-        <source>Legend loaded from %1.</source>
-        <translation type="obsolete">Legenda carregada de %1.</translation>
-    </message>
-    <message>
-        <location filename="../ui/project/qgisred_legends_dialog.py" line="4751"/>
-        <source>Strategy loaded into the dialog from %1. Press Apply to update the layer.</source>
-        <translation type="obsolete">Estratégia carregada no diálogo a partir de %1. Pressione Aplicar para atualizar a camada.</translation>
-    </message>
-    <message>
         <location filename="../ui/project/qgisred_legends_dialog.py" line="727"/>
         <source>All types</source>
         <translation>Todos os tipos</translation>
@@ -6129,11 +6001,6 @@ Clique esquerdo: Adicionar um novo item abaixo da seleção atual</translation>
         <location filename="../ui/project/qgisred_legends_dialog.py" line="1023"/>
         <source>Revert to Original Legend</source>
         <translation>Reverter para a legenda original</translation>
-    </message>
-    <message>
-        <location filename="../ui/project/qgisred_legends_dialog.py" line="695"/>
-        <source>Show the legend the layer had when this dialog was opened; press Apply to update the layer</source>
-        <translation type="obsolete">Mostra a legenda que a camada tinha quando esta janela foi aberta; pressione Aplicar para atualizar a camada</translation>
     </message>
     <message>
         <location filename="../ui/project/qgisred_legends_dialog.py" line="1029"/>
@@ -6164,38 +6031,6 @@ Clique esquerdo: Adicionar um novo item abaixo da seleção atual</translation>
         <location filename="../ui/project/qgisred_legends_dialog.py" line="1047"/>
         <source>Apply changes to layer and close</source>
         <translation>Aplicar as alterações à camada e fechar</translation>
-    </message>
-    <message>
-        <location filename="../ui/project/qgisred_legends_dialog.py" line="851"/>
-        <source>Close and restore the legend the layer had when this dialog was opened</source>
-        <translation type="obsolete">Fechar e restaurar a legenda que a camada tinha quando esta janela foi aberta</translation>
-    </message>
-    <message>
-        <location filename="../ui/project/qgisred_legends_dialog.py" line="4792"/>
-        <source>The current legend was saved as %1 in the global layerStyles folder.</source>
-        <translation type="obsolete">A legenda atual foi salva como %1 na pasta global layerStyles.</translation>
-    </message>
-    <message>
-        <location filename="../ui/project/qgisred_legends_dialog.py" line="4794"/>
-        <source>The current legend was saved as %1 in the layerStyles folder of your project.</source>
-        <translation type="obsolete">A legenda atual foi salva como %1 na pasta layerStyles do seu projeto.</translation>
-    </message>
-    <message>
-        <location filename="../ui/project/qgisred_legends_dialog.py" line="4745"/>
-        <source>Legend loaded into the dialog from %1. Press Apply to update the layer.</source>
-        <translation type="obsolete">Legenda carregada na janela a partir de %1. Pressione Aplicar para atualizar a camada.</translation>
-    </message>
-    <message>
-        <location filename="../ui/project/qgisred_legends_dialog.py" line="6047"/>
-        <source>Discard Applied Changes</source>
-        <translation type="obsolete">Descartar as alterações aplicadas</translation>
-    </message>
-    <message>
-        <location filename="../ui/project/qgisred_legends_dialog.py" line="6047"/>
-        <source>The changes already applied to the layer will be lost.
-Do you want to proceed?</source>
-        <translation type="obsolete">As alterações já aplicadas à camada serão perdidas.
-Deseja continuar?</translation>
     </message>
     <message>
         <location filename="../ui/project/qgisred_legends_dialog.py" line="5607"/>
@@ -8750,79 +8585,9 @@ Não é possível aplicar as alterações.</translation>
 <context>
     <name>QGISRedSaveStrategyDialog</name>
     <message>
-        <location filename="../ui/project/qgisred_custom_dialogs.py" line="74"/>
-        <source>Intervals</source>
-        <translation type="obsolete">Intervalos</translation>
-    </message>
-    <message>
-        <location filename="../ui/project/qgisred_custom_dialogs.py" line="76"/>
-        <source>Sizes</source>
-        <translation type="obsolete">Tamanhos</translation>
-    </message>
-    <message>
-        <location filename="../ui/project/qgisred_custom_dialogs.py" line="77"/>
-        <source>Colors</source>
-        <translation type="obsolete">Cores</translation>
-    </message>
-    <message>
-        <location filename="../ui/project/qgisred_custom_dialogs.py" line="73"/>
-        <source>Save current strategy for %1</source>
-        <translation type="obsolete">Salvar estratégia atual para %1</translation>
-    </message>
-    <message>
-        <location filename="../ui/project/qgisred_custom_dialogs.py" line="85"/>
-        <source>Choose which parts of the current legend to persist:</source>
-        <translation type="obsolete">Escolha quais partes da legenda atual devem ser mantidas:</translation>
-    </message>
-    <message>
-        <location filename="../ui/project/qgisred_custom_dialogs.py" line="74"/>
-        <source>All Classes</source>
-        <translation type="obsolete">Todas as Classes</translation>
-    </message>
-    <message>
         <location filename="../ui/project/qgisred_custom_dialogs.py" line="95"/>
         <source>Save legend for %1</source>
         <translation>Salvar legenda para %1</translation>
-    </message>
-    <message>
-        <location filename="../ui/project/qgisred_custom_dialogs.py" line="113"/>
-        <source>Global level</source>
-        <translation type="obsolete">Nível global</translation>
-    </message>
-    <message>
-        <location filename="../ui/project/qgisred_custom_dialogs.py" line="113"/>
-        <source>Project level</source>
-        <translation type="obsolete">Nível do projeto</translation>
-    </message>
-    <message>
-        <location filename="../ui/project/qgisred_custom_dialogs.py" line="98"/>
-        <source>The current legend will be saved exactly as shown, at %1.</source>
-        <translation type="obsolete">A legenda atual será salva exatamente como exibida, em %1.</translation>
-    </message>
-    <message>
-        <location filename="../ui/project/qgisred_custom_dialogs.py" line="100"/>
-        <source>To save a strategy that regenerates the legend automatically instead, tick the parts to keep:</source>
-        <translation type="obsolete">Para salvar, em vez disso, uma estratégia que regenera a legenda automaticamente, marque as partes a manter:</translation>
-    </message>
-    <message>
-        <location filename="../ui/project/qgisred_custom_dialogs.py" line="77"/>
-        <source>Save strategy for All Classes</source>
-        <translation type="obsolete">Salvar estratégia para Todas as classes</translation>
-    </message>
-    <message>
-        <location filename="../ui/project/qgisred_custom_dialogs.py" line="77"/>
-        <source>Save strategy for Intervals</source>
-        <translation type="obsolete">Salvar estratégia para Intervalos</translation>
-    </message>
-    <message>
-        <location filename="../ui/project/qgisred_custom_dialogs.py" line="79"/>
-        <source>Save strategy for Sizes</source>
-        <translation type="obsolete">Salvar estratégia para Tamanhos</translation>
-    </message>
-    <message>
-        <location filename="../ui/project/qgisred_custom_dialogs.py" line="80"/>
-        <source>Save strategy for Colors</source>
-        <translation type="obsolete">Salvar estratégia para Cores</translation>
     </message>
     <message>
         <location filename="../ui/project/qgisred_custom_dialogs.py" line="85"/>
@@ -8833,11 +8598,6 @@ Não é possível aplicar as alterações.</translation>
         <location filename="../ui/project/qgisred_custom_dialogs.py" line="86"/>
         <source>Automatic legend: recalculate it when the style is loaded</source>
         <translation>Legenda automática: recalculá-la ao carregar o estilo</translation>
-    </message>
-    <message>
-        <location filename="../ui/project/qgisred_custom_dialogs.py" line="114"/>
-        <source>Saving at %1 as %2</source>
-        <translation type="obsolete">Será salvo em: %1, como %2</translation>
     </message>
     <message>
         <location filename="../ui/project/qgisred_custom_dialogs.py" line="134"/>
