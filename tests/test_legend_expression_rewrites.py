@@ -180,6 +180,17 @@ SIZE_KEY = legendsModule.SL_PROP_SIZE
 WIDTH_KEY = legendsModule.SL_PROP_WIDTH
 
 
+class FakePropertyCollection:
+    def __init__(self, props):
+        self.props = dict(props)
+
+    def property(self, key):
+        return self.props.get(key)
+
+    def setProperty(self, key, prop):
+        self.props[key] = prop
+
+
 class FakeSymbolLayer:
     """A symbol layer with data-defined expressions, a base size/width and colors."""
 
@@ -193,13 +204,11 @@ class FakeSymbolLayer:
         self.strokeColorCalls = []
 
     def dataDefinedProperties(self):
-        layer = self
+        # A copy: what is written in it reaches the layer through setDataDefinedProperties() only
+        return FakePropertyCollection(self._props)
 
-        class _Collection:
-            def property(self, key):
-                return layer._props.get(key)
-
-        return _Collection()
+    def setDataDefinedProperties(self, collection):
+        self._props = dict(collection.props)
 
     def setDataDefinedProperty(self, key, prop):
         self._props[key] = prop
@@ -1340,29 +1349,37 @@ def isolatedLinkSize(linkType, size):
     return f"if(@id is NULL, NULL, if({ISOLATED_LINK_TYPE}='{linkType}', {size}, 0))"
 
 
-def isolatedIconSize(nodeType, size):
-    return f"if(@id is NULL, NULL, if({ISOLATED_NODE_TYPE} ='{nodeType}', {size}, 0))"
-
-
-def isolatedMarkerSize(nodeType, size):
-    return f"if(@id is NULL, NULL, if({ISOLATED_NODE_TYPE} !='{nodeType}', 0,{size}))"
-
-
 def inOneLine(expression):
     return " ".join(expression.split())
+
+
+ISOLATED_LINKS_STYLE = "IsolatedSegmentsLinks.qml.bak"
+# The sizes under the expressions: the lines have a width, the markers on them are hidden in the Layers Panel
+ISOLATED_LINK_BASE_SIZES = {"connectionLine": 1.4, "connectionCircle": 0, "pipeLine": 1.4, "pump": 0, "valve": 0}
+ISOLATED_DEMANDS_BASE_SIZE = 3
 
 
 class TestShippedElementStyles:
     """The element selector reads the sizes out of exactly these shipped expressions."""
 
     def test_isolated_segments_links(self):
-        connectionLine, connectionCircle, pipeLine, pump, valve = _rendererLayers("IsolatedSegmentsLinks.qml.bak")
+        connectionLine, connectionCircle, pipeLine, pump, valve = _rendererLayers(ISOLATED_LINKS_STYLE)
         assert connectionLine[1]["outlineWidth"] == isolatedLinkSize("SERVICECONNECTION", 1.1)
         assert connectionCircle[2][0][1]["size"] == isolatedLinkSize("SERVICECONNECTION", 2)
         assert pipeLine[0] == "SimpleLine" and "outlineWidth" not in pipeLine[1]
         assert pump[2][0][1]["size"] == isolatedLinkSize("PUMP", 6)
         assert valve[2][0][1]["size"] == isolatedLinkSize("VALVE", 6)
 
+    def test_isolated_segments_links_base_sizes(self):
+        connectionLine, connectionCircle, pipeLine, pump, valve = _shippedSymbolLayers(ISOLATED_LINKS_STYLE)
+        shipped = {
+            "connectionLine": _layerOptions(connectionLine)["line_width"],
+            "connectionCircle": _layerOptions(connectionCircle.find("symbol/layer"))["size"],
+            "pipeLine": _layerOptions(pipeLine)["line_width"],
+            "pump": _layerOptions(pump.find("symbol/layer"))["size"],
+            "valve": _layerOptions(valve.find("symbol/layer"))["size"],
+        }
+        assert {name: float(size) for name, size in shipped.items()} == ISOLATED_LINK_BASE_SIZES
 
     @pytest.mark.parametrize("fileName", [
         "IsolatedSegmentsIsolatedDemands.qml.bak", "HydraulicSectorsIsolatedDemands.qml.bak",
@@ -1370,6 +1387,8 @@ class TestShippedElementStyles:
     def test_isolated_demands(self, fileName):
         [(_, exprs, _)] = _rendererLayers(fileName)
         assert inOneLine(exprs["size"]) == ISOLATED_DEMANDS_SIZE
+        [layerOptions] = _rendererLayerOptions(fileName)
+        assert float(layerOptions["size"]) == ISOLATED_DEMANDS_BASE_SIZE
 
 
 class TestElementSizePattern:
@@ -1397,15 +1416,17 @@ class TestElementSizePattern:
 class TestElementsApplier:
     """Isolated Segments: the Element selector resizes one element type and leaves the others."""
 
-    def _links(self):
-        connectionCircle = FakeSymbolLayer(expressions={SIZE_KEY: isolatedLinkSize("SERVICECONNECTION", 2)}, size=2)
-        pump = FakeSymbolLayer("SvgMarker", {SIZE_KEY: isolatedLinkSize("PUMP", 6)}, size=6)
-        valve = FakeSymbolLayer("SvgMarker", {SIZE_KEY: isolatedLinkSize("VALVE", 6)}, size=6)
+    def _links(self, baseSizes=ISOLATED_LINK_BASE_SIZES):
+        connectionCircle = FakeSymbolLayer(
+            expressions={SIZE_KEY: isolatedLinkSize("SERVICECONNECTION", 2)}, size=baseSizes["connectionCircle"])
+        pump = FakeSymbolLayer("SvgMarker", {SIZE_KEY: isolatedLinkSize("PUMP", 6)}, size=baseSizes["pump"])
+        valve = FakeSymbolLayer("SvgMarker", {SIZE_KEY: isolatedLinkSize("VALVE", 6)}, size=baseSizes["valve"])
         layers = {
             "connectionLine": FakeSymbolLayer(
-                "SimpleLine", {STROKE_WIDTH_KEY: isolatedLinkSize("SERVICECONNECTION", 1.1)}, size=1.4),
+                "SimpleLine", {STROKE_WIDTH_KEY: isolatedLinkSize("SERVICECONNECTION", 1.1)},
+                size=baseSizes["connectionLine"]),
             "connectionCircle": connectionCircle,
-            "pipeLine": FakeSymbolLayer("SimpleLine", size=1.4),
+            "pipeLine": FakeSymbolLayer("SimpleLine", size=baseSizes["pipeLine"]),
             "pump": pump,
             "valve": valve,
         }
@@ -1431,16 +1452,24 @@ class TestElementsApplier:
     def test_pumps_resize_their_icon_only(self, monkeypatch):
         symbol, layers = self._links()
         self._apply(monkeypatch, "qgisred_isolatedsegments_links", "PUMP", symbol, size=9)
-        assert layers["pump"].expression(SIZE_KEY) == isolatedLinkSize("PUMP", 9) and layers["pump"].size() == 9
-        assert layers["valve"].expression(SIZE_KEY) == isolatedLinkSize("VALVE", 6) and layers["valve"].size() == 6
-        assert layers["pipeLine"].width() == 1.4
+        assert layers["pump"].expression(SIZE_KEY) == isolatedLinkSize("PUMP", 9)
+        assert layers["valve"].expression(SIZE_KEY) == isolatedLinkSize("VALVE", 6)
+        assert {name: layer.size() for name, layer in layers.items()} == ISOLATED_LINK_BASE_SIZES
+
+    def test_an_icon_shown_in_the_layers_panel_follows_its_element(self, monkeypatch):
+        # Not the shipped style, which hides the icons there: one saved with a size under each expression
+        symbol, layers = self._links(dict(ISOLATED_LINK_BASE_SIZES, pump=4, valve=5))
+        self._apply(monkeypatch, "qgisred_isolatedsegments_links", "PUMP", symbol, size=9)
+        assert layers["pump"].expression(SIZE_KEY) == isolatedLinkSize("PUMP", 9) and layers["pump"].size() == 6
+        assert layers["valve"].expression(SIZE_KEY) == isolatedLinkSize("VALVE", 6) and layers["valve"].size() == 5
 
     def test_service_connections_resize_their_line_and_keep_the_circle_in_proportion(self, monkeypatch):
         symbol, layers = self._links()
         self._apply(monkeypatch, "qgisred_isolatedsegments_links", "SERVICECONNECTION", symbol, size=2.2)
         assert layers["connectionLine"].expression(STROKE_WIDTH_KEY) == isolatedLinkSize("SERVICECONNECTION", 2.2)
         assert layers["connectionCircle"].expression(SIZE_KEY) == isolatedLinkSize("SERVICECONNECTION", 4)
-        assert layers["pipeLine"].width() == 1.4 and layers["pump"].size() == 6
+        assert layers["pump"].expression(SIZE_KEY) == isolatedLinkSize("PUMP", 6)
+        assert layers["pipeLine"].width() == 1.4
 
     def test_pipes_resize_the_line_no_expression_gates(self, monkeypatch):
         symbol, layers = self._links()
@@ -1462,7 +1491,7 @@ class TestElementsApplier:
         assert layers["pump"].colorCalls == layers["pump"].strokeColorCalls == []
 
     def test_isolated_demands_resize_one_element_and_color_their_ring_under_all(self, monkeypatch):
-        ring = FakeSymbolLayer(expressions={SIZE_KEY: ISOLATED_DEMANDS_SIZE}, size=3)
+        ring = FakeSymbolLayer(expressions={SIZE_KEY: ISOLATED_DEMANDS_SIZE}, size=ISOLATED_DEMANDS_BASE_SIZE)
         identifier = "qgisred_isolatedsegments_isolateddemands"
         self._apply(monkeypatch, identifier, "CONNECTION", FakeSymbol([ring]), color="PICKED", size=3)
         assert ring.expression(SIZE_KEY) == ISOLATED_DEMANDS_SIZE.replace("'CONNECTION' THEN 2", "'CONNECTION' THEN 3")
@@ -1481,6 +1510,256 @@ class TestElementsApplier:
     ])
     def test_only_the_fixed_colors_can_be_picked(self, monkeypatch, identifier, elementType, locked):
         assert _dialog(monkeypatch, identifier, elementType).isColorLocked() is locked
+
+
+class FakeSizeCell:
+    """The size cell of the row: a percent under All, millimetres for one entry of the selector."""
+
+    def __init__(self, percent=None, millimetres=None):
+        self.percent = percent
+        self.millimetres = millimetres
+
+    def factor(self):
+        return self.percent
+
+    def text(self):
+        return repr(self.millimetres)
+
+
+class FakeLegendTable:
+    def __init__(self, sizeCell):
+        self.sizeCell = sizeCell
+
+    def cellWidget(self, row, column):
+        return self.sizeCell if column == 2 else None
+
+
+class FakeSingleSymbolRenderer:
+    def __init__(self, symbol):
+        self._symbol = symbol
+
+    def type(self):
+        return "singleSymbol"
+
+    def clone(self):
+        return copy.deepcopy(self)
+
+    def symbol(self):
+        return self._symbol
+
+
+class FakeRenderedLayer(FakeLayer):
+    def __init__(self, identifier, symbol):
+        super().__init__(identifier)
+        self._renderer = FakeSingleSymbolRenderer(symbol)
+
+    def renderer(self):
+        return self._renderer
+
+
+PUMPS_STYLE = "Pumps.qml.bak"
+PUMP_LINE_WIDTH = 0.5
+PUMP_ICON_SIZE = 6
+
+
+class TestApplyOfTheSizeCell:
+    """Apply hands the applier what the size cell says: a percent of the size it stands for, or millimetres."""
+
+    def test_the_fixture_is_the_shipped_style(self):
+        line, markerLine = _shippedSymbolLayers(PUMPS_STYLE)
+        assert float(_layerOptions(line)["line_width"]) == PUMP_LINE_WIDTH
+        assert float(_layerOptions(markerLine.find("symbol/layer"))["size"]) == PUMP_ICON_SIZE
+
+    def _apply(self, monkeypatch, identifier, variant, shown, geometryHint, sizeCell):
+        dialog = _dialog(monkeypatch, identifier, variant)
+        dialog.currentLayer = FakeRenderedLayer(identifier, shown)
+        dialog.currentFieldType = QGISRedLegendsDialog.FIELD_TYPE_SINGLE
+        dialog.getGeometryHint = lambda: geometryHint
+        dialog.tableView = FakeLegendTable(sizeCell)
+        return dialog.buildSingleSymbolRenderer().symbol()
+
+    def _applied(self, monkeypatch, variant, sizeCell):
+        icon = FakeSymbolLayer("SvgMarker", size=PUMP_ICON_SIZE)
+        markerLine = FakeSymbolLayer("MarkerLine", subSymbol=FakeSymbol([icon]))
+        shown = FakeSymbol([FakeSymbolLayer("SimpleLine", size=PUMP_LINE_WIDTH), markerLine])
+        applied = self._apply(monkeypatch, "qgisred_pumps", variant, shown, "line", sizeCell)
+        return self._lineAndIcon(applied), self._lineAndIcon(shown)
+
+    @staticmethod
+    def _lineAndIcon(symbol):
+        return symbol.symbolLayer(0).width(), symbol.symbolLayer(1).subSymbol().symbolLayer(0).size()
+
+    def test_the_root_of_a_tree_is_resized_alone(self, monkeypatch):
+        sizeCell = FakeSizeCell(millimetres=12)
+        applied = self._apply(monkeypatch, "qgisred_tree_nodes", "root", fakeTreeNodesSymbol(), "marker", sizeCell)
+        _tank, _reservoir, circle, star = [applied.symbolLayer(i) for i in range(applied.symbolLayerCount())]
+        assert star.expression(SIZE_KEY) == treeNodeSize("ROOT", 12)
+        assert circle.expression(SIZE_KEY) == treeNodeSize("Junction", 2)
+
+    def test_one_element_of_the_isolated_segments_is_resized_alone(self, monkeypatch):
+        shown, _layers = TestElementsApplier()._links()
+        sizeCell = FakeSizeCell(millimetres=9)
+        applied = self._apply(monkeypatch, "qgisred_isolatedsegments_links", "PUMP", shown, "line", sizeCell)
+        pump, valve = [applied.symbolLayer(i).subSymbol().symbolLayer(0) for i in (3, 4)]
+        assert pump.expression(SIZE_KEY) == isolatedLinkSize("PUMP", 9)
+        assert valve.expression(SIZE_KEY) == isolatedLinkSize("VALVE", 6)
+
+    def test_a_percent_scales_the_line_and_the_icon(self, monkeypatch):
+        applied, shown = self._applied(monkeypatch, None, FakeSizeCell(percent=1.5))
+        assert applied == pytest.approx((0.75, 9))
+        assert shown == (PUMP_LINE_WIDTH, PUMP_ICON_SIZE)
+
+    def test_100_percent_leaves_the_sizes_as_they_are(self, monkeypatch):
+        applied, _shown = self._applied(monkeypatch, None, FakeSizeCell(percent=1.0))
+        assert applied == (PUMP_LINE_WIDTH, PUMP_ICON_SIZE)
+
+    def test_one_component_takes_the_millimetres_typed(self, monkeypatch):
+        applied, _shown = self._applied(monkeypatch, "marker", FakeSizeCell(millimetres=7.5))
+        assert applied == (PUMP_LINE_WIDTH, 7.5)
+
+    @pytest.mark.skipif(not REAL_QGIS, reason="the percent cell is a real spin box")
+    def test_the_percent_cell_opens_at_100_percent(self):
+        assert customDialogsModule.QGISRedSizePercentSpinBox().factor() == 1.0
+
+
+def selectorEntries():
+    """(identifier, selector data) of every entry of every selector, All (None) included."""
+    dialog = QGISRedLegendsDialog.__new__(QGISRedLegendsDialog)
+    dialog.tr = lambda text: text
+    entries = []
+    for identifier in sorted(QGISRedLegendsDialog.VARIANT_SELECTOR_IDENTIFIERS):
+        entries += [(identifier, data) for _text, data in dialog.inputVariantItems(identifier)[1]]
+    return entries
+
+
+def symbolXml(symbol):
+    from qgis.core import QgsReadWriteContext, QgsSymbolLayerUtils
+    from qgis.PyQt.QtXml import QDomDocument
+
+    document = QDomDocument()
+    document.appendChild(QgsSymbolLayerUtils.saveSymbol("symbol", symbol, document, QgsReadWriteContext()))
+    return document.toString()
+
+
+def expressionKeys(symbol, path=""):
+    """Every data-defined property of the symbol, as "layer path#property key"."""
+    found = set()
+    for index in range(symbol.symbolLayerCount()):
+        symbolLayer = symbol.symbolLayer(index)
+        layerPath = "%s/%d" % (path, index)
+        found |= {"%s#%s" % (layerPath, key) for key in symbolLayer.dataDefinedProperties().propertyKeys()}
+        if symbolLayer.subSymbol():
+            found |= expressionKeys(symbolLayer.subSymbol(), layerPath)
+    return found
+
+
+@pytest.mark.skipif(not REAL_QGIS, reason="applies to the real symbols QGIS builds from the shipped styles")
+@pytest.mark.parametrize("identifier, variant", selectorEntries())
+class TestApplyOnRealQgis:
+    """Every entry of every selector, on the shipped style: Apply writes what the size cell says and nothing else."""
+
+    GEOMETRIES = {"0": "Point", "1": "LineString"}
+
+    def _dialog(self, identifier, variant):
+        from qgis.core import QgsVectorLayer
+
+        dialog = QGISRedLegendsDialog.__new__(QGISRedLegendsDialog)
+        dialog.pluginFolder = PLUGIN_ROOT
+        dialog.currentFieldName = ""
+        dialog.currentFieldType = QGISRedLegendsDialog.FIELD_TYPE_SINGLE
+        dialog.getSelectedVariant = lambda: variant
+        dialog.currentLayer = FakeLayer(identifier)
+        path = dialog.findStylePath(QGISRedLegendsDialog.STYLE_SCOPE_DEFAULT)[0]
+        geometry = self.GEOMETRIES[ET.parse(path).getroot().findtext("layerGeometryType")]
+        layer = QgsVectorLayer(geometry + "?crs=EPSG:3857&field=Id:string", identifier, "memory")
+        assert layer.loadNamedStyle(path)[1]
+        layer.setCustomProperty("qgisred_identifier", identifier)
+        dialog.currentLayer = layer
+        return dialog
+
+    @staticmethod
+    def _cellSize(dialog, symbol, variant):
+        """Millimetres the size cell stands for with the selector on the given entry."""
+        selected = dialog.getSelectedVariant
+        dialog.getSelectedVariant = lambda: variant
+        size = dialog.currentSymbolSize(symbol, dialog.effectiveGeometryHint(symbol, dialog.getGeometryHint()))
+        dialog.getSelectedVariant = selected
+        return size
+
+    def _apply(self, dialog, variant, percent):
+        """(symbol shown, renderer Apply builds) with the size cell at a percent of the size it stands for."""
+        shown = dialog.currentLayer.renderer().symbol().clone()
+        millimetres = percent * self._cellSize(dialog, shown, variant)
+        dialog.tableView = FakeLegendTable(FakeSizeCell(percent=percent, millimetres=millimetres))
+        return shown, dialog.buildSingleSymbolRenderer()
+
+    def test_the_size_as_it_is_changes_nothing(self, identifier, variant):
+        shown, renderer = self._apply(self._dialog(identifier, variant), variant, 1.0)
+        assert symbolXml(renderer.symbol()) == symbolXml(shown)
+
+    def test_a_larger_size_resizes_the_selected_entry_and_no_other(self, identifier, variant):
+        dialog = self._dialog(identifier, variant)
+        shown, renderer = self._apply(dialog, variant, 1.5)
+        entries = [entry for entryIdentifier, entry in selectorEntries() if entryIdentifier == identifier]
+        # All resizes every entry; one entry resizes itself only. What All stands for then is left
+        # out: it is the size of whichever entry the layer shows first.
+        for entry in entries if variant is None else [entry for entry in entries if entry is not None]:
+            resized = 1.5 if variant in (None, entry) else 1.0
+            before = self._cellSize(dialog, shown, entry)
+            assert self._cellSize(dialog, renderer.symbol(), entry) == pytest.approx(resized * before), entry
+        assert expressionKeys(renderer.symbol()) == expressionKeys(shown)
+        assert symbolXml(dialog.currentLayer.renderer().symbol()) == symbolXml(shown)
+
+
+@pytest.mark.skipif(not REAL_QGIS, reason="needs what QGIS does when the size of a marker line is written")
+class TestMarkerLineOnRealQgis:
+    """Not a shipped style: a marker line sized by an expression whose icon is shown in the Layers
+    Panel and drawn off the line. Resizing rewrites each expression once and leaves the offset alone."""
+
+    ICON_OFFSET = -0.13
+
+    def _symbol(self):
+        from qgis.core import QgsLineSymbol, QgsMarkerLineSymbolLayer, QgsMarkerSymbol, QgsProperty
+        from qgis.PyQt.QtCore import QPointF
+
+        icon = QgsMarkerSymbol.createSimple({"name": "circle", "size": "6"})
+        icon.symbolLayer(0).setOffset(QPointF(self.ICON_OFFSET, self.ICON_OFFSET))
+        markerLine = QgsMarkerLineSymbolLayer()
+        markerLine.setSubSymbol(icon)
+        for symbolLayer, propertyKey in ((markerLine.subSymbol().symbolLayer(0), SIZE_KEY), (markerLine, WIDTH_KEY)):
+            properties = symbolLayer.dataDefinedProperties()
+            properties.setProperty(propertyKey, QgsProperty.fromExpression(isolatedLinkSize("PUMP", 6)))
+            symbolLayer.setDataDefinedProperties(properties)
+        symbol = QgsLineSymbol()
+        symbol.changeSymbolLayer(0, markerLine)
+        return symbol
+
+    def _dialog(self):
+        dialog = QGISRedLegendsDialog.__new__(QGISRedLegendsDialog)
+        dialog.currentLayer = FakeLayer("qgisred_isolatedsegments_links")
+        dialog.getSelectedVariant = lambda: "PUMP"
+        return dialog
+
+    def _assertResizedOnce(self, symbol, iconBaseSize):
+        markerLine = symbol.symbolLayer(0)
+        icon = markerLine.subSymbol().symbolLayer(0)
+        assert markerLine.dataDefinedProperties().property(WIDTH_KEY).expressionString() == isolatedLinkSize("PUMP", 9)
+        assert icon.dataDefinedProperties().property(SIZE_KEY).expressionString() == isolatedLinkSize("PUMP", 9)
+        assert expressionKeys(symbol) == {"/0#%s" % WIDTH_KEY, "/0/0#%s" % SIZE_KEY}
+        assert (icon.offset().x(), icon.offset().y()) == (self.ICON_OFFSET, self.ICON_OFFSET)
+        assert icon.size() == iconBaseSize
+
+    def test_resizing_one_element(self):
+        symbol = self._symbol()
+        self._dialog()._applyElementsLegend(symbol, None, 9)
+        self._assertResizedOnce(symbol, iconBaseSize=9)
+
+    def test_scaling_every_size_expression(self):
+        symbol = self._symbol()
+        dialog = self._dialog()
+        for propertyKey in (SIZE_KEY, WIDTH_KEY, STROKE_WIDTH_KEY):
+            dialog._scaleSizeExpressionsOnLayers(symbol, propertyKey, 1.5)
+        self._assertResizedOnce(symbol, iconBaseSize=6)
 
 
 def _shippedClasses(fileName):

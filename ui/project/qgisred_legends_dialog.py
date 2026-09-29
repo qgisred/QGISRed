@@ -4574,8 +4574,16 @@ class QGISRedLegendsDialog(QDialog, formClass):
             return False
         newExpr, changed = substituteCapturedGroup(existing.expressionString(), pattern, newText)
         if changed:
-            symbolLayer.setDataDefinedProperty(propertyKey, QgsProperty.fromExpression(newExpr))
+            self._writeExpression(symbolLayer, propertyKey, newExpr)
         return changed
+
+    @staticmethod
+    def _writeExpression(symbolLayer, propertyKey, expression):
+        """Replace one expression and nothing else: setDataDefinedProperty() on a marker line
+        also rewrites the size and the offset of the marker drawn on it."""
+        properties = symbolLayer.dataDefinedProperties()
+        properties.setProperty(propertyKey, QgsProperty.fromExpression(expression))
+        symbolLayer.setDataDefinedProperties(properties)
 
     def _forceExpressionOnLayers(self, symbol, propertyKey, expression):
         """Set the data-defined expression on every symbol layer (recursive), creating it when missing.
@@ -4949,7 +4957,8 @@ class QGISRedLegendsDialog(QDialog, formClass):
     def _scaleLayerBaseSize(symbolLayer, factor):
         if symbolLayer.layerType() == "SimpleLine":
             symbolLayer.setWidth(symbolLayer.width() * factor)
-        else:
+        elif symbolLayer.layerType() != "MarkerLine":
+            # A marker line has no size of its own: the marker drawn on it carries it
             symbolLayer.setSize(symbolLayer.size() * factor)
 
     def _scaleElementSizes(self, symbol, elementType, factor):
@@ -4960,7 +4969,7 @@ class QGISRedLegendsDialog(QDialog, formClass):
         for symbolLayer, propertyKey in self._elementSizeLayers(symbol, elementType):
             expression = self._sizeExpression(symbolLayer, propertyKey)
             scaled = scaleCapturedNumbers(expression, pattern, factor)
-            symbolLayer.setDataDefinedProperty(propertyKey, QgsProperty.fromExpression(scaled))
+            self._writeExpression(symbolLayer, propertyKey, scaled)
             if self._ownsBaseSize(expression, elementType):
                 self._scaleLayerBaseSize(symbolLayer, factor)
 
@@ -5034,7 +5043,7 @@ class QGISRedLegendsDialog(QDialog, formClass):
             existing = sl.dataDefinedProperties().property(propertyKey)
             if existing and existing.propertyType() == QgsProperty.ExpressionBasedProperty:
                 newExpr = scaleNumericLiterals(existing.expressionString(), factor)
-                sl.setDataDefinedProperty(propertyKey, QgsProperty.fromExpression(newExpr))
+                self._writeExpression(sl, propertyKey, newExpr)
             if hasattr(sl, 'subSymbol') and sl.subSymbol():
                 self._scaleSizeExpressionsOnLayers(sl.subSymbol(), propertyKey, factor)
 

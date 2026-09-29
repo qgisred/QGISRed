@@ -98,3 +98,29 @@ class TestApplyLegendRestoresIt:
 
         dialog.currentLayer.setRenderer.assert_not_called()
         styling.return_value.applyNullStyle.assert_not_called()
+
+
+class TestApplyLegendOnAPercentCell:
+    """The sizes just applied are the current ones: the row is shown again, which puts the cell
+    back at 100 %, so applying once more (OK after Apply) does not scale them a second time."""
+
+    def _dialog(self, variant):
+        dialog = _dialog("qgisred_pipes")
+        dialog.currentFieldType = QGISRedLegendsDialog.FIELD_TYPE_SINGLE
+        dialog.getSelectedVariant = lambda: variant
+        dialog.showLayerLegendInTable = MagicMock()
+        return dialog
+
+    def test_the_row_is_shown_again_after_applying_a_percent(self, styling):
+        dialog = self._dialog(None)
+
+        dialog.applyLegend()
+
+        dialog.showLayerLegendInTable.assert_called_once_with()
+
+    def test_a_size_in_millimetres_stays_as_typed(self, styling):
+        dialog = self._dialog("line")
+
+        dialog.applyLegend()
+
+        dialog.showLayerLegendInTable.assert_not_called()
