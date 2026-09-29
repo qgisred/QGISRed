@@ -307,7 +307,10 @@ class QGISRedImportDialog(QDialog, FORM_CLASS):
             self.parent.zoomToFullExtent = True
             epsg = self.crs.authid().replace("EPSG:", "")
             QApplication.setOverrideCursor(Qt.CursorShape.WaitCursor)
-            resMessage = GISRed.ImportFromInp(self.ProjectDirectory, self.NetworkName, self.parent.tempFolder, self.InpFile, epsg)
+            resMessage = GISRed.ImportFromInp(
+                self.ProjectDirectory, self.NetworkName, self.parent.tempFolder, self.InpFile, epsg,
+                self.chkSeparateOverlappingNodes.isChecked()
+            )
             QApplication.restoreOverrideCursor()
             self.parent.ProjectDirectory = self.ProjectDirectory
             self.parent.NetworkName = self.NetworkName

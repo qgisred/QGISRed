@@ -212,7 +212,20 @@
              </property>
             </widget>
            </item>
-           <item row="1" column="1">
+           <item row="1" column="0" colspan="3">
+            <widget class="QCheckBox" name="chkSeparateOverlappingNodes">
+             <property name="toolTip">
+              <string>Some programs export pumps and valves as links whose end nodes share the same coordinates. Enabling this option moves those nodes slightly apart, so that no element is lost on import.</string>
+             </property>
+             <property name="text">
+              <string>Separate overlapping nodes</string>
+             </property>
+             <property name="checked">
+              <bool>true</bool>
+             </property>
+            </widget>
+           </item>
+           <item row="2" column="1">
             <spacer name="verticalSpacer_2">
              <property name="orientation">
               <enum>Qt::Vertical</enum>

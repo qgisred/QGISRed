@@ -56,17 +56,18 @@ class QGISRedProjectManagementMixin:
         return _to_string(b)
 
     @staticmethod
-    def ImportFromInp(projectFolder, networkName, tempFolder, inpFile, epsg):
+    def ImportFromInp(projectFolder, networkName, tempFolder, inpFile, epsg, separateOverlappingNodes=True):
         projectFolder = _encode(projectFolder)
         networkName = _encode(networkName)
         tempFolder = _encode(tempFolder)
         inpFile = _encode(inpFile)
         epsg = _encode(epsg)
+        separateOverlappingNodes = _encode("1" if separateOverlappingNodes else "0")
 
         mydll = _load_dll()
-        mydll.ImportFromInp.argtypes = (c_char_p, c_char_p, c_char_p, c_char_p, c_char_p)
+        mydll.ImportFromInp.argtypes = (c_char_p, c_char_p, c_char_p, c_char_p, c_char_p, c_char_p)
         mydll.ImportFromInp.restype = c_char_p
-        b = mydll.ImportFromInp(projectFolder, networkName, tempFolder, inpFile, epsg)
+        b = mydll.ImportFromInp(projectFolder, networkName, tempFolder, inpFile, epsg, separateOverlappingNodes)
         return _to_string(b)
 
     @staticmethod
