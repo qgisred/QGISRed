@@ -110,11 +110,11 @@ class QGISRedIdentifyFeature(QgsMapToolIdentify):
     # -------------------------------
     def getHandlers(self):
         return {
-            'qgisred_meters': (['tabData'], 'handleMeters'),
-            'qgisred_isolationvalves': (['tabData'], 'handleIsolationValves'),
             'qgisred_junctions': (['tabData', 'tabResults', 'tabPatterns', 'tabControls'], 'handleJunctions'),
             'qgisred_tanks': (['tabData', 'tabResults', 'tabCurves', 'tabPatterns', 'tabControls'], 'handleTanks'),
             'qgisred_reservoirs': (['tabData', 'tabResults', 'tabPatterns', 'tabControls'], 'handleReservoirs'),
+            'qgisred_meters': (['tabData'], 'handleMeters'),
+            'qgisred_isolationvalves': (['tabData'], 'handleIsolationValves'),
             'qgisred_valves': (['tabData', 'tabResults', 'tabCurves', 'tabControls'], 'handleValves'),
             'qgisred_pumps': (['tabData', 'tabResults', 'tabCurves', 'tabPatterns', 'tabControls'], 'handlePumps'),
             'qgisred_pipes': (['tabData', 'tabResults', 'tabCurves', 'tabControls'], 'handlePipes'),
