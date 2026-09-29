@@ -695,10 +695,7 @@ class QGISRedLegendsDialog(QDialog, formClass):
         self.labelInputRestriction = QLabel(self)
         self.labelInputRestriction.setWordWrap(True)
         self.labelInputRestriction.setMaximumWidth(260)
-        self.labelInputRestriction.setText(self.tr(
-            "This layer has one color and size per row, set in the table. "
-            "The options below apply to results and thematic map layers."
-        ))
+        self.labelInputRestriction.setText(self.tr("Single symbol layer: no size or color classes."))
         font = self.labelInputRestriction.font()
         font.setItalic(True)
         self.labelInputRestriction.setFont(font)
