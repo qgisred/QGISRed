@@ -2728,6 +2728,8 @@ class QGISRedLegendsDialog(QDialog, formClass):
                 strokeColorOnly = markerName == "circle"
                 color = markers[0].strokeColor() if strokeColorOnly else markers[0].color()
                 previewSymbol = self._circleOnlySymbol(symbol, markerName)
+            elif not markerName:
+                previewSymbol = self._treeNodesAtDrawnSizes(symbol)
         colorPart = self.classColorPart(valueText)
         if colorPart:
             color = self.readMarkerPartColor(symbol, colorPart)
@@ -2788,7 +2790,7 @@ class QGISRedLegendsDialog(QDialog, formClass):
         size = self.currentSymbolSize(symbol, geometryHint)
         if self.isFactorCell():
             # Millimetres the swatch draws at 100 %, so the preview can follow the typed percent
-            self.factorPreviewAnchor = self._getNodeSize(symbol) if self.isTreeNodesLayer() else size
+            self.factorPreviewAnchor = self._treeNodesAtDrawnSizes(symbol).size() if self.isTreeNodesLayer() else size
             self.tableView.setCellWidget(row, 2, self.createSizePercentSpinBox(row))
             return
         self.tableView.setCellWidget(row, 2, self.createSizeLineEdit(self.formatSizeText(size), row))
@@ -4802,6 +4804,15 @@ class QGISRedLegendsDialog(QDialog, formClass):
             return None
         match = self.TREE_NODE_SIZE_PATTERN.search(sizeProperty.expressionString())
         return float(match.group(1)) if match else None
+
+    def _treeNodesAtDrawnSizes(self, symbol):
+        """A clone of the Tree nodes symbol with each marker at the size the map draws its node type."""
+        preview = symbol.clone()
+        for i in range(preview.symbolLayerCount()):
+            drawnSize = self._readTreeNodeSize(preview.symbolLayer(i))
+            if drawnSize is not None:
+                preview.symbolLayer(i).setSize(drawnSize)
+        return preview
 
     def _lineOnlySymbol(self, symbol):
         """A clone of symbol keeping only its SimpleLine layers."""

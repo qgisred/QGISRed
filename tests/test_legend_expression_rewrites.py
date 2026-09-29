@@ -7,8 +7,10 @@ expression. Fixtures are the exact expressions from defaults/layerStyles/*.qml.b
 the rest of the expression untouched.
 """
 import base64
+import copy
 import os
 import xml.etree.ElementTree as ET
+from unittest.mock import MagicMock
 
 import pytest
 
@@ -1174,6 +1176,156 @@ class TestFactorCell:
     def test_the_percent_of_the_tree_nodes_stands_for_the_junction_circle(self, monkeypatch):
         symbol = FakeSymbol([FakeTreeMarker("circle", "Junction", 2, 2), FakeTreeMarker("star", "ROOT", 8, 4)])
         assert self._dialog(monkeypatch, "qgisred_tree_nodes").currentSymbolSize(symbol, "marker") == 2
+
+
+TREE_NODES_STYLE = "TreeNodes.qml.bak"
+# Layer class, marker shape, property carrying the size, node type, size on the map, base size
+TREE_NODE_LAYERS = (
+    ("SvgMarker", None, "width", "Tank", 7, 0),
+    ("SvgMarker", None, "width", "Reservoir", 7, 0),
+    ("SimpleMarker", "circle", "size", "Junction", 2, 2),
+    ("SimpleMarker", "star", "size", "ROOT", 8, 4),
+)
+
+
+def treeNodeSize(nodeType, size):
+    return f"if(\"NodeType\" = '{nodeType}', {size}, 0)"
+
+
+def _shippedSymbolLayers(fileName):
+    """The layer elements of the shipped renderer symbol."""
+    path = os.path.join(PLUGIN_ROOT, "defaults", "layerStyles", fileName)
+    return ET.parse(path).getroot().find("renderer-v2/symbols/symbol").findall("layer")
+
+
+def _layerOptions(layerElement):
+    """{option: value} of a QML symbol layer, written as <prop> by older QGIS and as <Option> since."""
+    options = {prop.get("k"): prop.get("v") for prop in layerElement.findall("prop")}
+    options.update({option.get("name"): option.get("value") for option in layerElement.findall("Option/Option")})
+    return options
+
+
+def _rendererLayerOptions(fileName):
+    """[{option: value}] of the layers of the shipped renderer symbol."""
+    return [_layerOptions(layerElement) for layerElement in _shippedSymbolLayers(fileName)]
+
+
+class FakeTreeIcon(FakeSymbolLayer):
+    """A Tree nodes SvgMarker layer (tank or reservoir icon), sized through its width."""
+
+    def __init__(self, nodeType, literal, size):
+        super().__init__("SvgMarker", expressions={WIDTH_KEY: treeNodeSize(nodeType, literal)}, size=size)
+
+    def color(self):
+        return "ICON"
+
+
+class FakeMarkerSymbol(FakeSymbol):
+    def clone(self):
+        return copy.deepcopy(self)
+
+    def size(self):
+        # Like QgsMarkerSymbol: the largest of its layers
+        return max(layer.size() for layer in self._layers)
+
+
+def fakeTreeNodesSymbol():
+    layers = []
+    for _layerClass, shape, _propertyName, nodeType, drawnSize, baseSize in TREE_NODE_LAYERS:
+        if shape:
+            layers.append(FakeTreeMarker(shape, nodeType, drawnSize, baseSize))
+        else:
+            layers.append(FakeTreeIcon(nodeType, drawnSize, baseSize))
+    return FakeMarkerSymbol(layers)
+
+
+def layerSizes(symbol):
+    return [symbol.symbolLayer(i).size() for i in range(symbol.symbolLayerCount())]
+
+
+class TestTreeNodesSwatch:
+    """With the selector on All the swatch draws every marker at the size the map draws its node type."""
+
+    def _dialog(self, monkeypatch):
+        dialog = _dialog(monkeypatch, "qgisred_tree_nodes")
+        dialog.currentFieldType = QGISRedLegendsDialog.FIELD_TYPE_SINGLE
+        return dialog
+
+    def test_the_fixture_is_the_shipped_style(self):
+        layers = _rendererLayers(TREE_NODES_STYLE)
+        options = _rendererLayerOptions(TREE_NODES_STYLE)
+        assert len(layers) == len(options) == len(TREE_NODE_LAYERS)
+        for (layerClass, exprs, _), layerOptions, expected in zip(layers, options, TREE_NODE_LAYERS):
+            expectedClass, shape, propertyName, nodeType, drawnSize, baseSize = expected
+            assert layerClass == expectedClass
+            assert exprs == {propertyName: treeNodeSize(nodeType, drawnSize)}
+            assert float(layerOptions["size"]) == baseSize
+            assert shape is None or layerOptions["name"] == shape
+
+    def test_every_marker_is_previewed_at_the_size_of_its_node_type(self, monkeypatch):
+        symbol = fakeTreeNodesSymbol()
+        preview = self._dialog(monkeypatch)._treeNodesAtDrawnSizes(symbol)
+        assert layerSizes(preview) == [0, 0, 2, 8]
+        assert layerSizes(symbol) == [0, 0, 2, 4]
+
+    def test_the_percent_scales_the_preview_from_its_largest_marker(self, monkeypatch):
+        dialog = self._dialog(monkeypatch)
+        dialog.tableView = MagicMock()
+        dialog.createSizePercentSpinBox = lambda row: "percent cell"
+        dialog.setSizeWidget(0, fakeTreeNodesSymbol(), "marker")
+        assert dialog.factorPreviewAnchor == 8
+
+    @pytest.mark.mock_only
+    def test_the_swatch_is_given_that_preview(self, monkeypatch):
+        swatchClass = MagicMock()
+        monkeypatch.setattr(legendsModule, "QGISRedSymbolColorSelector", swatchClass)
+        self._dialog(monkeypatch).setColorWidget(0, fakeTreeNodesSymbol(), "marker")
+        assert layerSizes(swatchClass.call_args.kwargs["actualSymbol"]) == [0, 0, 2, 8]
+
+
+@pytest.mark.skipif(not REAL_QGIS, reason="needs the real symbol of the shipped style and its real sizes")
+class TestTreeNodesSwatchOnRealQgis:
+    """What the swatch draws under All is what Apply writes, on the shipped Tree nodes style."""
+
+    def _layer(self):
+        from qgis.core import QgsVectorLayer
+
+        layer = QgsVectorLayer("Point?crs=EPSG:3857&field=NodeType:string", "Tree nodes", "memory")
+        layer.loadNamedStyle(os.path.join(PLUGIN_ROOT, "defaults", "layerStyles", TREE_NODES_STYLE))
+        layer.setCustomProperty("qgisred_identifier", "qgisred_tree_nodes")
+        return layer
+
+    def _dialog(self, layer):
+        dialog = QGISRedLegendsDialog.__new__(QGISRedLegendsDialog)
+        dialog.currentLayer = layer
+        dialog.currentFieldType = QGISRedLegendsDialog.FIELD_TYPE_SINGLE
+        dialog.getSelectedVariant = lambda: None
+        dialog.createSizePercentSpinBox = lambda row: None
+        return dialog
+
+    def _swatchAt(self, dialog, symbol, percent):
+        dialog.setSizeWidget(0, symbol, "marker")
+        swatch = QGISRedSymbolColorSelector.__new__(QGISRedSymbolColorSelector)
+        swatch.geometryType = QGISRedSymbolColorSelector.markerType
+        swatch.previewSizeValue = percent * dialog.factorPreviewAnchor
+        swatch.mapDpi = swatch.swatchDpi = lambda: 96.0
+        drawn = dialog._treeNodesAtDrawnSizes(symbol)
+        swatch.applySizeScaling(drawn)
+        return drawn
+
+    @pytest.mark.parametrize("percent, circle, star", [(1.0, 2, 8), (1.5, 3, 12)])
+    def test_the_swatch_draws_what_apply_writes(self, percent, circle, star):
+        layer = self._layer()
+        symbol = layer.renderer().symbol()
+        dialog = self._dialog(layer)
+
+        drawn = self._swatchAt(dialog, symbol, percent)
+        applied = symbol.clone()
+        dialog._applyTreeNodesLegend(applied, None, percent * dialog.currentSymbolSize(symbol, "marker"))
+
+        written = [dialog._readTreeNodeSize(applied.symbolLayer(i)) for i in range(applied.symbolLayerCount())]
+        assert written == [None, None, circle, star]
+        assert layerSizes(drawn)[2:] == pytest.approx([circle, star])
 
 
 ISOLATED_LINK_TYPE = "coalesce(attribute($currentfeature,'LinkType'),attribute($currentfeature,'ElemType'))"
