@@ -2,12 +2,15 @@
 """Save-strategy parts are independent: allClasses can be saved together with
 colors and sizes, and loading a combined strategy pins the classes first."""
 import os
+import xml.etree.ElementTree as ET
 from unittest.mock import MagicMock
 import pytest
 
 import QGISRed.ui.project.qgisred_legends_dialog as legendsModule
 from QGISRed.ui.project.qgisred_legends_dialog import QGISRedLegendsDialog
 from QGISRed.ui.project.qgisred_custom_dialogs import QGISRedSaveStrategyDialog
+
+from .conftest import REAL_QGIS
 
 
 def _dialog():
@@ -374,24 +377,90 @@ class TestLoadBranching:
 
 
 class TestLabelVisibility:
-    """A style file carries whether labels are shown; loading one leaves that as the user has it."""
+    """A style file carries labels and whether they are shown; loading one leaves shown or hidden
+    as the user has it, and a file that brings no labels leaves the ones of the layer in place."""
+
+    class _Labeling:
+        def __init__(self, origin):
+            self.origin = origin
+
+        def clone(self):
+            return type(self)(self.origin)
 
     class _Layer:
-        def __init__(self, labelsShown):
+        """What TestLabelVisibilityOnRealQgis sees QgsVectorLayer do: a file without labels removes them."""
+
+        def __init__(self, labelsShown, fileBringsLabels):
+            self.labels = TestLabelVisibility._Labeling("layer")
             self.labelsShown = labelsShown
+            self.fileBringsLabels = fileBringsLabels
+
+        def labeling(self):
+            return self.labels
+
+        def setLabeling(self, labeling):
+            self.labels = labeling
 
         def labelsEnabled(self):
-            return self.labelsShown
+            return self.labelsShown and self.labels is not None
 
         def setLabelsEnabled(self, enabled):
             self.labelsShown = enabled
 
         def loadNamedStyle(self, path):
+            self.labels = TestLabelVisibility._Labeling("file") if self.fileBringsLabels else None
             self.labelsShown = True
 
+        def customProperty(self, key):
+            return "qgisred_pipes"
+
+        def setCustomProperty(self, key, value):
+            pass
+
     @pytest.mark.parametrize("labelsShown", [True, False])
-    def test_loading_a_style_keeps_the_labels_as_they_were(self, labelsShown):
+    @pytest.mark.parametrize("fileBringsLabels, labelsKept", [(True, "file"), (False, "layer")])
+    def test_loading_a_style_keeps_the_labels_as_they_were(self, labelsShown, fileBringsLabels, labelsKept):
         dialog = _dialog()
-        dialog.currentLayer = self._Layer(labelsShown)
+        dialog.currentLayer = self._Layer(labelsShown, fileBringsLabels)
         dialog.loadStyleKeepingLabelVisibility("/plugin/defaults/layerStyles/Pipes.qml.bak")
         assert dialog.currentLayer.labelsEnabled() is labelsShown
+        assert dialog.currentLayer.labeling().origin == labelsKept
+
+
+PLUGIN_ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
+SHIPPED_STYLES_FOLDER = os.path.join(PLUGIN_ROOT, "defaults", "layerStyles")
+SHIPPED_STYLES = sorted(name for name in os.listdir(SHIPPED_STYLES_FOLDER) if name.endswith(".qml.bak"))
+
+
+@pytest.mark.skipif(not REAL_QGIS, reason="needs what QgsVectorLayer does with its labels when it loads a style")
+class TestLabelVisibilityOnRealQgis:
+    GEOMETRIES = {"0": "Point", "1": "LineString", "2": "Polygon"}
+
+    def _layer(self, styleRoot, labelsShown):
+        from qgis.core import QgsPalLayerSettings, QgsVectorLayer, QgsVectorLayerSimpleLabeling
+
+        geometry = self.GEOMETRIES[styleRoot.findtext("layerGeometryType")]
+        layer = QgsVectorLayer(geometry + "?crs=EPSG:3857&field=Id:string", "layer", "memory")
+        ownLabels = QgsPalLayerSettings()
+        ownLabels.fieldName = "Id"
+        layer.setLabeling(QgsVectorLayerSimpleLabeling(ownLabels))
+        layer.setLabelsEnabled(labelsShown)
+        return layer
+
+    @pytest.mark.parametrize("labelsShown", [True, False])
+    @pytest.mark.parametrize("fileName", SHIPPED_STYLES)
+    def test_every_shipped_style_leaves_the_labels_as_they_were(self, fileName, labelsShown):
+        path = os.path.join(SHIPPED_STYLES_FOLDER, fileName)
+        styleRoot = ET.parse(path).getroot()
+        bringsLabels = styleRoot.find("labeling") is not None
+        loadedAsIs = self._layer(styleRoot, labelsShown)
+        assert loadedAsIs.loadNamedStyle(path)[1]
+        assert (loadedAsIs.labeling() is not None) == bringsLabels
+        dialog = _dialog()
+        dialog.currentLayer = self._layer(styleRoot, labelsShown)
+
+        dialog.loadStyleKeepingLabelVisibility(path)
+
+        assert dialog.currentLayer.labelsEnabled() is labelsShown
+        if not bringsLabels:
+            assert dialog.currentLayer.labeling().settings().fieldName == "Id"

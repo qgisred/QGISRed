@@ -5522,10 +5522,18 @@ class QGISRedLegendsDialog(QDialog, formClass):
         QMessageBox.warning(self, self.tr("Not Found"), message)
 
     def loadStyleKeepingLabelVisibility(self, path):
-        """A style file also carries whether labels are shown: that stays as the user has it."""
+        """A style file also carries whether labels are shown and the custom properties of the
+        layer it was saved from: the labels and the identifier stay as this layer has them.
+        A file that brings no labels leaves the ones of the layer in place."""
         labelsShown = self.currentLayer.labelsEnabled()
+        labeling = self.currentLayer.labeling()
+        ownLabeling = labeling.clone() if labeling is not None else None
+        identifier = self.currentLayer.customProperty("qgisred_identifier")
         self.currentLayer.loadNamedStyle(path)
+        if ownLabeling is not None and self.currentLayer.labeling() is None:
+            self.currentLayer.setLabeling(ownLabeling)
         self.currentLayer.setLabelsEnabled(labelsShown)
+        self.currentLayer.setCustomProperty("qgisred_identifier", identifier)
 
     def applyStyleFileToLayer(self, path):
         self.loadStyleKeepingLabelVisibility(path)
