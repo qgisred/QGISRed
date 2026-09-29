@@ -44,6 +44,7 @@ def _ramps():
 RAMPS = _ramps()
 GRADIENTS = [ramp for ramp in RAMPS if 'type="gradient"' in ramp[1]]
 PRESETS = [ramp for ramp in RAMPS if 'type="preset"' in ramp[1]]
+NUMBERED_PRESETS = [ramp for ramp in PRESETS if PALETTE_KIND_LABELED not in ramp[2]]
 
 
 def _colorCount(xml):
@@ -53,12 +54,11 @@ def _colorCount(xml):
 
 class TestRampKinds:
     @pytest.mark.parametrize("name, xml, tags", GRADIENTS, ids=[ramp[0] for ramp in GRADIENTS])
-    def test_a_ramp_carries_the_tag_of_its_number_of_colors(self, name, xml, tags):
+    def test_a_ramp_carries_the_tag_of_its_number_of_colors_and_nothing_else(self, name, xml, tags):
         colorCount = _colorCount(xml)
         expected = {2: RAMP_KIND_TWO_COLORS, 3: RAMP_KIND_THREE_COLORS}.get(colorCount, RAMP_KIND_MORE_COLORS)
 
-        assert [tag for tag in tags if tag in RAMP_KINDS] == [expected]
-        assert "Ramps" in tags
+        assert tags == [expected]
 
     @pytest.mark.parametrize("kind", RAMP_KINDS)
     def test_no_ramp_kind_is_left_empty(self, kind):
@@ -67,9 +67,8 @@ class TestRampKinds:
 
 class TestPaletteKinds:
     @pytest.mark.parametrize("name, xml, tags", PRESETS, ids=[ramp[0] for ramp in PRESETS])
-    def test_a_palette_carries_exactly_one_kind(self, name, xml, tags):
-        assert len([tag for tag in tags if tag in PALETTE_KINDS]) == 1
-        assert "Palettes" in tags
+    def test_a_palette_carries_its_kind_and_nothing_else(self, name, xml, tags):
+        assert len(tags) == 1 and tags[0] in PALETTE_KINDS
 
     @pytest.mark.parametrize("kind", PALETTE_KINDS)
     def test_no_palette_kind_is_left_empty(self, kind):
@@ -79,6 +78,11 @@ class TestPaletteKinds:
     def test_palettes_whose_colors_are_named_after_values_are_labeled(self, name):
         tags = next(tags for rampName, _xml, tags in PRESETS if rampName == name)
         assert PALETTE_KIND_LABELED in tags
+
+    @pytest.mark.parametrize("name, xml, tags", NUMBERED_PRESETS, ids=[ramp[0] for ramp in NUMBERED_PRESETS])
+    def test_span_and_sequential_palettes_number_their_colors(self, name, xml, tags):
+        labels = re.findall(r'value="([^"]*)" name="preset_color_name_\d+"', xml)
+        assert labels and labels == [str(number) for number in range(1, len(labels) + 1)]
 
     def test_labels_with_signs_are_stored_as_valid_xml(self):
         xml = next(xml for name, xml, _tags in PRESETS if name == "QGISRed Link Status")

@@ -54,17 +54,17 @@ CONNECTIVITY_STYLE_NAME = "ConnectLinks"
 
 # Kinds of color ramps and palettes, spelled like the tags scripts/build_style_db.py gives
 # them in the style database. A ramp is told apart by its number of colors; a palette by
-# how its colors reach the classes: Interpolated spreads them over the classes keeping the
+# how its colors reach the classes: Span spreads them over the classes keeping the
 # first and the last, Sequential hands them out in the order they are declared, Labeled
 # gives each class the color labeled with its value.
 RAMP_KIND_TWO_COLORS = "2 colors Ramps"
 RAMP_KIND_THREE_COLORS = "3 colors Ramps"
-RAMP_KIND_MORE_COLORS = "More than 3 colors Ramps"
-PALETTE_KIND_INTERPOLATED = "Interpolated Palettes"
+RAMP_KIND_MORE_COLORS = "> 3 colors Ramps"
+PALETTE_KIND_SPAN = "Span Palettes"
 PALETTE_KIND_SEQUENTIAL = "Sequential Palettes"
 PALETTE_KIND_LABELED = "Labeled Palettes"
 RAMP_KINDS = (RAMP_KIND_TWO_COLORS, RAMP_KIND_THREE_COLORS, RAMP_KIND_MORE_COLORS)
-PALETTE_KINDS = (PALETTE_KIND_INTERPOLATED, PALETTE_KIND_SEQUENTIAL, PALETTE_KIND_LABELED)
+PALETTE_KINDS = (PALETTE_KIND_SPAN, PALETTE_KIND_SEQUENTIAL, PALETTE_KIND_LABELED)
 
 # Root ids stamped on the two halves of a split tank/reservoir icon
 # (see defaults/layerStyles/icons/*_frame.svg and *_water.svg) -- see _isFrameSvgLayer.
@@ -603,7 +603,7 @@ class QGISRedStylingUtils:
         if kind == PALETTE_KIND_LABELED:
             # Labeled palettes match a value to a discrete category; a graduated legend has
             # numeric ranges instead, which never match, so interpolate the palette by position.
-            kind = PALETTE_KIND_INTERPOLATED
+            kind = PALETTE_KIND_SPAN
         ranges = renderer.ranges()
         rangeCount = max(len(ranges), 1)
         for index in range(len(ranges)):
@@ -840,16 +840,16 @@ class QGISRedStylingUtils:
         if kind == PALETTE_KIND_SEQUENTIAL:
             colors = ramp.colors()
             return None if not colors else QColor(colors[index % len(colors)])
-        if kind == PALETTE_KIND_INTERPOLATED:
+        if kind == PALETTE_KIND_SPAN:
             colors = ramp.colors()
             if not colors:
                 return None
-            return self.paletteColorAt(colors, self.interpolatedPalettePosition(len(colors), classCount, index))
+            return self.paletteColorAt(colors, self.spanPalettePosition(len(colors), classCount, index))
         return ramp.color(0.0 if classCount <= 1 else index / float(classCount - 1))
 
     @staticmethod
-    def interpolatedPalettePosition(colorCount, classCount, index):
-        """Where a class falls along an Interpolated palette; first and last colors are always taken.
+    def spanPalettePosition(colorCount, classCount, index):
+        """Where a class falls along a Span palette; first and last colors are always taken.
 
         With no more classes than colors it lands on a real color of the palette; with more
         classes than colors it falls between two of them, to be blended.
@@ -900,7 +900,7 @@ class QGISRedStylingUtils:
                 return RAMP_KIND_TWO_COLORS
             return RAMP_KIND_THREE_COLORS if colorCount == 3 else RAMP_KIND_MORE_COLORS
         tags = style.tagsOfSymbol(STYLE_ENTITY_COLORRAMP, rampName)
-        return next((kind for kind in PALETTE_KINDS if kind in tags), PALETTE_KIND_INTERPOLATED)
+        return next((kind for kind in PALETTE_KINDS if kind in tags), PALETTE_KIND_SPAN)
 
     def _translateCategoryLabel(self, value, field=None):
         if isinstance(value, str):

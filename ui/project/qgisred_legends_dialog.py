@@ -33,7 +33,7 @@ from qgis.utils import iface
 from ...compat import WKB_LINE_GEOMETRY, WKB_POINT_GEOMETRY
 from ...tools.utils.qgisred_styling_utils import _NULL_RULE_LABEL, CONNECTIVITY_STYLE_NAME, QGISRedStylingUtils
 from ...tools.utils.qgisred_styling_utils import RAMP_KINDS, PALETTE_KINDS, RAMP_KIND_TWO_COLORS, RAMP_KIND_THREE_COLORS
-from ...tools.utils.qgisred_styling_utils import RAMP_KIND_MORE_COLORS, PALETTE_KIND_INTERPOLATED, PALETTE_KIND_SEQUENTIAL
+from ...tools.utils.qgisred_styling_utils import RAMP_KIND_MORE_COLORS, PALETTE_KIND_SPAN, PALETTE_KIND_SEQUENTIAL
 from ...tools.utils.qgisred_styling_utils import PALETTE_KIND_LABELED
 from ...tools.utils.qgisred_legend_rule_utils import (
     OPEN_RANGE_BOUND as _OPEN_RANGE_BOUND,
@@ -888,8 +888,8 @@ class QGISRedLegendsDialog(QDialog, formClass):
             (self.tr("Random"), "Random"),
             (self.tr("2 colors Ramps"), RAMP_KIND_TWO_COLORS),
             (self.tr("3 colors Ramps"), RAMP_KIND_THREE_COLORS),
-            (self.tr("More than 3 colors Ramps"), RAMP_KIND_MORE_COLORS),
-            (self.tr("Interpolated Palettes"), PALETTE_KIND_INTERPOLATED),
+            (self.tr("> 3 colors Ramps"), RAMP_KIND_MORE_COLORS),
+            (self.tr("Span Palettes"), PALETTE_KIND_SPAN),
             (self.tr("Sequential Palettes"), PALETTE_KIND_SEQUENTIAL),
             (self.tr("Labeled Palettes"), PALETTE_KIND_LABELED),
         ]
@@ -923,10 +923,10 @@ class QGISRedLegendsDialog(QDialog, formClass):
             self.cbColors.setItemData(row, reason, Qt.ItemDataRole.ToolTipRole)
 
     def recommendedColorMode(self):
-        """Palette kind that suits the legend: Interpolated for numbers, Labeled when a labeled
+        """Palette kind that suits the legend: Span for numbers, Labeled when a labeled
         palette knows the values of the classes, Sequential for any other categories."""
         if self.currentFieldType == self.FIELD_TYPE_NUMERIC:
-            return PALETTE_KIND_INTERPOLATED
+            return PALETTE_KIND_SPAN
         if self.currentFieldType != self.FIELD_TYPE_CATEGORICAL:
             return None
         return PALETTE_KIND_LABELED if self.findMatchingLabeledPalette() else PALETTE_KIND_SEQUENTIAL
@@ -2066,7 +2066,7 @@ class QGISRedLegendsDialog(QDialog, formClass):
         ramps = self.loadColorRampsOfKind(mode)
         if not ramps:
             return
-        self.btnColorRamp.setNumberedBlocks(mode in (PALETTE_KIND_INTERPOLATED, PALETTE_KIND_SEQUENTIAL))
+        self.btnColorRamp.setNumberedBlocks(mode in (PALETTE_KIND_SPAN, PALETTE_KIND_SEQUENTIAL))
         self.btnColorRamp.addColorRamps(ramps)
         matching = self.findMatchingLabeledPalette() if mode == PALETTE_KIND_LABELED else None
         self.btnColorRamp.setActiveRampByName(matching or list(ramps.keys())[0])

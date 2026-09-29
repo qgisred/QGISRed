@@ -4,10 +4,10 @@
 Developer tool, not part of the plugin runtime. The file is a QGIS style
 database whose schema ships in git; this script refreshes only its QGISRed
 content: the fixed pipe material colors (materialColors table) and the color
-ramps and palettes offered by the Legends dialog. They are tagged Ramps and
-Palettes so the Style Manager can filter them apart, and once more by kind: a
-ramp by its number of colors, a palette by how its colors reach the classes.
-Those kind tags are what the Colors list of the Legends dialog is built from.
+ramps and palettes offered by the Legends dialog. Each one carries a single
+tag, its kind: a ramp by its number of colors, a palette by how its colors
+reach the classes. Those kind tags are what the Style Manager files them under
+and what the Colors list of the Legends dialog is built from.
 Run it after changing MATERIAL_PALETTE, GRADIENT_RAMPS or PRESET_PALETTES:
 
     python scripts/build_style_db.py
@@ -87,10 +87,10 @@ INITIAL_STATUS_PALETTE = (
     (("ACTIVE",), "#ff9900"),
 )
 
-# How the colors of a palette reach the classes of a legend: Interpolated spreads them over
+# How the colors of a palette reach the classes of a legend: Span spreads them over
 # the classes, always keeping the first and the last; Sequential hands them out in the
 # order they are declared; Labeled gives each class the color labeled with its value.
-INTERPOLATED, SEQUENTIAL, LABELED = "Interpolated Palettes", "Sequential Palettes", "Labeled Palettes"
+SPAN, SEQUENTIAL, LABELED = "Span Palettes", "Sequential Palettes", "Labeled Palettes"
 
 
 def labeledPalette(name, entries):
@@ -98,12 +98,12 @@ def labeledPalette(name, entries):
 
 
 # Preset palettes for the Legends dialog palette color modes, as (name, colors, labels,
-# kind) with labels None to show the hex codes. The first three mirror the shipped
-# thematic legend colors.
+# kind) with labels None to number the colors 1, 2, 3... The first three mirror the
+# shipped thematic legend colors.
 PRESET_PALETTES = (
-    ("QGISRed Pipe Diameters", ("#cdcae2", "#2abad4", "#8f5cd9", "#6ac12b", "#cbe314", "#ffcc4a", "#ff0000"), None, INTERPOLATED),
-    ("QGISRed Pipe Ages", ("#9dcbe7", "#579eca", "#abdda4", "#fdae61", "#ec6b6d", "#444444", "#d3d3d3"), None, INTERPOLATED),
-    ("QGISRed Pipe Roughness", ("#b72dcc", "#446ee7", "#2dcae5", "#7cd76c", "#f6cb5e", "#fc3a54"), None, INTERPOLATED),
+    ("QGISRed Pipe Diameters", ("#cdcae2", "#2abad4", "#8f5cd9", "#6ac12b", "#cbe314", "#ffcc4a", "#ff0000"), None, SPAN),
+    ("QGISRed Pipe Ages", ("#9dcbe7", "#579eca", "#abdda4", "#fdae61", "#ec6b6d", "#444444", "#d3d3d3"), None, SPAN),
+    ("QGISRed Pipe Roughness", ("#b72dcc", "#446ee7", "#2dcae5", "#7cd76c", "#f6cb5e", "#fc3a54"), None, SPAN),
     ("QGISRed Pipe Materials",
      tuple(color for _, _, color in MATERIAL_PALETTE),
      tuple(", ".join(abbreviations) for abbreviations, _, _ in MATERIAL_PALETTE), LABELED),
@@ -111,7 +111,7 @@ PRESET_PALETTES = (
     labeledPalette("QGISRed Initial Status", INITIAL_STATUS_PALETTE),
     ("QGISRed Qualitative 10", ("#e41a1c", "#377eb8", "#4daf4a", "#984ea3", "#ff7f00",
                                 "#a65628", "#f781bf", "#999999", "#66c2a5", "#ffd92f"), None, SEQUENTIAL),
-    ("QGISRed EPANET Results", ("#0000ff", "#00ffff", "#00ff00", "#f9e212", "#ff0000"), None, INTERPOLATED),
+    ("QGISRed EPANET Results", ("#0000ff", "#00ffff", "#00ff00", "#f9e212", "#ff0000"), None, SPAN),
 )
 
 
@@ -120,7 +120,7 @@ def rampKind(stops):
         return "2 colors Ramps"
     if len(stops) == 3:
         return "3 colors Ramps"
-    return "More than 3 colors Ramps"
+    return "> 3 colors Ramps"
 
 
 def hexToRgbaValue(hexColor):
@@ -144,7 +144,7 @@ def gradientRampXml(name, stops):
 def presetRampXml(name, colors, labels=None):
     options = []
     for index, color in enumerate(colors):
-        label = labels[index] if labels else color
+        label = labels[index] if labels else str(index + 1)
         options.append('<Option type="QString" value="%s" name="preset_color_%d"/>' % (hexToRgbaValue(color), index))
         options.append('<Option type="QString" value="%s" name="preset_color_name_%d"/>' % (escape(label), index))
     options.append('<Option type="QString" value="preset" name="rampType"/>')
@@ -168,8 +168,8 @@ def buildDatabase():
     connection.executemany("INSERT INTO materialColors (label, color) VALUES (?, ?)", materialColorRows())
     for table in ("symbol", "colorramp", "tag", "tagmap", "ctagmap"):
         connection.execute("DELETE FROM %s" % table)
-    ramps = [(name, gradientRampXml(name, stops), ("Ramps", rampKind(stops))) for name, stops in GRADIENT_RAMPS]
-    ramps += [(name, presetRampXml(name, colors, labels), ("Palettes", kind))
+    ramps = [(name, gradientRampXml(name, stops), (rampKind(stops),)) for name, stops in GRADIENT_RAMPS]
+    ramps += [(name, presetRampXml(name, colors, labels), (kind,))
               for name, colors, labels, kind in PRESET_PALETTES]
     tagIds = {}
     for name, xml, tags in ramps:
