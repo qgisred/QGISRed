@@ -178,7 +178,7 @@ class QGISRedSymbolColorSelector(QgsSymbolButton):
     def __init__(self, parent=None, geometryHint="fill", initialColor=None,
                  allowAlpha=True, dialogTitle="Pick color", doubleClickOnly=False,
                  actualSymbol=None, colorExpressionLayersOnly=False, strokeColorOnly=False,
-                 colorLayerFilter=None, markerFillShade=None):
+                 colorLayerFilter=None, markerFillShade=None, colorApplier=None):
         super().__init__(parent)
 
         self.geometryType = self.normalizeGeometryHint(geometryHint)
@@ -194,6 +194,8 @@ class QGISRedSymbolColorSelector(QgsSymbolButton):
         self.colorLayerFilter = colorLayerFilter
         # Picked color -> fill of the markers drawn on the line, whose stroke takes the color itself
         self.markerFillShade = markerFillShade
+        # (symbol, color) -> None: paints the picked color the way Apply will
+        self.colorApplier = colorApplier
         # Value of the row's size cell; the preview eases between its bounds with it
         self.previewSizeValue = None
 
@@ -227,7 +229,9 @@ class QGISRedSymbolColorSelector(QgsSymbolButton):
     def refreshSymbolDisplay(self):
         if self._actualSymbol:
             symbol = self._actualSymbol.clone()
-            if self.strokeColorOnly:
+            if self.colorApplier is not None:
+                self.colorApplier(symbol, self.activeColor)
+            elif self.strokeColorOnly:
                 self.applyStrokeColorToLayers(symbol, self.activeColor)
             elif self.colorLayerFilter is not None:
                 self.applyColorToFilteredLayers(symbol, self.activeColor)

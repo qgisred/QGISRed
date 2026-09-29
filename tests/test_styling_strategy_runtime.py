@@ -244,6 +244,15 @@ class TestTranslateRendererLabels:
         rebuiltCategories = self._translate(monkeypatch, [FakeCategory("ClosedLinks", label="whatever")])
         assert rebuiltCategories[0].label() == "Closed Links"
 
+    def test_the_classes_of_the_isolated_segments_nodes_are_translated(self, monkeypatch):
+        utils = _utils()
+        utils.tr = lambda message: message
+        names = utils.isolatedNodeClassNames()
+        categories = [FakeCategory(value, label="whatever") for value in names]
+        rebuiltCategories = self._translate(monkeypatch, categories, field="CASE WHEN ... END")
+        assert [category.label() for category in rebuiltCategories] == list(names.values())
+        assert "Isolation valves: to close" in names.values() and "whatever" not in names.values()
+
     def test_tree_branch_and_chord_are_translated(self, monkeypatch):
         categories = [FakeCategory("Branch", label="Ramas"), FakeCategory("Chord", label="Cuerdas")]
         rebuiltCategories = self._translate(monkeypatch, categories, field="ArcType")

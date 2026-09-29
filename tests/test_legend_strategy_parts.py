@@ -275,6 +275,14 @@ class TestStrategyPartReasons:
         assert reasons == {dialog.ruleBasedLegendReason()}
         assert not dialog.canBuildColorsPart() and not dialog.canBuildSizesPart()
 
+    def test_the_isolated_segments_nodes_are_always_saved_as_shown(self):
+        # Replaying colors would fill whole the junction circles, drawn white inside.
+        dialog = self._dialog()
+        dialog.currentLayer.customProperty.return_value = QGISRedLegendsDialog.ISOLATED_NODES_IDENTIFIER
+        reasons = {dialog.classesPartReason(), dialog.sizesPartReason(), dialog.colorsPartReason()}
+        assert reasons == {dialog.ruleBasedLegendReason()}
+        assert not dialog.canBuildColorsPart() and not dialog.canBuildSizesPart()
+
     def test_colors_set_by_hand_say_how_to_change_that(self):
         dialog = self._dialog(colorsSetByHand=True)
         assert "Choose Random, a ramp or a palette" in dialog.colorsPartReason()

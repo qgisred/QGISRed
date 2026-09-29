@@ -902,12 +902,31 @@ class QGISRedStylingUtils:
         tags = style.tagsOfSymbol(STYLE_ENTITY_COLORRAMP, rampName)
         return next((kind for kind in PALETTE_KINDS if kind in tags), PALETTE_KIND_SPAN)
 
+    def isolatedNodeClassNames(self):
+        """Legend text of each class of the Isolated Segments nodes, by its value."""
+        return {
+            "JUNCTION": self.tr("Junctions"),
+            "JUNCTION TO RECOVER": self.tr("Junctions to recover"),
+            "ISOLATIONVALVE NOW CLOSED": self.tr("Isolation valves: now closed"),
+            "ISOLATIONVALVE TO RECOVER": self.tr("Isolation valves: to recover"),
+            "ISOLATIONVALVE OPEN": self.tr("Isolation valves: open"),
+            "ISOLATIONVALVE TO CLOSE": self.tr("Isolation valves: to close"),
+            "ISOLATIONVALVE NOT AVAILABLE": self.tr("Isolation valves: not available"),
+            "ISOLATIONVALVE TO OPEN": self.tr("Isolation valves: to open"),
+            "ISOLATIONVALVE": self.tr("Isolation valves: other"),
+            "TANK": self.tr("Tanks"),
+            "RESERVOIR": self.tr("Reservoirs"),
+            "INCIDENCE": self.tr("Incidence point"),
+        }
+
     def _translateCategoryLabel(self, value, field=None):
         if isinstance(value, str):
             if value == "Uncategorized":
                 return self.tr("Uncategorized")
             if value == "ClosedLinks":
                 return self.tr("Closed Links")
+            if value in self.isolatedNodeClassNames():
+                return self.isolatedNodeClassNames()[value]
             if field in ("Type", "ValveType"):
                 return getValveTypeName(value)
             if field == "ArcType":

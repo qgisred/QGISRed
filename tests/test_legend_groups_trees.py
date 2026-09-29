@@ -161,7 +161,7 @@ class TestIsolatedSegmentsGroup:
     def _group(self):
         return FakeGroup("Isolated Segments", identifier="qgisred_isolatedsegments", children=[
             FakeLayerNode(FakeLayer("qgisred_isolatedsegments_links", "singleSymbol")),
-            FakeLayerNode(FakeLayer("qgisred_isolatedsegments_nodes", "singleSymbol")),
+            FakeLayerNode(FakeLayer("qgisred_isolatedsegments_nodes", "categorizedSymbol")),
             FakeLayerNode(FakeLayer("qgisred_isolatedsegments_isolateddemands", "singleSymbol")),
         ])
 
@@ -241,11 +241,26 @@ class TestPanelAndDialogParity:
         assert len(layers) == 1
         assert identifier in QGISRedLegendsDialog.EDITABLE_QUERY_IDENTIFIERS
 
-    def test_union_covers_both_sets(self):
+    def test_union_covers_every_set(self):
         assert QGISRedLegendsDialog.EDITABLE_QUERY_IDENTIFIERS == (
             QGISRedLegendsDialog.SIZE_ONLY_QUERY_IDENTIFIERS
             | QGISRedLegendsDialog.SINGLE_EDITABLE_QUERY_IDENTIFIERS
+            | {QGISRedLegendsDialog.ISOLATED_NODES_IDENTIFIER}
         )
+
+
+class TestIsolatedNodesLegacyStyle:
+    """The Isolated Segments nodes ship a categorized legend: a single symbol on them is an older style."""
+
+    @pytest.mark.parametrize("identifier, rendererType, legacy", [
+        ("qgisred_isolatedsegments_nodes", "singleSymbol", True),
+        ("qgisred_isolatedsegments_nodes", "categorizedSymbol", False),
+        ("qgisred_isolatedsegments_nodes", None, False),
+        ("qgisred_isolatedsegments_links", "singleSymbol", False),
+        ("qgisred_junctions", "singleSymbol", False),
+    ])
+    def test_only_a_single_symbol_on_the_nodes_is_legacy(self, identifier, rendererType, legacy):
+        assert _dialog().hasLegacySingleSymbol(FakeLayer(identifier, rendererType)) is legacy
 
 
 class TestResultsLayerOrder:

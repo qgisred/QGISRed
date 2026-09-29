@@ -14,6 +14,7 @@ import pytest
 
 import QGISRed.ui.project.qgisred_custom_dialogs as customDialogsModule
 import QGISRed.ui.project.qgisred_legends_dialog as legendsModule
+from QGISRed.tools.utils.qgisred_styling_utils import QGISRedStylingUtils
 from QGISRed.ui.project.qgisred_custom_dialogs import QGISRedSymbolColorSelector
 from QGISRed.ui.project.qgisred_legends_dialog import (
     ISOLATION_VALVE_FILL_TEMPLATE,
@@ -27,6 +28,8 @@ from QGISRed.ui.project.qgisred_legends_dialog import (
     styleVariablePattern,
     substituteCapturedGroup,
 )
+
+from .conftest import REAL_QGIS
 
 PLUGIN_ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 
@@ -1140,8 +1143,9 @@ class TestFactorCell:
         ("qgisred_meters", None, "single", True),
         ("qgisred_tree_nodes", None, "single", True),
         ("qgisred_tree_nodes", "root", "single", False),
-        ("qgisred_isolatedsegments_nodes", None, "single", True),
-        ("qgisred_isolatedsegments_nodes", "TANK", "single", False),
+        ("qgisred_isolatedsegments_links", None, "single", True),
+        ("qgisred_isolatedsegments_links", "PUMP", "single", False),
+        ("qgisred_isolatedsegments_nodes", None, "categorical", False),
         ("qgisred_demands", None, "single", False),
         ("qgisred_tanks", None, "single", False),
         ("qgisred_pipes", None, "numeric", False),
@@ -1207,14 +1211,6 @@ class TestShippedElementStyles:
         assert pump[2][0][1]["size"] == isolatedLinkSize("PUMP", 6)
         assert valve[2][0][1]["size"] == isolatedLinkSize("VALVE", 6)
 
-    def test_isolated_segments_nodes(self):
-        layers = _rendererLayers("IsolatedSegmentsNodes.qml.bak")
-        assert [exprs.get("width") or exprs.get("size") for _, exprs, _ in layers] == [
-            isolatedIconSize("TANK", 7), isolatedIconSize("TANK", 7),
-            isolatedIconSize("RESERVOIR", 7), isolatedIconSize("RESERVOIR", 7),
-            isolatedMarkerSize("INCIDENCE", 6), isolatedMarkerSize("ISOLATIONVALVE", 2),
-            isolatedMarkerSize("JUNCTION", 2),
-        ]
 
     @pytest.mark.parametrize("fileName", [
         "IsolatedSegmentsIsolatedDemands.qml.bak", "HydraulicSectorsIsolatedDemands.qml.bak",
@@ -1228,8 +1224,6 @@ class TestElementSizePattern:
     @pytest.mark.parametrize("expression, elementType, size", [
         (isolatedLinkSize("PUMP", 6), "PUMP", "6"),
         (isolatedLinkSize("SERVICECONNECTION", 1.1), "SERVICECONNECTION", "1.1"),
-        (isolatedIconSize("TANK", 7), "TANK", "7"),
-        (isolatedMarkerSize("JUNCTION", 2), "JUNCTION", "2"),
         (ISOLATED_DEMANDS_SIZE, "JUNCTION", "3"),
         (ISOLATED_DEMANDS_SIZE, "CONNECTION", "2"),
     ])
@@ -1239,13 +1233,13 @@ class TestElementSizePattern:
 
     def test_another_element_type_is_not_matched(self):
         assert elementSizePattern("VALVE").search(isolatedLinkSize("PUMP", 6)) is None
-        assert elementSizePattern("JUNCTION").search(isolatedMarkerSize("ISOLATIONVALVE", 2)) is None
+        assert elementSizePattern("PIPE").search(ISOLATED_DEMANDS_SIZE) is None
 
     def test_scaling_changes_the_size_of_that_element_type_only(self):
         scaled = scaleCapturedNumbers(ISOLATED_DEMANDS_SIZE, elementSizePattern("CONNECTION"), 1.5)
         assert scaled == ISOLATED_DEMANDS_SIZE.replace("'CONNECTION' THEN 2", "'CONNECTION' THEN 3")
-        scaled = scaleCapturedNumbers(isolatedMarkerSize("JUNCTION", 2), elementSizePattern("JUNCTION"), 1.25)
-        assert scaled == isolatedMarkerSize("JUNCTION", 2.5)
+        scaled = scaleCapturedNumbers(isolatedLinkSize("PUMP", 6), elementSizePattern("PUMP"), 1.25)
+        assert scaled == isolatedLinkSize("PUMP", 7.5)
 
 
 class TestElementsApplier:
@@ -1271,15 +1265,6 @@ class TestElementsApplier:
             FakeSymbolLayer("MarkerLine", subSymbol=FakeSymbol([valve])),
         ])
         return symbol, layers
-
-    def _nodes(self):
-        layers = {
-            "tankWater": FakeSymbolLayer("SvgMarker", {WIDTH_KEY: isolatedIconSize("TANK", 7)}, size=0),
-            "tankFrame": FakeSymbolLayer("SvgMarker", {WIDTH_KEY: isolatedIconSize("TANK", 7)}, size=0),
-            "incidence": FakeSymbolLayer(expressions={SIZE_KEY: isolatedMarkerSize("INCIDENCE", 6)}, size=2),
-            "junction": FakeSymbolLayer(expressions={SIZE_KEY: isolatedMarkerSize("JUNCTION", 2)}, size=2),
-        }
-        return FakeSymbol(list(layers.values())), layers
 
     def _apply(self, monkeypatch, identifier, elementType, symbol, color=None, size=None):
         _dialog(monkeypatch, identifier, elementType)._applyElementsLegend(symbol, color, size)
@@ -1312,25 +1297,17 @@ class TestElementsApplier:
         assert layers["connectionLine"].width() == 1.4
         assert layers["connectionLine"].expression(STROKE_WIDTH_KEY) == isolatedLinkSize("SERVICECONNECTION", 1.1)
 
-    def test_tanks_resize_both_halves_of_their_icon(self, monkeypatch):
-        symbol, layers = self._nodes()
-        self._apply(monkeypatch, "qgisred_isolatedsegments_nodes", "TANK", symbol, size=10.5)
-        for name in ("tankWater", "tankFrame"):
-            assert layers[name].expression(WIDTH_KEY) == isolatedIconSize("TANK", 10.5)
-        assert layers["junction"].expression(SIZE_KEY) == isolatedMarkerSize("JUNCTION", 2)
-
     def test_an_untouched_size_is_a_no_op(self, monkeypatch):
-        symbol, layers = self._nodes()
-        self._apply(monkeypatch, "qgisred_isolatedsegments_nodes", "INCIDENCE", symbol, size=6)
-        assert layers["incidence"].expression(SIZE_KEY) == isolatedMarkerSize("INCIDENCE", 6)
-        assert layers["incidence"].size() == 2
+        pump = FakeSymbolLayer("SvgMarker", {SIZE_KEY: isolatedLinkSize("PUMP", 6)}, size=2)
+        symbol = FakeSymbol([FakeSymbolLayer("MarkerLine", subSymbol=FakeSymbol([pump]))])
+        self._apply(monkeypatch, "qgisred_isolatedsegments_links", "PUMP", symbol, size=6)
+        assert pump.expression(SIZE_KEY) == isolatedLinkSize("PUMP", 6)
+        assert pump.size() == 2
 
-    def test_the_incidence_point_takes_the_color_and_the_status_colors_stay(self, monkeypatch):
-        symbol, layers = self._nodes()
-        self._apply(monkeypatch, "qgisred_isolatedsegments_nodes", "INCIDENCE", symbol, color="PICKED")
-        assert layers["incidence"].colorCalls == ["PICKED"]
-        self._apply(monkeypatch, "qgisred_isolatedsegments_nodes", "JUNCTION", symbol, color="PICKED")
-        assert layers["junction"].colorCalls == layers["junction"].strokeColorCalls == []
+    def test_the_status_colors_of_an_element_stay(self, monkeypatch):
+        symbol, layers = self._links()
+        self._apply(monkeypatch, "qgisred_isolatedsegments_links", "PUMP", symbol, color="PICKED")
+        assert layers["pump"].colorCalls == layers["pump"].strokeColorCalls == []
 
     def test_isolated_demands_resize_one_element_and_color_their_ring_under_all(self, monkeypatch):
         ring = FakeSymbolLayer(expressions={SIZE_KEY: ISOLATED_DEMANDS_SIZE}, size=3)
@@ -1344,16 +1321,345 @@ class TestElementsApplier:
         assert ring.strokeColorCalls == ["PICKED"] and ring.colorCalls == []
 
     @pytest.mark.parametrize("identifier, elementType, locked", [
-        ("qgisred_isolatedsegments_nodes", "INCIDENCE", False),
-        ("qgisred_isolatedsegments_nodes", "JUNCTION", True),
-        ("qgisred_isolatedsegments_nodes", None, True),
         ("qgisred_isolatedsegments_links", "PUMP", True),
+        ("qgisred_isolatedsegments_links", None, True),
         ("qgisred_isolatedsegments_isolateddemands", None, False),
         ("qgisred_isolatedsegments_isolateddemands", "JUNCTION", True),
         ("qgisred_hydraulicsectors_isolateddemands", None, False),
     ])
     def test_only_the_fixed_colors_can_be_picked(self, monkeypatch, identifier, elementType, locked):
         assert _dialog(monkeypatch, identifier, elementType).isColorLocked() is locked
+
+
+def _shippedClasses(fileName):
+    """(renderer element, [(value, label, [layer elements])]) of a shipped categorized legend."""
+    path = os.path.join(PLUGIN_ROOT, "defaults", "layerStyles", fileName)
+    renderer = ET.parse(path).getroot().find("renderer-v2")
+    symbols = {symbol.get("name"): symbol for symbol in renderer.findall("symbols/symbol")}
+    classes = [
+        (category.get("value"), category.get("label"), symbols[category.get("symbol")].findall("layer"))
+        for category in renderer.findall("categories/category")
+    ]
+    return renderer, classes
+
+
+def _option(layerElement, name):
+    return layerElement.find("Option/Option[@name='%s']" % name).get("value")
+
+
+def _optionColor(layerElement, name):
+    red, green, blue = _option(layerElement, name).split(",")[:3]
+    return "#%02x%02x%02x" % (int(red), int(green), int(blue))
+
+
+def _embeddedSvg(layerElement):
+    return base64.b64decode(_option(layerElement, "name")[len("base64:"):]).decode("utf-8")
+
+
+ISOLATED_NODES_STYLE = "IsolatedSegmentsNodes.qml.bak"
+ISOLATED_NODES_CLASS = (
+    "with_variable('nodeType', " + ISOLATED_NODE_TYPE + ", "
+    "with_variable('status', attribute($currentfeature,'Status'), "
+    "CASE WHEN @nodeType = 'ISOLATIONVALVE' AND @status IN "
+    "('NOW CLOSED', 'TO RECOVER', 'OPEN', 'TO CLOSE', 'NOT AVAILABLE', 'TO OPEN') "
+    "THEN @nodeType || ' ' || @status "
+    "WHEN @nodeType = 'JUNCTION' AND @status = 'TO RECOVER' THEN @nodeType || ' ' || @status "
+    "ELSE @nodeType END))"
+)
+# (class, marker, color of the part the class edits, size): what the single symbol of older
+# builds drew for each node type and status
+ISOLATED_NODE_CLASSES = [
+    ("JUNCTION", "circle", "#ff9900", 2),
+    ("JUNCTION TO RECOVER", "circle", "#e7ca65", 2),
+    ("ISOLATIONVALVE NOW CLOSED", "circle", "#ff0f13", 2),
+    ("ISOLATIONVALVE TO RECOVER", "circle", "#e7ca65", 2),
+    ("ISOLATIONVALVE OPEN", "circle", "#12b425", 2),
+    ("ISOLATIONVALVE TO CLOSE", "circle", "#ff00ff", 2),
+    ("ISOLATIONVALVE NOT AVAILABLE", "circle", "#7d8b8f", 2),
+    ("ISOLATIONVALVE TO OPEN", "circle", "#00ffee", 2),
+    ("ISOLATIONVALVE", "circle", "#0f1291", 2),
+    ("TANK", "icon", "#ff00ff", 7),
+    ("RESERVOIR", "icon", "#ff00ff", 7),
+    ("INCIDENCE", "star", "#d7b419", 6),
+]
+ISOLATED_NODE_COLORS = {value: color for value, _marker, color, _size in ISOLATED_NODE_CLASSES}
+COLOR_PARTS = QGISRedLegendsDialog.ISOLATED_NODE_COLOR_PARTS
+FRAME_SHADE = "#9f009f"
+
+
+def colorPartOf(classValue):
+    return COLOR_PARTS[classValue.split(" ")[0]]
+
+
+class FakeClassTable:
+    """The rows of a categorized legend, each a {column: widget}."""
+
+    def __init__(self, rows):
+        self.rows = rows
+
+    def rowCount(self):
+        return len(self.rows)
+
+    def cellWidget(self, row, column):
+        return self.rows[row].get(column)
+
+
+class FakeCellContainer:
+    """The widget a cell centers its swatch in."""
+
+    def __init__(self, widget):
+        self.widget = widget
+
+    def findChild(self, widgetClass):
+        return self.widget if isinstance(self.widget, widgetClass) else None
+
+
+class TestShippedIsolatedNodesLegend:
+    """Isolated Segments nodes: one class per node type and status, each with its marker."""
+
+    def test_it_classifies_the_node_type_and_the_status(self):
+        renderer, _classes = _shippedClasses(ISOLATED_NODES_STYLE)
+        assert renderer.get("type") == "categorizedSymbol"
+        assert renderer.get("attr") == ISOLATED_NODES_CLASS
+
+    def test_the_classes_carry_the_names_the_plugin_translates(self):
+        _renderer, classes = _shippedClasses(ISOLATED_NODES_STYLE)
+        utils = QGISRedStylingUtils("", "")
+        utils.tr = lambda text: text
+        assert [value for value, _label, _layers in classes] == [entry[0] for entry in ISOLATED_NODE_CLASSES]
+        assert {value: label for value, label, _layers in classes} == utils.isolatedNodeClassNames()
+
+    def test_every_node_type_says_which_part_its_color_paints(self):
+        nodeTypes = {value.split(" ")[0] for value, _marker, _color, _size in ISOLATED_NODE_CLASSES}
+        assert nodeTypes == set(COLOR_PARTS)
+
+    @pytest.mark.parametrize("value, marker, color, size", ISOLATED_NODE_CLASSES)
+    def test_each_class_draws_its_marker_at_its_size(self, value, marker, color, size):
+        layers = next(layers for shipped, _label, layers in _shippedClasses(ISOLATED_NODES_STYLE)[1] if shipped == value)
+        if marker == "icon":
+            assert [layer.get("class") for layer in layers] == ["SvgMarker", "SvgMarker"]
+        else:
+            assert [(layer.get("class"), _option(layer, "name")) for layer in layers] == [("SimpleMarker", marker)]
+        assert [float(_option(layer, "size")) for layer in layers] == [size] * len(layers)
+        assert [_dataDefinedExpressions(layer) for layer in layers] == [{}] * len(layers)
+
+    @pytest.mark.parametrize("value, marker, color, size", ISOLATED_NODE_CLASSES)
+    def test_each_class_is_colored_on_the_part_the_editor_edits(self, value, marker, color, size):
+        layers = next(layers for shipped, _label, layers in _shippedClasses(ISOLATED_NODES_STYLE)[1] if shipped == value)
+        colorPart = colorPartOf(value)
+        if colorPart == "water":
+            water, frame = layers
+            assert 'id="qgisred_water"' in _embeddedSvg(water) and 'id="qgisred_frame"' in _embeddedSvg(frame)
+            assert (_optionColor(water, "color"), _optionColor(frame, "color")) == (color, FRAME_SHADE)
+            return
+        fill, stroke = _optionColor(layers[0], "color"), _optionColor(layers[0], "outline_color")
+        expected = {"stroke": ("#ffffff", color), "fillAndStroke": (color, color), "fill": (color, "#000000")}
+        assert (fill, stroke) == expected[colorPart]
+
+
+class FakePickedColor:
+    def darker(self, factor):
+        return ("darker", factor)
+
+
+class TestIsolatedNodesColorParts:
+    """The color of a class paints one part of its marker: what the swatch previews and Apply writes."""
+
+    def _dialog(self, monkeypatch, identifier=QGISRedLegendsDialog.ISOLATED_NODES_IDENTIFIER):
+        return _dialog(monkeypatch, identifier)
+
+    @pytest.mark.parametrize("value", [entry[0] for entry in ISOLATED_NODE_CLASSES])
+    def test_a_class_goes_by_its_node_type(self, monkeypatch, value):
+        assert self._dialog(monkeypatch).classColorPart(value) == colorPartOf(value)
+
+    def test_the_classes_of_any_other_layer_have_no_part(self, monkeypatch):
+        assert self._dialog(monkeypatch, "qgisred_hydraulicsectors_nodes").classColorPart("JUNCTION") is None
+        assert self._dialog(monkeypatch).classColorPart("Other Values") is None
+
+    @pytest.mark.parametrize("colorPart, fills, strokes", [
+        ("stroke", [], ["PICKED"]),
+        ("fill", ["PICKED"], []),
+        ("fillAndStroke", ["PICKED"], ["PICKED"]),
+    ])
+    def test_a_plain_marker_takes_the_color_on_that_part_only(self, monkeypatch, colorPart, fills, strokes):
+        marker = FakeSymbolLayer()
+        self._dialog(monkeypatch).applyMarkerPartColor(FakeSymbol([marker]), "PICKED", colorPart)
+        assert (marker.colorCalls, marker.strokeColorCalls) == (fills, strokes)
+
+    def test_an_icon_takes_the_color_on_its_water_and_a_darker_shade_on_its_frame(self, monkeypatch):
+        water, frame = FakeSvgLayer("qgisred_water"), FakeSvgLayer("qgisred_frame")
+        picked = FakePickedColor()
+        self._dialog(monkeypatch).applyMarkerPartColor(FakeSymbol([water, frame]), picked, "water")
+        assert water.colorCalls == [picked] and frame.colorCalls == [("darker", 160)]
+
+    def test_the_nodes_are_no_longer_a_single_symbol_with_a_selector(self, monkeypatch):
+        dialog = self._dialog(monkeypatch)
+        dialog.tr = lambda text: text
+        assert dialog.inputVariantItems(QGISRedLegendsDialog.ISOLATED_NODES_IDENTIFIER) is None
+        assert not dialog.isSizeOnlyQueryLayer() and not dialog.isElementLayer() and not dialog.isColorLocked()
+
+
+@pytest.mark.skipif(not REAL_QGIS, reason="reads and paints the symbols QGIS builds from the shipped style")
+class TestIsolatedNodesLegendInQgis:
+    STYLE_PATH = os.path.join(PLUGIN_ROOT, "defaults", "layerStyles", ISOLATED_NODES_STYLE)
+
+    def _layer(self, typeField="NodeType"):
+        from qgis.core import QgsVectorLayer
+        uri = "Point?crs=EPSG:3857&field=Id:string&field=%s:string&field=Status:string" % typeField
+        layer = QgsVectorLayer(uri, "nodes", "memory")
+        layer.setCustomProperty("qgisred_identifier", QGISRedLegendsDialog.ISOLATED_NODES_IDENTIFIER)
+        self._dialogOn(layer).loadStyleKeepingLabelVisibility(self.STYLE_PATH)
+        return layer
+
+    def _dialogOn(self, layer):
+        dialog = QGISRedLegendsDialog.__new__(QGISRedLegendsDialog)
+        dialog.currentLayer = layer
+        return dialog
+
+    def test_loading_the_style_keeps_the_identity_of_the_layer(self):
+        # The file was saved with no custom properties: QGIS drops the ones of the layer it lands on
+        layer = self._layer()
+        assert layer.renderer().type() == "categorizedSymbol"
+        assert layer.customProperty("qgisred_identifier") == QGISRedLegendsDialog.ISOLATED_NODES_IDENTIFIER
+
+    def _classSymbols(self, layer):
+        return [(category.value(), category.symbol().clone()) for category in layer.renderer().categories()]
+
+    @pytest.mark.parametrize("typeField", ["NodeType", "ElemType"])
+    @pytest.mark.parametrize("nodeType, status, expected", [
+        ("JUNCTION", "ISOLATED", "JUNCTION"),
+        ("JUNCTION", None, "JUNCTION"),
+        ("JUNCTION", "TO RECOVER", "JUNCTION TO RECOVER"),
+        ("ISOLATIONVALVE", "NOW CLOSED", "ISOLATIONVALVE NOW CLOSED"),
+        ("ISOLATIONVALVE", "TO RECOVER", "ISOLATIONVALVE TO RECOVER"),
+        ("ISOLATIONVALVE", "OPEN", "ISOLATIONVALVE OPEN"),
+        ("ISOLATIONVALVE", "TO CLOSE", "ISOLATIONVALVE TO CLOSE"),
+        ("ISOLATIONVALVE", "NOT AVAILABLE", "ISOLATIONVALVE NOT AVAILABLE"),
+        ("ISOLATIONVALVE", "TO OPEN", "ISOLATIONVALVE TO OPEN"),
+        ("ISOLATIONVALVE", "CLOSED", "ISOLATIONVALVE"),
+        ("ISOLATIONVALVE", None, "ISOLATIONVALVE"),
+        ("TANK", "TO RECOVER", "TANK"),
+        ("RESERVOIR", None, "RESERVOIR"),
+        ("INCIDENCE", None, "INCIDENCE"),
+    ])
+    def test_each_node_falls_in_the_class_of_its_type_and_status(self, typeField, nodeType, status, expected):
+        from qgis.core import QgsExpression, QgsExpressionContext, QgsExpressionContextUtils, QgsFeature
+        layer = self._layer(typeField)
+        feature = QgsFeature(layer.fields())
+        feature.setAttributes(["1", nodeType, status])
+        context = QgsExpressionContext(QgsExpressionContextUtils.globalProjectLayerScopes(layer))
+        context.setFeature(feature)
+        expression = QgsExpression(layer.renderer().classAttribute())
+        assert expression.evaluate(context) == expected
+        assert not expression.hasEvalError(), expression.evalErrorString()
+
+    def test_the_swatch_shows_the_color_each_class_is_drawn_with(self):
+        layer = self._layer()
+        dialog = self._dialogOn(layer)
+        shown = {
+            value: dialog.readMarkerPartColor(symbol, dialog.classColorPart(value)).name()
+            for value, symbol in self._classSymbols(layer)
+        }
+        assert shown == ISOLATED_NODE_COLORS
+
+    def test_a_picked_color_paints_its_part_and_reads_back(self):
+        from qgis.PyQt.QtGui import QColor
+        layer = self._layer()
+        dialog = self._dialogOn(layer)
+        picked = QColor("#123456")
+        for value, symbol in self._classSymbols(layer):
+            colorPart = dialog.classColorPart(value)
+            dialog.applyClassColor(symbol, value, picked)
+            assert dialog.readMarkerPartColor(symbol, colorPart).name() == "#123456", value
+            first = symbol.symbolLayer(0)
+            if colorPart == "stroke":
+                assert first.color().name() == "#ffffff", value
+            elif colorPart == "fill":
+                assert first.strokeColor().name() == "#000000", value
+            elif colorPart == "fillAndStroke":
+                assert first.color().name() == first.strokeColor().name() == "#123456", value
+            else:
+                assert symbol.symbolLayer(1).color().name() == picked.darker(160).name(), value
+
+    def test_the_swatch_previews_what_apply_paints(self):
+        from qgis.PyQt.QtGui import QColor
+        layer = self._layer()
+        dialog = self._dialogOn(layer)
+        for value, symbol in self._classSymbols(layer):
+            colorPart = dialog.classColorPart(value)
+            applied = symbol.clone()
+            dialog.applyClassColor(applied, value, QColor("#123456"))
+            shown = []
+
+            class RecordingSwatch(QGISRedSymbolColorSelector):
+                def setSymbol(self, previewSymbol):
+                    shown.append(previewSymbol.clone())
+
+            RecordingSwatch(
+                None, "marker", QColor("#123456"), actualSymbol=symbol,
+                colorApplier=lambda preview, picked, part=colorPart: dialog.applyMarkerPartColor(preview, picked, part),
+            )
+            previewed = shown[-1]
+            for index in range(applied.symbolLayerCount()):
+                drawn, shown = applied.symbolLayer(index), previewed.symbolLayer(index)
+                assert shown.color().name() == drawn.color().name(), value
+                assert shown.strokeColor().name() == drawn.strokeColor().name(), value
+
+    def test_apply_paints_the_picked_color_on_the_part_of_each_class(self):
+        from qgis.PyQt.QtGui import QColor
+        from qgis.PyQt.QtWidgets import QLineEdit
+        layer = self._layer()
+        dialog = self._dialogOn(layer)
+        dialog.tr = lambda text: text
+        dialog._sourceRuleRenderer = None
+        dialog.discardProportionalSizes = False
+        dialog.currentSizeMode = lambda: "Manual"
+        dialog.currentFieldName = layer.renderer().classAttribute()
+        rows = []
+        for value, symbol in self._classSymbols(layer):
+            swatch = QGISRedSymbolColorSelector(None, "marker", QColor("#123456"), actualSymbol=symbol)
+            rows.append({1: FakeCellContainer(swatch), 2: QLineEdit("3"), 3: QLineEdit(value), 4: QLineEdit(value)})
+        dialog.tableView = FakeClassTable(rows)
+
+        renderer = dialog.buildCategoricalRenderer()
+
+        assert [category.value() for category in renderer.categories()] == list(ISOLATED_NODE_COLORS)
+        for category in renderer.categories():
+            colorPart = dialog.classColorPart(category.value())
+            assert dialog.readMarkerPartColor(category.symbol(), colorPart).name() == "#123456", category.value()
+            if colorPart == "stroke":
+                assert category.symbol().symbolLayer(0).color().name() == "#ffffff", category.value()
+
+    def _shoutedClassNames(self, monkeypatch):
+        monkeypatch.setattr(QGISRedStylingUtils, "tr", lambda utils, text: text.upper())
+        return [name.upper() for name in QGISRedStylingUtils("", "").isolatedNodeClassNames().values()]
+
+    def test_a_loaded_style_shows_the_classes_in_the_language_of_the_user(self, monkeypatch):
+        expected = self._shoutedClassNames(monkeypatch)
+        layer = self._layer()
+        dialog = self._dialogOn(layer)
+        dialog.restoreResultNullClass = lambda: None
+        dialog.showAppliedLayerStyle = lambda: None
+
+        dialog.applyStyleFileToLayer(self.STYLE_PATH)
+
+        assert [category.label() for category in layer.renderer().categories()] == expected
+
+    def test_the_single_symbol_of_an_older_version_gets_the_shipped_legend_back(self, monkeypatch):
+        from qgis.core import QgsMarkerSymbol, QgsSingleSymbolRenderer
+        expected = self._shoutedClassNames(monkeypatch)
+        layer = self._layer()
+        layer.setRenderer(QgsSingleSymbolRenderer(QgsMarkerSymbol.createSimple({"name": "circle"})))
+        dialog = self._dialogOn(layer)
+        dialog.pluginFolder = PLUGIN_ROOT
+        assert dialog.hasLegacySingleSymbol(layer)
+
+        dialog.restoreEditableInputStyle()
+
+        assert not dialog.hasLegacySingleSymbol(layer)
+        assert [category.value() for category in layer.renderer().categories()] == list(ISOLATED_NODE_COLORS)
+        assert [category.label() for category in layer.renderer().categories()] == expected
+        assert dialog.restoredLegacyStyle
 
 
 class TestDemandsSwatchPreview:
