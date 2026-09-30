@@ -373,6 +373,28 @@ def test_panning_leaves_the_highlights_alone(manager):
     assert a.suspends == 0
 
 
+def test_activating_after_a_pan_restores_the_owner_map_tool(manager):
+    a = manager.register(FakeOwner("a"))
+    manager.activate(a)
+    manager.onMapToolSet(QgsMapToolPan())
+
+    manager.activate(a)
+
+    assert a.restores == 2
+    assert a.suspends == 0
+
+
+def test_the_restore_after_a_pan_happens_only_once(manager):
+    a = manager.register(FakeOwner("a"))
+    manager.activate(a)
+    manager.onMapToolSet(QgsMapToolPan())
+    manager.activate(a)
+
+    manager.activate(a)
+
+    assert a.restores == 2
+
+
 def test_native_select_suspends_everything():
     action = object()
     manager = QGISRedHighlightManager(iface=_FakeIface(actionSelect=action))

@@ -453,6 +453,9 @@ class QGISRedHighlightManager:
         # handed to the next object and revive somebody else's suspended state.
         self._suspended = []
         self._busy = False
+        # Pan/zoom take the canvas tool without suspending anyone, so the active owner
+        # looks unchanged; this flag lets clicking back into its dock retake the tool.
+        self._toolDisplaced = False
         self._connected = False
         self._editingWatchedLayers = []
 
@@ -508,7 +511,7 @@ class QGISRedHighlightManager:
         """
         if owner is None or not self.isRegistered(owner) or self._busy:
             return
-        if self._active is owner and not self.isSuspended(owner):
+        if self._active is owner and not self.isSuspended(owner) and not self._toolDisplaced:
             return
         if not force:
             with suppress(Exception):
@@ -520,6 +523,7 @@ class QGISRedHighlightManager:
                 if other is not owner:
                     self._suspendOwner(other)
             self._active = owner
+            self._toolDisplaced = False
             self._suspended = [o for o in self._suspended if o is not owner]
             with suppress(Exception):
                 owner.restoreMapHighlights()
@@ -702,7 +706,9 @@ class QGISRedHighlightManager:
             self.activate(owner)
         elif role in (MapToolRole.PLUGIN_OTHER, MapToolRole.EDITING, MapToolRole.SELECTION):
             self.suspendAll(role)
-        # NAVIGATION: panning or zooming is not a change of subject.
+        else:
+            # Panning or zooming is not a change of subject: highlights stay.
+            self._toolDisplaced = True
 
     def ownerForWidget(self, widget):
         if widget is None:
