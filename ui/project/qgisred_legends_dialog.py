@@ -3185,6 +3185,8 @@ class QGISRedLegendsDialog(QDialog, formClass):
                     if progress.wasCanceled():
                         break
 
+            self.removeOtherValuesRows()
+
         finally:
             if progress:
                 progress.close()
@@ -6153,13 +6155,19 @@ class QGISRedLegendsDialog(QDialog, formClass):
     def setClassCountEditable(self, editable):
         self.classCountEditable = editable
         self.leClassCount.setReadOnly(not editable)
-        # A count the user cannot set shows without arrows
+        # A count the user cannot set shows grey and without arrows
         if editable:
             self.leClassCount.setButtonSymbols(QAbstractSpinBox.ButtonSymbols.UpDownArrows)
             self.leClassCount.setToolTip("")
+            self.leClassCount.setStyleSheet(
+                "QSpinBox { background-color: white; color: #2b2b2b; font-size: %s; }" % self.CONTROL_FONT_SIZE
+            )
         else:
             self.leClassCount.setButtonSymbols(QAbstractSpinBox.ButtonSymbols.NoButtons)
             self.leClassCount.setToolTip(self.tr("The number of classes is set by the data or the chosen method"))
+            self.leClassCount.setStyleSheet(
+                "QSpinBox { background-color: #F0F0F0; color: #808080; font-size: %s; }" % self.CONTROL_FONT_SIZE
+            )
         self.updateClassCountWidgetsVisibility()
 
     def updateClassCountWidgetsVisibility(self):
@@ -6544,6 +6552,15 @@ class QGISRedLegendsDialog(QDialog, formClass):
         self.updateClassCount()
         self.markLegendEdited()
 
+    def removeOtherValuesRows(self):
+        for row in reversed(range(self.tableView.rowCount())):
+            widget = self.tableView.cellWidget(row, 4)
+            if isinstance(widget, QLineEdit) and widget.text() in [
+                self.tr("Other Values"),
+                "Other Values",
+            ]:
+                self.tableView.removeRow(row)
+
     def getCurrentLayerUnitAbbr(self):
         if not self.currentLayer or not self.utils:
             return ""
@@ -6567,7 +6584,7 @@ class QGISRedLegendsDialog(QDialog, formClass):
         self.close()
 
     def cancelAndClose(self):
-        if self.isClosing or not self.confirmExit(promptUnappliedEdits=False):
+        if self.isClosing or not self.confirmExit():
             return
         self.isClosing = True
         self.close()
@@ -6576,7 +6593,7 @@ class QGISRedLegendsDialog(QDialog, formClass):
         # Esc and the window close button ask the same as Cancel. close() (guarded
         # by isClosing) makes sure closeEvent cleanup runs instead of just hiding.
         if not self.isClosing:
-            if not self.confirmExit(promptUnappliedEdits=True):
+            if not self.confirmExit():
                 return
             self.isClosing = True
             self.close()
@@ -6586,10 +6603,10 @@ class QGISRedLegendsDialog(QDialog, formClass):
         self.isClosing = True
         self.close()
 
-    def confirmExit(self, promptUnappliedEdits):
+    def confirmExit(self):
         """Asks what to do with the changes applied so far; True when the dialog may close."""
         if not self.hasAppliedChanges:
-            return not promptUnappliedEdits or self.confirmDiscardEdits()
+            return self.confirmDiscardEdits()
         box = QMessageBox(self)
         box.setIcon(QMessageBox.Icon.Question)
         box.setWindowTitle(self.tr("Close Legend Editor"))
