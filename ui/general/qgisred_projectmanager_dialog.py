@@ -603,9 +603,11 @@ class QGISRedProjectManagerDialog(QDialog, FORM_CLASS):
                 return
             io = self._getIO(projectPath, projectNetwork)
             qgisBase = io.getQGisProjectBase(projectPath, projectNetwork)
-            metadataFiles = [f for f in os.listdir(projectPath) if f.endswith("_Metadata.txt")]
-            singleProjectInFolder = len(metadataFiles) == 1
-            dlg = QGISRedRenameProjectDialog(None, projectNetwork, projectPath, qgisBase, singleProjectInFolder)
+            # A different project sharing this folder may be the one currently open in QGIS;
+            # renaming the folder would move/delete files QGIS still has a handle on.
+            anotherProjectInFolderIsOpen = self._getUniformedPath(self.ProjectDirectory) == projectPath and self.NetworkName != projectNetwork
+            canRenameFolder = not anotherProjectInFolderIsOpen
+            dlg = QGISRedRenameProjectDialog(None, projectNetwork, projectPath, qgisBase, canRenameFolder)
             # Run the dialog event loop
             dlg.exec()
             result = dlg.ProcessDone
@@ -616,6 +618,17 @@ class QGISRedProjectManagerDialog(QDialog, FORM_CLASS):
             QApplication.setOverrideCursor(Qt.CursorShape.WaitCursor)
             oldProjectPath = projectPath
             newQgisPath = None
+            siblingProjects = []
+            if dlg.RenameFolder:
+                siblingNames = [
+                    f[: -len("_Metadata.txt")]
+                    for f in os.listdir(projectPath)
+                    if f.endswith("_Metadata.txt") and f != projectNetwork + "_Metadata.txt"
+                ]
+                for otherName in siblingNames:
+                    otherQgisBase = io.getQGisProjectBase(projectPath, otherName)
+                    if otherQgisBase:
+                        siblingProjects.append((otherName, otherQgisBase))
             if newQgisBasename and qgisBase:
                 parentDir = os.path.dirname(qgisBase)
                 newQgisPath = io.processQGisProjectFiles(qgisBase, newQgisBasename, parentDir, deleteSource=True)
@@ -638,8 +651,8 @@ class QGISRedProjectManagerDialog(QDialog, FORM_CLASS):
                 io.processProjectFiles(projectPath, projectNetwork, newProjectName, projectPath, deleteSource=True, excludeDirs=[DIR_BACKUPS])
             if newQgisPath:
                 io.updateMetadataQGisProject(projectPath, newProjectName or projectNetwork, newQgisPath)
-            if newProjectName and dlg.RenameFolder:
-                newProjectPath = os.path.join(os.path.dirname(projectPath), newProjectName)
+            if dlg.RenameFolder:
+                newProjectPath = os.path.join(os.path.dirname(projectPath), dlg.NewFolderName)
                 if not os.path.exists(newProjectPath):
                     with suppress(Exception):
                         copytree(projectPath, newProjectPath)
@@ -665,6 +678,18 @@ class QGISRedProjectManagerDialog(QDialog, FORM_CLASS):
                 if qgisFileToUpdate and os.path.exists(qgisFileToUpdate):
                     effectiveName = newProjectName or projectNetwork
                     io.updateQGisProjectContent(qgisFileToUpdate, projectNetwork, effectiveName, oldProjectPath, projectPath, oldQgisDir, newQgisDir)
+            if siblingProjects and oldProjectPath != projectPath:
+                # The folder itself moved; every other project sharing it moved along, so its
+                # own .qgz/.qgs (wherever it lives) may still reference the old folder path.
+                for otherName, otherQgisBase in siblingProjects:
+                    otherOldQgisDir = os.path.dirname(otherQgisBase)
+                    renamedOtherBase = otherQgisBase.replace(oldProjectPath, projectPath)
+                    otherNewQgisDir = os.path.dirname(renamedOtherBase)
+                    otherQgisFile = io.findQGisProjectFile(renamedOtherBase)
+                    if otherQgisFile and os.path.exists(otherQgisFile):
+                        io.updateQGisProjectContent(
+                            otherQgisFile, otherName, otherName, oldProjectPath, projectPath, otherOldQgisDir, otherNewQgisDir
+                        )
             effectiveName = newProjectName or projectNetwork
             self.twProjectList.setItem(rowIndex, 0, QTableWidgetItem(effectiveName))
             QApplication.restoreOverrideCursor()

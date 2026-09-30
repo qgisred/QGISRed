@@ -7490,7 +7490,7 @@ Impossible d'appliquer les modifications.</translation>
         <translation>Le projet sera retiré de cette liste, mais restera sur votre ordinateur. Vous pourrez l’ajouter de nouveau avec le bouton Charger. Voulez-vous continuer ?</translation>
     </message>
     <message>
-        <location filename="../ui/general/qgisred_projectmanager_dialog.py" line="700"/>
+        <location filename="../ui/general/qgisred_projectmanager_dialog.py" line="725"/>
         <source>Warning</source>
         <translation type="unfinished">Avertissement</translation>
     </message>
@@ -7530,7 +7530,7 @@ Impossible d'appliquer les modifications.</translation>
         <translation type="unfinished">Le projet actuel ne peut pas être renommé.</translation>
     </message>
     <message>
-        <location filename="../ui/general/qgisred_projectmanager_dialog.py" line="687"/>
+        <location filename="../ui/general/qgisred_projectmanager_dialog.py" line="712"/>
         <source>You need to select a project to change its name.</source>
         <translation type="unfinished">Vous devez sélectionner un projet pour changer son nom.</translation>
     </message>
@@ -7580,12 +7580,12 @@ Impossible d'appliquer les modifications.</translation>
         <translation type="unfinished">Déplacer</translation>
     </message>
     <message>
-        <location filename="../ui/general/qgisred_projectmanager_dialog.py" line="694"/>
+        <location filename="../ui/general/qgisred_projectmanager_dialog.py" line="719"/>
         <source>You need to select a project to move it.</source>
         <translation type="unfinished">Vous devez sélectionner un projet pour le déplacer.</translation>
     </message>
     <message>
-        <location filename="../ui/general/qgisred_projectmanager_dialog.py" line="700"/>
+        <location filename="../ui/general/qgisred_projectmanager_dialog.py" line="725"/>
         <source>Current project can not be moved.</source>
         <translation type="unfinished">Le projet actuel ne peut pas être déplacé.</translation>
     </message>
@@ -7595,12 +7595,12 @@ Impossible d'appliquer les modifications.</translation>
         <translation type="unfinished">Vous devez sélectionner un projet pour le %1.</translation>
     </message>
     <message>
-        <location filename="../ui/general/qgisred_projectmanager_dialog.py" line="685"/>
+        <location filename="../ui/general/qgisred_projectmanager_dialog.py" line="710"/>
         <source>Project name has been renamed to %1</source>
         <translation type="unfinished">Le nom du projet a été renommé en %1</translation>
     </message>
     <message>
-        <location filename="../ui/general/qgisred_projectmanager_dialog.py" line="761"/>
+        <location filename="../ui/general/qgisred_projectmanager_dialog.py" line="786"/>
         <source>Project has been moved to %1</source>
         <translation type="unfinished">Le projet a été déplacé vers %1</translation>
     </message>
@@ -7839,22 +7839,22 @@ Impossible d'appliquer les modifications.</translation>
         <translation>QGISRed : Renommer le projet</translation>
     </message>
     <message>
-        <location filename="../ui/general/qgisred_renameproject_dialog.ui" line="169"/>
+        <location filename="../ui/general/qgisred_renameproject_dialog.ui" line="176"/>
         <source>Accept</source>
         <translation>Accepter</translation>
     </message>
     <message>
-        <location filename="../ui/general/qgisred_renameproject_dialog.py" line="79"/>
+        <location filename="../ui/general/qgisred_renameproject_dialog.py" line="94"/>
         <source>Not valid New Project Name</source>
         <translation type="unfinished">Nouveau nom de projet non valide</translation>
     </message>
     <message>
-        <location filename="../ui/general/qgisred_renameproject_dialog.py" line="84"/>
+        <location filename="../ui/general/qgisred_renameproject_dialog.py" line="99"/>
         <source>There is already a project with this name in the project folder.</source>
         <translation type="unfinished">Il existe déjà un projet portant ce nom dans le dossier de projets.</translation>
     </message>
     <message>
-        <location filename="../ui/general/qgisred_renameproject_dialog.py" line="110"/>
+        <location filename="../ui/general/qgisred_renameproject_dialog.py" line="131"/>
         <source>Validations</source>
         <translation type="unfinished">Validations</translation>
     </message>
@@ -7874,29 +7874,44 @@ Impossible d'appliquer les modifications.</translation>
         <translation type="unfinished">Renommer le fichier de carte du projet :</translation>
     </message>
     <message>
-        <location filename="../ui/general/qgisred_renameproject_dialog.py" line="73"/>
+        <location filename="../ui/general/qgisred_renameproject_dialog.py" line="88"/>
         <source>At least one option must be selected</source>
         <translation type="unfinished">Au moins une option doit être sélectionnée</translation>
     </message>
     <message>
-        <location filename="../ui/general/qgisred_renameproject_dialog.py" line="92"/>
+        <location filename="../ui/general/qgisred_renameproject_dialog.py" line="107"/>
         <source>Not valid QGIS file name</source>
         <translation type="unfinished">Nom de fichier QGIS non valide</translation>
     </message>
     <message>
-        <location filename="../ui/general/qgisred_renameproject_dialog.py" line="101"/>
+        <location filename="../ui/general/qgisred_renameproject_dialog.py" line="131"/>
         <source>At least one name must be different from the original</source>
         <translation type="unfinished">Au moins un nom doit être différent de l'original</translation>
     </message>
     <message>
         <location filename="../ui/general/qgisred_renameproject_dialog.ui" line="141"/>
         <source>Rename project folder as well</source>
-        <translation>Renommer également le dossier du projet</translation>
+        <translation type="obsolete">Renommer également le dossier du projet</translation>
     </message>
     <message>
-        <location filename="../ui/general/qgisred_renameproject_dialog.py" line="110"/>
+        <location filename="../ui/general/qgisred_renameproject_dialog.py" line="126"/>
         <source>There is already a folder with this name.</source>
         <translation>Il existe déjà un dossier portant ce nom.</translation>
+    </message>
+    <message>
+        <location filename="../ui/general/qgisred_renameproject_dialog.py" line="61"/>
+        <source>Another project in this folder is currently open in QGIS.</source>
+        <translation>Un autre projet de ce dossier est actuellement ouvert dans QGIS.</translation>
+    </message>
+    <message>
+        <location filename="../ui/general/qgisred_renameproject_dialog.ui" line="141"/>
+        <source>Rename project folder:</source>
+        <translation type="unfinished">Renommer le dossier du projet :</translation>
+    </message>
+    <message>
+        <location filename="../ui/general/qgisred_renameproject_dialog.py" line="118"/>
+        <source>Not valid folder name</source>
+        <translation type="unfinished">Nom de dossier non valide</translation>
     </message>
 </context>
 <context>

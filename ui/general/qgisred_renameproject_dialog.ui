@@ -138,10 +138,17 @@
         <item>
          <widget class="QCheckBox" name="cbRenameFolder">
           <property name="text">
-           <string>Rename project folder as well</string>
+           <string>Rename project folder:</string>
           </property>
           <property name="checked">
            <bool>false</bool>
+          </property>
+         </widget>
+        </item>
+        <item>
+         <widget class="QLineEdit" name="tbFolderName">
+          <property name="text">
+           <string/>
           </property>
          </widget>
         </item>

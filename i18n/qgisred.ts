@@ -6977,7 +6977,7 @@ Cannot apply changes.</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../ui/general/qgisred_projectmanager_dialog.py" line="700"/>
+        <location filename="../ui/general/qgisred_projectmanager_dialog.py" line="725"/>
         <source>Warning</source>
         <translation type="unfinished"></translation>
     </message>
@@ -7037,7 +7037,7 @@ Cannot apply changes.</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../ui/general/qgisred_projectmanager_dialog.py" line="687"/>
+        <location filename="../ui/general/qgisred_projectmanager_dialog.py" line="712"/>
         <source>You need to select a project to change its name.</source>
         <translation type="unfinished"></translation>
     </message>
@@ -7052,12 +7052,12 @@ Cannot apply changes.</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../ui/general/qgisred_projectmanager_dialog.py" line="694"/>
+        <location filename="../ui/general/qgisred_projectmanager_dialog.py" line="719"/>
         <source>You need to select a project to move it.</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../ui/general/qgisred_projectmanager_dialog.py" line="700"/>
+        <location filename="../ui/general/qgisred_projectmanager_dialog.py" line="725"/>
         <source>Current project can not be moved.</source>
         <translation type="unfinished"></translation>
     </message>
@@ -7067,12 +7067,12 @@ Cannot apply changes.</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../ui/general/qgisred_projectmanager_dialog.py" line="685"/>
+        <location filename="../ui/general/qgisred_projectmanager_dialog.py" line="710"/>
         <source>Project name has been renamed to %1</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../ui/general/qgisred_projectmanager_dialog.py" line="761"/>
+        <location filename="../ui/general/qgisred_projectmanager_dialog.py" line="786"/>
         <source>Project has been moved to %1</source>
         <translation type="unfinished"></translation>
     </message>
@@ -7305,22 +7305,22 @@ Cannot apply changes.</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../ui/general/qgisred_renameproject_dialog.ui" line="169"/>
+        <location filename="../ui/general/qgisred_renameproject_dialog.ui" line="176"/>
         <source>Accept</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../ui/general/qgisred_renameproject_dialog.py" line="79"/>
+        <location filename="../ui/general/qgisred_renameproject_dialog.py" line="94"/>
         <source>Not valid New Project Name</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../ui/general/qgisred_renameproject_dialog.py" line="84"/>
+        <location filename="../ui/general/qgisred_renameproject_dialog.py" line="99"/>
         <source>There is already a project with this name in the project folder.</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../ui/general/qgisred_renameproject_dialog.py" line="110"/>
+        <location filename="../ui/general/qgisred_renameproject_dialog.py" line="131"/>
         <source>Validations</source>
         <translation type="unfinished"></translation>
     </message>
@@ -7340,28 +7340,38 @@ Cannot apply changes.</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../ui/general/qgisred_renameproject_dialog.py" line="73"/>
+        <location filename="../ui/general/qgisred_renameproject_dialog.py" line="88"/>
         <source>At least one option must be selected</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../ui/general/qgisred_renameproject_dialog.py" line="92"/>
+        <location filename="../ui/general/qgisred_renameproject_dialog.py" line="107"/>
         <source>Not valid QGIS file name</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../ui/general/qgisred_renameproject_dialog.py" line="101"/>
+        <location filename="../ui/general/qgisred_renameproject_dialog.py" line="131"/>
         <source>At least one name must be different from the original</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../ui/general/qgisred_renameproject_dialog.ui" line="141"/>
-        <source>Rename project folder as well</source>
+        <location filename="../ui/general/qgisred_renameproject_dialog.py" line="126"/>
+        <source>There is already a folder with this name.</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../ui/general/qgisred_renameproject_dialog.py" line="110"/>
-        <source>There is already a folder with this name.</source>
+        <location filename="../ui/general/qgisred_renameproject_dialog.py" line="61"/>
+        <source>Another project in this folder is currently open in QGIS.</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="../ui/general/qgisred_renameproject_dialog.ui" line="141"/>
+        <source>Rename project folder:</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="../ui/general/qgisred_renameproject_dialog.py" line="118"/>
+        <source>Not valid folder name</source>
         <translation type="unfinished"></translation>
     </message>
 </context>

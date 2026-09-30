@@ -12,6 +12,7 @@ class QGISRedRenameProjectDialog(QDialog, FORM_CLASS):
     # Common variables
     NewNetworkName = ""
     NewQGISName = ""
+    NewFolderName = ""
     OldNetworkName = ""
     ProjectDirectory = ""
     QgisProjectBase = None
@@ -21,12 +22,13 @@ class QGISRedRenameProjectDialog(QDialog, FORM_CLASS):
     RenameBackups = False
     RenameFolder = False
 
-    def __init__(self, parent=None, oldName="", project="", qgisProjectBase=None, singleProjectInFolder=False):
+    def __init__(self, parent=None, oldName="", project="", qgisProjectBase=None, canRenameFolder=True):
         """Constructor."""
         super(QGISRedRenameProjectDialog, self).__init__(parent)
         self.OldNetworkName = oldName
         self.ProjectDirectory = project
         self.QgisProjectBase = qgisProjectBase
+        self._canRenameFolder = canRenameFolder
         self.setupUi(self)
         self.btAccept.clicked.connect(self.accept)
 
@@ -47,20 +49,32 @@ class QGISRedRenameProjectDialog(QDialog, FORM_CLASS):
                     break
         self.containerBackups.setVisible(hasBackups)
 
-        self.containerRenameFolder.setVisible(singleProjectInFolder)
-        self.cbRenameFolder.setEnabled(self.cbRenameProject.isChecked())
+        currentFolderName = os.path.basename(os.path.normpath(self.ProjectDirectory))
+        self.tbFolderName.setText(currentFolderName)
+        self.tbFolderName.setEnabled(self.cbRenameFolder.isChecked())
+        # While the folder is named after the project, typing a new project name keeps
+        # suggesting the same folder name — until the user edits the folder field by hand.
+        self._folderFollowsProjectName = currentFolderName == oldName
+
+        self.cbRenameFolder.setEnabled(canRenameFolder)
+        if not canRenameFolder:
+            self.cbRenameFolder.setToolTip(self.tr("Another project in this folder is currently open in QGIS."))
 
         self.cbRenameProject.toggled.connect(self.tbNetworkName.setEnabled)
-        self.cbRenameProject.toggled.connect(self._onRenameProjectToggled)
         self.cbRenameQGISProject.toggled.connect(self.tbQGISName.setEnabled)
+        self.cbRenameFolder.toggled.connect(self.tbFolderName.setEnabled)
+        self.tbNetworkName.textChanged.connect(self._onProjectNameChanged)
+        self.tbFolderName.textEdited.connect(self._onFolderNameEdited)
 
         self.messageBar = QGISRedBanner.inject(self, self.gridLayout)
         self.adjustSize()
 
-    def _onRenameProjectToggled(self, checked):
-        self.cbRenameFolder.setEnabled(checked)
-        if not checked:
-            self.cbRenameFolder.setChecked(False)
+    def _onProjectNameChanged(self, text):
+        if self._folderFollowsProjectName:
+            self.tbFolderName.setText(text)
+
+    def _onFolderNameEdited(self, _text):
+        self._folderFollowsProjectName = False
 
     def pushMessage(self, title, text, level=0, duration=5):
         self.messageBar.pushMessage(title, text, level, duration)
@@ -68,8 +82,9 @@ class QGISRedRenameProjectDialog(QDialog, FORM_CLASS):
     def accept(self):
         doProject = self.cbRenameProject.isChecked()
         doQgis = self.cbRenameQGISProject.isChecked() and self.QgisProjectBase is not None
+        doRenameFolder = self.cbRenameFolder.isChecked() and self._canRenameFolder
 
-        if not doProject and not doQgis:
+        if not doProject and not doQgis and not doRenameFolder:
             self.pushMessage(self.tr("Validations"), self.tr("At least one option must be selected"), level=1)
             return
 
@@ -97,18 +112,24 @@ class QGISRedRenameProjectDialog(QDialog, FORM_CLASS):
             else:
                 self.NewQGISName = qname
 
-        if not doProject and not doQgis:
+        if doRenameFolder:
+            folderName = self.tbFolderName.text().strip()
+            if not folderName:
+                self.pushMessage(self.tr("Validations"), self.tr("Not valid folder name"), level=1)
+                return
+            currentFolderName = os.path.basename(os.path.normpath(self.ProjectDirectory))
+            if folderName == currentFolderName:
+                doRenameFolder = False  # checkbox checked but name unchanged → treat as no rename
+            else:
+                targetFolder = os.path.join(os.path.dirname(self.ProjectDirectory), folderName)
+                if os.path.exists(targetFolder):
+                    self.pushMessage(self.tr("Validations"), self.tr("There is already a folder with this name."), level=1)
+                    return
+                self.NewFolderName = folderName
+
+        if not doProject and not doQgis and not doRenameFolder:
             self.pushMessage(self.tr("Validations"), self.tr("At least one name must be different from the original"), level=1)
             return
-
-        doRenameFolder = doProject and self.cbRenameFolder.isChecked() and self.containerRenameFolder.isVisible()
-        if doRenameFolder:
-            targetFolder = os.path.join(os.path.dirname(self.ProjectDirectory), self.NewNetworkName)
-            normalizedTarget = os.path.normcase(os.path.normpath(targetFolder))
-            normalizedCurrent = os.path.normcase(os.path.normpath(self.ProjectDirectory))
-            if normalizedTarget != normalizedCurrent and os.path.exists(targetFolder):
-                self.pushMessage(self.tr("Validations"), self.tr("There is already a folder with this name."), level=1)
-                return
 
         self.RenameProject = doProject
         self.RenameQGISProject = doQgis
