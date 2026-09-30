@@ -461,9 +461,12 @@ class TestLabelVisibilityOnRealQgis:
         path = os.path.join(SHIPPED_STYLES_FOLDER, fileName)
         styleRoot = ET.parse(path).getroot()
         bringsLabels = styleRoot.find("labeling") is not None
+        categories = styleRoot.get("styleCategories", "AllStyleCategories")
+        coversLabels = "AllStyleCategories" in categories or "Labeling" in categories
         loadedAsIs = self._layer(styleRoot, labelsShown)
         assert loadedAsIs.loadNamedStyle(path)[1]
-        assert (loadedAsIs.labeling() is not None) == bringsLabels
+        if bringsLabels or coversLabels:
+            assert (loadedAsIs.labeling() is not None) == bringsLabels
         dialog = _dialog()
         dialog.currentLayer = self._layer(styleRoot, labelsShown)
 
