@@ -1362,7 +1362,11 @@ class QGISRedElementExplorerDock(QGISRedHighlightOwnerMixin, QDockWidget, FORM_C
     def emitNodeFields(self, startRow, fields, attributes, skipFields, layerIdentifier, utils,
                        onlyFieldNames=None, excludeFieldNames=None):
         qualityFieldNames = {"MixingMod", "MixingFrac", "ReactCoef", "IniQuality", "BulkCoeff", "WallCoeff"}
-        demandFieldNames = {"BaseDem", "IdPattDem", "DemPattID"} if layerIdentifier == "qgisred_junctions" else set()
+        demandFieldNames = {
+            "qgisred_junctions": {"BaseDem", "IdPattDem", "DemPattID"},
+            "qgisred_serviceconnections": {"BaseDemand", "BaseDem", "Pattern", "DemPattID"},
+        }.get(layerIdentifier, set())
+        emitterFieldNames = {"EmittCoef"} if layerIdentifier == "qgisred_junctions" else set()
         row = startRow
         for fieldIdx, field in enumerate(fields):
             fieldName = field.name()
@@ -1389,6 +1393,8 @@ class QGISRedElementExplorerDock(QGISRedHighlightOwnerMixin, QDockWidget, FORM_C
                 backgroundBrush = self.sourceBrush
             elif fieldName in demandFieldNames:
                 backgroundBrush = self.demandBrush
+            elif fieldName in emitterFieldNames and self.isPositiveValue(rawValue):
+                backgroundBrush = self.emitterBrush
             else:
                 backgroundBrush = None
 
@@ -1435,6 +1441,12 @@ class QGISRedElementExplorerDock(QGISRedHighlightOwnerMixin, QDockWidget, FORM_C
             return f"{numeric:.{decimals}f}"
         except (ValueError, TypeError):
             return str(rawValue)
+
+    def isPositiveValue(self, rawValue):
+        try:
+            return float(rawValue) > 0
+        except (ValueError, TypeError):
+            return False
 
     def formatDateValue(self, rawValue):
         try:
@@ -1560,7 +1572,11 @@ class QGISRedElementExplorerDock(QGISRedHighlightOwnerMixin, QDockWidget, FORM_C
         """One-time setup for dataTableWidget and tableResults. Called once from __init__."""
         self.sourceBrush = QBrush(QColor("#FFE0FF"))
         self.demandBrush = QBrush(QColor("#FFE4CC"))
+        self.emitterBrush = QBrush(QColor("#FFF2E2"))
         self.totalDemandsBrush = QBrush(QColor("#FFBD80"))
+        self.resultsBrush = QBrush(QColor("#FFF8DC"))
+        self.resultsDemandBrush = QBrush(QColor("#FBE6AA"))
+        self.resultsQualityBrush = QBrush(QColor("#FFE0DD"))
 
         self.setDataTableWidgetColumns()
         self.dataTableWidget.setShowGrid(True)
@@ -2733,6 +2749,13 @@ class QGISRedElementExplorerDock(QGISRedHighlightOwnerMixin, QDockWidget, FORM_C
             fields.append("Quality")
         return fields
 
+    def getResultsRowBrush(self, fieldName):
+        if fieldName == "Demand":
+            return self.resultsDemandBrush
+        if fieldName == "Quality":
+            return self.resultsQualityBrush
+        return self.resultsBrush
+
     def populateResultsTable(self):
         """Populate tableResults with per-element results from the Results group layer attribute table."""
         if not self.isLayerValid(self.currentLayer) or not self.currentFeature:
@@ -2820,7 +2843,6 @@ class QGISRedElementExplorerDock(QGISRedHighlightOwnerMixin, QDockWidget, FORM_C
             self.tableResults.setRowCount(len(displayFields))
 
             utils = QGISRedFieldUtils()
-            resultsBrush = QBrush(QColor("#FFF8DC"))
             for row, fieldName in enumerate(displayFields):
                 value = matchedFeature.attribute(fieldName)
 
@@ -2853,7 +2875,8 @@ class QGISRedElementExplorerDock(QGISRedHighlightOwnerMixin, QDockWidget, FORM_C
                 if unitDisplay:
                     unitItem.setToolTip(unitDisplay)
 
-                # Apply yellow background to Value/Unit columns for results data
+                # Apply the row background to Value/Unit columns for results data
+                resultsBrush = self.getResultsRowBrush(fieldName)
                 valueItem.setBackground(resultsBrush)
                 unitItem.setBackground(resultsBrush)
 
