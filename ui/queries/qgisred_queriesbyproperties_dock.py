@@ -475,6 +475,7 @@ class QGISRedQueriesByPropertiesDock(QGISRedHighlightOwnerMixin, QDockWidget, FO
             if idx >= 0:
                 self.cbProperty.setCurrentIndex(idx)
         self.updateComboBoxBackground(self.cbProperty)
+        self.updateValueUnitLabel()
         if state.get('statisticsFor'):
             idx = self.findComboByInternalName(self.cbStatisticsFor, state['statisticsFor'])
             if idx >= 0:
