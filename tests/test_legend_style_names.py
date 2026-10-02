@@ -24,6 +24,21 @@ def noProjectEntry():
         yield project
 
 
+def _projectOptions(project, flowUnit="LPS", qualityModel="Chemical", chemicalLabel=""):
+    """The Analysis Options the style names depend on, as the project stores them."""
+    entries = {"project_units": flowUnit, "project_qualitymodel": qualityModel, "project_chemicallabel": chemicalLabel}
+    project.instance.return_value.readEntry.side_effect = (
+        lambda section, key, default="": (entries[key], True) if key in entries else (default, False))
+
+
+@pytest.fixture(autouse=True)
+def siProjectWithoutChlorine():
+    """SI units and an unnamed chemical unless a test says otherwise."""
+    with patch("QGISRed.tools.utils.qgisred_project_utils.QgsProject") as project:
+        _projectOptions(project)
+        yield project
+
+
 def _dialog(fieldName=None, layerName="Node Pressure"):
     """Bare dialog: these helpers only read currentFieldName / currentLayer."""
     dialog = QGISRedLegendsDialog.__new__(QGISRedLegendsDialog)
@@ -38,7 +53,8 @@ class TestSharedStyleNameHelper:
     """resultStyleName is the single source of truth for dock, metadata reader and editor."""
 
     @pytest.mark.parametrize("layerType, variable, expected", [
-        ("Node", "Pressure", "NodePressure"),
+        ("Node", "Pressure", "NodePressureSI"),
+        ("Node", "Head", "NodeHead"),
         ("Link", "Status", "LinkStatus"),
         ("Link", "UnitHdLoss", "LinkUnitHdLoss"),
         ("Link", "Flow_Unsig", "LinkFlow"),
@@ -47,8 +63,34 @@ class TestSharedStyleNameHelper:
     def test_builds_the_shipped_qml_names(self, layerType, variable, expected):
         assert resultStyleName(layerType, variable) == expected
 
+    @pytest.mark.parametrize("flowUnit, expected", [("LPS", "SI"), ("CMH", "SI"), ("GPM", "US"), ("CFS", "US")])
+    @pytest.mark.parametrize("layerType, variable", [("Node", "Pressure"), ("Link", "Velocity"), ("Link", "HeadLoss")])
+    def test_variables_with_unit_dependent_thresholds_carry_the_unit_system(
+            self, siProjectWithoutChlorine, flowUnit, expected, layerType, variable):
+        _projectOptions(siProjectWithoutChlorine, flowUnit=flowUnit)
+
+        assert resultStyleName(layerType, variable) == layerType + variable + expected
+
+    @pytest.mark.parametrize("qualityModel, chemicalLabel, expected", [
+        ("Chemical", "Chlorine", "Chlorine"),
+        ("Chemical", "cloro residual", "Chlorine"),
+        ("Chemical", "Chlore", "Chlorine"),
+        ("Chemical", "CL2", "Chlorine"),
+        ("Chemical", "cl", "Chlorine"),
+        ("Chemical", "Fluoride", "Chemical"),
+        ("Chemical", "", "Chemical"),
+        ("Age", "Chlorine", "Age"),
+        ("Trace", "", "Trace"),
+        ("None", "", "Chemical"),
+    ])
+    def test_quality_takes_the_style_of_its_kind(self, siProjectWithoutChlorine, qualityModel, chemicalLabel, expected):
+        _projectOptions(siProjectWithoutChlorine, qualityModel=qualityModel, chemicalLabel=chemicalLabel)
+
+        assert resultStyleName("Node", "Quality") == "Node" + expected
+        assert resultStyleName("Link", "Quality") == "Link" + expected
+
     def test_tolerates_the_composite_layer_name_the_dock_passes(self):
-        assert resultStyleName("Node_Something", "Pressure") == "NodePressure"
+        assert resultStyleName("Node_Something", "Pressure") == "NodePressureSI"
 
     @pytest.mark.parametrize("layerType, variable", [("", "Pressure"), ("Node", ""), ("Node", None)])
     def test_returns_empty_without_a_name_to_build(self, layerType, variable):
@@ -57,13 +99,15 @@ class TestSharedStyleNameHelper:
 
 class TestResultStyleName:
     @pytest.mark.parametrize("identifier, field, expected", [
-        ("qgisred_node_pressure", "Pressure", "NodePressure"),
+        ("qgisred_node_pressure", "Pressure", "NodePressureSI"),
         ("qgisred_node_head", "Head", "NodeHead"),
         ("qgisred_node_demand", "Demand", "NodeDemand"),
-        ("qgisred_node_quality", "Quality", "NodeQuality"),
-        ("qgisred_link_velocity", "Velocity", "LinkVelocity"),
-        ("qgisred_link_headloss", "HeadLoss", "LinkHeadLoss"),
+        ("qgisred_node_quality", "Quality", "NodeChemical"),
+        ("qgisred_link_velocity", "Velocity", "LinkVelocitySI"),
+        ("qgisred_link_headloss", "HeadLoss", "LinkHeadLossSI"),
         ("qgisred_link_unitheadloss", "UnitHdLoss", "LinkUnitHdLoss"),
+        ("qgisred_link_frictionfactor", "FricFactor", "LinkFricFactor"),
+        ("qgisred_link_reactionrate", "ReactRate", "LinkReactRate"),
     ])
     def test_matches_the_shipped_qml_names(self, identifier, field, expected):
         assert _dialog(field).getResultStyleName(identifier) == expected
@@ -71,23 +115,24 @@ class TestResultStyleName:
     def test_flow_is_classified_through_an_abs_expression(self, identifier="qgisred_link_flow"):
         assert _dialog('abs("Flow")').getResultStyleName(identifier) == "LinkFlow"
         assert _dialog("abs(Flow)").getResultStyleName(identifier) == "LinkFlow"
+        assert _dialog("abs(Flow_Sig)").getResultStyleName(identifier) == "LinkFlow"
 
     @pytest.mark.parametrize("field", ["Flow_Sig", "Flow_Unsig"])
     def test_signed_flow_variants_share_the_flow_style(self, field):
         assert _dialog(field).getResultStyleName("qgisred_link_flow") == "LinkFlow"
 
     @pytest.mark.parametrize("field, expected", [
-        ("Quality", "LinkQuality"),
+        ("Quality", "LinkChemical"),
         ("FricFactor", "LinkFricFactor"),
         ("ReactRate", "LinkReactRate"),
     ])
-    def test_column_disambiguates_the_shared_quality_identifier(self, field, expected):
-        # LinkQuality, LinkFricFactor and LinkReactRate all ship with the same identifier.
+    def test_the_column_names_the_style_whatever_the_identifier(self, field, expected):
+        # Styles saved by older plugins stamped qgisred_link_quality on FricFactor and ReactRate too.
         assert _dialog(field).getResultStyleName("qgisred_link_quality") == expected
 
     def test_without_a_column_or_a_project_entry_there_is_no_name(self):
-        # Guessing from the identifier is not an option: Quality, FricFactor and
-        # ReactRate share qgisred_link_quality and it would pick the wrong style file.
+        # Guessing from the identifier is not an option: a layer styled by an older plugin may
+        # carry qgisred_link_quality for FricFactor or ReactRate and would pick the wrong file.
         assert _dialog(None).getResultStyleName("qgisred_link_quality") is None
         assert _dialog(None).getResultStyleName("qgisred_node_pressure") is None
 
@@ -228,7 +273,7 @@ class TestElementNameForIdentifier:
     def test_result_layer_ignores_the_translated_layer_name(self):
         dialog = _dialog("Pressure", layerName="Nudo Presión")
 
-        assert dialog.getElementNameForIdentifier("qgisred_node_pressure") == "NodePressure"
+        assert dialog.getElementNameForIdentifier("qgisred_node_pressure") == "NodePressureSI"
 
     def test_input_layer_ignores_the_translated_layer_name_too(self):
         # It used to come from identifierToElementName, which gave names setStyle never

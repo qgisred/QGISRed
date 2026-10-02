@@ -6,13 +6,13 @@
     <Searchable>1</Searchable>
     <Private>0</Private>
   </flags>
-  <renderer-v2 forceraster="0" referencescale="-1" attr="FricFactor" type="graduatedSymbol" symbollevels="0" graduatedMethod="GraduatedColor" enableorderby="0">
+  <renderer-v2 forceraster="0" referencescale="-1" attr="Quality" type="graduatedSymbol" symbollevels="0" graduatedMethod="GraduatedColor" enableorderby="0">
     <ranges>
-      <range lower="0" label="&lt; 0.01" upper="0.0095" symbol="0" render="true" uuid="{e8b11cd6-87f7-59de-8e9e-3aebc11814d2}"/>
-      <range lower="0.0095" label="0.01 &lt; 0.015" upper="0.0145" symbol="1" render="true" uuid="{b12d7cdb-5588-53a6-a9a4-5512f6a852a9}"/>
-      <range lower="0.0145" label="0.015 &lt; 0.02" upper="0.0195" symbol="2" render="true" uuid="{23992d26-f0d2-5f05-89d3-de350a76ac2c}"/>
-      <range lower="0.0195" label="0.02 &lt; 0.03" upper="0.0295" symbol="3" render="true" uuid="{46cd18bf-a003-56af-a9fc-17bbd9ff5365}"/>
-      <range lower="0.0295" label="&gt; 0.03" upper="1" symbol="4" render="true" uuid="{1bd963e5-e01a-511c-be73-26ff0f3eae3d}"/>
+      <range lower="0" label="0 - 1" upper="1" symbol="0" render="true" uuid="{b99df2c0-1420-5773-94f8-2ab7c4598fdb}"/>
+      <range lower="1" label="1 - 2" upper="2" symbol="1" render="true" uuid="{44cebf2d-588e-5567-88e1-eb40c89c2506}"/>
+      <range lower="2" label="2 - 3" upper="3" symbol="2" render="true" uuid="{eaab21c8-07fd-56d8-a89e-e8af0add8d4a}"/>
+      <range lower="3" label="3 - 4" upper="4" symbol="3" render="true" uuid="{3e945d17-8df8-59de-91c9-05eb26e90f6d}"/>
+      <range lower="4" label="4 - 5" upper="5" symbol="4" render="true" uuid="{d306f68e-e8fb-5572-bcc2-5422028f650a}"/>
     </ranges>
     <symbols>
       <symbol is_animated="0" alpha="1" clip_to_extent="1" frame_rate="10" name="0" force_rhr="0" type="line">
@@ -1671,7 +1671,22 @@
         </layer>
       </symbol>
     </symbols>
-    <classificationMethod id="Custom">
+    <colorramp type="preset" name="[source]">
+      <Option type="Map">
+        <Option value="0,132,255,255" type="QString" name="preset_color_0"/>
+        <Option value="1" type="QString" name="preset_color_name_0"/>
+        <Option value="0,255,255,255" type="QString" name="preset_color_1"/>
+        <Option value="2" type="QString" name="preset_color_name_1"/>
+        <Option value="0,255,0,255" type="QString" name="preset_color_2"/>
+        <Option value="3" type="QString" name="preset_color_name_2"/>
+        <Option value="255,216,0,255" type="QString" name="preset_color_3"/>
+        <Option value="4" type="QString" name="preset_color_name_3"/>
+        <Option value="255,93,0,255" type="QString" name="preset_color_4"/>
+        <Option value="5" type="QString" name="preset_color_name_4"/>
+        <Option value="preset" type="QString" name="rampType"/>
+      </Option>
+    </colorramp>
+    <classificationMethod id="Pretty">
       <symmetricMode symmetrypoint="0" enabled="0" astride="0"/>
       <labelFormat trimtrailingzeroes="1" format="%1 - %2" labelprecision="4"/>
       <parameters>
@@ -1744,7 +1759,8 @@
   <customproperties>
     <Option type="Map">
       <Option name="embeddedWidgets/count" value="0" type="int"/>
-      <Option name="qgisred_identifier" value="qgisred_link_frictionfactor" type="QString"/>
+      <Option name="qgisred_identifier" value="qgisred_link_quality" type="QString"/>
+      <Option name="qgisred_legend_strategy" value="{&quot;schema&quot;:&quot;qgisred.legendStrategy.v2&quot;,&quot;mode&quot;:&quot;graduated&quot;,&quot;field&quot;:&quot;Quality&quot;,&quot;parts&quot;:[&quot;intervals&quot;,&quot;colors&quot;],&quot;intervals&quot;:{&quot;classificationMode&quot;:&quot;Pretty&quot;,&quot;classes&quot;:5},&quot;colors&quot;:{&quot;source&quot;:&quot;ramp&quot;,&quot;rampName&quot;:&quot;QGISRed EPANET Results&quot;,&quot;invertRamp&quot;:false}}" type="QString"/>
       <Option name="variableNames"/>
       <Option name="variableValues"/>
     </Option>

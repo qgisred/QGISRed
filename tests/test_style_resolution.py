@@ -2,6 +2,8 @@
 """Resolution order of QML style files: project (network-prefixed) → global → default."""
 import os
 
+import pytest
+
 from QGISRed.tools.utils.qgisred_styling_utils import QGISRedStylingUtils
 
 
@@ -150,10 +152,26 @@ class TestSetStyle:
         utils = _makeUtils(tmp_path)
         layer = _FakeLayer()
 
-        utils.setStyle(layer, "Node_Pressure")
+        utils.setStyle(layer, "Node_PressureSI")
 
         # Underscores are stripped from the style name, and defaults live as .qml.bak.
-        assert layer.loadedPath.endswith(os.path.join("defaults", "layerStyles", "NodePressure.qml.bak"))
+        assert layer.loadedPath.endswith(os.path.join("defaults", "layerStyles", "NodePressureSI.qml.bak"))
+        assert os.path.exists(layer.loadedPath)
+
+    @pytest.mark.parametrize("name", [
+        "NodePressureSI", "NodePressureUS", "NodeHead", "NodeDemand", "NodeChlorine", "NodeChemical", "NodeTrace",
+        "NodeAge", "LinkFlow", "LinkVelocitySI", "LinkVelocityUS", "LinkHeadLossSI", "LinkHeadLossUS",
+        "LinkUnitHdLoss", "LinkFricFactor", "LinkReactRate", "LinkChlorine", "LinkChemical", "LinkTrace", "LinkAge",
+        "LinkStatus",
+    ])
+    def test_every_result_style_the_dock_can_ask_for_ships(self, tmp_path, name):
+        # The fallback path is built whether or not the file exists, so its presence is checked here.
+        utils = _makeUtils(tmp_path)
+        layer = _FakeLayer()
+
+        utils.setStyle(layer, name)
+
+        assert os.path.exists(layer.loadedPath), layer.loadedPath
 
     def test_empty_name_loads_nothing(self, tmp_path):
         utils = _makeUtils(tmp_path)

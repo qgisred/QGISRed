@@ -72,7 +72,7 @@ class TestSavingIsNotAffected:
             tempLayer = vectorLayer.return_value
             tempLayer.isValid.return_value = True
 
-            dialog.saveDialogLegendToFile("C:/proj/layerStyles/Net_NodePressure.qml", [])
+            dialog.saveDialogLegendToFile("C:/proj/layerStyles/Net_NodePressureSI.qml", [])
 
         tempLayer.setRenderer.assert_called_once_with(dialog.buildRendererFromDialog.return_value)
         tempLayer.saveNamedStyle.assert_called_once()

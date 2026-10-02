@@ -21,6 +21,14 @@ class QGISRedProjectUtils:
         return label.strip()
 
     @staticmethod
+    def isChlorineQuality() -> bool:
+        """True when the simulated chemical is chlorine, going by the label the user typed."""
+        if QGISRedProjectUtils.getQualityModel().upper() != "CHEMICAL":
+            return False
+        label = QGISRedProjectUtils.getChemicalLabel().lower()
+        return label in ("cl", "cl2") or "chlor" in label or "clor" in label
+
+    @staticmethod
     def getTraceNode() -> str:
         """Return the Trace source node ID defined in Analysis Options, or ''."""
         node, _ = QgsProject.instance().readEntry("QGISRed", "project_tracenode", "")

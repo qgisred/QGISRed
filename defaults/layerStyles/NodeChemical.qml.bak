@@ -144,13 +144,13 @@
       </symbol>
     </profileMarkerSymbol>
   </elevation>
-  <renderer-v2 forceraster="0" referencescale="-1" attr="Demand" type="graduatedSymbol" symbollevels="0" graduatedMethod="GraduatedColor" enableorderby="0">
+  <renderer-v2 forceraster="0" referencescale="-1" attr="Quality" type="graduatedSymbol" symbollevels="0" graduatedMethod="GraduatedColor" enableorderby="0">
     <ranges>
-      <range lower="0" label="0 - 1" upper="1" symbol="0" render="true" uuid="{89afc7ed-db15-50ea-bcea-508ece40c19a}"/>
-      <range lower="1" label="1 - 2" upper="2" symbol="1" render="true" uuid="{b36a7b4f-6877-580e-9580-be9b599aebf2}"/>
-      <range lower="2" label="2 - 3" upper="3" symbol="2" render="true" uuid="{483327b1-8674-55c3-8896-bdc52488cd41}"/>
-      <range lower="3" label="3 - 4" upper="4" symbol="3" render="true" uuid="{1b1173c1-e8ec-5188-baa9-82cf25a378bd}"/>
-      <range lower="4" label="4 - 5" upper="5" symbol="4" render="true" uuid="{c932f95b-c673-527a-b7f7-0db5dda1cf3f}"/>
+      <range lower="0" label="0 - 1" upper="1" symbol="0" render="true" uuid="{5e8809d3-ec94-5d9d-8885-6f958c966f20}"/>
+      <range lower="1" label="1 - 2" upper="2" symbol="1" render="true" uuid="{a02b3a27-43b1-56ae-a7dd-691d434495f7}"/>
+      <range lower="2" label="2 - 3" upper="3" symbol="2" render="true" uuid="{46ec93c6-a2dd-5229-8d8d-c508ddb8ee9f}"/>
+      <range lower="3" label="3 - 4" upper="4" symbol="3" render="true" uuid="{a7d8e0ab-ef02-5300-9528-033b2c5590e9}"/>
+      <range lower="4" label="4 - 5" upper="5" symbol="4" render="true" uuid="{7a85c5ab-518f-5269-9095-25f9e6444658}"/>
     </ranges>
     <symbols>
       <symbol alpha="1" is_animated="0" frame_rate="10" type="marker" clip_to_extent="1" name="0" force_rhr="0">
@@ -1284,8 +1284,8 @@
   <customproperties>
     <Option type="Map">
       <Option value="0" type="QString" name="embeddedWidgets/count"/>
-      <Option value="qgisred_node_demand" type="QString" name="qgisred_identifier"/>
-      <Option value="{&quot;schema&quot;:&quot;qgisred.legendStrategy.v2&quot;,&quot;mode&quot;:&quot;graduated&quot;,&quot;field&quot;:&quot;Demand&quot;,&quot;parts&quot;:[&quot;intervals&quot;,&quot;colors&quot;],&quot;intervals&quot;:{&quot;classificationMode&quot;:&quot;Pretty&quot;,&quot;classes&quot;:5},&quot;colors&quot;:{&quot;source&quot;:&quot;ramp&quot;,&quot;rampName&quot;:&quot;QGISRed EPANET Results&quot;,&quot;invertRamp&quot;:false}}" type="QString" name="qgisred_legend_strategy"/>
+      <Option value="qgisred_node_quality" type="QString" name="qgisred_identifier"/>
+      <Option value="{&quot;schema&quot;:&quot;qgisred.legendStrategy.v2&quot;,&quot;mode&quot;:&quot;graduated&quot;,&quot;field&quot;:&quot;Quality&quot;,&quot;parts&quot;:[&quot;intervals&quot;,&quot;colors&quot;],&quot;intervals&quot;:{&quot;classificationMode&quot;:&quot;Pretty&quot;,&quot;classes&quot;:5},&quot;colors&quot;:{&quot;source&quot;:&quot;ramp&quot;,&quot;rampName&quot;:&quot;QGISRed EPANET Results&quot;,&quot;invertRamp&quot;:false}}" type="QString" name="qgisred_legend_strategy"/>
       <Option type="invalid" name="variableNames"/>
       <Option type="invalid" name="variableValues"/>
     </Option>

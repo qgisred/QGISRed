@@ -144,13 +144,13 @@
       </symbol>
     </profileMarkerSymbol>
   </elevation>
-  <renderer-v2 forceraster="0" referencescale="-1" attr="Demand" type="graduatedSymbol" symbollevels="0" graduatedMethod="GraduatedColor" enableorderby="0">
+  <renderer-v2 forceraster="0" referencescale="-1" attr="Quality" type="graduatedSymbol" symbollevels="0" graduatedMethod="GraduatedColor" enableorderby="0">
     <ranges>
-      <range lower="0" label="0 - 1" upper="1" symbol="0" render="true" uuid="{89afc7ed-db15-50ea-bcea-508ece40c19a}"/>
-      <range lower="1" label="1 - 2" upper="2" symbol="1" render="true" uuid="{b36a7b4f-6877-580e-9580-be9b599aebf2}"/>
-      <range lower="2" label="2 - 3" upper="3" symbol="2" render="true" uuid="{483327b1-8674-55c3-8896-bdc52488cd41}"/>
-      <range lower="3" label="3 - 4" upper="4" symbol="3" render="true" uuid="{1b1173c1-e8ec-5188-baa9-82cf25a378bd}"/>
-      <range lower="4" label="4 - 5" upper="5" symbol="4" render="true" uuid="{c932f95b-c673-527a-b7f7-0db5dda1cf3f}"/>
+      <range lower="0" label="&lt; 12" upper="11.95" symbol="0" render="true" uuid="{a0e0327d-d294-50f7-aa75-54703327d89b}"/>
+      <range lower="11.95" label="12 &lt; 24" upper="23.95" symbol="1" render="true" uuid="{39ac48d9-01a1-5129-a6d5-6d9aac055d5b}"/>
+      <range lower="23.95" label="24 &lt; 48" upper="47.95" symbol="2" render="true" uuid="{0ed27da5-c6b6-5eb6-9d09-62162421ae0b}"/>
+      <range lower="47.95" label="48 &lt; 72" upper="71.95" symbol="3" render="true" uuid="{79c2950a-a902-5d47-8885-840c66c675ea}"/>
+      <range lower="71.95" label="&gt; 72" upper="1000" symbol="4" render="true" uuid="{84ee63f7-2e13-5bd1-b70c-2c73136b3aad}"/>
     </ranges>
     <symbols>
       <symbol alpha="1" is_animated="0" frame_rate="10" type="marker" clip_to_extent="1" name="0" force_rhr="0">
@@ -1204,22 +1204,7 @@
         </layer>
       </symbol>
     </symbols>
-    <colorramp type="preset" name="[source]">
-      <Option type="Map">
-        <Option value="0,132,255,255" type="QString" name="preset_color_0"/>
-        <Option value="1" type="QString" name="preset_color_name_0"/>
-        <Option value="0,255,255,255" type="QString" name="preset_color_1"/>
-        <Option value="2" type="QString" name="preset_color_name_1"/>
-        <Option value="0,255,0,255" type="QString" name="preset_color_2"/>
-        <Option value="3" type="QString" name="preset_color_name_2"/>
-        <Option value="255,216,0,255" type="QString" name="preset_color_3"/>
-        <Option value="4" type="QString" name="preset_color_name_3"/>
-        <Option value="255,93,0,255" type="QString" name="preset_color_4"/>
-        <Option value="5" type="QString" name="preset_color_name_4"/>
-        <Option value="preset" type="QString" name="rampType"/>
-      </Option>
-    </colorramp>
-    <classificationMethod id="Pretty">
+    <classificationMethod id="Custom">
       <symmetricMode symmetrypoint="0" enabled="0" astride="0"/>
       <labelFormat trimtrailingzeroes="1" format="%1 - %2" labelprecision="4"/>
       <parameters>
@@ -1284,8 +1269,7 @@
   <customproperties>
     <Option type="Map">
       <Option value="0" type="QString" name="embeddedWidgets/count"/>
-      <Option value="qgisred_node_demand" type="QString" name="qgisred_identifier"/>
-      <Option value="{&quot;schema&quot;:&quot;qgisred.legendStrategy.v2&quot;,&quot;mode&quot;:&quot;graduated&quot;,&quot;field&quot;:&quot;Demand&quot;,&quot;parts&quot;:[&quot;intervals&quot;,&quot;colors&quot;],&quot;intervals&quot;:{&quot;classificationMode&quot;:&quot;Pretty&quot;,&quot;classes&quot;:5},&quot;colors&quot;:{&quot;source&quot;:&quot;ramp&quot;,&quot;rampName&quot;:&quot;QGISRed EPANET Results&quot;,&quot;invertRamp&quot;:false}}" type="QString" name="qgisred_legend_strategy"/>
+      <Option value="qgisred_node_quality" type="QString" name="qgisred_identifier"/>
       <Option type="invalid" name="variableNames"/>
       <Option type="invalid" name="variableValues"/>
     </Option>

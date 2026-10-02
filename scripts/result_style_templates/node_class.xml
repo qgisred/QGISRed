@@ -1,0 +1,210 @@
+      <symbol alpha="1" is_animated="0" frame_rate="10" type="marker" clip_to_extent="1" name="0" force_rhr="0">
+        <data_defined_properties>
+          <Option type="Map">
+            <Option value="" type="QString" name="name"/>
+            <Option name="properties"/>
+            <Option value="collection" type="QString" name="type"/>
+          </Option>
+        </data_defined_properties>
+        <layer id="{97e54684-dc68-47d3-97a4-e2fcb8a309d2}" class="SvgMarker" pass="0" enabled="1" locked="0">
+          <Option type="Map">
+            <Option value="0" type="QString" name="angle"/>
+            <Option value="0,0,255,255,rgb:0,0,1,1" type="QString" name="color"/>
+            <Option value="0" type="QString" name="fixedAspectRatio"/>
+            <Option value="1" type="QString" name="horizontal_anchor_point"/>
+            <Option value="base64:{SVG_TANK_WATER}" type="QString" name="name"/>
+            <Option value="0,0" type="QString" name="offset"/>
+            <Option value="3x:0,0,0,0,0,0" type="QString" name="offset_map_unit_scale"/>
+            <Option value="MM" type="QString" name="offset_unit"/>
+            <Option value="255,255,255,255,rgb:1,1,1,1" type="QString" name="outline_color"/>
+            <Option value="0" type="QString" name="outline_width"/>
+            <Option value="3x:0,0,0,0,0,0" type="QString" name="outline_width_map_unit_scale"/>
+            <Option value="MM" type="QString" name="outline_width_unit"/>
+            <Option name="parameters"/>
+            <Option value="diameter" type="QString" name="scale_method"/>
+            <Option value="0" type="QString" name="size"/>
+            <Option value="3x:0,0,0,0,0,0" type="QString" name="size_map_unit_scale"/>
+            <Option value="MM" type="QString" name="size_unit"/>
+            <Option value="1" type="QString" name="vertical_anchor_point"/>
+          </Option>
+          <data_defined_properties>
+            <Option type="Map">
+              <Option value="" type="QString" name="name"/>
+              <Option type="Map" name="properties">
+                <Option type="Map" name="size">
+                  <Option value="true" type="bool" name="active"/>
+                  <Option value="if(@id is NULL, NULL, if(coalesce(attribute($currentfeature,'NodeType'),attribute($currentfeature,'Type')) ='TANK', 7,0))" type="QString" name="expression"/>
+                  <Option value="3" type="int" name="type"/>
+                </Option>
+                <Option type="Map" name="width">
+                  <Option value="true" type="bool" name="active"/>
+                  <Option value="if(@id is NULL, NULL, if(coalesce(attribute($currentfeature,'NodeType'),attribute($currentfeature,'Type')) ='TANK', 7,0))" type="QString" name="expression"/>
+                  <Option value="3" type="int" name="type"/>
+                </Option>
+              </Option>
+              <Option value="collection" type="QString" name="type"/>
+            </Option>
+          </data_defined_properties>
+        </layer>
+        <layer id="{97e54684-dc68-47d3-97a4-e2fcb8a309d2}" class="SvgMarker" pass="0" enabled="1" locked="0">
+          <Option type="Map">
+            <Option value="0" type="QString" name="angle"/>
+            <Option value="0,0,159,255,rgb:0,0,0.6249943,1" type="QString" name="color"/>
+            <Option value="0" type="QString" name="fixedAspectRatio"/>
+            <Option value="1" type="QString" name="horizontal_anchor_point"/>
+            <Option value="base64:{SVG_TANK_FRAME}" type="QString" name="name"/>
+            <Option value="0,0" type="QString" name="offset"/>
+            <Option value="3x:0,0,0,0,0,0" type="QString" name="offset_map_unit_scale"/>
+            <Option value="MM" type="QString" name="offset_unit"/>
+            <Option value="255,255,255,255,rgb:1,1,1,1" type="QString" name="outline_color"/>
+            <Option value="0" type="QString" name="outline_width"/>
+            <Option value="3x:0,0,0,0,0,0" type="QString" name="outline_width_map_unit_scale"/>
+            <Option value="MM" type="QString" name="outline_width_unit"/>
+            <Option name="parameters"/>
+            <Option value="diameter" type="QString" name="scale_method"/>
+            <Option value="0" type="QString" name="size"/>
+            <Option value="3x:0,0,0,0,0,0" type="QString" name="size_map_unit_scale"/>
+            <Option value="MM" type="QString" name="size_unit"/>
+            <Option value="1" type="QString" name="vertical_anchor_point"/>
+          </Option>
+          <data_defined_properties>
+            <Option type="Map">
+              <Option value="" type="QString" name="name"/>
+              <Option type="Map" name="properties">
+                <Option type="Map" name="size">
+                  <Option value="true" type="bool" name="active"/>
+                  <Option value="if(@id is NULL, NULL, if(coalesce(attribute($currentfeature,'NodeType'),attribute($currentfeature,'Type')) ='TANK', 7,0))" type="QString" name="expression"/>
+                  <Option value="3" type="int" name="type"/>
+                </Option>
+                <Option type="Map" name="width">
+                  <Option value="true" type="bool" name="active"/>
+                  <Option value="if(@id is NULL, NULL, if(coalesce(attribute($currentfeature,'NodeType'),attribute($currentfeature,'Type')) ='TANK', 7,0))" type="QString" name="expression"/>
+                  <Option value="3" type="int" name="type"/>
+                </Option>
+              </Option>
+              <Option value="collection" type="QString" name="type"/>
+            </Option>
+          </data_defined_properties>
+        </layer>
+        <layer id="{47472e31-3a37-4f39-adc7-2ffb883ab71e}" class="SvgMarker" pass="0" enabled="1" locked="0">
+          <Option type="Map">
+            <Option value="0" type="QString" name="angle"/>
+            <Option value="0,0,255,255,rgb:0,0,1,1" type="QString" name="color"/>
+            <Option value="0" type="QString" name="fixedAspectRatio"/>
+            <Option value="1" type="QString" name="horizontal_anchor_point"/>
+            <Option value="base64:{SVG_RESERVOIR_WATER}" type="QString" name="name"/>
+            <Option value="0,0" type="QString" name="offset"/>
+            <Option value="3x:0,0,0,0,0,0" type="QString" name="offset_map_unit_scale"/>
+            <Option value="MM" type="QString" name="offset_unit"/>
+            <Option value="255,255,255,255,rgb:1,1,1,1" type="QString" name="outline_color"/>
+            <Option value="0" type="QString" name="outline_width"/>
+            <Option value="3x:0,0,0,0,0,0" type="QString" name="outline_width_map_unit_scale"/>
+            <Option value="MM" type="QString" name="outline_width_unit"/>
+            <Option name="parameters"/>
+            <Option value="diameter" type="QString" name="scale_method"/>
+            <Option value="0" type="QString" name="size"/>
+            <Option value="3x:0,0,0,0,0,0" type="QString" name="size_map_unit_scale"/>
+            <Option value="MM" type="QString" name="size_unit"/>
+            <Option value="1" type="QString" name="vertical_anchor_point"/>
+          </Option>
+          <data_defined_properties>
+            <Option type="Map">
+              <Option value="" type="QString" name="name"/>
+              <Option type="Map" name="properties">
+                <Option type="Map" name="size">
+                  <Option value="true" type="bool" name="active"/>
+                  <Option value="if(@id is NULL, NULL, if(coalesce(attribute($currentfeature,'NodeType'),attribute($currentfeature,'Type')) ='RESERVOIR', 7,0))" type="QString" name="expression"/>
+                  <Option value="3" type="int" name="type"/>
+                </Option>
+                <Option type="Map" name="width">
+                  <Option value="true" type="bool" name="active"/>
+                  <Option value="if(@id is NULL, NULL, if(coalesce(attribute($currentfeature,'NodeType'),attribute($currentfeature,'Type')) ='RESERVOIR', 7,0))" type="QString" name="expression"/>
+                  <Option value="3" type="int" name="type"/>
+                </Option>
+              </Option>
+              <Option value="collection" type="QString" name="type"/>
+            </Option>
+          </data_defined_properties>
+        </layer>
+        <layer id="{47472e31-3a37-4f39-adc7-2ffb883ab71e}" class="SvgMarker" pass="0" enabled="1" locked="0">
+          <Option type="Map">
+            <Option value="0" type="QString" name="angle"/>
+            <Option value="0,0,159,255,rgb:0,0,0.6249943,1" type="QString" name="color"/>
+            <Option value="0" type="QString" name="fixedAspectRatio"/>
+            <Option value="1" type="QString" name="horizontal_anchor_point"/>
+            <Option value="base64:{SVG_RESERVOIR_FRAME}" type="QString" name="name"/>
+            <Option value="0,0" type="QString" name="offset"/>
+            <Option value="3x:0,0,0,0,0,0" type="QString" name="offset_map_unit_scale"/>
+            <Option value="MM" type="QString" name="offset_unit"/>
+            <Option value="255,255,255,255,rgb:1,1,1,1" type="QString" name="outline_color"/>
+            <Option value="0" type="QString" name="outline_width"/>
+            <Option value="3x:0,0,0,0,0,0" type="QString" name="outline_width_map_unit_scale"/>
+            <Option value="MM" type="QString" name="outline_width_unit"/>
+            <Option name="parameters"/>
+            <Option value="diameter" type="QString" name="scale_method"/>
+            <Option value="0" type="QString" name="size"/>
+            <Option value="3x:0,0,0,0,0,0" type="QString" name="size_map_unit_scale"/>
+            <Option value="MM" type="QString" name="size_unit"/>
+            <Option value="1" type="QString" name="vertical_anchor_point"/>
+          </Option>
+          <data_defined_properties>
+            <Option type="Map">
+              <Option value="" type="QString" name="name"/>
+              <Option type="Map" name="properties">
+                <Option type="Map" name="size">
+                  <Option value="true" type="bool" name="active"/>
+                  <Option value="if(@id is NULL, NULL, if(coalesce(attribute($currentfeature,'NodeType'),attribute($currentfeature,'Type')) ='RESERVOIR', 7,0))" type="QString" name="expression"/>
+                  <Option value="3" type="int" name="type"/>
+                </Option>
+                <Option type="Map" name="width">
+                  <Option value="true" type="bool" name="active"/>
+                  <Option value="if(@id is NULL, NULL, if(coalesce(attribute($currentfeature,'NodeType'),attribute($currentfeature,'Type')) ='RESERVOIR', 7,0))" type="QString" name="expression"/>
+                  <Option value="3" type="int" name="type"/>
+                </Option>
+              </Option>
+              <Option value="collection" type="QString" name="type"/>
+            </Option>
+          </data_defined_properties>
+        </layer>
+        <layer id="{b3db60bc-a9bc-4dc3-ac7a-3ac1011eefbf}" class="SimpleMarker" pass="0" enabled="1" locked="0">
+          <Option type="Map">
+            <Option value="0" type="QString" name="angle"/>
+            <Option value="square" type="QString" name="cap_style"/>
+            <Option value="0,0,255,255,rgb:0,0,1,1" type="QString" name="color"/>
+            <Option value="1" type="QString" name="horizontal_anchor_point"/>
+            <Option value="bevel" type="QString" name="joinstyle"/>
+            <Option value="circle" type="QString" name="name"/>
+            <Option value="0,0" type="QString" name="offset"/>
+            <Option value="3x:0,0,0,0,0,0" type="QString" name="offset_map_unit_scale"/>
+            <Option value="MM" type="QString" name="offset_unit"/>
+            <Option value="0,0,0,255,rgb:0,0,0,1" type="QString" name="outline_color"/>
+            <Option value="solid" type="QString" name="outline_style"/>
+            <Option value="0" type="QString" name="outline_width"/>
+            <Option value="3x:0,0,0,0,0,0" type="QString" name="outline_width_map_unit_scale"/>
+            <Option value="MM" type="QString" name="outline_width_unit"/>
+            <Option value="diameter" type="QString" name="scale_method"/>
+            <Option value="2" type="QString" name="size"/>
+            <Option value="3x:0,0,0,0,0,0" type="QString" name="size_map_unit_scale"/>
+            <Option value="MM" type="QString" name="size_unit"/>
+            <Option value="1" type="QString" name="vertical_anchor_point"/>
+          </Option>
+          <data_defined_properties>
+            <Option type="Map">
+              <Option value="" type="QString" name="name"/>
+              <Option type="Map" name="properties">
+                <Option type="Map" name="size">
+                  <Option value="true" type="bool" name="active"/>
+                  <Option value="if(@id is NULL, NULL, if(coalesce(attribute($currentfeature,'NodeType'),attribute($currentfeature,'Type')) ='RESERVOIR' or coalesce(attribute($currentfeature,'NodeType'),attribute($currentfeature,'Type'))='TANK', 0,2))" type="QString" name="expression"/>
+                  <Option value="3" type="int" name="type"/>
+                </Option>
+                <Option type="Map" name="width">
+                  <Option value="true" type="bool" name="active"/>
+                  <Option value="if(@id is NULL, NULL, if(coalesce(attribute($currentfeature,'NodeType'),attribute($currentfeature,'Type')) ='RESERVOIR' or coalesce(attribute($currentfeature,'NodeType'),attribute($currentfeature,'Type'))='TANK', 0,2))" type="QString" name="expression"/>
+                  <Option value="3" type="int" name="type"/>
+                </Option>
+              </Option>
+              <Option value="collection" type="QString" name="type"/>
+            </Option>
+          </data_defined_properties>
+        </layer>
+      </symbol>

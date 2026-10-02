@@ -6,13 +6,13 @@
     <Searchable>1</Searchable>
     <Private>0</Private>
   </flags>
-  <renderer-v2 forceraster="0" referencescale="-1" attr="FricFactor" type="graduatedSymbol" symbollevels="0" graduatedMethod="GraduatedColor" enableorderby="0">
+  <renderer-v2 forceraster="0" referencescale="-1" attr="Velocity" type="graduatedSymbol" symbollevels="0" graduatedMethod="GraduatedColor" enableorderby="0">
     <ranges>
-      <range lower="0" label="&lt; 0.01" upper="0.0095" symbol="0" render="true" uuid="{e8b11cd6-87f7-59de-8e9e-3aebc11814d2}"/>
-      <range lower="0.0095" label="0.01 &lt; 0.015" upper="0.0145" symbol="1" render="true" uuid="{b12d7cdb-5588-53a6-a9a4-5512f6a852a9}"/>
-      <range lower="0.0145" label="0.015 &lt; 0.02" upper="0.0195" symbol="2" render="true" uuid="{23992d26-f0d2-5f05-89d3-de350a76ac2c}"/>
-      <range lower="0.0195" label="0.02 &lt; 0.03" upper="0.0295" symbol="3" render="true" uuid="{46cd18bf-a003-56af-a9fc-17bbd9ff5365}"/>
-      <range lower="0.0295" label="&gt; 0.03" upper="1" symbol="4" render="true" uuid="{1bd963e5-e01a-511c-be73-26ff0f3eae3d}"/>
+      <range lower="0" label="&lt; 0.25" upper="0.245" symbol="0" render="true" uuid="{ec218c01-cadc-5216-87df-267adbf1d185}"/>
+      <range lower="0.245" label="0.25 &lt; 0.5" upper="0.495" symbol="1" render="true" uuid="{ba6d8411-dcc9-5cdb-8cf4-8e8d46566d66}"/>
+      <range lower="0.495" label="0.5 &lt; 0.75" upper="0.745" symbol="2" render="true" uuid="{cafc12df-bf24-59ac-aba9-92745a631a75}"/>
+      <range lower="0.745" label="0.75 &lt; 1" upper="0.995" symbol="3" render="true" uuid="{d8c847a8-83e2-5d3f-be91-c1f5458146cf}"/>
+      <range lower="0.995" label="&gt; 1" upper="10" symbol="4" render="true" uuid="{9f4bf808-9027-5156-8185-ba1d277646d6}"/>
     </ranges>
     <symbols>
       <symbol is_animated="0" alpha="1" clip_to_extent="1" frame_rate="10" name="0" force_rhr="0" type="line">
@@ -1744,7 +1744,7 @@
   <customproperties>
     <Option type="Map">
       <Option name="embeddedWidgets/count" value="0" type="int"/>
-      <Option name="qgisred_identifier" value="qgisred_link_frictionfactor" type="QString"/>
+      <Option name="qgisred_identifier" value="qgisred_link_velocity" type="QString"/>
       <Option name="variableNames"/>
       <Option name="variableValues"/>
     </Option>

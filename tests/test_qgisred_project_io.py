@@ -466,7 +466,7 @@ class TestReopenRestylesResultLayers:
         return styling.return_value.setStyle, opened.renderer.return_value
 
     @pytest.mark.parametrize("layerName, styleName, field", [
-        ("Base_Node_Pressure", "NodePressure", "Pressure"),
+        ("Base_Node_Pressure", "NodePressureSI", "Pressure"),
         ("Base_Link_Flow", "LinkFlow", "abs(Flow)"),
         ("Base_Link_Flow_Unsig_Stats", "LinkFlow", "Flow_Unsig"),
         ("Base_Link_Flow_Sig_Stats", "LinkFlow", "abs(Flow_Sig)"),

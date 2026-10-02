@@ -6,6 +6,15 @@ from QGISRed.ui.analysis.qgisred_results_appearance import _ResultsAppearanceMix
 from QGISRed.tools.utils.qgisred_field_utils import QGISRedFieldUtils
 
 
+@pytest.fixture(autouse=True)
+def siProjectWithoutQuality():
+    """The style of some variables depends on the project units and quality model."""
+    with patch("QGISRed.tools.utils.qgisred_project_utils.QgsProject") as project:
+        project.instance.return_value.readEntry.side_effect = (
+            lambda section, key, default="": (("LPS", True) if key == "project_units" else (default, False)))
+        yield project
+
+
 # Helper to build a mock QgsProject
 def _make_project(flow_unit="LPS"):
     proj = MagicMock()

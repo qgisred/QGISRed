@@ -1,0 +1,8 @@
+<!DOCTYPE qgis PUBLIC 'http://mrcc.com/qgis.dtd' 'SYSTEM'>
+<qgis styleCategories="LayerConfiguration|Symbology|Labeling|Fields|MapTips|AttributeTable|Rendering|CustomProperties|Notes" simplifyLocal="1" version="3.40.0-Bratislava" simplifyAlgorithm="0" maxScale="0" simplifyDrawingHints="1" simplifyMaxScale="1" simplifyDrawingTol="1" symbologyReferenceScale="-1" labelsEnabled="0" hasScaleBasedVisibilityFlag="0" autoRefreshMode="Disabled" autoRefreshTime="0" readOnly="0" minScale="100000000">
+  <flags>
+    <Identifiable>1</Identifiable>
+    <Removable>1</Removable>
+    <Searchable>1</Searchable>
+    <Private>0</Private>
+  </flags>

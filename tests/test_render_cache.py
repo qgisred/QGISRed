@@ -7,7 +7,18 @@ symbology panel, which never pass through this plugin's legend editor.
 """
 from unittest.mock import MagicMock, patch
 
+import pytest
+
 from QGISRed.ui.analysis.qgisred_results_rendering import _ResultsRenderingMixin
+
+
+@pytest.fixture(autouse=True)
+def siProjectWithoutQuality():
+    """The style of some variables depends on the project units and quality model."""
+    with patch("QGISRed.tools.utils.qgisred_project_utils.QgsProject") as project:
+        project.instance.return_value.readEntry.side_effect = (
+            lambda section, key, default="": (("LPS", True) if key == "project_units" else (default, False)))
+        yield project
 
 
 LAYER_PATH = "C:/proj/Results/Net_Base_Link.shp"
@@ -88,7 +99,7 @@ class TestRememberCurrentRender:
         # Not under the current state: by the time a restyle happens, the variable and
         # the statistic have usually moved on already.
         dock = _CacheDock()
-        key = "time|" + LAYER_PATH + "|Flow"
+        key = "time|SI|Chemical|" + LAYER_PATH + "|Flow"
         dock._renderKeyInUse[LAYER_PATH] = key
         dock._statsMode = True
         dock._currentStat = "Maximum"
@@ -141,7 +152,7 @@ class TestLookupCachedRenderer:
     def test_returns_a_clone_so_the_entry_survives_being_used(self):
         dock = _CacheDock()
         entry = _FakeRenderer(tag="stored")
-        dock.Renders["time|" + LAYER_PATH + "|Flow"] = entry
+        dock.Renders["time|SI|Chemical|" + LAYER_PATH + "|Flow"] = entry
 
         found = dock._lookupCachedRenderer(_layer(), "Flow")
 
@@ -194,7 +205,7 @@ class TestRoundTripThroughSetGraduatedPalette:
 
         setStyle = self._run(dock, _layer(), "Velocity", None)
 
-        assert setStyle.call_args.args[1] == "LinkVelocity"
+        assert setStyle.call_args.args[1] == "LinkVelocitySI"
 
 
 class TestCacheLifetime:

@@ -25,7 +25,8 @@ from ...compat import (
 from ...tools.utils.qgisred_styling_utils import QGISRedStylingUtils, _NULL_RULE_LABEL, _NullHiddenLegend
 from ...tools.utils.qgisred_field_utils import QGISRedFieldUtils
 from ...tools.utils.qgisred_result_fields import resultIdField, resultTypeField
-from .qgisred_results_data import resultStyleName, resultLayerDisplayName
+from .qgisred_results_data import resultStyleName, resultLayerDisplayName, qualityStyleKind
+from ...tools.utils.qgisred_project_utils import QGISRedProjectUtils
 
 # Default label text colors (used unless the user picks "By range" or overrides them in
 # Appearance). Dark tones close to black so labels stay legible, but distinguishable
@@ -249,9 +250,14 @@ class _ResultsRenderingMixin:
     _CACHEABLE_RENDERERS = ("graduatedSymbol", "RuleRenderer", "categorizedSymbol")
 
     def _getRenderStorageKey(self, layer_path, var_key):
-        """Build the cache key used to store/retrieve a renderer for a given layer and variable."""
+        """Build the cache key used to store/retrieve a renderer for a given layer and variable.
+
+        The unit system and the quality kind are part of it: the default style of a
+        variable depends on them, so a renderer remembered under one must not come back
+        after the Analysis Options changed and the network was simulated again.
+        """
         prefix = f"stat_{self._currentStat}|" if self._statsMode else "time|"
-        return f"{prefix}{layer_path}|{var_key}"
+        return f"{prefix}{QGISRedProjectUtils.getUnits()}|{qualityStyleKind()}|{layer_path}|{var_key}"
 
     def _lookupCachedRenderer(self, layer, db_field_name):
         """Renderer remembered for this layer and variable, already cloned, or None."""

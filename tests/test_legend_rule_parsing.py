@@ -65,18 +65,24 @@ BOUND = QGISRedLegendsDialog.OPEN_RANGE_BOUND
 
 
 class TestTheRealFiveClassStyle:
-    """The exact rules QGIS 3.44 produces for the shipped LinkVelocity style.
+    """The rules QGIS produces for the shipped LinkVelocitySI style.
 
-    The outer two carry a single bound; reading only two-sided filters dropped them and
-    the table came up with three rows instead of five.
+    Its first and last classes start at the spec's minimum and end at its maximum, so
+    every rule is two-sided; a style saved by an older plugin carried open outer classes,
+    whose rules have a single bound (see test_the_open_ends_get_the_sentinel_the_styles_use).
     """
 
     RULES = [
+        ("< 0.25", "(Velocity) >= 0.0000000000000000 AND (Velocity) <= 0.2450000000000000"),
+        ("0.25 < 0.5", "(Velocity) > 0.2450000000000000 AND (Velocity) <= 0.4950000000000000"),
+        ("0.5 < 0.75", "(Velocity) > 0.4950000000000000 AND (Velocity) <= 0.7450000000000000"),
+        ("0.75 < 1", "(Velocity) > 0.7450000000000000 AND (Velocity) <= 0.9950000000000000"),
+        ("> 1", "(Velocity) > 0.9950000000000000 AND (Velocity) <= 10.0000000000000000"),
+    ]
+    OPEN_RULES = [
         ("<0.1", "(Velocity) <= 0.1000000000000000"),
         ("0.1-0.5", "(Velocity) > 0.1000000000000000 AND (Velocity) <= 0.5000000000000000"),
-        ("0.5-1", "(Velocity) > 0.5000000000000000 AND (Velocity) <= 1.0000000000000000"),
-        ("1-2", "(Velocity) > 1.0000000000000000 AND (Velocity) <= 2.0000000000000000"),
-        (">2", "(Velocity) > 2.0000000000000000"),
+        (">0.5", "(Velocity) > 0.5000000000000000"),
     ]
 
     def _renderer(self):
@@ -86,15 +92,18 @@ class TestTheRealFiveClassStyle:
     def test_every_class_survives(self):
         result = _convert(self._renderer())
 
-        assert [r.label for r in result.ranges] == ["<0.1", "0.1-0.5", "0.5-1", "1-2", ">2"]
+        assert [r.label for r in result.ranges] == ["< 0.25", "0.25 < 0.5", "0.5 < 0.75", "0.75 < 1", "> 1"]
+        assert (result.ranges[0].lower, result.ranges[0].upper) == (0.0, 0.245)
+        assert (result.ranges[-1].lower, result.ranges[-1].upper) == (0.995, 10.0)
 
     def test_the_open_ends_get_the_sentinel_the_styles_use(self):
-        # -1e10 / 1e10 is what the .qml files carry, so applying without changes writes
-        # the very same numbers back.
-        result = _convert(self._renderer())
+        # A single-bound rule is an open class: -1e10 / 1e10 is what the plugin writes for
+        # those, so applying without changes writes the very same numbers back.
+        rules = [_FakeRule(expression, label) for label, expression in self.OPEN_RULES]
+        result = _convert(_FakeRuleBasedRenderer(*rules))
 
         assert (result.ranges[0].lower, result.ranges[0].upper) == (-BOUND, 0.1)
-        assert (result.ranges[-1].lower, result.ranges[-1].upper) == (2.0, BOUND)
+        assert (result.ranges[-1].lower, result.ranges[-1].upper) == (0.5, BOUND)
 
     def test_the_column_is_recovered_from_the_first_parsable_rule(self):
         # The first rule has no ">=" at all, which is what used to abort the whole read.

@@ -1,0 +1,123 @@
+  <selection mode="Default">
+    <selectionColor invalid="1"/>
+    <selectionSymbol>
+      <symbol alpha="1" is_animated="0" frame_rate="10" type="marker" clip_to_extent="1" name="" force_rhr="0">
+        <data_defined_properties>
+          <Option type="Map">
+            <Option value="" type="QString" name="name"/>
+            <Option name="properties"/>
+            <Option value="collection" type="QString" name="type"/>
+          </Option>
+        </data_defined_properties>
+        <layer id="{61ea0307-2b85-426e-99d3-98e455f64743}" class="SimpleMarker" pass="0" enabled="1" locked="0">
+          <Option type="Map">
+            <Option value="0" type="QString" name="angle"/>
+            <Option value="square" type="QString" name="cap_style"/>
+            <Option value="255,0,0,255,rgb:1,0,0,1" type="QString" name="color"/>
+            <Option value="1" type="QString" name="horizontal_anchor_point"/>
+            <Option value="bevel" type="QString" name="joinstyle"/>
+            <Option value="circle" type="QString" name="name"/>
+            <Option value="0,0" type="QString" name="offset"/>
+            <Option value="3x:0,0,0,0,0,0" type="QString" name="offset_map_unit_scale"/>
+            <Option value="MM" type="QString" name="offset_unit"/>
+            <Option value="35,35,35,255,rgb:0.1372549,0.1372549,0.1372549,1" type="QString" name="outline_color"/>
+            <Option value="solid" type="QString" name="outline_style"/>
+            <Option value="0" type="QString" name="outline_width"/>
+            <Option value="3x:0,0,0,0,0,0" type="QString" name="outline_width_map_unit_scale"/>
+            <Option value="MM" type="QString" name="outline_width_unit"/>
+            <Option value="diameter" type="QString" name="scale_method"/>
+            <Option value="2" type="QString" name="size"/>
+            <Option value="3x:0,0,0,0,0,0" type="QString" name="size_map_unit_scale"/>
+            <Option value="MM" type="QString" name="size_unit"/>
+            <Option value="1" type="QString" name="vertical_anchor_point"/>
+          </Option>
+          <data_defined_properties>
+            <Option type="Map">
+              <Option value="" type="QString" name="name"/>
+              <Option name="properties"/>
+              <Option value="collection" type="QString" name="type"/>
+            </Option>
+          </data_defined_properties>
+        </layer>
+      </symbol>
+    </selectionSymbol>
+  </selection>
+  <customproperties>
+    <Option type="Map">
+      <Option value="0" type="QString" name="embeddedWidgets/count"/>
+      <Option value="qgisred_node_pressure" type="QString" name="qgisred_identifier"/>
+      <Option type="invalid" name="variableNames"/>
+      <Option type="invalid" name="variableValues"/>
+    </Option>
+  </customproperties>
+  <blendMode>0</blendMode>
+  <featureBlendMode>0</featureBlendMode>
+  <layerOpacity>1</layerOpacity>
+  <geometryOptions removeDuplicateNodes="0" geometryPrecision="0">
+    <activeChecks/>
+    <checkConfiguration/>
+  </geometryOptions>
+  <legend type="default-vector" showLabelLegend="0"/>
+  <fieldConfiguration/>
+  <aliases/>
+  <defaults/>
+  <constraints/>
+  <constraintExpressions/>
+  <expressionfields/>
+  <attributeactions/>
+  <attributetableconfig actionWidgetStyle="dropDown" sortExpression="" sortOrder="0">
+    <columns>
+      <column width="-1" hidden="0" type="field" name="Id"/>
+      <column width="-1" hidden="0" type="field" name="Type"/>
+      <column width="-1" hidden="0" type="field" name="Time"/>
+      <column width="-1" hidden="0" type="field" name="T0"/>
+      <column width="-1" hidden="0" type="field" name="T1"/>
+      <column width="-1" hidden="0" type="field" name="T2"/>
+      <column width="-1" hidden="0" type="field" name="T3"/>
+      <column width="-1" hidden="0" type="field" name="T4"/>
+      <column width="-1" hidden="0" type="field" name="T5"/>
+      <column width="-1" hidden="0" type="field" name="T6"/>
+      <column width="-1" hidden="0" type="field" name="T7"/>
+      <column width="-1" hidden="0" type="field" name="T8"/>
+      <column width="-1" hidden="0" type="field" name="T9"/>
+      <column width="-1" hidden="0" type="field" name="T10"/>
+      <column width="-1" hidden="0" type="field" name="T11"/>
+      <column width="-1" hidden="0" type="field" name="T12"/>
+      <column width="-1" hidden="0" type="field" name="T13"/>
+      <column width="-1" hidden="0" type="field" name="T14"/>
+      <column width="-1" hidden="0" type="field" name="T15"/>
+      <column width="-1" hidden="0" type="field" name="T16"/>
+      <column width="-1" hidden="0" type="field" name="T17"/>
+      <column width="-1" hidden="0" type="field" name="T18"/>
+      <column width="-1" hidden="0" type="field" name="T19"/>
+      <column width="-1" hidden="0" type="field" name="T20"/>
+      <column width="-1" hidden="0" type="field" name="T21"/>
+      <column width="-1" hidden="0" type="field" name="T22"/>
+      <column width="-1" hidden="0" type="field" name="T23"/>
+      <column width="-1" hidden="0" type="field" name="T24"/>
+      <column width="-1" hidden="0" type="field" name="T25"/>
+      <column width="-1" hidden="0" type="field" name="T26"/>
+      <column width="-1" hidden="1" type="actions"/>
+    </columns>
+  </attributetableconfig>
+  <conditionalstyles>
+    <rowstyles/>
+    <fieldstyles/>
+  </conditionalstyles>
+  <storedexpressions/>
+  <editform tolerant="1"></editform>
+  <editforminit/>
+  <editforminitcodesource>0</editforminitcodesource>
+  <editforminitfilepath></editforminitfilepath>
+  <editforminitcode><![CDATA[]]></editforminitcode>
+  <featformsuppress>0</featformsuppress>
+  <editorlayout>generatedlayout</editorlayout>
+  <editable/>
+  <labelOnTop/>
+  <reuseLastValue/>
+  <dataDefinedFieldProperties/>
+  <widgets/>
+  <previewExpression>coalesce(attribute($currentfeature,'NodeID'),attribute($currentfeature,'Id'))</previewExpression>
+  <mapTip enabled="1"></mapTip>
+  <layerGeometryType>0</layerGeometryType>
+</qgis>

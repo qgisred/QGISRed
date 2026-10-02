@@ -17,12 +17,20 @@ from qgis.PyQt.QtCore import QCoreApplication
 from ...tools.utils.qgisred_ui_utils import QGISRedUIUtils
 from ...tools.utils.qgisred_field_utils import QGISRedFieldUtils, normalize_element
 from ...tools.utils.qgisred_result_fields import resultIdField
+from ...tools.utils.qgisred_project_utils import QGISRedProjectUtils
 
 # Average flow is split into Flow_Unsig and Flow_Sig; both use Flow's decimal setting.
 _STAT_VAR_ALIASES = {
     "Flow_Unsig": "Flow",
     "Flow_Sig":   "Flow",
 }
+
+# Variables whose default thresholds depend on the unit system: their style files carry
+# an SI / US suffix (NodePressureSI.qml.bak, LinkVelocityUS.qml.bak).
+_UNIT_DEPENDENT_VARIABLES = ("Pressure", "Velocity", "HeadLoss")
+
+# The Quality column shows a different magnitude per quality model, each with its own style.
+_QUALITY_STYLE_NAMES = {"AGE": "Age", "TRACE": "Trace"}
 
 
 def resultStyleName(layerType, variable):
@@ -36,7 +44,20 @@ def resultStyleName(layerType, variable):
     element = (layerType or "").split("_")[0]
     if not element or not variable:
         return ""
-    return element + _STAT_VAR_ALIASES.get(variable, variable)
+    variable = _STAT_VAR_ALIASES.get(variable, variable)
+    if variable == "Quality":
+        return element + qualityStyleKind()
+    if variable in _UNIT_DEPENDENT_VARIABLES:
+        return element + variable + QGISRedProjectUtils.getUnits()
+    return element + variable
+
+
+def qualityStyleKind():
+    """Style name of the quality magnitude in the project: Chlorine, Chemical, Trace or Age."""
+    model = QGISRedProjectUtils.getQualityModel().upper()
+    if model in _QUALITY_STYLE_NAMES:
+        return _QUALITY_STYLE_NAMES[model]
+    return "Chlorine" if QGISRedProjectUtils.isChlorineQuality() else "Chemical"
 
 
 def resultLayerDisplayName(layerType, variable):

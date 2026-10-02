@@ -478,6 +478,8 @@ class QGISRedLegendsDialog(QDialog, formClass):
             "qgisred_link_headloss": "HeadLoss",
             "qgisred_link_unitheadloss": "UnitHeadLo",
             "qgisred_link_status": "Status",
+            "qgisred_link_frictionfactor": "FricFactor",
+            "qgisred_link_reactionrate": "ReactRate",
             "qgisred_link_quality": "Quality",
             "qgisred_node_demand": "Demand",
             "qgisred_node_head": "Head",

@@ -5,7 +5,7 @@ They used to be constants copied from the shipped QML files, so with a style of 
 a factor of 1.0 meant "back to the factory sizes" instead of "leave it as the style drew
 it". Now they are read from the style itself.
 """
-from unittest.mock import MagicMock
+from unittest.mock import MagicMock, patch
 
 import pytest
 
@@ -14,6 +14,16 @@ from QGISRed.ui.analysis.qgisred_results_rendering import (
     _BASE_PIPE_WIDTH, _BASE_ARROW_SIZE, _BASE_JUNCTION_SIZE, _BASE_SPECIAL_SIZE,
     _BASE_VALVE_PUMP_SIZE,
 )
+
+
+@pytest.fixture(autouse=True)
+def siProjectWithoutQuality():
+    """The style of some variables depends on the project units and quality model."""
+    with patch("QGISRed.tools.utils.qgisred_project_utils.QgsProject") as project:
+        project.instance.return_value.readEntry.side_effect = (
+            lambda section, key, default="": (("LPS", True) if key == "project_units" else (default, False)))
+        yield project
+
 
 LAYER_PATH = "C:/proj/Results/Net_Base_Link.shp"
 LINE, POINT = 1, 0
