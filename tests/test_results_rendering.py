@@ -365,7 +365,8 @@ class TestMapTipOccurrenceTime:
         link_layer = MagicMock()
         dock._findResultLayer = MagicMock(side_effect=lambda name: link_layer if name == "Link" else None)
 
-        with patch("QGISRed.ui.analysis.qgisred_results_rendering.QGISRedFieldUtils") as MockFieldUtils:
+        with patch("QGISRed.ui.analysis.qgisred_results_rendering.QGISRedFieldUtils") as MockFieldUtils, \
+                patch("QGISRed.ui.analysis.qgisred_results_rendering.resultLayerDisplayName"):
             MockFieldUtils.return_value.getUnitAbbreviation.return_value = ""
             dock.paintIntervalTimeResults(setRender=True)
 
@@ -542,7 +543,8 @@ class TestPaintIntervalTimeResultsVariableOrdering:
         dock.Scenario = "Base"
         dock.setGraduatedPalette = MagicMock()
 
-        with patch("QGISRed.ui.analysis.qgisred_results_rendering.QGISRedFieldUtils") as MockFieldUtils:
+        with patch("QGISRed.ui.analysis.qgisred_results_rendering.QGISRedFieldUtils") as MockFieldUtils, \
+                patch("QGISRed.ui.analysis.qgisred_results_rendering.resultLayerDisplayName"):
             MockFieldUtils.return_value.getUnitAbbreviation.return_value = ""
 
             # First paint: nothing displayed yet, variable is Flow
@@ -1080,3 +1082,98 @@ class TestApplySymbolScaleFactorsSymbolTypeMismatch:
         self._run(0, [_SymbolRule(marker), _SymbolRule(line)])
 
         assert line.width is None  # the line symbol was never touched on a point layer
+
+
+class TestResultLayerLegendName:
+    """The legend names a result layer by its variable in plural plus its unit."""
+
+    def _name(self, layerType, variable, flowUnit="LPS"):
+        from QGISRed.ui.analysis.qgisred_results_data import resultLayerDisplayName
+        QGISRedFieldUtils._unit_definitions = None
+        with patch("QGISRed.tools.utils.qgisred_project_utils.QgsProject") as MockProj, \
+                patch("QGISRed.tools.utils.qgisred_field_utils.QCoreApplication") as MockCore:
+            MockProj.instance.return_value = _make_project(flowUnit)
+            MockCore.translate.side_effect = lambda context, text: text
+            return resultLayerDisplayName(layerType, variable)
+
+    @pytest.mark.parametrize("layerType, variable, expected", [
+        ("Node", "Pressure", "Pressures (m)"),
+        ("Node", "Head", "Heads (m)"),
+        ("Link", "Velocity", "Velocities (m/s)"),
+        ("Link", "Flow", "Flows (lps)"),
+        ("Link", "Flow_Sig", "Flows (lps)"),
+        ("Link", "UnitHdLoss", "Unit HeadLosses (m/Km)"),
+    ])
+    def test_plural_name_with_unit(self, layerType, variable, expected):
+        assert self._name(layerType, variable) == expected
+
+    def test_us_units(self):
+        assert self._name("Node", "Head", "GPM") == "Heads (ft)"
+        assert self._name("Link", "Flow", "GPM") == "Flows (gpm)"
+
+    @pytest.mark.parametrize("variable, expected", [
+        ("Status", "Statuses"),
+        ("FricFactor", "Friction factors"),
+    ])
+    def test_no_brackets_without_a_unit(self, variable, expected):
+        assert self._name("Link", variable) == expected
+
+    def test_the_dock_gives_the_layer_that_name(self):
+        dock = TestMapTipOccurrenceTime()._make_dock(stats_mode=False)
+        dock.cbLinks.currentText.return_value = "Velocity"
+        dock._link_field_map = {"Velocity": "Velocity"}
+        link_layer = MagicMock()
+        dock._findResultLayer = MagicMock(side_effect=lambda name: link_layer if name == "Link" else None)
+        QGISRedFieldUtils._unit_definitions = None
+        with patch("QGISRed.tools.utils.qgisred_project_utils.QgsProject") as MockProj, \
+                patch("QGISRed.tools.utils.qgisred_field_utils.QCoreApplication") as MockCore:
+            MockProj.instance.return_value = _make_project("LPS")
+            MockCore.translate.side_effect = lambda context, text: text
+            dock.paintIntervalTimeResults(setRender=True)
+
+        link_layer.setName.assert_called_once_with("Velocities (m/s)")
+
+    def test_quality_keeps_the_name_of_the_quality_model(self):
+        from QGISRed.ui.analysis.qgisred_results_data import resultLayerDisplayName
+        QGISRedFieldUtils._unit_definitions = None
+        project = _make_project("LPS")
+        # Age is the model with a plural in the tables, and "Ages" is not the variable's name.
+        entries = {"project_qualitymodel": "Age"}
+        original = project.readEntry.side_effect
+        project.readEntry.side_effect = lambda section, key, default="": (
+            (entries[key], True) if key in entries else original(section, key, default))
+        with patch("QGISRed.tools.utils.qgisred_project_utils.QgsProject") as MockProj, \
+                patch("QGISRed.tools.utils.qgisred_field_utils.QCoreApplication") as MockCore, \
+                patch("QGISRed.tools.utils.qgisred_project_utils.QCoreApplication") as MockProjectCore:
+            MockProj.instance.return_value = project
+            MockCore.translate.side_effect = lambda context, text: text
+            MockProjectCore.translate.side_effect = lambda context, text: text
+            assert resultLayerDisplayName("Node", "Quality") == "Age (hr)"
+
+
+class TestResultLayersShowTheirFeatureCount:
+    """Result layers come up with the element count per class, like the input layers do."""
+
+    def test_open_result_layer_turns_the_count_on(self, tmp_path):
+        from QGISRed.tools.utils.qgisred_layer_utils import QGISRedLayerUtils
+        utils = QGISRedLayerUtils.__new__(QGISRedLayerUtils)
+        utils.NetworkName = "Net"
+        utils.LayersDirectory = str(tmp_path)
+        utils.ProjectRoot = str(tmp_path)
+        utils.iface = MagicMock()
+        utils._styling = MagicMock()
+        utils._identifiers = MagicMock()
+        utils._identifiers.return_value.getOriginalNameFromLayerName.return_value = "Base_Link"
+        utils._tryReloadExistingLayer = MagicMock(return_value=False)
+        utils.orderResultLayers = MagicMock()
+        (tmp_path / "Net_Base_Link.shp").write_text("")
+        group = MagicMock()
+        child = MagicMock()
+        group.children.return_value = [child]
+
+        with patch("QGISRed.tools.utils.qgisred_layer_utils.QgsVectorLayer"), \
+                patch("QGISRed.tools.utils.qgisred_layer_utils.QgsLayerTreeLayer"), \
+                patch("QGISRed.tools.utils.qgisred_layer_utils.QgsProject"):
+            utils.openLayer(group, "Base_Link", results=True)
+
+        child.setCustomProperty.assert_called_once_with("showFeatureCount", True)

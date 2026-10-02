@@ -714,6 +714,9 @@ class QGISRedLayerUtils:
             del vlayer
             if results:
                 self.orderResultLayers(group)
+                if group is not None:
+                    for child in group.children():
+                        child.setCustomProperty("showFeatureCount", True)
 
     def openTreeLayer(self, group, name, treeName, link=False):
         identifiers = self._identifiers()

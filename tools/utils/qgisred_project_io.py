@@ -216,7 +216,7 @@ class QGISRedProjectIO:
         if top == "Results":
             from ...ui.analysis.qgisred_results_data import (
                 apply_result_column_visibility, infer_stat_en_from_layer,
-                _RESULT_FIELD_DISPLAY_NAMES, resultStyleName,
+                resultLayerDisplayName, resultStyleName,
             )
             from ...tools.utils.qgisred_project_utils import QGISRedProjectUtils
             stat_en = QgsProject.instance().readEntry("QGISRed", "project_statistics", "NONE")[0]
@@ -264,10 +264,7 @@ class QGISRedProjectIO:
                     renderer.setClassAttribute(class_attr)
                     opened.setRenderer(renderer)
                 styling.applyNullStyle(opened)
-                template = QCoreApplication.translate("_ResultsRenderingMixin", layer_type + " %1")
-                display_var = _RESULT_FIELD_DISPLAY_NAMES.get(variable, variable)
-                translated_var = QCoreApplication.translate("QGISRedResultsDock", display_var)
-                opened.setName(template.replace("%1", translated_var))
+                opened.setName(resultLayerDisplayName(layer_type, variable))
                 if is_stats:
                     # project_statistics is only available when a .qgs file was saved.
                     # Without it, read the translated stat label from the Statistics field.

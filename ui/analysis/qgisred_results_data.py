@@ -15,19 +15,13 @@ import os
 
 from qgis.PyQt.QtCore import QCoreApplication
 from ...tools.utils.qgisred_ui_utils import QGISRedUIUtils
-from ...tools.utils.qgisred_field_utils import QGISRedFieldUtils
+from ...tools.utils.qgisred_field_utils import QGISRedFieldUtils, normalize_element
 from ...tools.utils.qgisred_result_fields import resultIdField
 
 # Average flow is split into Flow_Unsig and Flow_Sig; both use Flow's decimal setting.
 _STAT_VAR_ALIASES = {
     "Flow_Unsig": "Flow",
     "Flow_Sig":   "Flow",
-}
-
-# Display names for Average-stat-specific link fields (used when reloading project metadata).
-_RESULT_FIELD_DISPLAY_NAMES = {
-    "Flow_Sig":   "Flow (Signed)",
-    "Flow_Unsig": "Flow (Unsigned)",
 }
 
 
@@ -43,6 +37,16 @@ def resultStyleName(layerType, variable):
     if not element or not variable:
         return ""
     return element + _STAT_VAR_ALIASES.get(variable, variable)
+
+
+def resultLayerDisplayName(layerType, variable):
+    """Legend name of a result layer — ("Node", "Pressure") → "Pressures (m)"."""
+    element = normalize_element(layerType)
+    field = _STAT_VAR_ALIASES.get(variable, variable)
+    fieldUtils = QGISRedFieldUtils()
+    name = fieldUtils.getPluralProperty(element, field)
+    unit = fieldUtils.getUnitAbbreviation(element, field)
+    return f"{name} ({unit})" if unit else name
 
 
 # Field definitions for result layers: (name, type [, length]).

@@ -25,7 +25,7 @@ from ...compat import (
 from ...tools.utils.qgisred_styling_utils import QGISRedStylingUtils, _NULL_RULE_LABEL, _NullHiddenLegend
 from ...tools.utils.qgisred_field_utils import QGISRedFieldUtils
 from ...tools.utils.qgisred_result_fields import resultIdField, resultTypeField
-from .qgisred_results_data import resultStyleName
+from .qgisred_results_data import resultStyleName, resultLayerDisplayName
 
 # Default label text colors (used unless the user picks "By range" or overrides them in
 # Appearance). Dark tones close to black so labels stay legible, but distinguishable
@@ -467,12 +467,12 @@ class _ResultsRenderingMixin:
                     if self.cbLinks.currentIndex() > 0:
                         selected_variable_text = self.cbLinks.currentText()
                         field = self._link_field_map.get(selected_variable_text, "")
-                        display_name = self.tr("Link %1").replace("%1", selected_variable_text)
+                        display_name = resultLayerDisplayName(nameLayer, field)
                 else:
                     if self.cbNodes.currentIndex() > 0:
                         selected_variable_text = self.cbNodes.currentText()
                         field = self._node_field_map.get(selected_variable_text, "")
-                        display_name = self.tr("Node %1").replace("%1", selected_variable_text)
+                        display_name = resultLayerDisplayName(nameLayer, field)
 
                 if field:
                     if not setRender:
