@@ -256,11 +256,14 @@ class QGISRedProjectIO:
                 # Load QML template (color ramp + symbol complexity), fix the classAttribute
                 # (QML templates may have a wrong default like 'Time'), then add a null/else
                 # rule so out-of-range features are visible rather than invisible.
-                styling.setStyle(opened, resultStyleName(layer_type, variable))
+                # Flows classify on their absolute value, as the dock does; the field is
+                # passed so a legend strategy shipped in the style classifies the column
+                # on display (Flow stays NULL in Average mode, where Flow_Unsig is shown).
+                class_attr = "abs(" + variable + ")" if variable in ("Flow", "Flow_Sig") else variable
+                styling.setStyle(opened, resultStyleName(layer_type, variable), field=class_attr)
                 renderer = opened.renderer()
                 from qgis.core import QgsGraduatedSymbolRenderer
                 if isinstance(renderer, QgsGraduatedSymbolRenderer):
-                    class_attr = "abs(Flow)" if variable == "Flow" else variable
                     renderer.setClassAttribute(class_attr)
                     opened.setRenderer(renderer)
                 styling.applyNullStyle(opened)

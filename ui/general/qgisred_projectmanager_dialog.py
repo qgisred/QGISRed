@@ -430,6 +430,8 @@ class QGISRedProjectManagerDialog(QDialog, FORM_CLASS):
             self.parent.layerOperationInProgress = True
             self.parent._loading_project = True
             try:
+                # Result layers are styled by unit system and quality model while they open
+                self.parent.readOptions(self.ProjectDirectory, self.NetworkName)
                 loaded_qgis = io.openProjectInQgis()
                 snapshot = self.parent._collectOpenSnapshot() if loaded_qgis else None
                 if not loaded_qgis:

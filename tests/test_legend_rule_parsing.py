@@ -12,6 +12,7 @@ import pytest
 
 from QGISRed.ui.project.qgisred_legends_dialog import QGISRedLegendsDialog
 from QGISRed.tools.utils.qgisred_styling_utils import _NULL_RULE_LABEL
+from QGISRed.tools.utils.qgisred_legend_rule_utils import parseCategoricalRuleFilter, parseRangeFilter
 
 
 class _FakeRule:
@@ -184,3 +185,36 @@ class TestUnwrapClassAttribute:
     ])
     def test_only_real_wrappers_are_removed(self, raw, expected):
         assert QGISRedLegendsDialog.unwrapClassAttribute(raw) == expected
+
+
+class TestStatusPatternRules:
+    """The Status legend groups the EPANET states with LIKE patterns: Open, Active, Closed."""
+
+    @pytest.mark.parametrize("expression, expected", [
+        ("\"Status\" LIKE 'Open%'", ("Status", "Open")),
+        ("\"Status\" LIKE 'Active%'", ("Status", "Active")),
+        ("\"Status\" LIKE '%Closed%'", ("Status", "Closed")),
+        ("\"Status\" like 'Open%'", ("Status", "Open")),
+    ])
+    def test_the_pattern_without_wildcards_names_the_class(self, expression, expected):
+        assert parseCategoricalRuleFilter(expression) == expected
+
+    def test_a_pattern_rule_is_not_a_range(self):
+        assert parseRangeFilter("\"Status\" LIKE 'Open%'") is None
+
+    def test_the_editor_reads_three_pattern_rules_as_one_categorical_legend(self):
+        class _ActiveRule(_FakeRule):
+            def active(self):
+                return True
+
+        dialog = QGISRedLegendsDialog.__new__(QGISRedLegendsDialog)
+        renderer = _FakeRuleBasedRenderer(
+            _ActiveRule("\"Status\" LIKE 'Open%'", "Open"),
+            _ActiveRule("\"Status\" LIKE 'Active%'", "Active"),
+            _ActiveRule("\"Status\" LIKE '%Closed%'", "Closed"),
+        )
+        with patch("QGISRed.ui.project.qgisred_legends_dialog.QgsRuleBasedRenderer", _FakeRuleBasedRenderer):
+            field, entries = dialog.ruleBasedAsCategories(renderer)
+
+        assert field == "Status"
+        assert [entry["value"] for entry in entries] == ["Open", "Active", "Closed"]

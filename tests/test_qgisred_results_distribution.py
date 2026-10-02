@@ -547,11 +547,22 @@ class TestLegendClassesFromRules:
         assert [b["count"] for b in bins] == [1, 1, 0, 2]
 
     def test_rules_that_name_no_value_are_not_turned_into_empty_bars(self):
-        # Neither a range nor a "Field" = 'value' filter: no class can be counted, and
-        # saying so leaves the chart showing "No data" instead of bars stuck at zero.
-        renderer = _FakeRuleBasedRenderer(_FakeRule("\"Status\" LIKE '%Closed%'", label="Closed"))
+        # Neither a range nor a value filter: no class can be counted, and saying so
+        # leaves the chart showing "No data" instead of bars stuck at zero.
+        renderer = _FakeRuleBasedRenderer(_FakeRule("\"Status\" IS NOT NULL", label="Any"))
 
         assert _extract(renderer, field="Status") == ([], None)
+
+    def test_a_pattern_rule_is_read_as_the_class_it_names(self):
+        # The Status legend groups the states with LIKE patterns; the Status chart has its
+        # own bins (see _build_link_status_bins), but the legend reader must agree with the
+        # legend editor on what the rule stands for.
+        renderer = _FakeRuleBasedRenderer(_FakeRule("\"Status\" LIKE '%Closed%'", label="Closed"))
+
+        classes, kind = _extract(renderer, field="Status")
+
+        assert kind == "categorical"
+        assert [cls["category"] for cls in classes] == ["Closed"]
 
 
 class TestFindClassIndex:

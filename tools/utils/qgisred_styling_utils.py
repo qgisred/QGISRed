@@ -24,14 +24,16 @@ from qgis.core import (
     QgsGraduatedSymbolRenderer, QgsRuleBasedRenderer, QgsRenderContext,
     QgsMapLayerLegend, QgsMessageLog, QgsStyle, QgsExpression, QgsProject,
     QgsSingleSymbolRenderer, QgsPalLayerSettings, QgsTextFormat, QgsProperty,
-    QgsVectorLayerSimpleLabeling, QgsLimitedRandomColorRamp
+    QgsVectorLayerSimpleLabeling, QgsLimitedRandomColorRamp,
+    QgsClassificationPrettyBreaks, QgsClassificationEqualInterval, QgsClassificationQuantile,
+    QgsClassificationJenks, QgsClassificationStandardDeviation,
 )
 from qgis.gui import QgsAttributeTableFilterModel, QgsAttributeTableModel, QgsAttributeTableView
 from qgis.utils import iface as _iface
 
 from .qgisred_base_demand_fields import resolveBaseDemandField
 from .qgisred_field_utils import QGISRedFieldUtils
-from .qgisred_legend_rule_utils import scaleNumericLiterals
+from .qgisred_legend_rule_utils import scaleNumericLiterals, OPEN_RANGE_BOUND
 from .qgisred_valve_types import getValveTypeName, getValveTypeAbbreviation, VALVE_TYPE_LONG_NAMES
 from .qgisred_meter_types import getMeterTypeName, METER_TYPE_LABELS
 from .qgisred_source_types import getSourceTypeName, SOURCE_TYPE_LABELS
@@ -428,8 +430,8 @@ class QGISRedStylingUtils:
         classificationMode = intervalsBlock.get("classificationMode")
         classes = int(intervalsBlock.get("classes") or 5)
 
-        modeEnum = self.graduatedModeEnum(classificationMode)
-        if modeEnum is None:
+        classificationMethod = self.graduatedClassificationMethod(classificationMode)
+        if classificationMethod is None:
             QgsMessageLog.logMessage(
                 self.tr("Unsupported classification mode: %1")
                     .replace("%1", str(classificationMode)),
@@ -439,14 +441,69 @@ class QGISRedStylingUtils:
             return
 
         templateSymbol = self.cloneRendererTemplateSymbol(layer)
-        ramp = self.cloneRendererRamp(layer)
-
-        renderer = QgsGraduatedSymbolRenderer.createRenderer(
-            layer, field, classes, modeEnum, templateSymbol, ramp
-        )
-        if renderer is None:
-            return
+        renderer = QgsGraduatedSymbolRenderer(field)
+        renderer.setSourceSymbol(templateSymbol.clone())
+        renderer.setSourceColorRamp(self.cloneRendererRamp(layer))
+        renderer.setClassificationMethod(classificationMethod)
+        renderer.updateClasses(layer, classes)
+        if not renderer.ranges():
+            # Every value is the same: one class covering it, as the thematic maps do.
+            renderer.addClassLowerUpper(-OPEN_RANGE_BOUND, OPEN_RANGE_BOUND)
+            renderer.updateRangeSymbol(0, templateSymbol.clone())
+            renderer.updateRangeLabel(0, self.singleValueLabel(layer, field))
+        self.openOuterRanges(renderer)
         layer.setRenderer(renderer)
+
+    def singleValueLabel(self, layer, field):
+        fieldIndex = layer.fields().indexFromName(field)
+        value = layer.minimumValue(fieldIndex) if fieldIndex >= 0 else None
+        return self.formatBreak(value, 3) if isinstance(value, (int, float)) else str(field)
+
+    @staticmethod
+    def openOuterRanges(renderer):
+        """Open the first and last classes and label them all as the legend editor does.
+
+        The breaks come from the data on screen, so a later value beyond them must still
+        fall in the first or last class rather than vanish into the grey "no value" rule.
+        """
+        ranges = renderer.ranges()
+        if len(ranges) < 2:
+            return
+        lastIndex = len(ranges) - 1
+        breaks = [classRange.upperValue() for classRange in ranges[:-1]]
+        labels = QGISRedStylingUtils.rangeLabels(breaks)
+        renderer.updateRangeLowerValue(0, -OPEN_RANGE_BOUND)
+        renderer.updateRangeUpperValue(lastIndex, OPEN_RANGE_BOUND)
+        for index, label in enumerate(labels):
+            renderer.updateRangeLabel(index, label)
+
+    @staticmethod
+    def rangeLabels(breaks):
+        """Legend texts for the classes between `breaks`: "< b1", "b1 < b2", ..., "> bn"."""
+        precision = QGISRedStylingUtils.breakPrecision(breaks)
+        texts = [QGISRedStylingUtils.formatBreak(value, precision) for value in breaks]
+        if not texts:
+            return []
+        labels = ["< " + texts[0]]
+        labels += [lower + " < " + upper for lower, upper in zip(texts, texts[1:])]
+        labels.append("> " + texts[-1])
+        return labels
+
+    @staticmethod
+    def breakPrecision(breaks):
+        """Three decimals, or as many more as it takes to tell every break apart."""
+        for decimals in range(3, 10):
+            texts = [QGISRedStylingUtils.formatBreak(value, decimals) for value in breaks]
+            if len(set(texts)) == len(texts):
+                return decimals
+        return 9
+
+    @staticmethod
+    def formatBreak(value, precision):
+        text = ("%." + str(precision) + "f") % float(value)
+        if "." in text:
+            text = text.rstrip("0").rstrip(".")
+        return "0" if text in ("-0", "") else text
 
     def cloneRendererTemplateSymbol(self, layer):
         renderer = layer.renderer()
@@ -1077,15 +1134,16 @@ class QGISRedStylingUtils:
         for child in rule.children():
             self._translateRuleLabels(child)
 
-    def graduatedModeEnum(self, classificationMode):
+    def graduatedClassificationMethod(self, classificationMode):
         mapping = {
-            "EqualInterval": QgsGraduatedSymbolRenderer.EqualInterval,
-            "Quantile": QgsGraduatedSymbolRenderer.Quantile,
-            "Jenks": QgsGraduatedSymbolRenderer.Jenks,
-            "StdDev": QgsGraduatedSymbolRenderer.StdDev,
-            "Pretty": QgsGraduatedSymbolRenderer.Pretty,
+            "EqualInterval": QgsClassificationEqualInterval,
+            "Quantile": QgsClassificationQuantile,
+            "Jenks": QgsClassificationJenks,
+            "StdDev": QgsClassificationStandardDeviation,
+            "Pretty": QgsClassificationPrettyBreaks,
         }
-        return mapping.get(classificationMode)
+        method = mapping.get(classificationMode)
+        return method() if method is not None else None
 
     def _colorForDemandCategory(self, category):
         text = "" if category is None else str(category).strip()
@@ -1563,7 +1621,9 @@ class QGISRedStylingUtils:
         context = QgsRenderContext()
         symbols = renderer.symbols(context)
         if symbols:
-            null_symbol = symbols[0].clone()
+            # The last class, not the first: a legend may give its first class its own look
+            # (the white, larger negative-pressure class) that no-value features must not inherit.
+            null_symbol = symbols[-1].clone()
             make_gray(null_symbol)
         else:
             null_symbol = QgsSymbol.defaultSymbol(layer.geometryType())

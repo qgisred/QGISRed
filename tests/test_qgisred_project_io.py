@@ -3,6 +3,7 @@ import os
 import shutil
 import tempfile
 from zipfile import ZipFile
+from contextlib import ExitStack
 from unittest.mock import MagicMock, patch
 from QGISRed.tools.utils.qgisred_project_io import QGISRedProjectIO
 
@@ -418,3 +419,63 @@ class TestProjectIO:
         with open(metadata, "r", encoding="latin-1") as f:
             content = f.read()
         assert content == original
+
+
+class _FakeGraduatedRenderer:
+    def __init__(self):
+        self.classAttribute = None
+
+    def setClassAttribute(self, attribute):
+        self.classAttribute = attribute
+
+
+class TestReopenRestylesResultLayers:
+    """Reopening a project without a .qgs restyles its result layers through setStyle.
+
+    The field on display is passed along, so a legend strategy shipped in the style
+    classifies that column: flows on their absolute value, and in Average mode the
+    Flow_Unsig / Flow_Sig columns rather than Flow, which stays NULL there.
+    """
+
+    _IO_MOD = "QGISRed.tools.utils.qgisred_project_io"
+    _DATA_MOD = "QGISRed.ui.analysis.qgisred_results_data"
+
+    def _reopen(self, layerName):
+        import sys
+        io = QGISRedProjectIO(directory="C:/proj", networkName="Net")
+        opened = MagicMock()
+        opened.renderer.return_value = _FakeGraduatedRenderer()
+        layerUtils = MagicMock()
+        layerUtils._findLayerByPath.return_value = opened
+        projectEntries = {"project_statistics": "NONE"}
+        project = MagicMock()
+        project.instance.return_value.readEntry.side_effect = (
+            lambda section, key, default="": (projectEntries.get(key, default), key in projectEntries))
+        with ExitStack() as stack:
+            stack.enter_context(
+                patch("QGISRed.tools.utils.qgisred_layer_utils.QGISRedLayerUtils", return_value=layerUtils))
+            styling = stack.enter_context(patch("QGISRed.tools.utils.qgisred_styling_utils.QGISRedStylingUtils"))
+            stack.enter_context(patch(self._IO_MOD + ".QgsProject", project))
+            stack.enter_context(patch("QGISRed.tools.utils.qgisred_project_utils.QgsProject", project))
+            stack.enter_context(patch(self._DATA_MOD + ".resultLayerDisplayName", return_value="name"))
+            stack.enter_context(patch(self._DATA_MOD + ".apply_result_column_visibility"))
+            stack.enter_context(patch(self._DATA_MOD + ".infer_stat_en_from_layer", return_value="AVERAGE"))
+            stack.enter_context(
+                patch.object(sys.modules["qgis.core"], "QgsGraduatedSymbolRenderer", _FakeGraduatedRenderer))
+            io._openGroupByName("Results/Base", [layerName])
+        return styling.return_value.setStyle, opened.renderer.return_value
+
+    @pytest.mark.parametrize("layerName, styleName, field", [
+        ("Base_Node_Pressure", "NodePressure", "Pressure"),
+        ("Base_Link_Flow", "LinkFlow", "abs(Flow)"),
+        ("Base_Link_Flow_Unsig_Stats", "LinkFlow", "Flow_Unsig"),
+        ("Base_Link_Flow_Sig_Stats", "LinkFlow", "abs(Flow_Sig)"),
+        ("Base_Link_Status", "LinkStatus", "Status"),
+    ])
+    def test_the_style_is_loaded_for_the_column_on_display(self, layerName, styleName, field):
+        setStyle, renderer = self._reopen(layerName)
+
+        layer, name = setStyle.call_args.args
+        assert name == styleName
+        assert setStyle.call_args.kwargs == {"field": field}
+        assert renderer.classAttribute == field

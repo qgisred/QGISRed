@@ -27,6 +27,9 @@ _RANGE_UPPER = re.compile(r'<=?\s*(' + _NUMBER + r')')
 OPEN_RANGE_BOUND = 1e10
 
 _SIMPLE_RULE_FILTER_PATTERN = re.compile(r"^\s*\"([^\"]+)\"\s*=\s*'([^']*)'\s*$")
+# The Status legend groups the EPANET states by pattern ("Status" LIKE 'Open%'); the
+# pattern without its wildcards names the class (Open, Active, Closed).
+_LIKE_RULE_FILTER_PATTERN = re.compile(r"^\s*\"([^\"]+)\"\s+LIKE\s+'([^']*)'\s*$", re.IGNORECASE)
 _COMPOSITE_RULE_FILTER_PATTERN = re.compile(
     r"^\s*\"([^\"]+)\"\s*=\s*'([^']*)'\s*AND\s*\"([^\"]+)\"\s*(=|<>)\s*'([^']*)'\s*$",
     re.IGNORECASE,
@@ -75,7 +78,8 @@ def parseRangeFilter(expression, openBound=OPEN_RANGE_BOUND):
 def parseCategoricalRuleFilter(filterExpr):
     """Parse a categorical rule filter into (field, value), or None if not categorical.
 
-    Supports "Field" = 'value' and the Hydraulic Sectors split pair
+    Supports "Field" = 'value', "Field" LIKE 'pattern' (the pattern without its %
+    wildcards is the value) and the Hydraulic Sectors split pair
     "Class" = 'nH-nQ' AND "SubNet" =/<> 'ClosedLinks' (the '=' clause names the
     displayed value, the '<>' clause keeps the main class value).
     """
@@ -84,6 +88,9 @@ def parseCategoricalRuleFilter(filterExpr):
     match = _SIMPLE_RULE_FILTER_PATTERN.match(filterExpr)
     if match:
         return match.group(1), match.group(2)
+    match = _LIKE_RULE_FILTER_PATTERN.match(filterExpr)
+    if match:
+        return match.group(1), match.group(2).replace("%", "")
     match = _COMPOSITE_RULE_FILTER_PATTERN.match(filterExpr)
     if match:
         field, value, _secondField, op, secondValue = match.groups()

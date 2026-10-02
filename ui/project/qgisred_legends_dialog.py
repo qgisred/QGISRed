@@ -5644,6 +5644,10 @@ class QGISRedLegendsDialog(QDialog, formClass):
 
     def applyStyleFileToLayer(self, path):
         self.loadStyleKeepingLabelVisibility(path)
+        if self.isResultsLayer():
+            # Shipped result styles may carry a legend strategy (Pretty Breaks over the
+            # data); without replaying it the layer would show the file's placeholder classes.
+            QGISRedStylingUtils().applyStrategyFromLayer(self.currentLayer, self.currentFieldName)
         QGISRedStylingUtils().convertRendererSizesToMillimeters(self.currentLayer)
         QGISRedStylingUtils().translateRendererLabels(self.currentLayer)
         QGISRedStylingUtils().translateMapTip(self.currentLayer)

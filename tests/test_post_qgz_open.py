@@ -294,6 +294,24 @@ class TestOpenProjectProcessScenario2:
         assert "enforceAll" in call_order, "enforceAllIdentifiers was never called"
         assert call_order.index("snapshot") < call_order.index("enforceAll")
 
+    def test_options_are_read_before_the_layers_open(self):
+        """Result layers pick their style by unit system and quality model while they open,
+        so the project options must be in place before openProjectInQgis runs."""
+        call_order = []
+        section, mock_dlg, mock_io, mock_identifiers = self._setup_section(loaded_qgis_return=False)
+        section.readOptions = MagicMock(side_effect=lambda *args: call_order.append(("readOptions", args)))
+        mock_io.openProjectInQgis = MagicMock(side_effect=lambda: call_order.append(("open", ())) or False)
+
+        with patch(_SECTION_MOD + ".QGISRedImportProjectDialog", return_value=mock_dlg), \
+             patch(_SECTION_MOD + ".QGISRedProjectIO", return_value=mock_io), \
+             patch(_SECTION_MOD + ".QGISRedIdentifierUtils", return_value=mock_identifiers), \
+             patch(_SECTION_MOD + ".QgsProject"), \
+             patch(_SECTION_MOD + ".QIcon"):
+            section.runOpenProject()
+
+        assert call_order[0] == ("readOptions", ("C:/proj", "TestNet"))
+        assert call_order[1] == ("open", ())
+
 
 # ---------------------------------------------------------------------------
 # Tests for runOpenedQgisProject (Scenario 3 — direct .qgz open)

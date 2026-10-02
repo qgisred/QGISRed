@@ -445,6 +445,8 @@ class ProjectManagementSection:
             self.layerOperationInProgress = True
             self._loading_project = True
             try:
+                # Result layers are styled by unit system and quality model while they open
+                self.readOptions(self.ProjectDirectory, self.NetworkName)
                 io = QGISRedProjectIO(self.ProjectDirectory, self.NetworkName, self.iface)
                 loaded_qgis = io.openProjectInQgis()
                 # Collect snapshot before enforceAllIdentifiers so old-project detection
