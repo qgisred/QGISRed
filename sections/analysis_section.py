@@ -404,13 +404,18 @@ class AnalysisSection:
         Yes for a canvas nobody holds, for another QGISRed panel's picking tool, and for the
         Element Explorer's or QGIS's own identify — every one of those is a subject whose turn
         has just ended, and leaving its tool armed sends the next click on the map to the panel
-        the user turned away from. No for pan, zoom and digitizing: that is the user in the
-        middle of a gesture, and no panel has any business interrupting it.
+        the user turned away from. Yes as well for pan and zoom when the arbiter is handing the
+        canvas back because the user clicked into this panel after navigating. No for pan, zoom
+        and digitizing otherwise: that is the user in the middle of a gesture, and no panel has
+        any business interrupting it.
         """
         if current is None:
             return True
         if current is ownTool:
             return False
+        manager = getattr(self, "highlightManager", None)
+        if manager is not None and getattr(manager, "reclaimingFromNavigation", False):
+            return True
         tools = getattr(self, "myMapTools", {})
         if any(current is tools.get(key) for key in self._PANEL_MAP_TOOL_KEYS):
             return True

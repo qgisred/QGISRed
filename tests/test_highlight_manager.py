@@ -395,6 +395,23 @@ def test_the_restore_after_a_pan_happens_only_once(manager):
     assert a.restores == 2
 
 
+def test_navigation_reclaim_is_visible_to_the_owner_while_it_restores(manager):
+    seen = []
+
+    class Probe(FakeOwner):
+        def restoreMapHighlights(self):
+            seen.append(manager.reclaimingFromNavigation)
+            super().restoreMapHighlights()
+
+    a = manager.register(Probe("a"))
+    manager.activate(a)
+    manager.onMapToolSet(QgsMapToolPan())
+    manager.activate(a)
+
+    assert seen == [False, True]
+    assert manager.reclaimingFromNavigation is False
+
+
 def test_native_select_suspends_everything():
     action = object()
     manager = QGISRedHighlightManager(iface=_FakeIface(actionSelect=action))

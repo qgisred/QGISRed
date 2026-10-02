@@ -456,6 +456,7 @@ class QGISRedHighlightManager:
         # Pan/zoom take the canvas tool without suspending anyone, so the active owner
         # looks unchanged; this flag lets clicking back into its dock retake the tool.
         self._toolDisplaced = False
+        self.reclaimingFromNavigation = False
         self._connected = False
         self._editingWatchedLayers = []
 
@@ -513,6 +514,7 @@ class QGISRedHighlightManager:
             return
         if self._active is owner and not self.isSuspended(owner) and not self._toolDisplaced:
             return
+        wasSuspended = self.isSuspended(owner)
         if not force:
             with suppress(Exception):
                 if not owner.canActivate():
@@ -523,11 +525,13 @@ class QGISRedHighlightManager:
                 if other is not owner:
                     self._suspendOwner(other)
             self._active = owner
+            self.reclaimingFromNavigation = self._toolDisplaced and not wasSuspended
             self._toolDisplaced = False
             self._suspended = [o for o in self._suspended if o is not owner]
             with suppress(Exception):
                 owner.restoreMapHighlights()
         finally:
+            self.reclaimingFromNavigation = False
             self._busy = False
 
     def claim(self, owner):
