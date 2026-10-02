@@ -14,6 +14,7 @@ import csv
 import math
 
 from ..analysis.qgisred_results_dock import QGISRedResultsDock
+from ..analysis.qgisred_results_data import infer_stat_en_from_layer
 from ...tools.utils.qgisred_field_utils import QGISRedFieldUtils, normalize_element
 from ...tools.utils.qgisred_layer_utils import QGISRedLayerUtils
 from ...tools.utils.qgisred_project_utils import QGISRedProjectUtils
@@ -622,15 +623,30 @@ class QGISRedQueriesByPropertiesDock(QGISRedHighlightOwnerMixin, QDockWidget, FO
     def getResultsExist(self):
         return bool(QGISRedLayerUtils.getLayersByGroupIdentifier("qgisred_results"))
 
+    def currentResultStatKey(self):
+        # English key of the statistic the result layers hold (NONE in time mode), from the Results dock or the layer
+        if self.isResultsDockAlive():
+            if not self.resultsDock._statsMode:
+                return "NONE"
+            statKeysByLabel = {
+                self.resultsDock.lbl_maximum: "MAXIMUM",
+                self.resultsDock.lbl_minimum: "MINIMUM",
+                self.resultsDock.lbl_range: "RANGE",
+                self.resultsDock.lbl_average: "AVERAGE",
+                self.resultsDock.lbl_std_deviation: "STDDEV",
+            }
+            return statKeysByLabel.get(self.resultsDock._currentStat, "NONE")
+        resultsLayer = self.resolveResultsLayer("Link") or self.resolveResultsLayer("Node")
+        return infer_stat_en_from_layer(resultsLayer) if resultsLayer else "NONE"
+
     def getVisibleLinkResultProperties(self):
-        isStatsMode = self.isResultsDockAlive() and self.resultsDock._statsMode
-        if not isStatsMode:
+        statKey = self.currentResultStatKey()
+        if statKey == "NONE":
             return list(self.linkResultProperties)
-        statName = self.resultsDock._currentStat if self.isResultsDockAlive() else ""
-        averageLabel = self.resultsDock.lbl_average if self.isResultsDockAlive() else ""
-        if statName == averageLabel:
-            return ['Flow_Unsig' if p == 'Flow' else p for p in self.linkResultProperties]
-        return list(self.linkResultProperties)
+        visibleProperties = [p for p in self.linkResultProperties if p != 'Status']
+        if statKey == "AVERAGE":
+            return ['Flow_Unsig' if p == 'Flow' else p for p in visibleProperties]
+        return visibleProperties
 
     def getResultProperties(self, layer, qrIdent):
         if self.isResultsMode:
@@ -967,6 +983,11 @@ class QGISRedQueriesByPropertiesDock(QGISRedHighlightOwnerMixin, QDockWidget, FO
                 return i
         return -1
 
+    def selectComboByInternalName(self, combo, internalName):
+        idx = self.findComboByInternalName(combo, internalName)
+        if idx >= 0:
+            combo.setCurrentIndex(idx)
+
     def isResultProperty(self, prop):
         return prop in self.nodeResultProperties or prop in self.linkResultProperties or prop == 'Flow_Unsig'
 
@@ -1160,39 +1181,23 @@ class QGISRedQueriesByPropertiesDock(QGISRedHighlightOwnerMixin, QDockWidget, FO
             return ""
         qrIdent = self.cbElementType.currentData(Qt.ItemDataRole.UserRole) or ""
         fieldUtils = QGISRedFieldUtils()
+        # The unsigned average flow is a flow: same unit row as Flow
+        unitProp = "Flow" if prop == "Flow_Unsig" else prop
         if self.isResultProperty(prop):
             category = self.elementResultCategory.get(qrIdent)
             if self.isResultsMode:
                 layer = self.resolveLayer()
                 ident = (layer.customProperty("qgisred_identifier") or "") if layer else ""
                 category = "Link" if ident.startswith("qgisred_link") else "Node"
-            unit = fieldUtils.getUnitAbbreviation(normalize_element(category), prop) if category else ""
+            unit = fieldUtils.getUnitAbbreviation(normalize_element(category), unitProp) if category else ""
         else:
-            unit = fieldUtils.getUnitAbbreviation(normalize_element(qrIdent), prop)
+            unit = fieldUtils.getUnitAbbreviation(normalize_element(qrIdent), unitProp)
         if (qrIdent, prop) in self.suppressUnitProperties:
             unit = ""
         return unit or ""
 
     def updateValueUnitLabel(self):
-        prop = self.getComboInternalName(self.cbProperty)
-        if not prop:
-            self.labelValueUnit.setVisible(False)
-            return
-        qrIdent = self.cbElementType.currentData(Qt.ItemDataRole.UserRole) or ""
-        fieldUtils = QGISRedFieldUtils()
-        unit = ""
-        if self.isResultProperty(prop):
-            category = self.elementResultCategory.get(qrIdent)
-            if self.isResultsMode:
-                layer = self.resolveLayer()
-                ident = (layer.customProperty("qgisred_identifier") or "") if layer else ""
-                category = "Link" if ident.startswith("qgisred_link") else "Node"
-            if category:
-                unit = fieldUtils.getUnitAbbreviation(normalize_element(category), prop)
-        else:
-            unit = fieldUtils.getUnitAbbreviation(normalize_element(qrIdent), prop)
-        if (qrIdent, prop) in self.suppressUnitProperties:
-            unit = ""
+        unit = self.getUnitForProperty(self.getComboInternalName(self.cbProperty))
         if unit:
             self.labelValueUnit.setText(f"{unit}")
             self.labelValueUnit.setVisible(True)
@@ -1200,25 +1205,7 @@ class QGISRedQueriesByPropertiesDock(QGISRedHighlightOwnerMixin, QDockWidget, FO
             self.labelValueUnit.setVisible(False)
 
     def updateStatisticsUnitLabel(self):
-        prop = self.getComboInternalName(self.cbStatisticsFor)
-        if not prop:
-            self.labelStatisticsUnit.setVisible(False)
-            return
-        qrIdent = self.cbElementType.currentData(Qt.ItemDataRole.UserRole) or ""
-        fieldUtils = QGISRedFieldUtils()
-        unit = ""
-        if self.isResultProperty(prop):
-            category = self.elementResultCategory.get(qrIdent)
-            if self.isResultsMode:
-                layer = self.resolveLayer()
-                ident = (layer.customProperty("qgisred_identifier") or "") if layer else ""
-                category = "Link" if ident.startswith("qgisred_link") else "Node"
-            if category:
-                unit = fieldUtils.getUnitAbbreviation(normalize_element(category), prop)
-        else:
-            unit = fieldUtils.getUnitAbbreviation(normalize_element(qrIdent), prop)
-        if (qrIdent, prop) in self.suppressUnitProperties:
-            unit = ""
+        unit = self.getUnitForProperty(self.getComboInternalName(self.cbStatisticsFor))
         if unit:
             metrics = self.labelStatisticsUnit.fontMetrics()
             elided = metrics.elidedText(unit, Qt.TextElideMode.ElideRight, self.labelStatisticsUnit.maximumWidth())
@@ -1963,27 +1950,36 @@ class QGISRedQueriesByPropertiesDock(QGISRedHighlightOwnerMixin, QDockWidget, FO
                 self.formatTimeLabelText(QGISRedLayerUtils.getResultsCurrentTimeText() or self.currentResultsTimeText)
             )
         previousProp = self.getComboInternalName(self.cbProperty)
+        previousStatsFor = self.getComboInternalName(self.cbStatisticsFor)
         self.updateProperties()
-        idx = self.findComboByInternalName(self.cbProperty, previousProp)
-        if idx >= 0:
-            self.cbProperty.setCurrentIndex(idx)
+        self.selectComboByInternalName(self.cbProperty, self.remapFlowProperty(previousProp))
+        self.selectComboByInternalName(self.cbStatisticsFor, self.remapFlowProperty(previousStatsFor))
+        self.remapCriteriaFlowProperties()
         # Task 7: Only re-run if user has explicitly submitted a query
         if self.queryHasBeenSubmitted and self.effectiveCriteria():
             self.runQuery()
 
+    def remapFlowProperty(self, prop):
+        # Average statistics fill Flow_Unsig instead of Flow: a criterion follows the column that holds values
+        if prop not in ('Flow', 'Flow_Unsig'):
+            return prop
+        return 'Flow_Unsig' if 'Flow_Unsig' in self.getVisibleLinkResultProperties() else 'Flow'
+
+    def remapCriteriaFlowProperties(self):
+        remapped = False
+        for crit in self.criteria:
+            newProp = self.remapFlowProperty(crit['property'])
+            if newProp != crit['property']:
+                crit['property'] = newProp
+                remapped = True
+        if remapped:
+            self.reloadCriteriaTable()
+
     def getDynamicContextSuffix(self):
-        if self.currentResultsStatText:
-            englishStat = self.currentResultsStatText
-            if self.isResultsDockAlive():
-                statTranslationToEnglish = {
-                    self.resultsDock.lbl_maximum:       "Maximum",
-                    self.resultsDock.lbl_minimum:       "Minimum",
-                    self.resultsDock.lbl_range:         "Range",
-                    self.resultsDock.lbl_average:       "Average",
-                    self.resultsDock.lbl_std_deviation: "StdDev",
-                }
-                englishStat = statTranslationToEnglish.get(self.currentResultsStatText, self.currentResultsStatText)
-            return f" for {englishStat} values for report times"
+        statNames = {"MAXIMUM": "Maximum", "MINIMUM": "Minimum", "RANGE": "Range", "AVERAGE": "Average", "STDDEV": "StdDev"}
+        statName = statNames.get(self.currentResultStatKey())
+        if statName:
+            return f" for {statName} values for report times"
         if self.currentResultsTimeText:
             return f" @{self.currentResultsTimeText}"
         return ""
