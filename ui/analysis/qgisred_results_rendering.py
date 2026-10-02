@@ -1188,6 +1188,54 @@ class _ResultsRenderingMixin:
 
         utils = QGISRedStylingUtils(self.ProjectDirectory, self.NetworkName, self.iface)
 
+        with self.holdingLayerSignals(layer):
+            renderer = self._buildVariableRenderer(layer, renderer, field, db_field_name, qmlName, cached,
+                                                   is_status, previously_displayed, nameLayer, utils)
+
+        # Bind the layer to the key this renderer belongs to, so the next restyle knows
+        # where to file it away without having to guess the state it was applied under.
+        self._renderKeyInUse[self.getLayerPath(layer)] = self._getRenderStorageKey(
+            self.getLayerPath(layer), db_field_name)
+        self.watchRendererChanges(layer)
+
+        final_renderer = layer.renderer()
+        if isinstance(final_renderer, QgsRuleBasedRenderer):
+            final_labels = {c.label() for c in final_renderer.rootRule().children()}
+            if not any(_NULL_RULE_LABEL in lbl for lbl in final_labels):
+                if isinstance(layer.legend(), _NullHiddenLegend):
+                    layer.setLegend(_NullHiddenLegend(layer))
+
+        with self.holdingLayerSignals(layer):
+            self.applySymbolScaleFactors(layer)
+        layer.triggerRepaint()
+
+        # It does not work in QGIS 4 (no other option found)
+        node = QgsProject.instance().layerTreeRoot().findLayer(layer)
+        if node and not node.isExpanded():
+            node.setExpanded(True)
+
+    @contextmanager
+    def holdingLayerSignals(self, layer):
+        """Hide the intermediate renderer writes from the layer panel.
+
+        The panel counts the features of each class in the background as soon as it
+        hears of a renderer, and QGIS ignores a second request while that count runs.
+        Loading the style, adding the grey no-value rule and scaling the symbols each
+        write a renderer, so the panel used to count the first one, whose legend keys
+        the final one no longer had: every class then read "N/D". With the signals held
+        the panel hears of the final renderer only, and counts that one.
+        """
+        layer.blockSignals(True)
+        try:
+            yield
+        finally:
+            layer.blockSignals(False)
+        with self.writingOwnStyle():
+            layer.rendererChanged.emit()
+            layer.legendChanged.emit()
+
+    def _buildVariableRenderer(self, layer, renderer, field, db_field_name, qmlName, cached, is_status,
+                               previously_displayed, nameLayer, utils):
         # Ensure correct renderer type
         if cached is not None:
             renderer = cached
@@ -1237,24 +1285,4 @@ class _ResultsRenderingMixin:
         with self.writingOwnStyle():
             layer.setRenderer(renderer)
             QGISRedStylingUtils(self.ProjectDirectory, self.NetworkName, self.iface).applyNullStyle(layer)
-
-        # Bind the layer to the key this renderer belongs to, so the next restyle knows
-        # where to file it away without having to guess the state it was applied under.
-        self._renderKeyInUse[self.getLayerPath(layer)] = self._getRenderStorageKey(
-            self.getLayerPath(layer), db_field_name)
-        self.watchRendererChanges(layer)
-
-        final_renderer = layer.renderer()
-        if isinstance(final_renderer, QgsRuleBasedRenderer):
-            final_labels = {c.label() for c in final_renderer.rootRule().children()}
-            if not any(_NULL_RULE_LABEL in lbl for lbl in final_labels):
-                if isinstance(layer.legend(), _NullHiddenLegend):
-                    layer.setLegend(_NullHiddenLegend(layer))
-
-        self.applySymbolScaleFactors(layer)
-        layer.triggerRepaint()
-
-        # It does not work in QGIS 4 (no other option found)
-        node = QgsProject.instance().layerTreeRoot().findLayer(layer)
-        if node and not node.isExpanded():
-            node.setExpanded(True)
+        return renderer

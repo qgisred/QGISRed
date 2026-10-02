@@ -635,6 +635,39 @@ class TestSetGraduatedPaletteVariableSwitch:
                 "Switching away from Status must reload a graduated style"
             )
 
+    def test_the_layer_panel_only_hears_of_the_final_renderer(self):
+        # QGIS counts the features of the first renderer it hears of and ignores the next
+        # requests while that count runs; the intermediate writes must stay silent and one
+        # renderer/legend notice follow them, or every class reads "N/D" in the panel.
+        module = "QGISRed.ui.analysis.qgisred_results_rendering."
+        with patch(module + "QgsGraduatedSymbolRenderer", _FakeGraduatedRenderer), \
+             patch(module + "QgsRuleBasedRenderer", _FakeRuleBasedRenderer), \
+             patch(module + "QgsProject"), \
+             patch(module + "QGISRedStylingUtils") as MockStylingUtils:
+            dock = MockDock()
+            dock.ProjectDirectory = "C:/proj"
+            dock.NetworkName = "Net"
+            dock.iface = MagicMock()
+            dock._statsMode = False
+            dock._currentStat = None
+            dock._flowDirectionField = MagicMock(return_value=None)
+            layer = MagicMock()
+            layer.geometryType.return_value = 1
+            layer.renderer.return_value = _FakeGraduatedRenderer("Other")
+            events = []
+            layer.blockSignals.side_effect = lambda blocked: events.append("block" if blocked else "release")
+            layer.setRenderer.side_effect = lambda renderer: events.append("setRenderer")
+            layer.rendererChanged.emit.side_effect = lambda: events.append("rendererChanged")
+            layer.legendChanged.emit.side_effect = lambda: events.append("legendChanged")
+            dock.applySymbolScaleFactors = MagicMock(side_effect=lambda lyr: lyr.setRenderer("scaled"))
+            setStyle = MockStylingUtils.return_value.setStyle
+            setStyle.side_effect = lambda lyr, name, field=None: lyr.setRenderer("loaded")
+
+            dock.setGraduatedPalette(layer, "Flow", True, "Link", previously_displayed=None)
+
+        assert events == ["block", "setRenderer", "setRenderer", "release", "rendererChanged", "legendChanged",
+                          "block", "setRenderer", "release", "rendererChanged", "legendChanged"]
+
     @pytest.mark.parametrize("field, classified", [
         ("Flow", "abs(Flow)"), ("Flow_Sig", "abs(Flow_Sig)"), ("Flow_Unsig", "Flow_Unsig"), ("Velocity", "Velocity"),
     ])
