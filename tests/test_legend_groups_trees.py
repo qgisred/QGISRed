@@ -160,9 +160,9 @@ class TestConnectivityGroup:
 class TestIsolatedSegmentsGroup:
     def _group(self):
         return FakeGroup("Isolated Segments", identifier="qgisred_isolatedsegments", children=[
-            FakeLayerNode(FakeLayer("qgisred_isolatedsegments_links", "singleSymbol")),
+            FakeLayerNode(FakeLayer("qgisred_isolatedsegments_links", "categorizedSymbol")),
             FakeLayerNode(FakeLayer("qgisred_isolatedsegments_nodes", "categorizedSymbol")),
-            FakeLayerNode(FakeLayer("qgisred_isolatedsegments_isolateddemands", "singleSymbol")),
+            FakeLayerNode(FakeLayer("qgisred_isolatedsegments_isolateddemands", "categorizedSymbol")),
         ])
 
     def test_group_is_listed_and_all_layers_collected(self):
@@ -245,22 +245,23 @@ class TestPanelAndDialogParity:
         assert QGISRedLegendsDialog.EDITABLE_QUERY_IDENTIFIERS == (
             QGISRedLegendsDialog.SIZE_ONLY_QUERY_IDENTIFIERS
             | QGISRedLegendsDialog.SINGLE_EDITABLE_QUERY_IDENTIFIERS
-            | {QGISRedLegendsDialog.ISOLATED_NODES_IDENTIFIER}
+            | set(QGISRedLegendsDialog.FIXED_LEGEND_CLASSES)
         )
 
 
-class TestIsolatedNodesLegacyStyle:
-    """The Isolated Segments nodes ship a categorized legend: a single symbol on them is an older style."""
+class TestIsolatedSegmentsLegacyStyle:
+    """The Isolated Segments layers ship a legend of fixed classes: a single symbol on them is an older style."""
 
     @pytest.mark.parametrize("identifier, rendererType, legacy", [
         ("qgisred_isolatedsegments_nodes", "singleSymbol", True),
-        ("qgisred_isolatedsegments_nodes", "categorizedSymbol", False),
+        ("qgisred_isolatedsegments_links", "singleSymbol", True),
+        ("qgisred_isolatedsegments_isolateddemands", "singleSymbol", True),
         ("qgisred_isolatedsegments_nodes", None, False),
-        ("qgisred_isolatedsegments_links", "singleSymbol", False),
+        ("qgisred_hydraulicsectors_isolateddemands", "singleSymbol", False),
         ("qgisred_junctions", "singleSymbol", False),
     ])
-    def test_only_a_single_symbol_on_the_nodes_is_legacy(self, identifier, rendererType, legacy):
-        assert _dialog().hasLegacySingleSymbol(FakeLayer(identifier, rendererType)) is legacy
+    def test_a_single_symbol_on_an_isolated_segments_layer_is_legacy(self, identifier, rendererType, legacy):
+        assert _dialog().hasLegacyFixedLegend(FakeLayer(identifier, rendererType)) is legacy
 
 
 class TestResultsLayerOrder:

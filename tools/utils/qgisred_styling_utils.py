@@ -73,12 +73,15 @@ WATER_SVG_MARKER = 'id="qgisred_water"'
 FRAME_DARKEN_FACTOR = 160
 
 _MAPTIP_ELEMENT_WORDS = (
-    "Isolation Valve", "Service Connection", "Junction", "Reservoir", "Tank", "Pipe", "Pump", "Source",
+    "Isolation Valve", "Service Connection", "Multiple Demand", "Junction", "Reservoir", "Tank", "Pipe", "Pump",
+    "Source", "Valve",
 )
+_LEGACY_DEMAND_MAPTIP_WORD = "Mult_Demand"
 
 _METER_TYPE_EXPR = "coalesce(attribute($currentfeature,'MeterType'),attribute($currentfeature,'Type'))"
 _VALVE_TYPE_EXPR = "coalesce(attribute($currentfeature,'ValveType'), attribute($currentfeature,'Type'))"
 _SOURCE_TYPE_EXPR = "coalesce(attribute($currentfeature,'SourceType'), attribute($currentfeature,'Type'))"
+_VALVE_LABEL_TYPE_EXPR = "coalesce(attribute($currentfeature,'ValveType'),attribute($currentfeature,'Type'))"
 
 
 def create_combined_cursor(icon, iface=None, icon_size=24):
@@ -226,6 +229,7 @@ class QGISRedStylingUtils:
         self.convertRendererSizesToMillimeters(layer)
         self.translateRendererLabels(layer)
         self.translateMapTip(layer)
+        self.translateValveTypeLabel(layer)
 
     def setStyle(self, layer, name, field=None, variant=""):
         """Load the QML style called `name` on `layer`.
@@ -902,22 +906,29 @@ class QGISRedStylingUtils:
         tags = style.tagsOfSymbol(STYLE_ENTITY_COLORRAMP, rampName)
         return next((kind for kind in PALETTE_KINDS if kind in tags), PALETTE_KIND_SPAN)
 
-    def isolatedNodeClassNames(self):
-        """Legend text of each class of the Isolated Segments nodes, by its value."""
+    def isolatedStatusClassNames(self):
+        """Legend text of each class of the Isolated Segments links and nodes, by its value."""
         return {
-            "JUNCTION": self.tr("Junctions"),
-            "JUNCTION TO RECOVER": self.tr("Junctions to recover"),
-            "ISOLATIONVALVE NOW CLOSED": self.tr("Isolation valves: now closed"),
-            "ISOLATIONVALVE TO RECOVER": self.tr("Isolation valves: to recover"),
-            "ISOLATIONVALVE OPEN": self.tr("Isolation valves: open"),
-            "ISOLATIONVALVE TO CLOSE": self.tr("Isolation valves: to close"),
-            "ISOLATIONVALVE NOT AVAILABLE": self.tr("Isolation valves: not available"),
-            "ISOLATIONVALVE TO OPEN": self.tr("Isolation valves: to open"),
-            "ISOLATIONVALVE": self.tr("Isolation valves: other"),
-            "TANK": self.tr("Tanks"),
-            "RESERVOIR": self.tr("Reservoirs"),
+            "NOW CLOSED": self.tr("Now closed"),
+            "TO CLOSE": self.tr("To close"),
+            "TO OPEN": self.tr("To open"),
+            "ISOLATED": self.tr("Isolated"),
+            "TO RECOVER": self.tr("To recover"),
             "INCIDENCE": self.tr("Incidence point"),
         }
+
+    def isolatedDemandClassNames(self):
+        """Legend text of each class of the Isolated Segments isolated demands, by its element type."""
+        return {
+            "JUNCTION": self.tr("Junctions"),
+            "CONNECTION": self.tr("Service Connections"),
+        }
+
+    @staticmethod
+    def isIsolatedStatusAttribute(classAttribute):
+        """Whether a legend classifies by the expression of the Isolated Segments styles, which
+        sends the elements with no other status to the class of the isolated ones."""
+        return "'ISOLATED'" in (classAttribute or "")
 
     def _translateCategoryLabel(self, value, field=None):
         if isinstance(value, str):
@@ -925,8 +936,10 @@ class QGISRedStylingUtils:
                 return self.tr("Uncategorized")
             if value == "ClosedLinks":
                 return self.tr("Closed Links")
-            if value in self.isolatedNodeClassNames():
-                return self.isolatedNodeClassNames()[value]
+            if self.isIsolatedStatusAttribute(field) and value in self.isolatedStatusClassNames():
+                return self.isolatedStatusClassNames()[value]
+            if field == "ElemType" and value in self.isolatedDemandClassNames():
+                return self.isolatedDemandClassNames()[value]
             if field in ("Type", "ValveType"):
                 return getValveTypeName(value)
             if field == "ArcType":
@@ -965,6 +978,7 @@ class QGISRedStylingUtils:
         otherwise render as the raw English/abbreviated value stored in the
         shapefile.
         """
+        self._updateLegacyMapTip(layer)
         self._translateMapTipLeadingWord(layer)
         self._translateMapTipTypeCode(
             layer, _METER_TYPE_EXPR,
@@ -981,6 +995,22 @@ class QGISRedStylingUtils:
             layer, _SOURCE_TYPE_EXPR,
             {code: getSourceTypeName(code) for code in SOURCE_TYPE_LABELS},
         )
+
+    @staticmethod
+    def _updateLegacyMapTip(layer):
+        # Styles saved before the map tips were unified: bracketed meter type, Mult_Demand, valve with no name.
+        template = layer.mapTipTemplate()
+        if not template:
+            return
+        updated = template
+        if _METER_TYPE_EXPR in updated:
+            updated = updated.replace("[[%", "[%").replace("%]]", "%]")
+        if updated.startswith(_LEGACY_DEMAND_MAPTIP_WORD + " "):
+            updated = "Multiple Demand" + updated[len(_LEGACY_DEMAND_MAPTIP_WORD):]
+        if updated.startswith("[%") and _VALVE_TYPE_EXPR in updated:
+            updated = "Valve " + updated
+        if updated != template:
+            layer.setMapTipTemplate(updated)
 
     def _translateMapTipLeadingWord(self, layer):
         template = layer.mapTipTemplate()
@@ -1004,12 +1034,29 @@ class QGISRedStylingUtils:
         template = layer.mapTipTemplate()
         if not template or codeExpr not in template:
             return
+        layer.setMapTipTemplate(QGISRedStylingUtils._wrapTypeCode(template, codeExpr, labels))
+
+    @staticmethod
+    def _wrapTypeCode(text, codeExpr, labels):
+        variableStart = "with_variable('qgisred_type', " + codeExpr
+        if variableStart in text:
+            return text
         cases = " ".join(
             "WHEN @qgisred_type = '" + code + "' THEN '" + label.replace("'", "''") + "'"
             for code, label in labels.items()
         )
-        wrapped = "with_variable('qgisred_type', " + codeExpr + ", CASE " + cases + " ELSE @qgisred_type END)"
-        layer.setMapTipTemplate(template.replace(codeExpr, wrapped, 1))
+        return text.replace(codeExpr, variableStart + ", CASE " + cases + " ELSE @qgisred_type END)", 1)
+
+    def translateValveTypeLabel(self, layer):
+        labeling = layer.labeling()
+        if labeling is None or labeling.type() != "simple":
+            return
+        settings = labeling.settings()
+        if _VALVE_LABEL_TYPE_EXPR not in settings.fieldName:
+            return
+        abbreviations = {code: getValveTypeAbbreviation(code) for code in VALVE_TYPE_LONG_NAMES}
+        settings.fieldName = self._wrapTypeCode(settings.fieldName, _VALVE_LABEL_TYPE_EXPR, abbreviations)
+        layer.setLabeling(QgsVectorLayerSimpleLabeling(settings))
 
     @staticmethod
     def _rebuildCategorizedRenderer(renderer, categories):

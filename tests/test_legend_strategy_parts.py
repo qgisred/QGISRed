@@ -275,10 +275,11 @@ class TestStrategyPartReasons:
         assert reasons == {dialog.ruleBasedLegendReason()}
         assert not dialog.canBuildColorsPart() and not dialog.canBuildSizesPart()
 
-    def test_the_isolated_segments_nodes_are_always_saved_as_shown(self):
+    @pytest.mark.parametrize("identifier", sorted(QGISRedLegendsDialog.FIXED_LEGEND_CLASSES))
+    def test_the_status_legends_of_the_isolated_segments_are_always_saved_as_shown(self, identifier):
         # Replaying colors would fill whole the junction circles, drawn white inside.
         dialog = self._dialog()
-        dialog.currentLayer.customProperty.return_value = QGISRedLegendsDialog.ISOLATED_NODES_IDENTIFIER
+        dialog.currentLayer.customProperty.return_value = identifier
         reasons = {dialog.classesPartReason(), dialog.sizesPartReason(), dialog.colorsPartReason()}
         assert reasons == {dialog.ruleBasedLegendReason()}
         assert not dialog.canBuildColorsPart() and not dialog.canBuildSizesPart()

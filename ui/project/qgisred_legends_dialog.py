@@ -34,7 +34,7 @@ from ...compat import WKB_LINE_GEOMETRY, WKB_POINT_GEOMETRY
 from ...tools.utils.qgisred_styling_utils import _NULL_RULE_LABEL, CONNECTIVITY_STYLE_NAME, QGISRedStylingUtils
 from ...tools.utils.qgisred_styling_utils import RAMP_KINDS, PALETTE_KINDS, RAMP_KIND_TWO_COLORS, RAMP_KIND_THREE_COLORS
 from ...tools.utils.qgisred_styling_utils import RAMP_KIND_MORE_COLORS, PALETTE_KIND_SPAN, PALETTE_KIND_SEQUENTIAL
-from ...tools.utils.qgisred_styling_utils import PALETTE_KIND_LABELED
+from ...tools.utils.qgisred_styling_utils import PALETTE_KIND_LABELED, FRAME_DARKEN_FACTOR
 from ...tools.utils.qgisred_legend_rule_utils import (
     OPEN_RANGE_BOUND as _OPEN_RANGE_BOUND,
     formatExpressionNumber,
@@ -202,8 +202,6 @@ class QGISRedLegendsDialog(QDialog, formClass):
     # so a generic color edit would be invisible yet destructive.
     SIZE_ONLY_QUERY_IDENTIFIERS = {
         "qgisred_tree_nodes",
-        "qgisred_isolatedsegments_links",
-        "qgisred_isolatedsegments_isolateddemands",
         "qgisred_hydraulicsectors_isolateddemands",
     }
 
@@ -214,15 +212,24 @@ class QGISRedLegendsDialog(QDialog, formClass):
     # Query layers editable as a single symbol (color and size)
     SINGLE_EDITABLE_QUERY_IDENTIFIERS = {"qgisred_connectivity_links"}
 
-    # Isolated Segments nodes ship a categorized legend, one class per node type and status;
-    # a single symbol on that layer is the style of an older version
-    ISOLATED_NODES_IDENTIFIER = "qgisred_isolatedsegments_nodes"
+    # Isolated Segments layers ship a legend with fixed classes: links and nodes by Status, isolated
+    # demands by element type. The editor lists exactly these classes, each with its color and a
+    # percent of its sizes. A legend without them is the style of an older version.
+    FIXED_LEGEND_CLASSES = {
+        "qgisred_isolatedsegments_links": ("NOW CLOSED", "TO CLOSE", "TO OPEN", "ISOLATED", "TO RECOVER"),
+        "qgisred_isolatedsegments_nodes": (
+            "NOW CLOSED", "TO CLOSE", "TO OPEN", "ISOLATED", "TO RECOVER", "INCIDENCE",
+        ),
+        "qgisred_isolatedsegments_isolateddemands": ("JUNCTION", "CONNECTION"),
+    }
+    # The class of the incidence point: a star colored on its fill, while circles are on their stroke
+    INCIDENCE_CLASS = "INCIDENCE"
 
     # Every singleSymbol query layer the dialog takes: the ones it can edit, and the Isolated
-    # Segments nodes, which get their shipped legend back. The layers-panel gate must accept
+    # Segments layers, which get their shipped legend back. The layers-panel gate must accept
     # exactly what the group enumeration lists.
     EDITABLE_QUERY_IDENTIFIERS = (
-        SIZE_ONLY_QUERY_IDENTIFIERS | SINGLE_EDITABLE_QUERY_IDENTIFIERS | {ISOLATED_NODES_IDENTIFIER}
+        SIZE_ONLY_QUERY_IDENTIFIERS | SINGLE_EDITABLE_QUERY_IDENTIFIERS | frozenset(FIXED_LEGEND_CLASSES)
     )
 
     # Layer-identifier prefixes of every query family the dialog handles (thematic maps included)
@@ -311,27 +318,12 @@ class QGISRedLegendsDialog(QDialog, formClass):
     # Query layers drawing several element types with one symbol, each symbol layer gated
     # on the type its size expression names: the selector edits one element type at a time
     ELEMENT_TYPES = {
-        "qgisred_isolatedsegments_links": ("PIPE", "SERVICECONNECTION", "PUMP", "VALVE"),
-        "qgisred_isolatedsegments_isolateddemands": ("JUNCTION", "CONNECTION"),
         "qgisred_hydraulicsectors_isolateddemands": ("JUNCTION", "CONNECTION"),
     }
-    # The element type drawn by the plain lines of the symbol, which no size expression gates
-    PLAIN_LINE_ELEMENT_TYPE = "PIPE"
     # Elements drawn in one fixed color, which the swatch edits (True: the marker's stroke);
     # every other element takes its color from the Status of each feature
     ELEMENT_FIXED_COLORS = {
-        ("qgisred_isolatedsegments_isolateddemands", None): True,
         ("qgisred_hydraulicsectors_isolateddemands", None): True,
-    }
-
-    # What the color of a class of the Isolated Segments nodes paints on its marker, by the
-    # node type its value starts with; "water" is the water half of a tank or reservoir icon
-    ISOLATED_NODE_COLOR_PARTS = {
-        "JUNCTION": "stroke",
-        "ISOLATIONVALVE": "fillAndStroke",
-        "TANK": "water",
-        "RESERVOIR": "water",
-        "INCIDENCE": "fill",
     }
 
     # Link layers drawn as a line plus a marker on it (check valve, pump and valve icons)
@@ -386,7 +378,7 @@ class QGISRedLegendsDialog(QDialog, formClass):
         self.currentFieldName = None
         self.currentLayer = None
         self.pluginFolder = os.path.dirname(os.path.dirname(os.path.dirname(__file__)))
-        self.factorPreviewAnchor = 1.0
+        self.factorPreviewAnchors = {}
         self.originalRenderer = None
         self._workingRenderer = None
         self._sourceRuleRenderer = None
@@ -765,10 +757,6 @@ class QGISRedLegendsDialog(QDialog, formClass):
 
     def elementTypeNames(self):
         return {
-            "PIPE": self.tr("Pipes"),
-            "SERVICECONNECTION": self.tr("Service Connections"),
-            "PUMP": self.tr("Pumps"),
-            "VALVE": self.tr("Valves"),
             "JUNCTION": self.tr("Junctions"),
             "CONNECTION": self.tr("Service Connections"),
         }
@@ -829,12 +817,15 @@ class QGISRedLegendsDialog(QDialog, formClass):
         identifier = self.currentLayer.customProperty("qgisred_identifier") if self.currentLayer else None
         return identifier in self.ELEMENT_TYPES
 
-    def isIsolatedNodesLayer(self):
+    def isFixedLegendLayer(self):
         identifier = self.currentLayer.customProperty("qgisred_identifier") if self.currentLayer else None
-        return identifier == self.ISOLATED_NODES_IDENTIFIER
+        return identifier in self.FIXED_LEGEND_CLASSES
 
     def isFactorCell(self):
-        """The size cell of a single-symbol legend whose selector is on All shows a percent of the current sizes."""
+        """The size cell shows a percent of the current sizes: every class of a fixed legend, and a
+        single-symbol legend whose selector is on All."""
+        if self.isFixedLegendLayer():
+            return True
         identifier = self.currentLayer.customProperty("qgisred_identifier") if self.currentLayer else None
         return (
             identifier in self.VARIANT_SELECTOR_IDENTIFIERS
@@ -1360,7 +1351,7 @@ class QGISRedLegendsDialog(QDialog, formClass):
         self.lastValidLayerIdentifier = layer.customProperty("qgisred_identifier")
         self.currentLayer = layer
         self._workingRenderer = None
-        if (self.isInputLayer() and not self.hasEditableInputStyle(layer)) or self.hasLegacySingleSymbol(layer):
+        if (self.isInputLayer() and not self.hasEditableInputStyle(layer)) or self.hasLegacyFixedLegend(layer):
             self.restoreEditableInputStyle()
         QGISRedStylingUtils().convertRendererSizesToMillimeters(layer)
         self.originalRenderer = layer.renderer().clone() if layer.renderer() else None
@@ -2730,9 +2721,9 @@ class QGISRedLegendsDialog(QDialog, formClass):
                 previewSymbol = self._circleOnlySymbol(symbol, markerName)
             elif not markerName:
                 previewSymbol = self._treeNodesAtDrawnSizes(symbol)
-        colorPart = self.classColorPart(valueText)
-        if colorPart:
-            color = self.readMarkerPartColor(symbol, colorPart)
+        isFixedClass = self.isFixedLegendLayer()
+        if isFixedClass:
+            color = self.fixedClassColor(symbol, valueText)
         if color is None:
             if symbol.symbolLayerCount() > 0:
                 color = symbol.symbolLayer(0).color()
@@ -2755,10 +2746,10 @@ class QGISRedLegendsDialog(QDialog, formClass):
             ),
             strokeColorOnly=strokeColorOnly,
             colorLayerFilter=colorLayerFilter,
-            # Isolated Segments nodes: the preview paints the part of the marker that Apply paints
+            # Fixed legends: the preview paints the parts of the symbol that Apply paints
             colorApplier=(
-                (lambda previewed, picked: self.applyMarkerPartColor(previewed, picked, colorPart))
-                if colorPart else None
+                (lambda previewed, picked: self.applyFixedClassColor(previewed, valueText, picked))
+                if isFixedClass else None
             ),
             # Service Connections as a whole: the circle is filled with a softer shade of the line color
             markerFillShade=(
@@ -2790,7 +2781,9 @@ class QGISRedLegendsDialog(QDialog, formClass):
         size = self.currentSymbolSize(symbol, geometryHint)
         if self.isFactorCell():
             # Millimetres the swatch draws at 100 %, so the preview can follow the typed percent
-            self.factorPreviewAnchor = self._treeNodesAtDrawnSizes(symbol).size() if self.isTreeNodesLayer() else size
+            self.factorPreviewAnchors[row] = (
+                self._treeNodesAtDrawnSizes(symbol).size() if self.isTreeNodesLayer() else size
+            )
             self.tableView.setCellWidget(row, 2, self.createSizePercentSpinBox(row))
             return
         self.tableView.setCellWidget(row, 2, self.createSizeLineEdit(self.formatSizeText(size), row))
@@ -2807,6 +2800,8 @@ class QGISRedLegendsDialog(QDialog, formClass):
 
     def _readAnchorSize(self, symbol):
         """The size the cell stands for: a style variable, or the literal a query layer draws the element with."""
+        if self.isFixedLegendLayer():
+            return self._getLineWidth(symbol) if isinstance(symbol, QgsLineSymbol) else symbol.size()
         if self.isTreeNodesLayer():
             markerName = self.TREE_NODE_MARKERS.get(self.getSelectedVariant(), "circle")
             markers = self._circleMarkerLayers(symbol, markerName)
@@ -3888,7 +3883,7 @@ class QGISRedLegendsDialog(QDialog, formClass):
             with suppress(ValueError, TypeError):
                 value = float(text)
                 if self.isFactorCell():
-                    value *= self.factorPreviewAnchor
+                    value *= self.factorPreviewAnchors.get(row, 1.0)
                 colorWidget.setPreviewSizeValue(value)
 
     # ============================================================
@@ -4006,38 +4001,35 @@ class QGISRedLegendsDialog(QDialog, formClass):
             if hasattr(symbolLayer, 'subSymbol') and symbolLayer.subSymbol():
                 self.applyColorToSymbol(symbolLayer.subSymbol(), color)
 
-    def classColorPart(self, classValue):
-        """Part of its marker a class of the Isolated Segments nodes colors; None on any other layer."""
-        if not self.isIsolatedNodesLayer():
-            return None
-        return self.ISOLATED_NODE_COLOR_PARTS.get(str(classValue).split(" ")[0])
+    def fixedClassColor(self, symbol, classValue):
+        """Color a class of a fixed legend stands for: the one of its lines, of the fill of the
+        incidence star or of the stroke of its circles, which are white or hollow inside."""
+        colorLayer = symbol.symbolLayer(0)
+        if isinstance(symbol, QgsLineSymbol) or classValue == self.INCIDENCE_CLASS:
+            return QColor(colorLayer.color())
+        return QColor(colorLayer.strokeColor())
 
-    def readMarkerPartColor(self, symbol, colorPart):
-        if colorPart == "water":
-            return self._readWaterMarkerColor(symbol)
-        markerLayer = symbol.symbolLayer(0)
-        return markerLayer.strokeColor() if colorPart == "stroke" else markerLayer.color()
+    def applyFixedClassColor(self, symbol, classValue, color):
+        self._replaceSymbolColor(symbol, self.fixedClassColor(symbol, classValue), color)
 
-    @staticmethod
-    def applyMarkerPartColor(symbol, color, colorPart):
-        """Color one part of a marker: its fill, its stroke, both, or the water half of a tank
-        or reservoir icon, whose frame takes a darker shade of the same color."""
-        if colorPart == "water":
-            QGISRedStylingUtils._setSymbolColor(symbol, color)
-            return
+    def _replaceSymbolColor(self, symbol, currentColor, newColor):
+        """Give newColor to every fill and stroke drawn in currentColor, markers on a line included;
+        the frame of a tank or reservoir icon follows with the darker shade of each color."""
+        replacements = {
+            currentColor.rgb(): newColor,
+            currentColor.darker(FRAME_DARKEN_FACTOR).rgb(): newColor.darker(FRAME_DARKEN_FACTOR),
+        }
         for i in range(symbol.symbolLayerCount()):
             symbolLayer = symbol.symbolLayer(i)
-            if colorPart != "stroke":
-                symbolLayer.setColor(color)
-            if colorPart != "fill":
-                symbolLayer.setStrokeColor(color)
-
-    def applyClassColor(self, symbol, classValue, color):
-        colorPart = self.classColorPart(classValue)
-        if colorPart:
-            self.applyMarkerPartColor(symbol, color, colorPart)
-        else:
-            self.applyColorToSymbol(symbol, color)
+            if hasattr(symbolLayer, "subSymbol") and symbolLayer.subSymbol():
+                self._replaceSymbolColor(symbolLayer.subSymbol(), currentColor, newColor)
+                continue
+            fillReplacement = replacements.get(symbolLayer.color().rgb())
+            strokeReplacement = replacements.get(symbolLayer.strokeColor().rgb())
+            if fillReplacement is not None:
+                symbolLayer.setColor(fillReplacement)
+            if strokeReplacement is not None and symbolLayer.strokeColor().isValid():
+                symbolLayer.setStrokeColor(strokeReplacement)
 
     def templateSymbol(self, existingSymbols):
         """Symbol for a class the layer did not have before: a copy of one it already has.
@@ -4225,12 +4217,17 @@ class QGISRedLegendsDialog(QDialog, formClass):
             self._readStyleVariable(symbol, name, isText=False) is not None for name in sizeNames
         )
 
-    def hasLegacySingleSymbol(self, layer):
-        """Whether the Isolated Segments nodes still carry the single symbol older builds shipped."""
-        if layer.customProperty("qgisred_identifier") != self.ISOLATED_NODES_IDENTIFIER:
+    def hasLegacyFixedLegend(self, layer):
+        """Whether an Isolated Segments layer still carries a legend older builds shipped, which
+        lacks the fixed classes."""
+        listedClasses = self.FIXED_LEGEND_CLASSES.get(layer.customProperty("qgisred_identifier"))
+        renderer = layer.renderer() if listedClasses is not None else None
+        if not renderer:
             return False
-        renderer = layer.renderer()
-        return bool(renderer) and renderer.type() == "singleSymbol"
+        if renderer.type() != "categorizedSymbol":
+            return True
+        classValues = {str(category.value()) for category in renderer.categories()}
+        return not classValues.issuperset(listedClasses)
 
     def restoreEditableInputStyle(self):
         """Put the shipped default back on a layer whose style predates the editable variables."""
@@ -4920,9 +4917,6 @@ class QGISRedLegendsDialog(QDialog, formClass):
 
     def _drawsElement(self, symbolLayer, elementType):
         """Whether a symbol layer, or the marker it draws along the line, belongs to the element type."""
-        if elementType == self.PLAIN_LINE_ELEMENT_TYPE:
-            hasWidthExpression = bool(self._sizeExpression(symbolLayer, SL_PROP_STROKE_WIDTH))
-            return symbolLayer.layerType() == "SimpleLine" and not hasWidthExpression
         pattern = elementSizePattern(elementType)
         expressions = [self._sizeExpression(symbolLayer, key) for key in self.ELEMENT_SIZE_PROPERTY_KEYS]
         if any(expression and pattern.search(expression) for expression in expressions):
@@ -4930,18 +4924,10 @@ class QGISRedLegendsDialog(QDialog, formClass):
         subSymbol = symbolLayer.subSymbol() if hasattr(symbolLayer, "subSymbol") else None
         return bool(subSymbol) and bool(self._elementSizeLayers(subSymbol, elementType))
 
-    def _plainLineLayers(self, symbol):
-        """The lines no size expression gates: what the pipes of the Isolated Segments are drawn with."""
-        layers = [symbol.symbolLayer(i) for i in range(symbol.symbolLayerCount())]
-        return [layer for layer in layers if self._drawsElement(layer, self.PLAIN_LINE_ELEMENT_TYPE)]
-
     def _readElementSize(self, symbol, elementType):
         """Size the symbol draws one element type with; None for All, or when the style does not name the type."""
         if elementType is None:
             return None
-        if elementType == self.PLAIN_LINE_ELEMENT_TYPE:
-            plainLines = self._plainLineLayers(symbol)
-            return plainLines[0].width() if plainLines else None
         pattern = elementSizePattern(elementType)
         for symbolLayer, propertyKey in self._elementSizeLayers(symbol, elementType):
             match = pattern.search(self._sizeExpression(symbolLayer, propertyKey))
@@ -4965,8 +4951,6 @@ class QGISRedLegendsDialog(QDialog, formClass):
 
     def _scaleElementSizes(self, symbol, elementType, factor):
         """Scale what draws one element type: the size its expressions declare and the base size under them."""
-        for symbolLayer in self._plainLineLayers(symbol) if elementType == self.PLAIN_LINE_ELEMENT_TYPE else []:
-            self._scaleLayerBaseSize(symbolLayer, factor)
         pattern = elementSizePattern(elementType)
         for symbolLayer, propertyKey in self._elementSizeLayers(symbol, elementType):
             expression = self._sizeExpression(symbolLayer, propertyKey)
@@ -5032,6 +5016,14 @@ class QGISRedLegendsDialog(QDialog, formClass):
                     sl.setSize(sl.size() * factor)
             if hasattr(sl, 'subSymbol') and sl.subSymbol():
                 self._scaleBaseSizes(sl.subSymbol(), factor)
+
+    def _scaleSymbolSizes(self, symbol, factor):
+        """Scale all a symbol is drawn with: the sizes its expressions declare and the base sizes under them."""
+        if abs(factor - 1.0) < 1e-9:
+            return
+        for propertyKey in self.ELEMENT_SIZE_PROPERTY_KEYS:
+            self._scaleSizeExpressionsOnLayers(symbol, propertyKey, factor)
+        self._scaleBaseSizes(symbol, factor)
 
     def _applyDemandsLegend(self, symbol, color, size):
         if color is not None:
@@ -5135,6 +5127,8 @@ class QGISRedLegendsDialog(QDialog, formClass):
     def buildCategoricalRenderer(self):
         if self._sourceRuleRenderer is not None:
             return self.buildRuleBasedCategoricalRenderer()
+        if self.isFixedLegendLayer():
+            return self.buildFixedLegendRenderer()
 
         categories = []
         isProportionalMode = self.currentSizeMode() == "Proportional to Value"
@@ -5172,7 +5166,7 @@ class QGISRedLegendsDialog(QDialog, formClass):
                 symbol = self.templateSymbol(list(existingSymbolMap.values()))
 
             if colorWidget:
-                self.applyClassColor(symbol, value, colorWidget.activeColor)
+                self.applyColorToSymbol(symbol, colorWidget.activeColor)
 
             if self.discardProportionalSizes and not isProportionalMode:
                 self.clearProportionalSizeExpression(symbol)
@@ -5191,6 +5185,29 @@ class QGISRedLegendsDialog(QDialog, formClass):
         if categories:
             return QgsCategorizedSymbolRenderer(self.currentFieldName, categories)
         return None
+
+    def buildFixedLegendRenderer(self):
+        """Fixed legend: each class takes its color, the percent of its sizes, its label and its
+        visibility from its row."""
+        liveRenderer = self.currentLayer.renderer()
+        if not isinstance(liveRenderer, QgsCategorizedSymbolRenderer):
+            return None
+        rowOfClass = {self.getRowClassValue(row): row for row in range(self.tableView.rowCount())}
+        categories = []
+        for liveCategory in liveRenderer.categories():
+            classValue = str(liveCategory.value())
+            symbol = liveCategory.symbol().clone()
+            label, isShown = liveCategory.label(), liveCategory.renderState()
+            row = rowOfClass.get(classValue)
+            if row is not None:
+                self.applyFixedClassColor(symbol, classValue, self.getRowColor(row))
+                self._scaleSymbolSizes(symbol, self.tableView.cellWidget(row, 2).factor())
+                label = self.tableView.cellWidget(row, 4).text()
+                isShown = self.tableView.cellWidget(row, 0).findChild(QCheckBox).isChecked()
+            category = QgsRendererCategory(liveCategory.value(), symbol, label)
+            category.setRenderState(isShown)
+            categories.append(category)
+        return QgsCategorizedSymbolRenderer(liveRenderer.classAttribute(), categories)
 
     def buildRuleBasedCategoricalRenderer(self):
         """Rebuild the source rule-based renderer with the table's colors, sizes, labels and visibility.
@@ -5564,6 +5581,11 @@ class QGISRedLegendsDialog(QDialog, formClass):
         # symbol layers and labels, which the dialog table cannot recreate on its own.
         strategy = None if scope == self.STYLE_SCOPE_DEFAULT else self.readStrategyFromStyleFile(path)
         self.applyStyleFileToLayer(path)
+        if self.hasLegacyFixedLegend(self.currentLayer):
+            self.restoreEditableInputStyle()
+            self.showAppliedLayerStyle()
+            self.updateLegacyStyleNotice()
+            return
         if not self.isLiteralStyle(strategy):
             # The saved classes are on the layer now; regenerate colors/sizes/intervals on top.
             self.applyStrategyToDialog(strategy)
@@ -5624,6 +5646,8 @@ class QGISRedLegendsDialog(QDialog, formClass):
         self.loadStyleKeepingLabelVisibility(path)
         QGISRedStylingUtils().convertRendererSizesToMillimeters(self.currentLayer)
         QGISRedStylingUtils().translateRendererLabels(self.currentLayer)
+        QGISRedStylingUtils().translateMapTip(self.currentLayer)
+        QGISRedStylingUtils().translateValveTypeLabel(self.currentLayer)
         self.restoreResultNullClass()
         self.showAppliedLayerStyle()
 
@@ -5897,8 +5921,8 @@ class QGISRedLegendsDialog(QDialog, formClass):
         return self.currentFieldType == self.FIELD_TYPE_CATEGORICAL and self._sourceRuleRenderer is not None
 
     def isAlwaysSavedAsShown(self):
-        # Replaying colors would also fill whole the markers of the Isolated Segments nodes.
-        return self.isRuleBasedCategoricalLegend() or self.isIsolatedNodesLayer()
+        # Replaying colors or sizes would flatten the symbols a fixed legend draws each element with.
+        return self.isRuleBasedCategoricalLegend() or self.isFixedLegendLayer()
 
     def canBuildSizesPart(self):
         if self.currentFieldType not in (self.FIELD_TYPE_NUMERIC, self.FIELD_TYPE_CATEGORICAL):
@@ -6200,6 +6224,12 @@ class QGISRedLegendsDialog(QDialog, formClass):
         if not self.currentLayer:
             return
 
+        if self.isFixedLegendLayer():
+            # The classes of a fixed legend are the ones its style ships, in that order
+            for classButton in (self.btClassPlus, self.btClassMinus, self.btUp, self.btDown):
+                classButton.setEnabled(False)
+            return
+
         selectedRows = self.getSelectedRows()
         selectionCount = len(selectedRows)
         isCategorical = self.currentFieldType == self.FIELD_TYPE_CATEGORICAL
@@ -6269,12 +6299,13 @@ class QGISRedLegendsDialog(QDialog, formClass):
 
     def updateInputLayerRestrictions(self):
         """Disable right-panel batch controls for input layers; apply per-element column rules."""
-        isInput = self.isInputLayer() or self.isSizeOnlyQueryLayer() or (
+        isFixedLegend = self.isFixedLegendLayer()
+        isInput = self.isInputLayer() or self.isSizeOnlyQueryLayer() or isFixedLegend or (
             self.isSingleEditableQueryLayer() and self.currentFieldType == self.FIELD_TYPE_SINGLE
         )
 
         # Classification panel
-        self.labelInputRestriction.setVisible(isInput)
+        self.labelInputRestriction.setVisible(isInput and not isFixedLegend)
         self.cbMode.setEnabled(not isInput)
         self.spinIntervalRange.setEnabled(not isInput)
         if isInput:

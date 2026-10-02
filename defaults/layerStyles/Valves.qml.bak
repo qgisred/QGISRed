@@ -337,6 +337,6 @@
   <layerOpacity>1</layerOpacity>
   <expressionfields/>
   <previewExpression>coalesce(attribute($currentfeature,'ValveID'),attribute($currentfeature,'Id'))</previewExpression>
-  <mapTip enabled="1">[% coalesce(attribute($currentfeature,'ValveType'), attribute($currentfeature,'Type')) %] [% coalesce(attribute($currentfeature,'ValveID'), attribute($currentfeature,'Id')) %]</mapTip>
+  <mapTip enabled="1">Valve [% coalesce(attribute($currentfeature,'ValveType'), attribute($currentfeature,'Type')) %] [% coalesce(attribute($currentfeature,'ValveID'), attribute($currentfeature,'Id')) %]</mapTip>
   <layerGeometryType>1</layerGeometryType>
 </qgis>

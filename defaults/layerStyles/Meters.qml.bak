@@ -949,6 +949,6 @@ def my_form_open(dialog, layer, feature):
   <dataDefinedFieldProperties/>
   <widgets/>
   <previewExpression>"Descrip"</previewExpression>
-  <mapTip enabled="1">[[% coalesce(attribute($currentfeature,'MeterType'),attribute($currentfeature,'Type')) %]] [% coalesce(attribute($currentfeature,'MeterID'), attribute($currentfeature,'Id')) %]</mapTip>
+  <mapTip enabled="1">[% coalesce(attribute($currentfeature,'MeterType'),attribute($currentfeature,'Type')) %] [% coalesce(attribute($currentfeature,'MeterID'), attribute($currentfeature,'Id')) %]</mapTip>
   <layerGeometryType>0</layerGeometryType>
 </qgis>

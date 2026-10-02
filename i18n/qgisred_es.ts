@@ -4050,7 +4050,7 @@ La información de sectores existente podría ser reemplazada.
     <message>
         <location filename="../ui/queries/qgisred_element_explorer_dock.py" line="97"/>
         <source>Multiple Demand</source>
-        <translation>Demanda Multiple</translation>
+        <translation>Demanda Múltiple</translation>
     </message>
     <message>
         <location filename="../ui/queries/qgisred_element_explorer_dock.py" line="1316"/>
@@ -9362,6 +9362,16 @@ No se pueden aplicar los cambios.</translation>
         <translation type="unfinished">Fuente</translation>
     </message>
     <message>
+        <location filename="../tools/qgisred_translatable_strings.py" line="418"/>
+        <source>Multiple Demand</source>
+        <translation>Demanda Múltiple</translation>
+    </message>
+    <message>
+        <location filename="../tools/qgisred_translatable_strings.py" line="419"/>
+        <source>Valve</source>
+        <translation>Válvula</translation>
+    </message>
+    <message>
         <location filename="../tools/qgisred_translatable_strings.py" line="410"/>
         <source>Isolation Valve</source>
         <translation type="unfinished">Válvula de seccionamiento</translation>
@@ -9442,64 +9452,44 @@ No se pueden aplicar los cambios.</translation>
         <translation type="obsolete">Booster por consigna</translation>
     </message>
     <message>
-        <location filename="../tools/utils/qgisred_styling_utils.py" line="908"/>
+        <location filename="../tools/utils/qgisred_styling_utils.py" line="912"/>
+        <source>Now closed</source>
+        <translation>Cerrado ahora</translation>
+    </message>
+    <message>
+        <location filename="../tools/utils/qgisred_styling_utils.py" line="913"/>
+        <source>To close</source>
+        <translation>A cerrar</translation>
+    </message>
+    <message>
+        <location filename="../tools/utils/qgisred_styling_utils.py" line="914"/>
+        <source>To open</source>
+        <translation>A abrir</translation>
+    </message>
+    <message>
+        <location filename="../tools/utils/qgisred_styling_utils.py" line="915"/>
+        <source>Isolated</source>
+        <translation>Aislado</translation>
+    </message>
+    <message>
+        <location filename="../tools/utils/qgisred_styling_utils.py" line="916"/>
+        <source>To recover</source>
+        <translation>A recuperar</translation>
+    </message>
+    <message>
+        <location filename="../tools/utils/qgisred_styling_utils.py" line="917"/>
+        <source>Incidence point</source>
+        <translation>Punto de incidencia</translation>
+    </message>
+    <message>
+        <location filename="../tools/utils/qgisred_styling_utils.py" line="923"/>
         <source>Junctions</source>
         <translation>Uniones</translation>
     </message>
     <message>
-        <location filename="../tools/utils/qgisred_styling_utils.py" line="909"/>
-        <source>Junctions to recover</source>
-        <translation>Uniones a recuperar</translation>
-    </message>
-    <message>
-        <location filename="../tools/utils/qgisred_styling_utils.py" line="910"/>
-        <source>Isolation valves: now closed</source>
-        <translation>Válvulas de seccionamiento: cerradas ahora</translation>
-    </message>
-    <message>
-        <location filename="../tools/utils/qgisred_styling_utils.py" line="911"/>
-        <source>Isolation valves: to recover</source>
-        <translation>Válvulas de seccionamiento: a recuperar</translation>
-    </message>
-    <message>
-        <location filename="../tools/utils/qgisred_styling_utils.py" line="912"/>
-        <source>Isolation valves: open</source>
-        <translation>Válvulas de seccionamiento: abiertas</translation>
-    </message>
-    <message>
-        <location filename="../tools/utils/qgisred_styling_utils.py" line="913"/>
-        <source>Isolation valves: to close</source>
-        <translation>Válvulas de seccionamiento: a cerrar</translation>
-    </message>
-    <message>
-        <location filename="../tools/utils/qgisred_styling_utils.py" line="914"/>
-        <source>Isolation valves: not available</source>
-        <translation>Válvulas de seccionamiento: no disponibles</translation>
-    </message>
-    <message>
-        <location filename="../tools/utils/qgisred_styling_utils.py" line="915"/>
-        <source>Isolation valves: to open</source>
-        <translation>Válvulas de seccionamiento: a abrir</translation>
-    </message>
-    <message>
-        <location filename="../tools/utils/qgisred_styling_utils.py" line="916"/>
-        <source>Isolation valves: other</source>
-        <translation>Válvulas de seccionamiento: otras</translation>
-    </message>
-    <message>
-        <location filename="../tools/utils/qgisred_styling_utils.py" line="917"/>
-        <source>Tanks</source>
-        <translation>Depósitos</translation>
-    </message>
-    <message>
-        <location filename="../tools/utils/qgisred_styling_utils.py" line="918"/>
-        <source>Reservoirs</source>
-        <translation>Embalses</translation>
-    </message>
-    <message>
-        <location filename="../tools/utils/qgisred_styling_utils.py" line="919"/>
-        <source>Incidence point</source>
-        <translation>Punto de incidencia</translation>
+        <location filename="../tools/utils/qgisred_styling_utils.py" line="924"/>
+        <source>Service Connections</source>
+        <translation>Acometidas</translation>
     </message>
 </context>
 <context>

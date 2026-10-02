@@ -26,6 +26,9 @@ class _FakeLayer:
     def mapTipTemplate(self):
         return ""
 
+    def labeling(self):
+        return None
+
     def setMapTipTemplate(self, template):
         pass
 

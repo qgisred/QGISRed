@@ -480,6 +480,6 @@ def my_form_open(dialog, layer, feature):
   <dataDefinedFieldProperties/>
   <widgets/>
   <previewExpression>"Descrip"</previewExpression>
-  <mapTip enabled="1">Mult_Demand [% coalesce(attribute($currentfeature,'BaseDem'), attribute($currentfeature,'BaseValue')) %] ...</mapTip>
+  <mapTip enabled="1">Multiple Demand [% coalesce(attribute($currentfeature,'BaseDem'), attribute($currentfeature,'BaseValue')) %] ...</mapTip>
   <layerGeometryType>0</layerGeometryType>
 </qgis>
