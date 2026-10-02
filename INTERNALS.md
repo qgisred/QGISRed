@@ -567,6 +567,34 @@ The tree name is read from the **file name** (`QGISRedLayerUtils.treeNameFromLay
 never from the Layers-panel group, which the user can rename. The style of a removed tree is
 left alone, so a tree recomputed under the same name gets it back.
 
+### Result styles are generated, and named by units and quality kind
+
+`defaults/layerStyles/Node*.qml.bak` and `Link*.qml.bak` are written by
+`scripts/build_result_styles.py` from two symbol templates (`scripts/result_style_templates/`)
+and one table of classes that follows the Results Panel spec: five classes in the EPANET
+colours (`QGISRed EPANET Results` palette), the first class from the spec minimum to the
+lower threshold and the last up to the maximum, labels `< 15`, `15 < 30`, `> 50`. Edit the
+table, run the script; `tests/test_result_styles.py` fails when a shipped file drifts from it.
+
+The dock asks `setStyle` for `resultStyleName(element, variable)`: variables whose thresholds
+depend on the unit system carry an `SI` / `US` suffix (`NodePressureSI`, `LinkVelocityUS`,
+`LinkHeadLossSI`), and the Quality column takes the style of its kind (`NodeChlorine` when the
+chemical label reads as chlorine, else `NodeChemical`; `NodeTrace`; `NodeAge`). The reopen path
+and the Legends dialog derive the same name, so a project style saved for Age never shows for
+chlorine. Because of that, `readOptions()` runs before `openProjectInQgis()`, and the render
+cache key carries the unit system and the quality kind.
+
+Head, Demand, Flow, Reaction rate and non-chlorine chemicals have no fixed thresholds: their
+files carry a `qgisred_legend_strategy` (Pretty Breaks, 5 classes, the results palette) that
+`applyStrategyFromLayer` replays on every load, with open first/last classes and the editor's
+labels; the five classes inside the file are placeholders. Status is a rule renderer of three
+`LIKE` groups (Open, Active, Closed), which the rule parser reads as categories.
+
+The Pressure styles give the class below zero a white 2.5 mm junction. `readStyleBaseSizes`
+records that as `junctionRatios` relative to the smallest class, and `applySymbolScaleFactors`
+scales each rule by its ratio; `applyNullStyle` clones the grey no-value symbol from the last
+class, never the first.
+
 ### Every size is in millimetres
 
 Shipped styles used to mix pixels and millimetres, so the same number in the Legends dialog
