@@ -1250,16 +1250,7 @@ class QGISRedElementExplorerDock(QGISRedHighlightOwnerMixin, QDockWidget, FORM_C
         layerIdentifier = self.currentLayer.customProperty("qgisred_identifier") if self.currentLayer else None
         utils = QGISRedFieldUtils()
 
-        # Hide quality-related fields when the quality model is None, Age, or Trace
-        qualityModel = QGISRedProjectUtils.getQualityModel().upper()
-        if qualityModel in ("NONE", "AGE", "TRACE"):
-            nonChemicalFields = {
-                "qgisred_pipes":      {"BulkCoeff", "WallCoeff"},
-                "qgisred_tanks":      {"ReactCoef", "IniQuality"},
-                "qgisred_reservoirs": {"IniQuality"},
-                "qgisred_junctions":  {"IniQuality"},
-            }.get(layerIdentifier, set())
-            skipFields = skipFields | nonChemicalFields
+        skipFields = skipFields | self.hiddenQualityFields(layerIdentifier, fields, attributes)
 
         # For node layers, collect attached demands and source
         isNodeLayer = layerIdentifier in ["qgisred_junctions", "qgisred_reservoirs", "qgisred_tanks"]
@@ -1338,6 +1329,23 @@ class QGISRedElementExplorerDock(QGISRedHighlightOwnerMixin, QDockWidget, FORM_C
         # Append source triplet
         if nodeSource and sourceLayer:
             displayRow = self.appendSourceRows(displayRow, nodeSource, sourceLayer, utils)
+
+    def hiddenQualityFields(self, layerIdentifier, fields, attributes):
+        # Chemical-only fields need the Chemical model; mixing fields need any quality model, the fraction a 2COMP tank
+        hidden = set()
+        qualityModel = QGISRedProjectUtils.getQualityModel().upper()
+        if qualityModel in ("NONE", "AGE", "TRACE"):
+            hidden = {
+                "qgisred_pipes":      {"BulkCoeff", "WallCoeff"},
+                "qgisred_tanks":      {"ReactCoef", "IniQuality"},
+                "qgisred_reservoirs": {"IniQuality"},
+                "qgisred_junctions":  {"IniQuality"},
+            }.get(layerIdentifier, set())
+        if layerIdentifier == "qgisred_tanks":
+            mixingIndex = fields.indexFromName("MixingMod")
+            mixingModel = attributes[mixingIndex] if mixingIndex >= 0 else None
+            hidden = hidden | QGISRedFieldUtils.getHiddenTankMixingFields([mixingModel])
+        return hidden
 
     def _getConditionFeature(self, layerIdentifier, fieldName, fields, attributes):
         """Return the per-feature condition value for fields whose unit depends on a feature attribute.

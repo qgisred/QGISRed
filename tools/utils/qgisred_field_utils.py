@@ -142,6 +142,10 @@ _COMMON_PRETTY_NAMES = {
 }
 _NON_CHEMICAL_MODELS = frozenset({"none", "trace", "age"})
 _CHEMICAL_ONLY_FIELDS = frozenset({"IniQuality", "ReactRate"})
+# Tank mixing is only simulated with a quality model; the fraction only matters
+# for the two-compartment model (EPANET keyword 2COMP).
+_TANK_MIXING_FIELDS = frozenset({"MixingMod", "MixingFrac"})
+_TWO_COMPONENTS_MIXING = "2COMP"
 # Abbreviations a CSV row can use instead of a literal unit, to say "whatever the
 # project is configured with". Expanded in _resolveAbbr; the volume one also swaps
 # the whole row so its decimals come from Global/VolumeUnits (see _redirectVolumeRow).
@@ -486,6 +490,16 @@ class QGISRedFieldUtils:
             return False
         name = (row["si_name"] or row["us_name"] or "").strip().lower()
         return name == "year as text"
+
+    @staticmethod
+    def getHiddenTankMixingFields(mixingModelValues):
+        """Tank mixing fields to hide: both without a quality model, the fraction unless a tank uses two components."""
+        if QGISRedProjectUtils.getQualityModel().upper() == "NONE":
+            return set(_TANK_MIXING_FIELDS)
+        for value in mixingModelValues:
+            if str(value or "").strip().upper() == _TWO_COMPONENTS_MIXING:
+                return set()
+        return {"MixingFrac"}
 
     def getIdFieldName(self, layer):
         """Return the element ID field name of a QGIS layer, for both naming schemes.

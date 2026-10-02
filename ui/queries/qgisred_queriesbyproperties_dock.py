@@ -826,6 +826,11 @@ class QGISRedQueriesByPropertiesDock(QGISRedHighlightOwnerMixin, QDockWidget, FO
             }.get(qrIdent, set())
             if nonChemicalStaticFields:
                 staticFields = [f for f in staticFields if f.name().lower() not in nonChemicalStaticFields]
+        if qrIdent == 'qgisred_tanks':
+            hiddenMixingFields = {
+                name.lower() for name in QGISRedFieldUtils.getHiddenTankMixingFields(self.tankMixingModels(layer))
+            }
+            staticFields = [f for f in staticFields if f.name().lower() not in hiddenMixingFields]
         numericResultProps = [p for p in resultProps if p != 'Status']
         ident = layer.customProperty("qgisred_identifier") or ""
         if ident.startswith("qgisred_node"):
@@ -1240,6 +1245,11 @@ class QGISRedQueriesByPropertiesDock(QGISRedHighlightOwnerMixin, QDockWidget, FO
                 mn = min(mn, val)
                 mx = max(mx, val)
         return mn, mx
+
+    def tankMixingModels(self, layer):
+        if layer.fields().indexFromName('MixingMod') < 0:
+            return []
+        return [feat['MixingMod'] for feat in layer.getFeatures()]
 
     def getUniqueFieldValues(self, layer, name):
         vals = set()

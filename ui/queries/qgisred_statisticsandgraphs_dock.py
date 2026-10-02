@@ -1097,6 +1097,14 @@ class QGISRedStatisticsDock(QGISRedHighlightOwnerMixin, QDockWidget, formClass):
         # Per-layer identifier fields (PipeID, TankID, ...) are detected via the CSV Identifier property
         return self.fieldUtils.getProperty(normalize_element(elementIdentifier or ""), fieldName, translate=False) == "Identifier"
 
+    def hiddenTankMixingFieldsLower(self, layer, elementIdentifier):
+        if elementIdentifier != "qgisred_tanks":
+            return set()
+        mixingModels = []
+        if layer.fields().indexFromName("MixingMod") >= 0:
+            mixingModels = [feature["MixingMod"] for feature in layer.getFeatures()]
+        return {name.lower() for name in self.fieldUtils.getHiddenTankMixingFields(mixingModels)}
+
     def updateProperties(self):
         self.suspendCascade = True
         self.cbProperty.clear()
@@ -1127,6 +1135,7 @@ class QGISRedStatisticsDock(QGISRedHighlightOwnerMixin, QDockWidget, formClass):
                 "qgisred_reservoirs": {"iniquality"},
                 "qgisred_junctions": {"iniquality"},
             }.get(elementIdentifier, set())
+        nonChemicalFields = nonChemicalFields | self.hiddenTankMixingFieldsLower(layer, elementIdentifier)
 
         tagField = None
         staticFields = []
@@ -1216,6 +1225,7 @@ class QGISRedStatisticsDock(QGISRedHighlightOwnerMixin, QDockWidget, formClass):
                 "qgisred_reservoirs": {"iniquality"},
                 "qgisred_junctions": {"iniquality"},
             }.get(elementIdentifier, set())
+        nonChemicalFields = nonChemicalFields | self.hiddenTankMixingFieldsLower(layer, elementIdentifier)
 
         tagField = None
         staticFields = []
@@ -1297,6 +1307,7 @@ class QGISRedStatisticsDock(QGISRedHighlightOwnerMixin, QDockWidget, formClass):
                 "qgisred_reservoirs": {"iniquality"},
                 "qgisred_junctions": {"iniquality"},
             }.get(elementIdentifier, set())
+        nonChemicalFields = nonChemicalFields | self.hiddenTankMixingFieldsLower(layer, elementIdentifier)
 
         tagField = None
         staticFields = []
@@ -1457,6 +1468,7 @@ class QGISRedStatisticsDock(QGISRedHighlightOwnerMixin, QDockWidget, formClass):
                 "qgisred_reservoirs": {"iniquality"},
                 "qgisred_junctions": {"iniquality"},
             }.get(elementIdentifier, set())
+        nonChemicalFields = nonChemicalFields | self.hiddenTankMixingFieldsLower(layer, elementIdentifier)
 
         idTagFieldsByKey = {}
         identifierFields = []
