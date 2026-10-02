@@ -16,6 +16,7 @@ import math
 from ..analysis.qgisred_results_dock import QGISRedResultsDock
 from ..analysis.qgisred_results_data import infer_stat_en_from_layer
 from ...tools.utils.qgisred_field_utils import QGISRedFieldUtils, normalize_element
+from ...tools.utils.qgisred_filesystem_utils import QGISRedFileSystemUtils
 from ...tools.utils.qgisred_layer_utils import QGISRedLayerUtils
 from ...tools.utils.qgisred_project_utils import QGISRedProjectUtils
 from ...tools.utils.qgisred_ui_utils import QGISRED_COMBO_STYLE, QGISRedUIUtils
@@ -1980,8 +1981,9 @@ class QGISRedQueriesByPropertiesDock(QGISRedHighlightOwnerMixin, QDockWidget, FO
         statName = statNames.get(self.currentResultStatKey())
         if statName:
             return f" for {statName} values for report times"
-        if self.currentResultsTimeText:
-            return f" @{self.currentResultsTimeText}"
+        timeText = QGISRedLayerUtils.getResultsCurrentTimeText() or self.currentResultsTimeText
+        if timeText:
+            return f" at {timeText}"
         return ""
 
     def onResultsPropertyChanged(self):
@@ -2046,49 +2048,24 @@ class QGISRedQueriesByPropertiesDock(QGISRedHighlightOwnerMixin, QDockWidget, FO
 
     # --- Export ---
 
-    def exportTableWidgetCsv(self, table, prefix):
-        folder = QFileDialog.getExistingDirectory(
-            self,
-            "Select output folder",
-            str(QgsProject.instance().homePath())
-        )
-        if not folder:
-            return
-
-        # 2) build filename
-        ts = datetime.now().strftime("%Y%m%d_%H%M%S")
-        fname = os.path.join(folder, f"{prefix}_{ts}.csv")
-
-        try:
-            with open(fname, 'w', newline='', encoding='utf-8') as f:
-                writer = csv.writer(f)
-                headers = [
-                    table.horizontalHeaderItem(col).text()
-                    if table.horizontalHeaderItem(col) else ''
-                    for col in range(table.columnCount())
-                ]
-                writer.writerow(headers)
-
-                for row in range(table.rowCount()):
-                    rowdata = [
-                        table.item(row, col).text()
-                        if table.item(row, col) else ''
-                        for col in range(table.columnCount())
-                    ]
-                    writer.writerow(rowdata)
-
-            QMessageBox.information(self, "Export successful", f"Saved to:\n{fname}")
-        except Exception as e:
-            QMessageBox.critical(self, "Export failed", str(e))
+    def currentProjectName(self):
+        # The QGISRed project is the network: its name is the stem of the Pipes layer file
+        for layer in QgsProject.instance().mapLayers().values():
+            if layer.customProperty("qgisred_identifier") != "qgisred_pipes":
+                continue
+            fileName = os.path.splitext(os.path.basename(QGISRedFileSystemUtils().getLayerPath(layer)))[0]
+            if fileName.endswith("_Pipes"):
+                return fileName[:-len("_Pipes")]
+        return QgsProject.instance().baseName() or "QGISRed"
 
     def exportCriteria(self):
-        projectName = QgsProject.instance().baseName() or "QGISRed"
+        projectName = self.currentProjectName()
         defaultName = f"{projectName}_Query_Criteria_{datetime.now().strftime('%Y%m%d_%H%M%S')}.txt"
         fname, _ = QFileDialog.getSaveFileName(
             self,
             self.tr("Save criteria file"),
             os.path.join(str(QgsProject.instance().homePath()), defaultName),
-            "Text Files (*.txt)"
+            self.tr("Text Files (*.txt)")
         )
         if not fname:
             return
@@ -2122,7 +2099,7 @@ class QGISRedQueriesByPropertiesDock(QGISRedHighlightOwnerMixin, QDockWidget, FO
             self,
             self.tr("Open criteria file"),
             str(QgsProject.instance().homePath()),
-            "Text Files (*.txt)"
+            self.tr("Text Files (*.txt)")
         )
         if not fname:
             return
@@ -2199,80 +2176,84 @@ class QGISRedQueriesByPropertiesDock(QGISRedHighlightOwnerMixin, QDockWidget, FO
         except Exception as e:
             QMessageBox.critical(self, self.tr("Import failed"), str(e))
 
+    def formatCriterionForExport(self, criterion, withOperator):
+        prop = self.prettyForCriterion(criterion['property'])
+        text = f"{criterion['operator']} {prop}" if withOperator else prop
+        if criterion['condition'] == 'All':
+            return text
+        unit = self.getUnitForProperty(criterion['property'])
+        suffix = f" {unit}" if unit else ""
+        return f"{text} {criterion['condition']} {criterion['value']}{suffix}"
+
+    def statisticsMagnitudeLine(self, targetField):
+        if not targetField or targetField == '_none_':
+            return "Statistics: Count"
+        name = self.prettyForCriterion(targetField)
+        unit = self.getUnitForProperty(targetField)
+        return f"Statistics: {name} ({unit})" if unit else f"Statistics: {name}"
+
+    def statisticsExportHeaderLines(self, projectName):
+        qrIdent = self.cbElementType.currentData(Qt.ItemDataRole.UserRole) or ""
+        scenario = self.resultsDock.Scenario if self.isResultsDockAlive() else "Base"
+        lines = [
+            f"Project: {projectName}",
+            f"Scenario: {scenario}",
+            f"Element type: {self.englishElementTypeForIdentifier(qrIdent)}",
+        ]
+        enabledCriteria = [c for c in self.effectiveCriteria() if c.get('enabled', True)]
+        targetField = self.getComboInternalName(self.cbStatisticsFor)
+        isDynamic = self.isResultProperty(targetField) or any(
+            self.isResultProperty(c['property']) for c in enabledCriteria
+        )
+        contextSuffix = self.getDynamicContextSuffix() if isDynamic else ""
+        if self.radioSingleCriteria.isChecked() and enabledCriteria:
+            lines.append(f"Query: {self.formatCriterionForExport(enabledCriteria[0], False)}{contextSuffix}")
+        else:
+            lines.append(f"Queries{contextSuffix}:")
+            lines.extend(self.formatCriterionForExport(c, True) for c in enabledCriteria)
+            comment = self.multipleCriteriaComment.text().strip()
+            if comment:
+                lines.append(f"Comment: {comment}")
+        lines.append(self.statisticsMagnitudeLine(targetField))
+        return lines
+
+    def statisticsExportTableRows(self):
+        table = self.tableWidgetStatistics
+        headers = list(self.lastStatisticsEnglishHeaders)
+        if len(headers) != table.columnCount():
+            headers = [
+                table.horizontalHeaderItem(col).text() if table.horizontalHeaderItem(col) else ''
+                for col in range(table.columnCount())
+            ]
+        rowCount = table.rowCount()
+        withRowLabels = rowCount > 1
+        rows = [(["Criterion"] if withRowLabels else []) + headers]
+        for row in range(rowCount):
+            cells = [table.item(row, col).text() if table.item(row, col) else '' for col in range(table.columnCount())]
+            if withRowLabels:
+                cells.insert(0, "All" if row == rowCount - 1 else f"Cr{row + 1}")
+            rows.append(cells)
+        return rows
+
     def exportStatistics(self):
-        projectName = QgsProject.instance().baseName() or "QGISRed"
+        projectName = self.currentProjectName()
         defaultName = f"{projectName}_Query_Statistics_{datetime.now().strftime('%Y%m%d_%H%M%S')}.csv"
         fname, _ = QFileDialog.getSaveFileName(
             self,
             self.tr("Save statistics file"),
             os.path.join(str(QgsProject.instance().homePath()), defaultName),
-            "CSV Files (*.csv)"
+            self.tr("CSV Files (*.csv)")
         )
         if not fname:
             return
         try:
-            projectName = QgsProject.instance().baseName()
-            activeCriteria = self.effectiveCriteria()
-            qrIdent = self.cbElementType.currentData(Qt.ItemDataRole.UserRole) or ""
-            elementType = self.englishElementTypeForIdentifier(qrIdent)
-            hasDynamicCriterion = any(
-                self.isResultProperty(c['property']) for c in activeCriteria
-            )
-            contextSuffix = self.getDynamicContextSuffix() if hasDynamicCriterion else ""
-
-            table = self.tableWidgetStatistics
-            englishHeaders = list(getattr(self, 'lastStatisticsEnglishHeaders', []) or [])
-            if len(englishHeaders) == table.columnCount() and englishHeaders:
-                headers = englishHeaders
-            else:
-                headers = [
-                    table.horizontalHeaderItem(col).text() if table.horizontalHeaderItem(col) else ''
-                    for col in range(table.columnCount())
-                ]
-
             with open(fname, 'w', newline='', encoding='utf-8') as f:
                 writer = csv.writer(f)
-                f.write(f"Project: {projectName}\n")
-                f.write("Scenario: base\n")
-                f.write(f"Element Type: {elementType}\n")
-                if len(activeCriteria) == 1:
-                    c = activeCriteria[0]
-                    op = c['operator']
-                    prop = self.prettyForCriterion(c['property'])
-                    cond = c['condition']
-                    val = c['value']
-                    if cond == 'All':
-                        criterionStr = f"{op} {prop}"
-                    else:
-                        unit = self.getUnitForProperty(c['property'])
-                        suffix = f" {unit}" if unit else ""
-                        criterionStr = f"{op} {prop} {cond} {val}{suffix}"
-                    f.write(f"Query: {criterionStr}{contextSuffix}\n")
-                else:
-                    f.write(f"Queries{contextSuffix}\n")
-                    for c in activeCriteria:
-                        op = c['operator']
-                        prop = self.prettyForCriterion(c['property'])
-                        cond = c['condition']
-                        val = c['value']
-                        if cond == 'All':
-                            f.write(f"{op} {prop}\n")
-                        else:
-                            unit = self.getUnitForProperty(c['property'])
-                            suffix = f" {unit}" if unit else ""
-                            f.write(f"{op} {prop} {cond} {val}{suffix}\n")
-                comment = self.multipleCriteriaComment.text().strip() if self.radioMultipleCriteria.isChecked() else ""
-                if comment:
-                    f.write(f"Comment: {comment}\n")
-                f.write("\n")
-                writer.writerow(headers)
-                for row in range(table.rowCount()):
-                    rowdata = [
-                        table.item(row, col).text() if table.item(row, col) else ''
-                        for col in range(table.columnCount())
-                    ]
-                    writer.writerow(rowdata)
-
+                for line in self.statisticsExportHeaderLines(projectName):
+                    writer.writerow([line])
+                writer.writerow([])
+                for row in self.statisticsExportTableRows():
+                    writer.writerow(row)
             QMessageBox.information(self, self.tr("Export successful"), self.tr("Saved to:\n") + fname)
         except Exception as e:
             QMessageBox.critical(self, self.tr("Export failed"), str(e))
