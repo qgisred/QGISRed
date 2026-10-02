@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 from unittest.mock import MagicMock, patch
 import pytest
-from QGISRed.ui.analysis.qgisred_results_rendering import _ResultsRenderingMixin
+from QGISRed.ui.analysis.qgisred_results_rendering import _ResultsRenderingMixin, _BASE_PIPE_WIDTH
 from QGISRed.ui.analysis.qgisred_results_appearance import _ResultsAppearanceMixin
 from QGISRed.tools.utils.qgisred_field_utils import QGISRedFieldUtils
 
@@ -635,6 +635,32 @@ class TestSetGraduatedPaletteVariableSwitch:
                 "Switching away from Status must reload a graduated style"
             )
 
+    @pytest.mark.parametrize("field, classified", [
+        ("Flow", "abs(Flow)"), ("Flow_Sig", "abs(Flow_Sig)"), ("Flow_Unsig", "Flow_Unsig"), ("Velocity", "Velocity"),
+    ])
+    def test_flows_are_classified_on_their_absolute_value(self, field, classified):
+        # The spec classifies flows by magnitude; the sign only drives the arrows.
+        module = "QGISRed.ui.analysis.qgisred_results_rendering."
+        with patch(module + "QgsGraduatedSymbolRenderer", _FakeGraduatedRenderer), \
+             patch(module + "QgsRuleBasedRenderer", _FakeRuleBasedRenderer), \
+             patch(module + "QgsProject"), \
+             patch(module + "QGISRedStylingUtils") as MockStylingUtils:
+            dock = MockDock()
+            dock.ProjectDirectory = "C:/proj"
+            dock.NetworkName = "Net"
+            dock.iface = MagicMock()
+            dock._statsMode = False
+            dock._currentStat = None
+            dock._flowDirectionField = MagicMock(return_value=None)
+            dock.applySymbolScaleFactors = MagicMock()
+            layer = MagicMock()
+            layer.geometryType.return_value = 1
+            layer.renderer.return_value = _FakeGraduatedRenderer("Other")
+
+            dock.setGraduatedPalette(layer, field, True, "Link", previously_displayed=None)
+
+        assert MockStylingUtils.return_value.setStyle.call_args.kwargs == {"field": classified}
+
 
 # Regression tests: every real caller of setLayerLabels must match its signature.
 # A previous change dropped the `time_field` argument from setLayerLabels but left
@@ -1074,7 +1100,7 @@ class TestApplySymbolScaleFactorsSymbolTypeMismatch:
         layer, MockLog = self._run(1, [_SymbolRule(marker), _SymbolRule(line)])
 
         # No crash, the well-formed rule is still resized, and the mismatch is logged.
-        assert line.width == pytest.approx(0.26 * 2.0)
+        assert line.width == pytest.approx(_BASE_PIPE_WIDTH * 2.0)
         assert MockLog.logMessage.call_count == 1
         layer.setRenderer.assert_called_once()
 

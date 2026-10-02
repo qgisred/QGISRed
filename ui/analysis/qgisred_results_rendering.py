@@ -32,14 +32,15 @@ from ...tools.utils.qgisred_project_utils import QGISRedProjectUtils
 # Appearance). Dark tones close to black so labels stay legible, but distinguishable
 # between element types: nodes in dark gray, links in dark navy blue.
 _DEFAULT_NODE_LABEL_COLOR = QColor(51, 51, 51)
+_DEFAULT_NODE_LABEL_HEX = "#333333"
 _DEFAULT_LINK_LABEL_COLOR = QColor(10, 20, 60)
 
 # Base sizes from the node and link result QML files. These are the values when factor = 1.0.
-_BASE_PIPE_WIDTH       = 0.26  # mm — SimpleLine width in LinkFlow.qml (and other link styles)
+_BASE_PIPE_WIDTH       = 0.7   # mm — SimpleLine width in LinkFlow.qml (and other link styles)
 _BASE_ARROW_SIZE       = 3.0   # mm — arrow sub-symbol in setArrowsVisibility
 _BASE_JUNCTION_SIZE    = 2.0   # mm — SimpleMarker for junctions in NodePressure.qml
-_BASE_SPECIAL_SIZE     = 7.0   # mm — SvgMarker for tanks/reservoirs in NodePressure.qml
-_BASE_VALVE_PUMP_SIZE  = 6.0   # mm — SvgMarker for pumps/valves in LinkFlow.qml (indices 1, 2)
+_BASE_SPECIAL_SIZE     = 8.0   # mm — SvgMarker for tanks/reservoirs in NodePressure.qml
+_BASE_VALVE_PUMP_SIZE  = 7.0   # mm — SvgMarker for pumps/valves in LinkFlow.qml (indices 1, 2)
 
 # Label separation (mm) from the geometry it belongs to. The link label is pushed out far
 # enough that its (optionally opaque) background never overlaps the symbol drawn on the
@@ -124,7 +125,7 @@ def _apply_absolute_node_size(expr, junction_size, special_size):
 # them so both halves stay in step: every pattern written by _build_node_size_expr or by
 # the re.sub calls in applySymbolScaleFactors has a reader here.
 _SIZE_BEFORE_ZERO = re.compile(r',\s*(\d+(?:\.\d+)?)\s*,\s*0\)')
-_SIZE_AT_END = re.compile(r',\s*(\d+(?:\.\d+)?)\s*\)\s*$')
+_SIZE_AT_END = re.compile(r',\s*(\d+(?:\.\d+)?)\s*(\)+)\s*$')
 
 
 def _read_size_before_zero(expr):
@@ -165,7 +166,7 @@ def apply_junction_size(expr, junction_size):
     has_tank = "'TANK'" in s
     has_res = "'RESERVOIR'" in s
     if has_tank and has_res:
-        return _SIZE_AT_END.sub(f", {junction_size})", s)
+        return _SIZE_AT_END.sub(lambda match: f", {junction_size}{match.group(2)}", s)
     if has_tank or has_res:
         return s
     with suppress(ValueError):
@@ -337,6 +338,10 @@ class _ResultsRenderingMixin:
         _FALLBACK_BASE_SIZES. Must run on a renderer straight from the style file — one
         restored from the render cache already carries the factors baked in, and taking
         that as the base would multiply them again on every pass.
+
+        "junction" is the smallest junction size among the classes; when a class draws its
+        junctions larger (the white "negative pressure" class), "junctionRatios" lists each
+        class's size relative to it, in class order, so the factors keep that difference.
         """
         sizes = {}
         symbols = None
@@ -362,18 +367,35 @@ class _ResultsRenderingMixin:
                     sizes["arrow"] = size
                     break
         elif layer.geometryType() == 0:
-            for index in range(symbol.symbolLayerCount()):
-                with suppress(Exception):
-                    symbolLayer = symbol.symbolLayer(index)
-                    prop = symbolLayer.dataDefinedProperties().property(SL_PROP_SIZE)
-                    if not prop.isActive():
-                        continue
-                    junction, special = read_node_base_sizes(prop.expressionString())
-                    if junction is not None:
-                        sizes["junction"] = junction
-                    if special is not None:
-                        sizes["special"] = special
+            junctions = []
+            for classSymbol in symbols:
+                junction, special = self._readNodeSymbolSizes(classSymbol)
+                junctions.append(junction)
+                if special is not None:
+                    sizes["special"] = special
+            known = [junction for junction in junctions if junction is not None]
+            if known:
+                sizes["junction"] = min(known)
+                ratios = [round(junction / sizes["junction"], 6) if junction is not None else 1.0
+                          for junction in junctions]
+                if any(ratio != 1.0 for ratio in ratios):
+                    sizes["junctionRatios"] = ratios
         return sizes
+
+    @staticmethod
+    def _readNodeSymbolSizes(symbol):
+        """(junction, special) sizes stated by the data-defined expressions of one node symbol."""
+        junction = special = None
+        for index in range(symbol.symbolLayerCount()):
+            with suppress(Exception):
+                symbolLayer = symbol.symbolLayer(index)
+                prop = symbolLayer.dataDefinedProperties().property(SL_PROP_SIZE)
+                if not prop.isActive():
+                    continue
+                layerJunction, layerSpecial = read_node_base_sizes(prop.expressionString())
+                junction = layerJunction if layerJunction is not None else junction
+                special = layerSpecial if layerSpecial is not None else special
+        return junction, special
 
     # Which Appearance factor scales each size, for dividing it back out.
     _SIZE_FACTORS = {
@@ -398,9 +420,10 @@ class _ResultsRenderingMixin:
         """
         sizes = self.readStyleBaseSizes(layer, renderer)
         if scaled:
-            sizes = {name: value / factor for name, value, factor in (
-                (name, value, getattr(self, self._SIZE_FACTORS[name], 1.0) or 1.0)
-                for name, value in sizes.items())}
+            # Ratios between classes are factor-free and stay as read.
+            sizes = {name: value / (getattr(self, self._SIZE_FACTORS[name], 1.0) or 1.0)
+                     if name in self._SIZE_FACTORS else value
+                     for name, value in sizes.items()}
         if sizes:
             self._styleBaseSizes[self._getRenderStorageKey(self.getLayerPath(layer), variable)] = sizes
 
@@ -873,11 +896,22 @@ class _ResultsRenderingMixin:
             return None
         return self._buildRangeColorExpressionFromGraduated(renderer, fieldName)
 
+    @staticmethod
+    def _legibleLabelColor(hex_color):
+        """A class colour as label text colour, or the default dark grey when too light to read."""
+        try:
+            red, green, blue = (int(hex_color[index:index + 2], 16) for index in (1, 3, 5))
+        except (TypeError, ValueError):
+            return hex_color
+        if (0.299 * red + 0.587 * green + 0.114 * blue) / 255.0 > 0.85:
+            return _DEFAULT_NODE_LABEL_HEX
+        return hex_color
+
     def _buildRangeColorExpressionFromGraduated(self, renderer, fieldName):
         actual_field = f'abs("{fieldName}")' if fieldName in ("Flow", "Flow_Sig") else f'"{fieldName}"'
         parts = []
         for r in renderer.ranges():
-            hex_color = r.symbol().color().name()
+            hex_color = self._legibleLabelColor(r.symbol().color().name())
             lo, hi = r.lowerValue(), r.upperValue()
             parts.append(
                 f'WHEN {actual_field} >= {lo} AND {actual_field} <= {hi} THEN \'{hex_color}\''
@@ -896,7 +930,7 @@ class _ResultsRenderingMixin:
             sym = rule.symbol()
             if sym is None:
                 continue
-            hex_color = sym.color().name()
+            hex_color = self._legibleLabelColor(sym.color().name())
             # applyNullStyle uses ">=" for i==0 and ">" for all subsequent ranges.
             # Match both forms to extract lo/hi bounds.
             expr = rule.filterExpression()
@@ -962,9 +996,10 @@ class _ResultsRenderingMixin:
 
         sizing_method = "setWidth" if is_line else "setSize"
 
+        junction_ratios = base.get("junctionRatios", [])
         new_renderer = renderer.clone()
         mismatched = 0
-        for rule in new_renderer.rootRule().children():
+        for rule_index, rule in enumerate(new_renderer.rootRule().children()):
             sym = rule.symbol()
             if sym is None:
                 continue
@@ -1045,6 +1080,10 @@ class _ResultsRenderingMixin:
                 # sym.setSize() has no effect because those expressions override it.
                 hide_junction_border = getattr(self, '_nodeBorder', False)
                 type_field = resultTypeField(layer, default="Type")
+                # A class may draw its junctions larger than the rest (the "negative pressure"
+                # class); the grey no-value rule comes last and is beyond the recorded ratios.
+                rule_ratio = junction_ratios[rule_index] if rule_index < len(junction_ratios) else 1.0
+                rule_junction = round(target_junction * rule_ratio, 6)
                 for sl_idx in range(sym.symbolLayerCount()):
                     with suppress(Exception):
                         sl = sym.symbolLayer(sl_idx)
@@ -1058,10 +1097,10 @@ class _ResultsRenderingMixin:
                                 new_expr = _apply_proportional_node_size(
                                     old_expr, field,
                                     prop_field_min, prop_field_max,
-                                    target_junction, target_special, type_field)
+                                    rule_junction, target_special, type_field)
                             else:
                                 new_expr = _build_node_size_expr(
-                                    old_expr, str(target_junction), str(target_special), type_field)
+                                    old_expr, str(rule_junction), str(target_special), type_field)
                             if new_expr != old_expr:
                                 ddp.setProperty(SL_PROP_SIZE, QgsProperty.fromExpression(new_expr))
                                 sl.setDataDefinedProperties(ddp)
@@ -1141,7 +1180,7 @@ class _ResultsRenderingMixin:
         renderer = layer.renderer()
         db_field_name = field  # column name as stored in the DBF
         qmlName = resultStyleName(nameLayer, db_field_name)
-        if field == "Flow":
+        if field in ("Flow", "Flow_Sig"):
             field = "abs(" + field + ")"
 
         is_status = (db_field_name == "Status")

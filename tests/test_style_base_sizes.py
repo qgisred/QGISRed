@@ -26,6 +26,11 @@ def siProjectWithoutQuality():
 
 
 LAYER_PATH = "C:/proj/Results/Net_Base_Link.shp"
+SHIPPED_JUNCTION = ("if(@id is NULL, NULL, if(coalesce(attribute($currentfeature,'NodeType'),"
+                    "attribute($currentfeature,'Type')) ='RESERVOIR' or coalesce(attribute($currentfeature,'NodeType'),"
+                    "attribute($currentfeature,'Type'))='TANK', 0,2))")
+SHIPPED_TANK = ("if(@id is NULL, NULL, if(coalesce(attribute($currentfeature,'NodeType'),"
+                "attribute($currentfeature,'Type')) ='TANK', 8,0))")
 LINE, POINT = 1, 0
 
 
@@ -93,6 +98,11 @@ class TestReadNodeBaseSizes:
     def test_the_combined_form_carries_the_junction_size_last(self):
         assert read_node_base_sizes('if("Type" =\'RESERVOIR\' or "Type"=\'TANK\', 0, 2.5)') == (2.5, None)
 
+    def test_the_shipped_expressions_are_read_too(self):
+        # The styles wrap the size in if(@id is NULL, NULL, ...), so the junction size ends in "0,2))".
+        assert read_node_base_sizes(SHIPPED_JUNCTION) == (2.0, None)
+        assert read_node_base_sizes(SHIPPED_TANK) == (None, 8.0)
+
     def test_a_bare_number_is_the_junction_size(self):
         assert read_node_base_sizes("3.0") == (3.0, None)
 
@@ -127,6 +137,35 @@ class TestReadStyleBaseSizes:
         sizes = dock.readStyleBaseSizes(_layer(POINT), renderer)
 
         assert sizes == {"junction": 2.5, "special": 8.0}
+
+    def test_a_class_with_larger_junctions_is_recorded_as_a_ratio_to_the_smallest(self):
+        # The negative-pressure class of the Pressure styles draws 2.5 mm junctions.
+        dock = _BaseSizesDock()
+        renderer = MagicMock()
+        renderer.symbols.return_value = [
+            _renderer([_nodeSymbolLayer(SHIPPED_JUNCTION.replace("0,2))", "0,2.5))"))]).symbols.return_value[0],
+            _renderer([_nodeSymbolLayer(SHIPPED_JUNCTION), _nodeSymbolLayer(SHIPPED_TANK)]).symbols.return_value[0],
+        ]
+
+        sizes = dock.readStyleBaseSizes(_layer(POINT), renderer)
+
+        assert sizes == {"junction": 2.0, "special": 8.0, "junctionRatios": [1.25, 1.0]}
+
+    def test_ratios_survive_the_division_by_the_factor(self):
+        dock = _BaseSizesDock()
+        dock._symbolFactor = 2.0
+        renderer = MagicMock()
+        renderer.symbols.return_value = [
+            _renderer([_nodeSymbolLayer(SHIPPED_JUNCTION.replace("0,2))", "0,5))"))]).symbols.return_value[0],
+            _renderer([_nodeSymbolLayer(SHIPPED_JUNCTION.replace("0,2))", "0,4))"))]).symbols.return_value[0],
+        ]
+        dock._renderKeyInUse[LAYER_PATH] = dock._getRenderStorageKey(LAYER_PATH, "Pressure")
+
+        dock.rememberStyleBaseSizes(_layer(POINT), "Pressure", renderer, scaled=True)
+
+        base = dock.baseSizesFor(_layer(POINT))
+        assert base["junction"] == 2.0
+        assert base["junctionRatios"] == [1.25, 1.0]
 
     def test_a_renderer_with_no_symbols_states_nothing(self):
         dock = _BaseSizesDock()

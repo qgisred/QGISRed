@@ -16,6 +16,9 @@ from QGISRed.compat import WKB_LINE_GEOMETRY
 
 JUNCTION = "if(\"Type\" ='RESERVOIR' or \"Type\"='TANK', 0, 2)"
 TANK = "if(\"Type\" ='TANK', 7, 0)"
+SHIPPED_JUNCTION = ("if(@id is NULL, NULL, if(coalesce(attribute($currentfeature,'NodeType'),"
+                    "attribute($currentfeature,'Type')) ='RESERVOIR' or coalesce(attribute($currentfeature,'NodeType'),"
+                    "attribute($currentfeature,'Type'))='TANK', 0,2))")
 RESERVOIR = "if(\"Type\" ='RESERVOIR', 7, 0)"
 
 
@@ -31,6 +34,11 @@ class TestApplyJunctionSize:
 
     def test_a_bare_size_is_replaced(self):
         assert apply_junction_size("2.0", 3) == "3"
+
+    def test_the_shipped_expression_keeps_its_wrapper(self):
+        # if(@id is NULL, NULL, ...) closes with a second parenthesis that must survive.
+        assert apply_junction_size(SHIPPED_JUNCTION, 3) == SHIPPED_JUNCTION[:-len("2))")] + " 3))"
+        assert read_node_base_sizes(apply_junction_size(SHIPPED_JUNCTION, 3)) == (3.0, None)
 
     @pytest.mark.parametrize("expression", [
         'scale_linear("Pressure", 0, 50, 2, 4)',   # proportional mode
