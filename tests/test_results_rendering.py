@@ -4,6 +4,11 @@ import pytest
 from QGISRed.ui.analysis.qgisred_results_rendering import _ResultsRenderingMixin, _BASE_PIPE_WIDTH
 from QGISRed.ui.analysis.qgisred_results_appearance import _ResultsAppearanceMixin
 from QGISRed.tools.utils.qgisred_field_utils import QGISRedFieldUtils
+from QGISRed.tests.conftest import REAL_QGIS
+
+
+def _legendKeys(renderer):
+    return sorted(item.ruleKey() for item in renderer.legendSymbolItems())
 
 
 @pytest.fixture(autouse=True)
@@ -667,6 +672,41 @@ class TestSetGraduatedPaletteVariableSwitch:
 
         assert events == ["block", "setRenderer", "setRenderer", "release", "rendererChanged", "legendChanged",
                           "block", "setRenderer", "release", "rendererChanged", "legendChanged"]
+
+    @pytest.mark.skipif(not REAL_QGIS, reason="needs a real layer: its signals, the style loader and the rule keys")
+    def test_a_real_layer_announces_only_renderers_whose_classes_can_be_counted(self):
+        # The panel counts the classes of the renderer it is told about. Every announcement
+        # must therefore carry the legend keys of the renderer the layer ends up with.
+        from qgis.core import QgsVectorLayer, QgsFeature, QgsGeometry, QgsPointXY
+
+        layer = QgsVectorLayer("LineString?crs=EPSG:3857&field=Id:string&field=Type:string&field=Flow:double",
+                               "links", "memory")
+        features = []
+        for index, flow in enumerate([-5.0, 12.0, 40.0, 95.0]):
+            feature = QgsFeature(layer.fields())
+            feature.setAttributes(["P%d" % index, "PIPE", flow])
+            feature.setGeometry(QgsGeometry.fromPolylineXY([QgsPointXY(index, 0), QgsPointXY(index + 1, 0)]))
+            features.append(feature)
+        layer.dataProvider().addFeatures(features)
+        layer.updateExtents()
+        announcedKeys = []
+        layer.rendererChanged.connect(lambda: announcedKeys.append(_legendKeys(layer.renderer())))
+        layer.legendChanged.connect(lambda: announcedKeys.append(_legendKeys(layer.renderer())))
+
+        dock = MockDock()
+        dock.ProjectDirectory = "C:/no-such-project"
+        dock.NetworkName = "Net"
+        dock.iface = None
+        dock._statsMode = False
+        dock._currentStat = None
+        dock.displayingLinkField = "Flow"
+        dock.cbFlowDirections = MagicMock()
+        dock._flowDirectionField = MagicMock(return_value=None)
+        dock.setGraduatedPalette(layer, "Flow", True, "Link", previously_displayed=None)
+
+        finalKeys = _legendKeys(layer.renderer())
+        assert len(finalKeys) >= 3
+        assert announcedKeys and all(keys == finalKeys for keys in announcedKeys)
 
     @pytest.mark.parametrize("field, classified", [
         ("Flow", "abs(Flow)"), ("Flow_Sig", "abs(Flow_Sig)"), ("Flow_Unsig", "Flow_Unsig"), ("Velocity", "Velocity"),
