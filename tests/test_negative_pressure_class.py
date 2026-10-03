@@ -139,6 +139,19 @@ class TestNegativePressureClassSize:
         assert "#ffffff" not in expression
         assert "'#333333'" in expression
 
+    def test_by_range_label_colours_cover_the_open_ended_rules_of_newer_qgis(self, pressureLayer):
+        layer, utils = pressureLayer
+        dock = _dockOnFreshStyle(layer, utils)
+        rules = layer.renderer().rootRule().children()
+        rules[0].setFilterExpression('"Pressure" <= -0.0050000000000000')
+        rules[5].setFilterExpression('"Pressure" > 49.9949999999999974')
+
+        expression = dock._buildRangeColorExpression(layer, "Pressure")
+
+        assert expression.count("WHEN") == 6
+        assert "\"Pressure\" <= -0.005 THEN '#333333'" in expression
+        assert "\"Pressure\" >= 49.995 AND" in expression
+
 
 class TestLegibleLabelColour:
     def test_a_white_class_colour_falls_back_to_the_default_text_colour(self):

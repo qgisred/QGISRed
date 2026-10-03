@@ -446,8 +446,10 @@ class QGISRedStylingUtils:
         renderer.setSourceColorRamp(self.cloneRendererRamp(layer))
         renderer.setClassificationMethod(classificationMethod)
         renderer.updateClasses(layer, classes)
-        if not renderer.ranges():
+        if len(renderer.ranges()) < 2:
             # Every value is the same: one class covering it, as the thematic maps do.
+            # Some QGIS versions return no class here and others a made-up one.
+            renderer.deleteAllClasses()
             renderer.addClassLowerUpper(-OPEN_RANGE_BOUND, OPEN_RANGE_BOUND)
             renderer.updateRangeSymbol(0, templateSymbol.clone())
             renderer.updateRangeLabel(0, self.singleValueLabel(layer, field))

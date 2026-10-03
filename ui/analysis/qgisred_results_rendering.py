@@ -23,6 +23,7 @@ from ...compat import (
     QGIS_WARNING,
 )
 from ...tools.utils.qgisred_styling_utils import QGISRedStylingUtils, _NULL_RULE_LABEL, _NullHiddenLegend
+from ...tools.utils.qgisred_legend_rule_utils import parseRangeFilter
 from ...tools.utils.qgisred_field_utils import QGISRedFieldUtils
 from ...tools.utils.qgisred_result_fields import resultIdField, resultTypeField
 from .qgisred_results_data import resultStyleName, resultLayerDisplayName, qualityStyleKind
@@ -931,12 +932,10 @@ class _ResultsRenderingMixin:
             if sym is None:
                 continue
             hex_color = self._legibleLabelColor(sym.color().name())
-            # applyNullStyle uses ">=" for i==0 and ">" for all subsequent ranges.
-            # Match both forms to extract lo/hi bounds.
-            expr = rule.filterExpression()
-            m = re.search(r'>=? *([\d.eE+\-]+).*?<= *([\d.eE+\-]+)', expr or "")
-            if m:
-                lo, hi = m.group(1), m.group(2)
+            # QGIS 3.44 and later leave the first and last rules open-ended, with one bound only.
+            parsed = parseRangeFilter(rule.filterExpression())
+            if parsed:
+                _column, lo, hi = parsed
                 parts.append(
                     f'WHEN {actual_field} >= {lo} AND {actual_field} <= {hi} THEN \'{hex_color}\''
                 )
