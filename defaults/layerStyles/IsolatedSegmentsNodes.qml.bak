@@ -144,7 +144,7 @@
       </symbol>
     </profileMarkerSymbol>
   </elevation>
-  <renderer-v2 forceraster="0" symbollevels="0" enableorderby="0" attr="with_variable('nodeType', coalesce(attribute($currentfeature,'NodeType'),attribute($currentfeature,'ElemType')), with_variable('status', attribute($currentfeature,'Status'), CASE WHEN @nodeType = 'INCIDENCE' THEN 'INCIDENCE' WHEN @nodeType IN ('TANK', 'RESERVOIR') THEN 'TO CLOSE' WHEN @nodeType = 'JUNCTION' THEN if(@status = 'TO RECOVER', 'TO RECOVER', 'ISOLATED') WHEN @status IN ('NOW CLOSED', 'TO CLOSE', 'TO OPEN', 'ISOLATED', 'TO RECOVER') THEN @status ELSE 'ISOLATED' END))" referencescale="-1" type="categorizedSymbol">
+  <renderer-v2 forceraster="0" symbollevels="0" enableorderby="0" attr="with_variable('nodeType', coalesce(attribute($currentfeature,'NodeType'),attribute($currentfeature,'ElemType')), with_variable('status', attribute($currentfeature,'Status'), CASE WHEN @nodeType = 'INCIDENCE' THEN 'INCIDENCE' WHEN @nodeType = 'JUNCTION' THEN if(@status = 'TO RECOVER', 'TO RECOVER', 'ISOLATED') WHEN @status IN ('NOW CLOSED', 'TO CLOSE', 'TO OPEN', 'ISOLATED', 'TO RECOVER') THEN @status ELSE 'ISOLATED' END))" referencescale="-1" type="categorizedSymbol">
     <categories>
       <category label="Now closed" symbol="0" value="NOW CLOSED" render="true" uuid="{4e702c1f-5166-4973-aaf0-9c9c7fedaae9}" type="string"/>
       <category label="To close" symbol="1" value="TO CLOSE" render="true" uuid="{c5bf726f-1dda-4880-b90f-c1e2e582b23b}" type="string"/>
@@ -187,7 +187,153 @@
           <data_defined_properties>
             <Option type="Map">
               <Option name="name" value="" type="QString"/>
-              <Option name="properties"/>
+              <Option name="properties" type="Map">
+                <Option name="size" type="Map">
+                  <Option name="active" value="true" type="bool"/>
+                  <Option name="expression" value="if(@id is NULL, NULL, if(coalesce(attribute($currentfeature,'NodeType'),attribute($currentfeature,'ElemType'))='ISOLATIONVALVE', 2, 0))" type="QString"/>
+                  <Option name="type" value="3" type="int"/>
+                </Option>
+              </Option>
+              <Option name="type" value="collection" type="QString"/>
+            </Option>
+          </data_defined_properties>
+        </layer>
+        <layer class="SvgMarker" locked="0" id="{87f4b304-5b19-458c-856d-6e0cb7d91727}" enabled="1" pass="0">
+          <Option type="Map">
+            <Option name="angle" value="0" type="QString"/>
+            <Option name="color" value="255,15,19,255,rgb:1,0.05882352941176471,0.07450980392156863,1" type="QString"/>
+            <Option name="fixedAspectRatio" value="0" type="QString"/>
+            <Option name="horizontal_anchor_point" value="1" type="QString"/>
+            <Option name="name" value="base64:PD94bWwgdmVyc2lvbj0iMS4wIiBlbmNvZGluZz0iVVRGLTgiIHN0YW5kYWxvbmU9Im5vIj8+CjxzdmcKICAgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIgogICBpZD0icWdpc3JlZF93YXRlciIKICAgaGVpZ2h0PSIxNTRtbSIKICAgd2lkdGg9IjE1NG1tIgogICB2ZXJzaW9uPSIxLjAiPgogIDxwYXRoCiAgICAgaWQ9InBhdGg1IgogICAgIGQ9IiAgTSA3OC4zOTk0MTksMTc0LjQ3ODcxICAgTCA3OC4zOTk0MTksMTgxLjU5ODY1ICAgTCA3OC4zOTk0MTksNDQ2LjM5NjY5ICAgTCA1MDMuNDM2MjcsNDQ2LjM5NjY5ICAgTCA1MDMuNDM2MjcsMTc0LjQ3ODcxICAgeiAiCiAgICAgc3Ryb2tlLXdpZHRoPSJwYXJhbShvdXRsaW5lLXdpZHRoKSAwIgogICAgIHN0cm9rZS1vcGFjaXR5PSJwYXJhbShvdXRsaW5lLW9wYWNpdHkpIgogICAgIHN0cm9rZT0icGFyYW0ob3V0bGluZSkgI0ZGRiIKICAgICBmaWxsLW9wYWNpdHk9InBhcmFtKGZpbGwtb3BhY2l0eSkiCiAgICAgZmlsbD0icGFyYW0oZmlsbCkgIzE0OTZiZSIgLz4KPC9zdmc+Cg==" type="QString"/>
+            <Option name="offset" value="0,0" type="QString"/>
+            <Option name="offset_map_unit_scale" value="3x:0,0,0,0,0,0" type="QString"/>
+            <Option name="offset_unit" value="MM" type="QString"/>
+            <Option name="outline_color" value="255,255,255,255,rgb:1,1,1,1" type="QString"/>
+            <Option name="outline_width" value="0" type="QString"/>
+            <Option name="outline_width_map_unit_scale" value="3x:0,0,0,0,0,0" type="QString"/>
+            <Option name="outline_width_unit" value="MM" type="QString"/>
+            <Option name="parameters"/>
+            <Option name="scale_method" value="diameter" type="QString"/>
+            <Option name="size" value="0" type="QString"/>
+            <Option name="size_map_unit_scale" value="3x:0,0,0,0,0,0" type="QString"/>
+            <Option name="size_unit" value="MM" type="QString"/>
+            <Option name="vertical_anchor_point" value="1" type="QString"/>
+          </Option>
+          <data_defined_properties>
+            <Option type="Map">
+              <Option name="name" value="" type="QString"/>
+              <Option name="properties" type="Map">
+                <Option name="size" type="Map">
+                  <Option name="active" value="true" type="bool"/>
+                  <Option name="expression" value="if(@id is NULL, NULL, if(coalesce(attribute($currentfeature,'NodeType'),attribute($currentfeature,'ElemType'))='TANK', 7, 0))" type="QString"/>
+                  <Option name="type" value="3" type="int"/>
+                </Option>
+              </Option>
+              <Option name="type" value="collection" type="QString"/>
+            </Option>
+          </data_defined_properties>
+        </layer>
+        <layer class="SvgMarker" locked="0" id="{ba03b556-294d-48f8-a1a3-b926a8b65b9b}" enabled="1" pass="0">
+          <Option type="Map">
+            <Option name="angle" value="0" type="QString"/>
+            <Option name="color" value="159,9,12,255,rgb:0.6249942778667887,0.03675898374914168,0.04657053482871748,1" type="QString"/>
+            <Option name="fixedAspectRatio" value="0" type="QString"/>
+            <Option name="horizontal_anchor_point" value="1" type="QString"/>
+            <Option name="name" value="base64:PD94bWwgdmVyc2lvbj0iMS4wIiBlbmNvZGluZz0iVVRGLTgiIHN0YW5kYWxvbmU9Im5vIj8+CjxzdmcKICAgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIgogICBpZD0icWdpc3JlZF9mcmFtZSIKICAgaGVpZ2h0PSIxNTRtbSIKICAgd2lkdGg9IjE1NG1tIgogICB2ZXJzaW9uPSIxLjAiPgogIDxwYXRoCiAgICAgaWQ9InBhdGg3IgogICAgIGQ9IiAgTSA2Mi43MTk1MzUsODMuOTE5Mzc4ICAgQyA0OC45NTk2MzcsODQuMTU5Mzc3IDM3LjkxOTcxOSw5NS41MTkyOTIgMzguMDc5NzE4LDEwOS4yNzkxOSAgIEwgMzguMDc5NzE4LDQ2NC45NTY1NiAgIEMgMzYuNjM5NzI5LDQ3My4wMzY1IDM5LjE5OTcxLDQ4MS40MzY0MyA0NS4wMzk2NjYsNDg3LjI3NjM5ICAgQyA1MC44Nzk2MjMsNDkzLjI3NjM1IDU5LjI3OTU2MSw0OTUuOTk2MzMgNjcuNTk5NDk5LDQ5NC41NTYzNCAgIEwgNTE3LjU5NjE3LDQ5NS42NzYzMyAgIEMgNTIzLjUxNjEyLDQ5Ni41NTYzMiA1MjkuNTk2MDgsNDk1LjI3NjMzIDUzNC42MzYwNCw0OTEuOTk2MzYgICBDIDU0My40MzU5Nyw0ODYuNjM2NCA1NDguMDc1OTQsNDc2LjM5NjQ3IDU0Ni4yMzU5NSw0NjYuMjM2NTUgICBMIDU0Ni4yMzU5NSwxMTAuNDc5MTggICBDIDU0Ni4zOTU5NSw5Ni4zOTkyODYgNTM0Ljk1NjA0LDg0Ljg3OTM3MSA1MjAuNzk2MTQsODUuMTE5MzY5ICAgQyA1MDcuMDM2MjQsODUuMzU5MzY4IDQ5NS45OTYzMyw5Ni42MzkyODQgNDk2LjIzNjMyLDExMC40NzkxOCAgIEwgNDk2LjIzNjMyLDE2NC4wNzg3OCAgIEwgODguMDc5MzQ4LDE2My4wMzg3OSAgIEwgODguMDc5MzQ4LDEwOS4yNzkxOSAgIEMgODguMzE5MzQ2LDk1LjE5OTI5NSA3Ni43OTk0MzEsODMuNzU5MzggNjIuNzE5NTM1LDgzLjkxOTM3OCAgIHogIE0gODguMDc5MzQ4LDE4OC4zMTg2MSAgIEwgNDk2LjIzNjMyLDE4OS4zNTg2ICAgTCA0OTYuMjM2MzIsNDQ1LjU5NjcgICBMIDg4LjA3OTM0OCw0NDQuNTU2NzEgICB6ICBNIDM0OC43MTc0MiwyMTMuOTE4NDIgICBMIDIzMy4zNTgyNywyMTQuMjM4NDEgICBDIDIyNi4zMTgzMiwyMTQuMTU4NDEgMjIwLjYzODM3LDIxOS44MzgzNyAyMjAuNjM4MzcsMjI2Ljg3ODMyICAgQyAyMjAuNjM4MzcsMjMzLjkxODI3IDIyNi4zOTgzMiwyMzkuNTk4MjMgMjMzLjQzODI3LDIzOS41MTgyMyAgIEwgMzQ4Ljc5NzQyLDIzOS4xOTgyMyAgIEMgMzU1LjgzNzM2LDIzOS4yNzgyMyAzNjEuNTE3MzIsMjMzLjU5ODI3IDM2MS41MTczMiwyMjYuNTU4MzIgICBDIDM2MS41MTczMiwyMTkuNTE4MzcgMzU1Ljc1NzM2LDIxMy44Mzg0MiAzNDguNzE3NDIsMjEzLjkxODQyICAgeiAiCiAgICAgc3Ryb2tlLXdpZHRoPSJwYXJhbShvdXRsaW5lLXdpZHRoKSAwIgogICAgIHN0cm9rZS1vcGFjaXR5PSJwYXJhbShvdXRsaW5lLW9wYWNpdHkpIgogICAgIHN0cm9rZT0icGFyYW0ob3V0bGluZSkgI0ZGRiIKICAgICBmaWxsLW9wYWNpdHk9InBhcmFtKGZpbGwtb3BhY2l0eSkiCiAgICAgZmlsbD0icGFyYW0oZmlsbCkgIzBjNWU3NyIgLz4KPC9zdmc+Cg==" type="QString"/>
+            <Option name="offset" value="0,0" type="QString"/>
+            <Option name="offset_map_unit_scale" value="3x:0,0,0,0,0,0" type="QString"/>
+            <Option name="offset_unit" value="MM" type="QString"/>
+            <Option name="outline_color" value="255,255,255,255,rgb:1,1,1,1" type="QString"/>
+            <Option name="outline_width" value="0" type="QString"/>
+            <Option name="outline_width_map_unit_scale" value="3x:0,0,0,0,0,0" type="QString"/>
+            <Option name="outline_width_unit" value="MM" type="QString"/>
+            <Option name="parameters"/>
+            <Option name="scale_method" value="diameter" type="QString"/>
+            <Option name="size" value="0" type="QString"/>
+            <Option name="size_map_unit_scale" value="3x:0,0,0,0,0,0" type="QString"/>
+            <Option name="size_unit" value="MM" type="QString"/>
+            <Option name="vertical_anchor_point" value="1" type="QString"/>
+          </Option>
+          <data_defined_properties>
+            <Option type="Map">
+              <Option name="name" value="" type="QString"/>
+              <Option name="properties" type="Map">
+                <Option name="size" type="Map">
+                  <Option name="active" value="true" type="bool"/>
+                  <Option name="expression" value="if(@id is NULL, NULL, if(coalesce(attribute($currentfeature,'NodeType'),attribute($currentfeature,'ElemType'))='TANK', 7, 0))" type="QString"/>
+                  <Option name="type" value="3" type="int"/>
+                </Option>
+              </Option>
+              <Option name="type" value="collection" type="QString"/>
+            </Option>
+          </data_defined_properties>
+        </layer>
+        <layer class="SvgMarker" locked="0" id="{394a44fe-7be0-4f18-a51a-fc507fd999da}" enabled="1" pass="0">
+          <Option type="Map">
+            <Option name="angle" value="0" type="QString"/>
+            <Option name="color" value="255,15,19,255,rgb:1,0.05882352941176471,0.07450980392156863,1" type="QString"/>
+            <Option name="fixedAspectRatio" value="0" type="QString"/>
+            <Option name="horizontal_anchor_point" value="1" type="QString"/>
+            <Option name="name" value="base64:PD94bWwgdmVyc2lvbj0iMS4wIiBlbmNvZGluZz0iVVRGLTgiIHN0YW5kYWxvbmU9Im5vIj8+CjxzdmcKICAgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIgogICBpZD0icWdpc3JlZF93YXRlciIKICAgd2lkdGg9IjE1NG1tIgogICBoZWlnaHQ9IjE1NG1tIgogICB2ZXJzaW9uPSIxLjAiPgogIDxwYXRoCiAgICAgc3Ryb2tlLXdpZHRoPSJwYXJhbShvdXRsaW5lLXdpZHRoKSAwIgogICAgIHN0cm9rZS1vcGFjaXR5PSJwYXJhbShvdXRsaW5lLW9wYWNpdHkpIgogICAgIHN0cm9rZT0icGFyYW0ob3V0bGluZSkgI0ZGRiIKICAgICBmaWxsLW9wYWNpdHk9InBhcmFtKGZpbGwtb3BhY2l0eSkiCiAgICAgZmlsbD0icGFyYW0oZmlsbCkgIzE0OTZiZSIKICAgICBkPSJNIDUxNy44MzYxNiwxOTguOTg4NzUgNDM2LjU1Njc3LDE5Ny40Njg3NiAyOTQuODc3ODIsMjAyLjc0ODcyIDc2LjU1OTQzMywxOTguOTg4NzUgMTgwLjU1ODY2LDMwMy4yMjc5OCAyODkuOTE3ODUsNDA5Ljg2NzE5IDM5MS45OTcxLDMwOC41ODc5NCBaIgogICAgIGlkPSJwYXRoNSIgLz4KPC9zdmc+Cg==" type="QString"/>
+            <Option name="offset" value="0,0" type="QString"/>
+            <Option name="offset_map_unit_scale" value="3x:0,0,0,0,0,0" type="QString"/>
+            <Option name="offset_unit" value="MM" type="QString"/>
+            <Option name="outline_color" value="255,255,255,255,rgb:1,1,1,1" type="QString"/>
+            <Option name="outline_width" value="0" type="QString"/>
+            <Option name="outline_width_map_unit_scale" value="3x:0,0,0,0,0,0" type="QString"/>
+            <Option name="outline_width_unit" value="MM" type="QString"/>
+            <Option name="parameters"/>
+            <Option name="scale_method" value="diameter" type="QString"/>
+            <Option name="size" value="0" type="QString"/>
+            <Option name="size_map_unit_scale" value="3x:0,0,0,0,0,0" type="QString"/>
+            <Option name="size_unit" value="MM" type="QString"/>
+            <Option name="vertical_anchor_point" value="1" type="QString"/>
+          </Option>
+          <data_defined_properties>
+            <Option type="Map">
+              <Option name="name" value="" type="QString"/>
+              <Option name="properties" type="Map">
+                <Option name="size" type="Map">
+                  <Option name="active" value="true" type="bool"/>
+                  <Option name="expression" value="if(@id is NULL, NULL, if(coalesce(attribute($currentfeature,'NodeType'),attribute($currentfeature,'ElemType'))='RESERVOIR', 7, 0))" type="QString"/>
+                  <Option name="type" value="3" type="int"/>
+                </Option>
+              </Option>
+              <Option name="type" value="collection" type="QString"/>
+            </Option>
+          </data_defined_properties>
+        </layer>
+        <layer class="SvgMarker" locked="0" id="{df8e8368-5a8f-4916-9e61-8acf2e9bebb1}" enabled="1" pass="0">
+          <Option type="Map">
+            <Option name="angle" value="0" type="QString"/>
+            <Option name="color" value="159,9,12,255,rgb:0.6249942778667887,0.03675898374914168,0.04657053482871748,1" type="QString"/>
+            <Option name="fixedAspectRatio" value="0" type="QString"/>
+            <Option name="horizontal_anchor_point" value="1" type="QString"/>
+            <Option name="name" value="base64:PD94bWwgdmVyc2lvbj0iMS4wIiBlbmNvZGluZz0iVVRGLTgiIHN0YW5kYWxvbmU9Im5vIj8+CjxzdmcKICAgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIgogICBpZD0icWdpc3JlZF9mcmFtZSIKICAgd2lkdGg9IjE1NG1tIgogICBoZWlnaHQ9IjE1NG1tIgogICB2ZXJzaW9uPSIxLjAiPgogIDxwYXRoCiAgICAgc3Ryb2tlLXdpZHRoPSJwYXJhbShvdXRsaW5lLXdpZHRoKSAwIgogICAgIHN0cm9rZS1vcGFjaXR5PSJwYXJhbShvdXRsaW5lLW9wYWNpdHkpIgogICAgIHN0cm9rZT0icGFyYW0ob3V0bGluZSkgI0ZGRiIKICAgICBmaWxsLW9wYWNpdHk9InBhcmFtKGZpbGwtb3BhY2l0eSkiCiAgICAgZmlsbD0icGFyYW0oZmlsbCkgIzBjNWU3NyIKICAgICBkPSJtIDU0Mi4zMTU5OCwxNTIuMTA5MSBjIC01LjE5OTk2LDAgLTEwLjE1OTkyLDEuOTk5OTggLTEzLjkxOTg5LDUuNjc5OTYgbCAtMzQuNjM5NzUsMzIuNTU5NzYgSCA4Ni4xNTkzNjIgTCA1MS40Mzk2MTksMTU3Ljc4OTA2IEMgNDcuNTk5NjQ3LDE1My45NDkwOSA0Mi4zMTk2ODcsMTUxLjk0OTEgMzYuOTU5NzI2LDE1Mi4xMDkxIDE5LjAzOTg1OSwxNTIuNjY5MDkgMTAuNzk5OTIsMTc0Ljc0ODkzIDI0LjA3OTgyMiwxODYuODI4ODQgTCAyNzQuMDc3OTcsNDIyLjM0NzEgYyAzLjUxOTk3LDQuNDc5OTYgOC44Nzk5Myw3LjI3OTk0IDE0LjYzOTg5LDcuNTk5OTQgMC4wOCwwIDAuMTYsMCAwLjI0LDAgMC40LDAgMC43OTk5OSwwIDEuMjc5OTksMCA2LjA3OTk2LDAgMTEuNzU5OTEsLTIuNzk5OTggMTUuNTE5ODksLTcuNTE5OTQgTCA1NTUuODM1ODgsMTg2LjgyODg0IGMgMTMuNDM5OSwtMTIuMzE5OTEgNC43MTk5NywtMzQuNzE5NzQgLTEzLjUxOTksLTM0LjcxOTc0IHogbSAtNDM3LjgzNjc1LDU1LjUxOTU5IGggMzcwLjk1NzI1IGwgLTE4NS41MTg2MywxNzQuNzE4NyB6IG0gMjMxLjExODI4LDI2LjA3OTggLTkxLjM1OTMyLDAuMjQgYyAtNS41MTk5NiwwIC05Ljk5OTkzLDQuNDc5OTcgLTkuOTE5OTMsOS45OTk5MyAwLDUuNTk5OTYgNC40Nzk5Nyw5Ljk5OTkyIDkuOTk5OTMsOS45OTk5MiBsIDkxLjI3OTMyLC0wLjIzOTk5IGMgNS41OTk5NiwwLjA4IDEwLjE1OTkzLC00LjM5OTk3IDEwLjE1OTkzLC05Ljk5OTkzIDAsLTUuNTk5OTYgLTQuNTU5OTcsLTEwLjA3OTkzIC0xMC4xNTk5MywtOS45OTk5MyB6IgogICAgIGlkPSJwYXRoNyIgLz4KPC9zdmc+Cg==" type="QString"/>
+            <Option name="offset" value="0,0" type="QString"/>
+            <Option name="offset_map_unit_scale" value="3x:0,0,0,0,0,0" type="QString"/>
+            <Option name="offset_unit" value="MM" type="QString"/>
+            <Option name="outline_color" value="255,255,255,255,rgb:1,1,1,1" type="QString"/>
+            <Option name="outline_width" value="0" type="QString"/>
+            <Option name="outline_width_map_unit_scale" value="3x:0,0,0,0,0,0" type="QString"/>
+            <Option name="outline_width_unit" value="MM" type="QString"/>
+            <Option name="parameters"/>
+            <Option name="scale_method" value="diameter" type="QString"/>
+            <Option name="size" value="0" type="QString"/>
+            <Option name="size_map_unit_scale" value="3x:0,0,0,0,0,0" type="QString"/>
+            <Option name="size_unit" value="MM" type="QString"/>
+            <Option name="vertical_anchor_point" value="1" type="QString"/>
+          </Option>
+          <data_defined_properties>
+            <Option type="Map">
+              <Option name="name" value="" type="QString"/>
+              <Option name="properties" type="Map">
+                <Option name="size" type="Map">
+                  <Option name="active" value="true" type="bool"/>
+                  <Option name="expression" value="if(@id is NULL, NULL, if(coalesce(attribute($currentfeature,'NodeType'),attribute($currentfeature,'ElemType'))='RESERVOIR', 7, 0))" type="QString"/>
+                  <Option name="type" value="3" type="int"/>
+                </Option>
+              </Option>
               <Option name="type" value="collection" type="QString"/>
             </Option>
           </data_defined_properties>
@@ -411,7 +557,153 @@
           <data_defined_properties>
             <Option type="Map">
               <Option name="name" value="" type="QString"/>
-              <Option name="properties"/>
+              <Option name="properties" type="Map">
+                <Option name="size" type="Map">
+                  <Option name="active" value="true" type="bool"/>
+                  <Option name="expression" value="if(@id is NULL, NULL, if(coalesce(attribute($currentfeature,'NodeType'),attribute($currentfeature,'ElemType'))='ISOLATIONVALVE', 2, 0))" type="QString"/>
+                  <Option name="type" value="3" type="int"/>
+                </Option>
+              </Option>
+              <Option name="type" value="collection" type="QString"/>
+            </Option>
+          </data_defined_properties>
+        </layer>
+        <layer class="SvgMarker" locked="0" id="{d89492e3-1b27-4ff9-bab7-9234ac62b751}" enabled="1" pass="0">
+          <Option type="Map">
+            <Option name="angle" value="0" type="QString"/>
+            <Option name="color" value="0,255,238,255,rgb:0,1,0.93333333333333335,1" type="QString"/>
+            <Option name="fixedAspectRatio" value="0" type="QString"/>
+            <Option name="horizontal_anchor_point" value="1" type="QString"/>
+            <Option name="name" value="base64:PD94bWwgdmVyc2lvbj0iMS4wIiBlbmNvZGluZz0iVVRGLTgiIHN0YW5kYWxvbmU9Im5vIj8+CjxzdmcKICAgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIgogICBpZD0icWdpc3JlZF93YXRlciIKICAgaGVpZ2h0PSIxNTRtbSIKICAgd2lkdGg9IjE1NG1tIgogICB2ZXJzaW9uPSIxLjAiPgogIDxwYXRoCiAgICAgaWQ9InBhdGg1IgogICAgIGQ9IiAgTSA3OC4zOTk0MTksMTc0LjQ3ODcxICAgTCA3OC4zOTk0MTksMTgxLjU5ODY1ICAgTCA3OC4zOTk0MTksNDQ2LjM5NjY5ICAgTCA1MDMuNDM2MjcsNDQ2LjM5NjY5ICAgTCA1MDMuNDM2MjcsMTc0LjQ3ODcxICAgeiAiCiAgICAgc3Ryb2tlLXdpZHRoPSJwYXJhbShvdXRsaW5lLXdpZHRoKSAwIgogICAgIHN0cm9rZS1vcGFjaXR5PSJwYXJhbShvdXRsaW5lLW9wYWNpdHkpIgogICAgIHN0cm9rZT0icGFyYW0ob3V0bGluZSkgI0ZGRiIKICAgICBmaWxsLW9wYWNpdHk9InBhcmFtKGZpbGwtb3BhY2l0eSkiCiAgICAgZmlsbD0icGFyYW0oZmlsbCkgIzE0OTZiZSIgLz4KPC9zdmc+Cg==" type="QString"/>
+            <Option name="offset" value="0,0" type="QString"/>
+            <Option name="offset_map_unit_scale" value="3x:0,0,0,0,0,0" type="QString"/>
+            <Option name="offset_unit" value="MM" type="QString"/>
+            <Option name="outline_color" value="255,255,255,255,rgb:1,1,1,1" type="QString"/>
+            <Option name="outline_width" value="0" type="QString"/>
+            <Option name="outline_width_map_unit_scale" value="3x:0,0,0,0,0,0" type="QString"/>
+            <Option name="outline_width_unit" value="MM" type="QString"/>
+            <Option name="parameters"/>
+            <Option name="scale_method" value="diameter" type="QString"/>
+            <Option name="size" value="0" type="QString"/>
+            <Option name="size_map_unit_scale" value="3x:0,0,0,0,0,0" type="QString"/>
+            <Option name="size_unit" value="MM" type="QString"/>
+            <Option name="vertical_anchor_point" value="1" type="QString"/>
+          </Option>
+          <data_defined_properties>
+            <Option type="Map">
+              <Option name="name" value="" type="QString"/>
+              <Option name="properties" type="Map">
+                <Option name="size" type="Map">
+                  <Option name="active" value="true" type="bool"/>
+                  <Option name="expression" value="if(@id is NULL, NULL, if(coalesce(attribute($currentfeature,'NodeType'),attribute($currentfeature,'ElemType'))='TANK', 7, 0))" type="QString"/>
+                  <Option name="type" value="3" type="int"/>
+                </Option>
+              </Option>
+              <Option name="type" value="collection" type="QString"/>
+            </Option>
+          </data_defined_properties>
+        </layer>
+        <layer class="SvgMarker" locked="0" id="{7be2b67c-3314-4e57-a24e-83bfd2e99905}" enabled="1" pass="0">
+          <Option type="Map">
+            <Option name="angle" value="0" type="QString"/>
+            <Option name="color" value="0,159,149,255,rgb:0.0,0.6249942778667887,0.5833218890669108,1" type="QString"/>
+            <Option name="fixedAspectRatio" value="0" type="QString"/>
+            <Option name="horizontal_anchor_point" value="1" type="QString"/>
+            <Option name="name" value="base64:PD94bWwgdmVyc2lvbj0iMS4wIiBlbmNvZGluZz0iVVRGLTgiIHN0YW5kYWxvbmU9Im5vIj8+CjxzdmcKICAgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIgogICBpZD0icWdpc3JlZF9mcmFtZSIKICAgaGVpZ2h0PSIxNTRtbSIKICAgd2lkdGg9IjE1NG1tIgogICB2ZXJzaW9uPSIxLjAiPgogIDxwYXRoCiAgICAgaWQ9InBhdGg3IgogICAgIGQ9IiAgTSA2Mi43MTk1MzUsODMuOTE5Mzc4ICAgQyA0OC45NTk2MzcsODQuMTU5Mzc3IDM3LjkxOTcxOSw5NS41MTkyOTIgMzguMDc5NzE4LDEwOS4yNzkxOSAgIEwgMzguMDc5NzE4LDQ2NC45NTY1NiAgIEMgMzYuNjM5NzI5LDQ3My4wMzY1IDM5LjE5OTcxLDQ4MS40MzY0MyA0NS4wMzk2NjYsNDg3LjI3NjM5ICAgQyA1MC44Nzk2MjMsNDkzLjI3NjM1IDU5LjI3OTU2MSw0OTUuOTk2MzMgNjcuNTk5NDk5LDQ5NC41NTYzNCAgIEwgNTE3LjU5NjE3LDQ5NS42NzYzMyAgIEMgNTIzLjUxNjEyLDQ5Ni41NTYzMiA1MjkuNTk2MDgsNDk1LjI3NjMzIDUzNC42MzYwNCw0OTEuOTk2MzYgICBDIDU0My40MzU5Nyw0ODYuNjM2NCA1NDguMDc1OTQsNDc2LjM5NjQ3IDU0Ni4yMzU5NSw0NjYuMjM2NTUgICBMIDU0Ni4yMzU5NSwxMTAuNDc5MTggICBDIDU0Ni4zOTU5NSw5Ni4zOTkyODYgNTM0Ljk1NjA0LDg0Ljg3OTM3MSA1MjAuNzk2MTQsODUuMTE5MzY5ICAgQyA1MDcuMDM2MjQsODUuMzU5MzY4IDQ5NS45OTYzMyw5Ni42MzkyODQgNDk2LjIzNjMyLDExMC40NzkxOCAgIEwgNDk2LjIzNjMyLDE2NC4wNzg3OCAgIEwgODguMDc5MzQ4LDE2My4wMzg3OSAgIEwgODguMDc5MzQ4LDEwOS4yNzkxOSAgIEMgODguMzE5MzQ2LDk1LjE5OTI5NSA3Ni43OTk0MzEsODMuNzU5MzggNjIuNzE5NTM1LDgzLjkxOTM3OCAgIHogIE0gODguMDc5MzQ4LDE4OC4zMTg2MSAgIEwgNDk2LjIzNjMyLDE4OS4zNTg2ICAgTCA0OTYuMjM2MzIsNDQ1LjU5NjcgICBMIDg4LjA3OTM0OCw0NDQuNTU2NzEgICB6ICBNIDM0OC43MTc0MiwyMTMuOTE4NDIgICBMIDIzMy4zNTgyNywyMTQuMjM4NDEgICBDIDIyNi4zMTgzMiwyMTQuMTU4NDEgMjIwLjYzODM3LDIxOS44MzgzNyAyMjAuNjM4MzcsMjI2Ljg3ODMyICAgQyAyMjAuNjM4MzcsMjMzLjkxODI3IDIyNi4zOTgzMiwyMzkuNTk4MjMgMjMzLjQzODI3LDIzOS41MTgyMyAgIEwgMzQ4Ljc5NzQyLDIzOS4xOTgyMyAgIEMgMzU1LjgzNzM2LDIzOS4yNzgyMyAzNjEuNTE3MzIsMjMzLjU5ODI3IDM2MS41MTczMiwyMjYuNTU4MzIgICBDIDM2MS41MTczMiwyMTkuNTE4MzcgMzU1Ljc1NzM2LDIxMy44Mzg0MiAzNDguNzE3NDIsMjEzLjkxODQyICAgeiAiCiAgICAgc3Ryb2tlLXdpZHRoPSJwYXJhbShvdXRsaW5lLXdpZHRoKSAwIgogICAgIHN0cm9rZS1vcGFjaXR5PSJwYXJhbShvdXRsaW5lLW9wYWNpdHkpIgogICAgIHN0cm9rZT0icGFyYW0ob3V0bGluZSkgI0ZGRiIKICAgICBmaWxsLW9wYWNpdHk9InBhcmFtKGZpbGwtb3BhY2l0eSkiCiAgICAgZmlsbD0icGFyYW0oZmlsbCkgIzBjNWU3NyIgLz4KPC9zdmc+Cg==" type="QString"/>
+            <Option name="offset" value="0,0" type="QString"/>
+            <Option name="offset_map_unit_scale" value="3x:0,0,0,0,0,0" type="QString"/>
+            <Option name="offset_unit" value="MM" type="QString"/>
+            <Option name="outline_color" value="255,255,255,255,rgb:1,1,1,1" type="QString"/>
+            <Option name="outline_width" value="0" type="QString"/>
+            <Option name="outline_width_map_unit_scale" value="3x:0,0,0,0,0,0" type="QString"/>
+            <Option name="outline_width_unit" value="MM" type="QString"/>
+            <Option name="parameters"/>
+            <Option name="scale_method" value="diameter" type="QString"/>
+            <Option name="size" value="0" type="QString"/>
+            <Option name="size_map_unit_scale" value="3x:0,0,0,0,0,0" type="QString"/>
+            <Option name="size_unit" value="MM" type="QString"/>
+            <Option name="vertical_anchor_point" value="1" type="QString"/>
+          </Option>
+          <data_defined_properties>
+            <Option type="Map">
+              <Option name="name" value="" type="QString"/>
+              <Option name="properties" type="Map">
+                <Option name="size" type="Map">
+                  <Option name="active" value="true" type="bool"/>
+                  <Option name="expression" value="if(@id is NULL, NULL, if(coalesce(attribute($currentfeature,'NodeType'),attribute($currentfeature,'ElemType'))='TANK', 7, 0))" type="QString"/>
+                  <Option name="type" value="3" type="int"/>
+                </Option>
+              </Option>
+              <Option name="type" value="collection" type="QString"/>
+            </Option>
+          </data_defined_properties>
+        </layer>
+        <layer class="SvgMarker" locked="0" id="{11a1218e-c3bd-49b5-b70b-f335e6c90d2a}" enabled="1" pass="0">
+          <Option type="Map">
+            <Option name="angle" value="0" type="QString"/>
+            <Option name="color" value="0,255,238,255,rgb:0,1,0.93333333333333335,1" type="QString"/>
+            <Option name="fixedAspectRatio" value="0" type="QString"/>
+            <Option name="horizontal_anchor_point" value="1" type="QString"/>
+            <Option name="name" value="base64:PD94bWwgdmVyc2lvbj0iMS4wIiBlbmNvZGluZz0iVVRGLTgiIHN0YW5kYWxvbmU9Im5vIj8+CjxzdmcKICAgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIgogICBpZD0icWdpc3JlZF93YXRlciIKICAgd2lkdGg9IjE1NG1tIgogICBoZWlnaHQ9IjE1NG1tIgogICB2ZXJzaW9uPSIxLjAiPgogIDxwYXRoCiAgICAgc3Ryb2tlLXdpZHRoPSJwYXJhbShvdXRsaW5lLXdpZHRoKSAwIgogICAgIHN0cm9rZS1vcGFjaXR5PSJwYXJhbShvdXRsaW5lLW9wYWNpdHkpIgogICAgIHN0cm9rZT0icGFyYW0ob3V0bGluZSkgI0ZGRiIKICAgICBmaWxsLW9wYWNpdHk9InBhcmFtKGZpbGwtb3BhY2l0eSkiCiAgICAgZmlsbD0icGFyYW0oZmlsbCkgIzE0OTZiZSIKICAgICBkPSJNIDUxNy44MzYxNiwxOTguOTg4NzUgNDM2LjU1Njc3LDE5Ny40Njg3NiAyOTQuODc3ODIsMjAyLjc0ODcyIDc2LjU1OTQzMywxOTguOTg4NzUgMTgwLjU1ODY2LDMwMy4yMjc5OCAyODkuOTE3ODUsNDA5Ljg2NzE5IDM5MS45OTcxLDMwOC41ODc5NCBaIgogICAgIGlkPSJwYXRoNSIgLz4KPC9zdmc+Cg==" type="QString"/>
+            <Option name="offset" value="0,0" type="QString"/>
+            <Option name="offset_map_unit_scale" value="3x:0,0,0,0,0,0" type="QString"/>
+            <Option name="offset_unit" value="MM" type="QString"/>
+            <Option name="outline_color" value="255,255,255,255,rgb:1,1,1,1" type="QString"/>
+            <Option name="outline_width" value="0" type="QString"/>
+            <Option name="outline_width_map_unit_scale" value="3x:0,0,0,0,0,0" type="QString"/>
+            <Option name="outline_width_unit" value="MM" type="QString"/>
+            <Option name="parameters"/>
+            <Option name="scale_method" value="diameter" type="QString"/>
+            <Option name="size" value="0" type="QString"/>
+            <Option name="size_map_unit_scale" value="3x:0,0,0,0,0,0" type="QString"/>
+            <Option name="size_unit" value="MM" type="QString"/>
+            <Option name="vertical_anchor_point" value="1" type="QString"/>
+          </Option>
+          <data_defined_properties>
+            <Option type="Map">
+              <Option name="name" value="" type="QString"/>
+              <Option name="properties" type="Map">
+                <Option name="size" type="Map">
+                  <Option name="active" value="true" type="bool"/>
+                  <Option name="expression" value="if(@id is NULL, NULL, if(coalesce(attribute($currentfeature,'NodeType'),attribute($currentfeature,'ElemType'))='RESERVOIR', 7, 0))" type="QString"/>
+                  <Option name="type" value="3" type="int"/>
+                </Option>
+              </Option>
+              <Option name="type" value="collection" type="QString"/>
+            </Option>
+          </data_defined_properties>
+        </layer>
+        <layer class="SvgMarker" locked="0" id="{d7edbeb5-a984-4f49-9735-b2d085ea89b9}" enabled="1" pass="0">
+          <Option type="Map">
+            <Option name="angle" value="0" type="QString"/>
+            <Option name="color" value="0,159,149,255,rgb:0.0,0.6249942778667887,0.5833218890669108,1" type="QString"/>
+            <Option name="fixedAspectRatio" value="0" type="QString"/>
+            <Option name="horizontal_anchor_point" value="1" type="QString"/>
+            <Option name="name" value="base64:PD94bWwgdmVyc2lvbj0iMS4wIiBlbmNvZGluZz0iVVRGLTgiIHN0YW5kYWxvbmU9Im5vIj8+CjxzdmcKICAgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIgogICBpZD0icWdpc3JlZF9mcmFtZSIKICAgd2lkdGg9IjE1NG1tIgogICBoZWlnaHQ9IjE1NG1tIgogICB2ZXJzaW9uPSIxLjAiPgogIDxwYXRoCiAgICAgc3Ryb2tlLXdpZHRoPSJwYXJhbShvdXRsaW5lLXdpZHRoKSAwIgogICAgIHN0cm9rZS1vcGFjaXR5PSJwYXJhbShvdXRsaW5lLW9wYWNpdHkpIgogICAgIHN0cm9rZT0icGFyYW0ob3V0bGluZSkgI0ZGRiIKICAgICBmaWxsLW9wYWNpdHk9InBhcmFtKGZpbGwtb3BhY2l0eSkiCiAgICAgZmlsbD0icGFyYW0oZmlsbCkgIzBjNWU3NyIKICAgICBkPSJtIDU0Mi4zMTU5OCwxNTIuMTA5MSBjIC01LjE5OTk2LDAgLTEwLjE1OTkyLDEuOTk5OTggLTEzLjkxOTg5LDUuNjc5OTYgbCAtMzQuNjM5NzUsMzIuNTU5NzYgSCA4Ni4xNTkzNjIgTCA1MS40Mzk2MTksMTU3Ljc4OTA2IEMgNDcuNTk5NjQ3LDE1My45NDkwOSA0Mi4zMTk2ODcsMTUxLjk0OTEgMzYuOTU5NzI2LDE1Mi4xMDkxIDE5LjAzOTg1OSwxNTIuNjY5MDkgMTAuNzk5OTIsMTc0Ljc0ODkzIDI0LjA3OTgyMiwxODYuODI4ODQgTCAyNzQuMDc3OTcsNDIyLjM0NzEgYyAzLjUxOTk3LDQuNDc5OTYgOC44Nzk5Myw3LjI3OTk0IDE0LjYzOTg5LDcuNTk5OTQgMC4wOCwwIDAuMTYsMCAwLjI0LDAgMC40LDAgMC43OTk5OSwwIDEuMjc5OTksMCA2LjA3OTk2LDAgMTEuNzU5OTEsLTIuNzk5OTggMTUuNTE5ODksLTcuNTE5OTQgTCA1NTUuODM1ODgsMTg2LjgyODg0IGMgMTMuNDM5OSwtMTIuMzE5OTEgNC43MTk5NywtMzQuNzE5NzQgLTEzLjUxOTksLTM0LjcxOTc0IHogbSAtNDM3LjgzNjc1LDU1LjUxOTU5IGggMzcwLjk1NzI1IGwgLTE4NS41MTg2MywxNzQuNzE4NyB6IG0gMjMxLjExODI4LDI2LjA3OTggLTkxLjM1OTMyLDAuMjQgYyAtNS41MTk5NiwwIC05Ljk5OTkzLDQuNDc5OTcgLTkuOTE5OTMsOS45OTk5MyAwLDUuNTk5OTYgNC40Nzk5Nyw5Ljk5OTkyIDkuOTk5OTMsOS45OTk5MiBsIDkxLjI3OTMyLC0wLjIzOTk5IGMgNS41OTk5NiwwLjA4IDEwLjE1OTkzLC00LjM5OTk3IDEwLjE1OTkzLC05Ljk5OTkzIDAsLTUuNTk5OTYgLTQuNTU5OTcsLTEwLjA3OTkzIC0xMC4xNTk5MywtOS45OTk5MyB6IgogICAgIGlkPSJwYXRoNyIgLz4KPC9zdmc+Cg==" type="QString"/>
+            <Option name="offset" value="0,0" type="QString"/>
+            <Option name="offset_map_unit_scale" value="3x:0,0,0,0,0,0" type="QString"/>
+            <Option name="offset_unit" value="MM" type="QString"/>
+            <Option name="outline_color" value="255,255,255,255,rgb:1,1,1,1" type="QString"/>
+            <Option name="outline_width" value="0" type="QString"/>
+            <Option name="outline_width_map_unit_scale" value="3x:0,0,0,0,0,0" type="QString"/>
+            <Option name="outline_width_unit" value="MM" type="QString"/>
+            <Option name="parameters"/>
+            <Option name="scale_method" value="diameter" type="QString"/>
+            <Option name="size" value="0" type="QString"/>
+            <Option name="size_map_unit_scale" value="3x:0,0,0,0,0,0" type="QString"/>
+            <Option name="size_unit" value="MM" type="QString"/>
+            <Option name="vertical_anchor_point" value="1" type="QString"/>
+          </Option>
+          <data_defined_properties>
+            <Option type="Map">
+              <Option name="name" value="" type="QString"/>
+              <Option name="properties" type="Map">
+                <Option name="size" type="Map">
+                  <Option name="active" value="true" type="bool"/>
+                  <Option name="expression" value="if(@id is NULL, NULL, if(coalesce(attribute($currentfeature,'NodeType'),attribute($currentfeature,'ElemType'))='RESERVOIR', 7, 0))" type="QString"/>
+                  <Option name="type" value="3" type="int"/>
+                </Option>
+              </Option>
               <Option name="type" value="collection" type="QString"/>
             </Option>
           </data_defined_properties>
@@ -497,6 +789,146 @@
             </Option>
           </data_defined_properties>
         </layer>
+        <layer class="SvgMarker" locked="0" id="{01c1a717-2562-4e00-a0e9-91af6132e1ec}" enabled="1" pass="0">
+          <Option type="Map">
+            <Option name="angle" value="0" type="QString"/>
+            <Option name="color" value="255,153,0,255,rgb:1,0.59999999999999998,0,1" type="QString"/>
+            <Option name="fixedAspectRatio" value="0" type="QString"/>
+            <Option name="horizontal_anchor_point" value="1" type="QString"/>
+            <Option name="name" value="base64:PD94bWwgdmVyc2lvbj0iMS4wIiBlbmNvZGluZz0iVVRGLTgiIHN0YW5kYWxvbmU9Im5vIj8+CjxzdmcKICAgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIgogICBpZD0icWdpc3JlZF93YXRlciIKICAgaGVpZ2h0PSIxNTRtbSIKICAgd2lkdGg9IjE1NG1tIgogICB2ZXJzaW9uPSIxLjAiPgogIDxwYXRoCiAgICAgaWQ9InBhdGg1IgogICAgIGQ9IiAgTSA3OC4zOTk0MTksMTc0LjQ3ODcxICAgTCA3OC4zOTk0MTksMTgxLjU5ODY1ICAgTCA3OC4zOTk0MTksNDQ2LjM5NjY5ICAgTCA1MDMuNDM2MjcsNDQ2LjM5NjY5ICAgTCA1MDMuNDM2MjcsMTc0LjQ3ODcxICAgeiAiCiAgICAgc3Ryb2tlLXdpZHRoPSJwYXJhbShvdXRsaW5lLXdpZHRoKSAwIgogICAgIHN0cm9rZS1vcGFjaXR5PSJwYXJhbShvdXRsaW5lLW9wYWNpdHkpIgogICAgIHN0cm9rZT0icGFyYW0ob3V0bGluZSkgI0ZGRiIKICAgICBmaWxsLW9wYWNpdHk9InBhcmFtKGZpbGwtb3BhY2l0eSkiCiAgICAgZmlsbD0icGFyYW0oZmlsbCkgIzE0OTZiZSIgLz4KPC9zdmc+Cg==" type="QString"/>
+            <Option name="offset" value="0,0" type="QString"/>
+            <Option name="offset_map_unit_scale" value="3x:0,0,0,0,0,0" type="QString"/>
+            <Option name="offset_unit" value="MM" type="QString"/>
+            <Option name="outline_color" value="255,255,255,255,rgb:1,1,1,1" type="QString"/>
+            <Option name="outline_width" value="0" type="QString"/>
+            <Option name="outline_width_map_unit_scale" value="3x:0,0,0,0,0,0" type="QString"/>
+            <Option name="outline_width_unit" value="MM" type="QString"/>
+            <Option name="parameters"/>
+            <Option name="scale_method" value="diameter" type="QString"/>
+            <Option name="size" value="0" type="QString"/>
+            <Option name="size_map_unit_scale" value="3x:0,0,0,0,0,0" type="QString"/>
+            <Option name="size_unit" value="MM" type="QString"/>
+            <Option name="vertical_anchor_point" value="1" type="QString"/>
+          </Option>
+          <data_defined_properties>
+            <Option type="Map">
+              <Option name="name" value="" type="QString"/>
+              <Option name="properties" type="Map">
+                <Option name="size" type="Map">
+                  <Option name="active" value="true" type="bool"/>
+                  <Option name="expression" value="if(@id is NULL, NULL, if(coalesce(attribute($currentfeature,'NodeType'),attribute($currentfeature,'ElemType'))='TANK', 7, 0))" type="QString"/>
+                  <Option name="type" value="3" type="int"/>
+                </Option>
+              </Option>
+              <Option name="type" value="collection" type="QString"/>
+            </Option>
+          </data_defined_properties>
+        </layer>
+        <layer class="SvgMarker" locked="0" id="{3e21c41b-d74e-4f45-aa0f-87b545b5756d}" enabled="1" pass="0">
+          <Option type="Map">
+            <Option name="angle" value="0" type="QString"/>
+            <Option name="color" value="159,96,0,255,rgb:0.6249942778667887,0.37499046311131456,0.0,1" type="QString"/>
+            <Option name="fixedAspectRatio" value="0" type="QString"/>
+            <Option name="horizontal_anchor_point" value="1" type="QString"/>
+            <Option name="name" value="base64:PD94bWwgdmVyc2lvbj0iMS4wIiBlbmNvZGluZz0iVVRGLTgiIHN0YW5kYWxvbmU9Im5vIj8+CjxzdmcKICAgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIgogICBpZD0icWdpc3JlZF9mcmFtZSIKICAgaGVpZ2h0PSIxNTRtbSIKICAgd2lkdGg9IjE1NG1tIgogICB2ZXJzaW9uPSIxLjAiPgogIDxwYXRoCiAgICAgaWQ9InBhdGg3IgogICAgIGQ9IiAgTSA2Mi43MTk1MzUsODMuOTE5Mzc4ICAgQyA0OC45NTk2MzcsODQuMTU5Mzc3IDM3LjkxOTcxOSw5NS41MTkyOTIgMzguMDc5NzE4LDEwOS4yNzkxOSAgIEwgMzguMDc5NzE4LDQ2NC45NTY1NiAgIEMgMzYuNjM5NzI5LDQ3My4wMzY1IDM5LjE5OTcxLDQ4MS40MzY0MyA0NS4wMzk2NjYsNDg3LjI3NjM5ICAgQyA1MC44Nzk2MjMsNDkzLjI3NjM1IDU5LjI3OTU2MSw0OTUuOTk2MzMgNjcuNTk5NDk5LDQ5NC41NTYzNCAgIEwgNTE3LjU5NjE3LDQ5NS42NzYzMyAgIEMgNTIzLjUxNjEyLDQ5Ni41NTYzMiA1MjkuNTk2MDgsNDk1LjI3NjMzIDUzNC42MzYwNCw0OTEuOTk2MzYgICBDIDU0My40MzU5Nyw0ODYuNjM2NCA1NDguMDc1OTQsNDc2LjM5NjQ3IDU0Ni4yMzU5NSw0NjYuMjM2NTUgICBMIDU0Ni4yMzU5NSwxMTAuNDc5MTggICBDIDU0Ni4zOTU5NSw5Ni4zOTkyODYgNTM0Ljk1NjA0LDg0Ljg3OTM3MSA1MjAuNzk2MTQsODUuMTE5MzY5ICAgQyA1MDcuMDM2MjQsODUuMzU5MzY4IDQ5NS45OTYzMyw5Ni42MzkyODQgNDk2LjIzNjMyLDExMC40NzkxOCAgIEwgNDk2LjIzNjMyLDE2NC4wNzg3OCAgIEwgODguMDc5MzQ4LDE2My4wMzg3OSAgIEwgODguMDc5MzQ4LDEwOS4yNzkxOSAgIEMgODguMzE5MzQ2LDk1LjE5OTI5NSA3Ni43OTk0MzEsODMuNzU5MzggNjIuNzE5NTM1LDgzLjkxOTM3OCAgIHogIE0gODguMDc5MzQ4LDE4OC4zMTg2MSAgIEwgNDk2LjIzNjMyLDE4OS4zNTg2ICAgTCA0OTYuMjM2MzIsNDQ1LjU5NjcgICBMIDg4LjA3OTM0OCw0NDQuNTU2NzEgICB6ICBNIDM0OC43MTc0MiwyMTMuOTE4NDIgICBMIDIzMy4zNTgyNywyMTQuMjM4NDEgICBDIDIyNi4zMTgzMiwyMTQuMTU4NDEgMjIwLjYzODM3LDIxOS44MzgzNyAyMjAuNjM4MzcsMjI2Ljg3ODMyICAgQyAyMjAuNjM4MzcsMjMzLjkxODI3IDIyNi4zOTgzMiwyMzkuNTk4MjMgMjMzLjQzODI3LDIzOS41MTgyMyAgIEwgMzQ4Ljc5NzQyLDIzOS4xOTgyMyAgIEMgMzU1LjgzNzM2LDIzOS4yNzgyMyAzNjEuNTE3MzIsMjMzLjU5ODI3IDM2MS41MTczMiwyMjYuNTU4MzIgICBDIDM2MS41MTczMiwyMTkuNTE4MzcgMzU1Ljc1NzM2LDIxMy44Mzg0MiAzNDguNzE3NDIsMjEzLjkxODQyICAgeiAiCiAgICAgc3Ryb2tlLXdpZHRoPSJwYXJhbShvdXRsaW5lLXdpZHRoKSAwIgogICAgIHN0cm9rZS1vcGFjaXR5PSJwYXJhbShvdXRsaW5lLW9wYWNpdHkpIgogICAgIHN0cm9rZT0icGFyYW0ob3V0bGluZSkgI0ZGRiIKICAgICBmaWxsLW9wYWNpdHk9InBhcmFtKGZpbGwtb3BhY2l0eSkiCiAgICAgZmlsbD0icGFyYW0oZmlsbCkgIzBjNWU3NyIgLz4KPC9zdmc+Cg==" type="QString"/>
+            <Option name="offset" value="0,0" type="QString"/>
+            <Option name="offset_map_unit_scale" value="3x:0,0,0,0,0,0" type="QString"/>
+            <Option name="offset_unit" value="MM" type="QString"/>
+            <Option name="outline_color" value="255,255,255,255,rgb:1,1,1,1" type="QString"/>
+            <Option name="outline_width" value="0" type="QString"/>
+            <Option name="outline_width_map_unit_scale" value="3x:0,0,0,0,0,0" type="QString"/>
+            <Option name="outline_width_unit" value="MM" type="QString"/>
+            <Option name="parameters"/>
+            <Option name="scale_method" value="diameter" type="QString"/>
+            <Option name="size" value="0" type="QString"/>
+            <Option name="size_map_unit_scale" value="3x:0,0,0,0,0,0" type="QString"/>
+            <Option name="size_unit" value="MM" type="QString"/>
+            <Option name="vertical_anchor_point" value="1" type="QString"/>
+          </Option>
+          <data_defined_properties>
+            <Option type="Map">
+              <Option name="name" value="" type="QString"/>
+              <Option name="properties" type="Map">
+                <Option name="size" type="Map">
+                  <Option name="active" value="true" type="bool"/>
+                  <Option name="expression" value="if(@id is NULL, NULL, if(coalesce(attribute($currentfeature,'NodeType'),attribute($currentfeature,'ElemType'))='TANK', 7, 0))" type="QString"/>
+                  <Option name="type" value="3" type="int"/>
+                </Option>
+              </Option>
+              <Option name="type" value="collection" type="QString"/>
+            </Option>
+          </data_defined_properties>
+        </layer>
+        <layer class="SvgMarker" locked="0" id="{d8ecf299-38ac-4086-ae3d-47056a718751}" enabled="1" pass="0">
+          <Option type="Map">
+            <Option name="angle" value="0" type="QString"/>
+            <Option name="color" value="255,153,0,255,rgb:1,0.59999999999999998,0,1" type="QString"/>
+            <Option name="fixedAspectRatio" value="0" type="QString"/>
+            <Option name="horizontal_anchor_point" value="1" type="QString"/>
+            <Option name="name" value="base64:PD94bWwgdmVyc2lvbj0iMS4wIiBlbmNvZGluZz0iVVRGLTgiIHN0YW5kYWxvbmU9Im5vIj8+CjxzdmcKICAgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIgogICBpZD0icWdpc3JlZF93YXRlciIKICAgd2lkdGg9IjE1NG1tIgogICBoZWlnaHQ9IjE1NG1tIgogICB2ZXJzaW9uPSIxLjAiPgogIDxwYXRoCiAgICAgc3Ryb2tlLXdpZHRoPSJwYXJhbShvdXRsaW5lLXdpZHRoKSAwIgogICAgIHN0cm9rZS1vcGFjaXR5PSJwYXJhbShvdXRsaW5lLW9wYWNpdHkpIgogICAgIHN0cm9rZT0icGFyYW0ob3V0bGluZSkgI0ZGRiIKICAgICBmaWxsLW9wYWNpdHk9InBhcmFtKGZpbGwtb3BhY2l0eSkiCiAgICAgZmlsbD0icGFyYW0oZmlsbCkgIzE0OTZiZSIKICAgICBkPSJNIDUxNy44MzYxNiwxOTguOTg4NzUgNDM2LjU1Njc3LDE5Ny40Njg3NiAyOTQuODc3ODIsMjAyLjc0ODcyIDc2LjU1OTQzMywxOTguOTg4NzUgMTgwLjU1ODY2LDMwMy4yMjc5OCAyODkuOTE3ODUsNDA5Ljg2NzE5IDM5MS45OTcxLDMwOC41ODc5NCBaIgogICAgIGlkPSJwYXRoNSIgLz4KPC9zdmc+Cg==" type="QString"/>
+            <Option name="offset" value="0,0" type="QString"/>
+            <Option name="offset_map_unit_scale" value="3x:0,0,0,0,0,0" type="QString"/>
+            <Option name="offset_unit" value="MM" type="QString"/>
+            <Option name="outline_color" value="255,255,255,255,rgb:1,1,1,1" type="QString"/>
+            <Option name="outline_width" value="0" type="QString"/>
+            <Option name="outline_width_map_unit_scale" value="3x:0,0,0,0,0,0" type="QString"/>
+            <Option name="outline_width_unit" value="MM" type="QString"/>
+            <Option name="parameters"/>
+            <Option name="scale_method" value="diameter" type="QString"/>
+            <Option name="size" value="0" type="QString"/>
+            <Option name="size_map_unit_scale" value="3x:0,0,0,0,0,0" type="QString"/>
+            <Option name="size_unit" value="MM" type="QString"/>
+            <Option name="vertical_anchor_point" value="1" type="QString"/>
+          </Option>
+          <data_defined_properties>
+            <Option type="Map">
+              <Option name="name" value="" type="QString"/>
+              <Option name="properties" type="Map">
+                <Option name="size" type="Map">
+                  <Option name="active" value="true" type="bool"/>
+                  <Option name="expression" value="if(@id is NULL, NULL, if(coalesce(attribute($currentfeature,'NodeType'),attribute($currentfeature,'ElemType'))='RESERVOIR', 7, 0))" type="QString"/>
+                  <Option name="type" value="3" type="int"/>
+                </Option>
+              </Option>
+              <Option name="type" value="collection" type="QString"/>
+            </Option>
+          </data_defined_properties>
+        </layer>
+        <layer class="SvgMarker" locked="0" id="{aee6e196-cfe4-43b6-8d13-c16696551fef}" enabled="1" pass="0">
+          <Option type="Map">
+            <Option name="angle" value="0" type="QString"/>
+            <Option name="color" value="159,96,0,255,rgb:0.6249942778667887,0.37499046311131456,0.0,1" type="QString"/>
+            <Option name="fixedAspectRatio" value="0" type="QString"/>
+            <Option name="horizontal_anchor_point" value="1" type="QString"/>
+            <Option name="name" value="base64:PD94bWwgdmVyc2lvbj0iMS4wIiBlbmNvZGluZz0iVVRGLTgiIHN0YW5kYWxvbmU9Im5vIj8+CjxzdmcKICAgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIgogICBpZD0icWdpc3JlZF9mcmFtZSIKICAgd2lkdGg9IjE1NG1tIgogICBoZWlnaHQ9IjE1NG1tIgogICB2ZXJzaW9uPSIxLjAiPgogIDxwYXRoCiAgICAgc3Ryb2tlLXdpZHRoPSJwYXJhbShvdXRsaW5lLXdpZHRoKSAwIgogICAgIHN0cm9rZS1vcGFjaXR5PSJwYXJhbShvdXRsaW5lLW9wYWNpdHkpIgogICAgIHN0cm9rZT0icGFyYW0ob3V0bGluZSkgI0ZGRiIKICAgICBmaWxsLW9wYWNpdHk9InBhcmFtKGZpbGwtb3BhY2l0eSkiCiAgICAgZmlsbD0icGFyYW0oZmlsbCkgIzBjNWU3NyIKICAgICBkPSJtIDU0Mi4zMTU5OCwxNTIuMTA5MSBjIC01LjE5OTk2LDAgLTEwLjE1OTkyLDEuOTk5OTggLTEzLjkxOTg5LDUuNjc5OTYgbCAtMzQuNjM5NzUsMzIuNTU5NzYgSCA4Ni4xNTkzNjIgTCA1MS40Mzk2MTksMTU3Ljc4OTA2IEMgNDcuNTk5NjQ3LDE1My45NDkwOSA0Mi4zMTk2ODcsMTUxLjk0OTEgMzYuOTU5NzI2LDE1Mi4xMDkxIDE5LjAzOTg1OSwxNTIuNjY5MDkgMTAuNzk5OTIsMTc0Ljc0ODkzIDI0LjA3OTgyMiwxODYuODI4ODQgTCAyNzQuMDc3OTcsNDIyLjM0NzEgYyAzLjUxOTk3LDQuNDc5OTYgOC44Nzk5Myw3LjI3OTk0IDE0LjYzOTg5LDcuNTk5OTQgMC4wOCwwIDAuMTYsMCAwLjI0LDAgMC40LDAgMC43OTk5OSwwIDEuMjc5OTksMCA2LjA3OTk2LDAgMTEuNzU5OTEsLTIuNzk5OTggMTUuNTE5ODksLTcuNTE5OTQgTCA1NTUuODM1ODgsMTg2LjgyODg0IGMgMTMuNDM5OSwtMTIuMzE5OTEgNC43MTk5NywtMzQuNzE5NzQgLTEzLjUxOTksLTM0LjcxOTc0IHogbSAtNDM3LjgzNjc1LDU1LjUxOTU5IGggMzcwLjk1NzI1IGwgLTE4NS41MTg2MywxNzQuNzE4NyB6IG0gMjMxLjExODI4LDI2LjA3OTggLTkxLjM1OTMyLDAuMjQgYyAtNS41MTk5NiwwIC05Ljk5OTkzLDQuNDc5OTcgLTkuOTE5OTMsOS45OTk5MyAwLDUuNTk5OTYgNC40Nzk5Nyw5Ljk5OTkyIDkuOTk5OTMsOS45OTk5MiBsIDkxLjI3OTMyLC0wLjIzOTk5IGMgNS41OTk5NiwwLjA4IDEwLjE1OTkzLC00LjM5OTk3IDEwLjE1OTkzLC05Ljk5OTkzIDAsLTUuNTk5OTYgLTQuNTU5OTcsLTEwLjA3OTkzIC0xMC4xNTk5MywtOS45OTk5MyB6IgogICAgIGlkPSJwYXRoNyIgLz4KPC9zdmc+Cg==" type="QString"/>
+            <Option name="offset" value="0,0" type="QString"/>
+            <Option name="offset_map_unit_scale" value="3x:0,0,0,0,0,0" type="QString"/>
+            <Option name="offset_unit" value="MM" type="QString"/>
+            <Option name="outline_color" value="255,255,255,255,rgb:1,1,1,1" type="QString"/>
+            <Option name="outline_width" value="0" type="QString"/>
+            <Option name="outline_width_map_unit_scale" value="3x:0,0,0,0,0,0" type="QString"/>
+            <Option name="outline_width_unit" value="MM" type="QString"/>
+            <Option name="parameters"/>
+            <Option name="scale_method" value="diameter" type="QString"/>
+            <Option name="size" value="0" type="QString"/>
+            <Option name="size_map_unit_scale" value="3x:0,0,0,0,0,0" type="QString"/>
+            <Option name="size_unit" value="MM" type="QString"/>
+            <Option name="vertical_anchor_point" value="1" type="QString"/>
+          </Option>
+          <data_defined_properties>
+            <Option type="Map">
+              <Option name="name" value="" type="QString"/>
+              <Option name="properties" type="Map">
+                <Option name="size" type="Map">
+                  <Option name="active" value="true" type="bool"/>
+                  <Option name="expression" value="if(@id is NULL, NULL, if(coalesce(attribute($currentfeature,'NodeType'),attribute($currentfeature,'ElemType'))='RESERVOIR', 7, 0))" type="QString"/>
+                  <Option name="type" value="3" type="int"/>
+                </Option>
+              </Option>
+              <Option name="type" value="collection" type="QString"/>
+            </Option>
+          </data_defined_properties>
+        </layer>
       </symbol>
       <symbol clip_to_extent="1" alpha="1" name="4" is_animated="0" type="marker" frame_rate="10" force_rhr="0">
         <data_defined_properties>
@@ -571,6 +1003,146 @@
                 <Option name="size" type="Map">
                   <Option name="active" value="true" type="bool"/>
                   <Option name="expression" value="if(@id is NULL, NULL, if(coalesce(attribute($currentfeature,'NodeType'),attribute($currentfeature,'ElemType'))='ISOLATIONVALVE', 2, 0))" type="QString"/>
+                  <Option name="type" value="3" type="int"/>
+                </Option>
+              </Option>
+              <Option name="type" value="collection" type="QString"/>
+            </Option>
+          </data_defined_properties>
+        </layer>
+        <layer class="SvgMarker" locked="0" id="{5098ae13-7123-4ea1-a738-bc91075f3864}" enabled="1" pass="0">
+          <Option type="Map">
+            <Option name="angle" value="0" type="QString"/>
+            <Option name="color" value="231,202,101,255,rgb:0.90588235294117647,0.792156862745098,0.396078431372549,1" type="QString"/>
+            <Option name="fixedAspectRatio" value="0" type="QString"/>
+            <Option name="horizontal_anchor_point" value="1" type="QString"/>
+            <Option name="name" value="base64:PD94bWwgdmVyc2lvbj0iMS4wIiBlbmNvZGluZz0iVVRGLTgiIHN0YW5kYWxvbmU9Im5vIj8+CjxzdmcKICAgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIgogICBpZD0icWdpc3JlZF93YXRlciIKICAgaGVpZ2h0PSIxNTRtbSIKICAgd2lkdGg9IjE1NG1tIgogICB2ZXJzaW9uPSIxLjAiPgogIDxwYXRoCiAgICAgaWQ9InBhdGg1IgogICAgIGQ9IiAgTSA3OC4zOTk0MTksMTc0LjQ3ODcxICAgTCA3OC4zOTk0MTksMTgxLjU5ODY1ICAgTCA3OC4zOTk0MTksNDQ2LjM5NjY5ICAgTCA1MDMuNDM2MjcsNDQ2LjM5NjY5ICAgTCA1MDMuNDM2MjcsMTc0LjQ3ODcxICAgeiAiCiAgICAgc3Ryb2tlLXdpZHRoPSJwYXJhbShvdXRsaW5lLXdpZHRoKSAwIgogICAgIHN0cm9rZS1vcGFjaXR5PSJwYXJhbShvdXRsaW5lLW9wYWNpdHkpIgogICAgIHN0cm9rZT0icGFyYW0ob3V0bGluZSkgI0ZGRiIKICAgICBmaWxsLW9wYWNpdHk9InBhcmFtKGZpbGwtb3BhY2l0eSkiCiAgICAgZmlsbD0icGFyYW0oZmlsbCkgIzE0OTZiZSIgLz4KPC9zdmc+Cg==" type="QString"/>
+            <Option name="offset" value="0,0" type="QString"/>
+            <Option name="offset_map_unit_scale" value="3x:0,0,0,0,0,0" type="QString"/>
+            <Option name="offset_unit" value="MM" type="QString"/>
+            <Option name="outline_color" value="255,255,255,255,rgb:1,1,1,1" type="QString"/>
+            <Option name="outline_width" value="0" type="QString"/>
+            <Option name="outline_width_map_unit_scale" value="3x:0,0,0,0,0,0" type="QString"/>
+            <Option name="outline_width_unit" value="MM" type="QString"/>
+            <Option name="parameters"/>
+            <Option name="scale_method" value="diameter" type="QString"/>
+            <Option name="size" value="0" type="QString"/>
+            <Option name="size_map_unit_scale" value="3x:0,0,0,0,0,0" type="QString"/>
+            <Option name="size_unit" value="MM" type="QString"/>
+            <Option name="vertical_anchor_point" value="1" type="QString"/>
+          </Option>
+          <data_defined_properties>
+            <Option type="Map">
+              <Option name="name" value="" type="QString"/>
+              <Option name="properties" type="Map">
+                <Option name="size" type="Map">
+                  <Option name="active" value="true" type="bool"/>
+                  <Option name="expression" value="if(@id is NULL, NULL, if(coalesce(attribute($currentfeature,'NodeType'),attribute($currentfeature,'ElemType'))='TANK', 7, 0))" type="QString"/>
+                  <Option name="type" value="3" type="int"/>
+                </Option>
+              </Option>
+              <Option name="type" value="collection" type="QString"/>
+            </Option>
+          </data_defined_properties>
+        </layer>
+        <layer class="SvgMarker" locked="0" id="{b57345af-445c-4e4e-812c-cf0ddd7505d9}" enabled="1" pass="0">
+          <Option type="Map">
+            <Option name="angle" value="0" type="QString"/>
+            <Option name="color" value="144,126,63,255,rgb:0.566170748455024,0.4951247425040055,0.24754711223010606,1" type="QString"/>
+            <Option name="fixedAspectRatio" value="0" type="QString"/>
+            <Option name="horizontal_anchor_point" value="1" type="QString"/>
+            <Option name="name" value="base64:PD94bWwgdmVyc2lvbj0iMS4wIiBlbmNvZGluZz0iVVRGLTgiIHN0YW5kYWxvbmU9Im5vIj8+CjxzdmcKICAgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIgogICBpZD0icWdpc3JlZF9mcmFtZSIKICAgaGVpZ2h0PSIxNTRtbSIKICAgd2lkdGg9IjE1NG1tIgogICB2ZXJzaW9uPSIxLjAiPgogIDxwYXRoCiAgICAgaWQ9InBhdGg3IgogICAgIGQ9IiAgTSA2Mi43MTk1MzUsODMuOTE5Mzc4ICAgQyA0OC45NTk2MzcsODQuMTU5Mzc3IDM3LjkxOTcxOSw5NS41MTkyOTIgMzguMDc5NzE4LDEwOS4yNzkxOSAgIEwgMzguMDc5NzE4LDQ2NC45NTY1NiAgIEMgMzYuNjM5NzI5LDQ3My4wMzY1IDM5LjE5OTcxLDQ4MS40MzY0MyA0NS4wMzk2NjYsNDg3LjI3NjM5ICAgQyA1MC44Nzk2MjMsNDkzLjI3NjM1IDU5LjI3OTU2MSw0OTUuOTk2MzMgNjcuNTk5NDk5LDQ5NC41NTYzNCAgIEwgNTE3LjU5NjE3LDQ5NS42NzYzMyAgIEMgNTIzLjUxNjEyLDQ5Ni41NTYzMiA1MjkuNTk2MDgsNDk1LjI3NjMzIDUzNC42MzYwNCw0OTEuOTk2MzYgICBDIDU0My40MzU5Nyw0ODYuNjM2NCA1NDguMDc1OTQsNDc2LjM5NjQ3IDU0Ni4yMzU5NSw0NjYuMjM2NTUgICBMIDU0Ni4yMzU5NSwxMTAuNDc5MTggICBDIDU0Ni4zOTU5NSw5Ni4zOTkyODYgNTM0Ljk1NjA0LDg0Ljg3OTM3MSA1MjAuNzk2MTQsODUuMTE5MzY5ICAgQyA1MDcuMDM2MjQsODUuMzU5MzY4IDQ5NS45OTYzMyw5Ni42MzkyODQgNDk2LjIzNjMyLDExMC40NzkxOCAgIEwgNDk2LjIzNjMyLDE2NC4wNzg3OCAgIEwgODguMDc5MzQ4LDE2My4wMzg3OSAgIEwgODguMDc5MzQ4LDEwOS4yNzkxOSAgIEMgODguMzE5MzQ2LDk1LjE5OTI5NSA3Ni43OTk0MzEsODMuNzU5MzggNjIuNzE5NTM1LDgzLjkxOTM3OCAgIHogIE0gODguMDc5MzQ4LDE4OC4zMTg2MSAgIEwgNDk2LjIzNjMyLDE4OS4zNTg2ICAgTCA0OTYuMjM2MzIsNDQ1LjU5NjcgICBMIDg4LjA3OTM0OCw0NDQuNTU2NzEgICB6ICBNIDM0OC43MTc0MiwyMTMuOTE4NDIgICBMIDIzMy4zNTgyNywyMTQuMjM4NDEgICBDIDIyNi4zMTgzMiwyMTQuMTU4NDEgMjIwLjYzODM3LDIxOS44MzgzNyAyMjAuNjM4MzcsMjI2Ljg3ODMyICAgQyAyMjAuNjM4MzcsMjMzLjkxODI3IDIyNi4zOTgzMiwyMzkuNTk4MjMgMjMzLjQzODI3LDIzOS41MTgyMyAgIEwgMzQ4Ljc5NzQyLDIzOS4xOTgyMyAgIEMgMzU1LjgzNzM2LDIzOS4yNzgyMyAzNjEuNTE3MzIsMjMzLjU5ODI3IDM2MS41MTczMiwyMjYuNTU4MzIgICBDIDM2MS41MTczMiwyMTkuNTE4MzcgMzU1Ljc1NzM2LDIxMy44Mzg0MiAzNDguNzE3NDIsMjEzLjkxODQyICAgeiAiCiAgICAgc3Ryb2tlLXdpZHRoPSJwYXJhbShvdXRsaW5lLXdpZHRoKSAwIgogICAgIHN0cm9rZS1vcGFjaXR5PSJwYXJhbShvdXRsaW5lLW9wYWNpdHkpIgogICAgIHN0cm9rZT0icGFyYW0ob3V0bGluZSkgI0ZGRiIKICAgICBmaWxsLW9wYWNpdHk9InBhcmFtKGZpbGwtb3BhY2l0eSkiCiAgICAgZmlsbD0icGFyYW0oZmlsbCkgIzBjNWU3NyIgLz4KPC9zdmc+Cg==" type="QString"/>
+            <Option name="offset" value="0,0" type="QString"/>
+            <Option name="offset_map_unit_scale" value="3x:0,0,0,0,0,0" type="QString"/>
+            <Option name="offset_unit" value="MM" type="QString"/>
+            <Option name="outline_color" value="255,255,255,255,rgb:1,1,1,1" type="QString"/>
+            <Option name="outline_width" value="0" type="QString"/>
+            <Option name="outline_width_map_unit_scale" value="3x:0,0,0,0,0,0" type="QString"/>
+            <Option name="outline_width_unit" value="MM" type="QString"/>
+            <Option name="parameters"/>
+            <Option name="scale_method" value="diameter" type="QString"/>
+            <Option name="size" value="0" type="QString"/>
+            <Option name="size_map_unit_scale" value="3x:0,0,0,0,0,0" type="QString"/>
+            <Option name="size_unit" value="MM" type="QString"/>
+            <Option name="vertical_anchor_point" value="1" type="QString"/>
+          </Option>
+          <data_defined_properties>
+            <Option type="Map">
+              <Option name="name" value="" type="QString"/>
+              <Option name="properties" type="Map">
+                <Option name="size" type="Map">
+                  <Option name="active" value="true" type="bool"/>
+                  <Option name="expression" value="if(@id is NULL, NULL, if(coalesce(attribute($currentfeature,'NodeType'),attribute($currentfeature,'ElemType'))='TANK', 7, 0))" type="QString"/>
+                  <Option name="type" value="3" type="int"/>
+                </Option>
+              </Option>
+              <Option name="type" value="collection" type="QString"/>
+            </Option>
+          </data_defined_properties>
+        </layer>
+        <layer class="SvgMarker" locked="0" id="{eefb08f5-ba9b-4c40-8253-baddb33d6190}" enabled="1" pass="0">
+          <Option type="Map">
+            <Option name="angle" value="0" type="QString"/>
+            <Option name="color" value="231,202,101,255,rgb:0.90588235294117647,0.792156862745098,0.396078431372549,1" type="QString"/>
+            <Option name="fixedAspectRatio" value="0" type="QString"/>
+            <Option name="horizontal_anchor_point" value="1" type="QString"/>
+            <Option name="name" value="base64:PD94bWwgdmVyc2lvbj0iMS4wIiBlbmNvZGluZz0iVVRGLTgiIHN0YW5kYWxvbmU9Im5vIj8+CjxzdmcKICAgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIgogICBpZD0icWdpc3JlZF93YXRlciIKICAgd2lkdGg9IjE1NG1tIgogICBoZWlnaHQ9IjE1NG1tIgogICB2ZXJzaW9uPSIxLjAiPgogIDxwYXRoCiAgICAgc3Ryb2tlLXdpZHRoPSJwYXJhbShvdXRsaW5lLXdpZHRoKSAwIgogICAgIHN0cm9rZS1vcGFjaXR5PSJwYXJhbShvdXRsaW5lLW9wYWNpdHkpIgogICAgIHN0cm9rZT0icGFyYW0ob3V0bGluZSkgI0ZGRiIKICAgICBmaWxsLW9wYWNpdHk9InBhcmFtKGZpbGwtb3BhY2l0eSkiCiAgICAgZmlsbD0icGFyYW0oZmlsbCkgIzE0OTZiZSIKICAgICBkPSJNIDUxNy44MzYxNiwxOTguOTg4NzUgNDM2LjU1Njc3LDE5Ny40Njg3NiAyOTQuODc3ODIsMjAyLjc0ODcyIDc2LjU1OTQzMywxOTguOTg4NzUgMTgwLjU1ODY2LDMwMy4yMjc5OCAyODkuOTE3ODUsNDA5Ljg2NzE5IDM5MS45OTcxLDMwOC41ODc5NCBaIgogICAgIGlkPSJwYXRoNSIgLz4KPC9zdmc+Cg==" type="QString"/>
+            <Option name="offset" value="0,0" type="QString"/>
+            <Option name="offset_map_unit_scale" value="3x:0,0,0,0,0,0" type="QString"/>
+            <Option name="offset_unit" value="MM" type="QString"/>
+            <Option name="outline_color" value="255,255,255,255,rgb:1,1,1,1" type="QString"/>
+            <Option name="outline_width" value="0" type="QString"/>
+            <Option name="outline_width_map_unit_scale" value="3x:0,0,0,0,0,0" type="QString"/>
+            <Option name="outline_width_unit" value="MM" type="QString"/>
+            <Option name="parameters"/>
+            <Option name="scale_method" value="diameter" type="QString"/>
+            <Option name="size" value="0" type="QString"/>
+            <Option name="size_map_unit_scale" value="3x:0,0,0,0,0,0" type="QString"/>
+            <Option name="size_unit" value="MM" type="QString"/>
+            <Option name="vertical_anchor_point" value="1" type="QString"/>
+          </Option>
+          <data_defined_properties>
+            <Option type="Map">
+              <Option name="name" value="" type="QString"/>
+              <Option name="properties" type="Map">
+                <Option name="size" type="Map">
+                  <Option name="active" value="true" type="bool"/>
+                  <Option name="expression" value="if(@id is NULL, NULL, if(coalesce(attribute($currentfeature,'NodeType'),attribute($currentfeature,'ElemType'))='RESERVOIR', 7, 0))" type="QString"/>
+                  <Option name="type" value="3" type="int"/>
+                </Option>
+              </Option>
+              <Option name="type" value="collection" type="QString"/>
+            </Option>
+          </data_defined_properties>
+        </layer>
+        <layer class="SvgMarker" locked="0" id="{e8630f93-535a-48cd-b8d7-7d2af14a47b2}" enabled="1" pass="0">
+          <Option type="Map">
+            <Option name="angle" value="0" type="QString"/>
+            <Option name="color" value="144,126,63,255,rgb:0.566170748455024,0.4951247425040055,0.24754711223010606,1" type="QString"/>
+            <Option name="fixedAspectRatio" value="0" type="QString"/>
+            <Option name="horizontal_anchor_point" value="1" type="QString"/>
+            <Option name="name" value="base64:PD94bWwgdmVyc2lvbj0iMS4wIiBlbmNvZGluZz0iVVRGLTgiIHN0YW5kYWxvbmU9Im5vIj8+CjxzdmcKICAgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIgogICBpZD0icWdpc3JlZF9mcmFtZSIKICAgd2lkdGg9IjE1NG1tIgogICBoZWlnaHQ9IjE1NG1tIgogICB2ZXJzaW9uPSIxLjAiPgogIDxwYXRoCiAgICAgc3Ryb2tlLXdpZHRoPSJwYXJhbShvdXRsaW5lLXdpZHRoKSAwIgogICAgIHN0cm9rZS1vcGFjaXR5PSJwYXJhbShvdXRsaW5lLW9wYWNpdHkpIgogICAgIHN0cm9rZT0icGFyYW0ob3V0bGluZSkgI0ZGRiIKICAgICBmaWxsLW9wYWNpdHk9InBhcmFtKGZpbGwtb3BhY2l0eSkiCiAgICAgZmlsbD0icGFyYW0oZmlsbCkgIzBjNWU3NyIKICAgICBkPSJtIDU0Mi4zMTU5OCwxNTIuMTA5MSBjIC01LjE5OTk2LDAgLTEwLjE1OTkyLDEuOTk5OTggLTEzLjkxOTg5LDUuNjc5OTYgbCAtMzQuNjM5NzUsMzIuNTU5NzYgSCA4Ni4xNTkzNjIgTCA1MS40Mzk2MTksMTU3Ljc4OTA2IEMgNDcuNTk5NjQ3LDE1My45NDkwOSA0Mi4zMTk2ODcsMTUxLjk0OTEgMzYuOTU5NzI2LDE1Mi4xMDkxIDE5LjAzOTg1OSwxNTIuNjY5MDkgMTAuNzk5OTIsMTc0Ljc0ODkzIDI0LjA3OTgyMiwxODYuODI4ODQgTCAyNzQuMDc3OTcsNDIyLjM0NzEgYyAzLjUxOTk3LDQuNDc5OTYgOC44Nzk5Myw3LjI3OTk0IDE0LjYzOTg5LDcuNTk5OTQgMC4wOCwwIDAuMTYsMCAwLjI0LDAgMC40LDAgMC43OTk5OSwwIDEuMjc5OTksMCA2LjA3OTk2LDAgMTEuNzU5OTEsLTIuNzk5OTggMTUuNTE5ODksLTcuNTE5OTQgTCA1NTUuODM1ODgsMTg2LjgyODg0IGMgMTMuNDM5OSwtMTIuMzE5OTEgNC43MTk5NywtMzQuNzE5NzQgLTEzLjUxOTksLTM0LjcxOTc0IHogbSAtNDM3LjgzNjc1LDU1LjUxOTU5IGggMzcwLjk1NzI1IGwgLTE4NS41MTg2MywxNzQuNzE4NyB6IG0gMjMxLjExODI4LDI2LjA3OTggLTkxLjM1OTMyLDAuMjQgYyAtNS41MTk5NiwwIC05Ljk5OTkzLDQuNDc5OTcgLTkuOTE5OTMsOS45OTk5MyAwLDUuNTk5OTYgNC40Nzk5Nyw5Ljk5OTkyIDkuOTk5OTMsOS45OTk5MiBsIDkxLjI3OTMyLC0wLjIzOTk5IGMgNS41OTk5NiwwLjA4IDEwLjE1OTkzLC00LjM5OTk3IDEwLjE1OTkzLC05Ljk5OTkzIDAsLTUuNTk5OTYgLTQuNTU5OTcsLTEwLjA3OTkzIC0xMC4xNTk5MywtOS45OTk5MyB6IgogICAgIGlkPSJwYXRoNyIgLz4KPC9zdmc+Cg==" type="QString"/>
+            <Option name="offset" value="0,0" type="QString"/>
+            <Option name="offset_map_unit_scale" value="3x:0,0,0,0,0,0" type="QString"/>
+            <Option name="offset_unit" value="MM" type="QString"/>
+            <Option name="outline_color" value="255,255,255,255,rgb:1,1,1,1" type="QString"/>
+            <Option name="outline_width" value="0" type="QString"/>
+            <Option name="outline_width_map_unit_scale" value="3x:0,0,0,0,0,0" type="QString"/>
+            <Option name="outline_width_unit" value="MM" type="QString"/>
+            <Option name="parameters"/>
+            <Option name="scale_method" value="diameter" type="QString"/>
+            <Option name="size" value="0" type="QString"/>
+            <Option name="size_map_unit_scale" value="3x:0,0,0,0,0,0" type="QString"/>
+            <Option name="size_unit" value="MM" type="QString"/>
+            <Option name="vertical_anchor_point" value="1" type="QString"/>
+          </Option>
+          <data_defined_properties>
+            <Option type="Map">
+              <Option name="name" value="" type="QString"/>
+              <Option name="properties" type="Map">
+                <Option name="size" type="Map">
+                  <Option name="active" value="true" type="bool"/>
+                  <Option name="expression" value="if(@id is NULL, NULL, if(coalesce(attribute($currentfeature,'NodeType'),attribute($currentfeature,'ElemType'))='RESERVOIR', 7, 0))" type="QString"/>
                   <Option name="type" value="3" type="int"/>
                 </Option>
               </Option>

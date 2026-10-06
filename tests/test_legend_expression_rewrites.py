@@ -1715,7 +1715,6 @@ ISOLATED_NODES_CLASS = (
     "with_variable('nodeType', " + ISOLATED_NODE_TYPE + ", "
     "with_variable('status', attribute($currentfeature,'Status'), "
     "CASE WHEN @nodeType = 'INCIDENCE' THEN 'INCIDENCE' "
-    "WHEN @nodeType IN ('TANK', 'RESERVOIR') THEN 'TO CLOSE' "
     "WHEN @nodeType = 'JUNCTION' THEN if(@status = 'TO RECOVER', 'TO RECOVER', 'ISOLATED') "
     "WHEN @status IN ('NOW CLOSED', 'TO CLOSE', 'TO OPEN', 'ISOLATED', 'TO RECOVER') "
     "THEN @status ELSE 'ISOLATED' END))"
@@ -1727,7 +1726,11 @@ ISOLATED_LINK_COLORS = {
 }
 ISOLATED_NODE_COLORS = dict(ISOLATED_LINK_COLORS, **{"INCIDENCE": "#d7b419"})
 ISOLATED_DEMAND_COLORS = {"JUNCTION": "#ff0000", "CONNECTION": "#ff0000"}
-FRAME_SHADE = "#9f009f"
+# The darker shade of each class color, drawn on the frame of the tank and reservoir icons
+ISOLATED_NODE_FRAME_SHADES = {
+    "NOW CLOSED": "#9f090c", "TO CLOSE": "#9f009f", "TO OPEN": "#009f95", "ISOLATED": "#9f6000",
+    "TO RECOVER": "#907e3f",
+}
 # (style, geometry, field of the element type, colors) of each layer with a legend of fixed classes
 FIXED_LEGENDS = {
     ISOLATED_LINKS_IDENTIFIER: (ISOLATED_LINKS_STYLE, "LineString", "LinkType", ISOLATED_LINK_COLORS),
@@ -1739,17 +1742,18 @@ EVERY_FIXED_LEGEND = pytest.mark.parametrize("identifier", sorted(FIXED_LEGENDS)
 ISOLATED_LINK_BASE_SIZES = {"connectionLine": 1.4, "connectionCircle": 0, "pipeLine": 1.4, "pump": 0, "valve": 0}
 # What each class of the nodes is drawn with: (marker, node type it is drawn for or None for
 # any, size on the map, size in the Layers Panel)
-PLAIN_CIRCLE = [("circle", None, 2, 2)]
+VALVE_CIRCLE = [("circle", "ISOLATIONVALVE", 2, 2)]
 JUNCTION_AND_VALVE_CIRCLES = [("circle", "JUNCTION", 2, 2), ("circle", "ISOLATIONVALVE", 2, 0)]
+TANK_AND_RESERVOIR_ICONS = [
+    ("qgisred_water", "TANK", 7, 0), ("qgisred_frame", "TANK", 7, 0),
+    ("qgisred_water", "RESERVOIR", 7, 0), ("qgisred_frame", "RESERVOIR", 7, 0),
+]
 ISOLATED_NODE_LAYERS = {
-    "NOW CLOSED": PLAIN_CIRCLE,
-    "TO CLOSE": [
-        ("circle", "ISOLATIONVALVE", 2, 2), ("qgisred_water", "TANK", 7, 0), ("qgisred_frame", "TANK", 7, 0),
-        ("qgisred_water", "RESERVOIR", 7, 0), ("qgisred_frame", "RESERVOIR", 7, 0),
-    ],
-    "TO OPEN": PLAIN_CIRCLE,
-    "ISOLATED": JUNCTION_AND_VALVE_CIRCLES,
-    "TO RECOVER": JUNCTION_AND_VALVE_CIRCLES,
+    "NOW CLOSED": VALVE_CIRCLE + TANK_AND_RESERVOIR_ICONS,
+    "TO CLOSE": VALVE_CIRCLE + TANK_AND_RESERVOIR_ICONS,
+    "TO OPEN": VALVE_CIRCLE + TANK_AND_RESERVOIR_ICONS,
+    "ISOLATED": JUNCTION_AND_VALVE_CIRCLES + TANK_AND_RESERVOIR_ICONS,
+    "TO RECOVER": JUNCTION_AND_VALVE_CIRCLES + TANK_AND_RESERVOIR_ICONS,
     "INCIDENCE": [("star", None, 6, 6)],
 }
 
@@ -1871,7 +1875,7 @@ class TestShippedFixedLegends:
         for layer, (marker, nodeType, _drawn, _panel) in zip(_classLayers(ISOLATED_NODES_STYLE, value), expectedLayers):
             fill = _optionColor(layer, "color")
             if marker == "qgisred_frame":
-                assert (color, fill) == ("#ff00ff", FRAME_SHADE)
+                assert fill == ISOLATED_NODE_FRAME_SHADES[value]
             elif marker == "qgisred_water":
                 assert fill == color
             elif marker == "star":
@@ -2062,8 +2066,10 @@ class TestFixedLegendsInQgis:
         ("ISOLATIONVALVE", "NOT AVAILABLE", "ISOLATED"),
         ("ISOLATIONVALVE", "CLOSED", "ISOLATED"),
         ("ISOLATIONVALVE", None, "ISOLATED"),
-        ("TANK", "TO RECOVER", "TO CLOSE"),
-        ("RESERVOIR", None, "TO CLOSE"),
+        ("TANK", "TO RECOVER", "TO RECOVER"),
+        ("TANK", "NOW CLOSED", "NOW CLOSED"),
+        ("RESERVOIR", "TO CLOSE", "TO CLOSE"),
+        ("RESERVOIR", None, "ISOLATED"),
         ("INCIDENCE", None, "INCIDENCE"),
         ("INCIDENCE", "ISOLATED", "INCIDENCE"),
     ])
@@ -2120,7 +2126,9 @@ class TestFixedLegendsInQgis:
         for value in ("ISOLATED", "TO CLOSE", "INCIDENCE"):
             dialog.applyFixedClassColor(symbols[value], value, picked)
         shade = picked.darker(160).name()
-        assert paintedColors(symbols["ISOLATED"]) == [("#ffffff", self.PICKED), (self.PICKED, self.PICKED)]
+        assert paintedColors(symbols["ISOLATED"])[:2] == [("#ffffff", self.PICKED), (self.PICKED, self.PICKED)]
+        assert [fill for fill, _stroke in paintedColors(symbols["ISOLATED"])[2:]] == [
+            self.PICKED, shade, self.PICKED, shade]
         assert [fill for fill, _stroke in paintedColors(symbols["TO CLOSE"])] == [
             self.PICKED, self.PICKED, shade, self.PICKED, shade]
         assert paintedColors(symbols["INCIDENCE"]) == [(self.PICKED, "#000000")]
