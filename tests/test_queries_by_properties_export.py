@@ -139,8 +139,8 @@ class TestHeaderBlock:
 
         assert rows[3:9] == [
             ["Queries at 12:00:00:"],
-            ["+ Flow >= 5 lps"],
-            ["- Diameter <= 100 mm"],
+            ["Cr1: + Flow >= 5 lps"],
+            ["Cr2: - Diameter <= 100 mm"],
             ["Comment: Big pipes"],
             ["Statistics: Flow (lps)"],
             [],

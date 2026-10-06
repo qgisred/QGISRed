@@ -2212,7 +2212,8 @@ class QGISRedQueriesByPropertiesDock(QGISRedHighlightOwnerMixin, QDockWidget, FO
             lines.append(f"Query: {self.formatCriterionForExport(enabledCriteria[0], False)}{contextSuffix}")
         else:
             lines.append(f"Queries{contextSuffix}:")
-            lines.extend(self.formatCriterionForExport(c, True) for c in enabledCriteria)
+            # A leading + or - would make a spreadsheet read the cell as a formula
+            lines.extend(f"Cr{n}: {self.formatCriterionForExport(c, True)}" for n, c in enumerate(enabledCriteria, 1))
             comment = self.multipleCriteriaComment.text().strip()
             if comment:
                 lines.append(f"Comment: {comment}")
