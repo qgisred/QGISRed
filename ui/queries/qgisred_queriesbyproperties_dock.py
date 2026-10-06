@@ -16,7 +16,7 @@ import math
 from ..analysis.qgisred_results_dock import QGISRedResultsDock
 from ..analysis.qgisred_results_data import infer_stat_en_from_layer
 from ...tools.utils.qgisred_field_utils import QGISRedFieldUtils, normalize_element
-from ...tools.utils.qgisred_filesystem_utils import QGISRedFileSystemUtils
+from ...tools.utils.qgisred_filesystem_utils import DIR_QUERIES, QGISRedFileSystemUtils
 from ...tools.utils.qgisred_layer_utils import QGISRedLayerUtils
 from ...tools.utils.qgisred_project_utils import QGISRedProjectUtils
 from ...tools.utils.qgisred_ui_utils import QGISRED_COMBO_STYLE, QGISRedUIUtils
@@ -2060,13 +2060,18 @@ class QGISRedQueriesByPropertiesDock(QGISRedHighlightOwnerMixin, QDockWidget, FO
                 return fileName[:-len("_Pipes")]
         return QgsProject.instance().baseName() or "QGISRed"
 
+    def exportFolder(self):
+        folder = os.path.join(str(QgsProject.instance().homePath()), DIR_QUERIES, "Queries by properties")
+        os.makedirs(folder, exist_ok=True)
+        return folder
+
     def exportCriteria(self):
         projectName = self.currentProjectName()
         defaultName = f"{projectName}_Query_Criteria_{datetime.now().strftime('%Y%m%d_%H%M%S')}.txt"
         fname, _ = QFileDialog.getSaveFileName(
             self,
             self.tr("Save criteria file"),
-            os.path.join(str(QgsProject.instance().homePath()), defaultName),
+            os.path.join(self.exportFolder(), defaultName),
             self.tr("Text Files (*.txt)")
         )
         if not fname:
@@ -2244,7 +2249,7 @@ class QGISRedQueriesByPropertiesDock(QGISRedHighlightOwnerMixin, QDockWidget, FO
         fname, _ = QFileDialog.getSaveFileName(
             self,
             self.tr("Save statistics file"),
-            os.path.join(str(QgsProject.instance().homePath()), defaultName),
+            os.path.join(self.exportFolder(), defaultName),
             self.tr("CSV Files (*.csv)")
         )
         if not fname:

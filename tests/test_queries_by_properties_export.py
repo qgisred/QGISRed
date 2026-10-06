@@ -236,7 +236,8 @@ class TestDefaultFileNames:
 
         assert _export(_dock(), tmp_path, proposedPaths=proposed) is None
         assert re.fullmatch(r"GranRed_Query_Statistics_\d{8}_\d{6}\.csv", os.path.basename(proposed[0]))
-        assert os.path.dirname(proposed[0]) == str(tmp_path)
+        assert os.path.dirname(proposed[0]) == os.path.join(str(tmp_path), "Queries", "Queries by properties")
+        assert os.path.isdir(os.path.dirname(proposed[0]))
 
     def test_criteria_file_is_named_after_the_network(self, tmp_path):
         dock = _dock()
@@ -254,3 +255,5 @@ class TestDefaultFileNames:
             dock.exportCriteria()
 
         assert re.fullmatch(r"GranRed_Query_Criteria_\d{8}_\d{6}\.txt", os.path.basename(proposed[0]))
+        assert os.path.dirname(proposed[0]) == os.path.join(str(tmp_path), "Queries", "Queries by properties")
+        assert os.path.isdir(os.path.dirname(proposed[0]))
