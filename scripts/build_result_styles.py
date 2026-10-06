@@ -14,7 +14,9 @@ the spec "El panel de Resultados de QGISRed y sus estilos" (F. Martinez Alzamora
   (files NodePressureSI / NodePressureUS...), one file per water quality kind;
 - Pretty Breaks over the data for Head, Demand, Flow, Reaction rate and any chemical that
   is not chlorine: those files carry a legend strategy the plugin replays on every load,
-  and their classes are only placeholders;
+  and their classes are only placeholders; the breaks of Demand come from the absolute
+  values of the junctions and those of Head ignore the reservoirs, and Demand keeps a
+  white, larger class below zero like the pressures;
 - Status as three groups of EPANET states: Open, Active, Closed.
 
 Run it after changing RESULT_STYLES or a template:
@@ -34,7 +36,7 @@ STYLES_DIR = os.path.join(PLUGIN_ROOT, "defaults", "layerStyles")
 TEMPLATES_DIR = os.path.join(os.path.dirname(os.path.abspath(__file__)), "result_style_templates")
 
 # The results palette, low to high, as the style database ships it (build_style_db.py).
-PALETTE = ("#0084ff", "#00ffff", "#00ff00", "#ffd800", "#ff5d00")
+PALETTE = ("#004eff", "#00ffff", "#00ff00", "#ffd800", "#ff3800")
 PALETTE_NAME = "QGISRed EPANET Results"
 NEGATIVE_COLOR = "#ffffff"
 
@@ -48,11 +50,17 @@ ICON_SIZE = 7          # pumps and valves
 # Sentinel of an open-ended class, the one the plugin's rule parsing expects.
 OPEN_BOUND = 1e10
 
+# Upper bound of the class below zero of a Pretty Breaks style (half of the last decimal).
+NEGATIVE_UPPER = -0.005
+
+# Values a wizard samples on the node layer: NULL (ignored) for the node types named first.
+NODE_VALUES_EXCEPT = "if(coalesce(\"NodeType\", \"Type\") in ('%s'), NULL, %s)"
+
 # Status groups: label, filter pattern, colour (the "QGISRed Link Status" palette colours).
 STATUS_CLASSES = (
-    ("Open", "Open%", "#008000"),
-    ("Active", "Active%", "#ffa500"),
-    ("Closed", "%Closed%", "#ff0000"),
+    ("Open", "Open%", "#00ff00"),
+    ("Active", "Active%", "#ffd800"),
+    ("Closed", "%Closed%", "#ff3800"),
 )
 
 # Sizes the templates state (the shipped NodePressure / LinkFlow symbols they were cut from).
@@ -88,9 +96,15 @@ def fixedStyle(name, element, identifier, breaks, minimum, maximum, shift, negat
             "minimum": minimum, "maximum": maximum, "shift": shift, "negativeClass": negativeClass}
 
 
-def prettyStyle(name, element, identifier, field):
-    """A style whose five classes are Pretty Breaks over the data, recomputed on every load."""
-    return {"name": name, "element": element, "identifier": identifier, "kind": "pretty", "field": field}
+def prettyStyle(name, element, identifier, field, sampleField=None, negativeClass=False):
+    """A style whose five classes are Pretty Breaks over the data, recomputed on every load.
+
+    `sampleField` is the expression the breaks are computed over when it differs from
+    the classified `field` (absolute demands of the junctions only, heads without the
+    reservoirs). `negativeClass` keeps a white, larger first class below zero.
+    """
+    return {"name": name, "element": element, "identifier": identifier, "kind": "pretty", "field": field,
+            "sampleField": sampleField, "negativeClass": negativeClass}
 
 
 def qualityStyles(element):
@@ -107,9 +121,11 @@ def qualityStyles(element):
 # pressures and flows take theirs from the Global PressUnits / FlowUnits rows: 2 decimals).
 RESULT_STYLES = (
     fixedStyle("NodePressureSI", "Node", "qgisred_node_pressure", (0, 15, 30, 40, 50), -10, 200, 0.005, True),
-    fixedStyle("NodePressureUS", "Node", "qgisred_node_pressure", (0, 45, 90, 120, 150), -30, 600, 0.005, True),
-    prettyStyle("NodeHead", "Node", "qgisred_node_head", "Head"),
-    prettyStyle("NodeDemand", "Node", "qgisred_node_demand", "Demand"),
+    fixedStyle("NodePressureUS", "Node", "qgisred_node_pressure", (0, 20, 40, 60, 70), -14, 300, 0.005, True),
+    prettyStyle("NodeHead", "Node", "qgisred_node_head", "Head",
+                sampleField=NODE_VALUES_EXCEPT % ("RESERVOIR", '"Head"')),
+    prettyStyle("NodeDemand", "Node", "qgisred_node_demand", "Demand",
+                sampleField=NODE_VALUES_EXCEPT % ("TANK','RESERVOIR", 'abs("Demand")'), negativeClass=True),
 ) + qualityStyles("Node") + (
     prettyStyle("LinkFlow", "Link", "qgisred_link_flow", "abs(Flow)"),
     fixedStyle("LinkVelocitySI", "Link", "qgisred_link_velocity", (0.25, 0.5, 0.75, 1), 0, 10, 0.005),
@@ -219,10 +235,17 @@ def fixedClasses(spec):
     return [(bounds[i], bounds[i + 1], labels[i], colors[i], sizes[i]) for i in range(colorCount)]
 
 
-def prettyClasses():
-    """Placeholder classes of a Pretty Breaks style: replaced from the data on every load."""
+def prettyClasses(spec):
+    """Placeholder classes of a Pretty Breaks style: replaced from the data on every load.
+
+    The class below zero is not a placeholder: the replay keeps it as the file states it.
+    """
     count = len(PALETTE)
-    return [(index, index + 1, "%d - %d" % (index, index + 1), PALETTE[index], JUNCTION_SIZE) for index in range(count)]
+    classes = [(index, index + 1, "%d - %d" % (index, index + 1), PALETTE[index], JUNCTION_SIZE)
+               for index in range(count)]
+    if spec["negativeClass"]:
+        classes.insert(0, (-OPEN_BOUND, NEGATIVE_UPPER, "< 0", NEGATIVE_COLOR, NEGATIVE_JUNCTION_SIZE))
+    return classes
 
 
 def rangeLine(spec, index, lower, upper, label):
@@ -288,13 +311,18 @@ def statusRenderer(spec):
             % (stableUuid(spec["name"], "rules"), rules, symbols, RENDERER_TAIL))
 
 
-def legendStrategy(field):
+def legendStrategy(spec):
+    intervals = {"classificationMode": "Pretty", "classes": len(PALETTE)}
+    if spec["sampleField"]:
+        intervals["sampleField"] = spec["sampleField"]
+    if spec["negativeClass"]:
+        intervals["negativeClass"] = True
     return {
         "schema": "qgisred.legendStrategy.v2",
         "mode": "graduated",
-        "field": field,
+        "field": spec["field"],
         "parts": ["intervals", "colors"],
-        "intervals": {"classificationMode": "Pretty", "classes": len(PALETTE)},
+        "intervals": intervals,
         "colors": {"source": "ramp", "rampName": PALETTE_NAME, "invertRamp": False},
     }
 
@@ -311,7 +339,7 @@ def tailXml(spec):
         templateLine = identifierLine % "qgisred_link_flow"
     replacement = identifierLine % spec["identifier"]
     if spec["kind"] == "pretty":
-        strategy = json.dumps(legendStrategy(spec["field"]), separators=(",", ":"))
+        strategy = json.dumps(legendStrategy(spec), separators=(",", ":"))
         replacement += strategyLine % escape(strategy, {'"': "&quot;"})
     assert tail.count(templateLine) == 1
     return tail.replace(templateLine, replacement)
@@ -323,7 +351,7 @@ def renderStyle(spec):
     if spec["kind"] == "fixed":
         renderer = graduatedRenderer(spec, classAttribute(spec), fixedClasses(spec), "Custom", False)
     elif spec["kind"] == "pretty":
-        renderer = graduatedRenderer(spec, spec["field"], prettyClasses(), "Pretty", True)
+        renderer = graduatedRenderer(spec, spec["field"], prettyClasses(spec), "Pretty", True)
     else:
         renderer = statusRenderer(spec)
     return head + renderer + tailXml(spec)

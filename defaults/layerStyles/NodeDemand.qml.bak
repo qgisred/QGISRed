@@ -146,11 +146,12 @@
   </elevation>
   <renderer-v2 forceraster="0" referencescale="-1" attr="Demand" type="graduatedSymbol" symbollevels="0" graduatedMethod="GraduatedColor" enableorderby="0">
     <ranges>
-      <range lower="0" label="0 - 1" upper="1" symbol="0" render="true" uuid="{89afc7ed-db15-50ea-bcea-508ece40c19a}"/>
-      <range lower="1" label="1 - 2" upper="2" symbol="1" render="true" uuid="{b36a7b4f-6877-580e-9580-be9b599aebf2}"/>
-      <range lower="2" label="2 - 3" upper="3" symbol="2" render="true" uuid="{483327b1-8674-55c3-8896-bdc52488cd41}"/>
-      <range lower="3" label="3 - 4" upper="4" symbol="3" render="true" uuid="{1b1173c1-e8ec-5188-baa9-82cf25a378bd}"/>
-      <range lower="4" label="4 - 5" upper="5" symbol="4" render="true" uuid="{c932f95b-c673-527a-b7f7-0db5dda1cf3f}"/>
+      <range lower="-10000000000" label="&lt; 0" upper="-0.005" symbol="0" render="true" uuid="{89afc7ed-db15-50ea-bcea-508ece40c19a}"/>
+      <range lower="0" label="0 - 1" upper="1" symbol="1" render="true" uuid="{b36a7b4f-6877-580e-9580-be9b599aebf2}"/>
+      <range lower="1" label="1 - 2" upper="2" symbol="2" render="true" uuid="{483327b1-8674-55c3-8896-bdc52488cd41}"/>
+      <range lower="2" label="2 - 3" upper="3" symbol="3" render="true" uuid="{1b1173c1-e8ec-5188-baa9-82cf25a378bd}"/>
+      <range lower="3" label="3 - 4" upper="4" symbol="4" render="true" uuid="{c932f95b-c673-527a-b7f7-0db5dda1cf3f}"/>
+      <range lower="4" label="4 - 5" upper="5" symbol="5" render="true" uuid="{acf5cb2a-c969-58ed-9dac-1988b8a12a48}"/>
     </ranges>
     <symbols>
       <symbol alpha="1" is_animated="0" frame_rate="10" type="marker" clip_to_extent="1" name="0" force_rhr="0">
@@ -164,7 +165,7 @@
         <layer id="{97e54684-dc68-47d3-97a4-e2fcb8a309d2}" class="SvgMarker" pass="0" enabled="1" locked="0">
           <Option type="Map">
             <Option value="0" type="QString" name="angle"/>
-            <Option value="0,132,255,255,rgb:0,0.5176471,1,1" type="QString" name="color"/>
+            <Option value="255,255,255,255,rgb:1,1,1,1" type="QString" name="color"/>
             <Option value="0" type="QString" name="fixedAspectRatio"/>
             <Option value="1" type="QString" name="horizontal_anchor_point"/>
             <Option value="base64:PD94bWwgdmVyc2lvbj0iMS4wIiBlbmNvZGluZz0iVVRGLTgiIHN0YW5kYWxvbmU9Im5vIj8+CjxzdmcKICAgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIgogICBpZD0icWdpc3JlZF93YXRlciIKICAgaGVpZ2h0PSIxNTRtbSIKICAgd2lkdGg9IjE1NG1tIgogICB2ZXJzaW9uPSIxLjAiPgogIDxwYXRoCiAgICAgaWQ9InBhdGg1IgogICAgIGQ9IiAgTSA3OC4zOTk0MTksMTc0LjQ3ODcxICAgTCA3OC4zOTk0MTksMTgxLjU5ODY1ICAgTCA3OC4zOTk0MTksNDQ2LjM5NjY5ICAgTCA1MDMuNDM2MjcsNDQ2LjM5NjY5ICAgTCA1MDMuNDM2MjcsMTc0LjQ3ODcxICAgeiAiCiAgICAgc3Ryb2tlLXdpZHRoPSJwYXJhbShvdXRsaW5lLXdpZHRoKSAwIgogICAgIHN0cm9rZS1vcGFjaXR5PSJwYXJhbShvdXRsaW5lLW9wYWNpdHkpIgogICAgIHN0cm9rZT0icGFyYW0ob3V0bGluZSkgI0ZGRiIKICAgICBmaWxsLW9wYWNpdHk9InBhcmFtKGZpbGwtb3BhY2l0eSkiCiAgICAgZmlsbD0icGFyYW0oZmlsbCkgIzE0OTZiZSIgLz4KPC9zdmc+Cg==" type="QString" name="name"/>
@@ -204,7 +205,7 @@
         <layer id="{97e54684-dc68-47d3-97a4-e2fcb8a309d2}" class="SvgMarker" pass="0" enabled="1" locked="0">
           <Option type="Map">
             <Option value="0" type="QString" name="angle"/>
-            <Option value="0,82,159,255,rgb:0,0.3215686,0.6235294,1" type="QString" name="color"/>
+            <Option value="159,159,159,255,rgb:0.6235294,0.6235294,0.6235294,1" type="QString" name="color"/>
             <Option value="0" type="QString" name="fixedAspectRatio"/>
             <Option value="1" type="QString" name="horizontal_anchor_point"/>
             <Option value="base64:PD94bWwgdmVyc2lvbj0iMS4wIiBlbmNvZGluZz0iVVRGLTgiIHN0YW5kYWxvbmU9Im5vIj8+CjxzdmcKICAgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIgogICBpZD0icWdpc3JlZF9mcmFtZSIKICAgaGVpZ2h0PSIxNTRtbSIKICAgd2lkdGg9IjE1NG1tIgogICB2ZXJzaW9uPSIxLjAiPgogIDxwYXRoCiAgICAgaWQ9InBhdGg3IgogICAgIGQ9IiAgTSA2Mi43MTk1MzUsODMuOTE5Mzc4ICAgQyA0OC45NTk2MzcsODQuMTU5Mzc3IDM3LjkxOTcxOSw5NS41MTkyOTIgMzguMDc5NzE4LDEwOS4yNzkxOSAgIEwgMzguMDc5NzE4LDQ2NC45NTY1NiAgIEMgMzYuNjM5NzI5LDQ3My4wMzY1IDM5LjE5OTcxLDQ4MS40MzY0MyA0NS4wMzk2NjYsNDg3LjI3NjM5ICAgQyA1MC44Nzk2MjMsNDkzLjI3NjM1IDU5LjI3OTU2MSw0OTUuOTk2MzMgNjcuNTk5NDk5LDQ5NC41NTYzNCAgIEwgNTE3LjU5NjE3LDQ5NS42NzYzMyAgIEMgNTIzLjUxNjEyLDQ5Ni41NTYzMiA1MjkuNTk2MDgsNDk1LjI3NjMzIDUzNC42MzYwNCw0OTEuOTk2MzYgICBDIDU0My40MzU5Nyw0ODYuNjM2NCA1NDguMDc1OTQsNDc2LjM5NjQ3IDU0Ni4yMzU5NSw0NjYuMjM2NTUgICBMIDU0Ni4yMzU5NSwxMTAuNDc5MTggICBDIDU0Ni4zOTU5NSw5Ni4zOTkyODYgNTM0Ljk1NjA0LDg0Ljg3OTM3MSA1MjAuNzk2MTQsODUuMTE5MzY5ICAgQyA1MDcuMDM2MjQsODUuMzU5MzY4IDQ5NS45OTYzMyw5Ni42MzkyODQgNDk2LjIzNjMyLDExMC40NzkxOCAgIEwgNDk2LjIzNjMyLDE2NC4wNzg3OCAgIEwgODguMDc5MzQ4LDE2My4wMzg3OSAgIEwgODguMDc5MzQ4LDEwOS4yNzkxOSAgIEMgODguMzE5MzQ2LDk1LjE5OTI5NSA3Ni43OTk0MzEsODMuNzU5MzggNjIuNzE5NTM1LDgzLjkxOTM3OCAgIHogIE0gODguMDc5MzQ4LDE4OC4zMTg2MSAgIEwgNDk2LjIzNjMyLDE4OS4zNTg2ICAgTCA0OTYuMjM2MzIsNDQ1LjU5NjcgICBMIDg4LjA3OTM0OCw0NDQuNTU2NzEgICB6ICBNIDM0OC43MTc0MiwyMTMuOTE4NDIgICBMIDIzMy4zNTgyNywyMTQuMjM4NDEgICBDIDIyNi4zMTgzMiwyMTQuMTU4NDEgMjIwLjYzODM3LDIxOS44MzgzNyAyMjAuNjM4MzcsMjI2Ljg3ODMyICAgQyAyMjAuNjM4MzcsMjMzLjkxODI3IDIyNi4zOTgzMiwyMzkuNTk4MjMgMjMzLjQzODI3LDIzOS41MTgyMyAgIEwgMzQ4Ljc5NzQyLDIzOS4xOTgyMyAgIEMgMzU1LjgzNzM2LDIzOS4yNzgyMyAzNjEuNTE3MzIsMjMzLjU5ODI3IDM2MS41MTczMiwyMjYuNTU4MzIgICBDIDM2MS41MTczMiwyMTkuNTE4MzcgMzU1Ljc1NzM2LDIxMy44Mzg0MiAzNDguNzE3NDIsMjEzLjkxODQyICAgeiAiCiAgICAgc3Ryb2tlLXdpZHRoPSJwYXJhbShvdXRsaW5lLXdpZHRoKSAwIgogICAgIHN0cm9rZS1vcGFjaXR5PSJwYXJhbShvdXRsaW5lLW9wYWNpdHkpIgogICAgIHN0cm9rZT0icGFyYW0ob3V0bGluZSkgI0ZGRiIKICAgICBmaWxsLW9wYWNpdHk9InBhcmFtKGZpbGwtb3BhY2l0eSkiCiAgICAgZmlsbD0icGFyYW0oZmlsbCkgIzBjNWU3NyIgLz4KPC9zdmc+Cg==" type="QString" name="name"/>
@@ -244,7 +245,7 @@
         <layer id="{47472e31-3a37-4f39-adc7-2ffb883ab71e}" class="SvgMarker" pass="0" enabled="1" locked="0">
           <Option type="Map">
             <Option value="0" type="QString" name="angle"/>
-            <Option value="0,132,255,255,rgb:0,0.5176471,1,1" type="QString" name="color"/>
+            <Option value="255,255,255,255,rgb:1,1,1,1" type="QString" name="color"/>
             <Option value="0" type="QString" name="fixedAspectRatio"/>
             <Option value="1" type="QString" name="horizontal_anchor_point"/>
             <Option value="base64:PD94bWwgdmVyc2lvbj0iMS4wIiBlbmNvZGluZz0iVVRGLTgiIHN0YW5kYWxvbmU9Im5vIj8+CjxzdmcKICAgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIgogICBpZD0icWdpc3JlZF93YXRlciIKICAgd2lkdGg9IjE1NG1tIgogICBoZWlnaHQ9IjE1NG1tIgogICB2ZXJzaW9uPSIxLjAiPgogIDxwYXRoCiAgICAgc3Ryb2tlLXdpZHRoPSJwYXJhbShvdXRsaW5lLXdpZHRoKSAwIgogICAgIHN0cm9rZS1vcGFjaXR5PSJwYXJhbShvdXRsaW5lLW9wYWNpdHkpIgogICAgIHN0cm9rZT0icGFyYW0ob3V0bGluZSkgI0ZGRiIKICAgICBmaWxsLW9wYWNpdHk9InBhcmFtKGZpbGwtb3BhY2l0eSkiCiAgICAgZmlsbD0icGFyYW0oZmlsbCkgIzE0OTZiZSIKICAgICBkPSJNIDUxNy44MzYxNiwxOTguOTg4NzUgNDM2LjU1Njc3LDE5Ny40Njg3NiAyOTQuODc3ODIsMjAyLjc0ODcyIDc2LjU1OTQzMywxOTguOTg4NzUgMTgwLjU1ODY2LDMwMy4yMjc5OCAyODkuOTE3ODUsNDA5Ljg2NzE5IDM5MS45OTcxLDMwOC41ODc5NCBaIgogICAgIGlkPSJwYXRoNSIgLz4KPC9zdmc+Cg==" type="QString" name="name"/>
@@ -284,7 +285,7 @@
         <layer id="{47472e31-3a37-4f39-adc7-2ffb883ab71e}" class="SvgMarker" pass="0" enabled="1" locked="0">
           <Option type="Map">
             <Option value="0" type="QString" name="angle"/>
-            <Option value="0,82,159,255,rgb:0,0.3215686,0.6235294,1" type="QString" name="color"/>
+            <Option value="159,159,159,255,rgb:0.6235294,0.6235294,0.6235294,1" type="QString" name="color"/>
             <Option value="0" type="QString" name="fixedAspectRatio"/>
             <Option value="1" type="QString" name="horizontal_anchor_point"/>
             <Option value="base64:PD94bWwgdmVyc2lvbj0iMS4wIiBlbmNvZGluZz0iVVRGLTgiIHN0YW5kYWxvbmU9Im5vIj8+CjxzdmcKICAgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIgogICBpZD0icWdpc3JlZF9mcmFtZSIKICAgd2lkdGg9IjE1NG1tIgogICBoZWlnaHQ9IjE1NG1tIgogICB2ZXJzaW9uPSIxLjAiPgogIDxwYXRoCiAgICAgc3Ryb2tlLXdpZHRoPSJwYXJhbShvdXRsaW5lLXdpZHRoKSAwIgogICAgIHN0cm9rZS1vcGFjaXR5PSJwYXJhbShvdXRsaW5lLW9wYWNpdHkpIgogICAgIHN0cm9rZT0icGFyYW0ob3V0bGluZSkgI0ZGRiIKICAgICBmaWxsLW9wYWNpdHk9InBhcmFtKGZpbGwtb3BhY2l0eSkiCiAgICAgZmlsbD0icGFyYW0oZmlsbCkgIzBjNWU3NyIKICAgICBkPSJtIDU0Mi4zMTU5OCwxNTIuMTA5MSBjIC01LjE5OTk2LDAgLTEwLjE1OTkyLDEuOTk5OTggLTEzLjkxOTg5LDUuNjc5OTYgbCAtMzQuNjM5NzUsMzIuNTU5NzYgSCA4Ni4xNTkzNjIgTCA1MS40Mzk2MTksMTU3Ljc4OTA2IEMgNDcuNTk5NjQ3LDE1My45NDkwOSA0Mi4zMTk2ODcsMTUxLjk0OTEgMzYuOTU5NzI2LDE1Mi4xMDkxIDE5LjAzOTg1OSwxNTIuNjY5MDkgMTAuNzk5OTIsMTc0Ljc0ODkzIDI0LjA3OTgyMiwxODYuODI4ODQgTCAyNzQuMDc3OTcsNDIyLjM0NzEgYyAzLjUxOTk3LDQuNDc5OTYgOC44Nzk5Myw3LjI3OTk0IDE0LjYzOTg5LDcuNTk5OTQgMC4wOCwwIDAuMTYsMCAwLjI0LDAgMC40LDAgMC43OTk5OSwwIDEuMjc5OTksMCA2LjA3OTk2LDAgMTEuNzU5OTEsLTIuNzk5OTggMTUuNTE5ODksLTcuNTE5OTQgTCA1NTUuODM1ODgsMTg2LjgyODg0IGMgMTMuNDM5OSwtMTIuMzE5OTEgNC43MTk5NywtMzQuNzE5NzQgLTEzLjUxOTksLTM0LjcxOTc0IHogbSAtNDM3LjgzNjc1LDU1LjUxOTU5IGggMzcwLjk1NzI1IGwgLTE4NS41MTg2MywxNzQuNzE4NyB6IG0gMjMxLjExODI4LDI2LjA3OTggLTkxLjM1OTMyLDAuMjQgYyAtNS41MTk5NiwwIC05Ljk5OTkzLDQuNDc5OTcgLTkuOTE5OTMsOS45OTk5MyAwLDUuNTk5OTYgNC40Nzk5Nyw5Ljk5OTkyIDkuOTk5OTMsOS45OTk5MiBsIDkxLjI3OTMyLC0wLjIzOTk5IGMgNS41OTk5NiwwLjA4IDEwLjE1OTkzLC00LjM5OTk3IDEwLjE1OTkzLC05Ljk5OTkzIDAsLTUuNTk5OTYgLTQuNTU5OTcsLTEwLjA3OTkzIC0xMC4xNTk5MywtOS45OTk5MyB6IgogICAgIGlkPSJwYXRoNyIgLz4KPC9zdmc+Cg==" type="QString" name="name"/>
@@ -325,7 +326,7 @@
           <Option type="Map">
             <Option value="0" type="QString" name="angle"/>
             <Option value="square" type="QString" name="cap_style"/>
-            <Option value="0,132,255,255,rgb:0,0.5176471,1,1" type="QString" name="color"/>
+            <Option value="255,255,255,255,rgb:1,1,1,1" type="QString" name="color"/>
             <Option value="1" type="QString" name="horizontal_anchor_point"/>
             <Option value="bevel" type="QString" name="joinstyle"/>
             <Option value="circle" type="QString" name="name"/>
@@ -338,7 +339,7 @@
             <Option value="3x:0,0,0,0,0,0" type="QString" name="outline_width_map_unit_scale"/>
             <Option value="MM" type="QString" name="outline_width_unit"/>
             <Option value="diameter" type="QString" name="scale_method"/>
-            <Option value="2" type="QString" name="size"/>
+            <Option value="2.5" type="QString" name="size"/>
             <Option value="3x:0,0,0,0,0,0" type="QString" name="size_map_unit_scale"/>
             <Option value="MM" type="QString" name="size_unit"/>
             <Option value="1" type="QString" name="vertical_anchor_point"/>
@@ -349,12 +350,12 @@
               <Option type="Map" name="properties">
                 <Option type="Map" name="size">
                   <Option value="true" type="bool" name="active"/>
-                  <Option value="if(@id is NULL, NULL, if(coalesce(attribute($currentfeature,'NodeType'),attribute($currentfeature,'Type')) ='RESERVOIR' or coalesce(attribute($currentfeature,'NodeType'),attribute($currentfeature,'Type'))='TANK', 0,2))" type="QString" name="expression"/>
+                  <Option value="if(@id is NULL, NULL, if(coalesce(attribute($currentfeature,'NodeType'),attribute($currentfeature,'Type')) ='RESERVOIR' or coalesce(attribute($currentfeature,'NodeType'),attribute($currentfeature,'Type'))='TANK', 0,2.5))" type="QString" name="expression"/>
                   <Option value="3" type="int" name="type"/>
                 </Option>
                 <Option type="Map" name="width">
                   <Option value="true" type="bool" name="active"/>
-                  <Option value="if(@id is NULL, NULL, if(coalesce(attribute($currentfeature,'NodeType'),attribute($currentfeature,'Type')) ='RESERVOIR' or coalesce(attribute($currentfeature,'NodeType'),attribute($currentfeature,'Type'))='TANK', 0,2))" type="QString" name="expression"/>
+                  <Option value="if(@id is NULL, NULL, if(coalesce(attribute($currentfeature,'NodeType'),attribute($currentfeature,'Type')) ='RESERVOIR' or coalesce(attribute($currentfeature,'NodeType'),attribute($currentfeature,'Type'))='TANK', 0,2.5))" type="QString" name="expression"/>
                   <Option value="3" type="int" name="type"/>
                 </Option>
               </Option>
@@ -374,7 +375,7 @@
         <layer id="{97e54684-dc68-47d3-97a4-e2fcb8a309d2}" class="SvgMarker" pass="0" enabled="1" locked="0">
           <Option type="Map">
             <Option value="0" type="QString" name="angle"/>
-            <Option value="0,255,255,255,rgb:0,1,1,1" type="QString" name="color"/>
+            <Option value="0,78,255,255,rgb:0,0.3058824,1,1" type="QString" name="color"/>
             <Option value="0" type="QString" name="fixedAspectRatio"/>
             <Option value="1" type="QString" name="horizontal_anchor_point"/>
             <Option value="base64:PD94bWwgdmVyc2lvbj0iMS4wIiBlbmNvZGluZz0iVVRGLTgiIHN0YW5kYWxvbmU9Im5vIj8+CjxzdmcKICAgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIgogICBpZD0icWdpc3JlZF93YXRlciIKICAgaGVpZ2h0PSIxNTRtbSIKICAgd2lkdGg9IjE1NG1tIgogICB2ZXJzaW9uPSIxLjAiPgogIDxwYXRoCiAgICAgaWQ9InBhdGg1IgogICAgIGQ9IiAgTSA3OC4zOTk0MTksMTc0LjQ3ODcxICAgTCA3OC4zOTk0MTksMTgxLjU5ODY1ICAgTCA3OC4zOTk0MTksNDQ2LjM5NjY5ICAgTCA1MDMuNDM2MjcsNDQ2LjM5NjY5ICAgTCA1MDMuNDM2MjcsMTc0LjQ3ODcxICAgeiAiCiAgICAgc3Ryb2tlLXdpZHRoPSJwYXJhbShvdXRsaW5lLXdpZHRoKSAwIgogICAgIHN0cm9rZS1vcGFjaXR5PSJwYXJhbShvdXRsaW5lLW9wYWNpdHkpIgogICAgIHN0cm9rZT0icGFyYW0ob3V0bGluZSkgI0ZGRiIKICAgICBmaWxsLW9wYWNpdHk9InBhcmFtKGZpbGwtb3BhY2l0eSkiCiAgICAgZmlsbD0icGFyYW0oZmlsbCkgIzE0OTZiZSIgLz4KPC9zdmc+Cg==" type="QString" name="name"/>
@@ -414,7 +415,7 @@
         <layer id="{97e54684-dc68-47d3-97a4-e2fcb8a309d2}" class="SvgMarker" pass="0" enabled="1" locked="0">
           <Option type="Map">
             <Option value="0" type="QString" name="angle"/>
-            <Option value="0,159,159,255,rgb:0,0.6235294,0.6235294,1" type="QString" name="color"/>
+            <Option value="0,49,159,255,rgb:0,0.1921569,0.6235294,1" type="QString" name="color"/>
             <Option value="0" type="QString" name="fixedAspectRatio"/>
             <Option value="1" type="QString" name="horizontal_anchor_point"/>
             <Option value="base64:PD94bWwgdmVyc2lvbj0iMS4wIiBlbmNvZGluZz0iVVRGLTgiIHN0YW5kYWxvbmU9Im5vIj8+CjxzdmcKICAgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIgogICBpZD0icWdpc3JlZF9mcmFtZSIKICAgaGVpZ2h0PSIxNTRtbSIKICAgd2lkdGg9IjE1NG1tIgogICB2ZXJzaW9uPSIxLjAiPgogIDxwYXRoCiAgICAgaWQ9InBhdGg3IgogICAgIGQ9IiAgTSA2Mi43MTk1MzUsODMuOTE5Mzc4ICAgQyA0OC45NTk2MzcsODQuMTU5Mzc3IDM3LjkxOTcxOSw5NS41MTkyOTIgMzguMDc5NzE4LDEwOS4yNzkxOSAgIEwgMzguMDc5NzE4LDQ2NC45NTY1NiAgIEMgMzYuNjM5NzI5LDQ3My4wMzY1IDM5LjE5OTcxLDQ4MS40MzY0MyA0NS4wMzk2NjYsNDg3LjI3NjM5ICAgQyA1MC44Nzk2MjMsNDkzLjI3NjM1IDU5LjI3OTU2MSw0OTUuOTk2MzMgNjcuNTk5NDk5LDQ5NC41NTYzNCAgIEwgNTE3LjU5NjE3LDQ5NS42NzYzMyAgIEMgNTIzLjUxNjEyLDQ5Ni41NTYzMiA1MjkuNTk2MDgsNDk1LjI3NjMzIDUzNC42MzYwNCw0OTEuOTk2MzYgICBDIDU0My40MzU5Nyw0ODYuNjM2NCA1NDguMDc1OTQsNDc2LjM5NjQ3IDU0Ni4yMzU5NSw0NjYuMjM2NTUgICBMIDU0Ni4yMzU5NSwxMTAuNDc5MTggICBDIDU0Ni4zOTU5NSw5Ni4zOTkyODYgNTM0Ljk1NjA0LDg0Ljg3OTM3MSA1MjAuNzk2MTQsODUuMTE5MzY5ICAgQyA1MDcuMDM2MjQsODUuMzU5MzY4IDQ5NS45OTYzMyw5Ni42MzkyODQgNDk2LjIzNjMyLDExMC40NzkxOCAgIEwgNDk2LjIzNjMyLDE2NC4wNzg3OCAgIEwgODguMDc5MzQ4LDE2My4wMzg3OSAgIEwgODguMDc5MzQ4LDEwOS4yNzkxOSAgIEMgODguMzE5MzQ2LDk1LjE5OTI5NSA3Ni43OTk0MzEsODMuNzU5MzggNjIuNzE5NTM1LDgzLjkxOTM3OCAgIHogIE0gODguMDc5MzQ4LDE4OC4zMTg2MSAgIEwgNDk2LjIzNjMyLDE4OS4zNTg2ICAgTCA0OTYuMjM2MzIsNDQ1LjU5NjcgICBMIDg4LjA3OTM0OCw0NDQuNTU2NzEgICB6ICBNIDM0OC43MTc0MiwyMTMuOTE4NDIgICBMIDIzMy4zNTgyNywyMTQuMjM4NDEgICBDIDIyNi4zMTgzMiwyMTQuMTU4NDEgMjIwLjYzODM3LDIxOS44MzgzNyAyMjAuNjM4MzcsMjI2Ljg3ODMyICAgQyAyMjAuNjM4MzcsMjMzLjkxODI3IDIyNi4zOTgzMiwyMzkuNTk4MjMgMjMzLjQzODI3LDIzOS41MTgyMyAgIEwgMzQ4Ljc5NzQyLDIzOS4xOTgyMyAgIEMgMzU1LjgzNzM2LDIzOS4yNzgyMyAzNjEuNTE3MzIsMjMzLjU5ODI3IDM2MS41MTczMiwyMjYuNTU4MzIgICBDIDM2MS41MTczMiwyMTkuNTE4MzcgMzU1Ljc1NzM2LDIxMy44Mzg0MiAzNDguNzE3NDIsMjEzLjkxODQyICAgeiAiCiAgICAgc3Ryb2tlLXdpZHRoPSJwYXJhbShvdXRsaW5lLXdpZHRoKSAwIgogICAgIHN0cm9rZS1vcGFjaXR5PSJwYXJhbShvdXRsaW5lLW9wYWNpdHkpIgogICAgIHN0cm9rZT0icGFyYW0ob3V0bGluZSkgI0ZGRiIKICAgICBmaWxsLW9wYWNpdHk9InBhcmFtKGZpbGwtb3BhY2l0eSkiCiAgICAgZmlsbD0icGFyYW0oZmlsbCkgIzBjNWU3NyIgLz4KPC9zdmc+Cg==" type="QString" name="name"/>
@@ -454,7 +455,7 @@
         <layer id="{47472e31-3a37-4f39-adc7-2ffb883ab71e}" class="SvgMarker" pass="0" enabled="1" locked="0">
           <Option type="Map">
             <Option value="0" type="QString" name="angle"/>
-            <Option value="0,255,255,255,rgb:0,1,1,1" type="QString" name="color"/>
+            <Option value="0,78,255,255,rgb:0,0.3058824,1,1" type="QString" name="color"/>
             <Option value="0" type="QString" name="fixedAspectRatio"/>
             <Option value="1" type="QString" name="horizontal_anchor_point"/>
             <Option value="base64:PD94bWwgdmVyc2lvbj0iMS4wIiBlbmNvZGluZz0iVVRGLTgiIHN0YW5kYWxvbmU9Im5vIj8+CjxzdmcKICAgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIgogICBpZD0icWdpc3JlZF93YXRlciIKICAgd2lkdGg9IjE1NG1tIgogICBoZWlnaHQ9IjE1NG1tIgogICB2ZXJzaW9uPSIxLjAiPgogIDxwYXRoCiAgICAgc3Ryb2tlLXdpZHRoPSJwYXJhbShvdXRsaW5lLXdpZHRoKSAwIgogICAgIHN0cm9rZS1vcGFjaXR5PSJwYXJhbShvdXRsaW5lLW9wYWNpdHkpIgogICAgIHN0cm9rZT0icGFyYW0ob3V0bGluZSkgI0ZGRiIKICAgICBmaWxsLW9wYWNpdHk9InBhcmFtKGZpbGwtb3BhY2l0eSkiCiAgICAgZmlsbD0icGFyYW0oZmlsbCkgIzE0OTZiZSIKICAgICBkPSJNIDUxNy44MzYxNiwxOTguOTg4NzUgNDM2LjU1Njc3LDE5Ny40Njg3NiAyOTQuODc3ODIsMjAyLjc0ODcyIDc2LjU1OTQzMywxOTguOTg4NzUgMTgwLjU1ODY2LDMwMy4yMjc5OCAyODkuOTE3ODUsNDA5Ljg2NzE5IDM5MS45OTcxLDMwOC41ODc5NCBaIgogICAgIGlkPSJwYXRoNSIgLz4KPC9zdmc+Cg==" type="QString" name="name"/>
@@ -494,7 +495,7 @@
         <layer id="{47472e31-3a37-4f39-adc7-2ffb883ab71e}" class="SvgMarker" pass="0" enabled="1" locked="0">
           <Option type="Map">
             <Option value="0" type="QString" name="angle"/>
-            <Option value="0,159,159,255,rgb:0,0.6235294,0.6235294,1" type="QString" name="color"/>
+            <Option value="0,49,159,255,rgb:0,0.1921569,0.6235294,1" type="QString" name="color"/>
             <Option value="0" type="QString" name="fixedAspectRatio"/>
             <Option value="1" type="QString" name="horizontal_anchor_point"/>
             <Option value="base64:PD94bWwgdmVyc2lvbj0iMS4wIiBlbmNvZGluZz0iVVRGLTgiIHN0YW5kYWxvbmU9Im5vIj8+CjxzdmcKICAgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIgogICBpZD0icWdpc3JlZF9mcmFtZSIKICAgd2lkdGg9IjE1NG1tIgogICBoZWlnaHQ9IjE1NG1tIgogICB2ZXJzaW9uPSIxLjAiPgogIDxwYXRoCiAgICAgc3Ryb2tlLXdpZHRoPSJwYXJhbShvdXRsaW5lLXdpZHRoKSAwIgogICAgIHN0cm9rZS1vcGFjaXR5PSJwYXJhbShvdXRsaW5lLW9wYWNpdHkpIgogICAgIHN0cm9rZT0icGFyYW0ob3V0bGluZSkgI0ZGRiIKICAgICBmaWxsLW9wYWNpdHk9InBhcmFtKGZpbGwtb3BhY2l0eSkiCiAgICAgZmlsbD0icGFyYW0oZmlsbCkgIzBjNWU3NyIKICAgICBkPSJtIDU0Mi4zMTU5OCwxNTIuMTA5MSBjIC01LjE5OTk2LDAgLTEwLjE1OTkyLDEuOTk5OTggLTEzLjkxOTg5LDUuNjc5OTYgbCAtMzQuNjM5NzUsMzIuNTU5NzYgSCA4Ni4xNTkzNjIgTCA1MS40Mzk2MTksMTU3Ljc4OTA2IEMgNDcuNTk5NjQ3LDE1My45NDkwOSA0Mi4zMTk2ODcsMTUxLjk0OTEgMzYuOTU5NzI2LDE1Mi4xMDkxIDE5LjAzOTg1OSwxNTIuNjY5MDkgMTAuNzk5OTIsMTc0Ljc0ODkzIDI0LjA3OTgyMiwxODYuODI4ODQgTCAyNzQuMDc3OTcsNDIyLjM0NzEgYyAzLjUxOTk3LDQuNDc5OTYgOC44Nzk5Myw3LjI3OTk0IDE0LjYzOTg5LDcuNTk5OTQgMC4wOCwwIDAuMTYsMCAwLjI0LDAgMC40LDAgMC43OTk5OSwwIDEuMjc5OTksMCA2LjA3OTk2LDAgMTEuNzU5OTEsLTIuNzk5OTggMTUuNTE5ODksLTcuNTE5OTQgTCA1NTUuODM1ODgsMTg2LjgyODg0IGMgMTMuNDM5OSwtMTIuMzE5OTEgNC43MTk5NywtMzQuNzE5NzQgLTEzLjUxOTksLTM0LjcxOTc0IHogbSAtNDM3LjgzNjc1LDU1LjUxOTU5IGggMzcwLjk1NzI1IGwgLTE4NS41MTg2MywxNzQuNzE4NyB6IG0gMjMxLjExODI4LDI2LjA3OTggLTkxLjM1OTMyLDAuMjQgYyAtNS41MTk5NiwwIC05Ljk5OTkzLDQuNDc5OTcgLTkuOTE5OTMsOS45OTk5MyAwLDUuNTk5OTYgNC40Nzk5Nyw5Ljk5OTkyIDkuOTk5OTMsOS45OTk5MiBsIDkxLjI3OTMyLC0wLjIzOTk5IGMgNS41OTk5NiwwLjA4IDEwLjE1OTkzLC00LjM5OTk3IDEwLjE1OTkzLC05Ljk5OTkzIDAsLTUuNTk5OTYgLTQuNTU5OTcsLTEwLjA3OTkzIC0xMC4xNTk5MywtOS45OTk5MyB6IgogICAgIGlkPSJwYXRoNyIgLz4KPC9zdmc+Cg==" type="QString" name="name"/>
@@ -535,7 +536,7 @@
           <Option type="Map">
             <Option value="0" type="QString" name="angle"/>
             <Option value="square" type="QString" name="cap_style"/>
-            <Option value="0,255,255,255,rgb:0,1,1,1" type="QString" name="color"/>
+            <Option value="0,78,255,255,rgb:0,0.3058824,1,1" type="QString" name="color"/>
             <Option value="1" type="QString" name="horizontal_anchor_point"/>
             <Option value="bevel" type="QString" name="joinstyle"/>
             <Option value="circle" type="QString" name="name"/>
@@ -584,7 +585,7 @@
         <layer id="{97e54684-dc68-47d3-97a4-e2fcb8a309d2}" class="SvgMarker" pass="0" enabled="1" locked="0">
           <Option type="Map">
             <Option value="0" type="QString" name="angle"/>
-            <Option value="0,255,0,255,rgb:0,1,0,1" type="QString" name="color"/>
+            <Option value="0,255,255,255,rgb:0,1,1,1" type="QString" name="color"/>
             <Option value="0" type="QString" name="fixedAspectRatio"/>
             <Option value="1" type="QString" name="horizontal_anchor_point"/>
             <Option value="base64:PD94bWwgdmVyc2lvbj0iMS4wIiBlbmNvZGluZz0iVVRGLTgiIHN0YW5kYWxvbmU9Im5vIj8+CjxzdmcKICAgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIgogICBpZD0icWdpc3JlZF93YXRlciIKICAgaGVpZ2h0PSIxNTRtbSIKICAgd2lkdGg9IjE1NG1tIgogICB2ZXJzaW9uPSIxLjAiPgogIDxwYXRoCiAgICAgaWQ9InBhdGg1IgogICAgIGQ9IiAgTSA3OC4zOTk0MTksMTc0LjQ3ODcxICAgTCA3OC4zOTk0MTksMTgxLjU5ODY1ICAgTCA3OC4zOTk0MTksNDQ2LjM5NjY5ICAgTCA1MDMuNDM2MjcsNDQ2LjM5NjY5ICAgTCA1MDMuNDM2MjcsMTc0LjQ3ODcxICAgeiAiCiAgICAgc3Ryb2tlLXdpZHRoPSJwYXJhbShvdXRsaW5lLXdpZHRoKSAwIgogICAgIHN0cm9rZS1vcGFjaXR5PSJwYXJhbShvdXRsaW5lLW9wYWNpdHkpIgogICAgIHN0cm9rZT0icGFyYW0ob3V0bGluZSkgI0ZGRiIKICAgICBmaWxsLW9wYWNpdHk9InBhcmFtKGZpbGwtb3BhY2l0eSkiCiAgICAgZmlsbD0icGFyYW0oZmlsbCkgIzE0OTZiZSIgLz4KPC9zdmc+Cg==" type="QString" name="name"/>
@@ -624,7 +625,7 @@
         <layer id="{97e54684-dc68-47d3-97a4-e2fcb8a309d2}" class="SvgMarker" pass="0" enabled="1" locked="0">
           <Option type="Map">
             <Option value="0" type="QString" name="angle"/>
-            <Option value="0,159,0,255,rgb:0,0.6235294,0,1" type="QString" name="color"/>
+            <Option value="0,159,159,255,rgb:0,0.6235294,0.6235294,1" type="QString" name="color"/>
             <Option value="0" type="QString" name="fixedAspectRatio"/>
             <Option value="1" type="QString" name="horizontal_anchor_point"/>
             <Option value="base64:PD94bWwgdmVyc2lvbj0iMS4wIiBlbmNvZGluZz0iVVRGLTgiIHN0YW5kYWxvbmU9Im5vIj8+CjxzdmcKICAgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIgogICBpZD0icWdpc3JlZF9mcmFtZSIKICAgaGVpZ2h0PSIxNTRtbSIKICAgd2lkdGg9IjE1NG1tIgogICB2ZXJzaW9uPSIxLjAiPgogIDxwYXRoCiAgICAgaWQ9InBhdGg3IgogICAgIGQ9IiAgTSA2Mi43MTk1MzUsODMuOTE5Mzc4ICAgQyA0OC45NTk2MzcsODQuMTU5Mzc3IDM3LjkxOTcxOSw5NS41MTkyOTIgMzguMDc5NzE4LDEwOS4yNzkxOSAgIEwgMzguMDc5NzE4LDQ2NC45NTY1NiAgIEMgMzYuNjM5NzI5LDQ3My4wMzY1IDM5LjE5OTcxLDQ4MS40MzY0MyA0NS4wMzk2NjYsNDg3LjI3NjM5ICAgQyA1MC44Nzk2MjMsNDkzLjI3NjM1IDU5LjI3OTU2MSw0OTUuOTk2MzMgNjcuNTk5NDk5LDQ5NC41NTYzNCAgIEwgNTE3LjU5NjE3LDQ5NS42NzYzMyAgIEMgNTIzLjUxNjEyLDQ5Ni41NTYzMiA1MjkuNTk2MDgsNDk1LjI3NjMzIDUzNC42MzYwNCw0OTEuOTk2MzYgICBDIDU0My40MzU5Nyw0ODYuNjM2NCA1NDguMDc1OTQsNDc2LjM5NjQ3IDU0Ni4yMzU5NSw0NjYuMjM2NTUgICBMIDU0Ni4yMzU5NSwxMTAuNDc5MTggICBDIDU0Ni4zOTU5NSw5Ni4zOTkyODYgNTM0Ljk1NjA0LDg0Ljg3OTM3MSA1MjAuNzk2MTQsODUuMTE5MzY5ICAgQyA1MDcuMDM2MjQsODUuMzU5MzY4IDQ5NS45OTYzMyw5Ni42MzkyODQgNDk2LjIzNjMyLDExMC40NzkxOCAgIEwgNDk2LjIzNjMyLDE2NC4wNzg3OCAgIEwgODguMDc5MzQ4LDE2My4wMzg3OSAgIEwgODguMDc5MzQ4LDEwOS4yNzkxOSAgIEMgODguMzE5MzQ2LDk1LjE5OTI5NSA3Ni43OTk0MzEsODMuNzU5MzggNjIuNzE5NTM1LDgzLjkxOTM3OCAgIHogIE0gODguMDc5MzQ4LDE4OC4zMTg2MSAgIEwgNDk2LjIzNjMyLDE4OS4zNTg2ICAgTCA0OTYuMjM2MzIsNDQ1LjU5NjcgICBMIDg4LjA3OTM0OCw0NDQuNTU2NzEgICB6ICBNIDM0OC43MTc0MiwyMTMuOTE4NDIgICBMIDIzMy4zNTgyNywyMTQuMjM4NDEgICBDIDIyNi4zMTgzMiwyMTQuMTU4NDEgMjIwLjYzODM3LDIxOS44MzgzNyAyMjAuNjM4MzcsMjI2Ljg3ODMyICAgQyAyMjAuNjM4MzcsMjMzLjkxODI3IDIyNi4zOTgzMiwyMzkuNTk4MjMgMjMzLjQzODI3LDIzOS41MTgyMyAgIEwgMzQ4Ljc5NzQyLDIzOS4xOTgyMyAgIEMgMzU1LjgzNzM2LDIzOS4yNzgyMyAzNjEuNTE3MzIsMjMzLjU5ODI3IDM2MS41MTczMiwyMjYuNTU4MzIgICBDIDM2MS41MTczMiwyMTkuNTE4MzcgMzU1Ljc1NzM2LDIxMy44Mzg0MiAzNDguNzE3NDIsMjEzLjkxODQyICAgeiAiCiAgICAgc3Ryb2tlLXdpZHRoPSJwYXJhbShvdXRsaW5lLXdpZHRoKSAwIgogICAgIHN0cm9rZS1vcGFjaXR5PSJwYXJhbShvdXRsaW5lLW9wYWNpdHkpIgogICAgIHN0cm9rZT0icGFyYW0ob3V0bGluZSkgI0ZGRiIKICAgICBmaWxsLW9wYWNpdHk9InBhcmFtKGZpbGwtb3BhY2l0eSkiCiAgICAgZmlsbD0icGFyYW0oZmlsbCkgIzBjNWU3NyIgLz4KPC9zdmc+Cg==" type="QString" name="name"/>
@@ -664,7 +665,7 @@
         <layer id="{47472e31-3a37-4f39-adc7-2ffb883ab71e}" class="SvgMarker" pass="0" enabled="1" locked="0">
           <Option type="Map">
             <Option value="0" type="QString" name="angle"/>
-            <Option value="0,255,0,255,rgb:0,1,0,1" type="QString" name="color"/>
+            <Option value="0,255,255,255,rgb:0,1,1,1" type="QString" name="color"/>
             <Option value="0" type="QString" name="fixedAspectRatio"/>
             <Option value="1" type="QString" name="horizontal_anchor_point"/>
             <Option value="base64:PD94bWwgdmVyc2lvbj0iMS4wIiBlbmNvZGluZz0iVVRGLTgiIHN0YW5kYWxvbmU9Im5vIj8+CjxzdmcKICAgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIgogICBpZD0icWdpc3JlZF93YXRlciIKICAgd2lkdGg9IjE1NG1tIgogICBoZWlnaHQ9IjE1NG1tIgogICB2ZXJzaW9uPSIxLjAiPgogIDxwYXRoCiAgICAgc3Ryb2tlLXdpZHRoPSJwYXJhbShvdXRsaW5lLXdpZHRoKSAwIgogICAgIHN0cm9rZS1vcGFjaXR5PSJwYXJhbShvdXRsaW5lLW9wYWNpdHkpIgogICAgIHN0cm9rZT0icGFyYW0ob3V0bGluZSkgI0ZGRiIKICAgICBmaWxsLW9wYWNpdHk9InBhcmFtKGZpbGwtb3BhY2l0eSkiCiAgICAgZmlsbD0icGFyYW0oZmlsbCkgIzE0OTZiZSIKICAgICBkPSJNIDUxNy44MzYxNiwxOTguOTg4NzUgNDM2LjU1Njc3LDE5Ny40Njg3NiAyOTQuODc3ODIsMjAyLjc0ODcyIDc2LjU1OTQzMywxOTguOTg4NzUgMTgwLjU1ODY2LDMwMy4yMjc5OCAyODkuOTE3ODUsNDA5Ljg2NzE5IDM5MS45OTcxLDMwOC41ODc5NCBaIgogICAgIGlkPSJwYXRoNSIgLz4KPC9zdmc+Cg==" type="QString" name="name"/>
@@ -704,7 +705,7 @@
         <layer id="{47472e31-3a37-4f39-adc7-2ffb883ab71e}" class="SvgMarker" pass="0" enabled="1" locked="0">
           <Option type="Map">
             <Option value="0" type="QString" name="angle"/>
-            <Option value="0,159,0,255,rgb:0,0.6235294,0,1" type="QString" name="color"/>
+            <Option value="0,159,159,255,rgb:0,0.6235294,0.6235294,1" type="QString" name="color"/>
             <Option value="0" type="QString" name="fixedAspectRatio"/>
             <Option value="1" type="QString" name="horizontal_anchor_point"/>
             <Option value="base64:PD94bWwgdmVyc2lvbj0iMS4wIiBlbmNvZGluZz0iVVRGLTgiIHN0YW5kYWxvbmU9Im5vIj8+CjxzdmcKICAgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIgogICBpZD0icWdpc3JlZF9mcmFtZSIKICAgd2lkdGg9IjE1NG1tIgogICBoZWlnaHQ9IjE1NG1tIgogICB2ZXJzaW9uPSIxLjAiPgogIDxwYXRoCiAgICAgc3Ryb2tlLXdpZHRoPSJwYXJhbShvdXRsaW5lLXdpZHRoKSAwIgogICAgIHN0cm9rZS1vcGFjaXR5PSJwYXJhbShvdXRsaW5lLW9wYWNpdHkpIgogICAgIHN0cm9rZT0icGFyYW0ob3V0bGluZSkgI0ZGRiIKICAgICBmaWxsLW9wYWNpdHk9InBhcmFtKGZpbGwtb3BhY2l0eSkiCiAgICAgZmlsbD0icGFyYW0oZmlsbCkgIzBjNWU3NyIKICAgICBkPSJtIDU0Mi4zMTU5OCwxNTIuMTA5MSBjIC01LjE5OTk2LDAgLTEwLjE1OTkyLDEuOTk5OTggLTEzLjkxOTg5LDUuNjc5OTYgbCAtMzQuNjM5NzUsMzIuNTU5NzYgSCA4Ni4xNTkzNjIgTCA1MS40Mzk2MTksMTU3Ljc4OTA2IEMgNDcuNTk5NjQ3LDE1My45NDkwOSA0Mi4zMTk2ODcsMTUxLjk0OTEgMzYuOTU5NzI2LDE1Mi4xMDkxIDE5LjAzOTg1OSwxNTIuNjY5MDkgMTAuNzk5OTIsMTc0Ljc0ODkzIDI0LjA3OTgyMiwxODYuODI4ODQgTCAyNzQuMDc3OTcsNDIyLjM0NzEgYyAzLjUxOTk3LDQuNDc5OTYgOC44Nzk5Myw3LjI3OTk0IDE0LjYzOTg5LDcuNTk5OTQgMC4wOCwwIDAuMTYsMCAwLjI0LDAgMC40LDAgMC43OTk5OSwwIDEuMjc5OTksMCA2LjA3OTk2LDAgMTEuNzU5OTEsLTIuNzk5OTggMTUuNTE5ODksLTcuNTE5OTQgTCA1NTUuODM1ODgsMTg2LjgyODg0IGMgMTMuNDM5OSwtMTIuMzE5OTEgNC43MTk5NywtMzQuNzE5NzQgLTEzLjUxOTksLTM0LjcxOTc0IHogbSAtNDM3LjgzNjc1LDU1LjUxOTU5IGggMzcwLjk1NzI1IGwgLTE4NS41MTg2MywxNzQuNzE4NyB6IG0gMjMxLjExODI4LDI2LjA3OTggLTkxLjM1OTMyLDAuMjQgYyAtNS41MTk5NiwwIC05Ljk5OTkzLDQuNDc5OTcgLTkuOTE5OTMsOS45OTk5MyAwLDUuNTk5OTYgNC40Nzk5Nyw5Ljk5OTkyIDkuOTk5OTMsOS45OTk5MiBsIDkxLjI3OTMyLC0wLjIzOTk5IGMgNS41OTk5NiwwLjA4IDEwLjE1OTkzLC00LjM5OTk3IDEwLjE1OTkzLC05Ljk5OTkzIDAsLTUuNTk5OTYgLTQuNTU5OTcsLTEwLjA3OTkzIC0xMC4xNTk5MywtOS45OTk5MyB6IgogICAgIGlkPSJwYXRoNyIgLz4KPC9zdmc+Cg==" type="QString" name="name"/>
@@ -745,7 +746,7 @@
           <Option type="Map">
             <Option value="0" type="QString" name="angle"/>
             <Option value="square" type="QString" name="cap_style"/>
-            <Option value="0,255,0,255,rgb:0,1,0,1" type="QString" name="color"/>
+            <Option value="0,255,255,255,rgb:0,1,1,1" type="QString" name="color"/>
             <Option value="1" type="QString" name="horizontal_anchor_point"/>
             <Option value="bevel" type="QString" name="joinstyle"/>
             <Option value="circle" type="QString" name="name"/>
@@ -794,7 +795,7 @@
         <layer id="{97e54684-dc68-47d3-97a4-e2fcb8a309d2}" class="SvgMarker" pass="0" enabled="1" locked="0">
           <Option type="Map">
             <Option value="0" type="QString" name="angle"/>
-            <Option value="255,216,0,255,rgb:1,0.8470588,0,1" type="QString" name="color"/>
+            <Option value="0,255,0,255,rgb:0,1,0,1" type="QString" name="color"/>
             <Option value="0" type="QString" name="fixedAspectRatio"/>
             <Option value="1" type="QString" name="horizontal_anchor_point"/>
             <Option value="base64:PD94bWwgdmVyc2lvbj0iMS4wIiBlbmNvZGluZz0iVVRGLTgiIHN0YW5kYWxvbmU9Im5vIj8+CjxzdmcKICAgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIgogICBpZD0icWdpc3JlZF93YXRlciIKICAgaGVpZ2h0PSIxNTRtbSIKICAgd2lkdGg9IjE1NG1tIgogICB2ZXJzaW9uPSIxLjAiPgogIDxwYXRoCiAgICAgaWQ9InBhdGg1IgogICAgIGQ9IiAgTSA3OC4zOTk0MTksMTc0LjQ3ODcxICAgTCA3OC4zOTk0MTksMTgxLjU5ODY1ICAgTCA3OC4zOTk0MTksNDQ2LjM5NjY5ICAgTCA1MDMuNDM2MjcsNDQ2LjM5NjY5ICAgTCA1MDMuNDM2MjcsMTc0LjQ3ODcxICAgeiAiCiAgICAgc3Ryb2tlLXdpZHRoPSJwYXJhbShvdXRsaW5lLXdpZHRoKSAwIgogICAgIHN0cm9rZS1vcGFjaXR5PSJwYXJhbShvdXRsaW5lLW9wYWNpdHkpIgogICAgIHN0cm9rZT0icGFyYW0ob3V0bGluZSkgI0ZGRiIKICAgICBmaWxsLW9wYWNpdHk9InBhcmFtKGZpbGwtb3BhY2l0eSkiCiAgICAgZmlsbD0icGFyYW0oZmlsbCkgIzE0OTZiZSIgLz4KPC9zdmc+Cg==" type="QString" name="name"/>
@@ -834,7 +835,7 @@
         <layer id="{97e54684-dc68-47d3-97a4-e2fcb8a309d2}" class="SvgMarker" pass="0" enabled="1" locked="0">
           <Option type="Map">
             <Option value="0" type="QString" name="angle"/>
-            <Option value="159,135,0,255,rgb:0.6235294,0.5294118,0,1" type="QString" name="color"/>
+            <Option value="0,159,0,255,rgb:0,0.6235294,0,1" type="QString" name="color"/>
             <Option value="0" type="QString" name="fixedAspectRatio"/>
             <Option value="1" type="QString" name="horizontal_anchor_point"/>
             <Option value="base64:PD94bWwgdmVyc2lvbj0iMS4wIiBlbmNvZGluZz0iVVRGLTgiIHN0YW5kYWxvbmU9Im5vIj8+CjxzdmcKICAgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIgogICBpZD0icWdpc3JlZF9mcmFtZSIKICAgaGVpZ2h0PSIxNTRtbSIKICAgd2lkdGg9IjE1NG1tIgogICB2ZXJzaW9uPSIxLjAiPgogIDxwYXRoCiAgICAgaWQ9InBhdGg3IgogICAgIGQ9IiAgTSA2Mi43MTk1MzUsODMuOTE5Mzc4ICAgQyA0OC45NTk2MzcsODQuMTU5Mzc3IDM3LjkxOTcxOSw5NS41MTkyOTIgMzguMDc5NzE4LDEwOS4yNzkxOSAgIEwgMzguMDc5NzE4LDQ2NC45NTY1NiAgIEMgMzYuNjM5NzI5LDQ3My4wMzY1IDM5LjE5OTcxLDQ4MS40MzY0MyA0NS4wMzk2NjYsNDg3LjI3NjM5ICAgQyA1MC44Nzk2MjMsNDkzLjI3NjM1IDU5LjI3OTU2MSw0OTUuOTk2MzMgNjcuNTk5NDk5LDQ5NC41NTYzNCAgIEwgNTE3LjU5NjE3LDQ5NS42NzYzMyAgIEMgNTIzLjUxNjEyLDQ5Ni41NTYzMiA1MjkuNTk2MDgsNDk1LjI3NjMzIDUzNC42MzYwNCw0OTEuOTk2MzYgICBDIDU0My40MzU5Nyw0ODYuNjM2NCA1NDguMDc1OTQsNDc2LjM5NjQ3IDU0Ni4yMzU5NSw0NjYuMjM2NTUgICBMIDU0Ni4yMzU5NSwxMTAuNDc5MTggICBDIDU0Ni4zOTU5NSw5Ni4zOTkyODYgNTM0Ljk1NjA0LDg0Ljg3OTM3MSA1MjAuNzk2MTQsODUuMTE5MzY5ICAgQyA1MDcuMDM2MjQsODUuMzU5MzY4IDQ5NS45OTYzMyw5Ni42MzkyODQgNDk2LjIzNjMyLDExMC40NzkxOCAgIEwgNDk2LjIzNjMyLDE2NC4wNzg3OCAgIEwgODguMDc5MzQ4LDE2My4wMzg3OSAgIEwgODguMDc5MzQ4LDEwOS4yNzkxOSAgIEMgODguMzE5MzQ2LDk1LjE5OTI5NSA3Ni43OTk0MzEsODMuNzU5MzggNjIuNzE5NTM1LDgzLjkxOTM3OCAgIHogIE0gODguMDc5MzQ4LDE4OC4zMTg2MSAgIEwgNDk2LjIzNjMyLDE4OS4zNTg2ICAgTCA0OTYuMjM2MzIsNDQ1LjU5NjcgICBMIDg4LjA3OTM0OCw0NDQuNTU2NzEgICB6ICBNIDM0OC43MTc0MiwyMTMuOTE4NDIgICBMIDIzMy4zNTgyNywyMTQuMjM4NDEgICBDIDIyNi4zMTgzMiwyMTQuMTU4NDEgMjIwLjYzODM3LDIxOS44MzgzNyAyMjAuNjM4MzcsMjI2Ljg3ODMyICAgQyAyMjAuNjM4MzcsMjMzLjkxODI3IDIyNi4zOTgzMiwyMzkuNTk4MjMgMjMzLjQzODI3LDIzOS41MTgyMyAgIEwgMzQ4Ljc5NzQyLDIzOS4xOTgyMyAgIEMgMzU1LjgzNzM2LDIzOS4yNzgyMyAzNjEuNTE3MzIsMjMzLjU5ODI3IDM2MS41MTczMiwyMjYuNTU4MzIgICBDIDM2MS41MTczMiwyMTkuNTE4MzcgMzU1Ljc1NzM2LDIxMy44Mzg0MiAzNDguNzE3NDIsMjEzLjkxODQyICAgeiAiCiAgICAgc3Ryb2tlLXdpZHRoPSJwYXJhbShvdXRsaW5lLXdpZHRoKSAwIgogICAgIHN0cm9rZS1vcGFjaXR5PSJwYXJhbShvdXRsaW5lLW9wYWNpdHkpIgogICAgIHN0cm9rZT0icGFyYW0ob3V0bGluZSkgI0ZGRiIKICAgICBmaWxsLW9wYWNpdHk9InBhcmFtKGZpbGwtb3BhY2l0eSkiCiAgICAgZmlsbD0icGFyYW0oZmlsbCkgIzBjNWU3NyIgLz4KPC9zdmc+Cg==" type="QString" name="name"/>
@@ -874,7 +875,7 @@
         <layer id="{47472e31-3a37-4f39-adc7-2ffb883ab71e}" class="SvgMarker" pass="0" enabled="1" locked="0">
           <Option type="Map">
             <Option value="0" type="QString" name="angle"/>
-            <Option value="255,216,0,255,rgb:1,0.8470588,0,1" type="QString" name="color"/>
+            <Option value="0,255,0,255,rgb:0,1,0,1" type="QString" name="color"/>
             <Option value="0" type="QString" name="fixedAspectRatio"/>
             <Option value="1" type="QString" name="horizontal_anchor_point"/>
             <Option value="base64:PD94bWwgdmVyc2lvbj0iMS4wIiBlbmNvZGluZz0iVVRGLTgiIHN0YW5kYWxvbmU9Im5vIj8+CjxzdmcKICAgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIgogICBpZD0icWdpc3JlZF93YXRlciIKICAgd2lkdGg9IjE1NG1tIgogICBoZWlnaHQ9IjE1NG1tIgogICB2ZXJzaW9uPSIxLjAiPgogIDxwYXRoCiAgICAgc3Ryb2tlLXdpZHRoPSJwYXJhbShvdXRsaW5lLXdpZHRoKSAwIgogICAgIHN0cm9rZS1vcGFjaXR5PSJwYXJhbShvdXRsaW5lLW9wYWNpdHkpIgogICAgIHN0cm9rZT0icGFyYW0ob3V0bGluZSkgI0ZGRiIKICAgICBmaWxsLW9wYWNpdHk9InBhcmFtKGZpbGwtb3BhY2l0eSkiCiAgICAgZmlsbD0icGFyYW0oZmlsbCkgIzE0OTZiZSIKICAgICBkPSJNIDUxNy44MzYxNiwxOTguOTg4NzUgNDM2LjU1Njc3LDE5Ny40Njg3NiAyOTQuODc3ODIsMjAyLjc0ODcyIDc2LjU1OTQzMywxOTguOTg4NzUgMTgwLjU1ODY2LDMwMy4yMjc5OCAyODkuOTE3ODUsNDA5Ljg2NzE5IDM5MS45OTcxLDMwOC41ODc5NCBaIgogICAgIGlkPSJwYXRoNSIgLz4KPC9zdmc+Cg==" type="QString" name="name"/>
@@ -914,7 +915,7 @@
         <layer id="{47472e31-3a37-4f39-adc7-2ffb883ab71e}" class="SvgMarker" pass="0" enabled="1" locked="0">
           <Option type="Map">
             <Option value="0" type="QString" name="angle"/>
-            <Option value="159,135,0,255,rgb:0.6235294,0.5294118,0,1" type="QString" name="color"/>
+            <Option value="0,159,0,255,rgb:0,0.6235294,0,1" type="QString" name="color"/>
             <Option value="0" type="QString" name="fixedAspectRatio"/>
             <Option value="1" type="QString" name="horizontal_anchor_point"/>
             <Option value="base64:PD94bWwgdmVyc2lvbj0iMS4wIiBlbmNvZGluZz0iVVRGLTgiIHN0YW5kYWxvbmU9Im5vIj8+CjxzdmcKICAgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIgogICBpZD0icWdpc3JlZF9mcmFtZSIKICAgd2lkdGg9IjE1NG1tIgogICBoZWlnaHQ9IjE1NG1tIgogICB2ZXJzaW9uPSIxLjAiPgogIDxwYXRoCiAgICAgc3Ryb2tlLXdpZHRoPSJwYXJhbShvdXRsaW5lLXdpZHRoKSAwIgogICAgIHN0cm9rZS1vcGFjaXR5PSJwYXJhbShvdXRsaW5lLW9wYWNpdHkpIgogICAgIHN0cm9rZT0icGFyYW0ob3V0bGluZSkgI0ZGRiIKICAgICBmaWxsLW9wYWNpdHk9InBhcmFtKGZpbGwtb3BhY2l0eSkiCiAgICAgZmlsbD0icGFyYW0oZmlsbCkgIzBjNWU3NyIKICAgICBkPSJtIDU0Mi4zMTU5OCwxNTIuMTA5MSBjIC01LjE5OTk2LDAgLTEwLjE1OTkyLDEuOTk5OTggLTEzLjkxOTg5LDUuNjc5OTYgbCAtMzQuNjM5NzUsMzIuNTU5NzYgSCA4Ni4xNTkzNjIgTCA1MS40Mzk2MTksMTU3Ljc4OTA2IEMgNDcuNTk5NjQ3LDE1My45NDkwOSA0Mi4zMTk2ODcsMTUxLjk0OTEgMzYuOTU5NzI2LDE1Mi4xMDkxIDE5LjAzOTg1OSwxNTIuNjY5MDkgMTAuNzk5OTIsMTc0Ljc0ODkzIDI0LjA3OTgyMiwxODYuODI4ODQgTCAyNzQuMDc3OTcsNDIyLjM0NzEgYyAzLjUxOTk3LDQuNDc5OTYgOC44Nzk5Myw3LjI3OTk0IDE0LjYzOTg5LDcuNTk5OTQgMC4wOCwwIDAuMTYsMCAwLjI0LDAgMC40LDAgMC43OTk5OSwwIDEuMjc5OTksMCA2LjA3OTk2LDAgMTEuNzU5OTEsLTIuNzk5OTggMTUuNTE5ODksLTcuNTE5OTQgTCA1NTUuODM1ODgsMTg2LjgyODg0IGMgMTMuNDM5OSwtMTIuMzE5OTEgNC43MTk5NywtMzQuNzE5NzQgLTEzLjUxOTksLTM0LjcxOTc0IHogbSAtNDM3LjgzNjc1LDU1LjUxOTU5IGggMzcwLjk1NzI1IGwgLTE4NS41MTg2MywxNzQuNzE4NyB6IG0gMjMxLjExODI4LDI2LjA3OTggLTkxLjM1OTMyLDAuMjQgYyAtNS41MTk5NiwwIC05Ljk5OTkzLDQuNDc5OTcgLTkuOTE5OTMsOS45OTk5MyAwLDUuNTk5OTYgNC40Nzk5Nyw5Ljk5OTkyIDkuOTk5OTMsOS45OTk5MiBsIDkxLjI3OTMyLC0wLjIzOTk5IGMgNS41OTk5NiwwLjA4IDEwLjE1OTkzLC00LjM5OTk3IDEwLjE1OTkzLC05Ljk5OTkzIDAsLTUuNTk5OTYgLTQuNTU5OTcsLTEwLjA3OTkzIC0xMC4xNTk5MywtOS45OTk5MyB6IgogICAgIGlkPSJwYXRoNyIgLz4KPC9zdmc+Cg==" type="QString" name="name"/>
@@ -955,7 +956,7 @@
           <Option type="Map">
             <Option value="0" type="QString" name="angle"/>
             <Option value="square" type="QString" name="cap_style"/>
-            <Option value="255,216,0,255,rgb:1,0.8470588,0,1" type="QString" name="color"/>
+            <Option value="0,255,0,255,rgb:0,1,0,1" type="QString" name="color"/>
             <Option value="1" type="QString" name="horizontal_anchor_point"/>
             <Option value="bevel" type="QString" name="joinstyle"/>
             <Option value="circle" type="QString" name="name"/>
@@ -1004,7 +1005,7 @@
         <layer id="{97e54684-dc68-47d3-97a4-e2fcb8a309d2}" class="SvgMarker" pass="0" enabled="1" locked="0">
           <Option type="Map">
             <Option value="0" type="QString" name="angle"/>
-            <Option value="255,93,0,255,rgb:1,0.3647059,0,1" type="QString" name="color"/>
+            <Option value="255,216,0,255,rgb:1,0.8470588,0,1" type="QString" name="color"/>
             <Option value="0" type="QString" name="fixedAspectRatio"/>
             <Option value="1" type="QString" name="horizontal_anchor_point"/>
             <Option value="base64:PD94bWwgdmVyc2lvbj0iMS4wIiBlbmNvZGluZz0iVVRGLTgiIHN0YW5kYWxvbmU9Im5vIj8+CjxzdmcKICAgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIgogICBpZD0icWdpc3JlZF93YXRlciIKICAgaGVpZ2h0PSIxNTRtbSIKICAgd2lkdGg9IjE1NG1tIgogICB2ZXJzaW9uPSIxLjAiPgogIDxwYXRoCiAgICAgaWQ9InBhdGg1IgogICAgIGQ9IiAgTSA3OC4zOTk0MTksMTc0LjQ3ODcxICAgTCA3OC4zOTk0MTksMTgxLjU5ODY1ICAgTCA3OC4zOTk0MTksNDQ2LjM5NjY5ICAgTCA1MDMuNDM2MjcsNDQ2LjM5NjY5ICAgTCA1MDMuNDM2MjcsMTc0LjQ3ODcxICAgeiAiCiAgICAgc3Ryb2tlLXdpZHRoPSJwYXJhbShvdXRsaW5lLXdpZHRoKSAwIgogICAgIHN0cm9rZS1vcGFjaXR5PSJwYXJhbShvdXRsaW5lLW9wYWNpdHkpIgogICAgIHN0cm9rZT0icGFyYW0ob3V0bGluZSkgI0ZGRiIKICAgICBmaWxsLW9wYWNpdHk9InBhcmFtKGZpbGwtb3BhY2l0eSkiCiAgICAgZmlsbD0icGFyYW0oZmlsbCkgIzE0OTZiZSIgLz4KPC9zdmc+Cg==" type="QString" name="name"/>
@@ -1044,7 +1045,7 @@
         <layer id="{97e54684-dc68-47d3-97a4-e2fcb8a309d2}" class="SvgMarker" pass="0" enabled="1" locked="0">
           <Option type="Map">
             <Option value="0" type="QString" name="angle"/>
-            <Option value="159,58,0,255,rgb:0.6235294,0.227451,0,1" type="QString" name="color"/>
+            <Option value="159,135,0,255,rgb:0.6235294,0.5294118,0,1" type="QString" name="color"/>
             <Option value="0" type="QString" name="fixedAspectRatio"/>
             <Option value="1" type="QString" name="horizontal_anchor_point"/>
             <Option value="base64:PD94bWwgdmVyc2lvbj0iMS4wIiBlbmNvZGluZz0iVVRGLTgiIHN0YW5kYWxvbmU9Im5vIj8+CjxzdmcKICAgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIgogICBpZD0icWdpc3JlZF9mcmFtZSIKICAgaGVpZ2h0PSIxNTRtbSIKICAgd2lkdGg9IjE1NG1tIgogICB2ZXJzaW9uPSIxLjAiPgogIDxwYXRoCiAgICAgaWQ9InBhdGg3IgogICAgIGQ9IiAgTSA2Mi43MTk1MzUsODMuOTE5Mzc4ICAgQyA0OC45NTk2MzcsODQuMTU5Mzc3IDM3LjkxOTcxOSw5NS41MTkyOTIgMzguMDc5NzE4LDEwOS4yNzkxOSAgIEwgMzguMDc5NzE4LDQ2NC45NTY1NiAgIEMgMzYuNjM5NzI5LDQ3My4wMzY1IDM5LjE5OTcxLDQ4MS40MzY0MyA0NS4wMzk2NjYsNDg3LjI3NjM5ICAgQyA1MC44Nzk2MjMsNDkzLjI3NjM1IDU5LjI3OTU2MSw0OTUuOTk2MzMgNjcuNTk5NDk5LDQ5NC41NTYzNCAgIEwgNTE3LjU5NjE3LDQ5NS42NzYzMyAgIEMgNTIzLjUxNjEyLDQ5Ni41NTYzMiA1MjkuNTk2MDgsNDk1LjI3NjMzIDUzNC42MzYwNCw0OTEuOTk2MzYgICBDIDU0My40MzU5Nyw0ODYuNjM2NCA1NDguMDc1OTQsNDc2LjM5NjQ3IDU0Ni4yMzU5NSw0NjYuMjM2NTUgICBMIDU0Ni4yMzU5NSwxMTAuNDc5MTggICBDIDU0Ni4zOTU5NSw5Ni4zOTkyODYgNTM0Ljk1NjA0LDg0Ljg3OTM3MSA1MjAuNzk2MTQsODUuMTE5MzY5ICAgQyA1MDcuMDM2MjQsODUuMzU5MzY4IDQ5NS45OTYzMyw5Ni42MzkyODQgNDk2LjIzNjMyLDExMC40NzkxOCAgIEwgNDk2LjIzNjMyLDE2NC4wNzg3OCAgIEwgODguMDc5MzQ4LDE2My4wMzg3OSAgIEwgODguMDc5MzQ4LDEwOS4yNzkxOSAgIEMgODguMzE5MzQ2LDk1LjE5OTI5NSA3Ni43OTk0MzEsODMuNzU5MzggNjIuNzE5NTM1LDgzLjkxOTM3OCAgIHogIE0gODguMDc5MzQ4LDE4OC4zMTg2MSAgIEwgNDk2LjIzNjMyLDE4OS4zNTg2ICAgTCA0OTYuMjM2MzIsNDQ1LjU5NjcgICBMIDg4LjA3OTM0OCw0NDQuNTU2NzEgICB6ICBNIDM0OC43MTc0MiwyMTMuOTE4NDIgICBMIDIzMy4zNTgyNywyMTQuMjM4NDEgICBDIDIyNi4zMTgzMiwyMTQuMTU4NDEgMjIwLjYzODM3LDIxOS44MzgzNyAyMjAuNjM4MzcsMjI2Ljg3ODMyICAgQyAyMjAuNjM4MzcsMjMzLjkxODI3IDIyNi4zOTgzMiwyMzkuNTk4MjMgMjMzLjQzODI3LDIzOS41MTgyMyAgIEwgMzQ4Ljc5NzQyLDIzOS4xOTgyMyAgIEMgMzU1LjgzNzM2LDIzOS4yNzgyMyAzNjEuNTE3MzIsMjMzLjU5ODI3IDM2MS41MTczMiwyMjYuNTU4MzIgICBDIDM2MS41MTczMiwyMTkuNTE4MzcgMzU1Ljc1NzM2LDIxMy44Mzg0MiAzNDguNzE3NDIsMjEzLjkxODQyICAgeiAiCiAgICAgc3Ryb2tlLXdpZHRoPSJwYXJhbShvdXRsaW5lLXdpZHRoKSAwIgogICAgIHN0cm9rZS1vcGFjaXR5PSJwYXJhbShvdXRsaW5lLW9wYWNpdHkpIgogICAgIHN0cm9rZT0icGFyYW0ob3V0bGluZSkgI0ZGRiIKICAgICBmaWxsLW9wYWNpdHk9InBhcmFtKGZpbGwtb3BhY2l0eSkiCiAgICAgZmlsbD0icGFyYW0oZmlsbCkgIzBjNWU3NyIgLz4KPC9zdmc+Cg==" type="QString" name="name"/>
@@ -1084,7 +1085,7 @@
         <layer id="{47472e31-3a37-4f39-adc7-2ffb883ab71e}" class="SvgMarker" pass="0" enabled="1" locked="0">
           <Option type="Map">
             <Option value="0" type="QString" name="angle"/>
-            <Option value="255,93,0,255,rgb:1,0.3647059,0,1" type="QString" name="color"/>
+            <Option value="255,216,0,255,rgb:1,0.8470588,0,1" type="QString" name="color"/>
             <Option value="0" type="QString" name="fixedAspectRatio"/>
             <Option value="1" type="QString" name="horizontal_anchor_point"/>
             <Option value="base64:PD94bWwgdmVyc2lvbj0iMS4wIiBlbmNvZGluZz0iVVRGLTgiIHN0YW5kYWxvbmU9Im5vIj8+CjxzdmcKICAgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIgogICBpZD0icWdpc3JlZF93YXRlciIKICAgd2lkdGg9IjE1NG1tIgogICBoZWlnaHQ9IjE1NG1tIgogICB2ZXJzaW9uPSIxLjAiPgogIDxwYXRoCiAgICAgc3Ryb2tlLXdpZHRoPSJwYXJhbShvdXRsaW5lLXdpZHRoKSAwIgogICAgIHN0cm9rZS1vcGFjaXR5PSJwYXJhbShvdXRsaW5lLW9wYWNpdHkpIgogICAgIHN0cm9rZT0icGFyYW0ob3V0bGluZSkgI0ZGRiIKICAgICBmaWxsLW9wYWNpdHk9InBhcmFtKGZpbGwtb3BhY2l0eSkiCiAgICAgZmlsbD0icGFyYW0oZmlsbCkgIzE0OTZiZSIKICAgICBkPSJNIDUxNy44MzYxNiwxOTguOTg4NzUgNDM2LjU1Njc3LDE5Ny40Njg3NiAyOTQuODc3ODIsMjAyLjc0ODcyIDc2LjU1OTQzMywxOTguOTg4NzUgMTgwLjU1ODY2LDMwMy4yMjc5OCAyODkuOTE3ODUsNDA5Ljg2NzE5IDM5MS45OTcxLDMwOC41ODc5NCBaIgogICAgIGlkPSJwYXRoNSIgLz4KPC9zdmc+Cg==" type="QString" name="name"/>
@@ -1124,7 +1125,7 @@
         <layer id="{47472e31-3a37-4f39-adc7-2ffb883ab71e}" class="SvgMarker" pass="0" enabled="1" locked="0">
           <Option type="Map">
             <Option value="0" type="QString" name="angle"/>
-            <Option value="159,58,0,255,rgb:0.6235294,0.227451,0,1" type="QString" name="color"/>
+            <Option value="159,135,0,255,rgb:0.6235294,0.5294118,0,1" type="QString" name="color"/>
             <Option value="0" type="QString" name="fixedAspectRatio"/>
             <Option value="1" type="QString" name="horizontal_anchor_point"/>
             <Option value="base64:PD94bWwgdmVyc2lvbj0iMS4wIiBlbmNvZGluZz0iVVRGLTgiIHN0YW5kYWxvbmU9Im5vIj8+CjxzdmcKICAgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIgogICBpZD0icWdpc3JlZF9mcmFtZSIKICAgd2lkdGg9IjE1NG1tIgogICBoZWlnaHQ9IjE1NG1tIgogICB2ZXJzaW9uPSIxLjAiPgogIDxwYXRoCiAgICAgc3Ryb2tlLXdpZHRoPSJwYXJhbShvdXRsaW5lLXdpZHRoKSAwIgogICAgIHN0cm9rZS1vcGFjaXR5PSJwYXJhbShvdXRsaW5lLW9wYWNpdHkpIgogICAgIHN0cm9rZT0icGFyYW0ob3V0bGluZSkgI0ZGRiIKICAgICBmaWxsLW9wYWNpdHk9InBhcmFtKGZpbGwtb3BhY2l0eSkiCiAgICAgZmlsbD0icGFyYW0oZmlsbCkgIzBjNWU3NyIKICAgICBkPSJtIDU0Mi4zMTU5OCwxNTIuMTA5MSBjIC01LjE5OTk2LDAgLTEwLjE1OTkyLDEuOTk5OTggLTEzLjkxOTg5LDUuNjc5OTYgbCAtMzQuNjM5NzUsMzIuNTU5NzYgSCA4Ni4xNTkzNjIgTCA1MS40Mzk2MTksMTU3Ljc4OTA2IEMgNDcuNTk5NjQ3LDE1My45NDkwOSA0Mi4zMTk2ODcsMTUxLjk0OTEgMzYuOTU5NzI2LDE1Mi4xMDkxIDE5LjAzOTg1OSwxNTIuNjY5MDkgMTAuNzk5OTIsMTc0Ljc0ODkzIDI0LjA3OTgyMiwxODYuODI4ODQgTCAyNzQuMDc3OTcsNDIyLjM0NzEgYyAzLjUxOTk3LDQuNDc5OTYgOC44Nzk5Myw3LjI3OTk0IDE0LjYzOTg5LDcuNTk5OTQgMC4wOCwwIDAuMTYsMCAwLjI0LDAgMC40LDAgMC43OTk5OSwwIDEuMjc5OTksMCA2LjA3OTk2LDAgMTEuNzU5OTEsLTIuNzk5OTggMTUuNTE5ODksLTcuNTE5OTQgTCA1NTUuODM1ODgsMTg2LjgyODg0IGMgMTMuNDM5OSwtMTIuMzE5OTEgNC43MTk5NywtMzQuNzE5NzQgLTEzLjUxOTksLTM0LjcxOTc0IHogbSAtNDM3LjgzNjc1LDU1LjUxOTU5IGggMzcwLjk1NzI1IGwgLTE4NS41MTg2MywxNzQuNzE4NyB6IG0gMjMxLjExODI4LDI2LjA3OTggLTkxLjM1OTMyLDAuMjQgYyAtNS41MTk5NiwwIC05Ljk5OTkzLDQuNDc5OTcgLTkuOTE5OTMsOS45OTk5MyAwLDUuNTk5OTYgNC40Nzk5Nyw5Ljk5OTkyIDkuOTk5OTMsOS45OTk5MiBsIDkxLjI3OTMyLC0wLjIzOTk5IGMgNS41OTk5NiwwLjA4IDEwLjE1OTkzLC00LjM5OTk3IDEwLjE1OTkzLC05Ljk5OTkzIDAsLTUuNTk5OTYgLTQuNTU5OTcsLTEwLjA3OTkzIC0xMC4xNTk5MywtOS45OTk5MyB6IgogICAgIGlkPSJwYXRoNyIgLz4KPC9zdmc+Cg==" type="QString" name="name"/>
@@ -1165,7 +1166,217 @@
           <Option type="Map">
             <Option value="0" type="QString" name="angle"/>
             <Option value="square" type="QString" name="cap_style"/>
-            <Option value="255,93,0,255,rgb:1,0.3647059,0,1" type="QString" name="color"/>
+            <Option value="255,216,0,255,rgb:1,0.8470588,0,1" type="QString" name="color"/>
+            <Option value="1" type="QString" name="horizontal_anchor_point"/>
+            <Option value="bevel" type="QString" name="joinstyle"/>
+            <Option value="circle" type="QString" name="name"/>
+            <Option value="0,0" type="QString" name="offset"/>
+            <Option value="3x:0,0,0,0,0,0" type="QString" name="offset_map_unit_scale"/>
+            <Option value="MM" type="QString" name="offset_unit"/>
+            <Option value="0,0,0,255,rgb:0,0,0,1" type="QString" name="outline_color"/>
+            <Option value="solid" type="QString" name="outline_style"/>
+            <Option value="0" type="QString" name="outline_width"/>
+            <Option value="3x:0,0,0,0,0,0" type="QString" name="outline_width_map_unit_scale"/>
+            <Option value="MM" type="QString" name="outline_width_unit"/>
+            <Option value="diameter" type="QString" name="scale_method"/>
+            <Option value="2" type="QString" name="size"/>
+            <Option value="3x:0,0,0,0,0,0" type="QString" name="size_map_unit_scale"/>
+            <Option value="MM" type="QString" name="size_unit"/>
+            <Option value="1" type="QString" name="vertical_anchor_point"/>
+          </Option>
+          <data_defined_properties>
+            <Option type="Map">
+              <Option value="" type="QString" name="name"/>
+              <Option type="Map" name="properties">
+                <Option type="Map" name="size">
+                  <Option value="true" type="bool" name="active"/>
+                  <Option value="if(@id is NULL, NULL, if(coalesce(attribute($currentfeature,'NodeType'),attribute($currentfeature,'Type')) ='RESERVOIR' or coalesce(attribute($currentfeature,'NodeType'),attribute($currentfeature,'Type'))='TANK', 0,2))" type="QString" name="expression"/>
+                  <Option value="3" type="int" name="type"/>
+                </Option>
+                <Option type="Map" name="width">
+                  <Option value="true" type="bool" name="active"/>
+                  <Option value="if(@id is NULL, NULL, if(coalesce(attribute($currentfeature,'NodeType'),attribute($currentfeature,'Type')) ='RESERVOIR' or coalesce(attribute($currentfeature,'NodeType'),attribute($currentfeature,'Type'))='TANK', 0,2))" type="QString" name="expression"/>
+                  <Option value="3" type="int" name="type"/>
+                </Option>
+              </Option>
+              <Option value="collection" type="QString" name="type"/>
+            </Option>
+          </data_defined_properties>
+        </layer>
+      </symbol>
+      <symbol alpha="1" is_animated="0" frame_rate="10" type="marker" clip_to_extent="1" name="5" force_rhr="0">
+        <data_defined_properties>
+          <Option type="Map">
+            <Option value="" type="QString" name="name"/>
+            <Option name="properties"/>
+            <Option value="collection" type="QString" name="type"/>
+          </Option>
+        </data_defined_properties>
+        <layer id="{97e54684-dc68-47d3-97a4-e2fcb8a309d2}" class="SvgMarker" pass="0" enabled="1" locked="0">
+          <Option type="Map">
+            <Option value="0" type="QString" name="angle"/>
+            <Option value="255,56,0,255,rgb:1,0.2196078,0,1" type="QString" name="color"/>
+            <Option value="0" type="QString" name="fixedAspectRatio"/>
+            <Option value="1" type="QString" name="horizontal_anchor_point"/>
+            <Option value="base64:PD94bWwgdmVyc2lvbj0iMS4wIiBlbmNvZGluZz0iVVRGLTgiIHN0YW5kYWxvbmU9Im5vIj8+CjxzdmcKICAgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIgogICBpZD0icWdpc3JlZF93YXRlciIKICAgaGVpZ2h0PSIxNTRtbSIKICAgd2lkdGg9IjE1NG1tIgogICB2ZXJzaW9uPSIxLjAiPgogIDxwYXRoCiAgICAgaWQ9InBhdGg1IgogICAgIGQ9IiAgTSA3OC4zOTk0MTksMTc0LjQ3ODcxICAgTCA3OC4zOTk0MTksMTgxLjU5ODY1ICAgTCA3OC4zOTk0MTksNDQ2LjM5NjY5ICAgTCA1MDMuNDM2MjcsNDQ2LjM5NjY5ICAgTCA1MDMuNDM2MjcsMTc0LjQ3ODcxICAgeiAiCiAgICAgc3Ryb2tlLXdpZHRoPSJwYXJhbShvdXRsaW5lLXdpZHRoKSAwIgogICAgIHN0cm9rZS1vcGFjaXR5PSJwYXJhbShvdXRsaW5lLW9wYWNpdHkpIgogICAgIHN0cm9rZT0icGFyYW0ob3V0bGluZSkgI0ZGRiIKICAgICBmaWxsLW9wYWNpdHk9InBhcmFtKGZpbGwtb3BhY2l0eSkiCiAgICAgZmlsbD0icGFyYW0oZmlsbCkgIzE0OTZiZSIgLz4KPC9zdmc+Cg==" type="QString" name="name"/>
+            <Option value="0,0" type="QString" name="offset"/>
+            <Option value="3x:0,0,0,0,0,0" type="QString" name="offset_map_unit_scale"/>
+            <Option value="MM" type="QString" name="offset_unit"/>
+            <Option value="255,255,255,255,rgb:1,1,1,1" type="QString" name="outline_color"/>
+            <Option value="0" type="QString" name="outline_width"/>
+            <Option value="3x:0,0,0,0,0,0" type="QString" name="outline_width_map_unit_scale"/>
+            <Option value="MM" type="QString" name="outline_width_unit"/>
+            <Option name="parameters"/>
+            <Option value="diameter" type="QString" name="scale_method"/>
+            <Option value="0" type="QString" name="size"/>
+            <Option value="3x:0,0,0,0,0,0" type="QString" name="size_map_unit_scale"/>
+            <Option value="MM" type="QString" name="size_unit"/>
+            <Option value="1" type="QString" name="vertical_anchor_point"/>
+          </Option>
+          <data_defined_properties>
+            <Option type="Map">
+              <Option value="" type="QString" name="name"/>
+              <Option type="Map" name="properties">
+                <Option type="Map" name="size">
+                  <Option value="true" type="bool" name="active"/>
+                  <Option value="if(@id is NULL, NULL, if(coalesce(attribute($currentfeature,'NodeType'),attribute($currentfeature,'Type')) ='TANK', 8,0))" type="QString" name="expression"/>
+                  <Option value="3" type="int" name="type"/>
+                </Option>
+                <Option type="Map" name="width">
+                  <Option value="true" type="bool" name="active"/>
+                  <Option value="if(@id is NULL, NULL, if(coalesce(attribute($currentfeature,'NodeType'),attribute($currentfeature,'Type')) ='TANK', 8,0))" type="QString" name="expression"/>
+                  <Option value="3" type="int" name="type"/>
+                </Option>
+              </Option>
+              <Option value="collection" type="QString" name="type"/>
+            </Option>
+          </data_defined_properties>
+        </layer>
+        <layer id="{97e54684-dc68-47d3-97a4-e2fcb8a309d2}" class="SvgMarker" pass="0" enabled="1" locked="0">
+          <Option type="Map">
+            <Option value="0" type="QString" name="angle"/>
+            <Option value="159,35,0,255,rgb:0.6235294,0.1372549,0,1" type="QString" name="color"/>
+            <Option value="0" type="QString" name="fixedAspectRatio"/>
+            <Option value="1" type="QString" name="horizontal_anchor_point"/>
+            <Option value="base64:PD94bWwgdmVyc2lvbj0iMS4wIiBlbmNvZGluZz0iVVRGLTgiIHN0YW5kYWxvbmU9Im5vIj8+CjxzdmcKICAgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIgogICBpZD0icWdpc3JlZF9mcmFtZSIKICAgaGVpZ2h0PSIxNTRtbSIKICAgd2lkdGg9IjE1NG1tIgogICB2ZXJzaW9uPSIxLjAiPgogIDxwYXRoCiAgICAgaWQ9InBhdGg3IgogICAgIGQ9IiAgTSA2Mi43MTk1MzUsODMuOTE5Mzc4ICAgQyA0OC45NTk2MzcsODQuMTU5Mzc3IDM3LjkxOTcxOSw5NS41MTkyOTIgMzguMDc5NzE4LDEwOS4yNzkxOSAgIEwgMzguMDc5NzE4LDQ2NC45NTY1NiAgIEMgMzYuNjM5NzI5LDQ3My4wMzY1IDM5LjE5OTcxLDQ4MS40MzY0MyA0NS4wMzk2NjYsNDg3LjI3NjM5ICAgQyA1MC44Nzk2MjMsNDkzLjI3NjM1IDU5LjI3OTU2MSw0OTUuOTk2MzMgNjcuNTk5NDk5LDQ5NC41NTYzNCAgIEwgNTE3LjU5NjE3LDQ5NS42NzYzMyAgIEMgNTIzLjUxNjEyLDQ5Ni41NTYzMiA1MjkuNTk2MDgsNDk1LjI3NjMzIDUzNC42MzYwNCw0OTEuOTk2MzYgICBDIDU0My40MzU5Nyw0ODYuNjM2NCA1NDguMDc1OTQsNDc2LjM5NjQ3IDU0Ni4yMzU5NSw0NjYuMjM2NTUgICBMIDU0Ni4yMzU5NSwxMTAuNDc5MTggICBDIDU0Ni4zOTU5NSw5Ni4zOTkyODYgNTM0Ljk1NjA0LDg0Ljg3OTM3MSA1MjAuNzk2MTQsODUuMTE5MzY5ICAgQyA1MDcuMDM2MjQsODUuMzU5MzY4IDQ5NS45OTYzMyw5Ni42MzkyODQgNDk2LjIzNjMyLDExMC40NzkxOCAgIEwgNDk2LjIzNjMyLDE2NC4wNzg3OCAgIEwgODguMDc5MzQ4LDE2My4wMzg3OSAgIEwgODguMDc5MzQ4LDEwOS4yNzkxOSAgIEMgODguMzE5MzQ2LDk1LjE5OTI5NSA3Ni43OTk0MzEsODMuNzU5MzggNjIuNzE5NTM1LDgzLjkxOTM3OCAgIHogIE0gODguMDc5MzQ4LDE4OC4zMTg2MSAgIEwgNDk2LjIzNjMyLDE4OS4zNTg2ICAgTCA0OTYuMjM2MzIsNDQ1LjU5NjcgICBMIDg4LjA3OTM0OCw0NDQuNTU2NzEgICB6ICBNIDM0OC43MTc0MiwyMTMuOTE4NDIgICBMIDIzMy4zNTgyNywyMTQuMjM4NDEgICBDIDIyNi4zMTgzMiwyMTQuMTU4NDEgMjIwLjYzODM3LDIxOS44MzgzNyAyMjAuNjM4MzcsMjI2Ljg3ODMyICAgQyAyMjAuNjM4MzcsMjMzLjkxODI3IDIyNi4zOTgzMiwyMzkuNTk4MjMgMjMzLjQzODI3LDIzOS41MTgyMyAgIEwgMzQ4Ljc5NzQyLDIzOS4xOTgyMyAgIEMgMzU1LjgzNzM2LDIzOS4yNzgyMyAzNjEuNTE3MzIsMjMzLjU5ODI3IDM2MS41MTczMiwyMjYuNTU4MzIgICBDIDM2MS41MTczMiwyMTkuNTE4MzcgMzU1Ljc1NzM2LDIxMy44Mzg0MiAzNDguNzE3NDIsMjEzLjkxODQyICAgeiAiCiAgICAgc3Ryb2tlLXdpZHRoPSJwYXJhbShvdXRsaW5lLXdpZHRoKSAwIgogICAgIHN0cm9rZS1vcGFjaXR5PSJwYXJhbShvdXRsaW5lLW9wYWNpdHkpIgogICAgIHN0cm9rZT0icGFyYW0ob3V0bGluZSkgI0ZGRiIKICAgICBmaWxsLW9wYWNpdHk9InBhcmFtKGZpbGwtb3BhY2l0eSkiCiAgICAgZmlsbD0icGFyYW0oZmlsbCkgIzBjNWU3NyIgLz4KPC9zdmc+Cg==" type="QString" name="name"/>
+            <Option value="0,0" type="QString" name="offset"/>
+            <Option value="3x:0,0,0,0,0,0" type="QString" name="offset_map_unit_scale"/>
+            <Option value="MM" type="QString" name="offset_unit"/>
+            <Option value="255,255,255,255,rgb:1,1,1,1" type="QString" name="outline_color"/>
+            <Option value="0" type="QString" name="outline_width"/>
+            <Option value="3x:0,0,0,0,0,0" type="QString" name="outline_width_map_unit_scale"/>
+            <Option value="MM" type="QString" name="outline_width_unit"/>
+            <Option name="parameters"/>
+            <Option value="diameter" type="QString" name="scale_method"/>
+            <Option value="0" type="QString" name="size"/>
+            <Option value="3x:0,0,0,0,0,0" type="QString" name="size_map_unit_scale"/>
+            <Option value="MM" type="QString" name="size_unit"/>
+            <Option value="1" type="QString" name="vertical_anchor_point"/>
+          </Option>
+          <data_defined_properties>
+            <Option type="Map">
+              <Option value="" type="QString" name="name"/>
+              <Option type="Map" name="properties">
+                <Option type="Map" name="size">
+                  <Option value="true" type="bool" name="active"/>
+                  <Option value="if(@id is NULL, NULL, if(coalesce(attribute($currentfeature,'NodeType'),attribute($currentfeature,'Type')) ='TANK', 8,0))" type="QString" name="expression"/>
+                  <Option value="3" type="int" name="type"/>
+                </Option>
+                <Option type="Map" name="width">
+                  <Option value="true" type="bool" name="active"/>
+                  <Option value="if(@id is NULL, NULL, if(coalesce(attribute($currentfeature,'NodeType'),attribute($currentfeature,'Type')) ='TANK', 8,0))" type="QString" name="expression"/>
+                  <Option value="3" type="int" name="type"/>
+                </Option>
+              </Option>
+              <Option value="collection" type="QString" name="type"/>
+            </Option>
+          </data_defined_properties>
+        </layer>
+        <layer id="{47472e31-3a37-4f39-adc7-2ffb883ab71e}" class="SvgMarker" pass="0" enabled="1" locked="0">
+          <Option type="Map">
+            <Option value="0" type="QString" name="angle"/>
+            <Option value="255,56,0,255,rgb:1,0.2196078,0,1" type="QString" name="color"/>
+            <Option value="0" type="QString" name="fixedAspectRatio"/>
+            <Option value="1" type="QString" name="horizontal_anchor_point"/>
+            <Option value="base64:PD94bWwgdmVyc2lvbj0iMS4wIiBlbmNvZGluZz0iVVRGLTgiIHN0YW5kYWxvbmU9Im5vIj8+CjxzdmcKICAgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIgogICBpZD0icWdpc3JlZF93YXRlciIKICAgd2lkdGg9IjE1NG1tIgogICBoZWlnaHQ9IjE1NG1tIgogICB2ZXJzaW9uPSIxLjAiPgogIDxwYXRoCiAgICAgc3Ryb2tlLXdpZHRoPSJwYXJhbShvdXRsaW5lLXdpZHRoKSAwIgogICAgIHN0cm9rZS1vcGFjaXR5PSJwYXJhbShvdXRsaW5lLW9wYWNpdHkpIgogICAgIHN0cm9rZT0icGFyYW0ob3V0bGluZSkgI0ZGRiIKICAgICBmaWxsLW9wYWNpdHk9InBhcmFtKGZpbGwtb3BhY2l0eSkiCiAgICAgZmlsbD0icGFyYW0oZmlsbCkgIzE0OTZiZSIKICAgICBkPSJNIDUxNy44MzYxNiwxOTguOTg4NzUgNDM2LjU1Njc3LDE5Ny40Njg3NiAyOTQuODc3ODIsMjAyLjc0ODcyIDc2LjU1OTQzMywxOTguOTg4NzUgMTgwLjU1ODY2LDMwMy4yMjc5OCAyODkuOTE3ODUsNDA5Ljg2NzE5IDM5MS45OTcxLDMwOC41ODc5NCBaIgogICAgIGlkPSJwYXRoNSIgLz4KPC9zdmc+Cg==" type="QString" name="name"/>
+            <Option value="0,0" type="QString" name="offset"/>
+            <Option value="3x:0,0,0,0,0,0" type="QString" name="offset_map_unit_scale"/>
+            <Option value="MM" type="QString" name="offset_unit"/>
+            <Option value="255,255,255,255,rgb:1,1,1,1" type="QString" name="outline_color"/>
+            <Option value="0" type="QString" name="outline_width"/>
+            <Option value="3x:0,0,0,0,0,0" type="QString" name="outline_width_map_unit_scale"/>
+            <Option value="MM" type="QString" name="outline_width_unit"/>
+            <Option name="parameters"/>
+            <Option value="diameter" type="QString" name="scale_method"/>
+            <Option value="0" type="QString" name="size"/>
+            <Option value="3x:0,0,0,0,0,0" type="QString" name="size_map_unit_scale"/>
+            <Option value="MM" type="QString" name="size_unit"/>
+            <Option value="1" type="QString" name="vertical_anchor_point"/>
+          </Option>
+          <data_defined_properties>
+            <Option type="Map">
+              <Option value="" type="QString" name="name"/>
+              <Option type="Map" name="properties">
+                <Option type="Map" name="size">
+                  <Option value="true" type="bool" name="active"/>
+                  <Option value="if(@id is NULL, NULL, if(coalesce(attribute($currentfeature,'NodeType'),attribute($currentfeature,'Type')) ='RESERVOIR', 8,0))" type="QString" name="expression"/>
+                  <Option value="3" type="int" name="type"/>
+                </Option>
+                <Option type="Map" name="width">
+                  <Option value="true" type="bool" name="active"/>
+                  <Option value="if(@id is NULL, NULL, if(coalesce(attribute($currentfeature,'NodeType'),attribute($currentfeature,'Type')) ='RESERVOIR', 8,0))" type="QString" name="expression"/>
+                  <Option value="3" type="int" name="type"/>
+                </Option>
+              </Option>
+              <Option value="collection" type="QString" name="type"/>
+            </Option>
+          </data_defined_properties>
+        </layer>
+        <layer id="{47472e31-3a37-4f39-adc7-2ffb883ab71e}" class="SvgMarker" pass="0" enabled="1" locked="0">
+          <Option type="Map">
+            <Option value="0" type="QString" name="angle"/>
+            <Option value="159,35,0,255,rgb:0.6235294,0.1372549,0,1" type="QString" name="color"/>
+            <Option value="0" type="QString" name="fixedAspectRatio"/>
+            <Option value="1" type="QString" name="horizontal_anchor_point"/>
+            <Option value="base64:PD94bWwgdmVyc2lvbj0iMS4wIiBlbmNvZGluZz0iVVRGLTgiIHN0YW5kYWxvbmU9Im5vIj8+CjxzdmcKICAgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIgogICBpZD0icWdpc3JlZF9mcmFtZSIKICAgd2lkdGg9IjE1NG1tIgogICBoZWlnaHQ9IjE1NG1tIgogICB2ZXJzaW9uPSIxLjAiPgogIDxwYXRoCiAgICAgc3Ryb2tlLXdpZHRoPSJwYXJhbShvdXRsaW5lLXdpZHRoKSAwIgogICAgIHN0cm9rZS1vcGFjaXR5PSJwYXJhbShvdXRsaW5lLW9wYWNpdHkpIgogICAgIHN0cm9rZT0icGFyYW0ob3V0bGluZSkgI0ZGRiIKICAgICBmaWxsLW9wYWNpdHk9InBhcmFtKGZpbGwtb3BhY2l0eSkiCiAgICAgZmlsbD0icGFyYW0oZmlsbCkgIzBjNWU3NyIKICAgICBkPSJtIDU0Mi4zMTU5OCwxNTIuMTA5MSBjIC01LjE5OTk2LDAgLTEwLjE1OTkyLDEuOTk5OTggLTEzLjkxOTg5LDUuNjc5OTYgbCAtMzQuNjM5NzUsMzIuNTU5NzYgSCA4Ni4xNTkzNjIgTCA1MS40Mzk2MTksMTU3Ljc4OTA2IEMgNDcuNTk5NjQ3LDE1My45NDkwOSA0Mi4zMTk2ODcsMTUxLjk0OTEgMzYuOTU5NzI2LDE1Mi4xMDkxIDE5LjAzOTg1OSwxNTIuNjY5MDkgMTAuNzk5OTIsMTc0Ljc0ODkzIDI0LjA3OTgyMiwxODYuODI4ODQgTCAyNzQuMDc3OTcsNDIyLjM0NzEgYyAzLjUxOTk3LDQuNDc5OTYgOC44Nzk5Myw3LjI3OTk0IDE0LjYzOTg5LDcuNTk5OTQgMC4wOCwwIDAuMTYsMCAwLjI0LDAgMC40LDAgMC43OTk5OSwwIDEuMjc5OTksMCA2LjA3OTk2LDAgMTEuNzU5OTEsLTIuNzk5OTggMTUuNTE5ODksLTcuNTE5OTQgTCA1NTUuODM1ODgsMTg2LjgyODg0IGMgMTMuNDM5OSwtMTIuMzE5OTEgNC43MTk5NywtMzQuNzE5NzQgLTEzLjUxOTksLTM0LjcxOTc0IHogbSAtNDM3LjgzNjc1LDU1LjUxOTU5IGggMzcwLjk1NzI1IGwgLTE4NS41MTg2MywxNzQuNzE4NyB6IG0gMjMxLjExODI4LDI2LjA3OTggLTkxLjM1OTMyLDAuMjQgYyAtNS41MTk5NiwwIC05Ljk5OTkzLDQuNDc5OTcgLTkuOTE5OTMsOS45OTk5MyAwLDUuNTk5OTYgNC40Nzk5Nyw5Ljk5OTkyIDkuOTk5OTMsOS45OTk5MiBsIDkxLjI3OTMyLC0wLjIzOTk5IGMgNS41OTk5NiwwLjA4IDEwLjE1OTkzLC00LjM5OTk3IDEwLjE1OTkzLC05Ljk5OTkzIDAsLTUuNTk5OTYgLTQuNTU5OTcsLTEwLjA3OTkzIC0xMC4xNTk5MywtOS45OTk5MyB6IgogICAgIGlkPSJwYXRoNyIgLz4KPC9zdmc+Cg==" type="QString" name="name"/>
+            <Option value="0,0" type="QString" name="offset"/>
+            <Option value="3x:0,0,0,0,0,0" type="QString" name="offset_map_unit_scale"/>
+            <Option value="MM" type="QString" name="offset_unit"/>
+            <Option value="255,255,255,255,rgb:1,1,1,1" type="QString" name="outline_color"/>
+            <Option value="0" type="QString" name="outline_width"/>
+            <Option value="3x:0,0,0,0,0,0" type="QString" name="outline_width_map_unit_scale"/>
+            <Option value="MM" type="QString" name="outline_width_unit"/>
+            <Option name="parameters"/>
+            <Option value="diameter" type="QString" name="scale_method"/>
+            <Option value="0" type="QString" name="size"/>
+            <Option value="3x:0,0,0,0,0,0" type="QString" name="size_map_unit_scale"/>
+            <Option value="MM" type="QString" name="size_unit"/>
+            <Option value="1" type="QString" name="vertical_anchor_point"/>
+          </Option>
+          <data_defined_properties>
+            <Option type="Map">
+              <Option value="" type="QString" name="name"/>
+              <Option type="Map" name="properties">
+                <Option type="Map" name="size">
+                  <Option value="true" type="bool" name="active"/>
+                  <Option value="if(@id is NULL, NULL, if(coalesce(attribute($currentfeature,'NodeType'),attribute($currentfeature,'Type')) ='RESERVOIR', 8,0))" type="QString" name="expression"/>
+                  <Option value="3" type="int" name="type"/>
+                </Option>
+                <Option type="Map" name="width">
+                  <Option value="true" type="bool" name="active"/>
+                  <Option value="if(@id is NULL, NULL, if(coalesce(attribute($currentfeature,'NodeType'),attribute($currentfeature,'Type')) ='RESERVOIR', 8,0))" type="QString" name="expression"/>
+                  <Option value="3" type="int" name="type"/>
+                </Option>
+              </Option>
+              <Option value="collection" type="QString" name="type"/>
+            </Option>
+          </data_defined_properties>
+        </layer>
+        <layer id="{b3db60bc-a9bc-4dc3-ac7a-3ac1011eefbf}" class="SimpleMarker" pass="0" enabled="1" locked="0">
+          <Option type="Map">
+            <Option value="0" type="QString" name="angle"/>
+            <Option value="square" type="QString" name="cap_style"/>
+            <Option value="255,56,0,255,rgb:1,0.2196078,0,1" type="QString" name="color"/>
             <Option value="1" type="QString" name="horizontal_anchor_point"/>
             <Option value="bevel" type="QString" name="joinstyle"/>
             <Option value="circle" type="QString" name="name"/>
@@ -1206,7 +1417,7 @@
     </symbols>
     <colorramp type="preset" name="[source]">
       <Option type="Map">
-        <Option value="0,132,255,255" type="QString" name="preset_color_0"/>
+        <Option value="0,78,255,255" type="QString" name="preset_color_0"/>
         <Option value="1" type="QString" name="preset_color_name_0"/>
         <Option value="0,255,255,255" type="QString" name="preset_color_1"/>
         <Option value="2" type="QString" name="preset_color_name_1"/>
@@ -1214,7 +1425,7 @@
         <Option value="3" type="QString" name="preset_color_name_2"/>
         <Option value="255,216,0,255" type="QString" name="preset_color_3"/>
         <Option value="4" type="QString" name="preset_color_name_3"/>
-        <Option value="255,93,0,255" type="QString" name="preset_color_4"/>
+        <Option value="255,56,0,255" type="QString" name="preset_color_4"/>
         <Option value="5" type="QString" name="preset_color_name_4"/>
         <Option value="preset" type="QString" name="rampType"/>
       </Option>
@@ -1285,7 +1496,7 @@
     <Option type="Map">
       <Option value="0" type="QString" name="embeddedWidgets/count"/>
       <Option value="qgisred_node_demand" type="QString" name="qgisred_identifier"/>
-      <Option value="{&quot;schema&quot;:&quot;qgisred.legendStrategy.v2&quot;,&quot;mode&quot;:&quot;graduated&quot;,&quot;field&quot;:&quot;Demand&quot;,&quot;parts&quot;:[&quot;intervals&quot;,&quot;colors&quot;],&quot;intervals&quot;:{&quot;classificationMode&quot;:&quot;Pretty&quot;,&quot;classes&quot;:5},&quot;colors&quot;:{&quot;source&quot;:&quot;ramp&quot;,&quot;rampName&quot;:&quot;QGISRed EPANET Results&quot;,&quot;invertRamp&quot;:false}}" type="QString" name="qgisred_legend_strategy"/>
+      <Option value="{&quot;schema&quot;:&quot;qgisred.legendStrategy.v2&quot;,&quot;mode&quot;:&quot;graduated&quot;,&quot;field&quot;:&quot;Demand&quot;,&quot;parts&quot;:[&quot;intervals&quot;,&quot;colors&quot;],&quot;intervals&quot;:{&quot;classificationMode&quot;:&quot;Pretty&quot;,&quot;classes&quot;:5,&quot;sampleField&quot;:&quot;if(coalesce(\&quot;NodeType\&quot;, \&quot;Type\&quot;) in ('TANK','RESERVOIR'), NULL, abs(\&quot;Demand\&quot;))&quot;,&quot;negativeClass&quot;:true},&quot;colors&quot;:{&quot;source&quot;:&quot;ramp&quot;,&quot;rampName&quot;:&quot;QGISRed EPANET Results&quot;,&quot;invertRamp&quot;:false}}" type="QString" name="qgisred_legend_strategy"/>
       <Option type="invalid" name="variableNames"/>
       <Option type="invalid" name="variableValues"/>
     </Option>

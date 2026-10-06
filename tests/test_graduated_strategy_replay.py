@@ -89,6 +89,49 @@ class TestPrettyReplayOnRealQgis:
         assert renderer.classAttribute() == "abs(Flow)"
         assert renderer.ranges()[0].lowerValue() == -1e10
 
+    def test_the_breaks_come_from_the_sample_expression_while_the_field_is_classified(self):
+        from qgis.core import QgsFeature, QgsGeometry, QgsPointXY, QgsVectorLayer
+
+        layer = QgsVectorLayer("Point?crs=EPSG:3857&field=Type:string&field=Demand:double", "nodes", "memory")
+        features = []
+        for index, (nodeType, demand) in enumerate(
+                [("JUNCTION", -3.0), ("JUNCTION", 4.0), ("JUNCTION", 9.0), ("JUNCTION", 14.0), ("TANK", 950.0)]):
+            feature = QgsFeature(layer.fields())
+            feature.setAttributes([nodeType, demand])
+            feature.setGeometry(QgsGeometry.fromPointXY(QgsPointXY(index, 0)))
+            features.append(feature)
+        layer.dataProvider().addFeatures(features)
+        strategy = _prettyStrategy("Demand")
+        strategy["intervals"]["sampleField"] = "if(\"Type\" in ('TANK'), NULL, abs(\"Demand\"))"
+
+        QGISRedStylingUtils().applyLegendStrategy(layer, strategy)
+
+        renderer = layer.renderer()
+        assert renderer.classAttribute() == "Demand"
+        assert renderer.ranges()[-1].label() == "> " + QGISRedStylingUtils.formatBreak(
+            renderer.ranges()[-2].upperValue(), 3)
+        assert renderer.ranges()[-2].upperValue() <= 15
+
+    def test_the_class_below_zero_of_the_loaded_style_is_kept_in_front(self):
+        from qgis.core import QgsGraduatedSymbolRenderer, QgsRendererRange, QgsMarkerSymbol
+
+        layer = _pointLayer("Demand", [-3.0, 4.0, 9.0, 14.0, 21.0, 27.0])
+        negative = QgsMarkerSymbol.createSimple({"size": "2.5", "color": "255,255,255,255"})
+        regular = QgsMarkerSymbol.createSimple({"size": "2"})
+        layer.setRenderer(QgsGraduatedSymbolRenderer("Demand", [
+            QgsRendererRange(-1e10, -0.005, negative, "< 0"), QgsRendererRange(0, 1, regular, "0 - 1")]))
+        strategy = _prettyStrategy("Demand")
+        strategy["intervals"]["negativeClass"] = True
+
+        QGISRedStylingUtils().applyLegendStrategy(layer, strategy)
+
+        ranges = layer.renderer().ranges()
+        assert (ranges[0].lowerValue(), ranges[0].upperValue(), ranges[0].label()) == (-1e10, -0.005, "< 0")
+        assert ranges[0].symbol().size() == 2.5
+        assert ranges[1].lowerValue() == -0.005 and ranges[1].label().startswith("< ")
+        assert all(classRange.symbol().size() == 2 for classRange in ranges[1:])
+        assert ranges[-1].upperValue() == 1e10
+
     def test_a_single_value_keeps_one_class_named_after_it(self):
         layer = _pointLayer("Demand", [0.0, 0.0, 0.0])
 

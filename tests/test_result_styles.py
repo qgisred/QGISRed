@@ -18,7 +18,7 @@ PLUGIN_ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 STYLES_FOLDER = os.path.join(PLUGIN_ROOT, "defaults", "layerStyles")
 DATABASE = os.path.join(PLUGIN_ROOT, "defaults", "qgisred_symbology_style.db.bak")
 
-SPEC_PALETTE = ("#0084ff", "#00ffff", "#00ff00", "#ffd800", "#ff5d00")
+SPEC_PALETTE = ("#004eff", "#00ffff", "#00ff00", "#ffd800", "#ff3800")
 
 
 def _loadScript(name):
@@ -103,7 +103,7 @@ class TestFixedThresholds:
 
     @pytest.mark.parametrize("name, labels", [
         ("NodePressureSI", ["< 0", "< 15", "15 < 30", "30 < 40", "40 < 50", "> 50"]),
-        ("NodePressureUS", ["< 0", "< 45", "45 < 90", "90 < 120", "120 < 150", "> 150"]),
+        ("NodePressureUS", ["< 0", "< 20", "20 < 40", "40 < 60", "60 < 70", "> 70"]),
         ("NodeChlorine", ["< 0.2", "0.2 < 0.4", "0.4 < 0.6", "0.6 < 0.8", "> 0.8"]),
         ("NodeTrace", ["< 20", "20 < 40", "40 < 60", "60 < 80", "> 80"]),
         ("NodeAge", ["< 12", "12 < 24", "24 < 48", "48 < 72", "> 72"]),
@@ -121,7 +121,7 @@ class TestFixedThresholds:
         assert _labels(name) == labels
 
     @pytest.mark.parametrize("name, minimum, maximum", [
-        ("NodePressureSI", -10, 200), ("NodePressureUS", -30, 600), ("NodeChlorine", 0, 2), ("NodeTrace", 0, 100),
+        ("NodePressureSI", -10, 200), ("NodePressureUS", -14, 300), ("NodeChlorine", 0, 2), ("NodeTrace", 0, 100),
         ("NodeAge", 0, 1000), ("LinkVelocitySI", 0, 10), ("LinkVelocityUS", 0, 30), ("LinkHeadLossSI", 0, 50),
         ("LinkHeadLossUS", 0, 150), ("LinkUnitHdLoss", 0, 50), ("LinkFricFactor", 0, 1), ("LinkChlorine", 0, 2),
         ("LinkTrace", 0, 100), ("LinkAge", 0, 1000),
@@ -156,15 +156,17 @@ class TestPrettyBreakStyles:
         assert strategy["mode"] == "graduated"
         assert strategy["field"] == field
         assert strategy["parts"] == ["intervals", "colors"]
-        assert strategy["intervals"] == {"classificationMode": "Pretty", "classes": 5}
+        assert strategy["intervals"]["classificationMode"] == "Pretty"
+        assert strategy["intervals"]["classes"] == 5
         assert strategy["colors"] == {"source": "ramp", "rampName": "QGISRed EPANET Results", "invertRamp": False}
 
     @pytest.mark.parametrize("name", PRETTY)
     def test_placeholder_classes_already_wear_the_palette_and_a_source_ramp(self, name):
         root = _root(name)
         assert root.find("renderer-v2/classificationMethod").get("id") == "Pretty"
-        assert len(root.findall("renderer-v2/ranges/range")) == 5
-        assert _classColors(name) == list(SPEC_PALETTE)
+        placeholders = 6 if name == "NodeDemand" else 5
+        assert len(root.findall("renderer-v2/ranges/range")) == placeholders
+        assert _classColors(name)[-5:] == list(SPEC_PALETTE)
         ramp = root.find("renderer-v2/colorramp")
         assert ramp.get("name") == "[source]" and ramp.get("type") == "preset"
         rampColors = [_rgb(_option(ramp, "preset_color_%d" % index)) for index in range(5)]
@@ -172,6 +174,28 @@ class TestPrettyBreakStyles:
 
     def test_flow_classifies_its_absolute_value(self):
         assert _root("LinkFlow").find("renderer-v2").get("attr") == "abs(Flow)"
+
+    def test_demand_breaks_come_from_the_absolute_values_of_the_junctions_only(self):
+        strategy = json.loads(_customProperty("NodeDemand", "qgisred_legend_strategy"))
+        assert strategy["intervals"]["sampleField"] == (
+            "if(coalesce(\"NodeType\", \"Type\") in ('TANK','RESERVOIR'), NULL, abs(\"Demand\"))")
+        assert _root("NodeDemand").find("renderer-v2").get("attr") == "Demand"
+
+    def test_head_breaks_ignore_the_reservoirs(self):
+        strategy = json.loads(_customProperty("NodeHead", "qgisred_legend_strategy"))
+        assert strategy["intervals"]["sampleField"] == (
+            "if(coalesce(\"NodeType\", \"Type\") in ('RESERVOIR'), NULL, \"Head\")")
+        assert "negativeClass" not in strategy["intervals"]
+
+    def test_demand_keeps_a_white_larger_class_below_zero(self):
+        strategy = json.loads(_customProperty("NodeDemand", "qgisred_legend_strategy"))
+        assert strategy["intervals"]["negativeClass"] is True
+        ranges = _ranges("NodeDemand")
+        assert ranges[0] == (-1e10, -0.005, "< 0")
+        assert _classColors("NodeDemand")[0] == "#ffffff"
+        circle = next(layer for layer in _classSymbols("NodeDemand")[0].findall("layer")
+                      if layer.get("class") == "SimpleMarker")
+        assert _option(circle, "size") == "2.5"
 
 
 class TestColoursAndSizes:
@@ -187,7 +211,7 @@ class TestColoursAndSizes:
         symbol = _classSymbols("NodeChlorine")[0]
         water, frame = symbol.findall("layer")[:2]
         assert _rgb(_option(water, "color")) == SPEC_PALETTE[0]
-        assert _rgb(_option(frame, "color")) == "#00529f"
+        assert _rgb(_option(frame, "color")) == "#00319f"
 
     @pytest.mark.parametrize("name", ["NodeHead", "NodeTrace"])
     def test_node_sizes(self, name):
@@ -247,7 +271,7 @@ class TestStatus:
             ("Active", "\"Status\" LIKE 'Active%'"),
             ("Closed", "\"Status\" LIKE '%Closed%'"),
         ]
-        assert _classColors("LinkStatus") == ["#008000", "#ffa500", "#ff0000"]
+        assert _classColors("LinkStatus") == ["#00ff00", "#ffd800", "#ff3800"]
 
 
 class TestResultsPalette:

@@ -59,7 +59,7 @@ from QGISRed.ui.analysis.qgisred_results_data import resultStyleName  # noqa: E4
 STYLES_FOLDER = os.path.join(PLUGIN_ROOT, "defaults", "layerStyles")
 
 # ---------------------------------------------------------------- the document, as data
-PALETTE = ["#0084ff", "#00ffff", "#00ff00", "#ffd800", "#ff5d00"]
+PALETTE = ["#004eff", "#00ffff", "#00ff00", "#ffd800", "#ff3800"]
 PALETTE_NAME = "QGISRed EPANET Results"
 NEGATIVE_COLOR = "#ffffff"
 
@@ -69,7 +69,7 @@ DATA_SIZES = {"junction": 1.6, "tankReservoir": 7.0, "line": 0.5, "pumpValve": 6
 # name: (field the dock classifies, thresholds, minimum, maximum)
 FIXED_STYLES = {
     "NodePressureSI": ("Pressure", (15, 30, 40, 50), -10, 200),
-    "NodePressureUS": ("Pressure", (45, 90, 120, 150), -30, 600),
+    "NodePressureUS": ("Pressure", (20, 40, 60, 70), -14, 300),
     "NodeChlorine": ("Quality", (0.2, 0.4, 0.6, 0.8), 0, 2),
     "NodeTrace": ("Quality", (20, 40, 60, 80), 0, 100),
     "NodeAge": ("Quality", (12, 24, 48, 72), 0, 1000),
@@ -91,7 +91,15 @@ PRETTY_STYLES = {
     "LinkFlow": "abs(Flow)", "LinkReactRate": "ReactRate", "LinkChemical": "Quality",
 }
 
-STATUS_CLASSES = [("Open", "#008000"), ("Active", "#ffa500"), ("Closed", "#ff0000")]
+NEGATIVE_DEMAND_STYLES = ("NodeDemand",)
+
+# name: expression any wizard samples (absolute demands of the junctions, heads without the reservoirs)
+SAMPLE_FIELDS = {
+    "NodeHead": "if(coalesce(\"NodeType\", \"Type\") in ('RESERVOIR'), NULL, \"Head\")",
+    "NodeDemand": "if(coalesce(\"NodeType\", \"Type\") in ('TANK','RESERVOIR'), NULL, abs(\"Demand\"))",
+}
+
+STATUS_CLASSES = [("Open", "#00ff00"), ("Active", "#ffd800"), ("Closed", "#ff3800")]
 
 # (project units entry, quality model, chemical label) -> style name the dock must ask for
 FILE_NAME_CASES = [
@@ -411,7 +419,15 @@ def checkPrettyStyle(name, layer):
     requested = strategy.get("intervals", {}).get("classes")
     report(requested == 5 and strategy.get("intervals", {}).get("classificationMode") == "Pretty",
            "%s: the style asks for Pretty Breaks in 5 intervals on every load" % name)
-    ranges = renderer.ranges()
+    negative = name in NEGATIVE_DEMAND_STYLES
+    sampleField = strategy.get("intervals", {}).get("sampleField")
+    if name in SAMPLE_FIELDS:
+        report(sampleField == SAMPLE_FIELDS[name], "%s: the breaks are computed over %s" % (name, sampleField))
+    allRanges = renderer.ranges()
+    if negative:
+        report(strategy.get("intervals", {}).get("negativeClass") is True and allRanges[0].label() == "< 0",
+               "%s: the first range holds the negative demands (%s)" % (name, allRanges[0].label()))
+    ranges = allRanges[1:] if negative else allRanges
     labels = [classRange.label() for classRange in ranges]
     if len(ranges) == 5:
         report(True, "%s: 5 intervals over the data on screen: %s" % (name, labels))
@@ -420,13 +436,14 @@ def checkPrettyStyle(name, layer):
              % (name, len(ranges), labels))
     if len(ranges) < 2:
         return
-    consecutive = all(same(ranges[i].upperValue(), ranges[i + 1].lowerValue()) for i in range(len(ranges) - 1))
+    consecutive = all(same(allRanges[i].upperValue(), allRanges[i + 1].lowerValue()) for i in range(len(allRanges) - 1))
     report(consecutive, "%s: ranges are consecutive" % name)
     openEnded = labels[0].startswith("< ") and labels[-1].startswith("> ")
     report(openEnded, "%s: first range is 'below', last is 'above' (%s ... %s)" % (name, labels[0], labels[-1]))
     actualColors = [hexColor(symbol.color()) for symbol in classSymbols(renderer)]
-    checkColors(name, renderer, PALETTE if len(ranges) == 5 else actualColors)
-    checkSizes(name, layer, renderer)
+    expectedColors = ([NEGATIVE_COLOR] if negative else []) + PALETTE
+    checkColors(name, renderer, expectedColors if len(ranges) == 5 else actualColors)
+    checkSizes(name, layer, renderer, negativeFirst=negative)
     report(not layer.labelsEnabled(), "%s: no map labels switched on by the style" % name)
 
 

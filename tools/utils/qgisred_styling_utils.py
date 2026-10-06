@@ -440,12 +440,14 @@ class QGISRedStylingUtils:
             )
             return
 
-        templateSymbol = self.cloneRendererTemplateSymbol(layer)
-        renderer = QgsGraduatedSymbolRenderer(field)
+        negativeClass = self.cloneNegativeClass(layer) if intervalsBlock.get("negativeClass") else None
+        templateSymbol = self.cloneRendererTemplateSymbol(layer, 1 if negativeClass else 0)
+        renderer = QgsGraduatedSymbolRenderer(intervalsBlock.get("sampleField") or field)
         renderer.setSourceSymbol(templateSymbol.clone())
         renderer.setSourceColorRamp(self.cloneRendererRamp(layer))
         renderer.setClassificationMethod(classificationMethod)
         renderer.updateClasses(layer, classes)
+        renderer.setClassAttribute(field)
         if len(renderer.ranges()) < 2:
             # Every value is the same: one class covering it, as the thematic maps do.
             # Some QGIS versions return no class here and others a made-up one.
@@ -454,7 +456,29 @@ class QGISRedStylingUtils:
             renderer.updateRangeSymbol(0, templateSymbol.clone())
             renderer.updateRangeLabel(0, self.singleValueLabel(layer, field))
         self.openOuterRanges(renderer)
+        if negativeClass is not None:
+            self.prependNegativeClass(renderer, *negativeClass)
         layer.setRenderer(renderer)
+
+    def cloneNegativeClass(self, layer):
+        """(symbol, upper bound) of the class below zero the loaded style states, or None."""
+        renderer = layer.renderer()
+        if not isinstance(renderer, QgsGraduatedSymbolRenderer) or len(renderer.ranges()) < 2:
+            return None
+        first = renderer.ranges()[0]
+        if first.upperValue() >= 0:
+            return None
+        return first.symbol().clone(), first.upperValue()
+
+    @staticmethod
+    def prependNegativeClass(renderer, symbol, upper):
+        """Put the white, larger class of the values below zero in front of the computed ones."""
+        renderer.updateRangeLowerValue(0, upper)
+        renderer.addClassLowerUpper(-OPEN_RANGE_BOUND, upper)
+        lastIndex = len(renderer.ranges()) - 1
+        renderer.updateRangeSymbol(lastIndex, symbol)
+        renderer.updateRangeLabel(lastIndex, "< 0")
+        renderer.moveClass(lastIndex, 0)
 
     def singleValueLabel(self, layer, field):
         fieldIndex = layer.fields().indexFromName(field)
@@ -507,14 +531,14 @@ class QGISRedStylingUtils:
             text = text.rstrip("0").rstrip(".")
         return "0" if text in ("-0", "") else text
 
-    def cloneRendererTemplateSymbol(self, layer):
+    def cloneRendererTemplateSymbol(self, layer, index=0):
         renderer = layer.renderer()
         if renderer is not None:
             with suppress(Exception):
                 context = QgsRenderContext()
                 symbols = renderer.symbols(context)
                 if symbols:
-                    return symbols[0].clone()
+                    return symbols[min(index, len(symbols) - 1)].clone()
         return QgsSymbol.defaultSymbol(layer.geometryType())
 
     def cloneRendererRamp(self, layer):

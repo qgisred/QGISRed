@@ -77,9 +77,9 @@ GRADIENT_RAMPS = (
 # layers draw (Valves.qml.bak; a check valve pipe is drawn as an open one). Each color is
 # labeled with every status it stands for, which is what a Labeled palette matches on.
 LINK_STATUS_PALETTE = (
-    (("Temp Closed", "Closed", "Closed (H>Hmax)", "Closed (Q<0)", "Closed (Pup<Pset)", "Closed (Pdw>Pset)"), "#ff0000"),
-    (("Open", "Open (Q>Qmax)", "Open (Q<Qset)", "Open (Pup>Pset)", "Open (Pdw<Pset)"), "#008000"),
-    (("Active", "Active (Rev Pump)"), "#ffa500"),
+    (("Temp Closed", "Closed", "Closed (H>Hmax)", "Closed (Q<0)", "Closed (Pup<Pset)", "Closed (Pdw>Pset)"), "#ff3800"),
+    (("Open", "Open (Q>Qmax)", "Open (Q<Qset)", "Open (Pup>Pset)", "Open (Pdw<Pset)"), "#00ff00"),
+    (("Active", "Active (Rev Pump)"), "#ffd800"),
 )
 INITIAL_STATUS_PALETTE = (
     (("OPEN", "CV"), "#85b66f"),
@@ -111,7 +111,7 @@ PRESET_PALETTES = (
     labeledPalette("QGISRed Initial Status", INITIAL_STATUS_PALETTE),
     ("QGISRed Qualitative 10", ("#e41a1c", "#377eb8", "#4daf4a", "#984ea3", "#ff7f00",
                                 "#a65628", "#f781bf", "#999999", "#66c2a5", "#ffd92f"), None, SEQUENTIAL),
-    ("QGISRed EPANET Results", ("#0084ff", "#00ffff", "#00ff00", "#ffd800", "#ff5d00"), None, SPAN),
+    ("QGISRed EPANET Results", ("#004eff", "#00ffff", "#00ff00", "#ffd800", "#ff3800"), None, SPAN),
 )
 
 

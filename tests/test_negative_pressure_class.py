@@ -159,7 +159,7 @@ class TestLegibleLabelColour:
         assert _ResultsRenderingMixin._legibleLabelColor("#ffffbf") == "#333333"
 
     def test_the_palette_colours_are_kept(self):
-        for color in ("#0084ff", "#00ffff", "#00ff00", "#ffd800", "#ff5d00"):
+        for color in ("#004eff", "#00ffff", "#00ff00", "#ffd800", "#ff3800"):
             assert _ResultsRenderingMixin._legibleLabelColor(color) == color
 
     def test_anything_that_is_not_a_colour_passes_through(self):
