@@ -42,6 +42,8 @@ class QGISRedQueriesByPropertiesDock(QGISRedHighlightOwnerMixin, QDockWidget, FO
         from qgis.PyQt.QtWidgets import QComboBox
         for combo in self.findChildren(QComboBox):
             QGISRedUIUtils.applyComboStyle(combo)
+        self.updateComboBoxBackground(self.cbElementType)
+        self.updateComboBoxBackground(self.cbProperty)
 
         # Anywhere in the panel counts as turning to it.
         self.watchDockActivation()
@@ -251,9 +253,9 @@ class QGISRedQueriesByPropertiesDock(QGISRedHighlightOwnerMixin, QDockWidget, FO
         # track which row (if any) is being edited
         self.editingIndex = None
 
-        self.gridLayout.setColumnStretch(0, 3)
-        self.gridLayout.setColumnStretch(1, 2)
-        self.gridLayout.setColumnStretch(2, 2)
+        self.gridLayout.setColumnStretch(0, 5)
+        self.gridLayout.setColumnStretch(1, 4)
+        self.gridLayout.setColumnStretch(2, 5)
         self.cbCondition.setMaximumWidth(100)
 
         self.cbValue.setStyleSheet("QLineEdit { background-color: white; }")
