@@ -157,6 +157,7 @@ class QGISRedElementExplorerDock(QGISRedHighlightOwnerMixin, QDockWidget, FORM_C
 
         if hasattr(self, 'listWidget'):
             self.listWidget.installEventFilter(self)
+            self.listWidget.setHorizontalScrollBarPolicy(Qt.ScrollBarPolicy.ScrollBarAlwaysOff)
 
         if hasattr(self, 'labelFoundElement'):
             font = QFont()
@@ -1583,8 +1584,8 @@ class QGISRedElementExplorerDock(QGISRedHighlightOwnerMixin, QDockWidget, FORM_C
         self.emitterBrush = QBrush(QColor("#FFF2E2"))
         self.totalDemandsBrush = QBrush(QColor("#FFBD80"))
         self.resultsBrush = QBrush(QColor("#FFF8DC"))
-        self.resultsDemandBrush = QBrush(QColor("#FBE6AA"))
-        self.resultsQualityBrush = QBrush(QColor("#FFE0DD"))
+        self.resultsPressureBrush = QBrush(QColor("#E2FBC4"))
+        self.resultsFlowBrush = QBrush(QColor("#CFF3FB"))
 
         self.setDataTableWidgetColumns()
         self.dataTableWidget.setShowGrid(True)
@@ -2154,6 +2155,7 @@ class QGISRedElementExplorerDock(QGISRedHighlightOwnerMixin, QDockWidget, FORM_C
                 return len(identifierOrder)
         for text, identifier, rawId, suffixKinds in sorted(items, key=sortKey):
             newItem = QListWidgetItem(text)
+            newItem.setToolTip(text)
             newItem.setData(Qt.ItemDataRole.UserRole, identifier)
             newItem.setData(Qt.ItemDataRole.UserRole + 1, rawId or "")
             newItem.setData(Qt.ItemDataRole.UserRole + 2, list(suffixKinds) if suffixKinds else [])
@@ -2759,10 +2761,17 @@ class QGISRedElementExplorerDock(QGISRedHighlightOwnerMixin, QDockWidget, FORM_C
 
     def getResultsRowBrush(self, fieldName):
         if fieldName == "Demand":
-            return self.resultsDemandBrush
+            return self.demandBrush
         if fieldName == "Quality":
-            return self.resultsQualityBrush
+            return self.sourceBrush
         return self.resultsBrush
+
+    def getResultsValueBrush(self, fieldName):
+        if fieldName == "Pressure":
+            return self.resultsPressureBrush
+        if fieldName == "Flow":
+            return self.resultsFlowBrush
+        return self.getResultsRowBrush(fieldName)
 
     def populateResultsTable(self):
         """Populate tableResults with per-element results from the Results group layer attribute table."""
@@ -2884,7 +2893,7 @@ class QGISRedElementExplorerDock(QGISRedHighlightOwnerMixin, QDockWidget, FORM_C
                     unitItem.setToolTip(unitDisplay)
 
                 # Apply the row background to Value/Unit columns for results data
-                resultsBrush = self.getResultsRowBrush(fieldName)
+                resultsBrush = self.getResultsValueBrush(fieldName)
                 valueItem.setBackground(resultsBrush)
                 unitItem.setBackground(resultsBrush)
 
