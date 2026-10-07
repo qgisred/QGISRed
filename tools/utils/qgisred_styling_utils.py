@@ -383,7 +383,8 @@ class QGISRedStylingUtils:
                     # only applies to real columns (fieldIndex == -1 means an expression here).
                     self.applyCategorizedColors(layer, field, fieldIndex, colorsBlock)
             elif mode == "graduated":
-                self.applyGraduatedColors(layer, colorsBlock)
+                keepsNegativeClass = bool(self.resolveIntervalsBlock(strategy).get("negativeClass"))
+                self.applyGraduatedColors(layer, colorsBlock, keepsNegativeClass)
 
         if "sizes" in parts:
             self.applySizesStrategy(layer, strategy.get("sizes") or {})
@@ -455,7 +456,7 @@ class QGISRedStylingUtils:
             renderer.addClassLowerUpper(-OPEN_RANGE_BOUND, OPEN_RANGE_BOUND)
             renderer.updateRangeSymbol(0, templateSymbol.clone())
             renderer.updateRangeLabel(0, self.singleValueLabel(layer, field))
-        self.openOuterRanges(renderer)
+        self.openOuterRanges(renderer, firstLower=0 if negativeClass else None)
         if negativeClass is not None:
             self.prependNegativeClass(renderer, *negativeClass)
         layer.setRenderer(renderer)
@@ -486,31 +487,38 @@ class QGISRedStylingUtils:
         return self.formatBreak(value, 3) if isinstance(value, (int, float)) else str(field)
 
     @staticmethod
-    def openOuterRanges(renderer):
+    def openOuterRanges(renderer, firstLower=None):
         """Open the first and last classes and label them all as the legend editor does.
 
         The breaks come from the data on screen, so a later value beyond them must still
         fall in the first or last class rather than vanish into the grey "no value" rule.
+        firstLower: bound the first class starts at when another class sits below it.
         """
         ranges = renderer.ranges()
         if len(ranges) < 2:
             return
         lastIndex = len(ranges) - 1
         breaks = [classRange.upperValue() for classRange in ranges[:-1]]
-        labels = QGISRedStylingUtils.rangeLabels(breaks)
+        labels = QGISRedStylingUtils.rangeLabels(breaks, firstLower)
         renderer.updateRangeLowerValue(0, -OPEN_RANGE_BOUND)
         renderer.updateRangeUpperValue(lastIndex, OPEN_RANGE_BOUND)
         for index, label in enumerate(labels):
             renderer.updateRangeLabel(index, label)
 
     @staticmethod
-    def rangeLabels(breaks):
-        """Legend texts for the classes between `breaks`: "< b1", "b1 < b2", ..., "> bn"."""
+    def rangeLabels(breaks, firstLower=None):
+        """Legend texts for the classes between `breaks`: "< b1", "b1 < b2", ..., "> bn".
+
+        With `firstLower` the first class is closed too: "b0 < b1".
+        """
         precision = QGISRedStylingUtils.breakPrecision(breaks)
         texts = [QGISRedStylingUtils.formatBreak(value, precision) for value in breaks]
         if not texts:
             return []
-        labels = ["< " + texts[0]]
+        if firstLower is None:
+            labels = ["< " + texts[0]]
+        else:
+            labels = [QGISRedStylingUtils.formatBreak(firstLower, precision) + " < " + texts[0]]
         labels += [lower + " < " + upper for lower, upper in zip(texts, texts[1:])]
         labels.append("> " + texts[-1])
         return labels
@@ -668,7 +676,8 @@ class QGISRedStylingUtils:
                 self._setSymbolColor(symbol, QColor.fromRgb(192, 192, 192))
                 renderer.updateCategorySymbol(index, symbol)
 
-    def applyGraduatedColors(self, layer, colorsBlock):
+    def applyGraduatedColors(self, layer, colorsBlock, keepsNegativeClass=False):
+        """Colour the classes from the ramp; the class below zero keeps its own (white) colour."""
         renderer = layer.renderer()
         if not isinstance(renderer, QgsGraduatedSymbolRenderer):
             return
@@ -692,9 +701,11 @@ class QGISRedStylingUtils:
             # numeric ranges instead, which never match, so interpolate the palette by position.
             kind = PALETTE_KIND_SPAN
         ranges = renderer.ranges()
-        rangeCount = max(len(ranges), 1)
-        for index in range(len(ranges)):
-            color = self.rampClassColor(ramp, kind, ranges[index].label(), index, rangeCount, invertRamp)
+        firstIndex = 1 if keepsNegativeClass and len(ranges) > 1 and ranges[0].upperValue() < 0 else 0
+        rangeCount = max(len(ranges) - firstIndex, 1)
+        for index in range(firstIndex, len(ranges)):
+            color = self.rampClassColor(
+                ramp, kind, ranges[index].label(), index - firstIndex, rangeCount, invertRamp)
             if color is None:
                 continue
             symbol = ranges[index].symbol().clone()

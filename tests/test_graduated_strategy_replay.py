@@ -30,6 +30,10 @@ class TestRangeLabels:
     def test_no_breaks_gives_no_labels(self):
         assert QGISRedStylingUtils.rangeLabels([]) == []
 
+    def test_a_lower_bound_closes_the_first_class(self):
+        # Below the computed classes sits the "< 0" class of the negative demands
+        assert QGISRedStylingUtils.rangeLabels([1, 2], firstLower=0) == ["0 < 1", "1 < 2", "> 2"]
+
 
 def _pointLayer(field, values):
     from qgis.core import QgsVectorLayer, QgsFeature, QgsGeometry, QgsPointXY
@@ -128,9 +132,30 @@ class TestPrettyReplayOnRealQgis:
         ranges = layer.renderer().ranges()
         assert (ranges[0].lowerValue(), ranges[0].upperValue(), ranges[0].label()) == (-1e10, -0.005, "< 0")
         assert ranges[0].symbol().size() == 2.5
-        assert ranges[1].lowerValue() == -0.005 and ranges[1].label().startswith("< ")
+        assert ranges[1].lowerValue() == -0.005 and ranges[1].label().startswith("0 < ")
         assert all(classRange.symbol().size() == 2 for classRange in ranges[1:])
         assert ranges[-1].upperValue() == 1e10
+
+    def test_the_class_below_zero_keeps_its_white_while_the_ramp_colours_the_rest(self):
+        from qgis.core import QgsGraduatedSymbolRenderer, QgsRendererRange, QgsMarkerSymbol
+
+        layer = _pointLayer("Demand", [-3.0, 4.0, 9.0, 14.0, 21.0, 27.0])
+        negative = QgsMarkerSymbol.createSimple({"size": "2.5", "color": "255,255,255,255"})
+        regular = QgsMarkerSymbol.createSimple({"size": "2"})
+        layer.setRenderer(QgsGraduatedSymbolRenderer("Demand", [
+            QgsRendererRange(-1e10, -0.005, negative, "< 0"), QgsRendererRange(0, 1, regular, "0 - 1")]))
+        strategy = _prettyStrategy("Demand")
+        strategy["parts"] = ["intervals", "colors"]
+        strategy["intervals"]["negativeClass"] = True
+        strategy["colors"] = {"source": "ramp", "rampName": "Spectral", "invertRamp": False}
+
+        QGISRedStylingUtils().applyLegendStrategy(layer, strategy)
+
+        ranges = layer.renderer().ranges()
+        assert ranges[0].symbol().color().name() == "#ffffff"
+        ramp = QGISRedStylingUtils().findColorRamp("Spectral")
+        assert ranges[1].symbol().color().name() == ramp.color(0.0).name()
+        assert ranges[-1].symbol().color().name() == ramp.color(1.0).name()
 
     def test_a_single_value_keeps_one_class_named_after_it(self):
         layer = _pointLayer("Demand", [0.0, 0.0, 0.0])

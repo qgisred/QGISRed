@@ -3532,13 +3532,18 @@ class QGISRedLegendsDialog(QDialog, formClass):
         if newUpper is not None:
             upper = newUpper
 
-        text = f"{lower:.2f} - {upper:.2f}"
+        text = self.formatRangeText(lower, upper)
         valueWidget = self.tableView.cellWidget(row, 3)
 
         if isinstance(valueWidget, QLineEdit):
             valueWidget.setText(text)
 
         self.updateLegendsValues(row, lower, upper)
+
+    @staticmethod
+    def formatRangeText(lower, upper):
+        """The bounds as the Value column shows them: enough decimals to keep a bound such as 14.995."""
+        return f"{QGISRedStylingUtils.formatBreak(lower, 4)} - {QGISRedStylingUtils.formatBreak(upper, 4)}"
 
     def updateLegendsValues(self, row, lower, upper):
         legendWidget = self.tableView.cellWidget(row, 4)
@@ -5883,12 +5888,32 @@ class QGISRedLegendsDialog(QDialog, formClass):
         self.onColorModeChanged()
 
     def applyDefaultClassificationMode(self):
-        # Results start from Pretty Breaks over their values rather than the classes shipped in the style
+        # Results whose style computes its classes from the data start from Pretty Breaks; the
+        # styles with fixed thresholds keep the classes, bounds and limits the file states.
+        # The table keeps the classes the layer draws: the mode is selected without rebuilding
+        # them, which would classify every value (tanks, reservoirs, the class below zero) anew.
         if not self.isResultsLayer() or self.currentFieldType != self.FIELD_TYPE_NUMERIC:
+            return
+        if not self.hasAutomaticIntervals(self.currentLayer):
             return
         index = self.cbMode.findData("Pretty")
         if index >= 0:
+            self.cbMode.blockSignals(True)
             self.cbMode.setCurrentIndex(index)
+            self.cbMode.blockSignals(False)
+            self.previousClassificationMode = "Pretty"
+            self.updateUiBasedOnFieldType()
+
+    @staticmethod
+    def hasAutomaticIntervals(layer):
+        """True when the legend strategy the layer carries rebuilds its intervals on every load."""
+        rawStrategy = layer.customProperty("qgisred_legend_strategy") if layer else None
+        if not rawStrategy:
+            return False
+        with suppress(Exception):
+            strategy = json.loads(rawStrategy)
+            return "intervals" in QGISRedStylingUtils().resolveStrategyParts(strategy)
+        return False
 
     def updateUiBasedOnFieldType(self):
         isNumeric = self.currentFieldType == self.FIELD_TYPE_NUMERIC
