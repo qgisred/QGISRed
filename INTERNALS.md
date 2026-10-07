@@ -567,6 +567,27 @@ The tree name is read from the **file name** (`QGISRedLayerUtils.treeNameFromLay
 never from the Layers-panel group, which the user can rename. The style of a removed tree is
 left alone, so a tree recomputed under the same name gets it back.
 
+### One project style per Demand Builder theme
+
+The Layer Manager's auxiliary themes share one identifier per type
+(`qgisred_demandbuilder_consumptionpoints` / `_demandlinks` / `_sectors`) and live flat in
+`Auxiliary Layers/DemandBuilder` as `{Network}_DemandBuilder_{Type}[_{Theme}].shp`. Their style is
+the type's QML (`DemandBuilderConsumptionPoints`, `DemandBuilderDemandLinks`, `DemandBuilderSectors`:
+a legend by `Category` on the QGIS default symbol, shipped with no classes; the files keep the empty
+`categories` and `symbols` elements QGIS omits on save and needs on load, or the renderer comes back as
+a single symbol) and the project copy carries the theme name —
+`{Network}_demandbuildersectors_{Theme}.qml` — through `setStyle(..., variant=themeName)`; global and
+shipped styles stay common to every theme of the type. The theme is read from the **file name**
+(`parseLayerPath`), never from the layer name, which is translated once loaded; an unnamed theme
+(the Demands Manager's own) has no suffix. For these layers `setDemandBuilderStyle` keeps the label
+visibility the file says (`keepLabelVisibility`) and then completes the loaded style
+(`completeDemandBuilderStyle`, also run by the Legend Editor's Load): the `Category` values of the
+data become the missing classes, orange `Uncategorized` first and a hue hashed from each value as the
+look was programmed, classes saved in the file keep their colour; the consumption points label is
+pointed at the layer's own base demand column (`pointLabelToBaseDemand`, the user can rename it);
+and the label colour rule is rebuilt so labels match their class. A theme created empty shows no
+class until it is reopened with data, as before.
+
 ### Result styles are generated, and named by units and quality kind
 
 `defaults/layerStyles/Node*.qml.bak` and `Link*.qml.bak` are written by

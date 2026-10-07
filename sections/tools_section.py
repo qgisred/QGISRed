@@ -552,11 +552,11 @@ class ToolsSection:
         return None
 
     def _applyDemandBuilderStyle(self, vlayer, sourceName=""):
-        """Paint a Demand Builder auxiliary layer.
+        """Style a Demand Builder auxiliary layer.
 
-        The look itself lives in QGISRedStylingUtils next to the demand sectors', the other
-        family drawn from its own values instead of from a QML, so that openLayer can apply
-        it when a layer is opened rather than every caller remembering to.
+        The style is a QML looked up per theme (see setDemandBuilderStyle); it lives in
+        QGISRedStylingUtils so that openLayer can apply it when a layer is opened rather
+        than every caller remembering to.
 
         The base demand column is passed on only when the DLL just named one: it is empty
         on every other path — project open, layer manager — and the style resolves it from

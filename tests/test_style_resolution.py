@@ -8,16 +8,23 @@ from QGISRed.tools.utils.qgisred_styling_utils import QGISRedStylingUtils
 
 
 class _FakeLayer:
-    """Records the style path it was asked to load; everything else is a no-op."""
+    """Records the style path it was asked to load and the label visibility; everything else is a no-op."""
 
-    def __init__(self):
+    def __init__(self, fileShowsLabels=False):
         self.loadedPath = None
+        self.fileShowsLabels = fileShowsLabels
+        self.labelsShown = None
 
     def loadNamedStyle(self, path):
         self.loadedPath = path
+        # What a real load reads from the file
+        self.labelsShown = self.fileShowsLabels
 
     def setLabelsEnabled(self, enabled):
-        pass
+        self.labelsShown = enabled
+
+    def labelsEnabled(self):
+        return self.labelsShown
 
     def customProperty(self, name):
         return None
@@ -101,6 +108,62 @@ class TestPerTreeProjectStyle:
         utils.setStyle(layer, "Tree_Links", variant="J5_Union")
 
         assert layer.loadedPath == expected
+
+
+class TestPerThemeProjectStyle:
+    """Demand Builder themes of one type share one identifier, so the theme name tells their project styles apart."""
+
+    def test_a_theme_loads_its_own_project_style(self, tmp_path):
+        utils = _makeUtils(tmp_path)
+        projectFolder = os.path.join(str(tmp_path / "project"), "layerStyles")
+        expected = _writeStyle(projectFolder, "Net_DemandBuilderConsumptionPoints_Padron.qml")
+
+        layer = _FakeLayer()
+        utils.setStyle(layer, "DemandBuilder_ConsumptionPoints", variant="Padron")
+
+        assert layer.loadedPath == expected
+
+    def test_a_theme_ignores_the_style_of_another_theme(self, tmp_path):
+        utils = _makeUtils(tmp_path)
+        projectFolder = os.path.join(str(tmp_path / "project"), "layerStyles")
+        _writeStyle(projectFolder, "Net_DemandBuilderConsumptionPoints_Padron.qml")
+
+        layer = _FakeLayer()
+        utils.setStyle(layer, "DemandBuilder_ConsumptionPoints", variant="Censo")
+
+        assert layer.loadedPath.endswith(
+            os.path.join("defaults", "layerStyles", "DemandBuilderConsumptionPoints.qml.bak"))
+
+    def test_an_unnamed_theme_takes_the_plain_project_style(self, tmp_path):
+        utils = _makeUtils(tmp_path)
+        projectFolder = os.path.join(str(tmp_path / "project"), "layerStyles")
+        expected = _writeStyle(projectFolder, "Net_DemandBuilderConsumptionPoints.qml")
+
+        layer = _FakeLayer()
+        utils.setStyle(layer, "DemandBuilder_ConsumptionPoints", variant="")
+
+        assert layer.loadedPath == expected
+
+
+class TestLabelVisibility:
+    """Loading a style hides the labels, unless the caller asks to keep what the file says."""
+
+    def test_labels_are_hidden_by_default(self, tmp_path):
+        utils = _makeUtils(tmp_path)
+        layer = _FakeLayer(fileShowsLabels=True)
+
+        utils.setStyle(layer, "Pipes")
+
+        assert layer.labelsShown is False
+
+    @pytest.mark.parametrize("fileShowsLabels", [True, False])
+    def test_the_file_decides_when_asked(self, tmp_path, fileShowsLabels):
+        utils = _makeUtils(tmp_path)
+        layer = _FakeLayer(fileShowsLabels=fileShowsLabels)
+
+        utils.setStyle(layer, "Pipes", keepLabelVisibility=True)
+
+        assert layer.labelsShown is fileShowsLabels
 
 
 class TestSetStyle:

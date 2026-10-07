@@ -107,6 +107,16 @@ def parseBaseName(baseName, networkName=""):
     return None, ""
 
 
+def parseLayerPath(layerPath, networkName=""):
+    """(layerType, themeName) for a theme's file path, else (None, "").
+
+    The path is the one source that keeps the theme's name: once loaded, the layer is
+    renamed to its translated legend entry, which does not parse.
+    """
+    baseName = os.path.splitext(os.path.basename(layerPath.split("|")[0].strip()))[0]
+    return parseBaseName(baseName, networkName)
+
+
 def isValidThemeName(themeName):
     """A theme name becomes part of a file name, so it may not smuggle a path into one."""
     if not themeName or themeName != themeName.strip():

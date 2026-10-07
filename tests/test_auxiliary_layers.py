@@ -24,6 +24,7 @@ from QGISRed.tools.utils.qgisred_auxiliary_layers import (
     isValidThemeName,
     listThemes,
     parseBaseName,
+    parseLayerPath,
 )
 
 if REAL_QGIS:
@@ -78,6 +79,21 @@ class TestParseBaseName:
     def test_isolated_demands_connections_is_not_a_managed_theme(self):
         """It lives in the same folder but the layer manager does not offer it."""
         assert parseBaseName("Net_DemandBuilder_IsolatedDemandsServiceConnections", "Net") == (None, "")
+
+
+class TestParseLayerPath:
+    """The theme is read from the file: once loaded, the layer is renamed to its legend entry."""
+
+    def test_a_theme_path_resolves_to_its_type_and_name(self):
+        path = "C:/proj/Auxiliary Layers/DemandBuilder/Net_DemandBuilder_Consumptions_Padron.shp"
+        assert parseLayerPath(path, "Net") == (CONSUMPTION, "Padron")
+
+    def test_a_provider_suffix_is_ignored(self):
+        path = "C:/proj/Auxiliary Layers/DemandBuilder/Net_DemandBuilder_Sectors_Barrios.shp|layername=x"
+        assert parseLayerPath(path, "Net") == (SECTORS, "Barrios")
+
+    def test_a_file_that_is_not_a_theme_gives_nothing(self):
+        assert parseLayerPath("C:/proj/Net_Pipes.shp", "Net") == (None, "")
 
     def test_an_unrelated_file_is_rejected(self):
         assert parseBaseName("Net_Pipes", "Net") == (None, "")
@@ -327,10 +343,8 @@ class TestGroupIdentifierAssignment:
 
 
 class TestDemandBuilderStyleFlag:
-    """The look is computed, not shipped as a QML, so openLayer must apply it.
-
-    Demand sectors already work this way. Doing it here too is what removed the need for a
-    "restyle after the project loaded" special case on the metadata-only path.
+    """openLayer applies the style itself: the project style is the theme's own and the point
+    label follows the layer's columns, so every open and reload has to go through it.
     """
 
     def test_the_group_config_carries_the_flag(self):
@@ -360,21 +374,202 @@ class TestDemandBuilderStyleFlag:
         styling.setStyle.assert_called_once_with(
             layer, "DemandBuilderIsolatedDemandsServiceConnections")
 
-    def test_a_theme_does_not_take_that_qml(self):
+    def _styling(self):
         from QGISRed.tools.utils.qgisred_styling_utils import QGISRedStylingUtils
 
         styling = object.__new__(QGISRedStylingUtils)
+        styling.NetworkName = "Net"
         styling.setStyle = MagicMock()
-        styling.translateRendererLabels = MagicMock()
+        styling.completeDemandBuilderStyle = MagicMock()
+        return styling
+
+    def _layer(self, fileName, name="DemBuild_Sectors_Barrios"):
         layer = MagicMock()
-        layer.name.return_value = "DemBuild_Sectors"
-        layer.fields.return_value.indexFromName.return_value = -1
-        layer.geometryType.return_value = POLYGON_GEOMETRY
+        layer.name.return_value = name
+        layer.source.return_value = "C:/proj/Auxiliary Layers/DemandBuilder/" + fileName
+        return layer
 
-        styling.setDemandBuilderStyle(layer, "DemandBuilder_Sectors_Barrios")
+    def test_a_theme_takes_the_qml_of_its_type_with_its_name_as_variant(self):
+        styling = self._styling()
+        layer = self._layer("Net_DemandBuilder_Sectors_Barrios.shp")
 
-        styling.setStyle.assert_not_called()
-        layer.setRenderer.assert_called_once()
+        styling.setDemandBuilderStyle(layer, "Net_DemandBuilder_Sectors_Barrios")
+
+        styling.setStyle.assert_called_once_with(
+            layer, "DemandBuilder_Sectors", variant="Barrios", keepLabelVisibility=True)
+        layer.setRenderer.assert_not_called()
+
+    def test_an_unnamed_theme_has_no_variant(self):
+        styling = self._styling()
+        layer = self._layer("Net_DemandBuilder_Sectors.shp")
+
+        styling.setDemandBuilderStyle(layer, "Net_DemandBuilder_Sectors")
+
+        styling.setStyle.assert_called_once_with(
+            layer, "DemandBuilder_Sectors", variant="", keepLabelVisibility=True)
+
+    def test_the_theme_is_read_from_the_file_not_from_the_display_name(self):
+        """A reload passes no file name, and by then the layer carries its translated legend name."""
+        styling = self._styling()
+        layer = self._layer("Net_DemandBuilder_Links_Alta.shp", name="DemBuild_Links_Alta")
+
+        styling.setDemandBuilderStyle(layer)
+
+        styling.setStyle.assert_called_once_with(
+            layer, "DemandBuilder_DemandLinks", variant="Alta", keepLabelVisibility=True)
+
+    def test_the_consumption_points_label_follows_the_layer(self):
+        styling = self._styling()
+        layer = self._layer("Net_DemandBuilder_Consumptions_Padron.shp")
+
+        styling.setDemandBuilderStyle(layer, "", "Fact2024")
+
+        styling.completeDemandBuilderStyle.assert_called_once_with(layer, True, "Fact2024")
+
+    def test_links_and_sectors_are_completed_without_a_point_label(self):
+        styling = self._styling()
+        links = self._layer("Net_DemandBuilder_Links_Alta.shp")
+        sectors = self._layer("Net_DemandBuilder_Sectors_Barrios.shp")
+
+        styling.setDemandBuilderStyle(links)
+        styling.setDemandBuilderStyle(sectors)
+
+        calls = [call.args for call in styling.completeDemandBuilderStyle.call_args_list]
+        assert calls == [(links, False, ""), (sectors, False, "")]
+
+    def test_the_isolated_connections_are_told_by_file_name_on_reload(self):
+        styling = self._styling()
+        layer = self._layer("Net_DemandBuilder_IsolatedDemandsServiceConnections.shp",
+                            name="DemBuild_Isolated Demands Connections")
+
+        styling.setDemandBuilderStyle(layer)
+
+        styling.setStyle.assert_called_once_with(layer, "DemandBuilderIsolatedDemandsServiceConnections")
+
+
+class TestPointLabelToBaseDemand:
+    """The shipped style labels BaseDem; the layer says which column the base demand really is."""
+
+    def _styling(self):
+        from QGISRed.tools.utils.qgisred_styling_utils import QGISRedStylingUtils
+
+        return object.__new__(QGISRedStylingUtils)
+
+    def _labeling(self):
+        if REAL_QGIS:
+            from qgis.core import QgsPalLayerSettings
+            settings = QgsPalLayerSettings()
+        else:
+            settings = MagicMock()
+        settings.fieldName = "BaseDem"
+        labeling = MagicMock()
+        labeling.type.return_value = "simple"
+        labeling.settings.return_value = settings
+        return labeling, settings
+
+    def _layer(self, fieldNames, labeling):
+        layer = MagicMock()
+        fields = []
+        for fieldName in fieldNames:
+            field = MagicMock()
+            field.name.return_value = fieldName
+            fields.append(field)
+        layer.fields.return_value = fields
+        layer.labeling.return_value = labeling
+        return layer
+
+    def test_the_first_base_demand_column_is_labelled(self):
+        labeling, settings = self._labeling()
+        layer = self._layer(["DemID", "Category", "Fact2024"], labeling)
+
+        self._styling().pointLabelToBaseDemand(layer)
+
+        assert settings.fieldName == "Fact2024"
+        assert settings.isExpression is False
+        layer.setLabeling.assert_called_once()
+
+    def test_the_column_the_dll_reported_wins_when_the_layer_has_it(self):
+        labeling, settings = self._labeling()
+        layer = self._layer(["DemID", "Category", "Fact2024", "Fact2025"], labeling)
+
+        self._styling().pointLabelToBaseDemand(layer, "Fact2025")
+
+        assert settings.fieldName == "Fact2025"
+
+    def test_a_style_saved_without_labels_is_left_alone(self):
+        layer = self._layer(["DemID", "Category", "Fact2024"], None)
+
+        self._styling().pointLabelToBaseDemand(layer)
+
+        layer.setLabeling.assert_not_called()
+
+    def test_a_theme_without_base_demand_columns_keeps_the_label_of_the_file(self):
+        labeling, settings = self._labeling()
+        layer = self._layer(["DemID", "Category"], labeling)
+
+        self._styling().pointLabelToBaseDemand(layer)
+
+        assert settings.fieldName == "BaseDem"
+        layer.setLabeling.assert_not_called()
+
+
+class TestDemandBuilderClasses:
+    """The classes and label colours a loaded style is completed with, as the look was programmed."""
+
+    def _styling(self):
+        from QGISRed.tools.utils.qgisred_styling_utils import QGISRedStylingUtils
+
+        return object.__new__(QGISRedStylingUtils)
+
+    @pytest.mark.parametrize("rawValue", [None, "", "  ", "NULL", "undefined", "Null"])
+    def test_blank_null_and_undefined_are_uncategorized(self, rawValue):
+        assert self._styling().normalizeDemandCategory(rawValue) == "Uncategorized"
+
+    def test_a_value_is_trimmed(self):
+        assert self._styling().normalizeDemandCategory("  Domestic ") == "Domestic"
+
+    def _category(self, value, colorName):
+        category = MagicMock()
+        category.value.return_value = value
+        category.symbol.return_value.color.return_value.name.return_value = colorName
+        return category
+
+    def test_label_colours_follow_the_classes(self):
+        renderer = MagicMock()
+        renderer.categories.return_value = [
+            self._category("Uncategorized", "#ffa500"), self._category("Dom's", "#1a2b3c")]
+
+        expression = self._styling().demandBuilderLabelColorExpression(renderer)
+
+        assert expression == (
+            "CASE WHEN \"Category\" IS NULL OR trim(\"Category\") = '' "
+            "OR lower(trim(\"Category\")) IN ('null', 'undefined') THEN '#ffa500' "
+            "WHEN trim(\"Category\") = 'Dom''s' THEN '#1a2b3c' ELSE 'gray' END")
+
+    @pytest.mark.parametrize("layerType", AUXILIARY_LAYER_TYPES, ids=lambda layerType: layerType.key)
+    def test_the_shipped_style_is_a_legend_by_category_qgis_can_read_back(self, layerType):
+        """A legend saved without classes loses its categories and symbols elements, and QGIS
+        then falls back to a single symbol on load; the shipped files keep both, empty."""
+        pluginRoot = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
+        fileName = layerType.identifierToken.replace("_", "") + ".qml.bak"
+        with open(os.path.join(pluginRoot, "defaults", "layerStyles", fileName), encoding="utf-8") as handle:
+            text = handle.read()
+
+        assert 'type="categorizedSymbol"' in text
+        assert "<categories/>" in text and "<symbols/>" in text
+        assert "<category " not in text
+        assert "THEN 'Uncategorized' ELSE trim(&quot;Category&quot;) END" in text
+
+    def test_the_point_label_is_set_before_the_colours_are_matched(self):
+        styling = self._styling()
+        order = []
+        styling.fillDemandBuilderCategories = lambda layer: order.append("classes")
+        styling.pointLabelToBaseDemand = lambda layer, field: order.append("label " + field)
+        styling.matchDemandBuilderLabelColors = lambda layer: order.append("colours")
+
+        styling.completeDemandBuilderStyle(MagicMock(), True, "Fact2024")
+
+        assert order == ["classes", "label Fact2024", "colours"]
 
 
 class TestApplyAuxiliaryLayerSelection:
@@ -517,10 +712,24 @@ class TestGroupVisibility:
     def test_the_auxiliary_loader_asks_for_no_visibility_changes(self):
         section = self._makeSection()
         section.getDemandBuilderGroup = MagicMock()
+        section._applyDemandBuilderStyle = MagicMock()
         with patch(_UTILS_CLS) as utilsCls:
-            utilsCls.return_value._tryReloadExistingLayer.return_value = True
+            utilsCls.return_value._tryReloadExistingLayer.return_value = MagicMock()
             section.openAuxiliaryThemes([__file__])
         section.getDemandBuilderGroup.assert_called_once_with(applyVisibility=False)
+
+    def test_a_theme_already_open_is_restyled_after_its_reload(self):
+        """Its point labels follow a base demand column the user may just have renamed."""
+        section = self._makeSection()
+        section.getDemandBuilderGroup = MagicMock()
+        section._applyDemandBuilderStyle = MagicMock()
+        reloaded = MagicMock()
+        with patch(_UTILS_CLS) as utilsCls:
+            utilsCls.return_value._tryReloadExistingLayer.return_value = reloaded
+            section.openAuxiliaryThemes([__file__])
+        layer, baseName = section._applyDemandBuilderStyle.call_args[0]
+        assert layer is reloaded
+        assert baseName == os.path.splitext(os.path.basename(__file__))[0]
 
 
 class TestCloseAuxiliaryThemes:

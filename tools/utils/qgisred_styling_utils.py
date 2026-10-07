@@ -13,7 +13,7 @@ import zlib
 from random import randrange
 
 from qgis.PyQt.QtCore import QCoreApplication
-from ...compat import PAINTER_ANTIALIASING, PAL_PROPERTY_COLOR, PAL_PLACEMENT_LINE
+from ...compat import PAINTER_ANTIALIASING, PAL_PROPERTY_COLOR
 from ...compat import RENDER_UNIT_MILLIMETERS, RENDER_UNIT_PIXELS, RENDER_UNIT_POINTS
 from ...compat import SL_PROP_SIZE, SL_PROP_STROKE_WIDTH, SL_PROP_WIDTH, STYLE_ENTITY_COLORRAMP
 from qgis.PyQt.QtGui import QColor
@@ -23,7 +23,7 @@ from qgis.core import (
     QgsRendererCategory, QgsCategorizedSymbolRenderer, QgsVectorLayerCache, NULL,
     QgsGraduatedSymbolRenderer, QgsRuleBasedRenderer, QgsRenderContext,
     QgsMapLayerLegend, QgsMessageLog, QgsStyle, QgsExpression, QgsProject,
-    QgsSingleSymbolRenderer, QgsPalLayerSettings, QgsTextFormat, QgsProperty,
+    QgsProperty,
     QgsVectorLayerSimpleLabeling, QgsLimitedRandomColorRamp,
     QgsClassificationPrettyBreaks, QgsClassificationEqualInterval, QgsClassificationQuantile,
     QgsClassificationJenks, QgsClassificationStandardDeviation,
@@ -31,6 +31,7 @@ from qgis.core import (
 from qgis.gui import QgsAttributeTableFilterModel, QgsAttributeTableModel, QgsAttributeTableView
 from qgis.utils import iface as _iface
 
+from .qgisred_auxiliary_layers import parseLayerPath
 from .qgisred_base_demand_fields import resolveBaseDemandField
 from .qgisred_field_utils import QGISRedFieldUtils
 from .qgisred_legend_rule_utils import scaleNumericLiterals, OPEN_RANGE_BOUND
@@ -198,7 +199,8 @@ class QGISRedStylingUtils:
 
     @staticmethod
     def variantStyleFileName(fileName, variant):
-        # Trees share one identifier, so each one's project style carries its tree name.
+        # Trees and Demand Builder themes share one identifier per kind, so a project
+        # style carries the layer's own name.
         if not variant:
             return fileName
         stem, extension = os.path.splitext(fileName)
@@ -224,23 +226,27 @@ class QGISRedStylingUtils:
                 return os.path.join(folder, entry)
         return None
 
-    def _loadStyleFile(self, layer, qmlPath, field):
+    def _loadStyleFile(self, layer, qmlPath, field, keepLabelVisibility=False):
         layer.loadNamedStyle(qmlPath)
-        layer.setLabelsEnabled(False)
+        # The strategy replay hides the labels too, so the file's choice is put back after it
+        labelsShown = keepLabelVisibility and layer.labelsEnabled()
         self.applyStrategyFromLayer(layer, field)
         self.convertRendererSizesToMillimeters(layer)
         self.translateRendererLabels(layer)
         self.translateMapTip(layer)
         self.translateValveTypeLabel(layer)
+        layer.setLabelsEnabled(labelsShown)
 
-    def setStyle(self, layer, name, field=None, variant=""):
+    def setStyle(self, layer, name, field=None, variant="", keepLabelVisibility=False):
         """Load the QML style called `name` on `layer`.
 
         field: column (or expression) the legend must classify, when the caller knows it.
         It overrides the field recorded inside the style's legend strategy — see
         applyLegendStrategy.
         variant: narrows the project style to one layer among several sharing `name`
-        (a tree's name); global and default styles stay common to all of them.
+        (a tree's or a Demand Builder theme's name); global and default styles stay
+        common to all of them.
+        keepLabelVisibility: show the labels as the file says instead of hiding them.
         """
         if name == "":
             return
@@ -250,21 +256,22 @@ class QGISRedStylingUtils:
         projectStylePath = os.path.join(self.ProjectDirectory, "layerStyles")
         qmlPath = self.findStyleFile(projectStylePath, self.projectStyleFileNames(name + ".qml", variant))
         if qmlPath:
-            self._loadStyleFile(layer, qmlPath, field)
+            self._loadStyleFile(layer, qmlPath, field, keepLabelVisibility)
             return
 
         # 2- global style (shared by every network, so never prefixed)
         stylePath = os.path.join(self._getQGISRedFolder(), "layerStyles")
         qmlPath = self.findStyleFile(stylePath, [name + ".qml"])
         if qmlPath:
-            self._loadStyleFile(layer, qmlPath, field)
+            self._loadStyleFile(layer, qmlPath, field, keepLabelVisibility)
             return
 
         # 3- default style
         defaultStylePath = os.path.join(_plugin_root(), "defaults", "layerStyles")
         defaultName = name + ".qml.bak"
         qmlPath = self.findStyleFile(defaultStylePath, [defaultName])
-        self._loadStyleFile(layer, qmlPath or os.path.join(defaultStylePath, defaultName), field)
+        qmlPath = qmlPath or os.path.join(defaultStylePath, defaultName)
+        self._loadStyleFile(layer, qmlPath, field, keepLabelVisibility)
 
     def setSavedStyle(self, layer, name, field=None):
         """Load the project or global style for `name` if there is one. True when applied.
@@ -1183,22 +1190,20 @@ class QGISRedStylingUtils:
         return method() if method is not None else None
 
     def _colorForDemandCategory(self, category):
-        text = "" if category is None else str(category).strip()
-
-        if text == "" or text.lower() in ("null", "undefined"):
+        if category == "Uncategorized":
             return QColor("orange")
-
-        digest = hashlib.md5(text.lower().encode("utf-8"), usedforsecurity=False).hexdigest()
+        digest = hashlib.md5(category.lower().encode("utf-8"), usedforsecurity=False).hexdigest()
         color = QColor()
         color.setHsv(int(digest[:8], 16) % 360, 180, 220)
         return color
 
     def setDemandBuilderStyle(self, layer, sourceName="", baseDemandField=""):
-        """Paint a Demand Builder auxiliary layer: a colour per Category, plus labels.
+        """Style a Demand Builder auxiliary layer from the QML of its type.
 
-        Like the demand sectors', this look is computed from the layer's own values rather
-        than loaded from a QML, so it has to be reapplied every time the layer is opened —
-        which is why openLayer carries a flag for it instead of the callers remembering.
+        The themes of one type share the style name; the theme's own name, read from the
+        file, narrows the project style to that theme. The QML carries the look as it was
+        programmed, a legend by Category: its classes depend on the data, so the loaded
+        style is completed here on every open.
 
         `sourceName` is the file's own name: by the time a layer reaches here its display
         name may already be the translated one, and the isolated-demands connections are
@@ -1208,111 +1213,104 @@ class QGISRedStylingUtils:
         only a hint: the column the point labels end up showing is resolved against the
         layer itself.
         """
-        name = sourceName or layer.name()
+        name = sourceName or os.path.basename(layer.source())
         if "IsolatedDemandsServiceConnections" in name:
             self.setStyle(layer, "DemandBuilderIsolatedDemandsServiceConnections")
             layer.triggerRepaint()
             return
 
-        # A style saved from the Legends Editor wins over the computed look, like sectors.
-        if layer.geometryType() in (0, 1):
-            savedName = "DemandBuilder_ConsumptionPoints" if layer.geometryType() == 0 else "DemandBuilder_DemandLinks"
-            if self.setSavedStyle(layer, savedName):
-                layer.triggerRepaint()
-                return
-
-        geomType = layer.geometryType()
-        fieldIndex = layer.fields().indexFromName("Category")
-
-        uniqueCats = set()
-        hasUncategorized = False
-
-        if fieldIndex != -1:
-            for feature in layer.getFeatures():
-                rawCat = feature[fieldIndex]
-                text = "" if rawCat is None else str(rawCat).strip()
-                if text == "" or text.lower() in ("null", "undefined"):
-                    hasUncategorized = True
-                else:
-                    uniqueCats.add(text)
-
-            categories = []
-            if hasUncategorized:
-                uncategorized = QgsSymbol.defaultSymbol(geomType)
-                uncategorized.setColor(QColor("orange"))
-                categories.append(QgsRendererCategory("Uncategorized", uncategorized, "Uncategorized"))
-
-            for cat in sorted(uniqueCats):
-                symbol = QgsSymbol.defaultSymbol(geomType)
-                symbol.setColor(self._colorForDemandCategory(cat))
-                categories.append(QgsRendererCategory(cat, symbol, cat))
-
-            categoryExpression = (
-                "CASE "
-                "WHEN \"Category\" IS NULL "
-                "OR trim(\"Category\") = '' "
-                "OR lower(trim(\"Category\")) IN ('null', 'undefined') "
-                "THEN 'Uncategorized' "
-                "ELSE trim(\"Category\") "
-                "END"
-            )
-            layer.setRenderer(QgsCategorizedSymbolRenderer(categoryExpression, categories))
-            self.translateRendererLabels(layer)
-        else:
-            symbol = QgsSymbol.defaultSymbol(geomType)
-            if geomType == 0:
-                symbol.setColor(QColor("orange"))
-            elif geomType == 1:
-                symbol.setColor(QColor("blue"))
-            layer.setRenderer(QgsSingleSymbolRenderer(symbol))
-
-        labelSettings = QgsPalLayerSettings()
-        textFormat = QgsTextFormat()
-        textFormat.setSize(10)
-        labelSettings.setFormat(textFormat)
-
-        # Labels take the colour of their category, so they read against their own symbol.
-        if fieldIndex != -1:
-            colorExpression = "CASE "
-            if hasUncategorized:
-                colorExpression += (
-                    "WHEN \"Category\" IS NULL OR trim(\"Category\") = '' "
-                    "OR lower(trim(\"Category\")) IN ('null', 'undefined') THEN 'orange' "
-                )
-            for cat in sorted(uniqueCats):
-                safeCat = cat.replace("'", "''")
-                hexColor = self._colorForDemandCategory(cat).name()
-                colorExpression += f"WHEN trim(\"Category\") = '{safeCat}' THEN '{hexColor}' "
-            colorExpression += "ELSE 'gray' END"
-            labelSettings.dataDefinedProperties().setProperty(
-                PAL_PROPERTY_COLOR, QgsProperty.fromExpression(colorExpression)
-            )
-
-        if geomType == 1:
-            if layer.fields().indexFromName("%Dem") != -1:
-                labelSettings.fieldName = '"%Dem" || \' %\''
-                labelSettings.isExpression = True
-                labelSettings.enabled = True
-                labelSettings.placement = PAL_PLACEMENT_LINE
-                layer.setLabelsEnabled(True)
-                layer.setLabeling(QgsVectorLayerSimpleLabeling(labelSettings))
-        elif geomType == 0:
-            # Not the name the DLL reported unless the layer really carries it: a theme
-            # opened from the project or from the layer manager arrives with no name at
-            # all, and its columns are the user's to name (see resolveBaseDemandField).
-            labelField = resolveBaseDemandField([f.name() for f in layer.fields()], baseDemandField)
-            if labelField:
-                pointTextFormat = QgsTextFormat()
-                pointTextFormat.setSize(12)
-                pointTextFormat.setColor(QColor("black"))
-                labelSettings.setFormat(pointTextFormat)
-                labelSettings.fieldName = f'"{labelField}"'
-                labelSettings.isExpression = True
-                labelSettings.enabled = True
-                layer.setLabelsEnabled(True)
-                layer.setLabeling(QgsVectorLayerSimpleLabeling(labelSettings))
-
+        layerType, themeName = parseLayerPath(layer.source(), self.NetworkName)
+        if layerType is None:
+            return
+        self.setStyle(layer, layerType.identifierToken, variant=themeName, keepLabelVisibility=True)
+        self.completeDemandBuilderStyle(layer, layerType.key == "Consumptions", baseDemandField)
         layer.triggerRepaint()
+
+    def completeDemandBuilderStyle(self, layer, consumptionPoints, baseDemandField=""):
+        # The classes come from the data and the point label from the layer's own columns
+        self.fillDemandBuilderCategories(layer)
+        if consumptionPoints:
+            self.pointLabelToBaseDemand(layer, baseDemandField)
+        self.matchDemandBuilderLabelColors(layer)
+
+    @staticmethod
+    def normalizeDemandCategory(rawValue):
+        text = "" if rawValue is None else str(rawValue).strip()
+        if text == "" or text.lower() in ("null", "undefined"):
+            return "Uncategorized"
+        return text
+
+    def fillDemandBuilderCategories(self, layer):
+        """Add a class for every Category value the loaded style does not list yet.
+
+        Uncategorized comes first and orange, the other values sorted with a hue hashed
+        from the value, as the programmed look had them; the classes already in the style
+        (saved by the user) keep their own colour.
+        """
+        renderer = layer.renderer()
+        if renderer is None or renderer.type() != "categorizedSymbol":
+            return
+        fieldIndex = layer.fields().indexFromName("Category")
+        if fieldIndex == -1:
+            return
+        values = {self.normalizeDemandCategory(feature[fieldIndex]) for feature in layer.getFeatures()}
+        knownValues = {str(category.value()) for category in renderer.categories()}
+        newValues = sorted(values - knownValues, key=lambda value: (value != "Uncategorized", value))
+        categories = list(renderer.categories())
+        template = renderer.sourceSymbol() or (categories[-1].symbol() if categories else None)
+        if not newValues or template is None:
+            return
+        for value in newValues:
+            symbol = template.clone()
+            symbol.setColor(self._colorForDemandCategory(value))
+            categories.append(QgsRendererCategory(value, symbol, self._translateCategoryLabel(value)))
+        layer.setRenderer(self._rebuildCategorizedRenderer(renderer, categories))
+
+    @staticmethod
+    def demandBuilderLabelColorExpression(renderer):
+        # Labels take the colour of their class, so they read against their own symbol
+        expression = "CASE "
+        for category in renderer.categories():
+            symbol = category.symbol()
+            if symbol is None:
+                continue
+            colorName = symbol.color().name()
+            value = str(category.value())
+            if value == "Uncategorized":
+                expression += (
+                    "WHEN \"Category\" IS NULL OR trim(\"Category\") = '' "
+                    "OR lower(trim(\"Category\")) IN ('null', 'undefined') "
+                    f"THEN '{colorName}' "
+                )
+            else:
+                safeValue = value.replace("'", "''")
+                expression += f"WHEN trim(\"Category\") = '{safeValue}' THEN '{colorName}' "
+        return expression + "ELSE 'gray' END"
+
+    def matchDemandBuilderLabelColors(self, layer):
+        labeling = layer.labeling()
+        renderer = layer.renderer()
+        if labeling is None or labeling.type() != "simple":
+            return
+        if renderer is None or renderer.type() != "categorizedSymbol":
+            return
+        settings = labeling.settings()
+        settings.dataDefinedProperties().setProperty(
+            PAL_PROPERTY_COLOR, QgsProperty.fromExpression(self.demandBuilderLabelColorExpression(renderer)))
+        layer.setLabeling(QgsVectorLayerSimpleLabeling(settings))
+
+    def pointLabelToBaseDemand(self, layer, baseDemandField=""):
+        # The column is the user's to name, so the label follows the layer rather than the file
+        labeling = layer.labeling()
+        if labeling is None or labeling.type() != "simple":
+            return
+        labelField = resolveBaseDemandField([field.name() for field in layer.fields()], baseDemandField)
+        if not labelField:
+            return
+        settings = labeling.settings()
+        settings.fieldName = labelField
+        settings.isExpression = False
+        layer.setLabeling(QgsVectorLayerSimpleLabeling(settings))
 
     def setSectorsStyle(self, layer):
         # get unique values

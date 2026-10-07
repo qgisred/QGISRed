@@ -274,10 +274,13 @@ class LayerManagementSection:
         group = self.getDemandBuilderGroup(applyVisibility=False)
 
         for path in paths:
-            if utils._tryReloadExistingLayer(path):
+            baseName = os.path.splitext(os.path.basename(path))[0]
+            existingLayer = utils._tryReloadExistingLayer(path)
+            if existingLayer is not None:
+                # The point labels follow a base demand column the user may just have renamed
+                self._applyDemandBuilderStyle(existingLayer, baseName)
                 continue
 
-            baseName = os.path.splitext(os.path.basename(path))[0]
             layerType, _themeName = parseBaseName(baseName, self.NetworkName)
 
             vlayer = QgsVectorLayer(path, baseName, "ogr")

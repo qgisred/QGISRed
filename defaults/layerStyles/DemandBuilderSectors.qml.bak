@@ -1,0 +1,56 @@
+<!DOCTYPE qgis PUBLIC 'http://mrcc.com/qgis.dtd' 'SYSTEM'>
+<qgis styleCategories="Symbology|Labeling|MapTips" labelsEnabled="0" version="3.40.0-Bratislava">
+  <renderer-v2 referencescale="-1" type="categorizedSymbol" forceraster="0" enableorderby="0" attr="CASE WHEN &quot;Category&quot; IS NULL OR trim(&quot;Category&quot;) = '' OR lower(trim(&quot;Category&quot;)) IN ('null', 'undefined') THEN 'Uncategorized' ELSE trim(&quot;Category&quot;) END" symbollevels="0">
+    <categories/>
+    <symbols/>
+    <source-symbol>
+      <symbol alpha="1" frame_rate="10" name="0" clip_to_extent="1" type="fill" force_rhr="0" is_animated="0">
+        <data_defined_properties>
+          <Option type="Map">
+            <Option name="name" value="" type="QString"/>
+            <Option name="properties"/>
+            <Option name="type" value="collection" type="QString"/>
+          </Option>
+        </data_defined_properties>
+        <layer enabled="1" class="SimpleFill" id="{65bdad2d-d3f1-4188-8e48-b62d0328489c}" locked="0" pass="0">
+          <Option type="Map">
+            <Option name="border_width_map_unit_scale" value="3x:0,0,0,0,0,0" type="QString"/>
+            <Option name="color" value="255,165,0,255,rgb:1,0.6470588235294118,0,1" type="QString"/>
+            <Option name="joinstyle" value="bevel" type="QString"/>
+            <Option name="offset" value="0,0" type="QString"/>
+            <Option name="offset_map_unit_scale" value="3x:0,0,0,0,0,0" type="QString"/>
+            <Option name="offset_unit" value="MM" type="QString"/>
+            <Option name="outline_color" value="35,35,35,255,rgb:0.13725490196078433,0.13725490196078433,0.13725490196078433,1" type="QString"/>
+            <Option name="outline_style" value="solid" type="QString"/>
+            <Option name="outline_width" value="0.26" type="QString"/>
+            <Option name="outline_width_unit" value="MM" type="QString"/>
+            <Option name="style" value="solid" type="QString"/>
+          </Option>
+          <data_defined_properties>
+            <Option type="Map">
+              <Option name="name" value="" type="QString"/>
+              <Option name="properties"/>
+              <Option name="type" value="collection" type="QString"/>
+            </Option>
+          </data_defined_properties>
+        </layer>
+      </symbol>
+    </source-symbol>
+    <rotation/>
+    <sizescale/>
+    <data-defined-properties>
+      <Option type="Map">
+        <Option name="name" value="" type="QString"/>
+        <Option name="properties"/>
+        <Option name="type" value="collection" type="QString"/>
+      </Option>
+    </data-defined-properties>
+  </renderer-v2>
+  <selection mode="Default">
+    <selectionColor invalid="1"/>
+  </selection>
+  <blendMode>0</blendMode>
+  <featureBlendMode>0</featureBlendMode>
+  <mapTip enabled="1"></mapTip>
+  <layerGeometryType>2</layerGeometryType>
+</qgis>
