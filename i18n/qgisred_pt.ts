@@ -10862,12 +10862,12 @@ Não é possível aplicar as alterações.</translation>
     <message>
         <location filename="../tools/qgisred_translatable_strings.py" line="380"/>
         <source>PRV</source>
-        <translation>PRV</translation>
+        <translation>VRP</translation>
     </message>
     <message>
         <location filename="../tools/qgisred_translatable_strings.py" line="381"/>
         <source>PSV</source>
-        <translation>PSV</translation>
+        <translation>VSP</translation>
     </message>
     <message>
         <location filename="../tools/qgisred_translatable_strings.py" line="382"/>
@@ -10877,7 +10877,7 @@ Não é possível aplicar as alterações.</translation>
     <message>
         <location filename="../tools/qgisred_translatable_strings.py" line="383"/>
         <source>FCV</source>
-        <translation>FCV</translation>
+        <translation>VRV</translation>
     </message>
     <message>
         <location filename="../tools/qgisred_translatable_strings.py" line="384"/>

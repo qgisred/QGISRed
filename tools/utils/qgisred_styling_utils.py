@@ -85,6 +85,10 @@ _METER_TYPE_EXPR = "coalesce(attribute($currentfeature,'MeterType'),attribute($c
 _VALVE_TYPE_EXPR = "coalesce(attribute($currentfeature,'ValveType'), attribute($currentfeature,'Type'))"
 _SOURCE_TYPE_EXPR = "coalesce(attribute($currentfeature,'SourceType'), attribute($currentfeature,'Type'))"
 _VALVE_LABEL_TYPE_EXPR = "coalesce(attribute($currentfeature,'ValveType'),attribute($currentfeature,'Type'))"
+# The valve label as Valves.qml.bak ships it, and as styles saved before the type codes were translated carry it.
+_VALVE_LABEL_EXPR = ("concat(" + _VALVE_LABEL_TYPE_EXPR
+                     + ",' ',coalesce(attribute($currentfeature,'ValveID'),attribute($currentfeature,'Id')))")
+_LEGACY_VALVE_LABEL_EXPR = "concat(\"Type\",' ',\"Id\")"
 
 
 def create_combined_cursor(icon, iface=None, icon_size=24):
@@ -231,11 +235,11 @@ class QGISRedStylingUtils:
         # The strategy replay hides the labels too, so the file's choice is put back after it
         labelsShown = keepLabelVisibility and layer.labelsEnabled()
         self.applyStrategyFromLayer(layer, field)
+        layer.setLabelsEnabled(labelsShown)
         self.convertRendererSizesToMillimeters(layer)
         self.translateRendererLabels(layer)
         self.translateMapTip(layer)
         self.translateValveTypeLabel(layer)
-        layer.setLabelsEnabled(labelsShown)
 
     def setStyle(self, layer, name, field=None, variant="", keepLabelVisibility=False):
         """Load the QML style called `name` on `layer`.
@@ -1104,6 +1108,11 @@ class QGISRedStylingUtils:
         if not template:
             return
         updated = template
+        identifier = layer.customProperty("qgisred_identifier") if hasattr(layer, "customProperty") else None
+        if identifier == "qgisred_meters" and '"Type"' in updated:
+            updated = updated.replace('"Type"', _METER_TYPE_EXPR)
+        if identifier == "qgisred_valves" and '"Type"' in updated:
+            updated = updated.replace('"Type"', _VALVE_TYPE_EXPR)
         if _METER_TYPE_EXPR in updated:
             updated = updated.replace("[[%", "[%").replace("%]]", "%]")
         if updated.startswith(_LEGACY_DEMAND_MAPTIP_WORD + " "):
@@ -1153,6 +1162,8 @@ class QGISRedStylingUtils:
         if labeling is None or labeling.type() != "simple":
             return
         settings = labeling.settings()
+        if settings.fieldName == _LEGACY_VALVE_LABEL_EXPR:
+            settings.fieldName = _VALVE_LABEL_EXPR
         if _VALVE_LABEL_TYPE_EXPR not in settings.fieldName:
             return
         abbreviations = {code: getValveTypeAbbreviation(code) for code in VALVE_TYPE_LONG_NAMES}

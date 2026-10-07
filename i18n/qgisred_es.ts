@@ -7637,7 +7637,7 @@ No se pueden aplicar los cambios.</translation>
     <message>
         <location filename="../tools/utils/qgisred_project_utils.py" line="34"/>
         <source>Age</source>
-        <translation>Antigüedad</translation>
+        <translation>Edad</translation>
     </message>
     <message>
         <location filename="../tools/utils/qgisred_project_utils.py" line="38"/>

@@ -49,14 +49,18 @@ def _shippedLabelExpression(name):
 
 
 class FakeLayer:
-    def __init__(self, template):
+    def __init__(self, template, identifier=None):
         self._template = template
+        self._identifier = identifier
 
     def mapTipTemplate(self):
         return self._template
 
     def setMapTipTemplate(self, template):
         self._template = template
+
+    def customProperty(self, key, default=None):
+        return self._identifier if key == "qgisred_identifier" else default
 
 
 class FakeLabelSettings:
@@ -186,6 +190,26 @@ class TestTranslateMapTip:
         _utils().translateMapTip(shippedLayer)
         assert legacyLayer.mapTipTemplate() == shippedLayer.mapTipTemplate()
 
+    @pytest.mark.parametrize("legacyTip, identifier, shippedStyle", [
+        ('[[% "Type" %]] [% "Id" %]', "qgisred_meters", "Meters"),
+        ('[% "Type" %] [% "Id" %]', "qgisred_valves", "Valves"),
+    ])
+    def test_a_style_saved_with_the_oldest_map_tip_reads_the_type_code_off_the_attribute(
+        self, untranslatedTypeNames, legacyTip, identifier, shippedStyle
+    ):
+        # Styles saved before the QLR architecture show the raw Type and, for meters, square brackets.
+        legacyLayer = FakeLayer(legacyTip, identifier)
+        shippedLayer = FakeLayer(_shippedMapTip(shippedStyle))
+        _utils().translateMapTip(legacyLayer)
+        _utils().translateMapTip(shippedLayer)
+        assert "[[%" not in legacyLayer.mapTipTemplate()
+        assert legacyLayer.mapTipTemplate().split(" %] ")[0] == shippedLayer.mapTipTemplate().split(" %] ")[0]
+
+    def test_the_oldest_meter_map_tip_of_a_valve_layer_is_not_rewritten_as_a_meter(self, untranslatedTypeNames):
+        layer = FakeLayer('[% "Type" %] [% "Id" %]', "qgisred_pumps")
+        _utils().translateMapTip(layer)
+        assert layer.mapTipTemplate() == '[% "Type" %] [% "Id" %]'
+
     @pytest.mark.parametrize("shippedStyle", ["Meters", "Valves", "Sources", "Demands"])
     def test_a_map_tip_already_translated_is_left_as_it_is(
         self, untranslatedTypeNames, shippedStyle
@@ -255,6 +279,16 @@ class TestTranslateValveTypeLabel:
         expression = layer.labeling().settings().fieldName
         assert expression.startswith("concat(with_variable('qgisred_type', coalesce(")
         assert "WHEN @qgisred_type = 'PRV' THEN 'VRP'" in expression
+
+    def test_a_label_saved_before_the_type_codes_were_translated_is_translated_too(self, monkeypatch):
+        monkeypatch.setattr(stylingModule, "getValveTypeAbbreviation", lambda code: {"PRV": "VRP"}.get(code, code))
+        monkeypatch.setattr(stylingModule, "QgsVectorLayerSimpleLabeling", FakeLabeling)
+        layer = FakeLabeledLayer("concat(\"Type\",' ',\"Id\")")
+        _utils().translateValveTypeLabel(layer)
+        expression = layer.labeling().settings().fieldName
+        assert expression.startswith("concat(with_variable('qgisred_type', coalesce(")
+        assert "WHEN @qgisred_type = 'PRV' THEN 'VRP'" in expression
+        assert expression.endswith("coalesce(attribute($currentfeature,'ValveID'),attribute($currentfeature,'Id')))")
 
     def test_a_label_of_another_layer_is_left_alone(self, monkeypatch):
         monkeypatch.setattr(stylingModule, "QgsVectorLayerSimpleLabeling", FakeLabeling)

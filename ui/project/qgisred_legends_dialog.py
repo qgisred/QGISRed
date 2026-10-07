@@ -2517,7 +2517,7 @@ class QGISRedLegendsDialog(QDialog, formClass):
 
         for i, rangeItem in enumerate(renderer.ranges()):
             self.tableView.insertRow(i)
-            valueText = f"{rangeItem.lowerValue():.2f} - {rangeItem.upperValue():.2f}"
+            valueText = self.formatRangeText(rangeItem.lowerValue(), rangeItem.upperValue())
 
             self.setRowWidgets(
                 i,
