@@ -26,7 +26,7 @@ from qgis.core import QgsProject, QgsVectorLayer, QgsMessageLog, QgsGraduatedSym
 from qgis.core import QgsCategorizedSymbolRenderer, QgsRendererRange, QgsRendererCategory, QgsSymbol
 from qgis.core import QgsLayerTreeGroup, QgsLayerTreeLayer, QgsGradientColorRamp, QgsClassificationJenks
 from qgis.core import QgsClassificationPrettyBreaks, QgsStyle, QgsPresetSchemeColorRamp, QgsProperty
-from qgis.core import QgsRuleBasedRenderer, QgsFillSymbolLayer, QgsMapLayerStyle, QgsRandomColorRamp, NULL
+from qgis.core import QgsRuleBasedRenderer, QgsMapLayerStyle, QgsRandomColorRamp, NULL
 from qgis.core import QgsLineSymbol, QgsMarkerSymbol, QgsFillSymbol, QgsIconUtils
 from qgis.utils import iface
 
@@ -45,6 +45,7 @@ from ...tools.utils.qgisred_legend_rule_utils import (
 )
 from ...tools.utils.qgisred_ui_utils import QGISRedUIUtils, QGISRedBanner
 from ...tools.utils.qgisred_identifier_utils import QGISRedIdentifierUtils
+from ...tools.utils.qgisred_auxiliary_layers import parseLayerPath
 from ...tools.utils.qgisred_field_utils import QGISRedFieldUtils, resolve_layer_id
 from ...tools.utils.qgisred_layer_utils import QGISRedLayerUtils
 from ...tools.utils.qgisred_project_utils import QGISRedProjectUtils
@@ -172,10 +173,11 @@ class QGISRedLegendsDialog(QDialog, formClass):
         "qgisred_demandbuilder"
     ]
 
-    # Only these Demand Builder layers are editable in the Legend Editor
+    # The Demand Builder themes the Legend Editor edits; the isolated-demands connections stay out
     DEMANDS_BUILDER_EDITABLE_IDENTIFIERS = {
         "qgisred_demandbuilder_consumptionpoints",
         "qgisred_demandbuilder_demandlinks",
+        "qgisred_demandbuilder_sectors",
     }
 
     QUERIES_GROUP_PREFIXES = (
@@ -210,7 +212,7 @@ class QGISRedLegendsDialog(QDialog, formClass):
     TREE_NODES_IDENTIFIER = "qgisred_tree_nodes"
 
     # Query layers editable as a single symbol (color and size)
-    SINGLE_EDITABLE_QUERY_IDENTIFIERS = {"qgisred_connectivity_links"}
+    SINGLE_EDITABLE_QUERY_IDENTIFIERS = {"qgisred_connectivity_links"} | DEMANDS_BUILDER_EDITABLE_IDENTIFIERS
 
     # Isolated Segments layers ship a legend with fixed classes: links and nodes by Status, isolated
     # demands by element type. The editor lists exactly these classes, each with its color and a
@@ -1575,12 +1577,12 @@ class QGISRedLegendsDialog(QDialog, formClass):
     def _detectQueryClassField(self):
         """Pick a classification field for query layers styled as a single symbol.
 
-        Prefers 'Class', then 'SubNet', then the first field that is not an id.
+        Prefers 'Class', then 'SubNet', then 'Category', then the first field that is not an id.
         """
         if not self.currentLayer:
             return None
         fields = self.currentLayer.fields()
-        for preferred in ("Class", "SubNet"):
+        for preferred in ("Class", "SubNet", "Category"):
             if fields.indexOf(preferred) >= 0:
                 return preferred
         for field in fields:
@@ -2226,8 +2228,10 @@ class QGISRedLegendsDialog(QDialog, formClass):
                         isInputGroup
                         or layer.customProperty("qgisred_identifier") in self.INPUT_LAYER_IDENTIFIERS
                     )
+                    isEditableQuery = layer.customProperty("qgisred_identifier") in self.EDITABLE_QUERY_IDENTIFIERS
                     if rendererType in ("graduatedSymbol", "categorizedSymbol", "RuleRenderer") or (
-                        rendererType == "singleSymbol" and (isInputLayer or recurseIntoSubgroups or isQueriesGroup)
+                        rendererType == "singleSymbol"
+                        and (isInputLayer or recurseIntoSubgroups or isQueriesGroup or isEditableQuery)
                     ):
                         layers.append(layer)
             elif isinstance(child, QgsLayerTreeGroup) and recurseIntoSubgroups:
@@ -2780,6 +2784,12 @@ class QGISRedLegendsDialog(QDialog, formClass):
         self.tableView.setCellWidget(row, 1, container)
 
     def setSizeWidget(self, row, symbol, geometryHint):
+        if geometryHint == "fill":
+            # A fill has no size of its own: the cell stays blank and Apply leaves the symbol as is
+            sizeWidget = self.createSizeLineEdit("", row)
+            sizeWidget.setEnabled(False)
+            self.tableView.setCellWidget(row, 2, sizeWidget)
+            return
         size = self.currentSymbolSize(symbol, geometryHint)
         if self.isFactorCell():
             # Millimetres the swatch draws at 100 %, so the preview can follow the typed percent
@@ -4000,10 +4010,8 @@ class QGISRedLegendsDialog(QDialog, formClass):
         """Applies fill color to all layers of a symbol, preserving its structure."""
         for i in range(symbol.symbolLayerCount()):
             symbolLayer = symbol.symbolLayer(i)
+            # Strokes belong to the style: a fill keeps its outline like markers and lines do
             symbolLayer.setColor(color)
-            # Sync stroke only on polygon fills; marker/line strokes belong to the style
-            if isinstance(symbolLayer, QgsFillSymbolLayer):
-                symbolLayer.setStrokeColor(color)
             # Handle sub-symbols (e.g., marker line's marker symbol)
             if hasattr(symbolLayer, 'subSymbol') and symbolLayer.subSymbol():
                 self.applyColorToSymbol(symbolLayer.subSymbol(), color)
@@ -4348,23 +4356,7 @@ class QGISRedLegendsDialog(QDialog, formClass):
         labeling = self.currentLayer.labeling()
         if labeling is None:
             return
-        colorExpression = "CASE "
-        for category in appliedRenderer.categories():
-            symbol = category.symbol()
-            if symbol is None:
-                continue
-            colorName = symbol.color().name()
-            value = str(category.value())
-            if value == "Uncategorized":
-                colorExpression += (
-                    "WHEN \"Category\" IS NULL OR trim(\"Category\") = '' "
-                    "OR lower(trim(\"Category\")) IN ('null', 'undefined') "
-                    f"THEN '{colorName}' "
-                )
-            else:
-                safeValue = value.replace("'", "''")
-                colorExpression += f"WHEN trim(\"Category\") = '{safeValue}' THEN '{colorName}' "
-        colorExpression += "ELSE 'gray' END"
+        colorExpression = QGISRedStylingUtils.demandBuilderLabelColorExpression(appliedRenderer)
         settings = labeling.settings()
         settings.dataDefinedProperties().setProperty(PAL_PROPERTY_COLOR, QgsProperty.fromExpression(colorExpression))
         labeling.setSettings(settings)
@@ -5651,6 +5643,10 @@ class QGISRedLegendsDialog(QDialog, formClass):
 
     def applyStyleFileToLayer(self, path):
         self.loadStyleKeepingLabelVisibility(path)
+        identifier = self.currentLayer.customProperty("qgisred_identifier")
+        if identifier in self.DEMANDS_BUILDER_EDITABLE_IDENTIFIERS:
+            QGISRedStylingUtils().completeDemandBuilderStyle(
+                self.currentLayer, identifier == "qgisred_demandbuilder_consumptionpoints")
         if self.isResultsLayer():
             # Shipped result styles may carry a legend strategy (Pretty Breaks over the
             # data); without replaying it the layer would show the file's placeholder classes.
@@ -5838,12 +5834,16 @@ class QGISRedLegendsDialog(QDialog, formClass):
         return None
 
     def getStyleVariant(self):
-        """Tree name for a tree layer, so each tree keeps its own project style; "" otherwise."""
+        """Tree or Demand Builder theme name, so each keeps its own project style; "" otherwise."""
         identifier = self.currentLayer.customProperty("qgisred_identifier") if self.currentLayer else None
-        if not identifier or not identifier.startswith("qgisred_tree_"):
+        if not identifier:
             return ""
         layerPath = self.currentLayer.source().split("|")[0].strip()
-        return QGISRedLayerUtils.treeNameFromLayerPath(layerPath, self.networkName or "") or ""
+        if identifier.startswith("qgisred_tree_"):
+            return QGISRedLayerUtils.treeNameFromLayerPath(layerPath, self.networkName or "") or ""
+        if identifier in self.DEMANDS_BUILDER_EDITABLE_IDENTIFIERS:
+            return parseLayerPath(layerPath, self.networkName or "")[1]
+        return ""
 
     def getProjectStyleFilename(self, name):
         base = self.getStyleBasename(name)

@@ -126,22 +126,32 @@ class TestTreeSubgroups:
 
 
 class TestDemandBuilderGroup:
-    def _group(self):
-        return FakeGroup("DemandBuilder", identifier="qgisred_demandbuilder", children=[
-            FakeLayerNode(FakeLayer("qgisred_demandbuilder_consumptionpoints", "categorizedSymbol")),
-            FakeLayerNode(FakeLayer("qgisred_demandbuilder_demandlinks", "categorizedSymbol")),
-            FakeLayerNode(FakeLayer("qgisred_demandbuilder_sectors", "categorizedSymbol")),
-            FakeLayerNode(FakeLayer("qgisred_demandbuilder_isolateddemandsserviceconnections", "singleSymbol")),
-        ])
+    """The three theme types are listed, as the shipped single symbol or categorized by the user;
+    the isolated-demands connections are not."""
 
-    def test_only_points_and_links_are_collected(self):
+    THEME_IDENTIFIERS = {
+        "qgisred_demandbuilder_consumptionpoints",
+        "qgisred_demandbuilder_demandlinks",
+        "qgisred_demandbuilder_sectors",
+    }
+
+    def _group(self, rendererType):
+        themes = [
+            FakeLayerNode(FakeLayer(identifier, rendererType)) for identifier in sorted(self.THEME_IDENTIFIERS)
+        ]
+        connections = FakeLayerNode(
+            FakeLayer("qgisred_demandbuilder_isolateddemandsserviceconnections", "singleSymbol"))
+        return FakeGroup("DemandBuilder", identifier="qgisred_demandbuilder", children=themes + [connections])
+
+    @pytest.mark.parametrize("rendererType", ["singleSymbol", "categorizedSymbol"])
+    def test_every_theme_type_is_collected_but_not_the_isolated_connections(self, rendererType):
         layers = []
-        _dialog().collectRenderableLayersRecursive(self._group(), layers, False)
+        _dialog().collectRenderableLayersRecursive(self._group(rendererType), layers, False)
         identifiers = {layer.customProperty("qgisred_identifier") for layer in layers}
-        assert identifiers == {
-            "qgisred_demandbuilder_consumptionpoints",
-            "qgisred_demandbuilder_demandlinks",
-        }
+        assert identifiers == self.THEME_IDENTIFIERS
+
+    def test_the_themes_are_editable_as_single_symbols(self):
+        assert self.THEME_IDENTIFIERS <= QGISRedLegendsDialog.SINGLE_EDITABLE_QUERY_IDENTIFIERS
 
     def test_group_is_allowed_in_the_combo(self):
         assert "qgisred_demandbuilder" in QGISRedLegendsDialog.ALLOWED_GROUP_IDENTIFIERS
@@ -229,6 +239,9 @@ class TestPanelAndDialogParity:
         "qgisred_hydraulicsectors_isolateddemands",
         "qgisred_tree_nodes",
         "qgisred_connectivity_links",
+        "qgisred_demandbuilder_consumptionpoints",
+        "qgisred_demandbuilder_demandlinks",
+        "qgisred_demandbuilder_sectors",
     ]
 
     @pytest.mark.parametrize("identifier", QUERY_SINGLE_SYMBOL_LAYERS)

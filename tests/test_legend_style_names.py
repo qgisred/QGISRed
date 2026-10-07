@@ -202,6 +202,10 @@ class TestStyleNameForIdentifier:
         ("qgisred_tree_links", "TreeLinks.qml.bak"),
         ("qgisred_tree_nodes", "TreeNodes.qml.bak"),
         ("qgisred_connectivity_links", "ConnectLinks.qml.bak"),
+        # The Demand Builder themes: one shipped style per type, shared by every theme of it.
+        ("qgisred_demandbuilder_consumptionpoints", "DemandBuilderConsumptionPoints.qml.bak"),
+        ("qgisred_demandbuilder_demandlinks", "DemandBuilderDemandLinks.qml.bak"),
+        ("qgisred_demandbuilder_sectors", "DemandBuilderSectors.qml.bak"),
     ]
 
     @pytest.mark.parametrize("identifier, defaultFile", STYLED_IDENTIFIERS)
@@ -267,6 +271,25 @@ class TestProjectStyleFilename:
     def test_other_layers_keep_the_plain_name(self):
         dialog = self._dialog("qgisred_pipes", "C:/proj/Net_Pipes.shp")
         assert dialog.getProjectStyleFilename("pipes") == "Net_pipes.qml"
+
+    def test_a_demand_builder_theme_carries_its_theme_name(self):
+        dialog = self._dialog("qgisred_demandbuilder_consumptionpoints",
+                              "C:/proj/Auxiliary Layers/DemandBuilder/Net_DemandBuilder_Consumptions_Padron.shp")
+        assert dialog.getProjectStyleFilename("demandbuilderconsumptionpoints") == \
+            "Net_demandbuilderconsumptionpoints_Padron.qml"
+
+    def test_an_unnamed_theme_keeps_the_plain_name(self):
+        dialog = self._dialog("qgisred_demandbuilder_sectors",
+                              "C:/proj/Auxiliary Layers/DemandBuilder/Net_DemandBuilder_Sectors.shp")
+        assert dialog.getProjectStyleFilename("demandbuildersectors") == "Net_demandbuildersectors.qml"
+
+    def test_two_themes_of_one_type_get_two_files(self):
+        folder = "C:/proj/Auxiliary Layers/DemandBuilder/"
+        first = self._dialog("qgisred_demandbuilder_sectors", folder + "Net_DemandBuilder_Sectors_Barrios.shp")
+        second = self._dialog(
+            "qgisred_demandbuilder_sectors", folder + "Net_DemandBuilder_Sectors_Centro.shp|layername=x")
+        assert first.getProjectStyleFilename("demandbuildersectors") == "Net_demandbuildersectors_Barrios.qml"
+        assert second.getProjectStyleFilename("demandbuildersectors") == "Net_demandbuildersectors_Centro.qml"
 
 
 class TestElementNameForIdentifier:

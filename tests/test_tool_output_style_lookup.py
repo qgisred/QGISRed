@@ -11,6 +11,7 @@ from unittest.mock import MagicMock
 
 import pytest
 
+from QGISRed.tools.utils.qgisred_auxiliary_layers import AUXILIARY_LAYER_TYPES, composeBaseName
 from QGISRed.tools.utils.qgisred_layer_utils import QGISRedLayerUtils
 from QGISRed.tools.utils.qgisred_styling_utils import CONNECTIVITY_STYLE_NAME
 from QGISRed.ui.project.qgisred_legends_dialog import QGISRedLegendsDialog
@@ -27,14 +28,19 @@ def _writeStyle(folder, fileName):
 
 
 class _FakeLayer:
-    def __init__(self):
+    def __init__(self, source=""):
         self.loadedPath = None
+        self.layerSource = source
+        self.repainted = False
 
     def loadNamedStyle(self, path):
         self.loadedPath = path
 
     def setLabelsEnabled(self, enabled):
         pass
+
+    def labelsEnabled(self):
+        return False
 
     def customProperty(self, name):
         return None
@@ -50,6 +56,15 @@ class _FakeLayer:
 
     def setMapTipTemplate(self, template):
         pass
+
+    def source(self):
+        return self.layerSource
+
+    def fields(self):
+        return []
+
+    def triggerRepaint(self):
+        self.repainted = True
 
 
 def _connectivityUtils(tmp_path, globalFolder):
@@ -137,6 +152,7 @@ class TestRuntimeAndEditorAskForTheSameFile:
         ("qgisred_tree_nodes", "Tree_Nodes"),
         ("qgisred_demandbuilder_consumptionpoints", "DemandBuilder_ConsumptionPoints"),
         ("qgisred_demandbuilder_demandlinks", "DemandBuilder_DemandLinks"),
+        ("qgisred_demandbuilder_sectors", "DemandBuilder_Sectors"),
     ]
 
     @pytest.mark.parametrize("identifier, runtimeName", RUNTIME_NAMES)
@@ -146,3 +162,84 @@ class TestRuntimeAndEditorAskForTheSameFile:
         editorName = dialog.getStyleNameForIdentifier(identifier)
 
         assert editorName.lower() == runtimeName.replace("_", "").lower()
+
+    @pytest.mark.parametrize("layerType", AUXILIARY_LAYER_TYPES, ids=lambda layerType: layerType.key)
+    def test_the_demand_builder_runtime_names_are_the_identifier_tokens(self, layerType):
+        # setDemandBuilderStyle asks setStyle for the type's identifierToken
+        assert (layerType.identifier, layerType.identifierToken) in self.RUNTIME_NAMES
+
+
+def _demandBuilderUtils(tmp_path, globalFolder):
+    """Layer utils as the Layer Manager builds it for the themes, with a real style lookup behind it."""
+    projectRoot = str(tmp_path / "project")
+    subFolder = os.path.join(projectRoot, "Auxiliary Layers", "DemandBuilder")
+    utils = QGISRedLayerUtils(subFolder, "Net", MagicMock(), projectRoot)
+    styling = utils._styling()
+    styling._getQGISRedFolder = lambda: globalFolder
+    return styling, subFolder, projectRoot
+
+
+class TestDemandBuilderStyleLookup:
+    """The themes of one type share its global and shipped style, and may each keep a project style."""
+
+    def _theme(self, subFolder, fileName):
+        return _FakeLayer(os.path.join(subFolder, fileName))
+
+    def test_a_theme_loads_its_own_project_style(self, tmp_path):
+        styling, subFolder, projectRoot = _demandBuilderUtils(tmp_path, str(tmp_path / "global"))
+        expected = _writeStyle(os.path.join(projectRoot, "layerStyles"), "Net_DemandBuilderSectors_Barrios.qml")
+        layer = self._theme(subFolder, "Net_DemandBuilder_Sectors_Barrios.shp")
+
+        styling.setDemandBuilderStyle(layer, "Net_DemandBuilder_Sectors_Barrios")
+
+        assert layer.loadedPath == expected
+
+    def test_a_theme_ignores_the_project_style_of_another_theme(self, tmp_path):
+        styling, subFolder, projectRoot = _demandBuilderUtils(tmp_path, str(tmp_path / "global"))
+        _writeStyle(os.path.join(projectRoot, "layerStyles"), "Net_DemandBuilderSectors_Barrios.qml")
+        layer = self._theme(subFolder, "Net_DemandBuilder_Sectors_Centro.shp")
+
+        styling.setDemandBuilderStyle(layer, "Net_DemandBuilder_Sectors_Centro")
+
+        assert layer.loadedPath == os.path.join(PLUGIN_ROOT, "defaults", "layerStyles", "DemandBuilderSectors.qml.bak")
+        assert os.path.exists(layer.loadedPath)
+
+    def test_the_global_style_is_shared_by_every_theme(self, tmp_path):
+        globalFolder = str(tmp_path / "global")
+        styling, subFolder, _ = _demandBuilderUtils(tmp_path, globalFolder)
+        expected = _writeStyle(os.path.join(globalFolder, "layerStyles"), "DemandBuilderSectors.qml")
+        first = self._theme(subFolder, "Net_DemandBuilder_Sectors_Barrios.shp")
+        second = self._theme(subFolder, "Net_DemandBuilder_Sectors_Centro.shp")
+
+        styling.setDemandBuilderStyle(first)
+        styling.setDemandBuilderStyle(second)
+
+        assert first.loadedPath == expected
+        assert second.loadedPath == expected
+
+    def test_the_file_the_editor_saves_is_the_file_the_theme_loads(self, tmp_path):
+        styling, subFolder, projectRoot = _demandBuilderUtils(tmp_path, str(tmp_path / "global"))
+        dialog = QGISRedLegendsDialog.__new__(QGISRedLegendsDialog)
+        dialog.networkName = "Net"
+        dialog.currentLayer = MagicMock()
+        dialog.currentLayer.customProperty.side_effect = (
+            lambda key, *a: {"qgisred_identifier": "qgisred_demandbuilder_sectors"}.get(key))
+        dialog.currentLayer.source.return_value = os.path.join(subFolder, "Net_DemandBuilder_Sectors_Barrios.shp")
+        fileName = dialog.getProjectStyleFilename(dialog.getStyleNameForIdentifier("qgisred_demandbuilder_sectors"))
+        expected = _writeStyle(os.path.join(projectRoot, "layerStyles"), fileName)
+        layer = self._theme(subFolder, "Net_DemandBuilder_Sectors_Barrios.shp")
+
+        styling.setDemandBuilderStyle(layer)
+
+        assert layer.loadedPath == expected
+
+    @pytest.mark.parametrize("layerType", AUXILIARY_LAYER_TYPES, ids=lambda layerType: layerType.key)
+    def test_every_type_ships_a_default_style(self, tmp_path, layerType):
+        styling, subFolder, _ = _demandBuilderUtils(tmp_path, str(tmp_path / "global"))
+        layer = self._theme(subFolder, composeBaseName("Net", layerType, "Padron") + ".shp")
+
+        styling.setDemandBuilderStyle(layer)
+
+        assert os.path.dirname(layer.loadedPath) == os.path.join(PLUGIN_ROOT, "defaults", "layerStyles")
+        assert os.path.exists(layer.loadedPath)
+        assert layer.repainted
