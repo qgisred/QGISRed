@@ -28,11 +28,12 @@ _STYLES_FOLDER = os.path.join(os.path.dirname(os.path.dirname(os.path.abspath(__
 _NUMERIC_FIELDS = {"Elevation", "BaseDem", "EmittCoef", "IniQuality", "Length", "Diameter", "Roughness",
                    "BaseDemand", "Reliabilit"}
 
+SOURCE_PINK = "#ffe0ff"
 DEMAND_ORANGE = "#ffe4cc"
 EMITTER_ORANGE = "#fff2e2"
 RESULTS_YELLOW = "#fff8dc"
-RESULTS_DEMAND = "#fbe6aa"
-RESULTS_QUALITY = "#ffe0dd"
+RESULTS_PRESSURE = "#e2fbc4"
+RESULTS_FLOW = "#cff3fb"
 
 
 def _shippedFieldNames(styleName):
@@ -216,15 +217,15 @@ class TestResultsRows:
         assert len(rows) == len(fieldOrder)
         return dict(zip(fieldOrder, rows))
 
-    def test_a_node_demand_row_and_quality_row_have_their_own_blends(self, resultsGroup):
+    def test_a_node_demand_row_and_quality_row_reuse_the_data_colours(self, resultsGroup):
         dock = self._nodeDock(resultsGroup)
 
         dock.populateResultsTable()
 
         rows = self._resultRows(dock, True)
-        assert [_colorOf(rows["Demand"][column]) for column in (1, 2)] == [RESULTS_DEMAND] * 2
-        assert [_colorOf(rows["Quality"][column]) for column in (1, 2)] == [RESULTS_QUALITY] * 2
-        assert _colorOf(rows["Pressure"][1]) == RESULTS_YELLOW
+        assert [_colorOf(rows["Demand"][column]) for column in (1, 2)] == [DEMAND_ORANGE] * 2
+        assert [_colorOf(rows["Quality"][column]) for column in (1, 2)] == [SOURCE_PINK] * 2
+        assert [_colorOf(rows["Pressure"][column]) for column in (1, 2)] == [RESULTS_PRESSURE] * 2
         assert _colorOf(rows["Head"][1]) == RESULTS_YELLOW
 
     def test_the_property_cell_stays_white_on_every_results_row(self, resultsGroup):
@@ -234,12 +235,12 @@ class TestResultsRows:
 
         assert [_colorOf(row[0]) for row in self._resultRows(dock, True).values()] == [None] * 4
 
-    def test_a_link_quality_row_has_the_same_blend(self, resultsGroup):
+    def test_a_link_quality_row_reuses_the_source_colour(self, resultsGroup):
         dock = self._linkDock(resultsGroup)
 
         dock.populateResultsTable()
 
         rows = self._resultRows(dock, False)
-        assert [_colorOf(rows["Quality"][column]) for column in (1, 2)] == [RESULTS_QUALITY] * 2
-        assert _colorOf(rows["Flow"][1]) == RESULTS_YELLOW
+        assert [_colorOf(rows["Quality"][column]) for column in (1, 2)] == [SOURCE_PINK] * 2
+        assert [_colorOf(rows["Flow"][column]) for column in (1, 2)] == [RESULTS_FLOW] * 2
         assert "Demand" not in rows
