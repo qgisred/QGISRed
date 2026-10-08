@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 """The negative-pressure class draws its junctions larger, and the Appearance factors keep it so.
 
-NodePressureSI/US give the class below zero a white 2.5 mm junction while the other
+NodePressureSI/US give the class below zero a white 3 mm junction while the other
 classes use 2 mm. applySymbolScaleFactors writes absolute sizes into every rule, so it
 has to carry that difference per class; the grey "no value" rule and a proportional
 on/off toggle must not flatten or inflate it either.
@@ -105,9 +105,9 @@ class TestNegativePressureClassSize:
 
         assert sizes["junction"] == 2.0
         assert sizes["special"] == 8.0
-        assert sizes["junctionRatios"] == [1.25, 1.0, 1.0, 1.0, 1.0, 1.0]
+        assert sizes["junctionRatios"] == [1.5, 1.0, 1.0, 1.0, 1.0, 1.0]
 
-    def test_two_passes_keep_the_first_class_a_quarter_larger_and_the_grey_rule_regular(self, pressureLayer):
+    def test_two_passes_keep_the_first_class_half_larger_and_the_grey_rule_regular(self, pressureLayer):
         layer, utils = pressureLayer
         dock = _dockOnFreshStyle(layer, utils)
         dock._symbolFactor = 2.0
@@ -116,7 +116,7 @@ class TestNegativePressureClassSize:
         dock.applySymbolScaleFactors(layer)
 
         sizes = _junctionSizes(layer)
-        assert [size for _label, size in sizes] == [5.0, 4.0, 4.0, 4.0, 4.0, 4.0, 4.0]
+        assert [size for _label, size in sizes] == [6.0, 4.0, 4.0, 4.0, 4.0, 4.0, 4.0]
         assert sizes[0][0] == "< 0"
 
     def test_a_proportional_toggle_does_not_flatten_or_inflate_the_classes(self, pressureLayer):
@@ -128,7 +128,7 @@ class TestNegativePressureClassSize:
         dock._proportional = False
         dock.applySymbolScaleFactors(layer)
 
-        assert [size for _label, size in _junctionSizes(layer)] == [2.5, 2.0, 2.0, 2.0, 2.0, 2.0, 2.0]
+        assert [size for _label, size in _junctionSizes(layer)] == [3.0, 2.0, 2.0, 2.0, 2.0, 2.0, 2.0]
 
     def test_by_range_label_colours_never_paint_white_text(self, pressureLayer):
         layer, utils = pressureLayer

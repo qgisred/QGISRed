@@ -139,17 +139,17 @@ class TestReadStyleBaseSizes:
         assert sizes == {"junction": 2.5, "special": 8.0}
 
     def test_a_class_with_larger_junctions_is_recorded_as_a_ratio_to_the_smallest(self):
-        # The negative-pressure class of the Pressure styles draws 2.5 mm junctions.
+        # The negative-pressure class of the Pressure styles draws 3 mm junctions.
         dock = _BaseSizesDock()
         renderer = MagicMock()
         renderer.symbols.return_value = [
-            _renderer([_nodeSymbolLayer(SHIPPED_JUNCTION.replace("0,2))", "0,2.5))"))]).symbols.return_value[0],
+            _renderer([_nodeSymbolLayer(SHIPPED_JUNCTION.replace("0,2))", "0,3))"))]).symbols.return_value[0],
             _renderer([_nodeSymbolLayer(SHIPPED_JUNCTION), _nodeSymbolLayer(SHIPPED_TANK)]).symbols.return_value[0],
         ]
 
         sizes = dock.readStyleBaseSizes(_layer(POINT), renderer)
 
-        assert sizes == {"junction": 2.0, "special": 8.0, "junctionRatios": [1.25, 1.0]}
+        assert sizes == {"junction": 2.0, "special": 8.0, "junctionRatios": [1.5, 1.0]}
 
     def test_ratios_survive_the_division_by_the_factor(self):
         dock = _BaseSizesDock()

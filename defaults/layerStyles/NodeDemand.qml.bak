@@ -339,7 +339,7 @@
             <Option value="3x:0,0,0,0,0,0" type="QString" name="outline_width_map_unit_scale"/>
             <Option value="MM" type="QString" name="outline_width_unit"/>
             <Option value="diameter" type="QString" name="scale_method"/>
-            <Option value="2.5" type="QString" name="size"/>
+            <Option value="3.5" type="QString" name="size"/>
             <Option value="3x:0,0,0,0,0,0" type="QString" name="size_map_unit_scale"/>
             <Option value="MM" type="QString" name="size_unit"/>
             <Option value="1" type="QString" name="vertical_anchor_point"/>
@@ -350,12 +350,12 @@
               <Option type="Map" name="properties">
                 <Option type="Map" name="size">
                   <Option value="true" type="bool" name="active"/>
-                  <Option value="if(@id is NULL, NULL, if(coalesce(attribute($currentfeature,'NodeType'),attribute($currentfeature,'Type')) ='RESERVOIR' or coalesce(attribute($currentfeature,'NodeType'),attribute($currentfeature,'Type'))='TANK', 0,2.5))" type="QString" name="expression"/>
+                  <Option value="if(@id is NULL, NULL, if(coalesce(attribute($currentfeature,'NodeType'),attribute($currentfeature,'Type')) ='RESERVOIR' or coalesce(attribute($currentfeature,'NodeType'),attribute($currentfeature,'Type'))='TANK', 0,3.5))" type="QString" name="expression"/>
                   <Option value="3" type="int" name="type"/>
                 </Option>
                 <Option type="Map" name="width">
                   <Option value="true" type="bool" name="active"/>
-                  <Option value="if(@id is NULL, NULL, if(coalesce(attribute($currentfeature,'NodeType'),attribute($currentfeature,'Type')) ='RESERVOIR' or coalesce(attribute($currentfeature,'NodeType'),attribute($currentfeature,'Type'))='TANK', 0,2.5))" type="QString" name="expression"/>
+                  <Option value="if(@id is NULL, NULL, if(coalesce(attribute($currentfeature,'NodeType'),attribute($currentfeature,'Type')) ='RESERVOIR' or coalesce(attribute($currentfeature,'NodeType'),attribute($currentfeature,'Type'))='TANK', 0,3.5))" type="QString" name="expression"/>
                   <Option value="3" type="int" name="type"/>
                 </Option>
               </Option>

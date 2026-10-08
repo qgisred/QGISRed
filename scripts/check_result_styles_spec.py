@@ -63,13 +63,14 @@ PALETTE = ["#004eff", "#00ffff", "#00ff00", "#ffd800", "#ff3800"]
 PALETTE_NAME = "QGISRed EPANET Results"
 NEGATIVE_COLOR = "#ffffff"
 
-RESULT_SIZES = {"junction": 2.0, "negativeJunction": 2.5, "tankReservoir": 8.0, "line": 0.7, "pumpValve": 7.0}
+RESULT_SIZES = {"junction": 2.0, "negativePressure": 3.0, "negativeDemand": 3.5, "tankReservoir": 8.0, "line": 0.7,
+                "pumpValve": 7.0}
 DATA_SIZES = {"junction": 1.6, "tankReservoir": 7.0, "line": 0.5, "pumpValve": 6.0}
 
 # name: (field the dock classifies, thresholds, minimum, maximum)
 FIXED_STYLES = {
-    "NodePressureSI": ("Pressure", (15, 30, 40, 50), -10, 200),
-    "NodePressureUS": ("Pressure", (20, 40, 60, 70), -14, 300),
+    "NodePressureSI": ("Pressure", (15, 30, 40, 50), -1000, 200),
+    "NodePressureUS": ("Pressure", (20, 40, 60, 70), -1000, 300),
     "NodeChlorine": ("Quality", (0.2, 0.4, 0.6, 0.8), 0, 2),
     "NodeTrace": ("Quality", (20, 40, 60, 80), 0, 100),
     "NodeAge": ("Quality", (12, 24, 48, 72), 0, 1000),
@@ -333,7 +334,7 @@ def checkFileNames():
     note("the document spells the suffix '_SI' / '_US'; the plugin ships 'SI' / 'US' without the underscore")
 
 
-def checkSizes(name, layer, renderer, negativeFirst=False):
+def checkSizes(name, layer, renderer, negativeSize=None):
     symbols = classSymbols(renderer)
     units = set()
     for symbol in symbols:
@@ -342,8 +343,8 @@ def checkSizes(name, layer, renderer, negativeFirst=False):
     if name.startswith("Node"):
         junctionSizes = [drawnSize(symbol, layer, "JUNCTION") for symbol in symbols]
         expectedJunctions = [RESULT_SIZES["junction"]] * len(symbols)
-        if negativeFirst:
-            expectedJunctions[0] = RESULT_SIZES["negativeJunction"]
+        if negativeSize is not None:
+            expectedJunctions[0] = negativeSize
         junctionsOk = all(same(a, b) for a, b in zip(junctionSizes, expectedJunctions))
         report(junctionsOk, "%s: junction circles draw %s mm" % (name, junctionSizes))
         for typeName in ("TANK", "RESERVOIR"):
@@ -396,10 +397,10 @@ def checkFixedStyle(name, layer):
     texts = ["%g" % value for value in thresholds]
     expectedLabels = ["< " + texts[0]] + ["%s < %s" % pair for pair in zip(texts, texts[1:])] + ["> " + texts[-1]]
     if negative:
-        expectedLabels = ["< 0"] + expectedLabels
+        expectedLabels = ["< 0", "0 < " + texts[0]] + expectedLabels[1:]
     report(labels == expectedLabels, "%s: labels %s" % (name, labels))
     checkColors(name, renderer, ([NEGATIVE_COLOR] if negative else []) + PALETTE)
-    checkSizes(name, layer, renderer, negativeFirst=negative)
+    checkSizes(name, layer, renderer, negativeSize=RESULT_SIZES["negativePressure"] if negative else None)
     report(not layer.labelsEnabled(), "%s: no map labels switched on by the style" % name)
 
 
@@ -443,7 +444,7 @@ def checkPrettyStyle(name, layer):
     actualColors = [hexColor(symbol.color()) for symbol in classSymbols(renderer)]
     expectedColors = ([NEGATIVE_COLOR] if negative else []) + PALETTE
     checkColors(name, renderer, expectedColors if len(ranges) == 5 else actualColors)
-    checkSizes(name, layer, renderer, negativeFirst=negative)
+    checkSizes(name, layer, renderer, negativeSize=RESULT_SIZES["negativeDemand"] if negative else None)
     report(not layer.labelsEnabled(), "%s: no map labels switched on by the style" % name)
 
 

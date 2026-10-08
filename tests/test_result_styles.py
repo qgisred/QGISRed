@@ -102,8 +102,8 @@ class TestFixedThresholds:
     """Ranges and labels of the spec tables (Sept 2026), first class from Min, last to Max."""
 
     @pytest.mark.parametrize("name, labels", [
-        ("NodePressureSI", ["< 0", "< 15", "15 < 30", "30 < 40", "40 < 50", "> 50"]),
-        ("NodePressureUS", ["< 0", "< 20", "20 < 40", "40 < 60", "60 < 70", "> 70"]),
+        ("NodePressureSI", ["< 0", "0 < 15", "15 < 30", "30 < 40", "40 < 50", "> 50"]),
+        ("NodePressureUS", ["< 0", "0 < 20", "20 < 40", "40 < 60", "60 < 70", "> 70"]),
         ("NodeChlorine", ["< 0.2", "0.2 < 0.4", "0.4 < 0.6", "0.6 < 0.8", "> 0.8"]),
         ("NodeTrace", ["< 20", "20 < 40", "40 < 60", "60 < 80", "> 80"]),
         ("NodeAge", ["< 12", "12 < 24", "24 < 48", "48 < 72", "> 72"]),
@@ -121,7 +121,7 @@ class TestFixedThresholds:
         assert _labels(name) == labels
 
     @pytest.mark.parametrize("name, minimum, maximum", [
-        ("NodePressureSI", -10, 200), ("NodePressureUS", -14, 300), ("NodeChlorine", 0, 2), ("NodeTrace", 0, 100),
+        ("NodePressureSI", -1000, 200), ("NodePressureUS", -1000, 300), ("NodeChlorine", 0, 2), ("NodeTrace", 0, 100),
         ("NodeAge", 0, 1000), ("LinkVelocitySI", 0, 10), ("LinkVelocityUS", 0, 30), ("LinkHeadLossSI", 0, 50),
         ("LinkHeadLossUS", 0, 150), ("LinkUnitHdLoss", 0, 50), ("LinkFricFactor", 0, 1), ("LinkChlorine", 0, 2),
         ("LinkTrace", 0, 100), ("LinkAge", 0, 1000),
@@ -195,7 +195,7 @@ class TestPrettyBreakStyles:
         assert _classColors("NodeDemand")[0] == "#ffffff"
         circle = next(layer for layer in _classSymbols("NodeDemand")[0].findall("layer")
                       if layer.get("class") == "SimpleMarker")
-        assert _option(circle, "size") == "2.5"
+        assert _option(circle, "size") == "3.5"
 
 
 class TestColoursAndSizes:
@@ -225,8 +225,8 @@ class TestColoursAndSizes:
         symbols = _classSymbols("NodePressureSI")
         circles = [next(layer for layer in symbol.findall("layer") if layer.get("class") == "SimpleMarker")
                    for symbol in symbols]
-        assert [_option(circle, "size") for circle in circles] == ["2.5", "2", "2", "2", "2", "2"]
-        assert _sizeExpressions("NodePressureSI")[9].endswith("0,2.5))")
+        assert [_option(circle, "size") for circle in circles] == ["3", "2", "2", "2", "2", "2"]
+        assert _sizeExpressions("NodePressureSI")[9].endswith("0,3))")
 
     @pytest.mark.parametrize("name", ["LinkFlow", "LinkStatus", "LinkAge"])
     def test_link_sizes(self, name):

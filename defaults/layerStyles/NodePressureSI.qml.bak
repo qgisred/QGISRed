@@ -146,8 +146,8 @@
   </elevation>
   <renderer-v2 forceraster="0" referencescale="-1" attr="Pressure" type="graduatedSymbol" symbollevels="0" graduatedMethod="GraduatedColor" enableorderby="0">
     <ranges>
-      <range lower="-10" label="&lt; 0" upper="-0.005" symbol="0" render="true" uuid="{de52fddd-7c56-5616-bd41-0d864a9a10ba}"/>
-      <range lower="-0.005" label="&lt; 15" upper="14.995" symbol="1" render="true" uuid="{3fc38a0d-5c33-52b2-bc56-fed6d954e678}"/>
+      <range lower="-1000" label="&lt; 0" upper="-0.005" symbol="0" render="true" uuid="{de52fddd-7c56-5616-bd41-0d864a9a10ba}"/>
+      <range lower="-0.005" label="0 &lt; 15" upper="14.995" symbol="1" render="true" uuid="{3fc38a0d-5c33-52b2-bc56-fed6d954e678}"/>
       <range lower="14.995" label="15 &lt; 30" upper="29.995" symbol="2" render="true" uuid="{d261dd71-ea09-5881-b890-3a22582e14e7}"/>
       <range lower="29.995" label="30 &lt; 40" upper="39.995" symbol="3" render="true" uuid="{b4a1a95b-afb9-5ce4-8b1b-6053b384fa75}"/>
       <range lower="39.995" label="40 &lt; 50" upper="49.995" symbol="4" render="true" uuid="{37871515-c28e-5457-8d26-98bfc4aafa96}"/>
@@ -339,7 +339,7 @@
             <Option value="3x:0,0,0,0,0,0" type="QString" name="outline_width_map_unit_scale"/>
             <Option value="MM" type="QString" name="outline_width_unit"/>
             <Option value="diameter" type="QString" name="scale_method"/>
-            <Option value="2.5" type="QString" name="size"/>
+            <Option value="3" type="QString" name="size"/>
             <Option value="3x:0,0,0,0,0,0" type="QString" name="size_map_unit_scale"/>
             <Option value="MM" type="QString" name="size_unit"/>
             <Option value="1" type="QString" name="vertical_anchor_point"/>
@@ -350,12 +350,12 @@
               <Option type="Map" name="properties">
                 <Option type="Map" name="size">
                   <Option value="true" type="bool" name="active"/>
-                  <Option value="if(@id is NULL, NULL, if(coalesce(attribute($currentfeature,'NodeType'),attribute($currentfeature,'Type')) ='RESERVOIR' or coalesce(attribute($currentfeature,'NodeType'),attribute($currentfeature,'Type'))='TANK', 0,2.5))" type="QString" name="expression"/>
+                  <Option value="if(@id is NULL, NULL, if(coalesce(attribute($currentfeature,'NodeType'),attribute($currentfeature,'Type')) ='RESERVOIR' or coalesce(attribute($currentfeature,'NodeType'),attribute($currentfeature,'Type'))='TANK', 0,3))" type="QString" name="expression"/>
                   <Option value="3" type="int" name="type"/>
                 </Option>
                 <Option type="Map" name="width">
                   <Option value="true" type="bool" name="active"/>
-                  <Option value="if(@id is NULL, NULL, if(coalesce(attribute($currentfeature,'NodeType'),attribute($currentfeature,'Type')) ='RESERVOIR' or coalesce(attribute($currentfeature,'NodeType'),attribute($currentfeature,'Type'))='TANK', 0,2.5))" type="QString" name="expression"/>
+                  <Option value="if(@id is NULL, NULL, if(coalesce(attribute($currentfeature,'NodeType'),attribute($currentfeature,'Type')) ='RESERVOIR' or coalesce(attribute($currentfeature,'NodeType'),attribute($currentfeature,'Type'))='TANK', 0,3))" type="QString" name="expression"/>
                   <Option value="3" type="int" name="type"/>
                 </Option>
               </Option>

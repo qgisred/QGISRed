@@ -42,7 +42,8 @@ NEGATIVE_COLOR = "#ffffff"
 
 # Sizes in millimetres, a little above the input layers so results draw over them.
 JUNCTION_SIZE = 2
-NEGATIVE_JUNCTION_SIZE = 2.5
+NEGATIVE_PRESSURE_SIZE = 3
+NEGATIVE_DEMAND_SIZE = 3.5
 SPECIAL_SIZE = 8       # tanks and reservoirs
 LINE_WIDTH = 0.7
 ICON_SIZE = 7          # pumps and valves
@@ -120,8 +121,8 @@ def qualityStyles(element):
 # Shifts: half of the last decimal shown for the variable (defaults/qgisred_properties_units_decimals.csv;
 # pressures and flows take theirs from the Global PressUnits / FlowUnits rows: 2 decimals).
 RESULT_STYLES = (
-    fixedStyle("NodePressureSI", "Node", "qgisred_node_pressure", (0, 15, 30, 40, 50), -10, 200, 0.005, True),
-    fixedStyle("NodePressureUS", "Node", "qgisred_node_pressure", (0, 20, 40, 60, 70), -14, 300, 0.005, True),
+    fixedStyle("NodePressureSI", "Node", "qgisred_node_pressure", (0, 15, 30, 40, 50), -1000, 200, 0.005, True),
+    fixedStyle("NodePressureUS", "Node", "qgisred_node_pressure", (0, 20, 40, 60, 70), -1000, 300, 0.005, True),
     prettyStyle("NodeHead", "Node", "qgisred_node_head", "Head",
                 sampleField=NODE_VALUES_EXCEPT % ("RESERVOIR", '"Head"')),
     prettyStyle("NodeDemand", "Node", "qgisred_node_demand", "Demand",
@@ -228,10 +229,9 @@ def fixedClasses(spec):
     colors = [spanColor(index, colorCount) for index in range(colorCount)]
     sizes = [JUNCTION_SIZE] * colorCount
     if spec["negativeClass"]:
-        # The class below zero: white and larger; the next one reads "< threshold" rather than "0 < threshold".
-        labels[1] = "< " + texts[1]
+        # The class below zero: white and larger.
         colors = [NEGATIVE_COLOR] + [spanColor(index, colorCount - 1) for index in range(colorCount - 1)]
-        sizes[0] = NEGATIVE_JUNCTION_SIZE
+        sizes[0] = NEGATIVE_PRESSURE_SIZE
     return [(bounds[i], bounds[i + 1], labels[i], colors[i], sizes[i]) for i in range(colorCount)]
 
 
@@ -244,7 +244,7 @@ def prettyClasses(spec):
     classes = [(index, index + 1, "%d - %d" % (index, index + 1), PALETTE[index], JUNCTION_SIZE)
                for index in range(count)]
     if spec["negativeClass"]:
-        classes.insert(0, (-OPEN_BOUND, NEGATIVE_UPPER, "< 0", NEGATIVE_COLOR, NEGATIVE_JUNCTION_SIZE))
+        classes.insert(0, (-OPEN_BOUND, NEGATIVE_UPPER, "< 0", NEGATIVE_COLOR, NEGATIVE_DEMAND_SIZE))
     return classes
 
 
