@@ -349,6 +349,8 @@ class QGISRedSymbolColorSelector(QgsSymbolButton):
         if self.previewSizeValue and self.previewSizeValue > 0:
             if self.geometryType == self.lineType:
                 self.applyTrueLineSize(symbol)
+            elif self.geometryType == self.fillType:
+                self.applyFillStrokeWidth(symbol)
             elif hasattr(symbol, "setSize"):
                 symbol.setSize(self.previewSizeValue)
         self.scalePreviewSymbol(symbol, self.mapDpi() / self.swatchDpi())
@@ -373,6 +375,11 @@ class QGISRedSymbolColorSelector(QgsSymbolButton):
             self.scaleLineSymbol(symbol, width / referenceWidth)
         else:
             lineLayers[0].setWidth(width)
+
+    def applyFillStrokeWidth(self, symbol):
+        for symbolLayer in symbol.symbolLayers():
+            if hasattr(symbolLayer, "setStrokeWidth"):
+                symbolLayer.setStrokeWidth(self.previewSizeValue)
 
     @staticmethod
     def scaleLineSymbol(symbol, ratio):
@@ -516,6 +523,30 @@ class QGISRedSizePercentSpinBox(QSpinBox):
 
     def factor(self):
         return self.value() / 100
+
+
+class QGISRedOpacityPercentSpinBox(QSpinBox):
+    """Opacity of a fill beside its swatch: 100 % is a solid colour, 0 % an invisible one."""
+
+    stepPercent = 10
+
+    def __init__(self, parent=None):
+        super().__init__(parent)
+        self.setRange(0, 100)
+        self.setSingleStep(self.stepPercent)
+        self.setSuffix(" %")
+        self.setAlignment(Qt.AlignmentFlag.AlignCenter)
+        self.setValue(100)
+
+    def showOpacityOf(self, color):
+        self.blockSignals(True)
+        self.setValue(round(color.alpha() * 100 / 255))
+        self.blockSignals(False)
+
+    def colorWithOpacity(self, color):
+        opaqueColor = QColor(color)
+        opaqueColor.setAlpha(round(self.value() * 255 / 100))
+        return opaqueColor
 
 
 class QGISRedColorRampSelector(QComboBox):

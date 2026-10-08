@@ -56,6 +56,7 @@ from .qgisred_custom_dialogs import QGISRedRangeEditDialog, QGISRedSymbolColorSe
 from .qgisred_custom_dialogs import QGISRedColorRampSelector, QGISRedRowSelectionFilter
 from .qgisred_custom_dialogs import QGISRedPaletteEmulator, QGISRedSizePaletteEmulator
 from .qgisred_custom_dialogs import QGISRedSaveStrategyDialog, QGISRedSizeLineEdit, QGISRedSizePercentSpinBox
+from .qgisred_custom_dialogs import QGISRedOpacityPercentSpinBox
 
 formClass, _ = uic.loadUiType(os.path.join(os.path.dirname(__file__), "qgisred_legends_dialog.ui"))
 
@@ -161,6 +162,7 @@ class QGISRedLegendsDialog(QDialog, formClass):
     # tank, pump and valve icons at the size the map draws them.
     COLOR_SWATCH_SIZE_SINGLE = (44, 40)
     COLOR_COLUMN_WIDTH = 54
+    COLOR_COLUMN_WIDTH_WITH_OPACITY = 120
 
     ALLOWED_GROUP_IDENTIFIERS = [
         "qgisred_thematicmaps",
@@ -2780,19 +2782,20 @@ class QGISRedLegendsDialog(QDialog, formClass):
         colorSelector.installEventFilter(self.rowSelectionFilter)
         layout.addStretch()
         layout.addWidget(colorSelector, 0, Qt.AlignmentFlag.AlignVCenter)
+        # Polygons only: a fill is the one symbol seen through, so its opacity sits beside the swatch
+        hasOpacity = self.effectiveGeometryHint(previewSymbol, geometryHint) == "fill"
+        if hasOpacity:
+            layout.addSpacing(4)
+            layout.addWidget(self.createOpacitySpinBox(colorSelector), 0, Qt.AlignmentFlag.AlignVCenter)
         layout.addStretch()
         container.setAutoFillBackground(False)
         container.installEventFilter(self.rowSelectionFilter)
 
+        colorColumnWidth = self.COLOR_COLUMN_WIDTH_WITH_OPACITY if hasOpacity else self.COLOR_COLUMN_WIDTH
+        self.tableView.setColumnWidth(1, colorColumnWidth)
         self.tableView.setCellWidget(row, 1, container)
 
     def setSizeWidget(self, row, symbol, geometryHint):
-        if geometryHint == "fill":
-            # A fill has no size of its own: the cell stays blank and Apply leaves the symbol as is
-            sizeWidget = self.createSizeLineEdit("", row)
-            sizeWidget.setEnabled(False)
-            self.tableView.setCellWidget(row, 2, sizeWidget)
-            return
         size = self.currentSymbolSize(symbol, geometryHint)
         if self.isFactorCell():
             # Millimetres the swatch draws at 100 %, so the preview can follow the typed percent
@@ -2808,6 +2811,8 @@ class QGISRedLegendsDialog(QDialog, formClass):
         anchor = self._readAnchorSize(symbol)
         if anchor is not None:
             return anchor
+        if geometryHint == "fill":
+            return self._getFillStrokeWidth(symbol)
         size = self._getLineWidth(symbol) if geometryHint == "line" else self._getNodeSize(symbol)
         if self.isMarkerComponentSelected():
             return self._readMarkerLineMarkerSize(symbol) or size
@@ -2840,6 +2845,19 @@ class QGISRedLegendsDialog(QDialog, formClass):
         sizeWidget.textEdited.connect(self.markLegendEdited)
         self.syncColorPreviewSize(row, text)
         return sizeWidget
+
+    def createOpacitySpinBox(self, colorSelector):
+        opacityWidget = QGISRedOpacityPercentSpinBox()
+        opacityWidget.setStyleSheet(self.getBaseSpinBoxStyle())
+        opacityWidget.setToolTip(self.tr("Opacity of the fill: 100 % is solid, 0 % invisible."))
+        opacityWidget.installEventFilter(self.rowSelectionFilter)
+        opacityWidget.showOpacityOf(colorSelector.activeColor)
+        opacityWidget.valueChanged.connect(
+            lambda _value: colorSelector.setSelectorColor(opacityWidget.colorWithOpacity(colorSelector.activeColor))
+        )
+        opacityWidget.valueChanged.connect(lambda _value: self.markLegendEdited())
+        colorSelector.colorChanged.connect(lambda color: opacityWidget.showOpacityOf(color))
+        return opacityWidget
 
     def createSizePercentSpinBox(self, row):
         sizeWidget = QGISRedSizePercentSpinBox()
@@ -4068,6 +4086,8 @@ class QGISRedLegendsDialog(QDialog, formClass):
         hint = self.effectiveGeometryHint(symbol, self.getGeometryHint())
         if hint == "line":
             symbol.setWidth(size)
+        elif hint == "fill":
+            self._setFillStrokeWidth(symbol, size)
         elif hasattr(symbol, "setSize"):
             symbol.setSize(size)
             self.applyNodeSizeExpressions(symbol, size)
@@ -4133,6 +4153,22 @@ class QGISRedLegendsDialog(QDialog, formClass):
             sl = symbol.symbolLayer(i)
             if sl.layerType() == "SimpleLine":
                 sl.setWidth(newWidth)
+
+    @staticmethod
+    def _fillStrokeLayers(symbol):
+        return [
+            symbol.symbolLayer(i) for i in range(symbol.symbolLayerCount())
+            if hasattr(symbol.symbolLayer(i), "strokeWidth")
+        ]
+
+    def _getFillStrokeWidth(self, symbol):
+        """The size of a polygon is the width of its outline."""
+        strokeLayers = self._fillStrokeLayers(symbol)
+        return strokeLayers[0].strokeWidth() if strokeLayers else 0.0
+
+    def _setFillStrokeWidth(self, symbol, newWidth):
+        for strokeLayer in self._fillStrokeLayers(symbol):
+            strokeLayer.setStrokeWidth(newWidth)
 
     STYLE_VARIABLE_PROPERTY_KEYS = (SL_PROP_STROKE_COLOR, SL_PROP_FILL_COLOR, SL_PROP_SIZE, SL_PROP_WIDTH)
 

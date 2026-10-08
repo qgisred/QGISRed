@@ -12,7 +12,7 @@ import pytest
 
 from QGISRed.ui.project.qgisred_legends_dialog import QGISRedLegendsDialog
 from QGISRed.ui.analysis.qgisred_results_rendering import apply_junction_size, read_node_base_sizes
-from QGISRed.compat import WKB_LINE_GEOMETRY
+from QGISRed.compat import WKB_LINE_GEOMETRY, WKB_POINT_GEOMETRY
 
 JUNCTION = "if(\"Type\" ='RESERVOIR' or \"Type\"='TANK', 0, 2)"
 TANK = "if(\"Type\" ='TANK', 7, 0)"
@@ -73,7 +73,7 @@ def _symbol(symbolLayers):
 def _dialog():
     dialog = QGISRedLegendsDialog.__new__(QGISRedLegendsDialog)
     dialog.currentLayer = MagicMock()
-    dialog.currentLayer.geometryType.return_value = 0  # point
+    dialog.currentLayer.geometryType.return_value = WKB_POINT_GEOMETRY
     return dialog
 
 
