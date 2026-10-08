@@ -9,7 +9,7 @@ All QGIS / PyQt dependencies are mocked via conftest.py.
 """
 
 import os
-from unittest.mock import MagicMock, patch
+from unittest.mock import MagicMock, call, patch
 
 import pytest
 
@@ -418,6 +418,17 @@ class TestDemandBuilderStyleFlag:
         styling.setStyle.assert_called_once_with(
             layer, "DemandBuilder_DemandLinks", variant="Alta", keepLabelVisibility=True)
 
+    def test_a_styled_theme_is_watched_so_its_classes_follow_the_edits(self):
+        styling = self._styling()
+        styling.watchDemandBuilderCategories = MagicMock()
+        consumptions = self._layer("Net_DemandBuilder_Consumptions_Padron.shp")
+        sectors = self._layer("Net_DemandBuilder_Sectors_Barrios.shp")
+
+        styling.setDemandBuilderStyle(consumptions)
+        styling.setDemandBuilderStyle(sectors)
+
+        assert styling.watchDemandBuilderCategories.call_args_list == [call(consumptions, True), call(sectors, False)]
+
     def test_the_consumption_points_label_follows_the_layer(self):
         styling = self._styling()
         layer = self._layer("Net_DemandBuilder_Consumptions_Padron.shp")
@@ -548,6 +559,20 @@ class TestDemandBuilderClasses:
             "CASE WHEN \"Category\" IS NULL OR trim(\"Category\") = '' "
             "OR lower(trim(\"Category\")) IN ('null', 'undefined') THEN '#ffa500' "
             "WHEN trim(\"Category\") = 'Dom''s' THEN '#1a2b3c' ELSE 'gray' END")
+
+    def test_sector_label_colours_read_the_id_as_text(self):
+        from QGISRed.tools.utils.qgisred_styling_utils import QGISRedStylingUtils
+
+        renderer = MagicMock()
+        renderer.classAttribute.return_value = QGISRedStylingUtils.demandBuilderClassExpression("SectorID")
+        renderer.categories.return_value = [self._category("Uncategorized", "#ffa500"), self._category("3", "#1a2b3c")]
+
+        expression = self._styling().demandBuilderLabelColorExpression(renderer)
+
+        assert expression == (
+            "CASE WHEN \"SectorID\" IS NULL OR trim(to_string(\"SectorID\")) = '' "
+            "OR lower(trim(to_string(\"SectorID\"))) IN ('null', 'undefined') THEN '#ffa500' "
+            "WHEN trim(to_string(\"SectorID\")) = '3' THEN '#1a2b3c' ELSE 'gray' END")
 
     def test_the_class_expression_of_a_sector_id_reads_numbers_as_text(self):
         expression = self._styling().demandBuilderClassExpression("SectorID")

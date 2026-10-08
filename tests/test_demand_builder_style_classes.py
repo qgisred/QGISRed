@@ -99,6 +99,23 @@ class TestClassesFromData:
         assert QGISRedStylingUtils.findColorRampKind(DEMAND_BUILDER_PALETTE_NAME) == PALETTE_KIND_SEQUENTIAL
         assert len(_paletteNames()) >= 10
 
+    def test_the_palette_is_read_from_the_library_ramp(self):
+        from qgis.core import QgsPresetSchemeColorRamp
+        from qgis.PyQt.QtGui import QColor
+
+        styling = QGISRedStylingUtils()
+        styling.findColorRamp = lambda name: QgsPresetSchemeColorRamp([QColor("#123456"), QColor("#654321")])
+
+        assert [color.name() for color in styling.demandBuilderPaletteColors()] == ["#123456", "#654321"]
+
+    def test_without_the_library_ramp_the_palette_is_the_shipped_one(self):
+        from QGISRed.tools.utils.qgisred_styling_utils import DEMAND_BUILDER_FALLBACK_COLORS
+
+        styling = QGISRedStylingUtils()
+        styling.findColorRamp = lambda name: None
+
+        assert [color.name() for color in styling.demandBuilderPaletteColors()] == list(DEMAND_BUILDER_FALLBACK_COLORS)
+
     def test_more_values_than_colours_start_the_palette_over(self):
         count = len(_paletteNames()) + 2
         layer = _pointsTheme(["V%02d" % index for index in range(count)])

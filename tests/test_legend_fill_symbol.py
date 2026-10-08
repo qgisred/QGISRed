@@ -81,3 +81,16 @@ def test_the_opacity_percent_becomes_the_alpha_of_the_picked_colour():
 
     assert _rgba(symbol.symbolLayer(0).color()) == (200, 0, 0, 128)
     assert _rgba(symbol.symbolLayer(0).strokeColor()) == (128, 128, 128, 255)
+
+
+def test_the_swatch_draws_the_fill_with_the_typed_outline_width():
+    from qgis.PyQt.QtGui import QColor
+    from QGISRed.ui.project.qgisred_custom_dialogs import QGISRedSymbolColorSelector
+
+    swatch = QGISRedSymbolColorSelector(None, "fill", QColor(166, 206, 227, 90), actualSymbol=_sectorsSymbol())
+    swatch.previewSizeValue = 0.8
+    preview = _sectorsSymbol()
+
+    swatch.applySizeScaling(preview)
+
+    assert preview.symbolLayer(0).strokeWidth() == pytest.approx(0.8)

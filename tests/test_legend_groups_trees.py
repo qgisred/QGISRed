@@ -215,9 +215,11 @@ class TestDemandBuilderGroup:
         return dialog
 
     @pytest.mark.parametrize("identifier", sorted(THEME_IDENTIFIERS))
-    def test_only_categorized_is_offered(self, identifier):
+    @pytest.mark.parametrize("rendererType", ["singleSymbol", "categorizedSymbol"])
+    def test_only_categorized_is_offered(self, identifier, rendererType):
+        """Also for a style saved by an older editor as a single symbol."""
         dialog = self._themeDialog(FakeCategorizedRenderer(FakeSymbol()))
-        dialog.addLayerSpecificLegendTypes(FakeLayer(identifier, "categorizedSymbol"))
+        dialog.addLayerSpecificLegendTypes(FakeLayer(identifier, rendererType))
         assert dialog.cbLegendsType.entries == ["categorizedSymbol"]
 
     def test_a_theme_is_a_categorical_legend_on_its_class_expression(self, monkeypatch):
