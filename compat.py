@@ -112,9 +112,11 @@ try:
     from qgis.core import QgsWkbTypes as _QgsWkbTypes
     WKB_LINE_GEOMETRY  = _QgsWkbTypes.LineGeometry
     WKB_POINT_GEOMETRY = _QgsWkbTypes.PointGeometry
+    WKB_POLYGON_GEOMETRY = _QgsWkbTypes.PolygonGeometry
 except (ImportError, AttributeError):
     WKB_LINE_GEOMETRY  = _Qgis.GeometryType.Line
     WKB_POINT_GEOMETRY = _Qgis.GeometryType.Point
+    WKB_POLYGON_GEOMETRY = _Qgis.GeometryType.Polygon
 
 # ---------------------------------------------------------------------------
 # QStyle enum constants used by the custom combobox widget.

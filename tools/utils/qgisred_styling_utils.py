@@ -2,18 +2,18 @@
 from contextlib import suppress
 import base64
 import filecmp
-import hashlib
 import math
 import os
 import json
 import random
+import re
 import shutil
 import sqlite3
 import zlib
 from random import randrange
 
 from qgis.PyQt.QtCore import QCoreApplication
-from ...compat import PAINTER_ANTIALIASING, PAL_PROPERTY_COLOR
+from ...compat import PAINTER_ANTIALIASING, PAL_PROPERTY_COLOR, WKB_POLYGON_GEOMETRY
 from ...compat import RENDER_UNIT_MILLIMETERS, RENDER_UNIT_PIXELS, RENDER_UNIT_POINTS
 from ...compat import SL_PROP_SIZE, SL_PROP_STROKE_WIDTH, SL_PROP_WIDTH, STYLE_ENTITY_COLORRAMP
 from qgis.PyQt.QtGui import QColor
@@ -68,6 +68,16 @@ PALETTE_KIND_SEQUENTIAL = "Sequential Palettes"
 PALETTE_KIND_LABELED = "Labeled Palettes"
 RAMP_KINDS = (RAMP_KIND_TWO_COLORS, RAMP_KIND_THREE_COLORS, RAMP_KIND_MORE_COLORS)
 PALETTE_KINDS = (PALETTE_KIND_SPAN, PALETTE_KIND_SEQUENTIAL, PALETTE_KIND_LABELED)
+
+# Demand Builder themes: classes come from the data, coloured in order from the default
+# Sequential palette; sectors are classified by their id, the other themes by Category.
+DEMAND_BUILDER_CLASS_FIELD = "Category"
+DEMAND_BUILDER_SECTOR_CLASS_FIELDS = ("SectorID", "Category")
+DEMAND_BUILDER_UNCATEGORIZED = "Uncategorized"
+DEMAND_BUILDER_PALETTE_NAME = "QGISRed Qualitative 10"
+DEMAND_BUILDER_FALLBACK_COLORS = (
+    "#e41a1c", "#377eb8", "#4daf4a", "#984ea3", "#ff7f00", "#a65628", "#f781bf", "#999999", "#66c2a5", "#ffd92f",
+)
 
 # Root ids stamped on the two halves of a split tank/reservoir icon
 # (see defaults/layerStyles/icons/*_frame.svg and *_water.svg) -- see _isFrameSvgLayer.
@@ -1037,7 +1047,7 @@ class QGISRedStylingUtils:
 
     def _translateCategoryLabel(self, value, field=None):
         if isinstance(value, str):
-            if value == "Uncategorized":
+            if value == DEMAND_BUILDER_UNCATEGORIZED:
                 return self.tr("Uncategorized")
             if value == "ClosedLinks":
                 return self.tr("Closed Links")
@@ -1200,13 +1210,43 @@ class QGISRedStylingUtils:
         method = mapping.get(classificationMode)
         return method() if method is not None else None
 
-    def _colorForDemandCategory(self, category):
-        if category == "Uncategorized":
-            return QColor("orange")
-        digest = hashlib.md5(category.lower().encode("utf-8"), usedforsecurity=False).hexdigest()
-        color = QColor()
-        color.setHsv(int(digest[:8], 16) % 360, 180, 220)
-        return color
+    def demandBuilderPaletteColors(self):
+        """The colours new classes take, in order: the default Sequential palette of the library."""
+        ramp = self.findColorRamp(DEMAND_BUILDER_PALETTE_NAME)
+        if ramp is None or not hasattr(ramp, "colors") or not ramp.colors():
+            return [QColor(name) for name in DEMAND_BUILDER_FALLBACK_COLORS]
+        return [QColor(color) for color in ramp.colors()]
+
+    @staticmethod
+    def _nextPaletteColor(palette, usedColors):
+        # The first colour no class has yet; once all are taken, the palette starts over
+        unused = [color for color in palette if color.name() not in usedColors]
+        chosen = unused[0] if unused else palette[len(usedColors) % len(palette)]
+        usedColors.append(chosen.name())
+        return chosen
+
+    @staticmethod
+    def demandBuilderClassField(layer):
+        """The column a theme is classified by: sectors by their id, the other themes by Category."""
+        candidates = DEMAND_BUILDER_SECTOR_CLASS_FIELDS if layer.geometryType() == WKB_POLYGON_GEOMETRY else (
+            DEMAND_BUILDER_CLASS_FIELD,)
+        fields = layer.fields()
+        return next((name for name in candidates if fields.indexFromName(name) != -1), None)
+
+    @staticmethod
+    def demandBuilderClassExpression(field):
+        column = '"%s"' % field
+        if field != DEMAND_BUILDER_CLASS_FIELD:
+            column = "to_string(%s)" % column
+        return (
+            f"CASE WHEN \"{field}\" IS NULL OR trim({column}) = '' "
+            f"OR lower(trim({column})) IN ('null', 'undefined') THEN 'Uncategorized' ELSE trim({column}) END"
+        )
+
+    @staticmethod
+    def _classFieldOfExpression(classAttribute):
+        match = re.search(r'"([^"]+)"', classAttribute or "")
+        return match.group(1) if match else classAttribute
 
     def setDemandBuilderStyle(self, layer, sourceName="", baseDemandField=""):
         """Style a Demand Builder auxiliary layer from the QML of its type.
@@ -1248,38 +1288,66 @@ class QGISRedStylingUtils:
     def normalizeDemandCategory(rawValue):
         text = "" if rawValue is None else str(rawValue).strip()
         if text == "" or text.lower() in ("null", "undefined"):
-            return "Uncategorized"
+            return DEMAND_BUILDER_UNCATEGORIZED
         return text
 
-    def fillDemandBuilderCategories(self, layer):
-        """Add a class for every Category value the loaded style does not list yet.
+    def _demandBuilderRendererOn(self, renderer, field):
+        """The renderer as a legend by `field`: a single symbol (a style saved by an older
+        editor) becomes its template, a legend on another column moves to this one."""
+        expression = self.demandBuilderClassExpression(field)
+        if renderer.type() == "singleSymbol":
+            rebuilt = QgsCategorizedSymbolRenderer(expression, [])
+            rebuilt.setSourceSymbol(renderer.symbol().clone())
+            return rebuilt
+        if renderer.type() != "categorizedSymbol":
+            return None
+        if self._classFieldOfExpression(renderer.classAttribute()) == field:
+            return renderer
+        rebuilt = self._rebuildCategorizedRenderer(renderer, list(renderer.categories()))
+        rebuilt.setClassAttribute(expression)
+        return rebuilt
 
-        Uncategorized comes first and orange, the other values sorted with a hue hashed
-        from the value, as the programmed look had them; the classes already in the style
-        (saved by the user) keep their own colour.
+    def fillDemandBuilderCategories(self, layer):
+        """Add a class for every value of the class column the loaded style does not list yet.
+
+        Uncategorized comes first and orange, the other values sorted and coloured in order
+        from the default Sequential palette, skipping the colours the classes already in the
+        style (saved by the user) keep.
         """
-        renderer = layer.renderer()
-        if renderer is None or renderer.type() != "categorizedSymbol":
+        if layer.renderer() is None:
             return
-        fieldIndex = layer.fields().indexFromName("Category")
-        if fieldIndex == -1:
+        field = self.demandBuilderClassField(layer)
+        if field is None:
             return
+        renderer = self._demandBuilderRendererOn(layer.renderer(), field)
+        if renderer is None:
+            return
+        fieldIndex = layer.fields().indexFromName(field)
         values = {self.normalizeDemandCategory(feature[fieldIndex]) for feature in layer.getFeatures()}
         knownValues = {str(category.value()) for category in renderer.categories()}
-        newValues = sorted(values - knownValues, key=lambda value: (value != "Uncategorized", value))
+        newValues = sorted(values - knownValues, key=lambda value: (value != DEMAND_BUILDER_UNCATEGORIZED, value))
         categories = list(renderer.categories())
         template = renderer.sourceSymbol() or (categories[-1].symbol() if categories else None)
         if not newValues or template is None:
+            if renderer is not layer.renderer():
+                layer.setRenderer(renderer)
             return
+        palette = self.demandBuilderPaletteColors()
+        usedColors = [category.symbol().color().name() for category in categories if category.symbol() is not None]
         for value in newValues:
             symbol = template.clone()
-            symbol.setColor(self._colorForDemandCategory(value))
+            if value == DEMAND_BUILDER_UNCATEGORIZED:
+                symbol.setColor(QColor("orange"))
+            else:
+                symbol.setColor(self._nextPaletteColor(palette, usedColors))
             categories.append(QgsRendererCategory(value, symbol, self._translateCategoryLabel(value)))
         layer.setRenderer(self._rebuildCategorizedRenderer(renderer, categories))
 
     @staticmethod
     def demandBuilderLabelColorExpression(renderer):
         # Labels take the colour of their class, so they read against their own symbol
+        field = QGISRedStylingUtils._classFieldOfExpression(renderer.classAttribute())
+        column = '"%s"' % field if field == DEMAND_BUILDER_CLASS_FIELD else 'to_string("%s")' % field
         expression = "CASE "
         for category in renderer.categories():
             symbol = category.symbol()
@@ -1287,15 +1355,15 @@ class QGISRedStylingUtils:
                 continue
             colorName = symbol.color().name()
             value = str(category.value())
-            if value == "Uncategorized":
+            if value == DEMAND_BUILDER_UNCATEGORIZED:
                 expression += (
-                    "WHEN \"Category\" IS NULL OR trim(\"Category\") = '' "
-                    "OR lower(trim(\"Category\")) IN ('null', 'undefined') "
+                    f"WHEN \"{field}\" IS NULL OR trim({column}) = '' "
+                    f"OR lower(trim({column})) IN ('null', 'undefined') "
                     f"THEN '{colorName}' "
                 )
             else:
                 safeValue = value.replace("'", "''")
-                expression += f"WHEN trim(\"Category\") = '{safeValue}' THEN '{colorName}' "
+                expression += f"WHEN trim({column}) = '{safeValue}' THEN '{colorName}' "
         return expression + "ELSE 'gray' END"
 
     def matchDemandBuilderLabelColors(self, layer):

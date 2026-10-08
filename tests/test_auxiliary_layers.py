@@ -535,7 +535,10 @@ class TestDemandBuilderClasses:
         return category
 
     def test_label_colours_follow_the_classes(self):
+        from QGISRed.tools.utils.qgisred_styling_utils import QGISRedStylingUtils
+
         renderer = MagicMock()
+        renderer.classAttribute.return_value = QGISRedStylingUtils.demandBuilderClassExpression("Category")
         renderer.categories.return_value = [
             self._category("Uncategorized", "#ffa500"), self._category("Dom's", "#1a2b3c")]
 
@@ -546,8 +549,37 @@ class TestDemandBuilderClasses:
             "OR lower(trim(\"Category\")) IN ('null', 'undefined') THEN '#ffa500' "
             "WHEN trim(\"Category\") = 'Dom''s' THEN '#1a2b3c' ELSE 'gray' END")
 
-    @pytest.mark.parametrize("layerType", AUXILIARY_LAYER_TYPES, ids=lambda layerType: layerType.key)
-    def test_the_shipped_style_is_a_legend_by_category_qgis_can_read_back(self, layerType):
+    def test_the_class_expression_of_a_sector_id_reads_numbers_as_text(self):
+        expression = self._styling().demandBuilderClassExpression("SectorID")
+
+        assert expression == (
+            "CASE WHEN \"SectorID\" IS NULL OR trim(to_string(\"SectorID\")) = '' "
+            "OR lower(trim(to_string(\"SectorID\"))) IN ('null', 'undefined') "
+            "THEN 'Uncategorized' ELSE trim(to_string(\"SectorID\")) END")
+        assert self._styling()._classFieldOfExpression(expression) == "SectorID"
+
+    def _layerWithFields(self, geometryType, *names):
+        from QGISRed.compat import WKB_POINT_GEOMETRY, WKB_POLYGON_GEOMETRY
+
+        layer = MagicMock()
+        layer.geometryType.return_value = WKB_POLYGON_GEOMETRY if geometryType == "polygon" else WKB_POINT_GEOMETRY
+        layer.fields.return_value.indexFromName.side_effect = lambda name: names.index(name) if name in names else -1
+        return layer
+
+    def test_sectors_are_classified_by_their_id_and_other_themes_by_category(self):
+        classField = self._styling().demandBuilderClassField
+
+        assert classField(self._layerWithFields("polygon", "Category", "SectorID")) == "SectorID"
+        assert classField(self._layerWithFields("polygon", "Category")) == "Category"
+        assert classField(self._layerWithFields("point", "Category", "SectorID")) == "Category"
+        assert classField(self._layerWithFields("point", "DemID")) is None
+
+    @pytest.mark.parametrize("layerType, column", [
+        (AUXILIARY_TYPES_BY_KEY["Consumptions"], "trim(&quot;Category&quot;)"),
+        (AUXILIARY_TYPES_BY_KEY["Links"], "trim(&quot;Category&quot;)"),
+        (AUXILIARY_TYPES_BY_KEY["Sectors"], "trim(to_string(&quot;SectorID&quot;))"),
+    ], ids=lambda value: getattr(value, "key", ""))
+    def test_the_shipped_style_is_a_legend_by_category_qgis_can_read_back(self, layerType, column):
         """A legend saved without classes loses its categories and symbols elements, and QGIS
         then falls back to a single symbol on load; the shipped files keep both, empty."""
         pluginRoot = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
@@ -558,7 +590,22 @@ class TestDemandBuilderClasses:
         assert 'type="categorizedSymbol"' in text
         assert "<categories/>" in text and "<symbols/>" in text
         assert "<category " not in text
-        assert "THEN 'Uncategorized' ELSE trim(&quot;Category&quot;) END" in text
+        assert "THEN 'Uncategorized' ELSE %s END" % column in text
+
+    def test_new_classes_take_the_unused_palette_colours_first_then_start_over(self):
+        class Colour:
+            def __init__(self, hexName):
+                self.hexName = hexName
+
+            def name(self):
+                return self.hexName
+
+        palette = [Colour("#111111"), Colour("#222222"), Colour("#333333")]
+        used = ["#222222"]
+
+        picked = [self._styling()._nextPaletteColor(palette, used).name() for _ in range(4)]
+
+        assert picked == ["#111111", "#333333", "#111111", "#222222"]
 
     def test_the_point_label_is_set_before_the_colours_are_matched(self):
         styling = self._styling()

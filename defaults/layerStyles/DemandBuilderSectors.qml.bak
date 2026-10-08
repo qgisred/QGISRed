@@ -1,6 +1,6 @@
 <!DOCTYPE qgis PUBLIC 'http://mrcc.com/qgis.dtd' 'SYSTEM'>
 <qgis styleCategories="Symbology|Labeling|MapTips" labelsEnabled="0" version="3.40.0-Bratislava">
-  <renderer-v2 referencescale="-1" type="categorizedSymbol" forceraster="0" enableorderby="0" attr="CASE WHEN &quot;Category&quot; IS NULL OR trim(&quot;Category&quot;) = '' OR lower(trim(&quot;Category&quot;)) IN ('null', 'undefined') THEN 'Uncategorized' ELSE trim(&quot;Category&quot;) END" symbollevels="0">
+  <renderer-v2 referencescale="-1" type="categorizedSymbol" forceraster="0" enableorderby="0" attr="CASE WHEN &quot;SectorID&quot; IS NULL OR trim(to_string(&quot;SectorID&quot;)) = '' OR lower(trim(to_string(&quot;SectorID&quot;))) IN ('null', 'undefined') THEN 'Uncategorized' ELSE trim(to_string(&quot;SectorID&quot;)) END" symbollevels="0">
     <categories/>
     <symbols/>
     <source-symbol>
