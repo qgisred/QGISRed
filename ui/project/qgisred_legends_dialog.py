@@ -173,7 +173,8 @@ class QGISRedLegendsDialog(QDialog, formClass):
         "qgisred_demandbuilder"
     ]
 
-    # The Demand Builder themes the Legend Editor edits; the isolated-demands connections stay out
+    # The Demand Builder themes the Legend Editor edits, always as categorized legends; the
+    # isolated-demands connections stay out
     DEMANDS_BUILDER_EDITABLE_IDENTIFIERS = {
         "qgisred_demandbuilder_consumptionpoints",
         "qgisred_demandbuilder_demandlinks",
@@ -212,7 +213,7 @@ class QGISRedLegendsDialog(QDialog, formClass):
     TREE_NODES_IDENTIFIER = "qgisred_tree_nodes"
 
     # Query layers editable as a single symbol (color and size)
-    SINGLE_EDITABLE_QUERY_IDENTIFIERS = {"qgisred_connectivity_links"} | DEMANDS_BUILDER_EDITABLE_IDENTIFIERS
+    SINGLE_EDITABLE_QUERY_IDENTIFIERS = {"qgisred_connectivity_links"}
 
     # Isolated Segments layers ship a legend with fixed classes: links and nodes by Status, isolated
     # demands by element type. The editor lists exactly these classes, each with its color and a
@@ -2359,7 +2360,9 @@ class QGISRedLegendsDialog(QDialog, formClass):
         if self.utils:
             supportsCategorized = QGISRedLayerUtils.getLayerSupportsCategorized(layerIdentifier)
 
-        if layerIdentifier in self.SINGLE_EDITABLE_QUERY_IDENTIFIERS:
+        if layerIdentifier in self.DEMANDS_BUILDER_EDITABLE_IDENTIFIERS:
+            self.cbLegendsType.addItem(self.tr("Categorized"), "categorizedSymbol")
+        elif layerIdentifier in self.SINGLE_EDITABLE_QUERY_IDENTIFIERS:
             self.cbLegendsType.addItem(self.tr("Single Symbol"), "singleSymbol")
             self.cbLegendsType.addItem(
                 self.tr("Categorized"), "categorizedSymbol"
@@ -4351,12 +4354,15 @@ class QGISRedLegendsDialog(QDialog, formClass):
         identifier = self.currentLayer.customProperty("qgisred_identifier") if self.currentLayer else None
         if identifier not in self.DEMANDS_BUILDER_EDITABLE_IDENTIFIERS:
             return
-        if not isinstance(appliedRenderer, QgsCategorizedSymbolRenderer):
-            return
         labeling = self.currentLayer.labeling()
         if labeling is None:
             return
-        colorExpression = QGISRedStylingUtils.demandBuilderLabelColorExpression(appliedRenderer)
+        if isinstance(appliedRenderer, QgsCategorizedSymbolRenderer):
+            colorExpression = QGISRedStylingUtils.demandBuilderLabelColorExpression(appliedRenderer)
+        elif appliedRenderer.type() == "singleSymbol" and appliedRenderer.symbol():
+            colorExpression = f"'{appliedRenderer.symbol().color().name()}'"
+        else:
+            return
         settings = labeling.settings()
         settings.dataDefinedProperties().setProperty(PAL_PROPERTY_COLOR, QgsProperty.fromExpression(colorExpression))
         labeling.setSettings(settings)

@@ -125,9 +125,62 @@ class TestTreeSubgroups:
         assert _dialog().groupHasRenderableLayers(nodesOnly)
 
 
+class FakeLegendTypesCombo:
+    def __init__(self):
+        self.entries = []
+        self.currentIndex = -1
+
+    def addItem(self, label, data):
+        self.entries.append(data)
+
+    def findData(self, data):
+        return self.entries.index(data) if data in self.entries else -1
+
+    def blockSignals(self, blocked):
+        pass
+
+    def setCurrentIndex(self, index):
+        self.currentIndex = index
+
+    def currentData(self):
+        return self.entries[self.currentIndex] if self.currentIndex >= 0 else None
+
+
+class FakeFields:
+    def __init__(self, names):
+        self.names = names
+
+    def indexOf(self, name):
+        return self.names.index(name) if name in self.names else -1
+
+
+class FakeCategorizedRenderer:
+    def __init__(self, sourceSymbol, categories=(), classAttribute="Category"):
+        self._sourceSymbol = sourceSymbol
+        self._categories = list(categories)
+        self._classAttribute = classAttribute
+
+    def type(self):
+        return "categorizedSymbol"
+
+    def sourceSymbol(self):
+        return self._sourceSymbol
+
+    def categories(self):
+        return self._categories
+
+    def classAttribute(self):
+        return self._classAttribute
+
+
+class FakeSymbol:
+    def clone(self):
+        return self
+
+
 class TestDemandBuilderGroup:
-    """The three theme types are listed, as the shipped single symbol or categorized by the user;
-    the isolated-demands connections are not."""
+    """The three theme types are listed and edited as categorized legends only (their classes
+    follow the data); the isolated-demands connections are not listed."""
 
     THEME_IDENTIFIERS = {
         "qgisred_demandbuilder_consumptionpoints",
@@ -140,18 +193,48 @@ class TestDemandBuilderGroup:
             FakeLayerNode(FakeLayer(identifier, rendererType)) for identifier in sorted(self.THEME_IDENTIFIERS)
         ]
         connections = FakeLayerNode(
-            FakeLayer("qgisred_demandbuilder_isolateddemandsserviceconnections", "singleSymbol"))
+            FakeLayer("qgisred_demandbuilder_isolateddemandsserviceconnections", "categorizedSymbol"))
         return FakeGroup("DemandBuilder", identifier="qgisred_demandbuilder", children=themes + [connections])
 
-    @pytest.mark.parametrize("rendererType", ["singleSymbol", "categorizedSymbol"])
-    def test_every_theme_type_is_collected_but_not_the_isolated_connections(self, rendererType):
+    def test_every_theme_type_is_collected_but_not_the_isolated_connections(self):
         layers = []
-        _dialog().collectRenderableLayersRecursive(self._group(rendererType), layers, False)
+        _dialog().collectRenderableLayersRecursive(self._group("categorizedSymbol"), layers, False)
         identifiers = {layer.customProperty("qgisred_identifier") for layer in layers}
         assert identifiers == self.THEME_IDENTIFIERS
 
-    def test_the_themes_are_editable_as_single_symbols(self):
-        assert self.THEME_IDENTIFIERS <= QGISRedLegendsDialog.SINGLE_EDITABLE_QUERY_IDENTIFIERS
+    def test_the_themes_are_not_single_symbol_layers(self):
+        assert not self.THEME_IDENTIFIERS & QGISRedLegendsDialog.SINGLE_EDITABLE_QUERY_IDENTIFIERS
+        assert not self.THEME_IDENTIFIERS & QGISRedLegendsDialog.EDITABLE_QUERY_IDENTIFIERS
+
+    def _themeDialog(self, renderer):
+        dialog = _dialog()
+        dialog.currentLayer = FakeLayer("qgisred_demandbuilder_sectors", renderer=renderer)
+        dialog.tr = lambda text: text
+        dialog.utils = None
+        dialog.cbLegendsType = FakeLegendTypesCombo()
+        return dialog
+
+    @pytest.mark.parametrize("identifier", sorted(THEME_IDENTIFIERS))
+    def test_only_categorized_is_offered(self, identifier):
+        dialog = self._themeDialog(FakeCategorizedRenderer(FakeSymbol()))
+        dialog.addLayerSpecificLegendTypes(FakeLayer(identifier, "categorizedSymbol"))
+        assert dialog.cbLegendsType.entries == ["categorizedSymbol"]
+
+    def test_a_theme_is_a_categorical_legend_on_its_class_expression(self, monkeypatch):
+        monkeypatch.setattr(legendsModule, "QgsCategorizedSymbolRenderer", FakeCategorizedRenderer)
+        monkeypatch.setattr(legendsModule, "QgsGraduatedSymbolRenderer", type("Graduated", (), {}))
+        monkeypatch.setattr(legendsModule, "QgsRuleBasedRenderer", type("RuleBased", (), {}))
+        expression = "CASE WHEN \"SectorID\" IS NULL THEN 'Uncategorized' ELSE trim(to_string(\"SectorID\")) END"
+        dialog = self._themeDialog(FakeCategorizedRenderer(FakeSymbol(), classAttribute=expression))
+        dialog.currentLayer.fields = lambda: FakeFields(["SectorID", "Category"])
+        assert dialog.detectFieldType(dialog.currentLayer) == (QGISRedLegendsDialog.FIELD_TYPE_CATEGORICAL, expression)
+
+    def test_the_legend_type_combo_shows_categorized(self):
+        dialog = self._themeDialog(FakeCategorizedRenderer(FakeSymbol()))
+        dialog.cbLegendsType = FakeLegendTypesCombo()
+        dialog.cbLegendsType.addItem("Categorized", "categorizedSymbol")
+        dialog.syncLegendTypeComboBox(dialog.currentLayer)
+        assert dialog.cbLegendsType.currentData() == "categorizedSymbol"
 
     def test_group_is_allowed_in_the_combo(self):
         assert "qgisred_demandbuilder" in QGISRedLegendsDialog.ALLOWED_GROUP_IDENTIFIERS
@@ -239,9 +322,6 @@ class TestPanelAndDialogParity:
         "qgisred_hydraulicsectors_isolateddemands",
         "qgisred_tree_nodes",
         "qgisred_connectivity_links",
-        "qgisred_demandbuilder_consumptionpoints",
-        "qgisred_demandbuilder_demandlinks",
-        "qgisred_demandbuilder_sectors",
     ]
 
     @pytest.mark.parametrize("identifier", QUERY_SINGLE_SYMBOL_LAYERS)
