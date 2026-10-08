@@ -12,7 +12,7 @@ import sqlite3
 import zlib
 from random import randrange
 
-from qgis.PyQt.QtCore import QCoreApplication
+from qgis.PyQt.QtCore import QCoreApplication, QTimer
 from ...compat import PAINTER_ANTIALIASING, PAL_PROPERTY_COLOR, WKB_POLYGON_GEOMETRY
 from ...compat import RENDER_UNIT_MILLIMETERS, RENDER_UNIT_PIXELS, RENDER_UNIT_POINTS
 from ...compat import SL_PROP_SIZE, SL_PROP_STROKE_WIDTH, SL_PROP_WIDTH, STYLE_ENTITY_COLORRAMP
@@ -78,6 +78,9 @@ DEMAND_BUILDER_PALETTE_NAME = "QGISRed Qualitative 10"
 DEMAND_BUILDER_FALLBACK_COLORS = (
     "#e41a1c", "#377eb8", "#4daf4a", "#984ea3", "#ff7f00", "#a65628", "#f781bf", "#999999", "#66c2a5", "#ffd92f",
 )
+# Layers whose classes follow their data while they are edited, by layer id
+_DEMAND_BUILDER_WATCHED_LAYERS = set()
+_DEMAND_BUILDER_PENDING_REFRESH = set()
 
 # Root ids stamped on the two halves of a split tank/reservoir icon
 # (see defaults/layerStyles/icons/*_frame.svg and *_water.svg) -- see _isFrameSvgLayer.
@@ -1275,6 +1278,7 @@ class QGISRedStylingUtils:
             return
         self.setStyle(layer, layerType.identifierToken, variant=themeName, keepLabelVisibility=True)
         self.completeDemandBuilderStyle(layer, layerType.key == "Consumptions", baseDemandField)
+        self.watchDemandBuilderCategories(layer, layerType.key == "Consumptions")
         layer.triggerRepaint()
 
     def completeDemandBuilderStyle(self, layer, consumptionPoints, baseDemandField=""):
@@ -1283,6 +1287,32 @@ class QGISRedStylingUtils:
         if consumptionPoints:
             self.pointLabelToBaseDemand(layer, baseDemandField)
         self.matchDemandBuilderLabelColors(layer)
+
+    def watchDemandBuilderCategories(self, layer, consumptionPoints):
+        """Features added or reclassified while the theme is edited get their class at once."""
+        layerId = layer.id()
+        if layerId in _DEMAND_BUILDER_WATCHED_LAYERS:
+            return
+        _DEMAND_BUILDER_WATCHED_LAYERS.add(layerId)
+        layer.featureAdded.connect(lambda *args: self._scheduleDemandBuilderRefresh(layer, consumptionPoints))
+        layer.attributeValueChanged.connect(
+            lambda *args: self._scheduleDemandBuilderRefresh(layer, consumptionPoints))
+        layer.willBeDeleted.connect(lambda: _DEMAND_BUILDER_WATCHED_LAYERS.discard(layerId))
+
+    def _scheduleDemandBuilderRefresh(self, layer, consumptionPoints):
+        # One refresh per event-loop turn, however many features a paste or an import brings
+        layerId = layer.id()
+        if layerId in _DEMAND_BUILDER_PENDING_REFRESH:
+            return
+        _DEMAND_BUILDER_PENDING_REFRESH.add(layerId)
+
+        def refresh():
+            _DEMAND_BUILDER_PENDING_REFRESH.discard(layerId)
+            if layerId in _DEMAND_BUILDER_WATCHED_LAYERS:
+                self.completeDemandBuilderStyle(layer, consumptionPoints)
+                layer.triggerRepaint()
+
+        QTimer.singleShot(0, refresh)
 
     @staticmethod
     def normalizeDemandCategory(rawValue):

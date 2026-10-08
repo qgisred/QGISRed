@@ -27,11 +27,22 @@ def _writeStyle(folder, fileName):
     return path
 
 
+class _FakeSignal:
+    def connect(self, slot):
+        pass
+
+
 class _FakeLayer:
     def __init__(self, source=""):
         self.loadedPath = None
         self.layerSource = source
         self.repainted = False
+        self.featureAdded = _FakeSignal()
+        self.attributeValueChanged = _FakeSignal()
+        self.willBeDeleted = _FakeSignal()
+
+    def id(self):
+        return "fake_" + self.layerSource
 
     def loadNamedStyle(self, path):
         self.loadedPath = path

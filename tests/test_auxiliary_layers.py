@@ -607,6 +607,57 @@ class TestDemandBuilderClasses:
 
         assert picked == ["#111111", "#333333", "#111111", "#222222"]
 
+    def _watchedLayer(self):
+        layer = MagicMock()
+        layer.id.return_value = "theme-%d" % id(layer)
+        return layer
+
+    def test_a_theme_is_watched_once_for_new_features_and_reclassified_ones(self):
+        styling = self._styling()
+        layer = self._watchedLayer()
+
+        styling.watchDemandBuilderCategories(layer, True)
+        styling.watchDemandBuilderCategories(layer, True)
+
+        layer.featureAdded.connect.assert_called_once()
+        layer.attributeValueChanged.connect.assert_called_once()
+
+    def test_many_edits_in_one_turn_complete_the_style_once(self, monkeypatch):
+        import QGISRed.tools.utils.qgisred_styling_utils as stylingModule
+
+        pending = []
+        monkeypatch.setattr(stylingModule.QTimer, "singleShot", lambda delay, slot: pending.append(slot))
+        styling = self._styling()
+        styling.completeDemandBuilderStyle = MagicMock()
+        layer = self._watchedLayer()
+        styling.watchDemandBuilderCategories(layer, True)
+        onFeatureAdded = layer.featureAdded.connect.call_args[0][0]
+        onValueChanged = layer.attributeValueChanged.connect.call_args[0][0]
+
+        onFeatureAdded(1)
+        onValueChanged(1, 0, "Dom")
+        for slot in pending:
+            slot()
+
+        assert len(pending) == 1
+        styling.completeDemandBuilderStyle.assert_called_once_with(layer, True)
+        layer.triggerRepaint.assert_called_once()
+
+    def test_a_removed_theme_is_not_restyled(self, monkeypatch):
+        import QGISRed.tools.utils.qgisred_styling_utils as stylingModule
+
+        pending = []
+        monkeypatch.setattr(stylingModule.QTimer, "singleShot", lambda delay, slot: pending.append(slot))
+        styling = self._styling()
+        styling.completeDemandBuilderStyle = MagicMock()
+        layer = self._watchedLayer()
+        styling.watchDemandBuilderCategories(layer, False)
+        layer.featureAdded.connect.call_args[0][0](1)
+        layer.willBeDeleted.connect.call_args[0][0]()
+        pending[0]()
+
+        styling.completeDemandBuilderStyle.assert_not_called()
+
     def test_the_point_label_is_set_before_the_colours_are_matched(self):
         styling = self._styling()
         order = []
