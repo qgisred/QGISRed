@@ -102,18 +102,6 @@
         </layer>
       </symbol>
     </source-symbol>
-    <colorramp type="random" name="[source]">
-      <Option type="Map">
-        <Option type="QString" name="count" value="10"/>
-        <Option type="QString" name="hueMax" value="359"/>
-        <Option type="QString" name="hueMin" value="0"/>
-        <Option type="QString" name="rampType" value="random"/>
-        <Option type="QString" name="satMax" value="240"/>
-        <Option type="QString" name="satMin" value="120"/>
-        <Option type="QString" name="valMax" value="240"/>
-        <Option type="QString" name="valMin" value="120"/>
-      </Option>
-    </colorramp>
     <rotation/>
     <sizescale/>
     <data-defined-properties>
