@@ -24,7 +24,7 @@ from qgis.core import (
     QgsGraduatedSymbolRenderer, QgsRuleBasedRenderer, QgsRenderContext,
     QgsMapLayerLegend, QgsMessageLog, QgsStyle, QgsExpression, QgsProject,
     QgsProperty,
-    QgsVectorLayerSimpleLabeling, QgsLimitedRandomColorRamp,
+    QgsVectorLayerSimpleLabeling,
     QgsClassificationPrettyBreaks, QgsClassificationEqualInterval, QgsClassificationQuantile,
     QgsClassificationJenks, QgsClassificationStandardDeviation,
 )
@@ -81,6 +81,7 @@ DEMAND_BUILDER_FALLBACK_COLORS = (
 # Layers whose classes follow their data while they are edited, by layer id
 _DEMAND_BUILDER_WATCHED_LAYERS = set()
 _DEMAND_BUILDER_PENDING_REFRESH = set()
+_DEMAND_BUILDER_PENDING_PRUNE = set()
 
 # Root ids stamped on the two halves of a split tank/reservoir icon
 # (see defaults/layerStyles/icons/*_frame.svg and *_water.svg) -- see _isFrameSvgLayer.
@@ -1223,8 +1224,10 @@ class QGISRedStylingUtils:
     @staticmethod
     def _nextPaletteColor(palette, usedColors):
         # The first colour no class has yet; once all are taken, the palette starts over
+        paletteNames = [color.name() for color in palette]
         unused = [color for color in palette if color.name() not in usedColors]
-        chosen = unused[0] if unused else palette[len(usedColors) % len(palette)]
+        takenCount = sum(1 for name in usedColors if name in paletteNames)
+        chosen = unused[0] if unused else palette[takenCount % len(palette)]
         usedColors.append(chosen.name())
         return chosen
 
@@ -1281,15 +1284,16 @@ class QGISRedStylingUtils:
         self.watchDemandBuilderCategories(layer, layerType.key == "Consumptions")
         layer.triggerRepaint()
 
-    def completeDemandBuilderStyle(self, layer, consumptionPoints, baseDemandField=""):
+    def completeDemandBuilderStyle(self, layer, consumptionPoints, baseDemandField="", removeMissing=False):
         # The classes come from the data and the point label from the layer's own columns
-        self.fillDemandBuilderCategories(layer)
+        self.fillDemandBuilderCategories(layer, removeMissing)
         if consumptionPoints:
             self.pointLabelToBaseDemand(layer, baseDemandField)
         self.matchDemandBuilderLabelColors(layer)
 
     def watchDemandBuilderCategories(self, layer, consumptionPoints):
-        """Features added or reclassified while the theme is edited get their class at once."""
+        """Features added or reclassified while the theme is edited get their class at once;
+        closing the edit also drops the classes no feature belongs to any more."""
         layerId = layer.id()
         if layerId in _DEMAND_BUILDER_WATCHED_LAYERS:
             return
@@ -1297,19 +1301,25 @@ class QGISRedStylingUtils:
         layer.featureAdded.connect(lambda *args: self._scheduleDemandBuilderRefresh(layer, consumptionPoints))
         layer.attributeValueChanged.connect(
             lambda *args: self._scheduleDemandBuilderRefresh(layer, consumptionPoints))
+        layer.editingStopped.connect(
+            lambda *args: self._scheduleDemandBuilderRefresh(layer, consumptionPoints, removeMissing=True))
         layer.willBeDeleted.connect(lambda: _DEMAND_BUILDER_WATCHED_LAYERS.discard(layerId))
 
-    def _scheduleDemandBuilderRefresh(self, layer, consumptionPoints):
+    def _scheduleDemandBuilderRefresh(self, layer, consumptionPoints, removeMissing=False):
         # One refresh per event-loop turn, however many features a paste or an import brings
         layerId = layer.id()
+        if removeMissing:
+            _DEMAND_BUILDER_PENDING_PRUNE.add(layerId)
         if layerId in _DEMAND_BUILDER_PENDING_REFRESH:
             return
         _DEMAND_BUILDER_PENDING_REFRESH.add(layerId)
 
         def refresh():
             _DEMAND_BUILDER_PENDING_REFRESH.discard(layerId)
+            pruneClasses = layerId in _DEMAND_BUILDER_PENDING_PRUNE
+            _DEMAND_BUILDER_PENDING_PRUNE.discard(layerId)
             if layerId in _DEMAND_BUILDER_WATCHED_LAYERS:
-                self.completeDemandBuilderStyle(layer, consumptionPoints)
+                self.completeDemandBuilderStyle(layer, consumptionPoints, removeMissing=pruneClasses)
                 layer.triggerRepaint()
 
         QTimer.singleShot(0, refresh)
@@ -1337,12 +1347,13 @@ class QGISRedStylingUtils:
         rebuilt.setClassAttribute(expression)
         return rebuilt
 
-    def fillDemandBuilderCategories(self, layer):
+    def fillDemandBuilderCategories(self, layer, removeMissing=False):
         """Add a class for every value of the class column the loaded style does not list yet.
 
         Uncategorized comes first and orange, the other values sorted and coloured in order
         from the default Sequential palette, skipping the colours the classes already in the
-        style (saved by the user) keep.
+        style (saved by the user) keep. With `removeMissing`, the classes no feature has any
+        more go away too.
         """
         if layer.renderer() is None:
             return
@@ -1356,11 +1367,17 @@ class QGISRedStylingUtils:
         values = {self.normalizeDemandCategory(feature[fieldIndex]) for feature in layer.getFeatures()}
         knownValues = {str(category.value()) for category in renderer.categories()}
         newValues = sorted(values - knownValues, key=lambda value: (value != DEMAND_BUILDER_UNCATEGORIZED, value))
+        template = renderer.sourceSymbol() or (
+            renderer.categories()[-1].symbol() if renderer.categories() else None)
         categories = list(renderer.categories())
-        template = renderer.sourceSymbol() or (categories[-1].symbol() if categories else None)
-        if not newValues or template is None:
+        if removeMissing:
+            categories = [category for category in categories if str(category.value()) in values]
+        if (not newValues or template is None) and len(categories) == len(renderer.categories()):
             if renderer is not layer.renderer():
                 layer.setRenderer(renderer)
+            return
+        if template is None:
+            layer.setRenderer(self._rebuildCategorizedRenderer(renderer, categories))
             return
         palette = self.demandBuilderPaletteColors()
         usedColors = [category.symbol().color().name() for category in categories if category.symbol() is not None]
@@ -1478,9 +1495,10 @@ class QGISRedStylingUtils:
     def fillCategoriesFromData(self, layer, field):
         """Add a category for every value of `field` the loaded style does not list yet.
 
-        The style (shipped or saved by the user) carries the look — source symbol, colour
-        ramp, map tip — but the values only exist once the data is computed, so they are
-        appended here. Categories already in the style keep their own colour.
+        The style (shipped or saved by the user) carries the look — source symbol, map
+        tip — but the values only exist once the data is computed, so they are appended
+        here, sorted and coloured in order from the default Sequential palette, skipping
+        the colours the categories already in the style keep. Those keep their own colour.
         """
         renderer = layer.renderer()
         fieldIndex = layer.fields().indexFromName(field)
@@ -1492,17 +1510,15 @@ class QGISRedStylingUtils:
         if not newValues:
             return
 
-        ramp = renderer.sourceColorRamp()
         categories = list(renderer.categories())
         template = renderer.sourceSymbol() or (categories[-1].symbol() if categories else None)
         if template is None:
             return
-        if isinstance(ramp, QgsLimitedRandomColorRamp):  # one distinct colour per new value
-            ramp.setCount(len(newValues))
-        for position, value in enumerate(newValues):
+        palette = self.demandBuilderPaletteColors()
+        usedColors = [category.symbol().color().name() for category in categories if category.symbol() is not None]
+        for value in newValues:
             symbol = template.clone()
-            if ramp is not None:
-                symbol.setColor(ramp.color(position / max(len(newValues) - 1, 1)))
+            symbol.setColor(self._nextPaletteColor(palette, usedColors))
             categories.append(QgsRendererCategory(value, symbol, self._translateCategoryLabel(value, field)))
 
         layer.setRenderer(self._rebuildCategorizedRenderer(renderer, categories))

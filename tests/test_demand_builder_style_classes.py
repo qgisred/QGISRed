@@ -160,6 +160,34 @@ class TestClassesFromData:
         assert colours["Dom"] == (200, 0, 0)
         assert colours["Ind"] == _rgb(QGISRedStylingUtils().demandBuilderPaletteColors()[0])
 
+    def test_closing_the_edit_removes_the_classes_no_feature_has_and_keeps_the_rest(self):
+        from qgis.PyQt.QtGui import QColor
+
+        layer = _pointsTheme(["Dom", "Ind", ""])
+        styling = QGISRedStylingUtils()
+        styling.completeDemandBuilderStyle(layer, True)
+        layer.startEditing()
+        layer.deleteFeatures([feature.id() for feature in layer.getFeatures() if feature["Category"] == "Ind"])
+        layer.commitChanges()
+
+        styling.completeDemandBuilderStyle(layer, True, removeMissing=True)
+
+        categories = layer.renderer().categories()
+        assert [category.value() for category in categories] == ["Uncategorized", "Dom"]
+        assert _rgb(categories[0].symbol().color()) == _rgb(QColor("orange"))
+
+    def test_without_the_closing_refresh_a_class_without_features_stays(self):
+        layer = _pointsTheme(["Dom", "Ind"])
+        styling = QGISRedStylingUtils()
+        styling.completeDemandBuilderStyle(layer, True)
+        layer.startEditing()
+        layer.deleteFeatures([feature.id() for feature in layer.getFeatures() if feature["Category"] == "Ind"])
+        layer.commitChanges()
+
+        styling.completeDemandBuilderStyle(layer, True)
+
+        assert [category.value() for category in layer.renderer().categories()] == ["Dom", "Ind"]
+
     def test_a_single_symbol_style_of_an_older_editor_becomes_the_class_template(self):
         from qgis.core import QgsSingleSymbolRenderer
         from qgis.PyQt.QtGui import QColor

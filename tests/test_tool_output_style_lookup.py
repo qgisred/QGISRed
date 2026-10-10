@@ -39,6 +39,7 @@ class _FakeLayer:
         self.repainted = False
         self.featureAdded = _FakeSignal()
         self.attributeValueChanged = _FakeSignal()
+        self.editingStopped = _FakeSignal()
         self.willBeDeleted = _FakeSignal()
 
     def id(self):

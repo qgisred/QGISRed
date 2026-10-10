@@ -632,9 +632,13 @@ class TestDemandBuilderClasses:
 
         assert picked == ["#111111", "#333333", "#111111", "#222222"]
 
+    watchedLayerCount = 0
+
     def _watchedLayer(self):
+        # A counter, not id(): a recycled address would find the registry entry of an earlier test
+        TestDemandBuilderClasses.watchedLayerCount += 1
         layer = MagicMock()
-        layer.id.return_value = "theme-%d" % id(layer)
+        layer.id.return_value = "theme-%d" % self.watchedLayerCount
         return layer
 
     def test_a_theme_is_watched_once_for_new_features_and_reclassified_ones(self):
@@ -665,8 +669,25 @@ class TestDemandBuilderClasses:
             slot()
 
         assert len(pending) == 1
-        styling.completeDemandBuilderStyle.assert_called_once_with(layer, True)
+        styling.completeDemandBuilderStyle.assert_called_once_with(layer, True, removeMissing=False)
         layer.triggerRepaint.assert_called_once()
+
+    def test_closing_the_edit_drops_the_classes_without_features(self, monkeypatch):
+        import QGISRed.tools.utils.qgisred_styling_utils as stylingModule
+
+        pending = []
+        monkeypatch.setattr(stylingModule.QTimer, "singleShot", lambda delay, slot: pending.append(slot))
+        styling = self._styling()
+        styling.completeDemandBuilderStyle = MagicMock()
+        layer = self._watchedLayer()
+        styling.watchDemandBuilderCategories(layer, False)
+        layer.featureAdded.connect.call_args[0][0](1)
+        layer.editingStopped.connect.call_args[0][0]()
+        for slot in pending:
+            slot()
+
+        assert len(pending) == 1
+        styling.completeDemandBuilderStyle.assert_called_once_with(layer, False, removeMissing=True)
 
     def test_a_removed_theme_is_not_restyled(self, monkeypatch):
         import QGISRed.tools.utils.qgisred_styling_utils as stylingModule
@@ -686,7 +707,7 @@ class TestDemandBuilderClasses:
     def test_the_point_label_is_set_before_the_colours_are_matched(self):
         styling = self._styling()
         order = []
-        styling.fillDemandBuilderCategories = lambda layer: order.append("classes")
+        styling.fillDemandBuilderCategories = lambda layer, removeMissing: order.append("classes")
         styling.pointLabelToBaseDemand = lambda layer, field: order.append("label " + field)
         styling.matchDemandBuilderLabelColors = lambda layer: order.append("colours")
 
