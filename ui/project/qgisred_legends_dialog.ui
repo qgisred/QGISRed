@@ -587,13 +587,107 @@
                 <layout class="QHBoxLayout" name="palletesHorizontalLayout"/>
                </item>
                <item row="9" column="0" colspan="2">
-                <widget class="Line" name="line_7">
+                <widget class="Line" name="line_8">
                  <property name="orientation">
                   <enum>Qt::Horizontal</enum>
                  </property>
                 </widget>
                </item>
                <item row="10" column="0">
+                <widget class="QLabel" name="labelFillOpacity">
+                 <property name="text">
+                  <string>Opacity</string>
+                 </property>
+                 <property name="buddy">
+                  <cstring>spinFillOpacity</cstring>
+                 </property>
+                </widget>
+               </item>
+               <item row="10" column="1">
+                <widget class="QSpinBox" name="spinFillOpacity">
+                 <property name="minimumSize">
+                  <size>
+                   <width>90</width>
+                   <height>0</height>
+                  </size>
+                 </property>
+                 <property name="maximumSize">
+                  <size>
+                   <width>150</width>
+                   <height>16777215</height>
+                  </size>
+                 </property>
+                 <property name="maximum">
+                  <number>100</number>
+                 </property>
+                 <property name="singleStep">
+                  <number>10</number>
+                 </property>
+                 <property name="value">
+                  <number>100</number>
+                 </property>
+                </widget>
+               </item>
+               <item row="11" column="0">
+                <widget class="QLabel" name="labelBorder">
+                 <property name="text">
+                  <string>Border</string>
+                 </property>
+                 <property name="buddy">
+                  <cstring>cbBorder</cstring>
+                 </property>
+                </widget>
+               </item>
+               <item row="11" column="1">
+                <layout class="QHBoxLayout" name="borderControlsLayout">
+                 <property name="spacing">
+                  <number>6</number>
+                 </property>
+                 <item>
+                  <widget class="QComboBox" name="cbBorder">
+                   <property name="sizePolicy">
+                    <sizepolicy hsizetype="Expanding" vsizetype="Fixed">
+                     <horstretch>1</horstretch>
+                     <verstretch>0</verstretch>
+                    </sizepolicy>
+                   </property>
+                   <property name="minimumSize">
+                    <size>
+                     <width>150</width>
+                     <height>0</height>
+                    </size>
+                   </property>
+                  </widget>
+                 </item>
+                 <item>
+                  <widget class="QDoubleSpinBox" name="spinBorderWidth">
+                   <property name="minimumSize">
+                    <size>
+                     <width>90</width>
+                     <height>0</height>
+                    </size>
+                   </property>
+                   <property name="maximum">
+                    <double>20.000000000000000</double>
+                   </property>
+                   <property name="singleStep">
+                    <double>0.100000000000000</double>
+                   </property>
+                   <property name="value">
+                    <double>0.260000000000000</double>
+                   </property>
+                  </widget>
+                 </item>
+                </layout>
+               </item>
+               <item row="12" column="0" colspan="2">
+                <widget class="Line" name="line_7">
+                 <property name="orientation">
+                  <enum>Qt::Horizontal</enum>
+                 </property>
+                </widget>
+               </item>
+               <item row="13" column="0">
                 <widget class="QLabel" name="labelClass">
                  <property name="text">
                   <string>Classes</string>
@@ -603,7 +697,7 @@
                  </property>
                 </widget>
                </item>
-               <item row="10" column="1">
+               <item row="13" column="1">
                 <layout class="QHBoxLayout" name="classControlsLayout">
                  <property name="spacing">
                   <number>6</number>

@@ -844,8 +844,91 @@ class QGISRedLegendsDialog(QDialog, formClass):
         self.setupSizeControls()
         self.setupColorControls()
         self.setupColorRampButton()
+        self.setupFillControls()
         self.onSizeModeChanged()
         self.onColorModeChanged()
+
+    BORDER_MODE_NONE = "none"
+    BORDER_MODE_BLACK = "black"
+    BORDER_MODE_FILL = "fill"
+    BORDER_MODE_DARKER = "darker"
+
+    def setupFillControls(self):
+        """Polygon legends: one opacity and one border for every class, pushed to the rows."""
+        borderModes = [
+            (self.tr("No border"), self.BORDER_MODE_NONE),
+            (self.tr("Black"), self.BORDER_MODE_BLACK),
+            (self.tr("Fill color"), self.BORDER_MODE_FILL),
+            (self.tr("Darker than the fill"), self.BORDER_MODE_DARKER),
+        ]
+        for text, mode in borderModes:
+            self.cbBorder.addItem(text, mode)
+        self.spinFillOpacity.setSuffix(" %")
+        self.spinFillOpacity.setToolTip(self.tr("Opacity of every fill: 100 % is solid, 0 % invisible."))
+        self.spinBorderWidth.setSuffix(" " + self.tr("mm"))
+        self.spinBorderWidth.setToolTip(self.tr("Width of the border of every class."))
+        self.cbBorder.currentIndexChanged.connect(self.onBorderModeChanged)
+        self.spinFillOpacity.valueChanged.connect(self.applyFillOpacityToTable)
+        self.spinBorderWidth.valueChanged.connect(self.applyBorderWidthToTable)
+        self.updateFillControlsVisibility()
+
+    def currentBorderMode(self):
+        return self.cbBorder.currentData() if hasattr(self, "cbBorder") else self.BORDER_MODE_BLACK
+
+    def updateFillControlsVisibility(self):
+        isFill = self.getGeometryHint() == "fill"
+        for widget in (self.line_8, self.labelFillOpacity, self.spinFillOpacity, self.labelBorder, self.cbBorder):
+            widget.setVisible(isFill)
+        # The width goes with the borders drawn from the fill; a black one keeps the rows' widths
+        self.spinBorderWidth.setVisible(
+            isFill and self.currentBorderMode() in (self.BORDER_MODE_FILL, self.BORDER_MODE_DARKER))
+
+    def onBorderModeChanged(self):
+        self.updateFillControlsVisibility()
+        self.markLegendEdited()
+
+    def applyFillOpacityToTable(self, percent):
+        for row in range(self.tableView.rowCount()):
+            colorContainer = self.tableView.cellWidget(row, 1)
+            opacityWidget = colorContainer.findChild(QGISRedOpacityPercentSpinBox) if colorContainer else None
+            if opacityWidget:
+                opacityWidget.setValue(percent)
+        self.markLegendEdited()
+
+    def applyBorderWidthToTable(self, width):
+        self.applySizesToTable([width] * self.tableView.rowCount())
+        self.markLegendEdited()
+
+    def showFillControlsFromRenderer(self):
+        """The global fill controls start from the first class the table shows."""
+        if self.getGeometryHint() != "fill":
+            return
+        symbol = self._firstShownSymbol()
+        if symbol is None:
+            return
+        for control in (self.cbBorder, self.spinFillOpacity, self.spinBorderWidth):
+            control.blockSignals(True)
+        self.cbBorder.setCurrentIndex(self.cbBorder.findData(self.detectBorderMode(symbol)))
+        self.spinFillOpacity.setValue(round(symbol.color().alpha() * 100 / 255))
+        self.spinBorderWidth.setValue(self._getFillStrokeWidth(symbol))
+        for control in (self.cbBorder, self.spinFillOpacity, self.spinBorderWidth):
+            control.blockSignals(False)
+        self.updateFillControlsVisibility()
+
+    def _firstShownSymbol(self):
+        # A clone: the class it is read from is a temporary that dies with this call
+        renderer = self._workingRenderer or (self.currentLayer.renderer() if self.currentLayer else None)
+        if renderer is None:
+            return None
+        if isinstance(renderer, QgsCategorizedSymbolRenderer):
+            classes = renderer.categories()
+        elif isinstance(renderer, QgsGraduatedSymbolRenderer):
+            classes = renderer.ranges()
+        else:
+            symbol = renderer.symbol() if hasattr(renderer, "symbol") else None
+            return symbol.clone() if symbol is not None else None
+        symbol = classes[0].symbol() if classes else renderer.sourceSymbol()
+        return symbol.clone() if symbol is not None else None
 
     def setupSizeControls(self):
         # The item data is the mode the code and the saved strategies go by
@@ -1467,6 +1550,7 @@ class QGISRedLegendsDialog(QDialog, formClass):
             self.clearTable()
         self.updateRecommendedColorMode()
         self.updateSizeHeader()
+        self.showFillControlsFromRenderer()
 
     def updateSizeHeader(self):
         header = self.tableView.horizontalHeaderItem(2)
@@ -4170,6 +4254,44 @@ class QGISRedLegendsDialog(QDialog, formClass):
         for strokeLayer in self._fillStrokeLayers(symbol):
             strokeLayer.setStrokeWidth(newWidth)
 
+    def applyRowColorToSymbol(self, symbol, color):
+        """The colour of a row; a fill also takes the border the Border selector asks for."""
+        self.applyColorToSymbol(symbol, color)
+        if self.effectiveGeometryHint(symbol, self.getGeometryHint()) == "fill":
+            self.applyBorderToSymbol(symbol, color)
+
+    def borderColorFor(self, mode, fillColor):
+        if mode == self.BORDER_MODE_FILL:
+            borderColor = QColor(fillColor)
+        elif mode == self.BORDER_MODE_DARKER:
+            borderColor = QColor(fillColor).darker(FRAME_DARKEN_FACTOR)
+        else:
+            borderColor = QColor("black")
+        borderColor.setAlpha(255)
+        return borderColor
+
+    def applyBorderToSymbol(self, symbol, fillColor):
+        mode = self.currentBorderMode()
+        for strokeLayer in self._fillStrokeLayers(symbol):
+            if mode == self.BORDER_MODE_NONE:
+                strokeLayer.setStrokeStyle(Qt.PenStyle.NoPen)
+                continue
+            strokeLayer.setStrokeStyle(Qt.PenStyle.SolidLine)
+            strokeLayer.setStrokeColor(self.borderColorFor(mode, fillColor))
+
+    def detectBorderMode(self, symbol):
+        """The Border option a fill is drawn with; a border of any other colour reads as black."""
+        strokeLayers = self._fillStrokeLayers(symbol)
+        if not strokeLayers or strokeLayers[0].strokeStyle() == Qt.PenStyle.NoPen:
+            return self.BORDER_MODE_NONE
+        stroke = strokeLayers[0].strokeColor().rgb()
+        fill = QColor(strokeLayers[0].color())
+        if stroke == fill.rgb():
+            return self.BORDER_MODE_FILL
+        if stroke == fill.darker(FRAME_DARKEN_FACTOR).rgb():
+            return self.BORDER_MODE_DARKER
+        return self.BORDER_MODE_BLACK
+
     STYLE_VARIABLE_PROPERTY_KEYS = (SL_PROP_STROKE_COLOR, SL_PROP_FILL_COLOR, SL_PROP_SIZE, SL_PROP_WIDTH)
 
     def inputColorVariables(self, identifier):
@@ -4574,7 +4696,7 @@ class QGISRedLegendsDialog(QDialog, formClass):
             return renderer
 
         if newColor is not None:
-            self.applyColorToSymbol(symbol, newColor)
+            self.applyRowColorToSymbol(symbol, newColor)
         if newSize is not None:
             self.applySizeToSymbol(symbol, newSize)
         return renderer
@@ -5112,7 +5234,7 @@ class QGISRedLegendsDialog(QDialog, formClass):
                 symbol = self.templateSymbol([r.symbol() for r in existingRanges])
 
             if colorWidget:
-                self.applyColorToSymbol(symbol, colorWidget.activeColor)
+                self.applyRowColorToSymbol(symbol, colorWidget.activeColor)
 
             if self.discardProportionalSizes and not isProportionalMode:
                 self.clearProportionalSizeExpression(symbol)
@@ -5207,7 +5329,7 @@ class QGISRedLegendsDialog(QDialog, formClass):
                 symbol = self.templateSymbol(list(existingSymbolMap.values()))
 
             if colorWidget:
-                self.applyColorToSymbol(symbol, colorWidget.activeColor)
+                self.applyRowColorToSymbol(symbol, colorWidget.activeColor)
 
             if self.discardProportionalSizes and not isProportionalMode:
                 self.clearProportionalSizeExpression(symbol)
@@ -5968,6 +6090,7 @@ class QGISRedLegendsDialog(QDialog, formClass):
         )
 
         self.updateModeVisibility(isNumeric, isFixedInterval)
+        self.updateFillControlsVisibility()
         self.refreshColorModeItems()
         self.updateClassButtonsVisibility(isCategorical, isNumeric, isFixedInterval)
         self.updateNavigationButtonsVisibility(isCategorical)

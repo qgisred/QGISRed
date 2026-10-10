@@ -83,6 +83,62 @@ def test_the_opacity_percent_becomes_the_alpha_of_the_picked_colour():
     assert _rgba(symbol.symbolLayer(0).strokeColor()) == (128, 128, 128, 255)
 
 
+def _borderDialog(mode):
+    from unittest.mock import MagicMock
+
+    dialog = _polygonDialog()
+    dialog.cbBorder = MagicMock()
+    dialog.cbBorder.currentData.return_value = mode
+    return dialog
+
+
+@pytest.mark.parametrize("mode, expectedStroke", [
+    ("black", (0, 0, 0, 255)),
+    ("fill", (200, 0, 0, 255)),
+    ("darker", (125, 0, 0, 255)),
+])
+def test_the_border_option_colours_the_outline_from_the_fill(mode, expectedStroke):
+    from qgis.PyQt.QtCore import Qt
+    from qgis.PyQt.QtGui import QColor
+
+    symbol = _sectorsSymbol()
+
+    _borderDialog(mode).applyRowColorToSymbol(symbol, QColor(200, 0, 0, 90))
+
+    fill = symbol.symbolLayer(0)
+    assert _rgba(fill.color()) == (200, 0, 0, 90)
+    assert _rgba(fill.strokeColor()) == expectedStroke
+    assert fill.strokeStyle() == Qt.PenStyle.SolidLine
+
+
+def test_no_border_hides_the_outline_and_keeps_its_width_for_later():
+    from qgis.PyQt.QtCore import Qt
+    from qgis.PyQt.QtGui import QColor
+
+    symbol = _sectorsSymbol()
+
+    _borderDialog("none").applyRowColorToSymbol(symbol, QColor(200, 0, 0, 90))
+
+    assert symbol.symbolLayer(0).strokeStyle() == Qt.PenStyle.NoPen
+    assert symbol.symbolLayer(0).strokeWidth() == pytest.approx(0.26)
+
+
+@pytest.mark.parametrize("outline, expectedMode", [
+    ({"outline_style": "no"}, "none"),
+    ({"outline_color": "0,0,0,255"}, "black"),
+    ({"outline_color": "35,35,35,255"}, "black"),
+    ({"outline_color": "166,206,227,255"}, "fill"),
+    ({"outline_color": "104,129,142,255"}, "darker"),
+])
+def test_the_border_option_is_read_back_from_the_outline(outline, expectedMode):
+    from qgis.core import QgsFillSymbol
+
+    properties = {"color": "166,206,227,90", "outline_color": "0,0,0,255", "outline_width": "0.26"}
+    properties.update(outline)
+
+    assert _polygonDialog().detectBorderMode(QgsFillSymbol.createSimple(properties)) == expectedMode
+
+
 def test_the_swatch_draws_the_fill_with_the_typed_outline_width():
     from qgis.PyQt.QtGui import QColor
     from QGISRed.ui.project.qgisred_custom_dialogs import QGISRedSymbolColorSelector
