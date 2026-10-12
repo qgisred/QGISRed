@@ -232,6 +232,25 @@ class QGISRedIdentifierUtils:
             return None
         return self.tr(source)
 
+    def getLocaleLayerName(self, layer):
+        """Legend name of a QGISRed layer in the active locale, or None when it has no default name."""
+        identifier = layer.customProperty("qgisred_identifier")
+        if not identifier:
+            return None
+        if identifier.startswith("qgisred_demandbuilder_"):
+            baseName = os.path.splitext(os.path.basename(self._getLayerPath(layer)))[0]
+            return self.getAuxiliaryThemeName(baseName) or None
+        return self.getTranslatedNameForIdentifier(identifier)
+
+    def renameLayersToLocale(self):
+        """Gives every QGISRed layer of the project its default name in the active locale."""
+        for layer in self._getLayers():
+            if layer is None:
+                continue
+            translatedName = self.getLocaleLayerName(layer)
+            if translatedName and layer.name() != translatedName:
+                layer.setName(translatedName)
+
     """Thematic Maps"""
 
     def isThematicMapsLayer(self, layer):

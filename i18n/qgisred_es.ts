@@ -9272,6 +9272,21 @@ No se pueden aplicar los cambios.</translation>
 <context>
     <name>QGISRedStylingUtils</name>
     <message>
+        <location filename="../tools/utils/qgisred_styling_utils.py" line="1060"/>
+        <source>Errors</source>
+        <translation>Errores</translation>
+    </message>
+    <message>
+        <location filename="../tools/utils/qgisred_styling_utils.py" line="1061"/>
+        <source>Warnings</source>
+        <translation>Advertencias</translation>
+    </message>
+    <message>
+        <location filename="../tools/utils/qgisred_styling_utils.py" line="1062"/>
+        <source>Information</source>
+        <translation>Información</translation>
+    </message>
+    <message>
         <location filename="../tools/utils/qgisred_styling_utils.py" line="1402"/>
         <source>%1 field not found in layer %2</source>
         <translation>Campo %1 no encontrado en capa %2</translation>
@@ -9454,7 +9469,7 @@ No se pueden aplicar los cambios.</translation>
     <message>
         <location filename="../tools/utils/qgisred_styling_utils.py" line="912"/>
         <source>Now closed</source>
-        <translation>Cerrado ahora</translation>
+        <translation>Ya cerrado</translation>
     </message>
     <message>
         <location filename="../tools/utils/qgisred_styling_utils.py" line="913"/>

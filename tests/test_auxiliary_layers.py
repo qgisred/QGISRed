@@ -823,6 +823,60 @@ class TestAuxiliaryThemeName:
         assert utils.getAuxiliaryThemeName("Net_DemandBuilder_Sectors_sec1") == ""
 
 
+class TestRenameLayersToLocale:
+    """Reopening a saved project gives every QGISRed layer its name in the active language,
+    not only the inputs: the tool layers used to keep the name they were saved with."""
+
+    def _layer(self, name, identifier, path=""):
+        layer = MagicMock()
+        layer.name.return_value = name
+        layer.customProperty.side_effect = lambda key: identifier if key == "qgisred_identifier" else None
+        layer.source.return_value = path
+        return layer
+
+    def _identifiers(self, layers):
+        from QGISRed.tools.utils.qgisred_identifier_utils import QGISRedIdentifierUtils
+
+        utils = object.__new__(QGISRedIdentifierUtils)
+        utils.__init__("C:/proj", "Net", MagicMock())
+        translations = {"Connect_Links": "Conect_Líneas", "IsolSeg_Nodes": "PolCorte_Nudos",
+                        "DemBuild_Sectors": "ConstDem_Sectores", "Pipes": "Tuberías"}
+        utils.tr = lambda message: translations.get(message, message)
+        utils._getLayers = lambda: layers
+        utils._getLayerPath = lambda layer: layer.source()
+        return utils
+
+    def test_tool_layers_are_renamed_like_the_inputs(self):
+        connectivity = self._layer("Connect_Links", "qgisred_connectivity_links")
+        isolated = self._layer("IsolSeg_Nodes", "qgisred_isolatedsegments_nodes")
+        pipes = self._layer("Pipes", "qgisred_pipes")
+
+        self._identifiers([connectivity, isolated, pipes]).renameLayersToLocale()
+
+        connectivity.setName.assert_called_once_with("Conect_Líneas")
+        isolated.setName.assert_called_once_with("PolCorte_Nudos")
+        pipes.setName.assert_called_once_with("Tuberías")
+
+    def test_a_demand_builder_theme_keeps_its_own_name(self):
+        theme = self._layer("DemBuild_Sectors_Barrios", "qgisred_demandbuilder_sectors",
+                            "C:/proj/Auxiliary Layers/DemandBuilder/Net_DemandBuilder_Sectors_Barrios.shp")
+
+        self._identifiers([theme]).renameLayersToLocale()
+
+        theme.setName.assert_called_once_with("ConstDem_Sectores_Barrios")
+
+    def test_layers_without_a_default_name_are_left_alone(self):
+        foreign = self._layer("Streets", None)
+        results = self._layer("Pressure", "qgisred_base_node")
+        already = self._layer("Conect_Líneas", "qgisred_connectivity_links")
+
+        self._identifiers([foreign, results, already]).renameLayersToLocale()
+
+        foreign.setName.assert_not_called()
+        results.setName.assert_not_called()
+        already.setName.assert_not_called()
+
+
 class TestGroupVisibility:
     """The layer manager loads and unloads on request; it does not retick the legend.
 

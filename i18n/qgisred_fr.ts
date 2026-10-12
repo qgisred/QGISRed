@@ -9095,6 +9095,21 @@ Impossible d'appliquer les modifications.</translation>
 <context>
     <name>QGISRedStylingUtils</name>
     <message>
+        <location filename="../tools/utils/qgisred_styling_utils.py" line="1060"/>
+        <source>Errors</source>
+        <translation>Erreurs</translation>
+    </message>
+    <message>
+        <location filename="../tools/utils/qgisred_styling_utils.py" line="1061"/>
+        <source>Warnings</source>
+        <translation>Avertissements</translation>
+    </message>
+    <message>
+        <location filename="../tools/utils/qgisred_styling_utils.py" line="1062"/>
+        <source>Information</source>
+        <translation>Informations</translation>
+    </message>
+    <message>
         <location filename="../tools/utils/qgisred_styling_utils.py" line="1402"/>
         <source>%1 field not found in layer %2</source>
         <translation type="unfinished">Champ %1 introuvable dans la couche %2</translation>
@@ -9277,7 +9292,7 @@ Impossible d'appliquer les modifications.</translation>
     <message>
         <location filename="../tools/utils/qgisred_styling_utils.py" line="912"/>
         <source>Now closed</source>
-        <translation>Fermé actuellement</translation>
+        <translation>Déjà fermé</translation>
     </message>
     <message>
         <location filename="../tools/utils/qgisred_styling_utils.py" line="913"/>

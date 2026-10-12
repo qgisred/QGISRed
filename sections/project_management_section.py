@@ -168,17 +168,7 @@ class ProjectManagementSection:
 
         QGISRedProjectIO().addProjectToGplFile(self.gplFile, self.NetworkName, self.ProjectDirectory)
 
-        inputs_group = QGISRedLayerUtils.findGroupByIdentifier("qgisred_inputs")
-
-        if inputs_group:
-            for child in inputs_group.children():
-                if isinstance(child, QgsLayerTreeLayer):
-                    layer = child.layer()
-                    if layer:
-                        identifier = layer.customProperty("qgisred_identifier")
-                        translatedName = identifiers.getTranslatedNameForIdentifier(identifier)
-                        if translatedName and layer.name() != translatedName:
-                            layer.setName(translatedName)
+        identifiers.renameLayersToLocale()
 
         QTimer.singleShot(0, lambda: self._post_qgz_open(style_snapshot))
 
