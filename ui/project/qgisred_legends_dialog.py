@@ -1068,6 +1068,7 @@ class QGISRedLegendsDialog(QDialog, formClass):
         self.btnColorRamp.setVisible(False)
         self.palletesHorizontalLayout.addWidget(self.btnColorRamp)
         self.btnColorRamp.rampChanged.connect(self.onCustomColorChanged)
+        self.btnColorRamp.aboutToShowPopup.connect(self.refreshColorRamps)
 
     def applyConsistentStyling(self):
         comboStyle = "QComboBox { background-color: white; }"
@@ -2168,6 +2169,16 @@ class QGISRedLegendsDialog(QDialog, formClass):
         self.btnColorRamp.addColorRamps(ramps)
         matching = self.findMatchingLabeledPalette() if mode == PALETTE_KIND_LABELED else None
         self.btnColorRamp.setActiveRampByName(matching or list(ramps.keys())[0])
+
+    def refreshColorRamps(self):
+        """Reread the style database so a palette edited while the dialog is open is offered as it is now."""
+        previousRamp = self.btnColorRamp.activeRampName
+        self.loadStyleDatabase()
+        self.btnColorRamp.blockSignals(True)
+        self.syncColorRampButton()
+        if previousRamp in self.btnColorRamp.colorRampCache:
+            self.btnColorRamp.setActiveRampByName(previousRamp)
+        self.btnColorRamp.blockSignals(False)
 
     def loadColorRampsOfKind(self, kind):
         if not self.colorRampKinds:

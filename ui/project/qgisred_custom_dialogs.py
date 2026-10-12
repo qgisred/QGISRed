@@ -551,6 +551,7 @@ class QGISRedOpacityPercentSpinBox(QSpinBox):
 
 class QGISRedColorRampSelector(QComboBox):
     rampChanged = pyqtSignal(QgsColorRamp)
+    aboutToShowPopup = pyqtSignal()
 
     preferredWidth = 150
     preferredHeight = 24
@@ -567,6 +568,7 @@ class QGISRedColorRampSelector(QComboBox):
 
         self.configureDimensions()
         self.currentIndexChanged.connect(self.onSelectionChanged)
+        self.activated.connect(self.onItemActivated)
 
     def setNumberedBlocks(self, enabled):
         """Whether palettes print the position (1, 2, 3...) of each color on its block."""
@@ -577,6 +579,10 @@ class QGISRedColorRampSelector(QComboBox):
         self.setFixedHeight(self.preferredHeight)
         self.setSizePolicy(QSizePolicy.Policy.Expanding, QSizePolicy.Policy.Fixed)
         self.setIconSize(QSize(self.iconWidth, self.iconHeight))
+
+    def showPopup(self):
+        self.aboutToShowPopup.emit()
+        super().showPopup()
 
     def paintEvent(self, event):
         painter = QStylePainter(self)
@@ -613,6 +619,11 @@ class QGISRedColorRampSelector(QComboBox):
         if name in self.colorRampCache:
             self.activeRampName = name
             self.rampChanged.emit(self.getActiveRampClone())
+
+    def onItemActivated(self, index):
+        """Picking the ramp already shown applies it again: its colors may have been edited meanwhile."""
+        if index == self.currentIndex():
+            self.onSelectionChanged(index)
 
     def clearRamps(self):
         self.clear()
