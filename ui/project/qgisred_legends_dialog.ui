@@ -848,6 +848,25 @@
       </widget>
      </item>
      <item>
+      <widget class="QToolButton" name="btStyleLibrary">
+       <property name="minimumSize">
+        <size>
+         <width>90</width>
+         <height>23</height>
+        </size>
+       </property>
+       <property name="text">
+        <string>Style Library</string>
+       </property>
+       <property name="popupMode">
+        <enum>QToolButton::InstantPopup</enum>
+       </property>
+       <property name="toolButtonStyle">
+        <enum>Qt::ToolButtonTextOnly</enum>
+       </property>
+      </widget>
+     </item>
+     <item>
       <spacer name="buttonsSpacer">
        <property name="orientation">
         <enum>Qt::Horizontal</enum>

@@ -1610,6 +1610,17 @@ class QGISRedStylingUtils:
             )
 
     @staticmethod
+    def restoreStyleDatabase():
+        """Throw away the user's edits: the working .db becomes the tracked .bak again.
+
+        The Style Manager keeps the registered database open, so it is dropped from the
+        project while the file is replaced and listed again afterwards.
+        """
+        QGISRedStylingUtils.unregisterStyleDatabaseFromProject()
+        QGISRedStylingUtils.ensureStyleDatabase()
+        QGISRedStylingUtils.registerStyleDatabaseInProject()
+
+    @staticmethod
     def unregisterStyleDatabaseFromProject():
         """Drop the database from the Style Manager so QGIS releases its file handle.
 

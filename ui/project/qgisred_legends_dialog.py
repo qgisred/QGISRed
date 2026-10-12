@@ -28,6 +28,7 @@ from qgis.core import QgsLayerTreeGroup, QgsLayerTreeLayer, QgsGradientColorRamp
 from qgis.core import QgsClassificationPrettyBreaks, QgsStyle, QgsPresetSchemeColorRamp, QgsProperty
 from qgis.core import QgsRuleBasedRenderer, QgsMapLayerStyle, QgsRandomColorRamp, NULL
 from qgis.core import QgsLineSymbol, QgsMarkerSymbol, QgsFillSymbol, QgsIconUtils
+from qgis.gui import QgsStyleManagerDialog
 from qgis.utils import iface
 
 from ...compat import WKB_LINE_GEOMETRY, WKB_POINT_GEOMETRY
@@ -609,6 +610,7 @@ class QGISRedLegendsDialog(QDialog, formClass):
         self.setupAdvancedUi()
         self.applyConsistentStyling()
         self.setupStyleMenus()
+        self.setupStyleLibraryMenu()
         self.setupTooltips()
         self.hideIntervalControls()
         self.installEventFilter(self)
@@ -1133,6 +1135,37 @@ class QGISRedLegendsDialog(QDialog, formClass):
         actionSaveGlobal.setToolTip(applyNote)
         self.btSaveMenu.setMenu(saveMenu)
 
+    def setupStyleLibraryMenu(self):
+        libraryMenu = QMenu(self)
+        libraryMenu.addAction(self.tr("Open Style Manager…"), self.openStyleManager)
+        self.actionRestoreStyleLibrary = libraryMenu.addAction(
+            self.tr("Restore default library"), self.restoreDefaultStyleLibrary)
+        self.actionRestoreStyleLibrary.setEnabled(
+            os.path.exists(QGISRedStylingUtils.developmentStyleDatabasePath()))
+        self.btStyleLibrary.setMenu(libraryMenu)
+        self.btStyleLibrary.setEnabled(bool(self.colorRampKinds))
+
+    def openStyleManager(self):
+        """The Style Manager on the QGISRed library: ramps, palettes and symbols edited there are offered at once."""
+        QgsStyleManagerDialog(self.style, self).exec_()
+        self.refreshColorRamps()
+
+    def restoreDefaultStyleLibrary(self):
+        reply = QMessageBox.question(
+            self,
+            self.tr("Restore default library"),
+            self.tr("The ramps, palettes and symbols you edited in the QGISRed style library will be lost.\n"
+                    "Restore the default library?"),
+            QMessageBox.StandardButton.Yes | QMessageBox.StandardButton.No,
+            QMessageBox.StandardButton.No,
+        )
+        if reply != QMessageBox.StandardButton.Yes:
+            return
+        # The dialog's own connection to the database must be closed before the file is replaced.
+        self.style = None
+        QGISRedStylingUtils.restoreStyleDatabase()
+        self.refreshColorRamps()
+
     def setupTooltips(self):
         self.btUp.setToolTip(self.tr("Move selected class up"))
         self.btDown.setToolTip(self.tr("Move selected class down"))
@@ -1144,6 +1177,7 @@ class QGISRedLegendsDialog(QDialog, formClass):
 
         self.btLoadMenu.setToolTip(self.tr("Load a saved style or revert to the original legend"))
         self.btSaveMenu.setToolTip(self.tr("Save the current legend as a style"))
+        self.btStyleLibrary.setToolTip(self.tr("Edit the ramps, palettes and symbols of the QGISRed style library"))
         self.btAcceptLegend.setToolTip(self.tr("Apply changes to layer and close"))
         self.btApplyLegend.setToolTip(self.tr("Apply changes to layer"))
         self.btCancelLegend.setToolTip(self.tr("Close; asks whether to keep or revert the changes applied here"))

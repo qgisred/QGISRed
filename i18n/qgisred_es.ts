@@ -865,6 +865,11 @@
         <source>Installation Year</source>
         <translation>Año de instalación</translation>
     </message>
+    <message>
+        <location filename="../ui/project/qgisred_legends_dialog.ui" line="0"/>
+        <source>Style Library</source>
+        <translation>Biblioteca de estilos</translation>
+    </message>
 </context>
 <context>
     <name>DigitalTwinSection</name>
@@ -6641,6 +6646,43 @@ No se pueden aplicar los cambios.</translation>
         <location filename="../ui/project/qgisred_legends_dialog.py" line="902"/>
         <source>Span Palettes</source>
         <translation>Paletas extendidas</translation>
+    </message>
+    <message>
+        <location filename="../ui/project/qgisred_legends_dialog.py" line="0"/>
+        <source>Ascending</source>
+        <translation>Ascendente</translation>
+    </message>
+    <message>
+        <location filename="../ui/project/qgisred_legends_dialog.py" line="0"/>
+        <source>Descending</source>
+        <translation>Descendente</translation>
+    </message>
+    <message>
+        <location filename="../ui/project/qgisred_legends_dialog.py" line="0"/>
+        <source>Order of the values when the classes are added</source>
+        <translation>Orden de los valores al añadir las clases</translation>
+    </message>
+    <message>
+        <location filename="../ui/project/qgisred_legends_dialog.py" line="0"/>
+        <source>Open Style Manager…</source>
+        <translation>Abrir el Administrador de estilos…</translation>
+    </message>
+    <message>
+        <location filename="../ui/project/qgisred_legends_dialog.py" line="0"/>
+        <source>Restore default library</source>
+        <translation>Restaurar la biblioteca por defecto</translation>
+    </message>
+    <message>
+        <location filename="../ui/project/qgisred_legends_dialog.py" line="0"/>
+        <source>The ramps, palettes and symbols you edited in the QGISRed style library will be lost.
+Restore the default library?</source>
+        <translation>Las rampas, paletas y símbolos que editó en la biblioteca de estilos de QGISRed se perderán.
+¿Restaurar la biblioteca por defecto?</translation>
+    </message>
+    <message>
+        <location filename="../ui/project/qgisred_legends_dialog.py" line="0"/>
+        <source>Edit the ramps, palettes and symbols of the QGISRed style library</source>
+        <translation>Editar las rampas, paletas y símbolos de la biblioteca de estilos de QGISRed</translation>
     </message>
 </context>
 <context>

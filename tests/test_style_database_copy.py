@@ -124,6 +124,31 @@ class TestEnsureStyleDatabase:
         assert staged[0] != staged[1]
 
 
+class TestRestoreStyleDatabase:
+    def test_the_users_edits_are_replaced_by_the_tracked_database(self, pluginDefaults, installDefaults):
+        QGISRedStylingUtils.ensureStyleDatabase()
+        workingPath = QGISRedStylingUtils.styleDatabasePath()
+        with open(workingPath, "wb") as handle:
+            handle.write(b"edited by the user")
+
+        with patch("QGISRed.tools.utils.qgisred_styling_utils.QgsProject"):
+            QGISRedStylingUtils.restoreStyleDatabase()
+
+        assert open(workingPath, "rb").read() == b"tracked-v1"
+
+    def test_the_database_is_dropped_from_the_project_while_replaced_and_listed_again(
+            self, pluginDefaults, installDefaults):
+        steps = []
+        with patch.object(QGISRedStylingUtils, "unregisterStyleDatabaseFromProject",
+                          side_effect=lambda: steps.append("unregister")), \
+                patch.object(QGISRedStylingUtils, "ensureStyleDatabase", side_effect=lambda: steps.append("copy")), \
+                patch.object(QGISRedStylingUtils, "registerStyleDatabaseInProject",
+                             side_effect=lambda: steps.append("register")):
+            QGISRedStylingUtils.restoreStyleDatabase()
+
+        assert steps == ["unregister", "copy", "register"]
+
+
 class TestRegisterStyleDatabaseInProject:
     """A project stores the paths it was saved with, so stale ones must not pile up."""
 

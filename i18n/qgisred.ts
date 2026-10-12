@@ -790,6 +790,11 @@
         <source>Installation Year</source>
         <translation type="unfinished"></translation>
     </message>
+    <message>
+        <location filename="../ui/project/qgisred_legends_dialog.ui" line="0"/>
+        <source>Style Library</source>
+        <translation type="unfinished"></translation>
+    </message>
 </context>
 <context>
     <name>DigitalTwinSection</name>
@@ -6270,6 +6275,42 @@ Cannot apply changes.</source>
     <message>
         <location filename="../ui/project/qgisred_legends_dialog.py" line="902"/>
         <source>Span Palettes</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="../ui/project/qgisred_legends_dialog.py" line="0"/>
+        <source>Ascending</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="../ui/project/qgisred_legends_dialog.py" line="0"/>
+        <source>Descending</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="../ui/project/qgisred_legends_dialog.py" line="0"/>
+        <source>Order of the values when the classes are added</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="../ui/project/qgisred_legends_dialog.py" line="0"/>
+        <source>Open Style Manager…</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="../ui/project/qgisred_legends_dialog.py" line="0"/>
+        <source>Restore default library</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="../ui/project/qgisred_legends_dialog.py" line="0"/>
+        <source>The ramps, palettes and symbols you edited in the QGISRed style library will be lost.
+Restore the default library?</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="../ui/project/qgisred_legends_dialog.py" line="0"/>
+        <source>Edit the ramps, palettes and symbols of the QGISRed style library</source>
         <translation type="unfinished"></translation>
     </message>
 </context>
