@@ -31,7 +31,9 @@ from qgis.core import QgsLineSymbol, QgsMarkerSymbol, QgsFillSymbol, QgsIconUtil
 from qgis.utils import iface
 
 from ...compat import WKB_LINE_GEOMETRY, WKB_POINT_GEOMETRY
-from ...tools.utils.qgisred_styling_utils import _NULL_RULE_LABEL, CONNECTIVITY_STYLE_NAME, QGISRedStylingUtils
+from ...tools.utils.qgisred_styling_utils import (
+    _NULL_RULE_LABEL, CONNECTIVITY_STYLE_NAME, ISSUE_CLASS_VALUES, ISSUE_LAYER_IDENTIFIERS, QGISRedStylingUtils,
+)
 from ...tools.utils.qgisred_styling_utils import RAMP_KINDS, PALETTE_KINDS, RAMP_KIND_TWO_COLORS, RAMP_KIND_THREE_COLORS
 from ...tools.utils.qgisred_styling_utils import RAMP_KIND_MORE_COLORS, PALETTE_KIND_SPAN, PALETTE_KIND_SEQUENTIAL
 from ...tools.utils.qgisred_styling_utils import PALETTE_KIND_LABELED, FRAME_DARKEN_FACTOR
@@ -168,6 +170,7 @@ class QGISRedLegendsDialog(QDialog, formClass):
         "qgisred_thematicmaps",
         "qgisred_results",
         "qgisred_inputs",
+        "qgisred_issues",
         "qgisred_connectivity",
         "qgisred_hydraulicsectors",
         "qgisred_demandsectors",
@@ -218,14 +221,16 @@ class QGISRedLegendsDialog(QDialog, formClass):
     SINGLE_EDITABLE_QUERY_IDENTIFIERS = {"qgisred_connectivity_links"}
 
     # Isolated Segments layers ship a legend with fixed classes: links and nodes by Status, isolated
-    # demands by element type. The editor lists exactly these classes, each with its color and a
-    # percent of its sizes. A legend without them is the style of an older version.
+    # demands by element type; the issue layers by severity. The editor lists exactly these classes,
+    # each with its color and a percent of its sizes. A legend without them is the style of an older
+    # version.
     FIXED_LEGEND_CLASSES = {
         "qgisred_isolatedsegments_links": ("NOW CLOSED", "TO CLOSE", "TO OPEN", "ISOLATED", "TO RECOVER"),
         "qgisred_isolatedsegments_nodes": (
             "NOW CLOSED", "TO CLOSE", "TO OPEN", "ISOLATED", "TO RECOVER", "INCIDENCE",
         ),
         "qgisred_isolatedsegments_isolateddemands": ("JUNCTION", "CONNECTION"),
+        **dict.fromkeys(ISSUE_LAYER_IDENTIFIERS, ISSUE_CLASS_VALUES),
     }
     # The class of the incidence point: a star colored on its fill, while circles are on their stroke
     INCIDENCE_CLASS = "INCIDENCE"
@@ -4394,8 +4399,8 @@ class QGISRedLegendsDialog(QDialog, formClass):
         )
 
     def hasLegacyFixedLegend(self, layer):
-        """Whether an Isolated Segments layer still carries a legend older builds shipped, which
-        lacks the fixed classes."""
+        """Whether a fixed-legend layer still carries a legend older builds shipped, which lacks
+        the fixed classes."""
         listedClasses = self.FIXED_LEGEND_CLASSES.get(layer.customProperty("qgisred_identifier"))
         renderer = layer.renderer() if listedClasses is not None else None
         if not renderer:
@@ -5370,7 +5375,10 @@ class QGISRedLegendsDialog(QDialog, formClass):
             category = QgsRendererCategory(liveCategory.value(), symbol, label)
             category.setRenderState(isShown)
             categories.append(category)
-        return QgsCategorizedSymbolRenderer(liveRenderer.classAttribute(), categories)
+        renderer = QgsCategorizedSymbolRenderer(liveRenderer.classAttribute(), categories)
+        # The issue layers draw the worst severity on top: that order lives in the symbol levels
+        renderer.setUsingSymbolLevels(liveRenderer.usingSymbolLevels())
+        return renderer
 
     def buildRuleBasedCategoricalRenderer(self):
         """Rebuild the source rule-based renderer with the table's colors, sizes, labels and visibility.

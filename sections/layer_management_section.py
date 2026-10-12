@@ -167,7 +167,7 @@ class LayerManagementSection:
     def openIssuesLayers(self):
         # Open layers
         issuesFolder = os.path.join(self.ProjectDirectory, DIR_ISSUES)
-        utils = QGISRedLayerUtils(issuesFolder, self.NetworkName, self.iface)
+        utils = QGISRedLayerUtils(issuesFolder, self.NetworkName, self.iface, self.ProjectDirectory)
         issuesGroup = utils.getOrCreateNestedGroup([self.NetworkName, "Issues"])
         utils.openIssuesLayers(issuesGroup, self.issuesLayers)
 

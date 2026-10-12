@@ -8448,6 +8448,21 @@ Cannot apply changes.</source>
 <context>
     <name>QGISRedStylingUtils</name>
     <message>
+        <location filename="../tools/utils/qgisred_styling_utils.py" line="1060"/>
+        <source>Errors</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="../tools/utils/qgisred_styling_utils.py" line="1061"/>
+        <source>Warnings</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="../tools/utils/qgisred_styling_utils.py" line="1062"/>
+        <source>Information</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
         <location filename="../tools/utils/qgisred_styling_utils.py" line="1402"/>
         <source>%1 field not found in layer %2</source>
         <translation type="unfinished"></translation>

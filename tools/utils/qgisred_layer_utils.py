@@ -696,8 +696,6 @@ class QGISRedLayerUtils:
                     self._applySectorStyle(styling, vlayer, originalName)
                 elif demandBuilder:
                     styling.setDemandBuilderStyle(vlayer, originalName)
-                elif issues:
-                    pass
                 elif name.lower() == "connectivity_links":
                     self._applyConnectivityStyle(styling, vlayer, originalName)
                 else:

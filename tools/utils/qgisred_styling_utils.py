@@ -55,6 +55,17 @@ _DEMAND_SECTOR_COLOR_CACHE = {}
 STYLE_DATABASE_NAME = "qgisred_symbology_style.db"
 CONNECTIVITY_STYLE_NAME = "ConnectLinks"
 
+# The layers the network checks write, one per element type ({Net}_{Element}_Issues). Each
+# ships a legend by the severity of its issues: the same three classes whatever the element.
+ISSUE_LAYER_IDENTIFIERS = tuple(
+    "qgisred_%s_issues" % element for element in (
+        "junctions", "tanks", "reservoirs", "pipes", "valves", "pumps",
+        "isolationvalves", "serviceconnections", "meters",
+    )
+)
+ISSUE_CLASS_FIELD = "ErrorType"
+ISSUE_CLASS_VALUES = ("Error", "Warning", "Info")
+
 # Kinds of color ramps and palettes, spelled like the tags scripts/build_style_db.py gives
 # them in the style database. A ramp is told apart by its number of colors; a palette by
 # how its colors reach the classes: Span spreads them over the classes keeping the
@@ -1043,6 +1054,14 @@ class QGISRedStylingUtils:
             "CONNECTION": self.tr("Service Connections"),
         }
 
+    def issueClassNames(self):
+        """Legend text of each class of the issue layers, by the severity the check wrote."""
+        return {
+            "Error": self.tr("Errors"),
+            "Warning": self.tr("Warnings"),
+            "Info": self.tr("Information"),
+        }
+
     @staticmethod
     def isIsolatedStatusAttribute(classAttribute):
         """Whether a legend classifies by the expression of the Isolated Segments styles, which
@@ -1059,6 +1078,8 @@ class QGISRedStylingUtils:
                 return self.isolatedStatusClassNames()[value]
             if field == "ElemType" and value in self.isolatedDemandClassNames():
                 return self.isolatedDemandClassNames()[value]
+            if field == ISSUE_CLASS_FIELD and value in self.issueClassNames():
+                return self.issueClassNames()[value]
             if field in ("Type", "ValveType"):
                 return getValveTypeName(value)
             if field == "ArcType":
@@ -1192,6 +1213,8 @@ class QGISRedStylingUtils:
             rebuilt.setSourceSymbol(renderer.sourceSymbol().clone())
         if renderer.sourceColorRamp() is not None:
             rebuilt.setSourceColorRamp(renderer.sourceColorRamp().clone())
+        # Symbol levels decide which class is drawn on top where features overlap
+        rebuilt.setUsingSymbolLevels(renderer.usingSymbolLevels())
         return rebuilt
 
     def _translateRuleLabels(self, rule):

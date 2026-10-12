@@ -93,9 +93,16 @@ class FakeCategorizedRenderer:
             self._categories = args[0]
             self._field = "Class"
         self.updates = []
+        self._usingSymbolLevels = False
 
     def categories(self):
         return list(self._categories)
+
+    def usingSymbolLevels(self):
+        return self._usingSymbolLevels
+
+    def setUsingSymbolLevels(self, using):
+        self._usingSymbolLevels = using
 
     def sourceSymbol(self):
         return None
@@ -205,7 +212,7 @@ class TestDeterministicRandomColor:
 
 
 class TestTranslateRendererLabels:
-    def _translate(self, monkeypatch, categories, field="Class"):
+    def _translateRenderer(self, monkeypatch, categories, field="Class", usingSymbolLevels=False):
         monkeypatch.setattr(stylingModule, "QgsCategorizedSymbolRenderer", FakeCategorizedRenderer)
 
         class FakeRendererCategory:
@@ -230,9 +237,14 @@ class TestTranslateRendererLabels:
         monkeypatch.setattr(stylingModule, "QgsRendererCategory", FakeRendererCategory)
         utils = _utils()
         utils.tr = lambda message: message
-        layer = FakeLayer(FakeCategorizedRenderer(field, categories))
+        renderer = FakeCategorizedRenderer(field, categories)
+        renderer.setUsingSymbolLevels(usingSymbolLevels)
+        layer = FakeLayer(renderer)
         utils.translateRendererLabels(layer)
-        return layer.setRenderers[0]._categories
+        return layer.setRenderers[0]
+
+    def _translate(self, monkeypatch, categories, field="Class"):
+        return self._translateRenderer(monkeypatch, categories, field)._categories
 
     def test_custom_labels_and_visibility_survive(self, monkeypatch):
         source = FakeCategory("Zone9", label="My custom label", render=False)
@@ -272,3 +284,18 @@ class TestTranslateRendererLabels:
         rebuiltCategories = self._translate(monkeypatch, categories, field="ArcType")
         assert rebuiltCategories[0].label() == "Branches"
         assert rebuiltCategories[1].label() == "Chords"
+
+    def test_the_severities_of_the_issue_layers_are_translated(self, monkeypatch):
+        categories = [FakeCategory(value, label="whatever") for value in ("Error", "Warning", "Info")]
+        rebuiltCategories = self._translate(monkeypatch, categories, field="ErrorType")
+        assert [category.label() for category in rebuiltCategories] == ["Errors", "Warnings", "Information"]
+        rebuiltCategories = self._translate(monkeypatch, categories, field="Status")
+        assert [category.label() for category in rebuiltCategories] == ["whatever"] * 3
+
+    def test_the_symbol_levels_survive_the_rebuild(self, monkeypatch):
+        # The issue layers draw the worst severity on top through their symbol levels
+        categories = [FakeCategory("Error", label="whatever")]
+        rebuilt = self._translateRenderer(monkeypatch, categories, field="ErrorType", usingSymbolLevels=True)
+        assert rebuilt.usingSymbolLevels() is True
+        rebuilt = self._translateRenderer(monkeypatch, categories, field="ErrorType", usingSymbolLevels=False)
+        assert rebuilt.usingSymbolLevels() is False
