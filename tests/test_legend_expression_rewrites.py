@@ -558,7 +558,7 @@ class TestVariantItems:
     def test_junctions_offer_all_then_the_demand_signs(self, monkeypatch):
         label, items = self._items(monkeypatch, "qgisred_junctions")
         assert label == "Demand"
-        assert items == [("All", None), ("Positive (> 0)", "positive"), ("Negative (< 0)", "negative")]
+        assert items == [("All", None), ("Outflows (> 0)", "positive"), ("Inflows (< 0)", "negative")]
 
     def test_service_connections_offer_all_line_and_demand_circle(self, monkeypatch):
         label, items = self._items(monkeypatch, "qgisred_serviceconnections")

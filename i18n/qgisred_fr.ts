@@ -6024,13 +6024,13 @@ Continuer ?</translation>
     </message>
     <message>
         <location filename="../ui/project/qgisred_legends_dialog.py" line="730"/>
-        <source>Positive (&gt; 0)</source>
-        <translation>Positive (&gt; 0)</translation>
+        <source>Outflows (&gt; 0)</source>
+        <translation>Sorties (&gt; 0)</translation>
     </message>
     <message>
         <location filename="../ui/project/qgisred_legends_dialog.py" line="730"/>
-        <source>Negative (&lt; 0)</source>
-        <translation>Négative (&lt; 0)</translation>
+        <source>Inflows (&lt; 0)</source>
+        <translation>Entrées (&lt; 0)</translation>
     </message>
     <message>
         <location filename="../ui/project/qgisred_legends_dialog.py" line="733"/>

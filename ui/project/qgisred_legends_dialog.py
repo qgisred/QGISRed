@@ -731,7 +731,7 @@ class QGISRedLegendsDialog(QDialog, formClass):
             return self.tr("Meter Type"), [(self.tr("All types"), None)] + [(names[t], t) for t in self.METER_TYPES]
         if identifier == "qgisred_junctions":
             return self.tr("Demand"), [
-                (self.tr("All"), None), (self.tr("Positive (> 0)"), "positive"), (self.tr("Negative (< 0)"), "negative")
+                (self.tr("All"), None), (self.tr("Outflows (> 0)"), "positive"), (self.tr("Inflows (< 0)"), "negative")
             ]
         if identifier == "qgisred_sources":
             return self.tr("Source Type"), [(self.tr("All types"), None)] + [(t, t) for t in self.SOURCE_TYPES]

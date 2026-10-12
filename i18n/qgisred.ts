@@ -5715,12 +5715,12 @@ Continue?</source>
     </message>
     <message>
         <location filename="../ui/project/qgisred_legends_dialog.py" line="730"/>
-        <source>Positive (&gt; 0)</source>
+        <source>Outflows (&gt; 0)</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
         <location filename="../ui/project/qgisred_legends_dialog.py" line="730"/>
-        <source>Negative (&lt; 0)</source>
+        <source>Inflows (&lt; 0)</source>
         <translation type="unfinished"></translation>
     </message>
     <message>

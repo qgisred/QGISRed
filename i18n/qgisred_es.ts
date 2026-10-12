@@ -6036,13 +6036,13 @@ La información de sectores existente podría ser reemplazada.
     </message>
     <message>
         <location filename="../ui/project/qgisred_legends_dialog.py" line="730"/>
-        <source>Positive (&gt; 0)</source>
-        <translation>Positiva (&gt; 0)</translation>
+        <source>Outflows (&gt; 0)</source>
+        <translation>Salidas (&gt; 0)</translation>
     </message>
     <message>
         <location filename="../ui/project/qgisred_legends_dialog.py" line="730"/>
-        <source>Negative (&lt; 0)</source>
-        <translation>Negativa (&lt; 0)</translation>
+        <source>Inflows (&lt; 0)</source>
+        <translation>Entradas (&lt; 0)</translation>
     </message>
     <message>
         <location filename="../ui/project/qgisred_legends_dialog.py" line="733"/>
