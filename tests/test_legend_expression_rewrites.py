@@ -1701,6 +1701,11 @@ def _embeddedSvg(layerElement):
     return base64.b64decode(_option(layerElement, "name")[len("base64:"):]).decode("utf-8")
 
 
+def _pipesCheckValveIcon():
+    path = os.path.join(PLUGIN_ROOT, "defaults", "layerStyles", "Pipes.qml.bak")
+    return ET.parse(path).getroot().find("renderer-v2/symbols/symbol/layer[@class='MarkerLine']/symbol/layer")
+
+
 ISOLATED_LINKS_STYLE = "IsolatedSegmentsLinks.qml.bak"
 ISOLATED_NODES_STYLE = "IsolatedSegmentsNodes.qml.bak"
 ISOLATED_DEMANDS_STYLE = "IsolatedSegmentsIsolatedDemands.qml.bak"
@@ -1739,14 +1744,18 @@ FIXED_LEGENDS = {
 }
 EVERY_FIXED_LEGEND = pytest.mark.parametrize("identifier", sorted(FIXED_LEGENDS))
 # The sizes under the expressions: the lines have a width, the markers on them are hidden in the Layers Panel
-ISOLATED_LINK_BASE_SIZES = {"connectionLine": 1.4, "connectionCircle": 0, "pipeLine": 1.4, "pump": 0, "valve": 0}
+ISOLATED_LINK_BASE_SIZES = {
+    "connectionLine": 0.6, "connectionCircle": 0, "pipeLine": 0.8, "pump": 0, "valve": 0, "cvPipe": 0,
+}
+# The check valve icon of the Pipes style, drawn on the pipes whose Status is CV
+ISOLATED_CV_SIZE = isolatedLinkSize("PIPE' and \"Status\"='CV", 9)
 # What each class of the nodes is drawn with: (marker, node type it is drawn for or None for
 # any, size on the map, size in the Layers Panel)
-VALVE_CIRCLE = [("circle", "ISOLATIONVALVE", 2, 2)]
-JUNCTION_AND_VALVE_CIRCLES = [("circle", "JUNCTION", 2, 2), ("circle", "ISOLATIONVALVE", 2, 0)]
+VALVE_CIRCLE = [("circle", "ISOLATIONVALVE", 3.5, 3.5)]
+JUNCTION_AND_VALVE_CIRCLES = [("circle", "JUNCTION", 2.5, 2.5), ("circle", "ISOLATIONVALVE", 3.5, 0)]
 TANK_AND_RESERVOIR_ICONS = [
-    ("qgisred_water", "TANK", 7, 0), ("qgisred_frame", "TANK", 7, 0),
-    ("qgisred_water", "RESERVOIR", 7, 0), ("qgisred_frame", "RESERVOIR", 7, 0),
+    ("qgisred_water", "TANK", 10, 0), ("qgisred_frame", "TANK", 10, 0),
+    ("qgisred_water", "RESERVOIR", 10, 0), ("qgisred_frame", "RESERVOIR", 10, 0),
 ]
 ISOLATED_NODE_LAYERS = {
     "NOW CLOSED": VALVE_CIRCLE + TANK_AND_RESERVOIR_ICONS,
@@ -1827,7 +1836,7 @@ class TestShippedFixedLegends:
         assert set(utils.isolatedStatusClassNames()) == set(ISOLATED_NODE_COLORS)
         assert set(utils.isolatedDemandClassNames()) == set(ISOLATED_DEMAND_COLORS)
 
-    @pytest.mark.parametrize("value, size", [("JUNCTION", 3), ("CONNECTION", 2)])
+    @pytest.mark.parametrize("value, size", [("JUNCTION", 3.5), ("CONNECTION", 2.5)])
     def test_each_class_of_the_isolated_demands_is_a_hollow_circle(self, value, size):
         [ring] = _classLayers(ISOLATED_DEMANDS_STYLE, value)
         assert (ring.get("class"), _option(ring, "name")) == ("SimpleMarker", "circle")
@@ -1837,23 +1846,26 @@ class TestShippedFixedLegends:
 
     @pytest.mark.parametrize("value, color", ISOLATED_LINK_COLORS.items())
     def test_each_class_of_the_links_draws_every_element_in_its_color(self, value, color):
-        connectionLine, connectionCircle, pipeLine, pump, valve = _classLayers(ISOLATED_LINKS_STYLE, value)
-        circle, pumpIcon, valveIcon = [layer.find("symbol/layer") for layer in (connectionCircle, pump, valve)]
-        assert _dataDefinedExpressions(connectionLine)["outlineWidth"] == isolatedLinkSize("SERVICECONNECTION", 1.1)
+        connectionLine, connectionCircle, pipeLine, pump, valve, cvPipe = _classLayers(ISOLATED_LINKS_STYLE, value)
+        circle, pumpIcon, valveIcon, cvIcon = [
+            layer.find("symbol/layer") for layer in (connectionCircle, pump, valve, cvPipe)]
+        assert _dataDefinedExpressions(connectionLine)["outlineWidth"] == isolatedLinkSize("SERVICECONNECTION", 0.6)
         assert _dataDefinedExpressions(circle)["size"] == isolatedLinkSize("SERVICECONNECTION", 2)
         assert pipeLine.get("class") == "SimpleLine" and "outlineWidth" not in _dataDefinedExpressions(pipeLine)
-        assert _dataDefinedExpressions(pumpIcon)["size"] == isolatedLinkSize("PUMP", 6)
-        assert _dataDefinedExpressions(valveIcon)["size"] == isolatedLinkSize("VALVE", 6)
+        assert _dataDefinedExpressions(pumpIcon)["size"] == isolatedLinkSize("PUMP", 9)
+        assert _dataDefinedExpressions(valveIcon)["size"] == isolatedLinkSize("VALVE", 9)
+        assert _dataDefinedExpressions(cvIcon)["size"] == ISOLATED_CV_SIZE
+        assert cvIcon.get("class") == "SvgMarker" and _embeddedSvg(cvIcon) == _embeddedSvg(_pipesCheckValveIcon())
         baseSizes = {
             "connectionLine": _option(connectionLine, "line_width"), "connectionCircle": _option(circle, "size"),
             "pipeLine": _option(pipeLine, "line_width"), "pump": _option(pumpIcon, "size"),
-            "valve": _option(valveIcon, "size"),
+            "valve": _option(valveIcon, "size"), "cvPipe": _option(cvIcon, "size"),
         }
         assert {name: float(size) for name, size in baseSizes.items()} == ISOLATED_LINK_BASE_SIZES
         assert [_optionColor(line, "line_color") for line in (connectionLine, pipeLine)] == [color, color]
         assert (_optionColor(circle, "color"), _optionColor(circle, "outline_color")) == ("#ffffff", color)
-        assert [_optionColor(icon, "color") for icon in (pumpIcon, valveIcon)] == [color, color]
-        for layer in (connectionLine, circle, pipeLine, pumpIcon, valveIcon):
+        assert [_optionColor(icon, "color") for icon in (pumpIcon, valveIcon, cvIcon)] == [color, color, color]
+        for layer in (connectionLine, circle, pipeLine, pumpIcon, valveIcon, cvIcon):
             assert not {"outlineColor", "fillColor"} & set(_dataDefinedExpressions(layer))
 
     @pytest.mark.parametrize("value, expectedLayers", ISOLATED_NODE_LAYERS.items())
@@ -2148,9 +2160,9 @@ class TestFixedLegendsInQgis:
         dialog = self._dialogOn(layer)
         symbol = dict(self._classSymbols(layer))["ISOLATED"]
         dialog.applyFixedClassColor(symbol, "ISOLATED", QColor(self.PICKED))
-        connectionLine, circle, pipeLine, pumpIcon, valveIcon = paintedColors(symbol)
+        connectionLine, circle, pipeLine, pumpIcon, valveIcon, cvIcon = paintedColors(symbol)
         assert circle == ("#ffffff", self.PICKED)
-        assert [fill for fill, _stroke in (connectionLine, pipeLine, pumpIcon, valveIcon)] == [self.PICKED] * 4
+        assert [fill for fill, _stroke in (connectionLine, pipeLine, pumpIcon, valveIcon, cvIcon)] == [self.PICKED] * 5
 
     @EVERY_FIXED_LEGEND
     def test_the_swatch_previews_what_apply_paints(self, identifier):
@@ -2300,6 +2312,37 @@ class TestFixedLegendsInQgis:
         ]
         layer.setRenderer(QgsCategorizedSymbolRenderer("NodeType", olderClasses))
         assert dialog.hasLegacyFixedLegend(layer)
+
+
+@pytest.mark.skipif(not REAL_QGIS, reason="needs QGIS to evaluate the size expressions of the shipped style")
+class TestCheckValveMarkerInQgis:
+    """Isolated Segments links: the check valve icon is only drawn on the pipes whose Status is CV."""
+
+    def _cvIconSize(self, elemType, status):
+        from qgis.core import QgsExpression, QgsExpressionContext, QgsExpressionContextUtils, QgsFeature, QgsVectorLayer
+
+        layer = QgsVectorLayer("LineString?crs=EPSG:3857&field=Id:string&field=ElemType:string&field=Status:string",
+                               "links", "memory")
+        layer.loadNamedStyle(os.path.join(PLUGIN_ROOT, "defaults", "layerStyles", ISOLATED_LINKS_STYLE))
+        feature = QgsFeature(layer.fields())
+        feature.setAttributes(["P1", elemType, status])
+        context = QgsExpressionContext(QgsExpressionContextUtils.globalProjectLayerScopes(layer))
+        context.setFeature(feature)
+        context.lastScope().setVariable("id", "P1")
+        renderer = layer.renderer()
+        category = renderer.categories()[0]
+        symbol = category.symbol().clone()
+        markerLine = symbol.symbolLayer(5)
+        icon = markerLine.subSymbol().symbolLayer(0)
+        expression = QgsExpression(icon.dataDefinedProperties().property(SIZE_KEY).expressionString())
+        return expression.evaluate(context)
+
+    def test_a_check_valve_pipe_gets_the_icon_at_its_size(self):
+        assert self._cvIconSize("PIPE", "CV") == 9
+
+    @pytest.mark.parametrize("elemType, status", [("PIPE", "OPEN"), ("PIPE", "CLOSED"), ("VALVE", "CV")])
+    def test_any_other_link_gets_no_icon(self, elemType, status):
+        assert self._cvIconSize(elemType, status) == 0
 
 
 class TestDemandsSwatchPreview:

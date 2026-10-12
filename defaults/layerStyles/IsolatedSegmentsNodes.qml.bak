@@ -179,7 +179,7 @@
             <Option name="outline_width_map_unit_scale" value="3x:0,0,0,0,0,0" type="QString"/>
             <Option name="outline_width_unit" value="MM" type="QString"/>
             <Option name="scale_method" value="diameter" type="QString"/>
-            <Option name="size" value="2" type="QString"/>
+            <Option name="size" value="3.5" type="QString"/>
             <Option name="size_map_unit_scale" value="3x:0,0,0,0,0,0" type="QString"/>
             <Option name="size_unit" value="MM" type="QString"/>
             <Option name="vertical_anchor_point" value="1" type="QString"/>
@@ -190,7 +190,7 @@
               <Option name="properties" type="Map">
                 <Option name="size" type="Map">
                   <Option name="active" value="true" type="bool"/>
-                  <Option name="expression" value="if(@id is NULL, NULL, if(coalesce(attribute($currentfeature,'NodeType'),attribute($currentfeature,'ElemType'))='ISOLATIONVALVE', 2, 0))" type="QString"/>
+                  <Option name="expression" value="if(@id is NULL, NULL, if(coalesce(attribute($currentfeature,'NodeType'),attribute($currentfeature,'ElemType'))='ISOLATIONVALVE', 3.5, 0))" type="QString"/>
                   <Option name="type" value="3" type="int"/>
                 </Option>
               </Option>
@@ -225,7 +225,7 @@
               <Option name="properties" type="Map">
                 <Option name="size" type="Map">
                   <Option name="active" value="true" type="bool"/>
-                  <Option name="expression" value="if(@id is NULL, NULL, if(coalesce(attribute($currentfeature,'NodeType'),attribute($currentfeature,'ElemType'))='TANK', 7, 0))" type="QString"/>
+                  <Option name="expression" value="if(@id is NULL, NULL, if(coalesce(attribute($currentfeature,'NodeType'),attribute($currentfeature,'ElemType'))='TANK', 10, 0))" type="QString"/>
                   <Option name="type" value="3" type="int"/>
                 </Option>
               </Option>
@@ -260,7 +260,7 @@
               <Option name="properties" type="Map">
                 <Option name="size" type="Map">
                   <Option name="active" value="true" type="bool"/>
-                  <Option name="expression" value="if(@id is NULL, NULL, if(coalesce(attribute($currentfeature,'NodeType'),attribute($currentfeature,'ElemType'))='TANK', 7, 0))" type="QString"/>
+                  <Option name="expression" value="if(@id is NULL, NULL, if(coalesce(attribute($currentfeature,'NodeType'),attribute($currentfeature,'ElemType'))='TANK', 10, 0))" type="QString"/>
                   <Option name="type" value="3" type="int"/>
                 </Option>
               </Option>
@@ -295,7 +295,7 @@
               <Option name="properties" type="Map">
                 <Option name="size" type="Map">
                   <Option name="active" value="true" type="bool"/>
-                  <Option name="expression" value="if(@id is NULL, NULL, if(coalesce(attribute($currentfeature,'NodeType'),attribute($currentfeature,'ElemType'))='RESERVOIR', 7, 0))" type="QString"/>
+                  <Option name="expression" value="if(@id is NULL, NULL, if(coalesce(attribute($currentfeature,'NodeType'),attribute($currentfeature,'ElemType'))='RESERVOIR', 10, 0))" type="QString"/>
                   <Option name="type" value="3" type="int"/>
                 </Option>
               </Option>
@@ -330,7 +330,7 @@
               <Option name="properties" type="Map">
                 <Option name="size" type="Map">
                   <Option name="active" value="true" type="bool"/>
-                  <Option name="expression" value="if(@id is NULL, NULL, if(coalesce(attribute($currentfeature,'NodeType'),attribute($currentfeature,'ElemType'))='RESERVOIR', 7, 0))" type="QString"/>
+                  <Option name="expression" value="if(@id is NULL, NULL, if(coalesce(attribute($currentfeature,'NodeType'),attribute($currentfeature,'ElemType'))='RESERVOIR', 10, 0))" type="QString"/>
                   <Option name="type" value="3" type="int"/>
                 </Option>
               </Option>
@@ -364,7 +364,7 @@
             <Option name="outline_width_map_unit_scale" value="3x:0,0,0,0,0,0" type="QString"/>
             <Option name="outline_width_unit" value="MM" type="QString"/>
             <Option name="scale_method" value="diameter" type="QString"/>
-            <Option name="size" value="2" type="QString"/>
+            <Option name="size" value="3.5" type="QString"/>
             <Option name="size_map_unit_scale" value="3x:0,0,0,0,0,0" type="QString"/>
             <Option name="size_unit" value="MM" type="QString"/>
             <Option name="vertical_anchor_point" value="1" type="QString"/>
@@ -375,7 +375,7 @@
               <Option name="properties" type="Map">
                 <Option name="size" type="Map">
                   <Option name="active" value="true" type="bool"/>
-                  <Option name="expression" value="if(@id is NULL, NULL, if(coalesce(attribute($currentfeature,'NodeType'),attribute($currentfeature,'ElemType'))='ISOLATIONVALVE', 2, 0))" type="QString"/>
+                  <Option name="expression" value="if(@id is NULL, NULL, if(coalesce(attribute($currentfeature,'NodeType'),attribute($currentfeature,'ElemType'))='ISOLATIONVALVE', 3.5, 0))" type="QString"/>
                   <Option name="type" value="3" type="int"/>
                 </Option>
               </Option>
@@ -410,7 +410,7 @@
               <Option name="properties" type="Map">
                 <Option name="size" type="Map">
                   <Option name="active" value="true" type="bool"/>
-                  <Option name="expression" value="if(@id is NULL, NULL, if(coalesce(attribute($currentfeature,'NodeType'),attribute($currentfeature,'ElemType'))='TANK', 7, 0))" type="QString"/>
+                  <Option name="expression" value="if(@id is NULL, NULL, if(coalesce(attribute($currentfeature,'NodeType'),attribute($currentfeature,'ElemType'))='TANK', 10, 0))" type="QString"/>
                   <Option name="type" value="3" type="int"/>
                 </Option>
               </Option>
@@ -445,7 +445,7 @@
               <Option name="properties" type="Map">
                 <Option name="size" type="Map">
                   <Option name="active" value="true" type="bool"/>
-                  <Option name="expression" value="if(@id is NULL, NULL, if(coalesce(attribute($currentfeature,'NodeType'),attribute($currentfeature,'ElemType'))='TANK', 7, 0))" type="QString"/>
+                  <Option name="expression" value="if(@id is NULL, NULL, if(coalesce(attribute($currentfeature,'NodeType'),attribute($currentfeature,'ElemType'))='TANK', 10, 0))" type="QString"/>
                   <Option name="type" value="3" type="int"/>
                 </Option>
               </Option>
@@ -480,7 +480,7 @@
               <Option name="properties" type="Map">
                 <Option name="size" type="Map">
                   <Option name="active" value="true" type="bool"/>
-                  <Option name="expression" value="if(@id is NULL, NULL, if(coalesce(attribute($currentfeature,'NodeType'),attribute($currentfeature,'ElemType'))='RESERVOIR', 7, 0))" type="QString"/>
+                  <Option name="expression" value="if(@id is NULL, NULL, if(coalesce(attribute($currentfeature,'NodeType'),attribute($currentfeature,'ElemType'))='RESERVOIR', 10, 0))" type="QString"/>
                   <Option name="type" value="3" type="int"/>
                 </Option>
               </Option>
@@ -515,7 +515,7 @@
               <Option name="properties" type="Map">
                 <Option name="size" type="Map">
                   <Option name="active" value="true" type="bool"/>
-                  <Option name="expression" value="if(@id is NULL, NULL, if(coalesce(attribute($currentfeature,'NodeType'),attribute($currentfeature,'ElemType'))='RESERVOIR', 7, 0))" type="QString"/>
+                  <Option name="expression" value="if(@id is NULL, NULL, if(coalesce(attribute($currentfeature,'NodeType'),attribute($currentfeature,'ElemType'))='RESERVOIR', 10, 0))" type="QString"/>
                   <Option name="type" value="3" type="int"/>
                 </Option>
               </Option>
@@ -549,7 +549,7 @@
             <Option name="outline_width_map_unit_scale" value="3x:0,0,0,0,0,0" type="QString"/>
             <Option name="outline_width_unit" value="MM" type="QString"/>
             <Option name="scale_method" value="diameter" type="QString"/>
-            <Option name="size" value="2" type="QString"/>
+            <Option name="size" value="3.5" type="QString"/>
             <Option name="size_map_unit_scale" value="3x:0,0,0,0,0,0" type="QString"/>
             <Option name="size_unit" value="MM" type="QString"/>
             <Option name="vertical_anchor_point" value="1" type="QString"/>
@@ -560,7 +560,7 @@
               <Option name="properties" type="Map">
                 <Option name="size" type="Map">
                   <Option name="active" value="true" type="bool"/>
-                  <Option name="expression" value="if(@id is NULL, NULL, if(coalesce(attribute($currentfeature,'NodeType'),attribute($currentfeature,'ElemType'))='ISOLATIONVALVE', 2, 0))" type="QString"/>
+                  <Option name="expression" value="if(@id is NULL, NULL, if(coalesce(attribute($currentfeature,'NodeType'),attribute($currentfeature,'ElemType'))='ISOLATIONVALVE', 3.5, 0))" type="QString"/>
                   <Option name="type" value="3" type="int"/>
                 </Option>
               </Option>
@@ -595,7 +595,7 @@
               <Option name="properties" type="Map">
                 <Option name="size" type="Map">
                   <Option name="active" value="true" type="bool"/>
-                  <Option name="expression" value="if(@id is NULL, NULL, if(coalesce(attribute($currentfeature,'NodeType'),attribute($currentfeature,'ElemType'))='TANK', 7, 0))" type="QString"/>
+                  <Option name="expression" value="if(@id is NULL, NULL, if(coalesce(attribute($currentfeature,'NodeType'),attribute($currentfeature,'ElemType'))='TANK', 10, 0))" type="QString"/>
                   <Option name="type" value="3" type="int"/>
                 </Option>
               </Option>
@@ -630,7 +630,7 @@
               <Option name="properties" type="Map">
                 <Option name="size" type="Map">
                   <Option name="active" value="true" type="bool"/>
-                  <Option name="expression" value="if(@id is NULL, NULL, if(coalesce(attribute($currentfeature,'NodeType'),attribute($currentfeature,'ElemType'))='TANK', 7, 0))" type="QString"/>
+                  <Option name="expression" value="if(@id is NULL, NULL, if(coalesce(attribute($currentfeature,'NodeType'),attribute($currentfeature,'ElemType'))='TANK', 10, 0))" type="QString"/>
                   <Option name="type" value="3" type="int"/>
                 </Option>
               </Option>
@@ -665,7 +665,7 @@
               <Option name="properties" type="Map">
                 <Option name="size" type="Map">
                   <Option name="active" value="true" type="bool"/>
-                  <Option name="expression" value="if(@id is NULL, NULL, if(coalesce(attribute($currentfeature,'NodeType'),attribute($currentfeature,'ElemType'))='RESERVOIR', 7, 0))" type="QString"/>
+                  <Option name="expression" value="if(@id is NULL, NULL, if(coalesce(attribute($currentfeature,'NodeType'),attribute($currentfeature,'ElemType'))='RESERVOIR', 10, 0))" type="QString"/>
                   <Option name="type" value="3" type="int"/>
                 </Option>
               </Option>
@@ -700,7 +700,7 @@
               <Option name="properties" type="Map">
                 <Option name="size" type="Map">
                   <Option name="active" value="true" type="bool"/>
-                  <Option name="expression" value="if(@id is NULL, NULL, if(coalesce(attribute($currentfeature,'NodeType'),attribute($currentfeature,'ElemType'))='RESERVOIR', 7, 0))" type="QString"/>
+                  <Option name="expression" value="if(@id is NULL, NULL, if(coalesce(attribute($currentfeature,'NodeType'),attribute($currentfeature,'ElemType'))='RESERVOIR', 10, 0))" type="QString"/>
                   <Option name="type" value="3" type="int"/>
                 </Option>
               </Option>
@@ -734,7 +734,7 @@
             <Option name="outline_width_map_unit_scale" value="3x:0,0,0,0,0,0" type="QString"/>
             <Option name="outline_width_unit" value="MM" type="QString"/>
             <Option name="scale_method" value="diameter" type="QString"/>
-            <Option name="size" value="2" type="QString"/>
+            <Option name="size" value="2.5" type="QString"/>
             <Option name="size_map_unit_scale" value="3x:0,0,0,0,0,0" type="QString"/>
             <Option name="size_unit" value="MM" type="QString"/>
             <Option name="vertical_anchor_point" value="1" type="QString"/>
@@ -745,7 +745,7 @@
               <Option name="properties" type="Map">
                 <Option name="size" type="Map">
                   <Option name="active" value="true" type="bool"/>
-                  <Option name="expression" value="if(@id is NULL, NULL, if(coalesce(attribute($currentfeature,'NodeType'),attribute($currentfeature,'ElemType'))='JUNCTION', 2, 0))" type="QString"/>
+                  <Option name="expression" value="if(@id is NULL, NULL, if(coalesce(attribute($currentfeature,'NodeType'),attribute($currentfeature,'ElemType'))='JUNCTION', 2.5, 0))" type="QString"/>
                   <Option name="type" value="3" type="int"/>
                 </Option>
               </Option>
@@ -781,7 +781,7 @@
               <Option name="properties" type="Map">
                 <Option name="size" type="Map">
                   <Option name="active" value="true" type="bool"/>
-                  <Option name="expression" value="if(@id is NULL, NULL, if(coalesce(attribute($currentfeature,'NodeType'),attribute($currentfeature,'ElemType'))='ISOLATIONVALVE', 2, 0))" type="QString"/>
+                  <Option name="expression" value="if(@id is NULL, NULL, if(coalesce(attribute($currentfeature,'NodeType'),attribute($currentfeature,'ElemType'))='ISOLATIONVALVE', 3.5, 0))" type="QString"/>
                   <Option name="type" value="3" type="int"/>
                 </Option>
               </Option>
@@ -816,7 +816,7 @@
               <Option name="properties" type="Map">
                 <Option name="size" type="Map">
                   <Option name="active" value="true" type="bool"/>
-                  <Option name="expression" value="if(@id is NULL, NULL, if(coalesce(attribute($currentfeature,'NodeType'),attribute($currentfeature,'ElemType'))='TANK', 7, 0))" type="QString"/>
+                  <Option name="expression" value="if(@id is NULL, NULL, if(coalesce(attribute($currentfeature,'NodeType'),attribute($currentfeature,'ElemType'))='TANK', 10, 0))" type="QString"/>
                   <Option name="type" value="3" type="int"/>
                 </Option>
               </Option>
@@ -851,7 +851,7 @@
               <Option name="properties" type="Map">
                 <Option name="size" type="Map">
                   <Option name="active" value="true" type="bool"/>
-                  <Option name="expression" value="if(@id is NULL, NULL, if(coalesce(attribute($currentfeature,'NodeType'),attribute($currentfeature,'ElemType'))='TANK', 7, 0))" type="QString"/>
+                  <Option name="expression" value="if(@id is NULL, NULL, if(coalesce(attribute($currentfeature,'NodeType'),attribute($currentfeature,'ElemType'))='TANK', 10, 0))" type="QString"/>
                   <Option name="type" value="3" type="int"/>
                 </Option>
               </Option>
@@ -886,7 +886,7 @@
               <Option name="properties" type="Map">
                 <Option name="size" type="Map">
                   <Option name="active" value="true" type="bool"/>
-                  <Option name="expression" value="if(@id is NULL, NULL, if(coalesce(attribute($currentfeature,'NodeType'),attribute($currentfeature,'ElemType'))='RESERVOIR', 7, 0))" type="QString"/>
+                  <Option name="expression" value="if(@id is NULL, NULL, if(coalesce(attribute($currentfeature,'NodeType'),attribute($currentfeature,'ElemType'))='RESERVOIR', 10, 0))" type="QString"/>
                   <Option name="type" value="3" type="int"/>
                 </Option>
               </Option>
@@ -921,7 +921,7 @@
               <Option name="properties" type="Map">
                 <Option name="size" type="Map">
                   <Option name="active" value="true" type="bool"/>
-                  <Option name="expression" value="if(@id is NULL, NULL, if(coalesce(attribute($currentfeature,'NodeType'),attribute($currentfeature,'ElemType'))='RESERVOIR', 7, 0))" type="QString"/>
+                  <Option name="expression" value="if(@id is NULL, NULL, if(coalesce(attribute($currentfeature,'NodeType'),attribute($currentfeature,'ElemType'))='RESERVOIR', 10, 0))" type="QString"/>
                   <Option name="type" value="3" type="int"/>
                 </Option>
               </Option>
@@ -955,7 +955,7 @@
             <Option name="outline_width_map_unit_scale" value="3x:0,0,0,0,0,0" type="QString"/>
             <Option name="outline_width_unit" value="MM" type="QString"/>
             <Option name="scale_method" value="diameter" type="QString"/>
-            <Option name="size" value="2" type="QString"/>
+            <Option name="size" value="2.5" type="QString"/>
             <Option name="size_map_unit_scale" value="3x:0,0,0,0,0,0" type="QString"/>
             <Option name="size_unit" value="MM" type="QString"/>
             <Option name="vertical_anchor_point" value="1" type="QString"/>
@@ -966,7 +966,7 @@
               <Option name="properties" type="Map">
                 <Option name="size" type="Map">
                   <Option name="active" value="true" type="bool"/>
-                  <Option name="expression" value="if(@id is NULL, NULL, if(coalesce(attribute($currentfeature,'NodeType'),attribute($currentfeature,'ElemType'))='JUNCTION', 2, 0))" type="QString"/>
+                  <Option name="expression" value="if(@id is NULL, NULL, if(coalesce(attribute($currentfeature,'NodeType'),attribute($currentfeature,'ElemType'))='JUNCTION', 2.5, 0))" type="QString"/>
                   <Option name="type" value="3" type="int"/>
                 </Option>
               </Option>
@@ -1002,7 +1002,7 @@
               <Option name="properties" type="Map">
                 <Option name="size" type="Map">
                   <Option name="active" value="true" type="bool"/>
-                  <Option name="expression" value="if(@id is NULL, NULL, if(coalesce(attribute($currentfeature,'NodeType'),attribute($currentfeature,'ElemType'))='ISOLATIONVALVE', 2, 0))" type="QString"/>
+                  <Option name="expression" value="if(@id is NULL, NULL, if(coalesce(attribute($currentfeature,'NodeType'),attribute($currentfeature,'ElemType'))='ISOLATIONVALVE', 3.5, 0))" type="QString"/>
                   <Option name="type" value="3" type="int"/>
                 </Option>
               </Option>
@@ -1037,7 +1037,7 @@
               <Option name="properties" type="Map">
                 <Option name="size" type="Map">
                   <Option name="active" value="true" type="bool"/>
-                  <Option name="expression" value="if(@id is NULL, NULL, if(coalesce(attribute($currentfeature,'NodeType'),attribute($currentfeature,'ElemType'))='TANK', 7, 0))" type="QString"/>
+                  <Option name="expression" value="if(@id is NULL, NULL, if(coalesce(attribute($currentfeature,'NodeType'),attribute($currentfeature,'ElemType'))='TANK', 10, 0))" type="QString"/>
                   <Option name="type" value="3" type="int"/>
                 </Option>
               </Option>
@@ -1072,7 +1072,7 @@
               <Option name="properties" type="Map">
                 <Option name="size" type="Map">
                   <Option name="active" value="true" type="bool"/>
-                  <Option name="expression" value="if(@id is NULL, NULL, if(coalesce(attribute($currentfeature,'NodeType'),attribute($currentfeature,'ElemType'))='TANK', 7, 0))" type="QString"/>
+                  <Option name="expression" value="if(@id is NULL, NULL, if(coalesce(attribute($currentfeature,'NodeType'),attribute($currentfeature,'ElemType'))='TANK', 10, 0))" type="QString"/>
                   <Option name="type" value="3" type="int"/>
                 </Option>
               </Option>
@@ -1107,7 +1107,7 @@
               <Option name="properties" type="Map">
                 <Option name="size" type="Map">
                   <Option name="active" value="true" type="bool"/>
-                  <Option name="expression" value="if(@id is NULL, NULL, if(coalesce(attribute($currentfeature,'NodeType'),attribute($currentfeature,'ElemType'))='RESERVOIR', 7, 0))" type="QString"/>
+                  <Option name="expression" value="if(@id is NULL, NULL, if(coalesce(attribute($currentfeature,'NodeType'),attribute($currentfeature,'ElemType'))='RESERVOIR', 10, 0))" type="QString"/>
                   <Option name="type" value="3" type="int"/>
                 </Option>
               </Option>
@@ -1142,7 +1142,7 @@
               <Option name="properties" type="Map">
                 <Option name="size" type="Map">
                   <Option name="active" value="true" type="bool"/>
-                  <Option name="expression" value="if(@id is NULL, NULL, if(coalesce(attribute($currentfeature,'NodeType'),attribute($currentfeature,'ElemType'))='RESERVOIR', 7, 0))" type="QString"/>
+                  <Option name="expression" value="if(@id is NULL, NULL, if(coalesce(attribute($currentfeature,'NodeType'),attribute($currentfeature,'ElemType'))='RESERVOIR', 10, 0))" type="QString"/>
                   <Option name="type" value="3" type="int"/>
                 </Option>
               </Option>
