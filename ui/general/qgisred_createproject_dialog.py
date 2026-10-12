@@ -120,7 +120,7 @@ class QGISRedCreateProjectDialog(QDialog, FORM_CLASS):
             epsg = self.crs.authid().replace("EPSG:", "")
             units = self.cbUnits.currentText()
             headloss = self.cbHeadloss.currentText()
-            materialPath = self.cbMaterials.currentData()
+            materialPath = self.cbMaterials.currentData() or ""
 
             # Process
             QApplication.setOverrideCursor(Qt.CursorShape.WaitCursor)

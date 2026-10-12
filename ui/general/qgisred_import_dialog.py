@@ -244,7 +244,7 @@ class QGISRedImportDialog(QDialog, FORM_CLASS):
         epsg = self.crs.authid().replace("EPSG:", "")
         units = self.cbUnits.currentText()
         headloss = self.cbHeadloss.currentText()
-        materialPath = self.cbMaterials.itemData(self.cbMaterials.currentIndex())
+        materialPath = self.cbMaterials.itemData(self.cbMaterials.currentIndex()) or ""
 
         # Process
         QApplication.setOverrideCursor(Qt.CursorShape.WaitCursor)
