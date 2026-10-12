@@ -1,9 +1,9 @@
 # -*- coding: utf-8 -*-
 """The connectivity links layer completes its shipped style with one class per subnet.
 
-The shipped QML is a legend by SubNet with only the grey "Other" class; once the check
-runs, every subnet id becomes a class coloured in order from the default Sequential
-palette, so each subnet can be told apart on the map.
+The shipped QML is a legend by SubNet with no class yet, only the 0.8 mm source line;
+once the check runs, every subnet id becomes a class coloured in order from the default
+Sequential palette, so each subnet can be told apart on the map.
 """
 import os
 
@@ -43,12 +43,13 @@ def _classNames(layer):
 
 
 class TestSubnetClasses:
-    def test_the_shipped_style_is_a_legend_by_subnet_with_only_the_other_class(self):
+    def test_the_shipped_style_is_a_legend_by_subnet_with_no_class_yet(self):
         layer = _connectivityLayer([])
 
         assert layer.renderer().type() == "categorizedSymbol"
         assert layer.renderer().classAttribute() == "SubNet"
-        assert [category.value() for category in layer.renderer().categories()] == [""]
+        assert [category.value() for category in layer.renderer().categories()] == []
+        assert layer.renderer().sourceSymbol().symbolLayer(0).width() == 0.8
         assert layer.renderer().sourceColorRamp() is None
 
     def test_each_subnet_takes_the_sequential_palette_in_order(self):
@@ -57,8 +58,8 @@ class TestSubnetClasses:
         QGISRedStylingUtils().fillCategoriesFromData(layer, "SubNet")
 
         categories = layer.renderer().categories()
-        assert [category.value() for category in categories] == ["", "1", "2", "3"]
-        assert [category.symbol().color().name() for category in categories[1:]] == _paletteNames()[:3]
+        assert [category.value() for category in categories] == ["1", "2", "3"]
+        assert [category.symbol().color().name() for category in categories] == _paletteNames()[:3]
 
     def test_more_subnets_than_colours_start_the_palette_over(self):
         count = len(_paletteNames()) + 2
@@ -66,7 +67,7 @@ class TestSubnetClasses:
 
         QGISRedStylingUtils().fillCategoriesFromData(layer, "SubNet")
 
-        names = [category.symbol().color().name() for category in layer.renderer().categories()[1:]]
+        names = [category.symbol().color().name() for category in layer.renderer().categories()]
         assert names[:2] == names[-2:]
 
     def test_a_subnet_saved_in_the_style_keeps_its_colour_and_the_others_skip_it(self):
@@ -92,6 +93,6 @@ class TestSubnetClasses:
         QGISRedStylingUtils().fillCategoriesFromData(layer, "SubNet")
 
         categories = layer.renderer().categories()
-        symbol = categories[1].symbol()
+        symbol = categories[0].symbol()
         assert symbol.symbolLayer(0).layerType() == template.symbolLayer(0).layerType()
-        assert symbol.symbolLayer(0).width() == template.symbolLayer(0).width()
+        assert symbol.symbolLayer(0).width() == template.symbolLayer(0).width() == 0.8
