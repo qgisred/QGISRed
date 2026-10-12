@@ -122,7 +122,8 @@ class TestApplyLegendStrategyDispatch:
         utils = _utils()
         utils.calls = []
         utils.applyAllClassesSnapshot = lambda layer, field, block: utils.calls.append("snapshot")
-        utils.applyCategorizedColors = lambda layer, field, index, block: utils.calls.append("rebuild")
+        utils.applyCategorizedColors = (
+            lambda layer, field, index, block, descending=False: utils.calls.append(("rebuild", descending)))
         utils.applyCategorizedColorsInPlace = lambda layer, block: utils.calls.append("inPlace")
         utils.applyGraduatedClassification = lambda layer, field, block: utils.calls.append("intervals")
         utils.applySizesStrategy = lambda layer, block: utils.calls.append("sizes")
@@ -143,12 +144,18 @@ class TestApplyLegendStrategyDispatch:
     def test_colors_only_still_rebuilds_from_data(self):
         utils = self._recordingUtils()
         utils.applyLegendStrategy(FakeLayer(), self._strategy(["colors"]))
-        assert utils.calls == ["rebuild"]
+        assert utils.calls == [("rebuild", False)]
+
+    def test_the_rebuild_follows_the_saved_sort_order(self):
+        utils = self._recordingUtils()
+        strategy = dict(self._strategy(["colors"]), sortOrder="descending")
+        utils.applyLegendStrategy(FakeLayer(), strategy)
+        assert utils.calls == [("rebuild", True)]
 
     def test_v1_without_parts_keeps_the_legacy_rebuild(self):
         utils = self._recordingUtils()
         utils.applyLegendStrategy(FakeLayer(), self._strategy(None, schema="qgisred.legendStrategy.v1"))
-        assert utils.calls == ["rebuild"]
+        assert utils.calls == [("rebuild", False)]
 
 
 class TestInPlaceRecolor:

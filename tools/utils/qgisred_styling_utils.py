@@ -417,7 +417,8 @@ class QGISRedStylingUtils:
                 elif fieldIndex != -1:
                     # The rebuild reads unique values through the field index, so it
                     # only applies to real columns (fieldIndex == -1 means an expression here).
-                    self.applyCategorizedColors(layer, field, fieldIndex, colorsBlock)
+                    self.applyCategorizedColors(layer, field, fieldIndex, colorsBlock,
+                                                descending=strategy.get("sortOrder") == "descending")
             elif mode == "graduated":
                 keepsNegativeClass = bool(self.resolveIntervalsBlock(strategy).get("negativeClass"))
                 self.applyGraduatedColors(layer, colorsBlock, keepsNegativeClass)
@@ -626,7 +627,7 @@ class QGISRedStylingUtils:
         if categories:
             layer.setRenderer(QgsCategorizedSymbolRenderer(field, categories))
 
-    def applyCategorizedColors(self, layer, field, fieldIndex, colorsBlock):
+    def applyCategorizedColors(self, layer, field, fieldIndex, colorsBlock, descending=False):
         source = colorsBlock.get("source") or "random"
         rampName = colorsBlock.get("rampName")
         invertRamp = colorsBlock.get("invertRamp", False)
@@ -634,6 +635,7 @@ class QGISRedStylingUtils:
         uniqueValues = sorted(
             layer.dataProvider().uniqueValues(fieldIndex),
             key=lambda value: ("" if value == NULL else str(value)),
+            reverse=descending,
         )
         nonNullValues = [value for value in uniqueValues if value != NULL]
         nullValues = [value for value in uniqueValues if value == NULL]

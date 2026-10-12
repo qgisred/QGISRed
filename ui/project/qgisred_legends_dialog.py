@@ -574,7 +574,7 @@ class QGISRedLegendsDialog(QDialog, formClass):
         foundSpecials = [v for v in specialValues if v in values]
 
         del allLayer
-        return sorted(regularValues) + foundSpecials
+        return self.sortClassValues(regularValues) + foundSpecials
 
     def config(self, qgisInterface, projectDirectory, networkName, parentPlugin):
         self.parentPlugin = parentPlugin
@@ -598,6 +598,7 @@ class QGISRedLegendsDialog(QDialog, formClass):
         self.setupTableView()
         self.setupClassCountField()
         self.setupClassifyAllButton()
+        self.setupSortOrderCombo()
         self.setupAddClassMenu()
         self.setupInputRestrictionNotice()
         self.populateClassificationModes()
@@ -698,6 +699,12 @@ class QGISRedLegendsDialog(QDialog, formClass):
         self.btClassifyAll.setIcon(QIcon(":/images/iconClassifyAll.svg"))
         self.btClassifyAll.setText(self.tr("Add all values"))
         self.btClassifyAll.clicked.connect(self.classifyAllUniqueValues)
+
+    def setupSortOrderCombo(self):
+        self.cbSortOrder.addItem(self.tr("Ascending"), "ascending")
+        self.cbSortOrder.addItem(self.tr("Descending"), "descending")
+        self.cbSortOrder.setToolTip(self.tr("Order of the values when the classes are added"))
+        self.cbSortOrder.currentIndexChanged.connect(self.onSortOrderChanged)
 
     def setupAddClassMenu(self):
         """Main click adds below the selection; the arrow opens the other insert options."""
@@ -3063,7 +3070,7 @@ class QGISRedLegendsDialog(QDialog, formClass):
         regularValues = [v for v in values if v not in specialValues]
         foundSpecials = [v for v in specialValues if v in values]
 
-        return sorted(regularValues) + foundSpecials
+        return self.sortClassValues(regularValues) + foundSpecials
 
     def getUniqueValuesFromExpression(self):
         """Evaluate currentFieldName as an expression over every feature and collect the results."""
@@ -3396,7 +3403,18 @@ class QGISRedLegendsDialog(QDialog, formClass):
         specialValues = ["NULL", "#NA"]
         regularValues = [value for value in self.availableUniqueValues if value not in specialValues]
         foundSpecials = [value for value in specialValues if value in self.availableUniqueValues]
-        self.availableUniqueValues = sorted(regularValues) + foundSpecials
+        self.availableUniqueValues = self.sortClassValues(regularValues) + foundSpecials
+
+    def isDescendingOrder(self):
+        sortOrderCombo = getattr(self, "cbSortOrder", None)
+        return sortOrderCombo is not None and sortOrderCombo.currentData() == "descending"
+
+    def sortClassValues(self, values):
+        return sorted(values, reverse=self.isDescendingOrder())
+
+    def onSortOrderChanged(self):
+        if getattr(self, "availableUniqueValues", None):
+            self.sortAvailableUniqueValues()
 
     def moveClassUp(self):
         self.moveRow(-1)
@@ -4037,7 +4055,7 @@ class QGISRedLegendsDialog(QDialog, formClass):
         rawValues = layer.uniqueValues(fieldIdx)
         nonNullValues = [v for v in rawValues if v is not None and str(v) != "NULL"]
         hasNull = any(v is None or str(v) == "NULL" for v in rawValues)
-        uniqueValues = sorted(nonNullValues)
+        uniqueValues = self.sortClassValues(nonNullValues)
         categories = []
 
         unitAbbr = self.getUnitAbbrForLayer()
@@ -5606,6 +5624,7 @@ class QGISRedLegendsDialog(QDialog, formClass):
                 self.cbLegendsType.setCurrentIndex(index)
 
         if mode == "categorized" and self.currentFieldType == self.FIELD_TYPE_CATEGORICAL:
+            self.restoreSortOrderUi(strategy.get("sortOrder"))
             # With pinned classes (allClasses) the class list must not be re-derived from data.
             if "allClasses" not in parts and any(part in parts for part in ("intervals", "sizes", "colors")):
                 self.classifyMissingUniqueValues()
@@ -5632,6 +5651,15 @@ class QGISRedLegendsDialog(QDialog, formClass):
         if mode == "categorized":
             return ["colors"]
         return []
+
+    def restoreSortOrderUi(self, sortOrder):
+        index = self.cbSortOrder.findData(sortOrder)
+        if index < 0:
+            return
+        self.cbSortOrder.blockSignals(True)
+        self.cbSortOrder.setCurrentIndex(index)
+        self.cbSortOrder.blockSignals(False)
+        self.onSortOrderChanged()
 
     def restoreIntervalsUi(self, intervalsBlock):
         classificationMode = intervalsBlock.get("classificationMode")
@@ -6248,6 +6276,7 @@ class QGISRedLegendsDialog(QDialog, formClass):
             "mode": "categorized",
             "field": self.currentFieldName,
             "parts": retainedParts,
+            "sortOrder": "descending" if self.isDescendingOrder() else "ascending",
         }
         if "allClasses" in retainedParts:
             allClassesPart = self.buildAllClassesPart(renderer)
@@ -6366,6 +6395,7 @@ class QGISRedLegendsDialog(QDialog, formClass):
         self.updateClassCountWidgetsVisibility()
         self.labelFrameLegends.setVisible(isNumeric or isCategorical)
         self.btClassifyAll.setVisible(isCategorical)
+        self.cbSortOrder.setVisible(isCategorical)
 
     def updateNavigationButtonsVisibility(self, isCategorical):
         self.btUp.setVisible(isCategorical)

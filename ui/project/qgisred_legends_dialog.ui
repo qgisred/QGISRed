@@ -758,6 +758,16 @@
                   </widget>
                  </item>
                  <item>
+                  <widget class="QComboBox" name="cbSortOrder">
+                   <property name="minimumSize">
+                    <size>
+                     <width>100</width>
+                     <height>0</height>
+                    </size>
+                   </property>
+                  </widget>
+                 </item>
+                 <item>
                   <spacer name="classControlsSpacer">
                    <property name="orientation">
                     <enum>Qt::Horizontal</enum>
@@ -914,6 +924,7 @@
   <tabstop>btClassifyAll</tabstop>
   <tabstop>btClassPlus</tabstop>
   <tabstop>btClassMinus</tabstop>
+  <tabstop>cbSortOrder</tabstop>
   <tabstop>btLoadMenu</tabstop>
   <tabstop>btSaveMenu</tabstop>
   <tabstop>btAcceptLegend</tabstop>
