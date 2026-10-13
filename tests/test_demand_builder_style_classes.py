@@ -257,7 +257,8 @@ class TestLabels:
 
         categories = layer.renderer().categories()
         names = {category.value(): category.symbol().color().name() for category in categories}
-        expression = layer.labeling().settings().dataDefinedProperties().property(PAL_PROPERTY_COLOR).expressionString()
+        settings = layer.labeling().settings()
+        expression = settings.dataDefinedProperties().property(PAL_PROPERTY_COLOR).expressionString()
         assert "THEN '%s'" % names["Dom"] in expression
         assert "THEN '%s'" % names["Uncategorized"] in expression
 
