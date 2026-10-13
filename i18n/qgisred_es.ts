@@ -323,7 +323,7 @@
     <message>
         <location filename="../ui/queries/qgisred_thematicmaps_dialog.ui" line="94"/>
         <source>Age</source>
-        <translation>Antigüedad</translation>
+        <translation>Edad</translation>
     </message>
     <message>
         <location filename="../ui/queries/qgisred_thematicmaps_dialog.ui" line="101"/>
@@ -1337,7 +1337,7 @@
     <message>
         <location filename="../tools/qgisred_translatable_strings.py" line="11"/>
         <source>Age</source>
-        <translation>Antigüedad</translation>
+        <translation>Edad</translation>
     </message>
     <message>
         <location filename="../tools/qgisred_translatable_strings.py" line="16"/>
@@ -1642,7 +1642,7 @@
     <message>
         <location filename="../tools/qgisred_translatable_strings.py" line="159"/>
         <source>Ages</source>
-        <translation>Antigüedades</translation>
+        <translation>Edades</translation>
     </message>
     <message>
         <location filename="../tools/qgisred_translatable_strings.py" line="160"/>
@@ -2190,7 +2190,7 @@
     <message>
         <location filename="../tools/qgisred_translatable_strings.py" line="329"/>
         <source>Pipe Ages</source>
-        <translation>Antigüedad de Tubería</translation>
+        <translation>Edad de Tubería</translation>
     </message>
     <message>
         <location filename="../tools/qgisred_translatable_strings.py" line="327"/>
