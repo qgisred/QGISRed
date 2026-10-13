@@ -6,7 +6,7 @@ from qgis.PyQt.QtGui import QColor, QPixmap, QPainter, QIcon, QDoubleValidator
 from ...compat import PAINTER_ANTIALIASING, STYLE_CC_COMBOBOX, STYLE_CE_COMBOBOXLABEL, SL_PROP_FILL_COLOR
 from ...compat import SL_PROP_SIZE, SL_PROP_WIDTH, SL_PROP_STROKE_WIDTH, sip
 from ...tools.utils.qgisred_styling_utils import QGISRedStylingUtils
-from qgis.PyQt.QtWidgets import QDialog, QDialogButtonBox, QDoubleSpinBox, QLabel, QVBoxLayout
+from qgis.PyQt.QtWidgets import QDialog, QDialogButtonBox, QDoubleSpinBox, QLabel, QVBoxLayout, QHBoxLayout
 from qgis.PyQt.QtWidgets import QToolButton, QComboBox, QApplication, QStylePainter, QStyleOptionComboBox, QSizePolicy
 from qgis.PyQt.QtWidgets import QCheckBox, QLineEdit, QRadioButton, QSpinBox
 from qgis.PyQt.QtCore import pyqtSignal, Qt, QEvent, QSize, QObject, QPoint, QItemSelectionModel, QItemSelection
@@ -74,7 +74,8 @@ class QGISRedSaveStrategyDialog(QDialog):
     always means "recalculated when the style is loaded".
     """
 
-    def __init__(self, layerName, isGlobal, isCategorical, partOptions, initialParts=(), parent=None):
+    def __init__(self, layerName, isGlobal, isCategorical, partOptions, initialParts=(), classOrder="none",
+                 parent=None):
         super().__init__(parent)
 
         self.layerName = layerName
@@ -85,6 +86,8 @@ class QGISRedSaveStrategyDialog(QDialog):
         self.rbFixedLegend = QRadioButton(self.tr("Fixed legend: save it exactly as shown"))
         self.rbAutomaticLegend = QRadioButton(self.tr("Automatic legend: recalculate it when the style is loaded"))
         self.ckStructural = self.createPartCheckBox("structural")
+        self.labelClassOrder = QLabel(self.tr("Class Order"))
+        self.cbClassOrder = self.createClassOrderCombo(classOrder)
         self.ckSizes = self.createPartCheckBox("sizes")
         self.ckColors = self.createPartCheckBox("colors")
 
@@ -97,12 +100,21 @@ class QGISRedSaveStrategyDialog(QDialog):
         self.setupLayout()
         self.rbAutomaticLegend.toggled.connect(self.updatePartsEnabled)
         self.ckColors.toggled.connect(self.updatePartsEnabled)
+        self.ckStructural.toggled.connect(self.updateClassOrderEnabled)
 
     def createPartCheckBox(self, part):
         summary, reason = self.partOptions[part]
         checkBox = QCheckBox(summary)
         checkBox.setToolTip(reason)
         return checkBox
+
+    def createClassOrderCombo(self, classOrder):
+        combo = QComboBox()
+        combo.addItem(self.tr("None"), "none")
+        combo.addItem(self.tr("Ascending"), "ascending")
+        combo.addItem(self.tr("Descending"), "descending")
+        combo.setCurrentIndex(max(combo.findData(classOrder), 0))
+        return combo
 
     def isPartApplicable(self, part):
         return not self.partOptions[part][1]
@@ -115,10 +127,21 @@ class QGISRedSaveStrategyDialog(QDialog):
         layout.addWidget(self.rbAutomaticLegend)
         partsLayout = QVBoxLayout()
         partsLayout.setContentsMargins(24, 0, 0, 0)
-        for checkBox in (self.ckStructural, self.ckSizes, self.ckColors):
-            partsLayout.addWidget(checkBox)
+        partsLayout.addWidget(self.ckStructural)
+        if self.isCategorical:
+            partsLayout.addLayout(self.createClassOrderRow())
+        partsLayout.addWidget(self.ckSizes)
+        partsLayout.addWidget(self.ckColors)
         layout.addLayout(partsLayout)
         self.addStandardButtons(layout)
+
+    def createClassOrderRow(self):
+        rowLayout = QHBoxLayout()
+        rowLayout.setContentsMargins(24, 0, 0, 0)
+        rowLayout.addWidget(self.labelClassOrder)
+        rowLayout.addWidget(self.cbClassOrder)
+        rowLayout.addStretch()
+        return rowLayout
 
     def addStandardButtons(self, layout):
         buttonBox = QDialogButtonBox(QDialogButtonBox.StandardButton.Ok | QDialogButtonBox.StandardButton.Cancel)
@@ -152,6 +175,15 @@ class QGISRedSaveStrategyDialog(QDialog):
         self.ckStructural.setEnabled(structuralEnabled)
         if not structuralEnabled:
             self.ckStructural.setChecked(False)
+        self.updateClassOrderEnabled()
+
+    def updateClassOrderEnabled(self, _checked=None):
+        classOrderEnabled = self.ckStructural.isEnabled() and self.ckStructural.isChecked()
+        self.cbClassOrder.setEnabled(classOrderEnabled)
+        self.labelClassOrder.setEnabled(classOrderEnabled)
+
+    def selectedClassOrder(self):
+        return self.cbClassOrder.currentData() if self.cbClassOrder.isEnabled() else "none"
 
     def selectedParts(self):
         if not self.rbAutomaticLegend.isChecked():

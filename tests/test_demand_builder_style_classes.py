@@ -34,6 +34,22 @@ def _pointsTheme(categories):
     return layer
 
 
+def _linksTheme(categories):
+    from qgis.core import QgsVectorLayer, QgsFeature, QgsGeometry, QgsPointXY
+
+    layer = QgsVectorLayer(
+        "LineString?crs=EPSG:25830&field=LinkID:string&field=Category:string&field=%Dem:double", "links", "memory")
+    provider = layer.dataProvider()
+    for index, category in enumerate(categories):
+        feature = QgsFeature(layer.fields())
+        feature.setGeometry(QgsGeometry.fromPolylineXY([QgsPointXY(index, 0), QgsPointXY(index, 1)]))
+        feature.setAttributes(["L%d" % index, category, 50.0])
+        provider.addFeature(feature)
+    layer.updateExtents()
+    layer.loadNamedStyle(os.path.join(SHIPPED, "DemandBuilderDemandLinks.qml.bak"))
+    return layer
+
+
 def _sectorsTheme(sectorIds, idField="SectorID:integer"):
     from qgis.core import QgsVectorLayer, QgsFeature, QgsGeometry, QgsPointXY
 
@@ -49,6 +65,14 @@ def _sectorsTheme(sectorIds, idField="SectorID:integer"):
     layer.updateExtents()
     layer.loadNamedStyle(os.path.join(SHIPPED, "DemandBuilderSectors.qml.bak"))
     return layer
+
+
+def _shippedFontFamily(name):
+    # The offscreen platform has no fonts, so the family is read from the file, not the font
+    import re
+
+    with open(os.path.join(SHIPPED, name + ".qml.bak"), encoding="utf-8") as handle:
+        return re.search(r'fontFamily="([^"]*)"', handle.read()).group(1)
 
 
 def _rgb(color):
@@ -269,3 +293,157 @@ class TestLabels:
 
         assert layer.labelsEnabled()
         assert layer.labeling().settings().fieldName == "Fact2024"
+
+    def test_the_point_label_is_narrow_italic_8_points_2_mm_away(self):
+        layer = _pointsTheme([])
+        settings = layer.labeling().settings()
+
+        assert _shippedFontFamily("DemandBuilderConsumptionPoints") == "Arial Narrow"
+        assert settings.format().font().italic()
+        assert settings.format().size() == pytest.approx(8)
+        assert settings.dist == pytest.approx(2)
+
+    def test_the_links_label_is_8_points_half_a_mm_away(self):
+        layer = _linksTheme([])
+        settings = layer.labeling().settings()
+
+        assert _shippedFontFamily("DemandBuilderDemandLinks") == "Arial"
+        assert settings.format().size() == pytest.approx(8)
+        assert settings.dist == pytest.approx(0.5)
+
+    def test_the_sectors_are_labelled_by_their_id_in_arial_black_10_with_a_white_buffer(self):
+        layer = _sectorsTheme([1])
+        settings = layer.labeling().settings()
+
+        assert layer.labelsEnabled()
+        assert settings.fieldName == "SectorID"
+        assert _shippedFontFamily("DemandBuilderSectors") == "Arial Black"
+        assert settings.format().size() == pytest.approx(10)
+        assert settings.format().buffer().enabled()
+        assert _rgb(settings.format().buffer().color()) == (255, 255, 255)
+
+    def test_a_sectors_file_without_sector_id_is_labelled_by_its_category(self):
+        layer = _sectorsTheme(["Zona A"], idField="Zone:string")
+
+        QGISRedStylingUtils().completeDemandBuilderStyle(layer, False)
+
+        assert layer.labeling().settings().fieldName == "Category"
+        assert layer.mapTipTemplate() == "[% COALESCE(\"Category\", '<NULL>') %]"
+
+
+class TestMapTips:
+    def test_the_points_tip_shows_the_base_demand_and_follows_its_renamed_column(self):
+        layer = _pointsTheme(["Dom"])
+        assert layer.mapTipTemplate() == "[% COALESCE(\"BaseDem\", '<NULL>') %]"
+
+        QGISRedStylingUtils().completeDemandBuilderStyle(layer, True)
+
+        assert layer.mapTipTemplate() == "[% COALESCE(\"Fact2024\", '<NULL>') %]"
+
+    def test_the_links_tip_shows_the_demand_percent(self):
+        assert _linksTheme([]).mapTipTemplate() == "[% COALESCE(\"%Dem\" || '%', '<NULL>') %]"
+
+    def test_the_sectors_tip_shows_the_sector_id(self):
+        assert _sectorsTheme([]).mapTipTemplate() == "[% COALESCE(\"SectorID\", '<NULL>') %]"
+
+
+class TestShippedLooks:
+    def test_the_links_are_dashed(self):
+        from qgis.PyQt.QtCore import Qt
+
+        layer = _linksTheme([])
+        assert layer.renderer().sourceSymbol().symbolLayer(0).penStyle() == Qt.PenStyle.DashLine
+
+    def test_the_sectors_fill_at_40_percent_with_a_black_half_mm_border(self):
+        layer = _sectorsTheme([])
+        fill = layer.renderer().sourceSymbol().symbolLayer(0)
+
+        assert fill.color().alpha() == 102
+        assert _rgb(fill.strokeColor()) == (0, 0, 0)
+        assert fill.strokeWidth() == pytest.approx(0.5)
+
+
+class TestColorStrategy:
+    def _inProject(self, layers):
+        from qgis.core import QgsProject
+
+        QgsProject.instance().addMapLayers(layers, False)
+        return layers
+
+    def _removeFromProject(self, layers):
+        from qgis.core import QgsProject
+
+        QgsProject.instance().removeMapLayers([layer.id() for layer in layers])
+
+    def test_the_shipped_style_names_the_default_sequential_palette(self):
+        from QGISRed.tools.utils.qgisred_styling_utils import DEMAND_BUILDER_PALETTE_NAME
+
+        layer = _pointsTheme([])
+        assert QGISRedStylingUtils().demandBuilderPaletteName(layer) == DEMAND_BUILDER_PALETTE_NAME
+
+    def test_a_random_strategy_gives_one_category_the_same_colour_in_every_theme(self):
+        import json
+
+        random = {"schema": "qgisred.legendStrategy.v2", "mode": "categorized", "field": "Category",
+                  "parts": ["colors"], "colors": {"source": "random", "rampName": None}}
+        points = _pointsTheme(["Dom", "Ind"])
+        links = _linksTheme(["Ind", "Dom"])
+        for layer in (points, links):
+            layer.setCustomProperty("qgisred_legend_strategy", json.dumps(random))
+
+        QGISRedStylingUtils().completeDemandBuilderStyle(points, True)
+        QGISRedStylingUtils().completeDemandBuilderStyle(links, False)
+
+        assert _classColours(points) == _classColours(links)
+        assert _classColours(points)["Dom"] != _classColours(points)["Ind"]
+
+    def test_a_category_takes_the_colour_the_open_sibling_theme_gives_it(self):
+        from qgis.core import QgsCategorizedSymbolRenderer, QgsRendererCategory
+        from qgis.PyQt.QtGui import QColor
+
+        points = _pointsTheme(["Dom", "Ind"])
+        points.setCustomProperty("qgisred_identifier", "qgisred_demandbuilder_consumptionpoints")
+        shipped = points.renderer()
+        saved = shipped.sourceSymbol().clone()
+        saved.setColor(QColor(200, 0, 0))
+        renderer = QgsCategorizedSymbolRenderer(shipped.classAttribute(), [QgsRendererCategory("Ind", saved, "Ind")])
+        renderer.setSourceSymbol(shipped.sourceSymbol().clone())
+        points.setRenderer(renderer)
+        links = _linksTheme(["Ind", "Com"])
+        links.setCustomProperty("qgisred_identifier", "qgisred_demandbuilder_demandlinks")
+        layers = self._inProject([points, links])
+        try:
+            QGISRedStylingUtils().completeDemandBuilderStyle(links, False)
+            colours = _classColours(links)
+        finally:
+            self._removeFromProject(layers)
+
+        assert colours["Ind"] == (200, 0, 0)
+        assert colours["Com"] == _rgb(QGISRedStylingUtils().demandBuilderPaletteColors()[0])
+
+    def test_a_sibling_coloured_from_another_palette_is_not_copied(self):
+        import json
+
+        from qgis.core import QgsCategorizedSymbolRenderer, QgsRendererCategory
+        from qgis.PyQt.QtGui import QColor
+
+        points = _pointsTheme(["Ind"])
+        points.setCustomProperty("qgisred_identifier", "qgisred_demandbuilder_consumptionpoints")
+        points.setCustomProperty("qgisred_legend_strategy", json.dumps(
+            {"schema": "qgisred.legendStrategy.v2", "mode": "categorized", "field": "Category",
+             "parts": ["colors"], "colors": {"source": "ramp", "rampName": "Other"}}))
+        shipped = points.renderer()
+        saved = shipped.sourceSymbol().clone()
+        saved.setColor(QColor(200, 0, 0))
+        points.setRenderer(QgsCategorizedSymbolRenderer(
+            shipped.classAttribute(), [QgsRendererCategory("Ind", saved, "Ind")]))
+        links = _linksTheme(["Ind"])
+        links.setCustomProperty("qgisred_identifier", "qgisred_demandbuilder_demandlinks")
+        layers = self._inProject([points, links])
+        try:
+            QGISRedStylingUtils().completeDemandBuilderStyle(links, False)
+            colours = _classColours(links)
+        finally:
+            self._removeFromProject(layers)
+
+        assert colours["Ind"] == _rgb(QGISRedStylingUtils().demandBuilderPaletteColors()[0])

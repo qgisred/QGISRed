@@ -575,7 +575,7 @@ class QGISRedLegendsDialog(QDialog, formClass):
         foundSpecials = [v for v in specialValues if v in values]
 
         del allLayer
-        return self.sortClassValues(regularValues) + foundSpecials
+        return sorted(regularValues) + foundSpecials
 
     def config(self, qgisInterface, projectDirectory, networkName, parentPlugin):
         self.parentPlugin = parentPlugin
@@ -599,7 +599,7 @@ class QGISRedLegendsDialog(QDialog, formClass):
         self.setupTableView()
         self.setupClassCountField()
         self.setupClassifyAllButton()
-        self.setupSortOrderCombo()
+        self.setupClassOrderCombo()
         self.setupAddClassMenu()
         self.setupInputRestrictionNotice()
         self.populateClassificationModes()
@@ -702,11 +702,11 @@ class QGISRedLegendsDialog(QDialog, formClass):
         self.btClassifyAll.setText(self.tr("Add all values"))
         self.btClassifyAll.clicked.connect(self.classifyAllUniqueValues)
 
-    def setupSortOrderCombo(self):
-        self.cbSortOrder.addItem(self.tr("Ascending"), "ascending")
-        self.cbSortOrder.addItem(self.tr("Descending"), "descending")
-        self.cbSortOrder.setToolTip(self.tr("Order of the values when the classes are added"))
-        self.cbSortOrder.currentIndexChanged.connect(self.onSortOrderChanged)
+    def setupClassOrderCombo(self):
+        self.cbClassOrder.addItem(self.tr("None"), "none")
+        self.cbClassOrder.addItem(self.tr("Ascending"), "ascending")
+        self.cbClassOrder.addItem(self.tr("Descending"), "descending")
+        self.cbClassOrder.setToolTip(self.tr("Sort the classes by their values when the legend is applied"))
 
     def setupAddClassMenu(self):
         """Main click adds below the selection; the arrow opens the other insert options."""
@@ -893,9 +893,8 @@ class QGISRedLegendsDialog(QDialog, formClass):
         isFill = self.getGeometryHint() == "fill"
         for widget in (self.line_8, self.labelFillOpacity, self.spinFillOpacity, self.labelBorder, self.cbBorder):
             widget.setVisible(isFill)
-        # The width goes with the borders drawn from the fill; a black one keeps the rows' widths
-        self.spinBorderWidth.setVisible(
-            isFill and self.currentBorderMode() in (self.BORDER_MODE_FILL, self.BORDER_MODE_DARKER))
+        # Every drawn border has a width; only "No border" has nothing to size
+        self.spinBorderWidth.setVisible(isFill and self.currentBorderMode() != self.BORDER_MODE_NONE)
 
     def onBorderModeChanged(self):
         self.updateFillControlsVisibility()
@@ -3104,7 +3103,7 @@ class QGISRedLegendsDialog(QDialog, formClass):
         regularValues = [v for v in values if v not in specialValues]
         foundSpecials = [v for v in specialValues if v in values]
 
-        return self.sortClassValues(regularValues) + foundSpecials
+        return sorted(regularValues) + foundSpecials
 
     def getUniqueValuesFromExpression(self):
         """Evaluate currentFieldName as an expression over every feature and collect the results."""
@@ -3437,18 +3436,27 @@ class QGISRedLegendsDialog(QDialog, formClass):
         specialValues = ["NULL", "#NA"]
         regularValues = [value for value in self.availableUniqueValues if value not in specialValues]
         foundSpecials = [value for value in specialValues if value in self.availableUniqueValues]
-        self.availableUniqueValues = self.sortClassValues(regularValues) + foundSpecials
+        self.availableUniqueValues = sorted(regularValues) + foundSpecials
 
-    def isDescendingOrder(self):
-        sortOrderCombo = getattr(self, "cbSortOrder", None)
-        return sortOrderCombo is not None and sortOrderCombo.currentData() == "descending"
+    def currentClassOrder(self):
+        classOrderCombo = getattr(self, "cbClassOrder", None)
+        return classOrderCombo.currentData() if classOrderCombo is not None else "none"
 
-    def sortClassValues(self, values):
-        return sorted(values, reverse=self.isDescendingOrder())
-
-    def onSortOrderChanged(self):
-        if getattr(self, "availableUniqueValues", None):
-            self.sortAvailableUniqueValues()
+    def sortTableRowsByClassOrder(self):
+        """Reorder the class rows by value; NULL, #NA and Other Values stay last in their order."""
+        classOrder = self.currentClassOrder()
+        if classOrder == "none" or self.currentFieldType != self.FIELD_TYPE_CATEGORICAL:
+            return
+        specialValues = ["NULL", "#NA", self.tr("Other Values"), "Other Values"]
+        rows = [(self.getRowClassValue(row), self.getRowData(row)) for row in range(self.tableView.rowCount())]
+        regularRows = sorted((item for item in rows if item[0] not in specialValues),
+                             key=lambda item: item[0], reverse=classOrder == "descending")
+        specialRows = [item for item in rows if item[0] in specialValues]
+        if [item[0] for item in regularRows + specialRows] == [item[0] for item in rows]:
+            return
+        for row, (_value, data) in enumerate(regularRows + specialRows):
+            self.setRowData(row, data)
+        self.markLegendEdited()
 
     def moveClassUp(self):
         self.moveRow(-1)
@@ -4089,7 +4097,7 @@ class QGISRedLegendsDialog(QDialog, formClass):
         rawValues = layer.uniqueValues(fieldIdx)
         nonNullValues = [v for v in rawValues if v is not None and str(v) != "NULL"]
         hasNull = any(v is None or str(v) == "NULL" for v in rawValues)
-        uniqueValues = self.sortClassValues(nonNullValues)
+        uniqueValues = sorted(nonNullValues)
         categories = []
 
         unitAbbr = self.getUnitAbbrForLayer()
@@ -4533,6 +4541,7 @@ class QGISRedLegendsDialog(QDialog, formClass):
         # setRenderer already rebuilds the layer's legend in the Layers Panel;
         # an extra refreshLayerSymbology here would rebuild the nodes twice in
         # one event-loop turn and can crash the panel's deferred repaint.
+        self.sortTableRowsByClassOrder()
         renderer = self.buildRendererFromDialog()
         if renderer is not None:
             self.currentLayer.setRenderer(renderer)
@@ -4575,12 +4584,13 @@ class QGISRedLegendsDialog(QDialog, formClass):
                 self.projectDirectory, self.networkName, self.qgisInterface
             ).applyNullStyle(self.currentLayer)
 
-    def _syncDemandBuilderLabelColors(self, appliedRenderer):
+    def _syncDemandBuilderLabelColors(self, appliedRenderer, layer=None):
         """Rebuild the label color expression so labels keep matching their category symbol."""
-        identifier = self.currentLayer.customProperty("qgisred_identifier") if self.currentLayer else None
+        layer = layer or self.currentLayer
+        identifier = layer.customProperty("qgisred_identifier") if layer else None
         if identifier not in self.DEMANDS_BUILDER_EDITABLE_IDENTIFIERS:
             return
-        labeling = self.currentLayer.labeling()
+        labeling = layer.labeling()
         if labeling is None:
             return
         if isinstance(appliedRenderer, QgsCategorizedSymbolRenderer):
@@ -5629,11 +5639,14 @@ class QGISRedLegendsDialog(QDialog, formClass):
             self.currentFieldType == self.FIELD_TYPE_CATEGORICAL,
             self.describeStrategyParts(),
             initialParts=self.strategyParts(previousStrategy) if previousStrategy else (),
+            classOrder=self.currentClassOrder(),
             parent=self,
         )
         if dialog.exec_() != QDialog.DialogCode.Accepted:
             return None
 
+        if self.currentFieldType == self.FIELD_TYPE_CATEGORICAL:
+            self.restoreClassOrderUi(dialog.selectedClassOrder())
         return dialog.selectedParts()
 
     def strategyParts(self, strategy):
@@ -5658,7 +5671,7 @@ class QGISRedLegendsDialog(QDialog, formClass):
                 self.cbLegendsType.setCurrentIndex(index)
 
         if mode == "categorized" and self.currentFieldType == self.FIELD_TYPE_CATEGORICAL:
-            self.restoreSortOrderUi(strategy.get("sortOrder"))
+            self.restoreClassOrderUi(strategy.get("classOrder"))
             # With pinned classes (allClasses) the class list must not be re-derived from data.
             if "allClasses" not in parts and any(part in parts for part in ("intervals", "sizes", "colors")):
                 self.classifyMissingUniqueValues()
@@ -5686,14 +5699,10 @@ class QGISRedLegendsDialog(QDialog, formClass):
             return ["colors"]
         return []
 
-    def restoreSortOrderUi(self, sortOrder):
-        index = self.cbSortOrder.findData(sortOrder)
-        if index < 0:
-            return
-        self.cbSortOrder.blockSignals(True)
-        self.cbSortOrder.setCurrentIndex(index)
-        self.cbSortOrder.blockSignals(False)
-        self.onSortOrderChanged()
+    def restoreClassOrderUi(self, classOrder):
+        index = self.cbClassOrder.findData(classOrder)
+        if index >= 0:
+            self.cbClassOrder.setCurrentIndex(index)
 
     def restoreIntervalsUi(self, intervalsBlock):
         classificationMode = intervalsBlock.get("classificationMode")
@@ -6310,7 +6319,7 @@ class QGISRedLegendsDialog(QDialog, formClass):
             "mode": "categorized",
             "field": self.currentFieldName,
             "parts": retainedParts,
-            "sortOrder": "descending" if self.isDescendingOrder() else "ascending",
+            "classOrder": self.currentClassOrder(),
         }
         if "allClasses" in retainedParts:
             allClassesPart = self.buildAllClassesPart(renderer)
@@ -6429,7 +6438,8 @@ class QGISRedLegendsDialog(QDialog, formClass):
         self.updateClassCountWidgetsVisibility()
         self.labelFrameLegends.setVisible(isNumeric or isCategorical)
         self.btClassifyAll.setVisible(isCategorical)
-        self.cbSortOrder.setVisible(isCategorical)
+        self.labelClassOrder.setVisible(isCategorical)
+        self.cbClassOrder.setVisible(isCategorical)
 
     def updateNavigationButtonsVisibility(self, isCategorical):
         self.btUp.setVisible(isCategorical)
@@ -6949,6 +6959,8 @@ class QGISRedLegendsDialog(QDialog, formClass):
             layer = QgsProject.instance().mapLayer(layerId)
             if snapshot is not None and layer is not None:
                 layer.setRenderer(snapshot.clone())
+                # The labels follow the colours put back, not the ones they were last applied with
+                self._syncDemandBuilderLabelColors(layer.renderer(), layer)
                 layer.triggerRepaint()
 
     def revertToOriginalStyle(self):
@@ -6958,6 +6970,7 @@ class QGISRedLegendsDialog(QDialog, formClass):
         if snapshot is None:
             return
         self.currentLayer.setRenderer(snapshot.clone())
+        self._syncDemandBuilderLabelColors(self.currentLayer.renderer())
         self.showAppliedLayerStyle()
 
     def eventFilter(self, obj, event):

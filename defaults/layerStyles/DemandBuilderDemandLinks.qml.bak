@@ -1,5 +1,5 @@
 <!DOCTYPE qgis PUBLIC 'http://mrcc.com/qgis.dtd' 'SYSTEM'>
-<qgis styleCategories="Symbology|Labeling|MapTips" labelsEnabled="1" version="3.40.0-Bratislava">
+<qgis styleCategories="Symbology|Labeling|MapTips|CustomProperties" labelsEnabled="1" version="3.40.0-Bratislava">
   <renderer-v2 referencescale="-1" type="categorizedSymbol" forceraster="0" enableorderby="0" attr="CASE WHEN &quot;Category&quot; IS NULL OR trim(&quot;Category&quot;) = '' OR lower(trim(&quot;Category&quot;)) IN ('null', 'undefined') THEN 'Uncategorized' ELSE trim(&quot;Category&quot;) END" symbollevels="0">
     <categories/>
     <symbols/>
@@ -25,7 +25,7 @@
             <Option name="draw_inside_polygon" value="0" type="QString"/>
             <Option name="joinstyle" value="bevel" type="QString"/>
             <Option name="line_color" value="255,165,0,255,rgb:1,0.6470588235294118,0,1" type="QString"/>
-            <Option name="line_style" value="solid" type="QString"/>
+            <Option name="line_style" value="dash" type="QString"/>
             <Option name="line_width" value="0.26" type="QString"/>
             <Option name="line_width_unit" value="MM" type="QString"/>
             <Option name="offset" value="0" type="QString"/>
@@ -67,7 +67,7 @@
   </selection>
   <labeling type="simple">
     <settings calloutType="simple">
-      <text-style namedStyle="" fontLetterSpacing="0" fontSizeUnit="Point" capitalization="0" fontSize="10" allowHtml="0" forcedBold="0" tabStopDistance="6" textOpacity="1" forcedItalic="0" tabStopDistanceUnit="Percentage" textColor="0,0,0,255,rgb:0,0,0,1" fontSizeMapUnitScale="3x:0,0,0,0,0,0" fontWordSpacing="0" fontFamily="Arial" multilineHeight="1" previewBkgrdColor="255,255,255,255,rgb:1,1,1,1" fontUnderline="0" fieldName="&quot;%Dem&quot; || ' %'" tabStopDistanceMapUnitScale="3x:0,0,0,0,0,0" isExpression="1" legendString="Aa" fontStrikeout="0" fontItalic="0" textOrientation="horizontal" fontWeight="50" blendMode="0" fontKerning="1" multilineHeightUnit="Percentage" useSubstitutions="0">
+      <text-style namedStyle="" fontLetterSpacing="0" fontSizeUnit="Point" capitalization="0" fontSize="8" allowHtml="0" forcedBold="0" tabStopDistance="6" textOpacity="1" forcedItalic="0" tabStopDistanceUnit="Percentage" textColor="0,0,0,255,rgb:0,0,0,1" fontSizeMapUnitScale="3x:0,0,0,0,0,0" fontWordSpacing="0" fontFamily="Arial" multilineHeight="1" previewBkgrdColor="255,255,255,255,rgb:1,1,1,1" fontUnderline="0" fieldName="&quot;%Dem&quot; || ' %'" tabStopDistanceMapUnitScale="3x:0,0,0,0,0,0" isExpression="1" legendString="Aa" fontStrikeout="0" fontItalic="0" textOrientation="horizontal" fontWeight="50" blendMode="0" fontKerning="1" multilineHeightUnit="Percentage" useSubstitutions="0">
         <families/>
         <text-buffer bufferBlendMode="0" bufferNoFill="1" bufferDraw="0" bufferSizeUnits="MM" bufferSize="1" bufferOpacity="1" bufferJoinStyle="128" bufferColor="255,255,255,255,rgb:1,1,1,1" bufferSizeMapUnitScale="3x:0,0,0,0,0,0"/>
         <text-mask maskSizeUnits="MM" maskJoinStyle="128" maskType="0" maskEnabled="0" maskSize="1.5" maskSizeMapUnitScale="3x:0,0,0,0,0,0" maskSize2="1.5" maskedSymbolLayers="" maskOpacity="1"/>
@@ -115,7 +115,7 @@
         <substitutions/>
       </text-style>
       <text-format useMaxLineLengthForAutoWrap="1" reverseDirectionSymbol="0" multilineAlign="3" autoWrapLength="0" addDirectionSymbol="0" leftDirectionSymbol="&lt;" rightDirectionSymbol=">" plussign="0" placeDirectionSymbol="0" wrapChar="" decimals="3" formatNumbers="0"/>
-      <placement offsetUnits="MM" preserveRotation="1" geometryGenerator="" fitInPolygonOnly="0" distMapUnitScale="3x:0,0,0,0,0,0" geometryGeneratorType="PointGeometry" priority="5" maxCurvedCharAngleOut="-25" polygonPlacementFlags="2" rotationUnit="AngleDegrees" repeatDistanceUnits="MM" lineAnchorType="0" prioritization="PreferCloser" dist="0" distUnits="MM" centroidInside="0" lineAnchorClipping="0" placement="2" xOffset="0" geometryGeneratorEnabled="0" repeatDistanceMapUnitScale="3x:0,0,0,0,0,0" maximumDistanceMapUnitScale="3x:0,0,0,0,0,0" centroidWhole="0" overlapHandling="PreventOverlap" overrunDistanceUnit="MM" placementFlags="10" maximumDistance="0" overrunDistance="0" quadOffset="4" layerType="UnknownGeometry" overrunDistanceMapUnitScale="3x:0,0,0,0,0,0" yOffset="0" predefinedPositionOrder="TR,TL,BR,BL,R,L,TSR,BSR" repeatDistance="0" lineAnchorPercent="0.5" offsetType="0" rotationAngle="0" allowDegraded="0" maxCurvedCharAngleIn="25" maximumDistanceUnit="MM" labelOffsetMapUnitScale="3x:0,0,0,0,0,0" lineAnchorTextPoint="FollowPlacement"/>
+      <placement offsetUnits="MM" preserveRotation="1" geometryGenerator="" fitInPolygonOnly="0" distMapUnitScale="3x:0,0,0,0,0,0" geometryGeneratorType="PointGeometry" priority="5" maxCurvedCharAngleOut="-25" polygonPlacementFlags="2" rotationUnit="AngleDegrees" repeatDistanceUnits="MM" lineAnchorType="0" prioritization="PreferCloser" dist="0.5" distUnits="MM" centroidInside="0" lineAnchorClipping="0" placement="2" xOffset="0" geometryGeneratorEnabled="0" repeatDistanceMapUnitScale="3x:0,0,0,0,0,0" maximumDistanceMapUnitScale="3x:0,0,0,0,0,0" centroidWhole="0" overlapHandling="PreventOverlap" overrunDistanceUnit="MM" placementFlags="10" maximumDistance="0" overrunDistance="0" quadOffset="4" layerType="UnknownGeometry" overrunDistanceMapUnitScale="3x:0,0,0,0,0,0" yOffset="0" predefinedPositionOrder="TR,TL,BR,BL,R,L,TSR,BSR" repeatDistance="0" lineAnchorPercent="0.5" offsetType="0" rotationAngle="0" allowDegraded="0" maxCurvedCharAngleIn="25" maximumDistanceUnit="MM" labelOffsetMapUnitScale="3x:0,0,0,0,0,0" lineAnchorTextPoint="FollowPlacement"/>
       <rendering obstacleFactor="1" zIndex="0" mergeLines="0" minFeatureSize="0" unplacedVisibility="0" fontMinPixelSize="0" obstacle="1" maxNumLabels="2000" fontLimitPixelSize="0" drawLabels="1" scaleMin="0" limitNumLabels="0" labelPerPart="0" upsidedownLabels="0" fontMaxPixelSize="10000" scaleVisibility="0" obstacleType="1" scaleMax="0"/>
       <dd_properties>
         <Option type="Map">
@@ -156,8 +156,14 @@
       </callout>
     </settings>
   </labeling>
+  <customproperties>
+    <Option type="Map">
+      <Option name="qgisred_identifier" value="qgisred_demandbuilder_demandlinks" type="QString"/>
+      <Option name="qgisred_legend_strategy" value="{&quot;schema&quot;:&quot;qgisred.legendStrategy.v2&quot;,&quot;mode&quot;:&quot;categorized&quot;,&quot;field&quot;:&quot;CASE WHEN \&quot;Category\&quot; IS NULL OR trim(\&quot;Category\&quot;) = '' OR lower(trim(\&quot;Category\&quot;)) IN ('null', 'undefined') THEN 'Uncategorized' ELSE trim(\&quot;Category\&quot;) END&quot;,&quot;parts&quot;:[&quot;colors&quot;],&quot;colors&quot;:{&quot;source&quot;:&quot;ramp&quot;,&quot;rampName&quot;:&quot;QGISRed Qualitative 10&quot;,&quot;invertRamp&quot;:false}}" type="QString"/>
+    </Option>
+  </customproperties>
   <blendMode>0</blendMode>
   <featureBlendMode>0</featureBlendMode>
-  <mapTip enabled="1"></mapTip>
+  <mapTip enabled="1">[% COALESCE("%Dem" || '%', '&lt;NULL&gt;') %]</mapTip>
   <layerGeometryType>1</layerGeometryType>
 </qgis>

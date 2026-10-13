@@ -1,23 +1,26 @@
 # -*- coding: utf-8 -*-
-"""Categorized classes can be added in ascending or descending order of their values.
+"""Class Order sorts the categorized classes when the legend is applied.
 
-The order is chosen next to the class buttons, applies to the values still to classify and
-to "Add all values", is saved with the legend strategy and is honoured again when a saved
-strategy rebuilds the classes from the data. NULL and #NA always stay last.
+The entry sits below Classes on the right side with None, Ascending and Descending. Apply
+reorders the table rows by value (None leaves them alone), NULL, #NA and Other Values stay
+last, the order is saved with the legend strategy, can be chosen again in the save dialog,
+and is honoured when a saved strategy rebuilds the classes from the data.
 """
 import pytest
 
+import QGISRed.ui.project.qgisred_legends_dialog as legendsModule
 from QGISRed.tools.utils.qgisred_styling_utils import QGISRedStylingUtils
+from QGISRed.ui.project.qgisred_custom_dialogs import QGISRedSaveStrategyDialog
 from QGISRed.ui.project.qgisred_legends_dialog import QGISRedLegendsDialog
 
 from .conftest import REAL_QGIS
 
 
-class FakeSortOrderCombo:
-    def __init__(self, order="ascending"):
-        self.items = [("Ascending", "ascending"), ("Descending", "descending")]
-        self.index = 0 if order == "ascending" else 1
-        self.blocked = []
+class FakeClassOrderCombo:
+    def __init__(self, order="none"):
+        self.items = [("None", "none"), ("Ascending", "ascending"), ("Descending", "descending")]
+        self.index = self.findData(order)
+        self.enabled = True
 
     def currentData(self):
         return self.items[self.index][1]
@@ -28,92 +31,148 @@ class FakeSortOrderCombo:
     def setCurrentIndex(self, index):
         self.index = index
 
-    def blockSignals(self, blocked):
-        self.blocked.append(blocked)
+    def isEnabled(self):
+        return self.enabled
+
+    def setEnabled(self, enabled):
+        self.enabled = bool(enabled)
 
 
-class FakeFeature:
-    def __init__(self, value):
-        self.value = value
+class FakeValueCell:
+    def __init__(self, text):
+        self._text = text
 
-    def __getitem__(self, field):
-        return self.value
+    def text(self):
+        return self._text
 
 
-class FakeLayer:
+class FakeTable:
+    """Rows are their value cell; the dialog moves them through getRowData/setRowData."""
+
     def __init__(self, values):
-        self.values = values
+        self.rows = list(values)
 
-    def fields(self):
-        class _Fields:
-            def indexOf(self, name):
-                return 0
-        return _Fields()
+    def rowCount(self):
+        return len(self.rows)
 
-    def getFeatures(self):
-        return [FakeFeature(value) for value in self.values]
-
-    def customProperty(self, key):
-        return "qgisred_pipes"
+    def cellWidget(self, row, column):
+        return FakeValueCell(self.rows[row]) if column == 3 else None
 
 
-def _dialog(order="ascending", values=("b", "a", None, "c")):
+@pytest.fixture(autouse=True)
+def valueCellsAreLineEdits(monkeypatch):
+    monkeypatch.setattr(legendsModule, "QLineEdit", FakeValueCell)
+
+
+def _dialog(order, values):
     dialog = QGISRedLegendsDialog.__new__(QGISRedLegendsDialog)
     dialog.tr = lambda text: text
-    dialog.cbSortOrder = FakeSortOrderCombo(order)
-    dialog.currentLayer = FakeLayer(values)
-    dialog.currentFieldName = "Material"
-    dialog.availableUniqueValues = []
+    dialog.cbClassOrder = FakeClassOrderCombo(order)
+    dialog.currentFieldType = QGISRedLegendsDialog.FIELD_TYPE_CATEGORICAL
+    dialog.tableView = FakeTable(values)
+    dialog.edited = False
+    dialog.getRowData = lambda row: ("row", dialog.tableView.rows[row])
+    dialog.setRowData = lambda row, data: dialog.tableView.rows.__setitem__(row, data[1])
+    dialog.markLegendEdited = lambda: setattr(dialog, "edited", True)
     return dialog
 
 
-class TestSortingTheValues:
-    def test_ascending_is_the_default(self):
-        dialog = QGISRedLegendsDialog.__new__(QGISRedLegendsDialog)
-        assert dialog.isDescendingOrder() is False
+class TestSortingTheRowsOnApply:
+    def test_the_order_is_read_from_the_combo(self):
+        assert _dialog("none", []).currentClassOrder() == "none"
 
-    def test_values_come_ascending_with_the_special_ones_last(self):
-        assert _dialog("ascending").getUniqueValuesFromLayer() == ["a", "b", "c", "NULL"]
+    def test_none_leaves_the_rows_as_they_are(self):
+        dialog = _dialog("none", ["b", "a", "c"])
+        dialog.sortTableRowsByClassOrder()
+        assert dialog.tableView.rows == ["b", "a", "c"] and dialog.edited is False
 
-    def test_values_come_descending_with_the_special_ones_still_last(self):
-        assert _dialog("descending").getUniqueValuesFromLayer() == ["c", "b", "a", "NULL"]
+    def test_ascending_sorts_the_rows_with_the_special_ones_last(self):
+        dialog = _dialog("ascending", ["NULL", "b", "Other Values", "a", "c"])
+        dialog.sortTableRowsByClassOrder()
+        assert dialog.tableView.rows == ["a", "b", "c", "NULL", "Other Values"] and dialog.edited is True
 
-    def test_changing_the_order_resorts_the_values_still_to_classify(self):
-        dialog = _dialog("ascending")
-        dialog.availableUniqueValues = ["a", "b", "NULL", "c"]
-        dialog.cbSortOrder.setCurrentIndex(1)
+    def test_descending_sorts_the_rows_with_the_special_ones_still_last(self):
+        dialog = _dialog("descending", ["b", "#NA", "a", "c"])
+        dialog.sortTableRowsByClassOrder()
+        assert dialog.tableView.rows == ["c", "b", "a", "#NA"]
 
-        dialog.onSortOrderChanged()
+    def test_rows_already_in_order_are_not_marked_edited(self):
+        dialog = _dialog("ascending", ["a", "b", "NULL"])
+        dialog.sortTableRowsByClassOrder()
+        assert dialog.edited is False
 
-        assert dialog.availableUniqueValues == ["c", "b", "a", "NULL"]
+    def test_only_categorized_legends_are_sorted(self):
+        dialog = _dialog("ascending", ["b", "a"])
+        dialog.currentFieldType = QGISRedLegendsDialog.FIELD_TYPE_NUMERIC
+        dialog.sortTableRowsByClassOrder()
+        assert dialog.tableView.rows == ["b", "a"]
 
 
 class TestSavingTheOrder:
     def _strategyDialog(self, order):
-        dialog = _dialog(order)
-        dialog.currentFieldType = QGISRedLegendsDialog.FIELD_TYPE_CATEGORICAL
+        dialog = _dialog(order, [])
+        dialog.currentFieldName = "Material"
         dialog.buildColorsPart = lambda: {"source": "random"}
         return dialog
 
-    @pytest.mark.parametrize("order", ["ascending", "descending"])
+    @pytest.mark.parametrize("order", ["none", "ascending", "descending"])
     def test_the_strategy_carries_the_order(self, order):
         strategy = self._strategyDialog(order).buildCategoricalStrategy(["colors"])
-        assert strategy["sortOrder"] == order
+        assert strategy["classOrder"] == order
 
-    def test_loading_a_strategy_selects_its_order_and_resorts(self):
-        dialog = _dialog("ascending")
-        dialog.availableUniqueValues = ["a", "b"]
-
-        dialog.restoreSortOrderUi("descending")
-
-        assert dialog.cbSortOrder.currentData() == "descending"
-        assert dialog.availableUniqueValues == ["b", "a"]
-        assert dialog.cbSortOrder.blocked == [True, False]
+    def test_loading_a_strategy_selects_its_order(self):
+        dialog = _dialog("none", [])
+        dialog.restoreClassOrderUi("descending")
+        assert dialog.cbClassOrder.currentData() == "descending"
 
     def test_a_strategy_without_an_order_leaves_the_combo_alone(self):
-        dialog = _dialog("descending")
-        dialog.restoreSortOrderUi(None)
-        assert dialog.cbSortOrder.currentData() == "descending"
+        dialog = _dialog("ascending", [])
+        dialog.restoreClassOrderUi(None)
+        assert dialog.cbClassOrder.currentData() == "ascending"
+
+
+class FakeCheckBox:
+    def __init__(self, checked=False):
+        self._checked = checked
+        self.enabled = True
+
+    def isChecked(self):
+        return self._checked
+
+    def setChecked(self, checked):
+        self._checked = bool(checked)
+
+    def isEnabled(self):
+        return self.enabled
+
+    def setEnabled(self, enabled):
+        self.enabled = bool(enabled)
+
+    def setToolTip(self, text):
+        pass
+
+
+class TestTheSaveDialogEntry:
+    def _saveDialog(self, structural, colors=True, order="ascending"):
+        dialog = QGISRedSaveStrategyDialog.__new__(QGISRedSaveStrategyDialog)
+        dialog.isCategorical = True
+        dialog.partOptions = {part: ("", "") for part in ("structural", "sizes", "colors")}
+        dialog.rbAutomaticLegend = FakeCheckBox(True)
+        dialog.ckStructural = FakeCheckBox(structural)
+        dialog.ckSizes = FakeCheckBox(False)
+        dialog.ckColors = FakeCheckBox(colors)
+        dialog.cbClassOrder = FakeClassOrderCombo(order)
+        dialog.labelClassOrder = FakeCheckBox()
+        dialog.updatePartsEnabled()
+        return dialog
+
+    def test_the_order_is_offered_while_the_classes_are_rebuilt(self):
+        dialog = self._saveDialog(structural=True)
+        assert dialog.cbClassOrder.enabled is True and dialog.selectedClassOrder() == "ascending"
+
+    def test_the_order_is_greyed_and_none_when_the_classes_are_kept(self):
+        dialog = self._saveDialog(structural=False)
+        assert dialog.cbClassOrder.enabled is False and dialog.selectedClassOrder() == "none"
 
 
 def _materialLayer(values):
@@ -145,10 +204,10 @@ class TestReplayingTheOrder:
         return strategy
 
     def test_a_descending_strategy_rebuilds_the_classes_descending(self):
-        assert self._classValues(self._strategy(sortOrder="descending")) == ["PVC", "FD", "AC"]
+        assert self._classValues(self._strategy(classOrder="descending")) == ["PVC", "FD", "AC"]
 
     def test_an_ascending_strategy_rebuilds_them_ascending(self):
-        assert self._classValues(self._strategy(sortOrder="ascending")) == ["AC", "FD", "PVC"]
+        assert self._classValues(self._strategy(classOrder="ascending")) == ["AC", "FD", "PVC"]
 
-    def test_a_strategy_saved_before_the_option_stays_ascending(self):
+    def test_a_strategy_without_an_order_stays_ascending(self):
         assert self._classValues(self._strategy()) == ["AC", "FD", "PVC"]

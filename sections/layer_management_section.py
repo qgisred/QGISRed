@@ -296,7 +296,10 @@ class LayerManagementSection:
                     vlayer.setName(showName)
 
             QgsProject.instance().addMapLayer(vlayer, False)
-            group.addChildNode(QgsLayerTreeLayer(vlayer))
+            treeNode = QgsLayerTreeLayer(vlayer)
+            if layerType is not None and layerType.showsFeatureCount:
+                treeNode.setCustomProperty("showFeatureCount", True)
+            group.addChildNode(treeNode)
 
     def closeAuxiliaryThemes(self, paths):
         if not paths:
@@ -317,6 +320,8 @@ class LayerManagementSection:
         sweeping would also pull in the user's own themes, including the ones they had
         deliberately unloaded from the layer manager.
         """
+        from ..tools.utils.qgisred_auxiliary_layers import parseBaseName
+
         paths_to_open = []
 
         extra_paths = getattr(
@@ -428,10 +433,11 @@ class LayerManagementSection:
                 False
             )
 
-            demand_builder_group.insertChildNode(
-                0,
-                QgsLayerTreeLayer(vector_layer)
-            )
+            treeNode = QgsLayerTreeLayer(vector_layer)
+            layerType, _themeName = parseBaseName(display_name, self.NetworkName)
+            if layerType is not None and layerType.showsFeatureCount:
+                treeNode.setCustomProperty("showFeatureCount", True)
+            demand_builder_group.insertChildNode(0, treeNode)
 
         self._demandBuilderExtraPaths = []
 

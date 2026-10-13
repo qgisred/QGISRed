@@ -715,6 +715,121 @@ class TestDemandBuilderClasses:
 
         assert order == ["classes", "label Fact2024", "colours"]
 
+    def test_a_sectors_label_follows_its_class_column_before_the_colours_are_matched(self):
+        styling = self._styling()
+        order = []
+        styling.fillDemandBuilderCategories = lambda layer, removeMissing: order.append("classes")
+        styling.sectorLabelToClassField = lambda layer: order.append("label")
+        styling.matchDemandBuilderLabelColors = lambda layer: order.append("colours")
+
+        styling.completeDemandBuilderStyle(MagicMock(), False)
+
+        assert order == ["classes", "label", "colours"]
+
+    def _layerWithStrategy(self, strategy):
+        import json
+
+        layer = MagicMock()
+        layer.customProperty.side_effect = (
+            lambda name: json.dumps(strategy) if strategy and name == "qgisred_legend_strategy" else None)
+        return layer
+
+    def test_the_palette_is_the_one_the_saved_strategy_names(self):
+        strategy = {"schema": "qgisred.legendStrategy.v2", "mode": "categorized", "field": "Category",
+                    "parts": ["colors"], "colors": {"source": "ramp", "rampName": "QGISRed Pastel 8"}}
+
+        assert self._styling().demandBuilderPaletteName(self._layerWithStrategy(strategy)) == "QGISRed Pastel 8"
+
+    def test_a_random_strategy_names_no_palette(self):
+        strategy = {"schema": "qgisred.legendStrategy.v2", "mode": "categorized", "field": "Category",
+                    "parts": ["colors"], "colors": {"source": "random", "rampName": None}}
+
+        assert self._styling().demandBuilderPaletteName(self._layerWithStrategy(strategy)) is None
+
+    def test_without_a_strategy_the_default_sequential_palette_is_used(self):
+        from QGISRed.tools.utils.qgisred_styling_utils import DEMAND_BUILDER_PALETTE_NAME
+
+        assert self._styling().demandBuilderPaletteName(self._layerWithStrategy(None)) == DEMAND_BUILDER_PALETTE_NAME
+        assert self._styling().demandBuilderPaletteName(None) == DEMAND_BUILDER_PALETTE_NAME
+
+    def test_the_shipped_styles_colour_from_the_default_sequential_palette(self):
+        import json
+        import re
+
+        from QGISRed.tools.utils.qgisred_styling_utils import DEMAND_BUILDER_PALETTE_NAME
+
+        root = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
+        for name in ("DemandBuilderConsumptionPoints", "DemandBuilderDemandLinks", "DemandBuilderSectors"):
+            with open(os.path.join(root, "defaults", "layerStyles", name + ".qml.bak"), encoding="utf-8") as handle:
+                text = handle.read()
+            match = re.search(r'name="qgisred_legend_strategy" value="([^"]*)"', text)
+            strategy = json.loads(match.group(1).replace("&quot;", '"'))
+            assert strategy["parts"] == ["colors"], name
+            assert strategy["colors"] == {
+                "source": "ramp", "rampName": DEMAND_BUILDER_PALETTE_NAME, "invertRamp": False}
+
+
+class TestFeatureCount:
+    """The legend counts the consumption points and the demand links, not the few sectors."""
+
+    def test_only_sectors_hide_their_count(self):
+        assert CONSUMPTION.showsFeatureCount is True
+        assert LINKS.showsFeatureCount is True
+        assert SECTORS.showsFeatureCount is False
+
+    def _makeSection(self, tmp_path, monkeypatch):
+        from QGISRed.sections import layer_management_section as mod
+        from QGISRed.sections.layer_management_section import LayerManagementSection
+
+        section = object.__new__(LayerManagementSection)
+        section.ProjectDirectory = str(tmp_path)
+        section.NetworkName = "Net"
+        section.iface = MagicMock()
+        section.getDemandBuilderGroup = MagicMock()
+        section._applyDemandBuilderStyle = MagicMock()
+        section.uniformedPaths = lambda paths: list(paths)
+        utils = MagicMock()
+        utils._tryReloadExistingLayer.return_value = None
+        monkeypatch.setattr(mod, "QGISRedLayerUtils", MagicMock(return_value=utils))
+        monkeypatch.setattr(mod, "QGISRedIdentifierUtils", MagicMock())
+        monkeypatch.setattr(mod, "QgsVectorLayer", MagicMock())
+        monkeypatch.setattr(mod, "QgsProject", MagicMock())
+        nodes = []
+
+        def makeNode(layer):
+            node = MagicMock()
+            nodes.append(node)
+            return node
+
+        monkeypatch.setattr(mod, "QgsLayerTreeLayer", makeNode)
+        return section, nodes
+
+    def _flaggedCounts(self, nodes):
+        return [node.setCustomProperty.call_args_list == [call("showFeatureCount", True)] for node in nodes]
+
+    def test_the_layer_manager_counts_points_and_links_but_not_sectors(self, tmp_path, monkeypatch):
+        section, nodes = self._makeSection(tmp_path, monkeypatch)
+        paths = [str(tmp_path / name) for name in (
+            "Net_DemandBuilder_Consumptions_A.shp", "Net_DemandBuilder_Links_A.shp", "Net_DemandBuilder_Sectors_A.shp")]
+        for path in paths:
+            open(path, "w").close()
+
+        section.openAuxiliaryThemes(paths)
+
+        assert self._flaggedCounts(nodes) == [True, True, False]
+
+    def test_the_demand_builder_run_counts_points_and_links_but_not_sectors(self, tmp_path, monkeypatch):
+        section, nodes = self._makeSection(tmp_path, monkeypatch)
+        paths = [str(tmp_path / name) for name in (
+            "Net_DemandBuilder_Consumptions.shp", "Net_DemandBuilder_Links.shp", "Net_DemandBuilder_Sectors.shp")]
+        for path in paths:
+            open(path, "w").close()
+        section._demandBuilderExtraPaths = paths
+
+        section.openDemandBuilderLayers()
+
+        assert self._flaggedCounts(nodes) == [True, True, False]
+
 
 class TestApplyAuxiliaryLayerSelection:
     def _makeSection(self):

@@ -32,6 +32,9 @@ class FakeCheckBox:
     def setChecked(self, checked):
         self._checked = bool(checked)
 
+    def isEnabled(self):
+        return self.enabled
+
     def setEnabled(self, enabled):
         self.enabled = bool(enabled)
 
@@ -55,6 +58,8 @@ class TestSaveStrategyDialog:
         dialog.ckStructural = FakeCheckBox(structural)
         dialog.ckSizes = FakeCheckBox(sizes)
         dialog.ckColors = FakeCheckBox(colors)
+        dialog.cbClassOrder = FakeCheckBox()
+        dialog.labelClassOrder = FakeCheckBox()
         return dialog
 
     def test_the_mutual_exclusion_hook_is_gone(self):

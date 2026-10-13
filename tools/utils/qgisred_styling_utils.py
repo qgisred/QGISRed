@@ -86,6 +86,10 @@ DEMAND_BUILDER_CLASS_FIELD = "Category"
 DEMAND_BUILDER_SECTOR_CLASS_FIELDS = ("SectorID", "Category")
 DEMAND_BUILDER_UNCATEGORIZED = "Uncategorized"
 DEMAND_BUILDER_PALETTE_NAME = "QGISRed Qualitative 10"
+# Themes classified by Category give one category the same colour in all of them
+DEMAND_BUILDER_SHARED_COLOR_IDENTIFIERS = (
+    "qgisred_demandbuilder_consumptionpoints", "qgisred_demandbuilder_demandlinks",
+)
 DEMAND_BUILDER_FALLBACK_COLORS = (
     "#e41a1c", "#377eb8", "#4daf4a", "#984ea3", "#ff7f00", "#a65628", "#f781bf", "#999999", "#66c2a5", "#ffd92f",
 )
@@ -418,7 +422,7 @@ class QGISRedStylingUtils:
                     # The rebuild reads unique values through the field index, so it
                     # only applies to real columns (fieldIndex == -1 means an expression here).
                     self.applyCategorizedColors(layer, field, fieldIndex, colorsBlock,
-                                                descending=strategy.get("sortOrder") == "descending")
+                                                descending=strategy.get("classOrder") == "descending")
             elif mode == "graduated":
                 keepsNegativeClass = bool(self.resolveIntervalsBlock(strategy).get("negativeClass"))
                 self.applyGraduatedColors(layer, colorsBlock, keepsNegativeClass)
@@ -1239,12 +1243,62 @@ class QGISRedStylingUtils:
         method = mapping.get(classificationMode)
         return method() if method is not None else None
 
-    def demandBuilderPaletteColors(self):
-        """The colours new classes take, in order: the default Sequential palette of the library."""
-        ramp = self.findColorRamp(DEMAND_BUILDER_PALETTE_NAME)
+    def demandBuilderColorsBlock(self, layer):
+        """How the style colours its classes, as the strategy saved with it says."""
+        rawStrategy = layer.customProperty("qgisred_legend_strategy") if layer is not None else None
+        if not rawStrategy:
+            return {}
+        with suppress(Exception):
+            return self.resolveColorsBlock(json.loads(rawStrategy))
+        return {}
+
+    def demandBuilderPaletteName(self, layer=None):
+        block = self.demandBuilderColorsBlock(layer)
+        if block.get("source") == "random":
+            return None
+        return block.get("rampName") or DEMAND_BUILDER_PALETTE_NAME
+
+    def demandBuilderPaletteColors(self, layer=None):
+        """The colours new classes take, in order: the palette the style names, else the
+        default Sequential palette of the library."""
+        ramp = self.findColorRamp(self.demandBuilderPaletteName(layer) or DEMAND_BUILDER_PALETTE_NAME)
         if ramp is None or not hasattr(ramp, "colors") or not ramp.colors():
             return [QColor(name) for name in DEMAND_BUILDER_FALLBACK_COLORS]
         return [QColor(color) for color in ramp.colors()]
+
+    def _siblingDemandBuilderColor(self, layer, value):
+        """The colour another open theme gives the same class, when both colour from one palette.
+
+        Consumption points and demand links of one category then read alike.
+        """
+        paletteName = self.demandBuilderPaletteName(layer)
+        if paletteName is None:
+            return None
+        with suppress(Exception):
+            for sibling in QgsProject.instance().mapLayers().values():
+                if sibling is layer or sibling.id() == layer.id():
+                    continue
+                identifier = sibling.customProperty("qgisred_identifier")
+                if identifier not in DEMAND_BUILDER_SHARED_COLOR_IDENTIFIERS:
+                    continue
+                renderer = sibling.renderer()
+                if renderer is None or renderer.type() != "categorizedSymbol":
+                    continue
+                if self.demandBuilderPaletteName(sibling) != paletteName:
+                    continue
+                for category in renderer.categories():
+                    if str(category.value()) == value and category.symbol() is not None:
+                        return QColor(category.symbol().color())
+        return None
+
+    def _demandBuilderClassColor(self, layer, value, palette, usedColors):
+        shared = self._siblingDemandBuilderColor(layer, value)
+        if shared is not None:
+            usedColors.append(shared.name())
+            return shared
+        if self.demandBuilderPaletteName(layer) is None:
+            return self.resolveCategoryColor(value, 0, 1, None, False)
+        return self._nextPaletteColor(palette, usedColors)
 
     @staticmethod
     def _nextPaletteColor(palette, usedColors):
@@ -1314,6 +1368,8 @@ class QGISRedStylingUtils:
         self.fillDemandBuilderCategories(layer, removeMissing)
         if consumptionPoints:
             self.pointLabelToBaseDemand(layer, baseDemandField)
+        else:
+            self.sectorLabelToClassField(layer)
         self.matchDemandBuilderLabelColors(layer)
 
     def watchDemandBuilderCategories(self, layer, consumptionPoints):
@@ -1404,14 +1460,14 @@ class QGISRedStylingUtils:
         if template is None:
             layer.setRenderer(self._rebuildCategorizedRenderer(renderer, categories))
             return
-        palette = self.demandBuilderPaletteColors()
+        palette = self.demandBuilderPaletteColors(layer)
         usedColors = [category.symbol().color().name() for category in categories if category.symbol() is not None]
         for value in newValues:
             symbol = template.clone()
             if value == DEMAND_BUILDER_UNCATEGORIZED:
                 symbol.setColor(QColor("orange"))
             else:
-                symbol.setColor(self._nextPaletteColor(palette, usedColors))
+                symbol.setColor(self._demandBuilderClassColor(layer, value, palette, usedColors))
             categories.append(QgsRendererCategory(value, symbol, self._translateCategoryLabel(value)))
         layer.setRenderer(self._rebuildCategorizedRenderer(renderer, categories))
 
@@ -1459,9 +1515,31 @@ class QGISRedStylingUtils:
         if not labelField:
             return
         settings = labeling.settings()
+        self._repointMapTip(layer, settings.fieldName, labelField)
         settings.fieldName = labelField
         settings.isExpression = False
         layer.setLabeling(QgsVectorLayerSimpleLabeling(settings))
+
+    def sectorLabelToClassField(self, layer):
+        # A sectors file without SectorID is labelled by what it is classified by instead;
+        # the links label is an expression and stays
+        labeling = layer.labeling()
+        if labeling is None or labeling.type() != "simple":
+            return
+        settings = labeling.settings()
+        field = self.demandBuilderClassField(layer)
+        if settings.isExpression or field is None or settings.fieldName == field:
+            return
+        self._repointMapTip(layer, settings.fieldName, field)
+        settings.fieldName = field
+        layer.setLabeling(QgsVectorLayerSimpleLabeling(settings))
+
+    @staticmethod
+    def _repointMapTip(layer, oldField, newField):
+        # The map tip shows the labelled column too, so it follows the same rename
+        mapTip = layer.mapTipTemplate() or ""
+        if oldField and newField and oldField != newField and '"%s"' % oldField in mapTip:
+            layer.setMapTipTemplate(mapTip.replace('"%s"' % oldField, '"%s"' % newField))
 
     def setSectorsStyle(self, layer):
         # get unique values

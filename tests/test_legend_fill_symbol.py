@@ -139,6 +139,20 @@ def test_the_border_option_is_read_back_from_the_outline(outline, expectedMode):
     assert _polygonDialog().detectBorderMode(QgsFillSymbol.createSimple(properties)) == expectedMode
 
 
+@pytest.mark.parametrize("mode, widthShown", [("none", False), ("black", True), ("fill", True), ("darker", True)])
+def test_every_drawn_border_offers_its_width(mode, widthShown):
+    from unittest.mock import MagicMock
+
+    dialog = _borderDialog(mode)
+    dialog.getGeometryHint = lambda: "fill"
+    for name in ("line_8", "labelFillOpacity", "spinFillOpacity", "labelBorder", "spinBorderWidth"):
+        setattr(dialog, name, MagicMock())
+
+    dialog.updateFillControlsVisibility()
+
+    dialog.spinBorderWidth.setVisible.assert_called_once_with(widthShown)
+
+
 def test_the_swatch_draws_the_fill_with_the_typed_outline_width():
     from qgis.PyQt.QtGui import QColor
     from QGISRed.ui.project.qgisred_custom_dialogs import QGISRedSymbolColorSelector

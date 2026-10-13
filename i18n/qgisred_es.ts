@@ -2150,12 +2150,12 @@
     <message>
         <location filename="../tools/qgisred_translatable_strings.py" line="317"/>
         <source>DemBuild_Links</source>
-        <translation type="obsolete">ConstDem_Enlaces</translation>
+        <translation>ConstDem_Enlaces</translation>
     </message>
     <message>
         <location filename="../tools/qgisred_translatable_strings.py" line="318"/>
         <source>DemBuild_Consumptions</source>
-        <translation type="obsolete">ConstDem_Consumos</translation>
+        <translation>ConstDem_Consumos</translation>
     </message>
     <message>
         <location filename="../tools/qgisred_translatable_strings.py" line="319"/>

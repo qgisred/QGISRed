@@ -146,9 +146,9 @@ class TestApplyLegendStrategyDispatch:
         utils.applyLegendStrategy(FakeLayer(), self._strategy(["colors"]))
         assert utils.calls == [("rebuild", False)]
 
-    def test_the_rebuild_follows_the_saved_sort_order(self):
+    def test_the_rebuild_follows_the_saved_class_order(self):
         utils = self._recordingUtils()
-        strategy = dict(self._strategy(["colors"]), sortOrder="descending")
+        strategy = dict(self._strategy(["colors"]), classOrder="descending")
         utils.applyLegendStrategy(FakeLayer(), strategy)
         assert utils.calls == [("rebuild", True)]
 

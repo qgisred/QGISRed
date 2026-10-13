@@ -44,6 +44,8 @@ class AuxiliaryLayerType:
         self.identifierToken = identifierToken
         self.identifier = "qgisred_" + identifierToken.lower()
         self.fileTokens = (fileToken,) + tuple(legacyFileTokens)
+        # Sectors are few, one per id: their count says nothing worth a legend entry
+        self.showsFeatureCount = key != "Sectors"
 
     def __repr__(self):
         return "AuxiliaryLayerType(%s)" % self.key

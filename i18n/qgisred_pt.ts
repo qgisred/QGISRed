@@ -2165,12 +2165,12 @@
     <message>
         <location filename="../tools/qgisred_translatable_strings.py" line="317"/>
         <source>DemBuild_Links</source>
-        <translation type="obsolete">DemBuild_Trechos</translation>
+        <translation>DemBuild_Trechos</translation>
     </message>
     <message>
         <location filename="../tools/qgisred_translatable_strings.py" line="318"/>
         <source>DemBuild_Consumptions</source>
-        <translation type="obsolete">DemBuild_Consumos</translation>
+        <translation>DemBuild_Consumos</translation>
     </message>
     <message>
         <location filename="../tools/qgisred_translatable_strings.py" line="319"/>
