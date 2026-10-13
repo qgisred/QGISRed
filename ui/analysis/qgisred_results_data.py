@@ -428,7 +428,7 @@ class _ResultsDataMixin:
     def loadReportFile(self):
         rpt_path = os.path.join(self.getResultsPath(), self.NetworkName + "_" + self.Scenario + ".rpt")
         if os.path.exists(rpt_path):
-            with open(rpt_path, "r", errors="replace") as f:
+            with open(rpt_path, "r", encoding="cp1252", errors="replace") as f:
                 self.textEditReport.setPlainText(f.read())
 
     def completeResultLayers(self):
