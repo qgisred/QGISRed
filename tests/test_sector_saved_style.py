@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 """A style saved by the user wins over the one the plugin computes for sector layers.
 
-Demand sectors get their look generated — setSectorsStyle picks a random colour per class
+Demand sectors get their look generated — setSectorsStyle colours the classes from the palette
 and redraws them on every reload — so until now a style saved for them could never take
 effect. Hydraulic sectors ship a style file and keep going through setStyle.
 """

@@ -639,8 +639,8 @@ class QGISRedLayerUtils:
         """Style a sector layer: a style of the user's own wins over the family default.
 
         Hydraulic sectors ship a style file, so setStyle already covers them. Demand
-        sectors have theirs computed instead — setSectorsStyle draws a random colour per
-        class and redraws them on every reload — which used to mean a saved style could
+        sectors have theirs computed instead — setSectorsStyle colours the classes from the
+        palette and redraws them on every reload — which used to mean a saved style could
         never take effect for them.
         """
         if "HydraulicSectors" in originalName:

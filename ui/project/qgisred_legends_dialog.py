@@ -322,8 +322,8 @@ class QGISRedLegendsDialog(QDialog, formClass):
     }
 
     # Tree nodes selector variants and the SimpleMarker shape each one edits
-    TREE_NODE_MARKERS = {"junction": "circle", "root": "star"}
-    # The size a Tree nodes layer draws for its node type: if("NodeType" = 'ROOT', 8, 0)
+    TREE_NODE_MARKERS = {"junction": "circle", "root": "star_diamond"}
+    # The size a Tree nodes layer draws for its node type: if("NodeType" = 'ROOT', 6, 0)
     TREE_NODE_SIZE_PATTERN = re.compile(r"'\w+'\s*,\s*(\d+(?:\.\d+)?)\s*,\s*0\s*\)")
 
     # Query layers drawing several element types with one symbol, each symbol layer gated

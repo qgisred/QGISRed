@@ -1103,7 +1103,7 @@ class FakeTreeMarker(FakeSymbolLayer):
 class TestTreeNodesApplier:
     def _symbol(self):
         circle = FakeTreeMarker("circle", "Junction", 2, 2)
-        star = FakeTreeMarker("star", "ROOT", 8, 4)
+        star = FakeTreeMarker("star_diamond", "ROOT", 6, 4)
         return FakeSymbol([circle, star]), circle, star
 
     def test_junctions_color_the_circle_stroke_and_size_the_circle_only(self, monkeypatch):
@@ -1111,13 +1111,13 @@ class TestTreeNodesApplier:
         _dialog(monkeypatch, "qgisred_tree_nodes", "junction")._applyTreeNodesLegend(symbol, "PICKED", 3)
         assert circle.strokeColorCalls == ["PICKED"] and circle.colorCalls == []
         assert circle.expression(SIZE_KEY) == "if(\"NodeType\" = 'Junction', 3, 0)" and circle.size() == 3
-        assert star.expression(SIZE_KEY) == "if(\"NodeType\" = 'ROOT', 8, 0)" and star.size() == 4
+        assert star.expression(SIZE_KEY) == "if(\"NodeType\" = 'ROOT', 6, 0)" and star.size() == 4
 
     def test_root_node_colors_the_star_fill_and_sizes_the_star_only(self, monkeypatch):
         symbol, circle, star = self._symbol()
         _dialog(monkeypatch, "qgisred_tree_nodes", "root")._applyTreeNodesLegend(symbol, "PICKED", 12)
         assert star.colorCalls == ["PICKED"] and star.strokeColorCalls == []
-        assert star.expression(SIZE_KEY) == "if(\"NodeType\" = 'ROOT', 12, 0)" and star.size() == 6
+        assert star.expression(SIZE_KEY) == "if(\"NodeType\" = 'ROOT', 12, 0)" and star.size() == 8
         assert circle.expression(SIZE_KEY) == "if(\"NodeType\" = 'Junction', 2, 0)" and circle.size() == 2
 
     def test_all_scales_every_node_from_the_circle_and_keeps_colors(self, monkeypatch):
@@ -1125,16 +1125,16 @@ class TestTreeNodesApplier:
         _dialog(monkeypatch, "qgisred_tree_nodes")._applyTreeNodesLegend(symbol, "PICKED", 4)
         assert circle.colorCalls == circle.strokeColorCalls == star.colorCalls == []
         assert circle.expression(SIZE_KEY) == "if(\"NodeType\" = 'Junction', 4, 0)" and circle.size() == 4
-        assert star.expression(SIZE_KEY) == "if(\"NodeType\" = 'ROOT', 16, 0)" and star.size() == 8
+        assert star.expression(SIZE_KEY) == "if(\"NodeType\" = 'ROOT', 12, 0)" and star.size() == 8
 
     def test_an_untouched_size_is_a_no_op(self, monkeypatch):
         symbol, circle, star = self._symbol()
-        _dialog(monkeypatch, "qgisred_tree_nodes", "root")._applyTreeNodesLegend(symbol, None, 8)
+        _dialog(monkeypatch, "qgisred_tree_nodes", "root")._applyTreeNodesLegend(symbol, None, 6)
         assert star.size() == 4 and circle.size() == 2
 
     def test_reads_the_size_of_the_selected_node(self, monkeypatch):
         symbol, _circle, _star = self._symbol()
-        assert _dialog(monkeypatch, "qgisred_tree_nodes", "root")._readAnchorSize(symbol) == 8
+        assert _dialog(monkeypatch, "qgisred_tree_nodes", "root")._readAnchorSize(symbol) == 6
         assert _dialog(monkeypatch, "qgisred_tree_nodes", "junction")._readAnchorSize(symbol) == 2
         assert _dialog(monkeypatch, "qgisred_tree_nodes")._readAnchorSize(symbol) == 2
 
@@ -1189,7 +1189,7 @@ class TestFactorCell:
         assert self._dialog(monkeypatch, "qgisred_junctions").currentSymbolSize(symbol, "marker") == 1.6
 
     def test_the_percent_of_the_tree_nodes_stands_for_the_junction_circle(self, monkeypatch):
-        symbol = FakeSymbol([FakeTreeMarker("circle", "Junction", 2, 2), FakeTreeMarker("star", "ROOT", 8, 4)])
+        symbol = FakeSymbol([FakeTreeMarker("circle", "Junction", 2, 2), FakeTreeMarker("star_diamond", "ROOT", 6, 4)])
         assert self._dialog(monkeypatch, "qgisred_tree_nodes").currentSymbolSize(symbol, "marker") == 2
 
 
@@ -1199,7 +1199,7 @@ TREE_NODE_LAYERS = (
     ("SvgMarker", None, "width", "Tank", 7, 0),
     ("SvgMarker", None, "width", "Reservoir", 7, 0),
     ("SimpleMarker", "circle", "size", "Junction", 2, 2),
-    ("SimpleMarker", "star", "size", "ROOT", 8, 4),
+    ("SimpleMarker", "star_diamond", "size", "ROOT", 6, 4),
 )
 
 
@@ -1280,7 +1280,7 @@ class TestTreeNodesSwatch:
     def test_every_marker_is_previewed_at_the_size_of_its_node_type(self, monkeypatch):
         symbol = fakeTreeNodesSymbol()
         preview = self._dialog(monkeypatch)._treeNodesAtDrawnSizes(symbol)
-        assert layerSizes(preview) == [0, 0, 2, 8]
+        assert layerSizes(preview) == [0, 0, 2, 6]
         assert layerSizes(symbol) == [0, 0, 2, 4]
 
     def test_the_percent_scales_the_preview_from_its_largest_marker(self, monkeypatch):
@@ -1289,14 +1289,14 @@ class TestTreeNodesSwatch:
         dialog.createSizePercentSpinBox = lambda row: "percent cell"
         dialog.factorPreviewAnchors = {}
         dialog.setSizeWidget(0, fakeTreeNodesSymbol(), "marker")
-        assert dialog.factorPreviewAnchors == {0: 8}
+        assert dialog.factorPreviewAnchors == {0: 6}
 
     @pytest.mark.mock_only
     def test_the_swatch_is_given_that_preview(self, monkeypatch):
         swatchClass = MagicMock()
         monkeypatch.setattr(legendsModule, "QGISRedSymbolColorSelector", swatchClass)
         self._dialog(monkeypatch).setColorWidget(0, fakeTreeNodesSymbol(), "marker")
-        assert layerSizes(swatchClass.call_args.kwargs["actualSymbol"]) == [0, 0, 2, 8]
+        assert layerSizes(swatchClass.call_args.kwargs["actualSymbol"]) == [0, 0, 2, 6]
 
 
 @pytest.mark.skipif(not REAL_QGIS, reason="needs the real symbol of the shipped style and its real sizes")
@@ -1330,7 +1330,7 @@ class TestTreeNodesSwatchOnRealQgis:
         swatch.applySizeScaling(drawn)
         return drawn
 
-    @pytest.mark.parametrize("percent, circle, star", [(1.0, 2, 8), (1.5, 3, 12)])
+    @pytest.mark.parametrize("percent, circle, star", [(1.0, 2, 6), (1.5, 3, 9)])
     def test_the_swatch_draws_what_apply_writes(self, percent, circle, star):
         layer = self._layer()
         symbol = layer.renderer().symbol()
@@ -1836,7 +1836,7 @@ class TestShippedFixedLegends:
         assert set(utils.isolatedStatusClassNames()) == set(ISOLATED_NODE_COLORS)
         assert set(utils.isolatedDemandClassNames()) == set(ISOLATED_DEMAND_COLORS)
 
-    @pytest.mark.parametrize("value, size", [("JUNCTION", 3.5), ("CONNECTION", 2.5)])
+    @pytest.mark.parametrize("value, size", [("JUNCTION", 5.5), ("CONNECTION", 2.5)])
     def test_each_class_of_the_isolated_demands_is_a_hollow_circle(self, value, size):
         [ring] = _classLayers(ISOLATED_DEMANDS_STYLE, value)
         assert (ring.get("class"), _option(ring, "name")) == ("SimpleMarker", "circle")

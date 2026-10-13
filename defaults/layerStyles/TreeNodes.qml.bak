@@ -120,10 +120,10 @@
           <Option type="Map">
             <Option value="0" name="angle" type="QString"/>
             <Option value="square" name="cap_style" type="QString"/>
-            <Option value="255,215,0,255" name="color" type="QString"/>
+            <Option value="245,127,229,255" name="color" type="QString"/>
             <Option value="1" name="horizontal_anchor_point" type="QString"/>
             <Option value="bevel" name="joinstyle" type="QString"/>
-            <Option value="star" name="name" type="QString"/>
+            <Option value="star_diamond" name="name" type="QString"/>
             <Option value="0,0" name="offset" type="QString"/>
             <Option value="3x:0,0,0,0,0,0" name="offset_map_unit_scale" type="QString"/>
             <Option value="MM" name="offset_unit" type="QString"/>
@@ -144,7 +144,7 @@
               <Option name="properties" type="Map">
                 <Option name="size" type="Map">
                   <Option value="true" name="active" type="bool"/>
-                  <Option value="if(&quot;NodeType&quot; = 'ROOT', 8, 0)" name="expression" type="QString"/>
+                  <Option value="if(&quot;NodeType&quot; = 'ROOT', 6, 0)" name="expression" type="QString"/>
                   <Option value="3" name="type" type="int"/>
                 </Option>
               </Option>

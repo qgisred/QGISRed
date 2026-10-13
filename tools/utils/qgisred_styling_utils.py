@@ -10,7 +10,6 @@ import re
 import shutil
 import sqlite3
 import zlib
-from random import randrange
 
 from qgis.PyQt.QtCore import QCoreApplication, QTimer
 from ...compat import PAINTER_ANTIALIASING, PAL_PROPERTY_COLOR, WKB_POLYGON_GEOMETRY
@@ -49,8 +48,6 @@ def _plugin_root():
     """
     return os.path.dirname(os.path.dirname(os.path.dirname(os.path.realpath(__file__))))
 
-
-_DEMAND_SECTOR_COLOR_CACHE = {}
 
 STYLE_DATABASE_NAME = "qgisred_symbology_style.db"
 CONNECTIVITY_STYLE_NAME = "ConnectLinks"
@@ -1553,34 +1550,28 @@ class QGISRedStylingUtils:
         uniqueValues = layer.dataProvider().uniqueValues(fni)
         uniqueValues = sorted(uniqueValues)
 
-        cache_key = (self.ProjectDirectory or "", self.NetworkName or "", field)
-        if cache_key not in _DEMAND_SECTOR_COLOR_CACHE:
-            _DEMAND_SECTOR_COLOR_CACHE[cache_key] = {}
-        color_map = _DEMAND_SECTOR_COLOR_CACHE[cache_key]
-
-        # add missing values to the shared color map
-        for uniqueValue in uniqueValues:
-            if uniqueValue not in color_map:
-                color_map[uniqueValue] = QColor(randrange(0, 256), randrange(0, 256), randrange(0, 256))  # nosec B311 — cosmetic sector color, not security-sensitive
+        # Nodes and links of one sector share the colour: both take the palette in sector order
+        palette = self.demandBuilderPaletteColors()
+        usedColors = []
 
         # define categories
         categories = []
         for uniqueValue in uniqueValues:
             symbol = QgsSymbol.defaultSymbol(layer.geometryType())
             symbolLayer = None
-            value_color = color_map.get(uniqueValue, QColor(randrange(0, 256), randrange(0, 256), randrange(0, 256)))  # nosec B311 — cosmetic sector color, not security-sensitive
+            value_color = self._nextPaletteColor(palette, usedColors)
 
             if layer.geometryType() == 0:  # Point
                 layerStyle = {
                     "color": "%d, %d, %d" % (value_color.red(), value_color.green(), value_color.blue()),
-                    "size": str(2),
+                    "size": str(2.4),
                 }
                 symbolLayer = QgsSimpleMarkerSymbolLayer.create(layerStyle)
             else:
                 symbol = QgsLineSymbol().createSimple({})
                 symbol.deleteSymbolLayer(0)
                 lineSymbol = QgsSimpleLineSymbolLayer()
-                lineSymbol.setWidth(1.1)
+                lineSymbol.setWidth(0.8)
                 lineSymbol.setColor(value_color)
                 symbol.appendSymbolLayer(lineSymbol)
 
