@@ -38,6 +38,7 @@ from ...tools.utils.qgisred_styling_utils import (
 from ...tools.utils.qgisred_styling_utils import RAMP_KINDS, PALETTE_KINDS, RAMP_KIND_TWO_COLORS, RAMP_KIND_THREE_COLORS
 from ...tools.utils.qgisred_styling_utils import RAMP_KIND_MORE_COLORS, PALETTE_KIND_SPAN, PALETTE_KIND_SEQUENTIAL
 from ...tools.utils.qgisred_styling_utils import PALETTE_KIND_LABELED, FRAME_DARKEN_FACTOR
+from ...tools.utils.qgisred_styling_utils import STYLE_LIBRARY_DEFAULT, STYLE_LIBRARY_OWNER
 from ...tools.utils.qgisred_legend_rule_utils import (
     OPEN_RANGE_BOUND as _OPEN_RANGE_BOUND,
     formatExpressionNumber,
@@ -610,7 +611,7 @@ class QGISRedLegendsDialog(QDialog, formClass):
         self.setupAdvancedUi()
         self.applyConsistentStyling()
         self.setupStyleMenus()
-        self.setupStyleLibraryMenu()
+        self.setupStyleLibrarySelector()
         self.setupTooltips()
         self.hideIntervalControls()
         self.installEventFilter(self)
@@ -1134,36 +1135,50 @@ class QGISRedLegendsDialog(QDialog, formClass):
         actionSaveGlobal.setToolTip(applyNote)
         self.btSaveMenu.setMenu(saveMenu)
 
-    def setupStyleLibraryMenu(self):
-        libraryMenu = QMenu(self)
-        libraryMenu.addAction(self.tr("Open Style Manager…"), self.openStyleManager)
-        self.actionRestoreStyleLibrary = libraryMenu.addAction(
-            self.tr("Restore default library"), self.restoreDefaultStyleLibrary)
-        self.actionRestoreStyleLibrary.setEnabled(
-            os.path.exists(QGISRedStylingUtils.developmentStyleDatabasePath()))
-        self.btStyleLibrary.setMenu(libraryMenu)
-        self.btStyleLibrary.setEnabled(bool(self.colorRampKinds))
+    def setupStyleLibrarySelector(self):
+        self.cbStyleLibrary.addItem(self.tr("Use default"), STYLE_LIBRARY_DEFAULT)
+        self.cbStyleLibrary.addItem(self.tr("Use owner"), STYLE_LIBRARY_OWNER)
+        self.cbStyleLibrary.blockSignals(True)
+        self.cbStyleLibrary.setCurrentIndex(self.cbStyleLibrary.findData(QGISRedStylingUtils.selectedStyleLibrary()))
+        self.cbStyleLibrary.blockSignals(False)
+        self.cbStyleLibrary.currentIndexChanged.connect(self.onStyleLibraryChanged)
+        self.btEditStyleLibrary.clicked.connect(self.openStyleManager)
+        self.updateStyleLibraryButton()
+
+    def updateStyleLibraryButton(self):
+        self.btEditStyleLibrary.setVisible(self.cbStyleLibrary.currentData() == STYLE_LIBRARY_OWNER)
+        self.btEditStyleLibrary.setEnabled(bool(self.colorRampKinds))
+
+    def onStyleLibraryChanged(self):
+        QGISRedStylingUtils.setSelectedStyleLibrary(self.cbStyleLibrary.currentData())
+        self.onStyleLibraryEdited()
+        self.updateStyleLibraryButton()
 
     def openStyleManager(self):
-        """The Style Manager on the QGISRed library: ramps, palettes and symbols edited there are offered at once."""
-        QgsStyleManagerDialog(self.style, self).exec_()
-        self.refreshColorRamps()
+        """The Style Manager on the owner library: ramps, palettes and symbols edited there are offered at once."""
+        QGISRedStylingUtils.ensureOwnerStyleDatabase()
+        # Each save in the manager is announced by this very object, so it has to outlive the reloads it triggers.
+        editedStyle = self.style
+        QgsStyleManagerDialog(editedStyle, self).exec_()
+        self.disconnectStyleLibrarySignals(editedStyle)
+        self.onStyleLibraryEdited()
 
-    def restoreDefaultStyleLibrary(self):
-        reply = QMessageBox.question(
-            self,
-            self.tr("Restore default library"),
-            self.tr("The ramps, palettes and symbols you edited in the QGISRed style library will be lost.\n"
-                    "Restore the default library?"),
-            QMessageBox.StandardButton.Yes | QMessageBox.StandardButton.No,
-            QMessageBox.StandardButton.No,
-        )
-        if reply != QMessageBox.StandardButton.Yes:
-            return
-        # The dialog's own connection to the database must be closed before the file is replaced.
-        self.style = None
-        QGISRedStylingUtils.restoreStyleDatabase()
+    def onStyleLibraryEdited(self):
+        """Reread the library and recolour the classes so an edited palette shows at once."""
         self.refreshColorRamps()
+        if self.btnColorRamp.activeRampName not in self.btnColorRamp.colorRampCache:
+            return
+        self.applyColorLogic(forceRefresh=True)
+        self.markLegendEdited()
+
+    def connectStyleLibrarySignals(self, style):
+        for signal in (style.rampAdded, style.rampChanged, style.rampRemoved, style.rampRenamed):
+            signal.connect(self.onStyleLibraryEdited)
+
+    def disconnectStyleLibrarySignals(self, style):
+        for signal in (style.rampAdded, style.rampChanged, style.rampRemoved, style.rampRenamed):
+            with suppress(Exception):
+                signal.disconnect(self.onStyleLibraryEdited)
 
     def setupTooltips(self):
         self.btUp.setToolTip(self.tr("Move selected class up"))
@@ -1176,7 +1191,9 @@ class QGISRedLegendsDialog(QDialog, formClass):
 
         self.btLoadMenu.setToolTip(self.tr("Load a saved style or revert to the original legend"))
         self.btSaveMenu.setToolTip(self.tr("Save the current legend as a style"))
-        self.btStyleLibrary.setToolTip(self.tr("Edit the ramps, palettes and symbols of the QGISRed style library"))
+        self.cbStyleLibrary.setToolTip(self.tr("Library the ramps and palettes are taken from"))
+        self.btEditStyleLibrary.setToolTip(self.tr("Edit owner") + "\n"
+                                           + self.tr("Add, edit or remove ramps, palettes and symbols of your library"))
         self.btAcceptLegend.setToolTip(self.tr("Apply changes to layer and close"))
         self.btApplyLegend.setToolTip(self.tr("Apply changes to layer"))
         self.btCancelLegend.setToolTip(self.tr("Close; asks whether to keep or revert the changes applied here"))
@@ -1194,6 +1211,7 @@ class QGISRedLegendsDialog(QDialog, formClass):
             try:
                 success = self.style.load(dbPath)
                 if success:
+                    self.connectStyleLibrarySignals(self.style)
                     self.colorRampKinds = {name: QGISRedStylingUtils.colorRampKind(self.style, name)
                                            for name in self.style.colorRampNames()}
                 if not success:
@@ -1519,7 +1537,8 @@ class QGISRedLegendsDialog(QDialog, formClass):
         prefix = self.tr("Legend for")
         boldLayer = f"<b><span style='font-size:larger'>{layerName}</span></b>"
         # A single symbol has no values to put units on, and categories are not measured
-        units = "" if self.currentFieldType in (self.FIELD_TYPE_SINGLE, self.FIELD_TYPE_CATEGORICAL)             else self.getLegendUnitsText()
+        units = "" if self.currentFieldType in (self.FIELD_TYPE_SINGLE, self.FIELD_TYPE_CATEGORICAL) \
+            else self.getLegendUnitsText()
 
         caption = f"{prefix} {boldLayer} | {units}" if units else f"{prefix} {boldLayer}"
         if self.hasUnappliedEdits:

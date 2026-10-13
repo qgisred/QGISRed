@@ -22,7 +22,7 @@ from qgis.core import (
     QgsRendererCategory, QgsCategorizedSymbolRenderer, QgsVectorLayerCache, NULL,
     QgsGraduatedSymbolRenderer, QgsRuleBasedRenderer, QgsRenderContext,
     QgsMapLayerLegend, QgsMessageLog, QgsStyle, QgsExpression, QgsProject,
-    QgsProperty,
+    QgsProperty, QgsSettings,
     QgsVectorLayerSimpleLabeling,
     QgsClassificationPrettyBreaks, QgsClassificationEqualInterval, QgsClassificationQuantile,
     QgsClassificationJenks, QgsClassificationStandardDeviation,
@@ -50,6 +50,9 @@ def _plugin_root():
 
 
 STYLE_DATABASE_NAME = "qgisred_symbology_style.db"
+STYLE_LIBRARY_DEFAULT = "default"
+STYLE_LIBRARY_OWNER = "owner"
+STYLE_LIBRARY_SETTING = "QGISRed/Legends/styleLibrary"
 CONNECTIVITY_STYLE_NAME = "ConnectLinks"
 
 # The layers the network checks write, one per element type ({Net}_{Element}_Issues). Each
@@ -1624,8 +1627,8 @@ class QGISRedStylingUtils:
         return os.path.join(_plugin_root(), "defaults", STYLE_DATABASE_NAME + ".bak")
 
     @staticmethod
-    def styleDatabasePath():
-        """The style database QGIS opens.
+    def defaultStyleDatabasePath():
+        """The default style library QGIS opens.
 
         In a checkout it is the .db regenerated beside the tracked .bak, never the .bak
         itself: QGIS keeps whatever it opens locked for the whole session, and Windows would
@@ -1636,6 +1639,28 @@ class QGISRedStylingUtils:
             return os.path.join(_plugin_root(), "defaults", STYLE_DATABASE_NAME)
         from .qgisred_filesystem_utils import QGISRedFileSystemUtils
         return os.path.join(QGISRedFileSystemUtils().getDefaultsFolder(), STYLE_DATABASE_NAME)
+
+    @staticmethod
+    def ownerStyleDatabasePath():
+        """The user's own style library: a per-user copy of the default one that is never regenerated."""
+        from .qgisred_filesystem_utils import QGISRedFileSystemUtils
+        return os.path.join(QGISRedFileSystemUtils().getQGISRedFolder(), STYLE_DATABASE_NAME)
+
+    @staticmethod
+    def selectedStyleLibrary():
+        value = QgsSettings().value(STYLE_LIBRARY_SETTING, STYLE_LIBRARY_OWNER)
+        return STYLE_LIBRARY_DEFAULT if value == STYLE_LIBRARY_DEFAULT else STYLE_LIBRARY_OWNER
+
+    @staticmethod
+    def setSelectedStyleLibrary(library):
+        QgsSettings().setValue(STYLE_LIBRARY_SETTING, library)
+
+    @staticmethod
+    def styleDatabasePath():
+        """The style library the legends and the wizards read ramps and palettes from."""
+        if QGISRedStylingUtils.selectedStyleLibrary() == STYLE_LIBRARY_DEFAULT:
+            return QGISRedStylingUtils.defaultStyleDatabasePath()
+        return QGISRedStylingUtils.ownerStyleDatabasePath()
 
     @staticmethod
     def ensureStyleDatabase():
@@ -1654,10 +1679,11 @@ class QGISRedStylingUtils:
         fails rather than writing under the handle that instance still holds, and the instance
         keeps reading a valid database until the next start.
         """
+        QGISRedStylingUtils.ensureOwnerStyleDatabase()
         developmentPath = QGISRedStylingUtils.developmentStyleDatabasePath()
         if not os.path.exists(developmentPath):
             return
-        workingPath = QGISRedStylingUtils.styleDatabasePath()
+        workingPath = QGISRedStylingUtils.defaultStyleDatabasePath()
         if os.path.exists(workingPath) and filecmp.cmp(developmentPath, workingPath, shallow=False):
             return
         stagedPath = "%s.%d.new" % (workingPath, os.getpid())
@@ -1679,15 +1705,19 @@ class QGISRedStylingUtils:
             )
 
     @staticmethod
-    def restoreStyleDatabase():
-        """Throw away the user's edits: the working .db becomes the tracked .bak again.
-
-        The Style Manager keeps the registered database open, so it is dropped from the
-        project while the file is replaced and listed again afterwards.
-        """
-        QGISRedStylingUtils.unregisterStyleDatabaseFromProject()
-        QGISRedStylingUtils.ensureStyleDatabase()
-        QGISRedStylingUtils.registerStyleDatabaseInProject()
+    def ensureOwnerStyleDatabase():
+        """Seed the user's own library from the default one the first time; edits in it are kept."""
+        ownerPath = QGISRedStylingUtils.ownerStyleDatabasePath()
+        if os.path.exists(ownerPath):
+            return
+        sourcePath = QGISRedStylingUtils.developmentStyleDatabasePath()
+        if not os.path.exists(sourcePath):
+            sourcePath = QGISRedStylingUtils.defaultStyleDatabasePath()
+        if not os.path.exists(sourcePath):
+            return
+        with suppress(OSError):
+            os.makedirs(os.path.dirname(ownerPath), exist_ok=True)
+            shutil.copy2(sourcePath, ownerPath)
 
     @staticmethod
     def unregisterStyleDatabaseFromProject():
@@ -1696,7 +1726,7 @@ class QGISRedStylingUtils:
         Without this a plugin reload cannot refresh the working copy in a checkout: this very
         QGIS would still hold the .db open and Windows would refuse the replace.
         """
-        currentKey = os.path.normcase(os.path.normpath(QGISRedStylingUtils.styleDatabasePath()))
+        currentKey = os.path.normcase(os.path.normpath(QGISRedStylingUtils.ownerStyleDatabasePath()))
         styleSettings = QgsProject.instance().styleSettings()
         registered = list(styleSettings.styleDatabasePaths())
         remaining = [path for path in registered
@@ -1741,7 +1771,7 @@ class QGISRedStylingUtils:
 
     @staticmethod
     def registerStyleDatabaseInProject():
-        """List this machine's QGISRed database in the Style Manager, and only this one.
+        """List this machine's own QGISRed library in the Style Manager, and only this one.
 
         A project stores the style database paths it was saved with, so it comes back
         carrying whichever path the machine that saved it used — a plugin checkout, another
@@ -1749,7 +1779,7 @@ class QGISRedStylingUtils:
         ever appended to, so without pruning a project would collect one dead entry per
         machine it travels to.
         """
-        databasePath = QGISRedStylingUtils.styleDatabasePath()
+        databasePath = QGISRedStylingUtils.ownerStyleDatabasePath()
         currentKey = os.path.normcase(os.path.normpath(databasePath))
         styleSettings = QgsProject.instance().styleSettings()
         registered = list(styleSettings.styleDatabasePaths())
