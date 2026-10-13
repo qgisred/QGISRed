@@ -1518,8 +1518,8 @@ class QGISRedLegendsDialog(QDialog, formClass):
         layerName = layer.name()
         prefix = self.tr("Legend for")
         boldLayer = f"<b><span style='font-size:larger'>{layerName}</span></b>"
-        # A single symbol has no values to put units on
-        units = "" if self.currentFieldType == self.FIELD_TYPE_SINGLE else self.getLegendUnitsText()
+        # A single symbol has no values to put units on, and categories are not measured
+        units = "" if self.currentFieldType in (self.FIELD_TYPE_SINGLE, self.FIELD_TYPE_CATEGORICAL)             else self.getLegendUnitsText()
 
         caption = f"{prefix} {boldLayer} | {units}" if units else f"{prefix} {boldLayer}"
         if self.hasUnappliedEdits:
