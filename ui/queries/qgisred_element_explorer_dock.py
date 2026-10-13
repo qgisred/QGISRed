@@ -243,7 +243,15 @@ class QGISRedElementExplorerDock(QGISRedHighlightOwnerMixin, QDockWidget, FORM_C
     # Collapsible Widgets Handlers
     # ------------------------------
     def onElementPropertiesToggled(self, collapsed):
-        pass  # Handled via event filters on individual labels
+        if collapsed:
+            return
+        # Expanding a QgsCollapsibleGroupBox re-shows every child it owns, including
+        # the ones hidden on purpose (the "no element" label, the empty connected box).
+        if self.isLayerValid(self.currentLayer) and self.currentFeature is not None:
+            self.showElementFoundState()
+            self.mConnectedElementsGroupBox.setVisible(self.listWidget.count() > 0)
+        else:
+            self.showNoElementSelectedState()
 
     def onFindElementsToggled(self, collapsed):
         pass
@@ -2506,19 +2514,7 @@ class QGISRedElementExplorerDock(QGISRedHighlightOwnerMixin, QDockWidget, FORM_C
 
         self.adjustMapView(feature)
 
-        identifier = layer.customProperty("qgisred_identifier")
-        if self.isLineElement(layer):
-            self.findAdjacentNodesByGeometry(feature)
-        elif identifier == "qgisred_meters":
-            self.findMeterAdjacency(feature, layer)
-        elif identifier == "qgisred_isolationvalves":
-            self.findIsolationValveAdjacency(feature, layer)
-        elif identifier == "qgisred_serviceconnections":
-            self.findServiceConnectionAdjacency(feature, layer)
-        else:
-            self.findAdjacentLinksByGeometry(feature, layer)
-
-        self.sortListWidgetItems()
+        self.refreshConnectedElements(feature, layer)
 
         self.loadFeature(layer, feature, finalTitleText)
 
