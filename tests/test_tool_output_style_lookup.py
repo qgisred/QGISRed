@@ -163,10 +163,10 @@ class TestRuntimeAndEditorAskForTheSameFile:
         ("qgisred_tree_links", "Tree_Links"),
         ("qgisred_tree_nodes", "Tree_Nodes"),
         ("qgisred_demandbuilder_consumptionpoints", "DemandBuilder_ConsumptionPoints"),
-        ("qgisred_demandbuilder_demandlinks", "DemandBuilder_DemandLinks"),
+        ("qgisred_demandbuilder_demandlinks", "DemandBuilder_ConsumptionLinks"),
         ("qgisred_demandbuilder_sectors", "DemandBuilder_Sectors"),
         ("qgisred_demandbuilder_isolateddemandsserviceconnections",
-         "DemandBuilderIsolatedDemandsServiceConnections"),
+         "DemandBuilderIsolatedServiceConnections"),
         # openLayer(issues=True) asks for the lowercased file stem, {Element}_Issues
         ("qgisred_junctions_issues", "junctions_issues"),
         ("qgisred_tanks_issues", "tanks_issues"),
@@ -188,9 +188,10 @@ class TestRuntimeAndEditorAskForTheSameFile:
         assert editorName.lower() == runtimeName.replace("_", "").lower()
 
     @pytest.mark.parametrize("layerType", AUXILIARY_LAYER_TYPES, ids=lambda layerType: layerType.key)
-    def test_the_demand_builder_runtime_names_are_the_identifier_tokens(self, layerType):
-        # setDemandBuilderStyle asks setStyle for the type's identifierToken
-        assert (layerType.identifier, layerType.identifierToken) in self.RUNTIME_NAMES
+    def test_the_demand_builder_runtime_names_are_the_style_names(self, layerType):
+        # setDemandBuilderStyle asks setStyle for the type's styleName
+        runtimeNames = [(identifier, name.replace("_", "")) for identifier, name in self.RUNTIME_NAMES]
+        assert (layerType.identifier, layerType.styleName) in runtimeNames
 
 
 def _demandBuilderUtils(tmp_path, globalFolder):

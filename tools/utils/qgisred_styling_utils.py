@@ -30,7 +30,7 @@ from qgis.core import (
 from qgis.gui import QgsAttributeTableFilterModel, QgsAttributeTableModel, QgsAttributeTableView
 from qgis.utils import iface as _iface
 
-from .qgisred_auxiliary_layers import parseLayerPath
+from .qgisred_auxiliary_layers import parseLayerPath, ISOLATED_CONNECTIONS_STYLE_NAME
 from .qgisred_base_demand_fields import resolveBaseDemandField
 from .qgisred_field_utils import QGISRedFieldUtils
 from .qgisred_legend_rule_utils import scaleNumericLiterals, OPEN_RANGE_BOUND
@@ -1437,7 +1437,7 @@ class QGISRedStylingUtils:
         """
         name = sourceName or os.path.basename(layer.source())
         if "IsolatedDemandsServiceConnections" in name:
-            self.setStyle(layer, "DemandBuilderIsolatedDemandsServiceConnections")
+            self.setStyle(layer, ISOLATED_CONNECTIONS_STYLE_NAME)
             layer.setReadOnly(True)
             layer.triggerRepaint()
             return
@@ -1445,7 +1445,7 @@ class QGISRedStylingUtils:
         layerType, themeName = parseLayerPath(layer.source(), self.NetworkName)
         if layerType is None:
             return
-        self.setStyle(layer, layerType.identifierToken, variant=themeName, keepLabelVisibility=True)
+        self.setStyle(layer, layerType.styleName, variant=themeName, keepLabelVisibility=True)
         self.completeDemandBuilderStyle(layer, layerType.key == "Consumptions", baseDemandField)
         self.watchDemandBuilderCategories(layer, layerType.key == "Consumptions")
         layer.triggerRepaint()

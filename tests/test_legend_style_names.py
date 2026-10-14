@@ -204,10 +204,10 @@ class TestStyleNameForIdentifier:
         ("qgisred_connectivity_links", "ConnectLinks.qml.bak"),
         # The Demand Builder themes: one shipped style per type, shared by every theme of it.
         ("qgisred_demandbuilder_consumptionpoints", "DemandBuilderConsumptionPoints.qml.bak"),
-        ("qgisred_demandbuilder_demandlinks", "DemandBuilderDemandLinks.qml.bak"),
+        ("qgisred_demandbuilder_demandlinks", "DemandBuilderConsumptionLinks.qml.bak"),
         ("qgisred_demandbuilder_sectors", "DemandBuilderSectors.qml.bak"),
         ("qgisred_demandbuilder_isolateddemandsserviceconnections",
-         "DemandBuilderIsolatedDemandsServiceConnections.qml.bak"),
+         "DemandBuilderIsolatedServiceConnections.qml.bak"),
     ]
 
     @pytest.mark.parametrize("identifier, defaultFile", STYLED_IDENTIFIERS)

@@ -372,7 +372,7 @@ class TestDemandBuilderStyleFlag:
         styling.setDemandBuilderStyle(layer, "DemandBuilder_IsolatedDemandsServiceConnections")
 
         styling.setStyle.assert_called_once_with(
-            layer, "DemandBuilderIsolatedDemandsServiceConnections")
+            layer, "DemandBuilderIsolatedServiceConnections")
 
     def test_the_isolated_demands_connections_cannot_be_edited(self):
         """Only the Demand Builder writes them, so the layer is locked like a thematic map."""
@@ -389,7 +389,7 @@ class TestDemandBuilderStyleFlag:
     def test_the_isolated_demands_connections_style_labels_and_tips_the_connection_id(self):
         root = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
         styles = os.path.join(root, "defaults", "layerStyles")
-        fileName = "DemandBuilderIsolatedDemandsServiceConnections.qml.bak"
+        fileName = "DemandBuilderIsolatedServiceConnections.qml.bak"
         with open(os.path.join(styles, fileName), encoding="utf-8") as handle:
             text = handle.read()
 
@@ -420,7 +420,7 @@ class TestDemandBuilderStyleFlag:
         styling.setDemandBuilderStyle(layer, "Net_DemandBuilder_Sectors_Barrios")
 
         styling.setStyle.assert_called_once_with(
-            layer, "DemandBuilder_Sectors", variant="Barrios", keepLabelVisibility=True)
+            layer, "DemandBuilderSectors", variant="Barrios", keepLabelVisibility=True)
         layer.setRenderer.assert_not_called()
 
     def test_an_unnamed_theme_has_no_variant(self):
@@ -430,7 +430,7 @@ class TestDemandBuilderStyleFlag:
         styling.setDemandBuilderStyle(layer, "Net_DemandBuilder_Sectors")
 
         styling.setStyle.assert_called_once_with(
-            layer, "DemandBuilder_Sectors", variant="", keepLabelVisibility=True)
+            layer, "DemandBuilderSectors", variant="", keepLabelVisibility=True)
 
     def test_the_theme_is_read_from_the_file_not_from_the_display_name(self):
         """A reload passes no file name, and by then the layer carries its translated legend name."""
@@ -440,7 +440,7 @@ class TestDemandBuilderStyleFlag:
         styling.setDemandBuilderStyle(layer)
 
         styling.setStyle.assert_called_once_with(
-            layer, "DemandBuilder_DemandLinks", variant="Alta", keepLabelVisibility=True)
+            layer, "DemandBuilderConsumptionLinks", variant="Alta", keepLabelVisibility=True)
 
     def test_a_styled_theme_is_watched_so_its_classes_follow_the_edits(self):
         styling = self._styling()
@@ -479,7 +479,7 @@ class TestDemandBuilderStyleFlag:
 
         styling.setDemandBuilderStyle(layer)
 
-        styling.setStyle.assert_called_once_with(layer, "DemandBuilderIsolatedDemandsServiceConnections")
+        styling.setStyle.assert_called_once_with(layer, "DemandBuilderIsolatedServiceConnections")
 
 
 class TestPointLabelToBaseDemand:
@@ -632,7 +632,7 @@ class TestDemandBuilderClasses:
         """A legend saved without classes loses its categories and symbols elements, and QGIS
         then falls back to a single symbol on load; the shipped files keep both, empty."""
         pluginRoot = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
-        fileName = layerType.identifierToken.replace("_", "") + ".qml.bak"
+        fileName = layerType.styleName + ".qml.bak"
         with open(os.path.join(pluginRoot, "defaults", "layerStyles", fileName), encoding="utf-8") as handle:
             text = handle.read()
 
@@ -799,7 +799,7 @@ class TestDemandBuilderClasses:
         from QGISRed.tools.utils.qgisred_styling_utils import DEMAND_BUILDER_PALETTE_NAME
 
         root = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
-        for name in ("DemandBuilderConsumptionPoints", "DemandBuilderDemandLinks", "DemandBuilderSectors"):
+        for name in ("DemandBuilderConsumptionPoints", "DemandBuilderConsumptionLinks", "DemandBuilderSectors"):
             with open(os.path.join(root, "defaults", "layerStyles", name + ".qml.bak"), encoding="utf-8") as handle:
                 text = handle.read()
             match = re.search(r'name="qgisred_legend_strategy" value="([^"]*)"', text)

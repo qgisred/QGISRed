@@ -36,14 +36,17 @@ class AuxiliaryLayerType:
     * `legacyFileTokens` are the spellings still read but no longer written: the plural
       DemandsBuilder and the longer type names, which every theme created before this
       rename carries.
+    * `styleName` is the QML the type is styled with; it follows the identifier unless
+      the file was renamed on its own.
     """
 
-    def __init__(self, key, fileToken, identifierToken, legacyFileTokens=()):
+    def __init__(self, key, fileToken, identifierToken, legacyFileTokens=(), styleName=None):
         self.key = key
         self.fileToken = fileToken
         self.identifierToken = identifierToken
         self.identifier = "qgisred_" + identifierToken.lower()
         self.fileTokens = (fileToken,) + tuple(legacyFileTokens)
+        self.styleName = styleName or identifierToken.replace("_", "")
         # Sectors are few, one per id: their count says nothing worth a legend entry
         self.showsFeatureCount = key != "Sectors"
 
@@ -61,12 +64,23 @@ AUXILIARY_LAYER_TYPES = (
     AuxiliaryLayerType(
         "Links", "DemandBuilder_Links", "DemandBuilder_DemandLinks",
         ("DemandsBuilder_DemandLinks", "DemandBuilder_DemandLinks"),
+        styleName="DemandBuilderConsumptionLinks",
     ),
     AuxiliaryLayerType(
         "Sectors", "DemandBuilder_Sectors", "DemandBuilder_Sectors",
         ("DemandsBuilder_Sectors",),
     ),
 )
+
+# The isolated demands connections the Demand Builder writes beside the themes: not a
+# theme type, but styled from a shipped QML of their own.
+ISOLATED_CONNECTIONS_IDENTIFIER = "qgisred_demandbuilder_isolateddemandsserviceconnections"
+ISOLATED_CONNECTIONS_STYLE_NAME = "DemandBuilderIsolatedServiceConnections"
+
+DEMAND_BUILDER_STYLE_NAMES = {
+    **{layerType.identifier: layerType.styleName for layerType in AUXILIARY_LAYER_TYPES},
+    ISOLATED_CONNECTIONS_IDENTIFIER: ISOLATED_CONNECTIONS_STYLE_NAME,
+}
 
 # Mirrors ToShp.DefaultBaseDemandField: the first base demand column of a consumption
 # points theme. Passing it explicitly keeps the created file readable if the C# default

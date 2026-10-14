@@ -49,7 +49,7 @@ from ...tools.utils.qgisred_legend_rule_utils import (
 )
 from ...tools.utils.qgisred_ui_utils import QGISRedUIUtils, QGISRedBanner
 from ...tools.utils.qgisred_identifier_utils import QGISRedIdentifierUtils
-from ...tools.utils.qgisred_auxiliary_layers import parseLayerPath
+from ...tools.utils.qgisred_auxiliary_layers import parseLayerPath, DEMAND_BUILDER_STYLE_NAMES
 from ...tools.utils.qgisred_field_utils import QGISRedFieldUtils, resolve_layer_id
 from ...tools.utils.qgisred_layer_utils import QGISRedLayerUtils
 from ...tools.utils.qgisred_project_utils import QGISRedProjectUtils
@@ -6204,6 +6204,8 @@ class QGISRedLegendsDialog(QDialog, formClass):
             return thematicName
         if identifier == "qgisred_connectivity_links":
             return CONNECTIVITY_STYLE_NAME
+        if identifier in DEMAND_BUILDER_STYLE_NAMES:
+            return DEMAND_BUILDER_STYLE_NAMES[identifier]
         prefix = "qgisred_"
         if not identifier.startswith(prefix) or identifier.startswith(prefix + "query_"):
             return None

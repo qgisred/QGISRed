@@ -46,7 +46,7 @@ def _linksTheme(categories):
         feature.setAttributes(["L%d" % index, category, 50.0])
         provider.addFeature(feature)
     layer.updateExtents()
-    layer.loadNamedStyle(os.path.join(SHIPPED, "DemandBuilderDemandLinks.qml.bak"))
+    layer.loadNamedStyle(os.path.join(SHIPPED, "DemandBuilderConsumptionLinks.qml.bak"))
     return layer
 
 
@@ -352,7 +352,7 @@ class TestLabels:
         layer = _linksTheme([])
         settings = layer.labeling().settings()
 
-        assert _shippedFontFamily("DemandBuilderDemandLinks") == "Arial"
+        assert _shippedFontFamily("DemandBuilderConsumptionLinks") == "Arial"
         assert settings.format().size() == pytest.approx(8)
         assert settings.dist == pytest.approx(0.5)
 
@@ -509,7 +509,7 @@ class TestIsolatedDemandsConnectionsStyle:
         from qgis.core import QgsVectorLayer
 
         layer = QgsVectorLayer("Point?crs=EPSG:25830&field=ConnectID:string&field=BaseDem:double", "iso", "memory")
-        layer.loadNamedStyle(os.path.join(SHIPPED, "DemandBuilderIsolatedDemandsServiceConnections.qml.bak"))
+        layer.loadNamedStyle(os.path.join(SHIPPED, "DemandBuilderIsolatedServiceConnections.qml.bak"))
         return layer
 
     def test_the_label_is_the_connection_id_and_starts_hidden(self):
