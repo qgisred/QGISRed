@@ -258,6 +258,15 @@ class QGISRedLegendsDialog(QDialog, formClass):
         "qgisred_query",
     )
 
+    # Tool outputs whose classes come with their data: the editor neither adds nor removes them
+    TOOL_CLASS_IDENTIFIER_PREFIXES = (
+        "qgisred_connectivity",
+        "qgisred_hydraulicsectors",
+        "qgisred_demandsectors",
+        "qgisred_isolatedsegments",
+        "qgisred_tree",
+    )
+
     # Meter types gating the stacked SvgMarker layers in the Meters style
     METER_TYPES = (
         "Countermeter",
@@ -479,6 +488,12 @@ class QGISRedLegendsDialog(QDialog, formClass):
             return False
         identifier = self.currentLayer.customProperty("qgisred_identifier")
         return identifier in self.SINGLE_EDITABLE_QUERY_IDENTIFIERS
+
+    def hasToolDefinedClasses(self):
+        if not self.currentLayer:
+            return False
+        identifier = self.currentLayer.customProperty("qgisred_identifier")
+        return bool(identifier) and str(identifier).startswith(self.TOOL_CLASS_IDENTIFIER_PREFIXES)
 
     def isQueryLayer(self, layer):
         """Check whether the layer belongs to one of the query families by identifier prefix."""
@@ -1190,8 +1205,6 @@ class QGISRedLegendsDialog(QDialog, formClass):
                 signal.disconnect(self.onStyleLibraryEdited)
 
     def setupTooltips(self):
-        self.btUp.setToolTip(self.tr("Move selected class up"))
-        self.btDown.setToolTip(self.tr("Move selected class down"))
         self.btClassMinus.setToolTip(self.tr("Remove selected class(es)"))
         self.btClassifyAll.setToolTip(self.tr("Add all unique values as separate classes"))
 
@@ -1257,8 +1270,6 @@ class QGISRedLegendsDialog(QDialog, formClass):
         self.spinIntervalRange.valueChanged.connect(self.onIntervalRangeChanged)
         self.btClassPlus.clicked.connect(self.onAddClassClicked)
         self.btClassMinus.clicked.connect(self.removeClass)
-        self.btUp.clicked.connect(self.moveClassUp)
-        self.btDown.clicked.connect(self.moveClassDown)
         self.tableView.cellDoubleClicked.connect(self.onCellDoubleClicked)
         self.tableView.itemSelectionChanged.connect(self.updateButtonStates)
         self.connectLayerTreeSignal()
@@ -3188,6 +3199,7 @@ class QGISRedLegendsDialog(QDialog, formClass):
     def executeAddClass(self):
         if self.currentFieldType == self.FIELD_TYPE_CATEGORICAL:
             self.addCategoricalClass()
+            self.sortTableRowsByClassOrder()
         else:
             self.addNumericClass()
             modeId = self.cbMode.currentData()
@@ -3404,6 +3416,7 @@ class QGISRedLegendsDialog(QDialog, formClass):
             self.tableView.blockSignals(False)
             self.tableView.setUpdatesEnabled(True)
 
+            self.sortTableRowsByClassOrder()
             self.updateClassCount()
             self.updateButtonStates()
             self.handleColorLogicOnClassChange()
@@ -3500,31 +3513,6 @@ class QGISRedLegendsDialog(QDialog, formClass):
         for row, (_value, data) in enumerate(regularRows + specialRows):
             self.setRowData(row, data)
         self.markLegendEdited()
-
-    def moveClassUp(self):
-        self.moveRow(-1)
-
-    def moveClassDown(self):
-        self.moveRow(1)
-
-    def moveRow(self, offset):
-        rows = self.getSelectedRows()
-        if len(rows) != 1:
-            return
-
-        row = rows[0]
-        if not (0 <= row + offset < self.tableView.rowCount()):
-            return
-
-        self.swapTableRows(row, row + offset)
-        self.tableView.selectRow(row + offset)
-        self.markLegendEdited()
-
-    def swapTableRows(self, row1, row2):
-        data1 = self.getRowData(row1)
-        data2 = self.getRowData(row2)
-        self.setRowData(row1, data2)
-        self.setRowData(row2, data1)
 
     def getRowData(self, row):
         data = []
@@ -6345,7 +6333,6 @@ class QGISRedLegendsDialog(QDialog, formClass):
         self.updateFillControlsVisibility()
         self.refreshColorModeItems()
         self.updateClassButtonsVisibility(isCategorical, isNumeric, isFixedInterval)
-        self.updateNavigationButtonsVisibility(isCategorical)
         self.updateClassCountEditability(isCategorical, isNumeric, isManualNumeric)
         self.updateAddClassTooltip(isCategorical, isNumeric)
 
@@ -6589,21 +6576,18 @@ class QGISRedLegendsDialog(QDialog, formClass):
         self.spinIntervalRange.setVisible(isFixedInterval)
 
     def updateClassButtonsVisibility(self, isCategorical, isNumeric, isFixedInterval):
-        self.btClassPlus.setVisible(isCategorical or isNumeric)
-        self.btClassMinus.setVisible(isCategorical or isNumeric)
+        hasClassTools = (isCategorical or isNumeric) and not self.hasToolDefinedClasses()
+        self.btClassPlus.setVisible(hasClassTools)
+        self.btClassMinus.setVisible(hasClassTools)
         self.btClassPlus.setEnabled(not isFixedInterval)
         self.btClassMinus.setEnabled(not isFixedInterval)
         self.labelClass.setVisible(isCategorical or isNumeric)
         self.classCountRowVisible = isCategorical or isNumeric
         self.updateClassCountWidgetsVisibility()
         self.labelFrameLegends.setVisible(isNumeric or isCategorical)
-        self.btClassifyAll.setVisible(isCategorical)
+        self.btClassifyAll.setVisible(isCategorical and hasClassTools)
         self.labelClassOrder.setVisible(isCategorical)
         self.cbClassOrder.setVisible(isCategorical)
-
-    def updateNavigationButtonsVisibility(self, isCategorical):
-        self.btUp.setVisible(isCategorical)
-        self.btDown.setVisible(isCategorical)
 
     def updateClassCountEditability(self, isCategorical, isNumeric, isManualNumeric):
         if isCategorical:
@@ -6673,10 +6657,10 @@ class QGISRedLegendsDialog(QDialog, formClass):
         if not self.currentLayer:
             return
 
-        if self.isFixedLegendLayer():
-            # The classes of a fixed legend are the ones its style ships, in that order
-            for classButton in (self.btClassPlus, self.btClassMinus, self.btUp, self.btDown):
-                classButton.setEnabled(False)
+        if self.isFixedLegendLayer() or self.hasToolDefinedClasses():
+            # The classes of a fixed legend or a tool output are the ones its style or data brings
+            self.btClassPlus.setEnabled(False)
+            self.btClassMinus.setEnabled(False)
             return
 
         selectedRows = self.getSelectedRows()
@@ -6691,7 +6675,6 @@ class QGISRedLegendsDialog(QDialog, formClass):
 
         self.updateAddButtonState(isCategorical, isAutoNumeric, isManualNumeric, selectionCount, modeId)
         self.updateRemoveButtonState(modeId, selectionCount)
-        self.updateMoveButtonsState(isCategorical, selectionCount, selectedRows)
 
     def updateAddButtonState(self, isCategorical, isAutoNumeric, isManualNumeric, selectionCount, modeId):
         if modeId == "FixedInterval":
@@ -6713,20 +6696,6 @@ class QGISRedLegendsDialog(QDialog, formClass):
             self.btClassMinus.setEnabled(False)
         else:
             self.btClassMinus.setEnabled(selectionCount >= 1)
-
-    def updateMoveButtonsState(self, isCategorical, selectionCount, selectedRows):
-        if isCategorical:
-            canMove = selectionCount == 1
-            if canMove:
-                rowIndex = selectedRows[0]
-                self.btUp.setEnabled(rowIndex > 0)
-                self.btDown.setEnabled(rowIndex < self.tableView.rowCount() - 1)
-            else:
-                self.btUp.setEnabled(False)
-                self.btDown.setEnabled(False)
-        else:
-            self.btUp.setEnabled(False)
-            self.btDown.setEnabled(False)
 
     def updateAddClassButtonState(self):
         if self.currentFieldType == self.FIELD_TYPE_CATEGORICAL:
@@ -6763,8 +6732,6 @@ class QGISRedLegendsDialog(QDialog, formClass):
         # Class action buttons
         self.btClassPlus.setEnabled(not isInput)
         self.btClassMinus.setEnabled(not isInput)
-        self.btUp.setEnabled(not isInput)
-        self.btDown.setEnabled(not isInput)
         self.btClassifyAll.setEnabled(not isInput)
 
         # Color panel

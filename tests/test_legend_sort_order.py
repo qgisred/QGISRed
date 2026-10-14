@@ -58,6 +58,12 @@ class FakeTable:
     def cellWidget(self, row, column):
         return FakeValueCell(self.rows[row]) if column == 3 else None
 
+    def setUpdatesEnabled(self, enabled):
+        pass
+
+    def blockSignals(self, blocked):
+        pass
+
 
 @pytest.fixture(autouse=True)
 def valueCellsAreLineEdits(monkeypatch):
@@ -96,21 +102,51 @@ class TestSortingTheRowsOnApply:
         dialog.sortTableRowsByClassOrder()
         assert dialog.tableView.rows == ["c", "b", "a", "#NA"]
 
+    def test_numbers_sort_as_numbers_so_sector_2_comes_before_10(self):
+        dialog = _dialog("ascending", ["10", "2", "1"])
+        dialog.sortTableRowsByClassOrder()
+        assert dialog.tableView.rows == ["1", "2", "10"]
+
     def test_rows_already_in_order_are_not_marked_edited(self):
         dialog = _dialog("ascending", ["a", "b", "NULL"])
         dialog.sortTableRowsByClassOrder()
         assert dialog.edited is False
 
     def test_only_categorized_legends_are_sorted(self):
-    def test_numbers_sort_as_numbers_so_sector_2_comes_before_10(self):
-        dialog = _dialog("ascending", ["10", "2", "1"])
-        dialog.sortTableRowsByClassOrder()
-        assert dialog.tableView.rows == ["1", "2", "10"]
-
         dialog = _dialog("ascending", ["b", "a"])
         dialog.currentFieldType = QGISRedLegendsDialog.FIELD_TYPE_NUMERIC
         dialog.sortTableRowsByClassOrder()
         assert dialog.tableView.rows == ["b", "a"]
+
+
+def _addingDialog(order, values, available):
+    """A dialog whose class creation appends the next available value as a row."""
+    dialog = _dialog(order, values)
+    dialog.currentLayer = object()
+    dialog.availableUniqueValues = list(available)
+    dialog.addClassBeforeSelection = False
+    dialog.addCategoricalClass = lambda: dialog.tableView.rows.append(dialog.availableUniqueValues.pop(0))
+    for name in ("updateButtonStates", "handleColorLogicOnClassChange", "handleSizeLogicOnClassChange",
+                 "updateClassCount", "removeOtherValuesRows"):
+        setattr(dialog, name, lambda: None)
+    return dialog
+
+
+class TestNewClassesTakeTheirPlaceInTheOrder:
+    def test_an_added_class_is_sorted_in_with_the_others(self):
+        dialog = _addingDialog("ascending", ["a", "c"], ["b"])
+        dialog.executeAddClass()
+        assert dialog.tableView.rows == ["a", "b", "c"]
+
+    def test_with_no_order_the_added_class_stays_where_it_was_put(self):
+        dialog = _addingDialog("none", ["c", "a"], ["b"])
+        dialog.executeAddClass()
+        assert dialog.tableView.rows == ["c", "a", "b"]
+
+    def test_adding_all_values_sorts_the_whole_table(self):
+        dialog = _addingDialog("descending", ["b"], ["a", "c", "NULL"])
+        dialog.classifyMissingUniqueValues()
+        assert dialog.tableView.rows == ["c", "b", "a", "NULL"]
 
 
 class TestSavingTheOrder:
