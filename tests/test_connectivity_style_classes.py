@@ -5,13 +5,14 @@ The shipped QML is a legend by SubNet with no class yet, only the 0.8 mm source 
 once the check runs, every subnet id becomes a class coloured in order from the default
 Sequential palette, so each subnet can be told apart on the map.
 """
+import json
 import os
 
 import pytest
 
 from .conftest import REAL_QGIS
 
-from QGISRed.tools.utils.qgisred_styling_utils import QGISRedStylingUtils
+from QGISRed.tools.utils.qgisred_styling_utils import DEMAND_BUILDER_PALETTE_NAME, QGISRedStylingUtils
 
 pytestmark = pytest.mark.skipif(not REAL_QGIS, reason="needs real QGIS renderers")
 
@@ -96,3 +97,33 @@ class TestSubnetClasses:
         symbol = categories[0].symbol()
         assert symbol.symbolLayer(0).layerType() == template.symbolLayer(0).layerType()
         assert symbol.symbolLayer(0).width() == template.symbolLayer(0).width() == 0.8
+
+
+class TestTheShippedStrategy:
+    """The style names the palette the subnets are coloured from, so the Legend Editor opens
+    the layer with Sequential Palettes and that palette already selected in Colors."""
+
+    def test_the_shipped_style_names_the_sequential_palette(self):
+        layer = _connectivityLayer([])
+
+        strategy = json.loads(layer.customProperty("qgisred_legend_strategy"))
+
+        assert strategy["mode"] == "categorized" and strategy["field"] == "SubNet"
+        assert strategy["parts"] == ["colors"]
+        assert strategy["colors"] == {"source": "ramp", "rampName": DEMAND_BUILDER_PALETTE_NAME, "invertRamp": False}
+        assert layer.customProperty("qgisred_identifier") == "qgisred_connectivity_links"
+
+    def test_replaying_it_colours_the_subnets_like_the_check_does(self):
+        from unittest.mock import patch
+
+        # The shipped library, whatever this machine has selected or edited as its own one
+        QGISRedStylingUtils.ensureStyleDatabase()
+        layer = _connectivityLayer(["2", "1", "3"])
+
+        with patch.object(QGISRedStylingUtils, "styleDatabasePath", QGISRedStylingUtils.defaultStyleDatabasePath):
+            QGISRedStylingUtils().applyStrategyFromLayer(layer)
+
+        categories = layer.renderer().categories()
+        assert [category.value() for category in categories] == ["1", "2", "3"]
+        assert [category.symbol().color().name() for category in categories] == _paletteNames()[:3]
+        assert categories[0].symbol().symbolLayer(0).width() == 0.8

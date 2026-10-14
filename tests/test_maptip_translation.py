@@ -34,6 +34,7 @@ _LEGACY_VALVE_TIP = (
 _LEGACY_DEMAND_TIP = (
     "Mult_Demand [% coalesce(attribute($currentfeature,'BaseDem'), attribute($currentfeature,'BaseValue')) %] ..."
 )
+_DEMAND_ID_EXPRESSION = "[% coalesce(attribute($currentfeature,'DemandID'), attribute($currentfeature,'Id')) %]"
 
 
 def _shippedStyle(name):
@@ -172,6 +173,17 @@ class TestTranslateMapTip:
         layer = FakeLayer(_shippedMapTip("Demands"))
         _utils().translateMapTip(layer)
         assert layer.mapTipTemplate().startswith("Demanda Múltiple [% coalesce(")
+
+    def test_demands_tip_their_id_like_every_other_input_layer(self):
+        assert _shippedMapTip("Demands") == "Multiple Demand " + _DEMAND_ID_EXPRESSION
+        assert _shippedMapTip("Junctions") == "Junction " + _DEMAND_ID_EXPRESSION.replace("DemandID", "JunctionID")
+
+    @pytest.mark.parametrize("leadingWord", ["Multiple Demand", "Demanda Múltiple"])
+    def test_a_style_saved_with_the_base_demand_tip_now_tips_the_id(self, leadingWord):
+        # Demands used to tip "Multiple Demand <base demand> ...", also in styles saved translated.
+        layer = FakeLayer(leadingWord + " " + _LEGACY_DEMAND_TIP.split(" ", 1)[1])
+        _utils().translateMapTip(layer)
+        assert layer.mapTipTemplate() == "Demanda Múltiple " + _DEMAND_ID_EXPRESSION
 
     def test_the_meter_type_is_shown_without_square_brackets(self):
         assert "[[%" not in _shippedMapTip("Meters") and "%]]" not in _shippedMapTip("Meters")
