@@ -1720,7 +1720,6 @@ ISOLATED_NODES_CLASS = (
     "with_variable('nodeType', " + ISOLATED_NODE_TYPE + ", "
     "with_variable('status', attribute($currentfeature,'Status'), "
     "CASE WHEN @nodeType = 'INCIDENCE' THEN 'INCIDENCE' "
-    "WHEN @nodeType = 'JUNCTION' THEN 'ISOLATED' "
     "WHEN @status IN ('NOW CLOSED', 'TO CLOSE', 'TO OPEN', 'ISOLATED', 'TO RECOVER') "
     "THEN @status ELSE 'ISOLATED' END))"
 )
@@ -1751,18 +1750,18 @@ ISOLATED_LINK_BASE_SIZES = {
 ISOLATED_CV_SIZE = isolatedLinkSize("PIPE' and \"Status\"='CV", 9)
 # What each class of the nodes is drawn with: (marker, node type it is drawn for or None for
 # any, size on the map, size in the Layers Panel)
-VALVE_CIRCLE = [("circle", "ISOLATIONVALVE", 3.5, 3.5)]
+STATUS_CIRCLES = [("circle", "JUNCTION", 3.5, 0), ("circle", "ISOLATIONVALVE", 3.5, 3.5)]
 JUNCTION_AND_VALVE_CIRCLES = [("circle", "JUNCTION", 2.5, 2.5), ("circle", "ISOLATIONVALVE", 3.5, 0)]
 TANK_AND_RESERVOIR_ICONS = [
     ("qgisred_water", "TANK", 10, 0), ("qgisred_frame", "TANK", 10, 0),
     ("qgisred_water", "RESERVOIR", 10, 0), ("qgisred_frame", "RESERVOIR", 10, 0),
 ]
 ISOLATED_NODE_LAYERS = {
-    "NOW CLOSED": VALVE_CIRCLE + TANK_AND_RESERVOIR_ICONS,
-    "TO CLOSE": VALVE_CIRCLE + TANK_AND_RESERVOIR_ICONS,
-    "TO OPEN": VALVE_CIRCLE + TANK_AND_RESERVOIR_ICONS,
+    "NOW CLOSED": STATUS_CIRCLES + TANK_AND_RESERVOIR_ICONS,
+    "TO CLOSE": STATUS_CIRCLES + TANK_AND_RESERVOIR_ICONS,
+    "TO OPEN": STATUS_CIRCLES + TANK_AND_RESERVOIR_ICONS,
     "ISOLATED": JUNCTION_AND_VALVE_CIRCLES + TANK_AND_RESERVOIR_ICONS,
-    "TO RECOVER": VALVE_CIRCLE + TANK_AND_RESERVOIR_ICONS,
+    "TO RECOVER": STATUS_CIRCLES + TANK_AND_RESERVOIR_ICONS,
     "INCIDENCE": [("star", None, 6, 6)],
 }
 
@@ -1836,7 +1835,7 @@ class TestShippedFixedLegends:
         assert set(utils.isolatedStatusClassNames()) == set(ISOLATED_NODE_COLORS)
         assert set(utils.isolatedDemandClassNames()) == set(ISOLATED_DEMAND_COLORS)
 
-    @pytest.mark.parametrize("value, size", [("JUNCTION", 1.6), ("CONNECTION", 2.5)])
+    @pytest.mark.parametrize("value, size", [("JUNCTION", 2.5), ("CONNECTION", 1.6)])
     def test_each_class_of_the_isolated_demands_is_a_hollow_circle(self, value, size):
         [ring] = _classLayers(ISOLATED_DEMANDS_STYLE, value)
         assert (ring.get("class"), _option(ring, "name")) == ("SimpleMarker", "circle")
@@ -1893,7 +1892,7 @@ class TestShippedFixedLegends:
             elif marker == "star":
                 assert (fill, _optionColor(layer, "outline_color")) == (color, "#000000")
             else:
-                inside = "#ffffff" if nodeType == "JUNCTION" else color
+                inside = "#ffffff" if nodeType == "JUNCTION" and value == "ISOLATED" else color
                 assert (fill, _optionColor(layer, "outline_color")) == (inside, color)
 
 
@@ -2068,8 +2067,9 @@ class TestFixedLegendsInQgis:
     @pytest.mark.parametrize("nodeType, status, expected", [
         ("JUNCTION", "ISOLATED", "ISOLATED"),
         ("JUNCTION", None, "ISOLATED"),
-        ("JUNCTION", "TO RECOVER", "ISOLATED"),
-        ("JUNCTION", "TO CLOSE", "ISOLATED"),
+        ("JUNCTION", "TO RECOVER", "TO RECOVER"),
+        ("JUNCTION", "TO CLOSE", "TO CLOSE"),
+        ("JUNCTION", "OPEN", "ISOLATED"),
         ("ISOLATIONVALVE", "NOW CLOSED", "NOW CLOSED"),
         ("ISOLATIONVALVE", "TO CLOSE", "TO CLOSE"),
         ("ISOLATIONVALVE", "TO OPEN", "TO OPEN"),
@@ -2143,7 +2143,7 @@ class TestFixedLegendsInQgis:
         assert [fill for fill, _stroke in paintedColors(symbols["ISOLATED"])[2:]] == [
             self.PICKED, shade, self.PICKED, shade]
         assert [fill for fill, _stroke in paintedColors(symbols["TO CLOSE"])] == [
-            self.PICKED, self.PICKED, shade, self.PICKED, shade]
+            self.PICKED, self.PICKED, self.PICKED, shade, self.PICKED, shade]
         assert paintedColors(symbols["INCIDENCE"]) == [(self.PICKED, "#000000")]
 
     def test_the_rings_of_the_isolated_demands_stay_hollow(self):
