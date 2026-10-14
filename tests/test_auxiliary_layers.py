@@ -374,6 +374,30 @@ class TestDemandBuilderStyleFlag:
         styling.setStyle.assert_called_once_with(
             layer, "DemandBuilderIsolatedDemandsServiceConnections")
 
+    def test_the_isolated_demands_connections_cannot_be_edited(self):
+        """Only the Demand Builder writes them, so the layer is locked like a thematic map."""
+        from QGISRed.tools.utils.qgisred_styling_utils import QGISRedStylingUtils
+
+        styling = object.__new__(QGISRedStylingUtils)
+        styling.setStyle = MagicMock()
+        layer = MagicMock()
+
+        styling.setDemandBuilderStyle(layer, "DemandBuilder_IsolatedDemandsServiceConnections")
+
+        layer.setReadOnly.assert_called_once_with(True)
+
+    def test_the_isolated_demands_connections_style_labels_and_tips_the_connection_id(self):
+        root = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
+        styles = os.path.join(root, "defaults", "layerStyles")
+        fileName = "DemandBuilderIsolatedDemandsServiceConnections.qml.bak"
+        with open(os.path.join(styles, fileName), encoding="utf-8") as handle:
+            text = handle.read()
+
+        expression = "coalesce(attribute($currentfeature,'ConnectID'), attribute($currentfeature,'Id'))"
+        assert 'labelsEnabled="0"' in text
+        assert 'fieldName="%s"' % expression in text and 'isExpression="1"' in text
+        assert "<mapTip enabled=\"1\">Service Connection [% " in text and "'&lt;NULL&gt;') %]</mapTip>" in text
+
     def _styling(self):
         from QGISRed.tools.utils.qgisred_styling_utils import QGISRedStylingUtils
 

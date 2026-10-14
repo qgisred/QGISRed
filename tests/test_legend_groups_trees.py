@@ -180,7 +180,9 @@ class FakeSymbol:
 
 class TestDemandBuilderGroup:
     """The three theme types are listed and edited as categorized legends only (their classes
-    follow the data); the isolated-demands connections are not listed."""
+    follow the data); the isolated-demands connections are listed as a single symbol."""
+
+    ISOLATED_CONNECTIONS_IDENTIFIER = "qgisred_demandbuilder_isolateddemandsserviceconnections"
 
     THEME_IDENTIFIERS = {
         "qgisred_demandbuilder_consumptionpoints",
@@ -192,15 +194,19 @@ class TestDemandBuilderGroup:
         themes = [
             FakeLayerNode(FakeLayer(identifier, rendererType)) for identifier in sorted(self.THEME_IDENTIFIERS)
         ]
-        connections = FakeLayerNode(
-            FakeLayer("qgisred_demandbuilder_isolateddemandsserviceconnections", "categorizedSymbol"))
+        connections = FakeLayerNode(FakeLayer(self.ISOLATED_CONNECTIONS_IDENTIFIER, "singleSymbol"))
         return FakeGroup("DemandBuilder", identifier="qgisred_demandbuilder", children=themes + [connections])
 
-    def test_every_theme_type_is_collected_but_not_the_isolated_connections(self):
+    def test_every_theme_type_and_the_isolated_connections_are_collected(self):
         layers = []
         _dialog().collectRenderableLayersRecursive(self._group("categorizedSymbol"), layers, False)
         identifiers = {layer.customProperty("qgisred_identifier") for layer in layers}
-        assert identifiers == self.THEME_IDENTIFIERS
+        assert identifiers == self.THEME_IDENTIFIERS | {self.ISOLATED_CONNECTIONS_IDENTIFIER}
+
+    def test_the_isolated_connections_are_edited_as_a_single_symbol(self):
+        identifier = self.ISOLATED_CONNECTIONS_IDENTIFIER
+        assert identifier in QGISRedLegendsDialog.SINGLE_EDITABLE_QUERY_IDENTIFIERS
+        assert identifier not in QGISRedLegendsDialog.DEMANDS_BUILDER_EDITABLE_IDENTIFIERS
 
     def test_the_themes_are_not_single_symbol_layers(self):
         assert not self.THEME_IDENTIFIERS & QGISRedLegendsDialog.SINGLE_EDITABLE_QUERY_IDENTIFIERS

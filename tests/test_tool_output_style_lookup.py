@@ -165,6 +165,8 @@ class TestRuntimeAndEditorAskForTheSameFile:
         ("qgisred_demandbuilder_consumptionpoints", "DemandBuilder_ConsumptionPoints"),
         ("qgisred_demandbuilder_demandlinks", "DemandBuilder_DemandLinks"),
         ("qgisred_demandbuilder_sectors", "DemandBuilder_Sectors"),
+        ("qgisred_demandbuilder_isolateddemandsserviceconnections",
+         "DemandBuilderIsolatedDemandsServiceConnections"),
         # openLayer(issues=True) asks for the lowercased file stem, {Element}_Issues
         ("qgisred_junctions_issues", "junctions_issues"),
         ("qgisred_tanks_issues", "tanks_issues"),

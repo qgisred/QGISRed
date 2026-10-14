@@ -447,3 +447,25 @@ class TestColorStrategy:
             self._removeFromProject(layers)
 
         assert colours["Ind"] == _rgb(QGISRedStylingUtils().demandBuilderPaletteColors()[0])
+
+
+class TestIsolatedDemandsConnectionsStyle:
+    """The shipped style labels and tips the connection id; labels start hidden."""
+
+    def _layer(self):
+        from qgis.core import QgsVectorLayer
+
+        layer = QgsVectorLayer("Point?crs=EPSG:25830&field=ConnectID:string&field=BaseDem:double", "iso", "memory")
+        layer.loadNamedStyle(os.path.join(SHIPPED, "DemandBuilderIsolatedDemandsServiceConnections.qml.bak"))
+        return layer
+
+    def test_the_label_is_the_connection_id_and_starts_hidden(self):
+        layer = self._layer()
+
+        settings = layer.labeling().settings()
+        assert settings.isExpression is True
+        assert "'ConnectID'" in settings.fieldName and "'Id'" in settings.fieldName
+        assert layer.labelsEnabled() is False
+
+    def test_the_map_tip_names_the_connection(self):
+        assert self._layer().mapTipTemplate().startswith("Service Connection [% ")

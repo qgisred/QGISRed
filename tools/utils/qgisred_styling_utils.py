@@ -1384,7 +1384,8 @@ class QGISRedStylingUtils:
 
         `sourceName` is the file's own name: by the time a layer reaches here its display
         name may already be the translated one, and the isolated-demands connections are
-        told apart by their file name.
+        told apart by their file name. Only the Demand Builder writes those, so the layer
+        is locked against edits, as the thematic maps are.
 
         `baseDemandField` is what the DLL just reported, when it reported anything. It is
         only a hint: the column the point labels end up showing is resolved against the
@@ -1393,6 +1394,7 @@ class QGISRedStylingUtils:
         name = sourceName or os.path.basename(layer.source())
         if "IsolatedDemandsServiceConnections" in name:
             self.setStyle(layer, "DemandBuilderIsolatedDemandsServiceConnections")
+            layer.setReadOnly(True)
             layer.triggerRepaint()
             return
 

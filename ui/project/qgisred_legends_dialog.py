@@ -181,7 +181,7 @@ class QGISRedLegendsDialog(QDialog, formClass):
     ]
 
     # The Demand Builder themes the Legend Editor edits, always as categorized legends; the
-    # isolated-demands connections stay out
+    # isolated-demands connections are a single symbol (SINGLE_EDITABLE_QUERY_IDENTIFIERS)
     DEMANDS_BUILDER_EDITABLE_IDENTIFIERS = {
         "qgisred_demandbuilder_consumptionpoints",
         "qgisred_demandbuilder_demandlinks",
@@ -220,7 +220,10 @@ class QGISRedLegendsDialog(QDialog, formClass):
     TREE_NODES_IDENTIFIER = "qgisred_tree_nodes"
 
     # Query layers editable as a single symbol (color and size)
-    SINGLE_EDITABLE_QUERY_IDENTIFIERS = {"qgisred_connectivity_links"}
+    SINGLE_EDITABLE_QUERY_IDENTIFIERS = {
+        "qgisred_connectivity_links",
+        "qgisred_demandbuilder_isolateddemandsserviceconnections",
+    }
 
     # Isolated Segments layers ship a legend with fixed classes: links and nodes by Status, isolated
     # demands by element type; the issue layers by severity. The editor lists exactly these classes,
@@ -2402,7 +2405,7 @@ class QGISRedLegendsDialog(QDialog, formClass):
                 if layer and isinstance(layer, QgsVectorLayer):
                     if isDemandBuilderGroup and (
                         layer.customProperty("qgisred_identifier")
-                        not in self.DEMANDS_BUILDER_EDITABLE_IDENTIFIERS
+                        not in self.DEMANDS_BUILDER_EDITABLE_IDENTIFIERS | self.EDITABLE_QUERY_IDENTIFIERS
                     ):
                         continue
                     rendererType = layer.renderer().type() if layer.renderer() else ""
