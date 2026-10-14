@@ -102,6 +102,11 @@ class TestSortingTheRowsOnApply:
         assert dialog.edited is False
 
     def test_only_categorized_legends_are_sorted(self):
+    def test_numbers_sort_as_numbers_so_sector_2_comes_before_10(self):
+        dialog = _dialog("ascending", ["10", "2", "1"])
+        dialog.sortTableRowsByClassOrder()
+        assert dialog.tableView.rows == ["1", "2", "10"]
+
         dialog = _dialog("ascending", ["b", "a"])
         dialog.currentFieldType = QGISRedLegendsDialog.FIELD_TYPE_NUMERIC
         dialog.sortTableRowsByClassOrder()

@@ -3492,7 +3492,8 @@ class QGISRedLegendsDialog(QDialog, formClass):
         specialValues = ["NULL", "#NA", self.tr("Other Values"), "Other Values"]
         rows = [(self.getRowClassValue(row), self.getRowData(row)) for row in range(self.tableView.rowCount())]
         regularRows = sorted((item for item in rows if item[0] not in specialValues),
-                             key=lambda item: item[0], reverse=classOrder == "descending")
+                             key=lambda item: QGISRedStylingUtils.classValueSortKey(item[0]),
+                             reverse=classOrder == "descending")
         specialRows = [item for item in rows if item[0] in specialValues]
         if [item[0] for item in regularRows + specialRows] == [item[0] for item in rows]:
             return

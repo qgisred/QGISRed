@@ -159,7 +159,7 @@
   <customproperties>
     <Option type="Map">
       <Option name="qgisred_identifier" value="qgisred_demandbuilder_demandlinks" type="QString"/>
-      <Option name="qgisred_legend_strategy" value="{&quot;schema&quot;:&quot;qgisred.legendStrategy.v2&quot;,&quot;mode&quot;:&quot;categorized&quot;,&quot;field&quot;:&quot;CASE WHEN \&quot;Category\&quot; IS NULL OR trim(\&quot;Category\&quot;) = '' OR lower(trim(\&quot;Category\&quot;)) IN ('null', 'undefined') THEN 'Uncategorized' ELSE trim(\&quot;Category\&quot;) END&quot;,&quot;parts&quot;:[&quot;colors&quot;],&quot;colors&quot;:{&quot;source&quot;:&quot;ramp&quot;,&quot;rampName&quot;:&quot;QGISRed Qualitative 10&quot;,&quot;invertRamp&quot;:false}}" type="QString"/>
+      <Option name="qgisred_legend_strategy" value="{&quot;schema&quot;:&quot;qgisred.legendStrategy.v2&quot;,&quot;mode&quot;:&quot;categorized&quot;,&quot;field&quot;:&quot;CASE WHEN \&quot;Category\&quot; IS NULL OR trim(\&quot;Category\&quot;) = '' OR lower(trim(\&quot;Category\&quot;)) IN ('null', 'undefined') THEN 'Uncategorized' ELSE trim(\&quot;Category\&quot;) END&quot;,&quot;parts&quot;:[&quot;colors&quot;],&quot;classOrder&quot;:&quot;ascending&quot;,&quot;colors&quot;:{&quot;source&quot;:&quot;ramp&quot;,&quot;rampName&quot;:&quot;QGISRed Qualitative 10&quot;,&quot;invertRamp&quot;:false}}" type="QString"/>
     </Option>
   </customproperties>
   <blendMode>0</blendMode>

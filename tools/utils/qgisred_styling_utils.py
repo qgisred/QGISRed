@@ -1299,6 +1299,37 @@ class QGISRedStylingUtils:
             return None
         return block.get("rampName") or DEMAND_BUILDER_PALETTE_NAME
 
+    def demandBuilderClassOrder(self, layer=None):
+        """How the saved strategy orders the classes; the shipped look sorts them ascending."""
+        rawStrategy = layer.customProperty("qgisred_legend_strategy") if layer is not None else None
+        if not rawStrategy:
+            return "ascending"
+        with suppress(Exception):
+            return json.loads(rawStrategy).get("classOrder") or "none"
+        return "ascending"
+
+    @staticmethod
+    def classValueSortKey(value):
+        # Numbers compare as numbers, so sector 2 comes before sector 10
+        with suppress(ValueError, TypeError):
+            return (0, float(value), "")
+        return (1, 0.0, str(value).lower())
+
+    def orderDemandBuilderCategories(self, layer, categories):
+        """Uncategorized first, then the classes in the order the strategy asks for."""
+        classOrder = self.demandBuilderClassOrder(layer)
+        if classOrder not in ("ascending", "descending"):
+            return categories
+
+        def isUncategorized(category):
+            return str(category.value()) == DEMAND_BUILDER_UNCATEGORIZED
+
+        uncategorized = [category for category in categories if isUncategorized(category)]
+        ordered = sorted((category for category in categories if not isUncategorized(category)),
+                         key=lambda category: self.classValueSortKey(category.value()),
+                         reverse=classOrder == "descending")
+        return uncategorized + ordered
+
     def demandBuilderPaletteColors(self, layer=None):
         """The colours new classes take, in order: the palette the style names, else the
         default Sequential palette of the library."""
@@ -1490,7 +1521,8 @@ class QGISRedStylingUtils:
         fieldIndex = layer.fields().indexFromName(field)
         values = {self.normalizeDemandCategory(feature[fieldIndex]) for feature in layer.getFeatures()}
         knownValues = {str(category.value()) for category in renderer.categories()}
-        newValues = sorted(values - knownValues, key=lambda value: (value != DEMAND_BUILDER_UNCATEGORIZED, value))
+        newValues = sorted(values - knownValues,
+                           key=lambda value: (value != DEMAND_BUILDER_UNCATEGORIZED, self.classValueSortKey(value)))
         template = renderer.sourceSymbol() or (
             renderer.categories()[-1].symbol() if renderer.categories() else None)
         categories = list(renderer.categories())
@@ -1501,6 +1533,7 @@ class QGISRedStylingUtils:
                 layer.setRenderer(renderer)
             return
         if template is None:
+            categories = self.orderDemandBuilderCategories(layer, categories)
             layer.setRenderer(self._rebuildCategorizedRenderer(renderer, categories))
             return
         palette = self.demandBuilderPaletteColors(layer)
@@ -1512,6 +1545,7 @@ class QGISRedStylingUtils:
             else:
                 symbol.setColor(self._demandBuilderClassColor(layer, value, palette, usedColors))
             categories.append(QgsRendererCategory(value, symbol, self._translateCategoryLabel(value)))
+        categories = self.orderDemandBuilderCategories(layer, categories)
         layer.setRenderer(self._rebuildCategorizedRenderer(renderer, categories))
 
     @staticmethod

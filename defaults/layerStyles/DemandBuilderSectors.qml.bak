@@ -143,7 +143,7 @@
   <customproperties>
     <Option type="Map">
       <Option name="qgisred_identifier" value="qgisred_demandbuilder_sectors" type="QString"/>
-      <Option name="qgisred_legend_strategy" value="{&quot;schema&quot;:&quot;qgisred.legendStrategy.v2&quot;,&quot;mode&quot;:&quot;categorized&quot;,&quot;field&quot;:&quot;CASE WHEN \&quot;SectorID\&quot; IS NULL OR trim(to_string(\&quot;SectorID\&quot;)) = '' OR lower(trim(to_string(\&quot;SectorID\&quot;))) IN ('null', 'undefined') THEN 'Uncategorized' ELSE trim(to_string(\&quot;SectorID\&quot;)) END&quot;,&quot;parts&quot;:[&quot;colors&quot;],&quot;colors&quot;:{&quot;source&quot;:&quot;ramp&quot;,&quot;rampName&quot;:&quot;QGISRed Qualitative 10&quot;,&quot;invertRamp&quot;:false}}" type="QString"/>
+      <Option name="qgisred_legend_strategy" value="{&quot;schema&quot;:&quot;qgisred.legendStrategy.v2&quot;,&quot;mode&quot;:&quot;categorized&quot;,&quot;field&quot;:&quot;CASE WHEN \&quot;SectorID\&quot; IS NULL OR trim(to_string(\&quot;SectorID\&quot;)) = '' OR lower(trim(to_string(\&quot;SectorID\&quot;))) IN ('null', 'undefined') THEN 'Uncategorized' ELSE trim(to_string(\&quot;SectorID\&quot;)) END&quot;,&quot;parts&quot;:[&quot;colors&quot;],&quot;classOrder&quot;:&quot;ascending&quot;,&quot;colors&quot;:{&quot;source&quot;:&quot;ramp&quot;,&quot;rampName&quot;:&quot;QGISRed Qualitative 10&quot;,&quot;invertRamp&quot;:false}}" type="QString"/>
     </Option>
   </customproperties>
   <blendMode>0</blendMode>

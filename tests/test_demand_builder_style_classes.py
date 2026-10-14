@@ -212,6 +212,51 @@ class TestClassesFromData:
 
         assert [category.value() for category in layer.renderer().categories()] == ["Dom", "Ind"]
 
+    def test_a_value_added_while_editing_takes_its_place_in_the_alphabet(self):
+        layer = _pointsTheme(["Dom", "Ind"])
+        styling = QGISRedStylingUtils()
+        styling.completeDemandBuilderStyle(layer, True)
+        layer.startEditing()
+        for feature in layer.getFeatures():
+            layer.changeAttributeValue(feature.id(), 1, "Com")
+            break
+        layer.commitChanges()
+
+        styling.completeDemandBuilderStyle(layer, True)
+
+        assert [category.value() for category in layer.renderer().categories()] == ["Com", "Dom", "Ind"]
+
+    def test_a_descending_strategy_keeps_uncategorized_first(self):
+        import json
+
+        layer = _pointsTheme(["Dom", "", "Ind"])
+        strategy = json.loads(layer.customProperty("qgisred_legend_strategy"))
+        strategy["classOrder"] = "descending"
+        layer.setCustomProperty("qgisred_legend_strategy", json.dumps(strategy))
+
+        QGISRedStylingUtils().completeDemandBuilderStyle(layer, True)
+
+        assert [category.value() for category in layer.renderer().categories()] == ["Uncategorized", "Ind", "Dom"]
+
+    def test_a_strategy_without_an_order_appends_the_new_values(self):
+        import json
+
+        layer = _pointsTheme(["Dom", "Ind"])
+        strategy = json.loads(layer.customProperty("qgisred_legend_strategy"))
+        strategy["classOrder"] = "none"
+        layer.setCustomProperty("qgisred_legend_strategy", json.dumps(strategy))
+        styling = QGISRedStylingUtils()
+        styling.completeDemandBuilderStyle(layer, True)
+        layer.startEditing()
+        for feature in layer.getFeatures():
+            layer.changeAttributeValue(feature.id(), 1, "Com")
+            break
+        layer.commitChanges()
+
+        styling.completeDemandBuilderStyle(layer, True)
+
+        assert [category.value() for category in layer.renderer().categories()] == ["Dom", "Ind", "Com"]
+
     def test_a_single_symbol_style_of_an_older_editor_becomes_the_class_template(self):
         from qgis.core import QgsSingleSymbolRenderer
         from qgis.PyQt.QtGui import QColor
@@ -242,12 +287,12 @@ class TestSectors:
     def test_numeric_sector_ids_become_classes_with_uncategorized_first(self):
         from qgis.core import NULL
 
-        layer = _sectorsTheme([3, 1, NULL, 3])
+        layer = _sectorsTheme([3, 10, 1, NULL, 3])
 
         QGISRedStylingUtils().completeDemandBuilderStyle(layer, False)
 
         categories = layer.renderer().categories()
-        assert [category.value() for category in categories] == ["Uncategorized", "1", "3"]
+        assert [category.value() for category in categories] == ["Uncategorized", "1", "3", "10"]
         assert _rgb(categories[0].symbol().color()) == (255, 165, 0)
         assert categories[0].symbol().symbolLayer(0).layerType() == "SimpleFill"
 

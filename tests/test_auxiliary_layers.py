@@ -770,6 +770,22 @@ class TestDemandBuilderClasses:
 
         assert self._styling().demandBuilderPaletteName(self._layerWithStrategy(strategy)) is None
 
+    def test_the_class_order_is_the_one_the_saved_strategy_names(self):
+        strategy = {"schema": "qgisred.legendStrategy.v2", "mode": "categorized", "field": "Category",
+                    "parts": ["colors"], "classOrder": "descending", "colors": {"source": "random"}}
+
+        assert self._styling().demandBuilderClassOrder(self._layerWithStrategy(strategy)) == "descending"
+
+    def test_a_strategy_without_an_order_leaves_the_classes_as_they_come(self):
+        strategy = {"schema": "qgisred.legendStrategy.v2", "mode": "categorized", "field": "Category",
+                    "parts": ["colors"], "colors": {"source": "random"}}
+
+        assert self._styling().demandBuilderClassOrder(self._layerWithStrategy(strategy)) == "none"
+
+    def test_without_a_strategy_the_classes_sort_ascending(self):
+        assert self._styling().demandBuilderClassOrder(self._layerWithStrategy(None)) == "ascending"
+        assert self._styling().demandBuilderClassOrder(None) == "ascending"
+
     def test_without_a_strategy_the_default_sequential_palette_is_used(self):
         from QGISRed.tools.utils.qgisred_styling_utils import DEMAND_BUILDER_PALETTE_NAME
 
@@ -789,6 +805,7 @@ class TestDemandBuilderClasses:
             match = re.search(r'name="qgisred_legend_strategy" value="([^"]*)"', text)
             strategy = json.loads(match.group(1).replace("&quot;", '"'))
             assert strategy["parts"] == ["colors"], name
+            assert strategy["classOrder"] == "ascending", name
             assert strategy["colors"] == {
                 "source": "ramp", "rampName": DEMAND_BUILDER_PALETTE_NAME, "invertRamp": False}
 
