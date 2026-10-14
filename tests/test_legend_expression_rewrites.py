@@ -1720,7 +1720,7 @@ ISOLATED_NODES_CLASS = (
     "with_variable('nodeType', " + ISOLATED_NODE_TYPE + ", "
     "with_variable('status', attribute($currentfeature,'Status'), "
     "CASE WHEN @nodeType = 'INCIDENCE' THEN 'INCIDENCE' "
-    "WHEN @nodeType = 'JUNCTION' THEN if(@status = 'TO RECOVER', 'TO RECOVER', 'ISOLATED') "
+    "WHEN @nodeType = 'JUNCTION' THEN 'ISOLATED' "
     "WHEN @status IN ('NOW CLOSED', 'TO CLOSE', 'TO OPEN', 'ISOLATED', 'TO RECOVER') "
     "THEN @status ELSE 'ISOLATED' END))"
 )
@@ -1762,7 +1762,7 @@ ISOLATED_NODE_LAYERS = {
     "TO CLOSE": VALVE_CIRCLE + TANK_AND_RESERVOIR_ICONS,
     "TO OPEN": VALVE_CIRCLE + TANK_AND_RESERVOIR_ICONS,
     "ISOLATED": JUNCTION_AND_VALVE_CIRCLES + TANK_AND_RESERVOIR_ICONS,
-    "TO RECOVER": JUNCTION_AND_VALVE_CIRCLES + TANK_AND_RESERVOIR_ICONS,
+    "TO RECOVER": VALVE_CIRCLE + TANK_AND_RESERVOIR_ICONS,
     "INCIDENCE": [("star", None, 6, 6)],
 }
 
@@ -1836,7 +1836,7 @@ class TestShippedFixedLegends:
         assert set(utils.isolatedStatusClassNames()) == set(ISOLATED_NODE_COLORS)
         assert set(utils.isolatedDemandClassNames()) == set(ISOLATED_DEMAND_COLORS)
 
-    @pytest.mark.parametrize("value, size", [("JUNCTION", 5.5), ("CONNECTION", 2.5)])
+    @pytest.mark.parametrize("value, size", [("JUNCTION", 1.6), ("CONNECTION", 2.5)])
     def test_each_class_of_the_isolated_demands_is_a_hollow_circle(self, value, size):
         [ring] = _classLayers(ISOLATED_DEMANDS_STYLE, value)
         assert (ring.get("class"), _option(ring, "name")) == ("SimpleMarker", "circle")
@@ -2068,7 +2068,8 @@ class TestFixedLegendsInQgis:
     @pytest.mark.parametrize("nodeType, status, expected", [
         ("JUNCTION", "ISOLATED", "ISOLATED"),
         ("JUNCTION", None, "ISOLATED"),
-        ("JUNCTION", "TO RECOVER", "TO RECOVER"),
+        ("JUNCTION", "TO RECOVER", "ISOLATED"),
+        ("JUNCTION", "TO CLOSE", "ISOLATED"),
         ("ISOLATIONVALVE", "NOW CLOSED", "NOW CLOSED"),
         ("ISOLATIONVALVE", "TO CLOSE", "TO CLOSE"),
         ("ISOLATIONVALVE", "TO OPEN", "TO OPEN"),

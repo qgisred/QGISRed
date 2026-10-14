@@ -144,7 +144,7 @@
       </symbol>
     </profileMarkerSymbol>
   </elevation>
-  <renderer-v2 forceraster="0" symbollevels="0" enableorderby="0" attr="with_variable('nodeType', coalesce(attribute($currentfeature,'NodeType'),attribute($currentfeature,'ElemType')), with_variable('status', attribute($currentfeature,'Status'), CASE WHEN @nodeType = 'INCIDENCE' THEN 'INCIDENCE' WHEN @nodeType = 'JUNCTION' THEN if(@status = 'TO RECOVER', 'TO RECOVER', 'ISOLATED') WHEN @status IN ('NOW CLOSED', 'TO CLOSE', 'TO OPEN', 'ISOLATED', 'TO RECOVER') THEN @status ELSE 'ISOLATED' END))" referencescale="-1" type="categorizedSymbol">
+  <renderer-v2 forceraster="0" symbollevels="0" enableorderby="0" attr="with_variable('nodeType', coalesce(attribute($currentfeature,'NodeType'),attribute($currentfeature,'ElemType')), with_variable('status', attribute($currentfeature,'Status'), CASE WHEN @nodeType = 'INCIDENCE' THEN 'INCIDENCE' WHEN @nodeType = 'JUNCTION' THEN 'ISOLATED' WHEN @status IN ('NOW CLOSED', 'TO CLOSE', 'TO OPEN', 'ISOLATED', 'TO RECOVER') THEN @status ELSE 'ISOLATED' END))" referencescale="-1" type="categorizedSymbol">
     <categories>
       <category label="Now closed" symbol="0" value="NOW CLOSED" render="true" uuid="{4e702c1f-5166-4973-aaf0-9c9c7fedaae9}" type="string"/>
       <category label="To close" symbol="1" value="TO CLOSE" render="true" uuid="{c5bf726f-1dda-4880-b90f-c1e2e582b23b}" type="string"/>
@@ -938,42 +938,6 @@
             <Option name="type" value="collection" type="QString"/>
           </Option>
         </data_defined_properties>
-        <layer class="SimpleMarker" locked="0" id="{34c2c602-3b3c-4ce8-9ddb-0b37e8d59e71}" enabled="1" pass="0">
-          <Option type="Map">
-            <Option name="angle" value="0" type="QString"/>
-            <Option name="cap_style" value="square" type="QString"/>
-            <Option name="color" value="255,255,255,255,rgb:1,1,1,1" type="QString"/>
-            <Option name="horizontal_anchor_point" value="1" type="QString"/>
-            <Option name="joinstyle" value="bevel" type="QString"/>
-            <Option name="name" value="circle" type="QString"/>
-            <Option name="offset" value="0,0" type="QString"/>
-            <Option name="offset_map_unit_scale" value="3x:0,0,0,0,0,0" type="QString"/>
-            <Option name="offset_unit" value="MM" type="QString"/>
-            <Option name="outline_color" value="231,202,101,255,rgb:0.90588235294117647,0.792156862745098,0.396078431372549,1" type="QString"/>
-            <Option name="outline_style" value="solid" type="QString"/>
-            <Option name="outline_width" value="0.5" type="QString"/>
-            <Option name="outline_width_map_unit_scale" value="3x:0,0,0,0,0,0" type="QString"/>
-            <Option name="outline_width_unit" value="MM" type="QString"/>
-            <Option name="scale_method" value="diameter" type="QString"/>
-            <Option name="size" value="2.5" type="QString"/>
-            <Option name="size_map_unit_scale" value="3x:0,0,0,0,0,0" type="QString"/>
-            <Option name="size_unit" value="MM" type="QString"/>
-            <Option name="vertical_anchor_point" value="1" type="QString"/>
-          </Option>
-          <data_defined_properties>
-            <Option type="Map">
-              <Option name="name" value="" type="QString"/>
-              <Option name="properties" type="Map">
-                <Option name="size" type="Map">
-                  <Option name="active" value="true" type="bool"/>
-                  <Option name="expression" value="if(@id is NULL, NULL, if(coalesce(attribute($currentfeature,'NodeType'),attribute($currentfeature,'ElemType'))='JUNCTION', 2.5, 0))" type="QString"/>
-                  <Option name="type" value="3" type="int"/>
-                </Option>
-              </Option>
-              <Option name="type" value="collection" type="QString"/>
-            </Option>
-          </data_defined_properties>
-        </layer>
         <layer class="SimpleMarker" locked="0" id="{60de9f54-9e0e-4f3e-a911-e0ab14ffcdc2}" enabled="1" pass="0">
           <Option type="Map">
             <Option name="angle" value="0" type="QString"/>
@@ -991,7 +955,7 @@
             <Option name="outline_width_map_unit_scale" value="3x:0,0,0,0,0,0" type="QString"/>
             <Option name="outline_width_unit" value="MM" type="QString"/>
             <Option name="scale_method" value="diameter" type="QString"/>
-            <Option name="size" value="0" type="QString"/>
+            <Option name="size" value="3.5" type="QString"/>
             <Option name="size_map_unit_scale" value="3x:0,0,0,0,0,0" type="QString"/>
             <Option name="size_unit" value="MM" type="QString"/>
             <Option name="vertical_anchor_point" value="1" type="QString"/>
