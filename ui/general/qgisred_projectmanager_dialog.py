@@ -699,15 +699,23 @@ class QGISRedProjectManagerDialog(QDialog, FORM_CLASS):
             f = open(self.gplFile, "r")
             lines = f.readlines()
             f.close()
+            folderRenamed = oldProjectPath != projectPath
             f = open(self.gplFile, "w")
-            i = 0
-            for line in lines:
-                if not i == rowIndex:
-                    self.utils.writeFile(f, line)
-                else:
+            for i, line in enumerate(lines):
+                if i == rowIndex:
                     self.utils.writeFile(f, effectiveName + ";" + projectPath + "\n")
-                i = i + 1
+                    continue
+                parts = line.rstrip("\r\n").split(";")
+                if folderRenamed and len(parts) == 2 and self._getUniformedPath(parts[1]) == oldProjectPath:
+                    self.utils.writeFile(f, parts[0] + ";" + projectPath + "\n")
+                else:
+                    self.utils.writeFile(f, line)
             f.close()
+            if folderRenamed:
+                for row in range(self.twProjectList.rowCount()):
+                    item = self.twProjectList.item(row, 3)
+                    if row != rowIndex and item and self._getUniformedPath(item.text()) == oldProjectPath:
+                        self.twProjectList.setItem(row, 3, QTableWidgetItem(projectPath))
 
             self.pushMessage("QGISRed", self.tr("Project name has been renamed to %1").replace("%1", effectiveName), level=0, duration=5)
         else:
