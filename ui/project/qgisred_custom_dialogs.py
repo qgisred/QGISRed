@@ -75,7 +75,7 @@ class QGISRedSaveStrategyDialog(QDialog):
     """
 
     def __init__(self, layerName, isGlobal, isCategorical, partOptions, initialParts=(), classOrder="none",
-                 parent=None):
+                 savedClassOrder="none", parent=None):
         super().__init__(parent)
 
         self.layerName = layerName
@@ -92,7 +92,7 @@ class QGISRedSaveStrategyDialog(QDialog):
         self.ckColors = self.createPartCheckBox("colors")
 
         self.initializeInterface()
-        self.restoreInitialParts(initialParts)
+        self.restoreInitialParts(initialParts, savedClassOrder)
 
     def initializeInterface(self):
         title = self.tr("Save legend for %1").replace("%1", self.layerName)
@@ -107,10 +107,11 @@ class QGISRedSaveStrategyDialog(QDialog):
         return checkBox
 
     def createClassOrderCheckBox(self):
-        """Keeps the order chosen in the editor's Class Order entry, None included."""
-        orderNames = {"ascending": self.tr("Ascending"), "descending": self.tr("Descending"), "none": self.tr("None")}
+        """Keeps the order chosen in the editor's Class Order entry; None offers no change."""
+        orderNames = {
+            "ascending": self.tr("Ascending"), "descending": self.tr("Descending"), "none": self.tr("No changes"),
+        }
         checkBox = QCheckBox(self.tr("Class order: %1").replace("%1", orderNames.get(self.classOrder, "")))
-        checkBox.setChecked(self.classOrder in ("ascending", "descending"))
         checkBox.setToolTip(self.tr("Sort the classes by their values when the style is loaded"))
         return checkBox
 
@@ -145,8 +146,9 @@ class QGISRedSaveStrategyDialog(QDialog):
         buttonBox.rejected.connect(self.reject)
         layout.addWidget(buttonBox)
 
-    def restoreInitialParts(self, initialParts):
-        """Start from what the file being overwritten holds, as far as it still applies."""
+    def restoreInitialParts(self, initialParts, savedClassOrder="none"):
+        """Start from what the file being overwritten holds, as far as it still applies; a file
+        without a saved strategy starts as a fixed legend with nothing ticked."""
         applicable = [part for part in ("structural", "sizes", "colors") if self.isPartApplicable(part)]
         self.ckSizes.setChecked("sizes" in initialParts and "sizes" in applicable)
         self.ckColors.setChecked("colors" in initialParts and "colors" in applicable)
@@ -154,7 +156,9 @@ class QGISRedSaveStrategyDialog(QDialog):
         addsValues = rebuildsClasses or "allValues" in initialParts
         structuralTicked = addsValues if self.isCategorical else "intervals" in initialParts
         self.ckStructural.setChecked(structuralTicked and "structural" in applicable)
-        isAutomatic = bool(applicable) or self.sortsClasses()
+        self.ckClassOrder.setChecked(self.sortsClasses() and savedClassOrder in ("ascending", "descending"))
+        isAutomatic = any(
+            box.isChecked() for box in (self.ckStructural, self.ckSizes, self.ckColors, self.ckClassOrder))
         self.rbAutomaticLegend.setChecked(isAutomatic)
         self.rbFixedLegend.setChecked(not isAutomatic)
         self.updatePartsEnabled()
@@ -167,7 +171,7 @@ class QGISRedSaveStrategyDialog(QDialog):
         self.ckStructural.setEnabled(structuralEnabled)
         if not structuralEnabled:
             self.ckStructural.setChecked(False)
-        self.ckClassOrder.setEnabled(isAutomatic)
+        self.ckClassOrder.setEnabled(isAutomatic and self.sortsClasses())
 
     def selectedClassOrder(self):
         if self.hasClassOrder() and self.ckClassOrder.isEnabled() and self.ckClassOrder.isChecked():

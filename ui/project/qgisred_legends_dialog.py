@@ -5692,6 +5692,7 @@ class QGISRedLegendsDialog(QDialog, formClass):
             self.describeStrategyParts(),
             initialParts=self.strategyParts(previousStrategy) if previousStrategy else (),
             classOrder=self.currentClassOrder(),
+            savedClassOrder=previousStrategy.get("classOrder", "none") if isinstance(previousStrategy, dict) else "none",
             parent=self,
         )
         if dialog.exec_() != QDialog.DialogCode.Accepted:

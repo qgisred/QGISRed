@@ -8156,6 +8156,11 @@ Cannot apply changes.</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
+        <location filename="../ui/project/qgisred_custom_dialogs.py" line="113"/>
+        <source>No changes</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
         <location filename="../ui/project/qgisred_custom_dialogs.py" line="114"/>
         <source>Sort the classes by their values when the style is loaded</source>
         <translation type="unfinished"></translation>

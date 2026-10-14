@@ -113,10 +113,18 @@ class TestSaveStrategyDialog:
         pinned.restoreInitialParts(["allClasses", "colors"])
         assert pinned.selectedParts() == ["allClasses", "colors"]
 
-    def test_a_new_file_starts_automatic_when_a_part_can_be_recalculated(self):
+    def test_a_new_file_starts_fixed_with_nothing_ticked(self):
         dialog = self._strategyDialog(False)
+        dialog.classOrder = "ascending"
         dialog.restoreInitialParts(())
-        assert dialog.rbAutomaticLegend.isChecked() and dialog.selectedParts() == []
+        assert dialog.rbFixedLegend.isChecked() and dialog.selectedParts() == []
+        for box in (dialog.ckStructural, dialog.ckSizes, dialog.ckColors, dialog.ckClassOrder):
+            assert box.isChecked() is False
+
+    def test_a_file_with_a_saved_strategy_starts_automatic(self):
+        dialog = self._strategyDialog(True, automatic=False)
+        dialog.restoreInitialParts(["colors"])
+        assert dialog.rbAutomaticLegend.isChecked() and dialog.selectedParts() == ["colors"]
 
     def test_it_starts_fixed_when_nothing_can_be_recalculated_and_no_class_order(self):
         nothing = {part: ("kept as shown", "why") for part in APPLICABLE}
@@ -124,13 +132,19 @@ class TestSaveStrategyDialog:
         dialog.restoreInitialParts(["colors"])
         assert dialog.rbFixedLegend.isChecked() and dialog.selectedParts() == []
 
-    def test_automatic_stays_offered_and_a_class_order_starts_automatic(self):
+    def test_a_saved_class_order_starts_automatic_with_the_order_ticked(self):
         nothing = {part: ("kept as shown", "why") for part in APPLICABLE}
         dialog = self._strategyDialog(True, partOptions=nothing)
         dialog.classOrder = "ascending"
-        dialog.restoreInitialParts(())
+        dialog.restoreInitialParts((), savedClassOrder="ascending")
         assert dialog.rbAutomaticLegend.enabled is True and dialog.rbAutomaticLegend.isChecked()
         assert dialog.selectedClassOrder() == "ascending"
+
+    def test_the_class_order_tick_is_greyed_when_the_editor_order_is_none(self):
+        dialog = self._strategyDialog(True)
+        dialog.restoreInitialParts(["colors"], savedClassOrder="ascending")
+        assert dialog.rbAutomaticLegend.isChecked()
+        assert dialog.ckClassOrder.enabled is False and dialog.selectedClassOrder() == "none"
 
 
 class TestBuildCategoricalStrategy:

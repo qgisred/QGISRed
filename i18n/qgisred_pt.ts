@@ -893,7 +893,7 @@
     <message>
         <location filename="../ui/project/qgisred_legends_dialog.ui" line="778"/>
         <source>Class Order</source>
-        <translation type="unfinished"></translation>
+        <translation>Ordem das classes</translation>
     </message>
 </context>
 <context>
@@ -8817,7 +8817,12 @@ Não é possível aplicar as alterações.</translation>
     <message>
         <location filename="../ui/project/qgisred_custom_dialogs.py" line="112"/>
         <source>Class order: %1</source>
-        <translation type="unfinished"></translation>
+        <translation>Ordem das classes: %1</translation>
+    </message>
+    <message>
+        <location filename="../ui/project/qgisred_custom_dialogs.py" line="113"/>
+        <source>No changes</source>
+        <translation>Sem alterações</translation>
     </message>
     <message>
         <location filename="../ui/project/qgisred_custom_dialogs.py" line="114"/>
