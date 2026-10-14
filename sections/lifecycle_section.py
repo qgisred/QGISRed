@@ -269,6 +269,7 @@ class LifecycleSection:
             QTimer.singleShot(0, self.runOpenedQgisProject)
 
         self._mapTip = QGISRedMapTip(self.iface)
+        self.installCloseGuard()
 
     def cleanupDocks(self):
         """Disconnects signals and removes all plugin docks to ensure a clean state."""
@@ -385,6 +386,9 @@ class LifecycleSection:
 
         with suppress(Exception):
             self._mapTip.stop()
+
+        with suppress(Exception):
+            self.removeCloseGuard()
 
         with suppress(Exception):
             if self._newsTask is not None:

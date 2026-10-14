@@ -6,8 +6,8 @@ import os
 import shutil
 import unicodedata
 
-from qgis.core import QgsProject, QgsVectorLayer, QgsLayerTreeGroup, QgsLayerTreeLayer, QgsDataProvider
-from qgis.PyQt.QtWidgets import QApplication, QMessageBox
+from qgis.core import QgsSettings, QgsProject, QgsVectorLayer, QgsLayerTreeGroup, QgsLayerTreeLayer, QgsDataProvider
+from qgis.PyQt.QtWidgets import QApplication, QFileDialog, QMessageBox
 from qgis.PyQt.QtGui import QIcon, QDesktopServices
 from qgis.PyQt.QtCore import Qt, QTimer, QUrl
 from ..compat import QAction
@@ -22,6 +22,7 @@ from ..tools.utils.qgisred_filesystem_utils import (
 )
 from ..tools.utils.qgisred_identifier_utils import QGISRedIdentifierUtils
 from ..tools.utils.qgisred_project_io import QGISRedProjectIO
+from ..tools.utils.qgisred_close_guard import QGISRedCloseGuard
 from ..tools.qgisred_dependencies import QGISRedDependencies as GISRed
 from ..ui.general.qgisred_projectmanager_dialog import QGISRedProjectManagerDialog
 from ..ui.general.qgisred_createproject_dialog import QGISRedCreateProjectDialog
@@ -1133,4 +1134,99 @@ class ProjectManagementSection:
             self.iface.mapCanvas().refresh()
 
     def runCloseProject(self):
-        self.iface.newProject(True)
+        self._leaveCurrentProject()
+
+    def installCloseGuard(self):
+        self._guardedActions = []
+        mainWindow = self.iface.mainWindow()
+        handlers = (
+            (("mActionNewProject", "mActionFileClose", "mActionCloseProject"),
+             self._leaveCurrentProject, lambda: self.iface.newProject(True)),
+            (("mActionOpenProject",), self._openProjectAskingToSave, self._chooseAndOpenProject),
+        )
+        for names, handler, nativeEquivalent in handlers:
+            for name in names:
+                action = mainWindow.findChild(QAction, name)
+                if action is None:
+                    continue
+                # QGIS connects its own slot, which prompts to save before we can intervene,
+                # so it has to be replaced rather than listened to.
+                with suppress(TypeError):
+                    action.triggered.disconnect()
+                action.triggered.connect(handler)
+                self._guardedActions.append((action, handler, nativeEquivalent))
+        self._closeGuard = QGISRedCloseGuard(self._confirmWindowClose, mainWindow)
+        mainWindow.installEventFilter(self._closeGuard)
+
+    def removeCloseGuard(self):
+        for action, handler, nativeEquivalent in getattr(self, "_guardedActions", []):
+            with suppress(TypeError, RuntimeError):
+                action.triggered.disconnect(handler)
+                action.triggered.connect(lambda checked=False, run=nativeEquivalent: run())
+        self._guardedActions = []
+        guard = getattr(self, "_closeGuard", None)
+        if guard is not None:
+            with suppress(RuntimeError):
+                self.iface.mainWindow().removeEventFilter(guard)
+            self._closeGuard = None
+
+    def _leaveCurrentProject(self, checked=False):
+        decision = self._askSaveQgisredMap()
+        if decision is False:
+            return
+        self.iface.newProject(decision is None)
+
+    def _openProjectAskingToSave(self, checked=False):
+        decision = self._askSaveQgisredMap()
+        if decision is False:
+            return
+        if decision is None and QgsProject.instance().isDirty() and not self.iface.newProject(True):
+            return
+        self._chooseAndOpenProject()
+
+    def _chooseAndOpenProject(self):
+        settings = QgsSettings()
+        fullPath, _ = QFileDialog.getOpenFileName(
+            self.iface.mainWindow(),
+            self.tr("Open Project"),
+            settings.value("UI/lastProjectDir", ""),
+            self.tr("QGIS files (*.qgz *.qgs *.QGZ *.QGS)"),
+        )
+        if not fullPath:
+            return
+        settings.setValue("UI/lastProjectDir", os.path.dirname(fullPath))
+        self.iface.addProject(fullPath)
+
+    def _confirmWindowClose(self):
+        return self._askSaveQgisredMap() is not False
+
+    def _askSaveQgisredMap(self):
+        """None: not a QGISRed project, QGIS handles it. True: go ahead. False: cancelled."""
+        project = QgsProject.instance()
+        with suppress(Exception):
+            self.defineCurrentProject()
+        isQgisredProject = getattr(self, "ProjectDirectory", self.TemporalFolder) != self.TemporalFolder
+        if not isQgisredProject:
+            return None
+        if not project.isDirty():
+            return True
+
+        box = QMessageBox(self.iface.mainWindow())
+        box.setWindowTitle(self.tr("QGISRed"))
+        box.setWindowIcon(QIcon(":/images/qgisred.svg"))
+        box.setIcon(QMessageBox.Icon.Question)
+        box.setText(self.tr("Do you want to save the map of the current project?"))
+        box.setStandardButtons(
+            QMessageBox.StandardButton.Yes | QMessageBox.StandardButton.No | QMessageBox.StandardButton.Cancel
+        )
+        box.setDefaultButton(QMessageBox.StandardButton.Yes)
+        request = box.exec()
+        if request == QMessageBox.StandardButton.Cancel:
+            return False
+        if request == QMessageBox.StandardButton.Yes:
+            self.iface.actionSaveProject().trigger()
+            if project.isDirty():
+                return False
+        else:
+            project.setDirty(False)
+        return True
