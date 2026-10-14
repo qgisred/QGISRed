@@ -26,7 +26,7 @@ from ...tools.utils.qgisred_styling_utils import QGISRedStylingUtils, _NULL_RULE
 from ...tools.utils.qgisred_legend_rule_utils import parseRangeFilter
 from ...tools.utils.qgisred_field_utils import QGISRedFieldUtils
 from ...tools.utils.qgisred_result_fields import resultIdField, resultTypeField
-from .qgisred_results_data import resultStyleName, resultLayerDisplayName, qualityStyleKind
+from .qgisred_results_data import resultStyleName, resultLayerDisplayName, qualityStyleKind, noVariableTemplate, NO_VARIABLE_METADATA_TAG
 from ...tools.utils.qgisred_project_utils import QGISRedProjectUtils
 
 # Default label text colors (used unless the user picks "By range" or overrides them in
@@ -1152,6 +1152,30 @@ class _ResultsRenderingMixin:
         except Exception:
             self.cbFlowDirections.setChecked(False)
             self.cbFlowDirections.setEnabled(False)
+
+    def paintLayerWithoutVariable(self, layer, nameLayer):
+        """Leave the result layer on the map in soft gray, with no legend, for the "None" choice."""
+        self.rememberCurrentRender(layer)
+        self.forgetRenderKey(self.getLayerPath(layer))
+        is_link = "Link" in nameLayer
+        if is_link:
+            self.displayingLinkField = ""
+        else:
+            self.displayingNodeField = ""
+
+        utils = QGISRedStylingUtils(self.ProjectDirectory, self.NetworkName, self.iface)
+        styleName, classField = noVariableTemplate(nameLayer)
+        with self.holdingLayerSignals(layer), self.writingOwnStyle():
+            utils.setStyle(layer, styleName, field=classField)
+            utils.applyNoVariableStyle(layer)
+            self.applySymbolScaleFactors(layer)
+
+        layer.setName(self.tr("Links") if is_link else self.tr("Nodes"))
+        layer.setMapTipTemplate("")
+        QgsProject.instance().writeEntry(
+            "QGISRed", f"results_{self.Scenario}_{'Link' if is_link else 'Node'}", NO_VARIABLE_METADATA_TAG)
+        self.setLayerLabels(layer, "")
+        layer.triggerRepaint()
 
     def _warnIfNoClasses(self, renderer, db_field_name, nameLayer):
         """Log when the renderer ends up with no classes at all.

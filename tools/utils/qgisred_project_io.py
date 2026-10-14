@@ -216,7 +216,8 @@ class QGISRedProjectIO:
         if top == "Results":
             from ...ui.analysis.qgisred_results_data import (
                 apply_result_column_visibility, infer_stat_en_from_layer,
-                resultLayerDisplayName, resultStyleName,
+                resultLayerDisplayName, resultStyleName, noVariableTemplate,
+                NO_VARIABLE_METADATA_TAG,
             )
             from ...tools.utils.qgisred_project_utils import QGISRedProjectUtils
             stat_en = QgsProject.instance().readEntry("QGISRed", "project_statistics", "NONE")[0]
@@ -252,6 +253,25 @@ class QGISRedProjectIO:
                 if not opened:
                     continue
                 scenario = file_name.rsplit("_", 1)[0]  # "Base_Node" → "Base"
+                if variable == NO_VARIABLE_METADATA_TAG:
+                    QgsProject.instance().writeEntry(
+                        "QGISRed", f"results_{scenario}_{layer_type}", NO_VARIABLE_METADATA_TAG)
+                    styleName, classField = noVariableTemplate(layer_type)
+                    # Panel signals held until the final renderer is in place, as the dock does
+                    # (see holdingLayerSignals): the legend counts features in the background
+                    # and a renderer replaced under it crashes QGIS.
+                    opened.blockSignals(True)
+                    try:
+                        styling.setStyle(opened, styleName, field=classField)
+                        styling.applyNoVariableStyle(opened)
+                    finally:
+                        opened.blockSignals(False)
+                    opened.rendererChanged.emit()
+                    opened.legendChanged.emit()
+                    opened.setName(QCoreApplication.translate(
+                        "QGISRedResultsDock", "Nodes" if layer_type.lower() == "node" else "Links"))
+                    opened.triggerRepaint()
+                    continue
                 QgsProject.instance().writeEntry("QGISRed", f"results_{scenario}_{layer_type}", variable)
                 # Load QML template (color ramp + symbol complexity), fix the classAttribute
                 # (QML templates may have a wrong default like 'Time'), then add a null/else

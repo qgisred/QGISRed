@@ -299,6 +299,7 @@ class ProjectManagementSection:
         QApplication.restoreOverrideCursor()
 
     def _buildGroupsString(self, net):
+        from ..ui.analysis.qgisred_results_data import NO_VARIABLE_METADATA_TAG
         root = QgsProject.instance().layerTreeRoot()
         net_group = next(
             (c for c in root.children() if isinstance(c, QgsLayerTreeGroup) and c.name() == net),
@@ -330,8 +331,12 @@ class ProjectManagementSection:
                                     "QGISRed", f"results_{scenario}_{layer_type}", ""
                                 )[0]
                             else:
+                                layer_type, variable = None, ""
+                            if variable == NO_VARIABLE_METADATA_TAG:
                                 variable = ""
-                            if variable:
+                            if not variable and layer_type in ("Node", "Link"):
+                                name = name + "_" + NO_VARIABLE_METADATA_TAG
+                            elif variable:
                                 stat_val = QgsProject.instance().readEntry(
                                     "QGISRed", "project_statistics", "NONE"
                                 )[0]

@@ -20,7 +20,7 @@ from qgis.core import (
     QgsVectorLayer, QgsSymbol, Qgis,
     QgsLineSymbol, QgsSimpleLineSymbolLayer, QgsSimpleMarkerSymbolLayer,
     QgsRendererCategory, QgsCategorizedSymbolRenderer, QgsVectorLayerCache, NULL,
-    QgsGraduatedSymbolRenderer, QgsRuleBasedRenderer, QgsRenderContext,
+    QgsGraduatedSymbolRenderer, QgsRuleBasedRenderer, QgsRenderContext, QgsSingleSymbolRenderer,
     QgsMapLayerLegend, QgsMessageLog, QgsStyle, QgsExpression, QgsProject,
     QgsProperty, QgsSettings,
     QgsVectorLayerSimpleLabeling,
@@ -205,6 +205,19 @@ class _NullHiddenLegend(QgsMapLayerLegend):
         for n in result:
             sip.transferto(n, None)
         return result
+
+
+def _makeSymbolGray(symbol):
+    if not symbol:
+        return
+    for i in range(symbol.symbolLayerCount()):
+        sl = symbol.symbolLayer(i)
+        with suppress(Exception):
+            sl.setColor(QColor(192, 192, 192))
+            if hasattr(sl, "setStrokeColor"):
+                sl.setStrokeColor(QColor(160, 160, 160))
+        if hasattr(sl, "subSymbol") and sl.subSymbol():
+            _makeSymbolGray(sl.subSymbol())
 
 
 class QGISRedStylingUtils:
@@ -1975,19 +1988,7 @@ class QGISRedStylingUtils:
                     break
             return
 
-        def make_gray(symbol):
-            if not symbol:
-                return
-            for i in range(symbol.symbolLayerCount()):
-                sl = symbol.symbolLayer(i)
-                with suppress(Exception):
-                    # Most layers respond to setColor
-                    sl.setColor(QColor(192, 192, 192))
-                    if hasattr(sl, "setStrokeColor"):
-                        sl.setStrokeColor(QColor(160, 160, 160))
-                # Handle sub-symbols recursively (needed for arrows, marker lines, etc.)
-                if hasattr(sl, "subSymbol") and sl.subSymbol():
-                    make_gray(sl.subSymbol())
+        make_gray = _makeSymbolGray
 
         # Obtain a template symbol from the existing renderer to preserve complexity
         context = QgsRenderContext()
@@ -2053,3 +2054,34 @@ class QGISRedStylingUtils:
 
             # Hide the NULL rule from the legend.
             layer.setLegend(_NullHiddenLegend(layer))
+
+    def applyNoVariableStyle(self, layer):
+        """Replace the renderer with one gray rule, hidden from the legend, keeping the
+        symbol structure of the current style so sizes and arrows can still be scaled."""
+        renderer = layer.renderer()
+        if renderer is None:
+            return
+        symbols = renderer.symbols(QgsRenderContext())
+        if symbols:
+            gray_symbol = symbols[-1].clone()
+            _makeSymbolGray(gray_symbol)
+        else:
+            gray_symbol = QgsSymbol.defaultSymbol(layer.geometryType())
+            gray_symbol.setColor(QColor(192, 192, 192))
+
+        if layer.geometryType() == 1:
+            hidden = QgsProperty()
+            hidden.setExpressionString("0")
+            for arrowIndex in (3, 4):
+                with suppress(Exception):
+                    gray_symbol.symbolLayer(arrowIndex).subSymbol().setDataDefinedSize(hidden)
+
+        # Converted with QGIS's own convertFromRenderer rather than building the Rule tree
+        # by hand: see applyNullStyle for the legend-preview crashes the manual way caused.
+        new_renderer = QgsRuleBasedRenderer.convertFromRenderer(QgsSingleSymbolRenderer(gray_symbol))
+        if new_renderer is None:
+            return
+        for rule in new_renderer.rootRule().children():
+            rule.setLabel(_NULL_RULE_LABEL)
+        layer.setRenderer(new_renderer)
+        layer.setLegend(_NullHiddenLegend(layer))

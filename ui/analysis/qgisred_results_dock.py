@@ -21,7 +21,8 @@ from ...tools.qgisred_dependencies import QGISRedDependencies as GISRed
 
 from .qgisred_results_rendering import _ResultsRenderingMixin
 from .qgisred_results_data import (_ResultsDataMixin, _STAT_VAR_ALIASES,
-                                   NODE_RESULT_FIELDS, LINK_RESULT_FIELDS)
+                                   NODE_RESULT_FIELDS, LINK_RESULT_FIELDS,
+                                   NO_VARIABLE_METADATA_TAG)
 from .qgisred_results_distribution import _ResultsDistributionMixin
 from .qgisred_results_evolution import _ResultsEvolutionMixin
 from .qgisred_results_appearance import _ResultsAppearanceMixin
@@ -755,21 +756,6 @@ class QGISRedResultsDock(
         utils = QGISRedLayerUtils(resultPath, self.NetworkName + "_" + self.Scenario, self.iface)
         utils.removeLayers(["Node", "Link"])
 
-    def removeResultLayer(self, nameLayer):
-        """Remove a specific result layer from the QGIS legend."""
-        self.Scenario = "Base"
-        layer = self._findResultLayer(nameLayer)
-        if layer:
-            # The path can come back as a different layer object, so release the key bound
-            # to this one before it goes (see forgetRenderKey).
-            self.forgetRenderKey(self.getLayerPath(layer))
-            # Never destroy a layer with a render job in flight: it would leave a dangling
-            # pointer in QgsMapRendererCache and crash QGIS when the job finishes
-            # (see QGISRedLayerUtils.stopRenderingForRemoval).
-            QGISRedLayerUtils.stopRenderingForRemoval(self.iface)
-            QgsProject.instance().removeMapLayer(layer.id())
-            self.iface.mapCanvas().refresh()
-
     def getInputGroup(self):
         utils = QGISRedLayerUtils(self.ProjectDirectory, self.NetworkName, self.iface)
         return utils.getOrCreateGroup("Inputs")
@@ -1094,8 +1080,9 @@ class QGISRedResultsDock(
         self.cbLinks.blockSignals(True)
         self._setComboByField(self.cbLinks, self._link_field_map, restore["link_field"])
         self.cbLinks.blockSignals(False)
-        self.displayingNodeField = restore["node_field"]
-        self.displayingLinkField = restore["link_field"]
+        self.displayingNodeField = "" if restore["node_field"] == NO_VARIABLE_METADATA_TAG else restore["node_field"]
+        self.displayingLinkField = "" if restore["link_field"] == NO_VARIABLE_METADATA_TAG else restore["link_field"]
+        self._updateAppearanceEnablement()
         self.cbNodeLabels.setChecked(restore["node_labels"])
         self.cbLinkLabels.setChecked(restore["link_labels"])
         self._flowDirectionsUserState = restore["flow_dirs"]
@@ -1257,7 +1244,7 @@ class QGISRedResultsDock(
         has_direction = self._flowDirectionField() is not None
         self.cbFlowDirections.setVisible(has_direction)
         if has_direction:
-            self.cbFlowDirections.setEnabled(True)
+            self.cbFlowDirections.setEnabled(self.cbLinks.currentIndex() > 0)
             self.cbFlowDirections.setChecked(self._flowDirectionsUserState)
         self.timeControlsWidget.setVisible(not is_stats_mode and is_temporal)
 
@@ -1533,14 +1520,10 @@ class QGISRedResultsDock(
 
         self._updateAppearanceEnablement()
 
-        if self.cbLinks.currentIndex() == 0:
+        no_variable = self.cbLinks.currentIndex() == 0
+        if no_variable:
             self.displayingLinkField = ""
-            self.removeResultLayer("Link")
             self._setMagnitudeLabel("Link", "", "")
-            self._updateDistributionCheckboxLabels()
-            self._updateEvolutionCheckboxLabels()
-            self.evolutionVariableChanged.emit("Link")
-            return
 
         if not self.validationsOpenResult():
             return
@@ -1556,7 +1539,7 @@ class QGISRedResultsDock(
             has_direction = self._flowDirectionField() is not None
             self.cbFlowDirections.setVisible(has_direction)
             if has_direction:
-                self.cbFlowDirections.setEnabled(True)
+                self.cbFlowDirections.setEnabled(not no_variable)
                 self.cbFlowDirections.setChecked(self._flowDirectionsUserState)
             self.ensureResultsLayersAreOpen()
 
@@ -1565,7 +1548,12 @@ class QGISRedResultsDock(
             if link_layer:
                 self.updateFieldsVisibility(link_layer, "Link", self._statsMode, self._currentStat)
 
-            self.paintIntervalTimeResults(True)
+            if no_variable:
+                if link_layer:
+                    self.paintLayerWithoutVariable(link_layer, "Link")
+                self._updateDistributionCheckboxLabels()
+            else:
+                self.paintIntervalTimeResults(True)
             QTimer.singleShot(300, self.forceFinalFieldsVisibility)
         finally:
             self.endResultsUpdate()
@@ -1580,14 +1568,10 @@ class QGISRedResultsDock(
 
         self._updateAppearanceEnablement()
 
-        if self.cbNodes.currentIndex() == 0:
+        no_variable = self.cbNodes.currentIndex() == 0
+        if no_variable:
             self.displayingNodeField = ""
-            self.removeResultLayer("Node")
             self._setMagnitudeLabel("Node", "", "")
-            self._updateDistributionCheckboxLabels()
-            self._updateEvolutionCheckboxLabels()
-            self.evolutionVariableChanged.emit("Node")
-            return
 
         if not self.validationsOpenResult():
             return
@@ -1605,7 +1589,12 @@ class QGISRedResultsDock(
             if node_layer:
                 self.updateFieldsVisibility(node_layer, "Node", self._statsMode, self._currentStat)
 
-            self.paintIntervalTimeResults(True)
+            if no_variable:
+                if node_layer:
+                    self.paintLayerWithoutVariable(node_layer, "Node")
+                self._updateDistributionCheckboxLabels()
+            else:
+                self.paintIntervalTimeResults(True)
             QTimer.singleShot(300, self.forceFinalFieldsVisibility)
         finally:
             self.endResultsUpdate()
@@ -1880,12 +1869,7 @@ class QGISRedResultsDock(
             return
 
         self.Scenario = "Base"
-        layer_combobox = {"Node": self.cbNodes, "Link": self.cbLinks}
         for nameLayer in ["Node", "Link"]:
-            # Don't open a layer if its variable combobox is set to None
-            if layer_combobox[nameLayer].currentIndex() == 0:
-                continue
-
             self.openOrReloadLayerResults(self.Scenario, nameLayer)
 
     def simulate(self, direct, netw):

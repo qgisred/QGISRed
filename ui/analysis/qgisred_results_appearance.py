@@ -252,6 +252,8 @@ class _ResultsAppearanceMixin:
         for widget in (self.lbLinkDecimals, self.spLinkDecimals):
             widget.setEnabled(link_decimals_active)
         self.cbProportional.setEnabled(nodes_active or links_active)
+        self.cbNodeLabels.setEnabled(nodes_active)
+        self.cbLinkLabels.setEnabled(links_active)
 
         self._resetDecimalsForVariable(node_field, "Nodes", "Node")
         self._resetDecimalsForVariable(link_field, "Links", "Link")
