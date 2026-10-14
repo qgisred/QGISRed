@@ -420,6 +420,93 @@ class TestProjectIO:
             content = f.read()
         assert content == original
 
+    def test_updateMetadataQGisProject_other_drive_falls_back_to_absolute(self, io_utils, temp_project_dir):
+        metadata = os.path.join(temp_project_dir, "testNet_Metadata.txt")
+        with open(metadata, "w", encoding="latin-1") as f:
+            f.write("<Project><ThirdParty><QGISRed><QGisProject>old.qgz</QGisProject></QGISRed></ThirdParty></Project>")
+        with patch("os.path.relpath", side_effect=ValueError):
+            io_utils.updateMetadataQGisProject(temp_project_dir, "testNet", "D:/maps/proj.qgz")
+        with open(metadata, "r", encoding="latin-1") as f:
+            assert "D:/maps/proj.qgz" in f.read()
+
+
+class TestOpenProjectInQgisWithoutQgz:
+    INPUTS = "<Inputs><Layer>Pipes</Layer><Layer>Junctions</Layer></Inputs>"
+
+    @pytest.fixture
+    def project_dir(self):
+        dirpath = tempfile.mkdtemp()
+        yield dirpath
+        shutil.rmtree(dirpath, ignore_errors=True)
+
+    @pytest.fixture(autouse=True)
+    def realFileInfo(self):
+        with patch("QGISRed.tools.utils.qgisred_project_io.QFileInfo", side_effect=lambda path: MagicMock(filePath=lambda: path)):
+            yield
+
+    @pytest.fixture
+    def io_utils(self, project_dir):
+        io = QGISRedProjectIO(directory=project_dir, networkName="testNet")
+        io.iface = MagicMock()
+        io.tr = lambda text: text
+        io._openGroupByName = MagicMock()
+        io._openGroupsNode = MagicMock()
+        io._layers = MagicMock()
+        io._renameGroupsToLocale = MagicMock()
+        return io
+
+    def _write_metadata(self, project_dir, qgz="missing.qgz", groups=""):
+        qgz_node = f"<QGisProject>{qgz}</QGisProject>" if qgz else ""
+        groups_node = f"<Groups>{groups}</Groups>" if groups is not None else ""
+        with open(os.path.join(project_dir, "testNet_Metadata.txt"), "w", encoding="latin-1") as f:
+            f.write(f"<Project><ThirdParty><QGISRed>{qgz_node}{groups_node}</QGISRed></ThirdParty></Project>")
+
+    def _answer(self, answer):
+        return patch("QGISRed.tools.utils.qgisred_project_io.QMessageBox.question", return_value=answer)
+
+    def test_declining_manual_search_rebuilds_the_tree_from_groups(self, io_utils, project_dir):
+        from QGISRed.tools.utils.qgisred_project_io import QMessageBox
+        self._write_metadata(project_dir, groups=self.INPUTS + "<Issues><Layer>Pipes_Issues</Layer></Issues>")
+        with self._answer(QMessageBox.StandardButton.No):
+            assert io_utils.openProjectInQgis() is False
+        io_utils._openGroupsNode.assert_called_once()
+        io_utils._openGroupByName.assert_not_called()
+
+    def test_metadata_without_inputs_opens_default_inputs(self, io_utils, project_dir):
+        from QGISRed.tools.utils.qgisred_project_io import QMessageBox
+        self._write_metadata(project_dir, groups="<Issues><Layer>Pipes_Issues</Layer></Issues>")
+        with self._answer(QMessageBox.StandardButton.No):
+            io_utils.openProjectInQgis()
+        io_utils._openGroupByName.assert_called_once_with("Inputs", io_utils._DEFAULT_INPUT_LAYERS)
+        io_utils._openGroupsNode.assert_called_once()
+
+    def test_metadata_without_groups_node_opens_default_inputs(self, io_utils, project_dir):
+        self._write_metadata(project_dir, qgz=None, groups=None)
+        io_utils.openProjectInQgis()
+        io_utils._openGroupByName.assert_called_once_with("Inputs", io_utils._DEFAULT_INPUT_LAYERS)
+        io_utils._openGroupsNode.assert_not_called()
+
+    def test_inputs_in_metadata_are_not_replaced_by_defaults(self, io_utils, project_dir):
+        self._write_metadata(project_dir, qgz=None, groups=self.INPUTS)
+        io_utils.openProjectInQgis()
+        io_utils._openGroupByName.assert_not_called()
+
+    def test_manual_search_accepts_qgs_and_loads_it(self, io_utils, project_dir):
+        from QGISRed.tools.utils.qgisred_project_io import QMessageBox
+        self._write_metadata(project_dir, groups=self.INPUTS)
+        with self._answer(QMessageBox.StandardButton.Yes),                 patch("QGISRed.tools.utils.qgisred_project_io.QFileDialog.getOpenFileName", return_value=("C:/maps/p.qgs", "")) as chooser,                 patch("QGISRed.tools.utils.qgisred_project_io.QgsProject") as qgs_project:
+            assert io_utils.openProjectInQgis() is True
+        assert "*.qgs" in chooser.call_args[0][3]
+        qgs_project.instance().read.assert_called_once_with("C:/maps/p.qgs")
+        io_utils._openGroupsNode.assert_not_called()
+
+    def test_cancelled_manual_search_rebuilds_from_groups(self, io_utils, project_dir):
+        from QGISRed.tools.utils.qgisred_project_io import QMessageBox
+        self._write_metadata(project_dir, groups=self.INPUTS)
+        with self._answer(QMessageBox.StandardButton.Yes),                 patch("QGISRed.tools.utils.qgisred_project_io.QFileDialog.getOpenFileName", return_value=("", "")):
+            assert io_utils.openProjectInQgis() is False
+        io_utils._openGroupsNode.assert_called_once()
+
 
 class _FakeGraduatedRenderer:
     def __init__(self):

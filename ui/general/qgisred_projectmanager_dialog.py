@@ -775,6 +775,8 @@ class QGISRedProjectManagerDialog(QDialog, FORM_CLASS):
                 # Case B: layers moved but .qgz/.qgs stayed — update it in place
                 qgisFileToUpdate = io.findQGisProjectFile(qgisBase)
                 newQgisDir = oldQgisDir  # .qgz/.qgs did not move
+                if qgisFileToUpdate:
+                    io.updateMetadataQGisProject(projectPath, projectNetwork, qgisFileToUpdate)
             else:
                 qgisFileToUpdate = None
                 newQgisDir = None

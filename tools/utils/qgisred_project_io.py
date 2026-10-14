@@ -657,61 +657,65 @@ class QGISRedProjectIO:
                 if node.text and (".qgs" in node.text or ".qgz" in node.text):
                     # Forward slashes: an exported project may be opened on another platform, and
                     # Windows accepts '/' too (getQGisProjectBase normpath's it on the way back in).
-                    node.text = os.path.relpath(newQgisPath, projectPath).replace(os.sep, "/")
+                    try:
+                        node.text = os.path.relpath(newQgisPath, projectPath).replace(os.sep, "/")
+                    except ValueError:  # different drives have no relative path
+                        node.text = newQgisPath.replace(os.sep, "/")
                     updated = True
             if updated:
                 with open(metadataFile, "w", encoding="latin-1") as mf:
                     mf.write(ElementTree.tostring(xmlRoot, encoding="unicode"))
 
+    _DEFAULT_INPUT_LAYERS = ["Pipes", "Junctions", "Demands", "Valves", "Pumps", "Tanks", "Reservoirs", "Sources"]
+
+    def _askForQGisProject(self):
+        """Offers to locate a missing .qgz/.qgs. Returns the chosen path, or None to rebuild from the metadata."""
+        request = QMessageBox.question(
+            self.iface.mainWindow(),
+            self.tr("QGISRed Project"),
+            self.tr("We cannot find the QGIS project file. Do you want to find this file manually? If not, we will open the layers stored in the project metadata."),
+            QMessageBox.StandardButtons(QMessageBox.StandardButton.Yes | QMessageBox.StandardButton.No),
+        )
+        if request != QMessageBox.StandardButton.Yes:
+            return None
+        selected = QFileDialog.getOpenFileName(QFileDialog(), "Select QGis file", "", "QGIS project (*.qgz *.qgs)")[0]
+        return selected or None
+
+    def _openLayersFromMetadata(self, root):
+        groupsNodes = root.findall("./ThirdParty/QGISRed/Groups")
+        hasInputs = any(g.find("Inputs/Layer") is not None for g in groupsNodes)
+        if not hasInputs:
+            self._openGroupByName("Inputs", self._DEFAULT_INPUT_LAYERS)
+        for groups_node in groupsNodes:
+            self._openGroupsNode(groups_node, "")
+            if groups_node.find("Results") is not None:
+                self._layers().getOrCreateNestedGroup([self.NetworkName, "Results"])
+        if self.iface:
+            bridge = self.iface.layerTreeCanvasBridge()
+            bridge.setCanvasLayers()
+            self.iface.mapCanvas().refresh()
+
     def openProjectInQgis(self):
         metadataFile = os.path.join(self.ProjectDirectory, self.NetworkName + "_Metadata.txt")
         if os.path.exists(metadataFile):
             # Read data as text plain to include the encoding
-            data = ""
             with open(metadataFile, "r", encoding="latin-1") as contentFile:
                 data = contentFile.read()
             # Parse data as XML
             root = ElementTree.fromstring(data)  # nosec B314 — local project file written by plugin DLL, not user input
-            # Get data from nodes
             for qgs in root.findall("./ThirdParty/QGISRed/QGisProject"):
-                if ".qgs" in qgs.text or ".qgz" in qgs.text:
-                    finfo = QFileInfo(qgs.text)
-                    qgisPath = finfo.filePath()
+                if qgs.text and (".qgs" in qgs.text or ".qgz" in qgs.text):
+                    qgisPath = QFileInfo(qgs.text).filePath()
                     if not os.path.isfile(qgisPath):  # Create absolute path
                         qgisPath = os.path.normpath(os.path.join(self.ProjectDirectory, qgisPath))
-
-                    if os.path.exists(qgisPath):
+                    if not os.path.exists(qgisPath):
+                        qgisPath = self._askForQGisProject()
+                    if qgisPath:
                         QgsProject.instance().read(qgisPath)
                         self._renameGroupsToLocale()
                         return True
-                    else:
-                        request = QMessageBox.question(
-                            self.iface.mainWindow(),
-                            self.tr("QGISRed Project"),
-                            self.tr("We cannot find the QGIS project file. Do you want to find this file manually? If not, we will open only the layers from the Inputs group."),
-                            QMessageBox.StandardButtons(QMessageBox.StandardButton.Yes | QMessageBox.StandardButton.No),
-                        )
-                        if request == QMessageBox.StandardButton.Yes:
-                            qfd = QFileDialog()
-                            filter = "qgz(*.qgz)"
-                            f = QFileDialog.getOpenFileName(qfd, "Select QGis file", "", filter)
-                            qgisPath = f[0]
-                            if not qgisPath == "":
-                                QgsProject.instance().read(qgisPath)
-                                self._renameGroupsToLocale()
-                                return True
-                        else:
-                            layers = ["Pipes", "Junctions", "Demands", "Valves", "Pumps", "Tanks", "Reservoirs", "Sources"]
-                            self._openGroupByName("Inputs", layers)
-                    return False
-            for groups_node in root.findall("./ThirdParty/QGISRed/Groups"):
-                self._openGroupsNode(groups_node, "")
-                if groups_node.find("Results") is not None:
-                    self._layers().getOrCreateNestedGroup([self.NetworkName, "Results"])
-            if self.iface:
-                bridge = self.iface.layerTreeCanvasBridge()
-                bridge.setCanvasLayers()
-                self.iface.mapCanvas().refresh()
+                    break
+            self._openLayersFromMetadata(root)
             return False
 
         else:  # old file
