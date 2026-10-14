@@ -167,6 +167,7 @@ class QGISRedLegendsDialog(QDialog, formClass):
     COLOR_SWATCH_SIZE_SINGLE = (44, 40)
     COLOR_COLUMN_WIDTH = 54
     COLOR_COLUMN_WIDTH_WITH_OPACITY = 120
+    DEFAULT_FILL_OPACITY_PERCENT = 40
 
     ALLOWED_GROUP_IDENTIFIERS = [
         "qgisred_thematicmaps",
@@ -3241,8 +3242,7 @@ class QGISRedLegendsDialog(QDialog, formClass):
 
         self.tableView.insertRow(insertionRow)
 
-        symbol = QgsSymbol.defaultSymbol(self.currentLayer.geometryType())
-        symbol.setColor(newColor)
+        symbol = self.createClassSymbol(newColor)
 
         if smartSize is not None:
             if self.currentLayer.geometryType() == WKB_LINE_GEOMETRY:
@@ -3296,8 +3296,7 @@ class QGISRedLegendsDialog(QDialog, formClass):
 
         self.tableView.insertRow(insertionRow)
 
-        symbol = QgsSymbol.defaultSymbol(self.currentLayer.geometryType())
-        symbol.setColor(self.generateRandomColor())
+        symbol = self.createClassSymbol(self.generateRandomColor())
         self.setDefaultSymbolSize(symbol)
 
         displayValue = str(value)
@@ -4134,9 +4133,7 @@ class QGISRedLegendsDialog(QDialog, formClass):
         unitAbbr = self.getUnitAbbrForLayer()
 
         for value in uniqueValues:
-            symbol = QgsSymbol.defaultSymbol(layer.geometryType())
-            color = self.generateRandomHsvColor()
-            symbol.setColor(color)
+            symbol = self.createClassSymbol(self.generateRandomHsvColor(), layer)
             self.setSymbolSizeForGeometry(symbol)
 
             label = str(value)
@@ -4191,8 +4188,7 @@ class QGISRedLegendsDialog(QDialog, formClass):
 
             color = self.interpolateColor(startColor, endColor, i, numClasses)
 
-            symbol = QgsSymbol.defaultSymbol(layer.geometryType())
-            symbol.setColor(color)
+            symbol = self.createClassSymbol(color, layer)
             self.setSymbolSizeForGeometry(symbol)
 
             label = f"{lower:.1f} - {upper:.1f}"
@@ -4271,6 +4267,17 @@ class QGISRedLegendsDialog(QDialog, formClass):
             if symbol is not None:
                 return symbol.clone()
         return QgsSymbol.defaultSymbol(self.currentLayer.geometryType())
+
+    def createClassSymbol(self, color, layer=None):
+        """A fresh symbol for a new class in this colour; a fill takes the opacity of the Opacity control."""
+        symbol = QgsSymbol.defaultSymbol((layer or self.currentLayer).geometryType())
+        if isinstance(symbol, QgsFillSymbol):
+            opacitySpin = getattr(self, "spinFillOpacity", None)
+            percent = opacitySpin.value() if opacitySpin is not None else self.DEFAULT_FILL_OPACITY_PERCENT
+            color = QColor(color)
+            color.setAlpha(round(percent * 255 / 100))
+        symbol.setColor(color)
+        return symbol
 
     def applySizeToSymbol(self, symbol, size):
         """Applies size to a symbol, preserving its structure."""
@@ -6984,8 +6991,7 @@ class QGISRedLegendsDialog(QDialog, formClass):
         row = self.tableView.rowCount()
         self.tableView.insertRow(row)
 
-        symbol = QgsSymbol.defaultSymbol(self.currentLayer.geometryType())
-        symbol.setColor(self.generateRandomColor())
+        symbol = self.createClassSymbol(self.generateRandomColor())
 
         self.setRowWidgets(
             row,

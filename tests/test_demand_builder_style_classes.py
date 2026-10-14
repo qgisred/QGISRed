@@ -407,6 +407,14 @@ class TestShippedLooks:
         assert _rgb(fill.strokeColor()) == (0, 0, 0)
         assert fill.strokeWidth() == pytest.approx(0.5)
 
+    def test_every_sector_class_keeps_the_40_percent_fill(self):
+        layer = _sectorsTheme([1, 2, 3])
+
+        QGISRedStylingUtils().completeDemandBuilderStyle(layer, False)
+
+        alphas = {category.symbol().color().alpha() for category in layer.renderer().categories()}
+        assert len(layer.renderer().categories()) == 3 and alphas == {102}
+
 
 class TestColorStrategy:
     def _inProject(self, layers):

@@ -543,14 +543,14 @@
                <item row="11" column="1">
                 <layout class="QHBoxLayout" name="palletesHorizontalLayout"/>
                </item>
-               <item row="5" column="0" colspan="2">
+               <item row="4" column="0" colspan="2">
                 <widget class="Line" name="line_8">
                  <property name="orientation">
                   <enum>Qt::Horizontal</enum>
                  </property>
                 </widget>
                </item>
-               <item row="3" column="0">
+               <item row="12" column="0">
                 <widget class="QLabel" name="labelFillOpacity">
                  <property name="text">
                   <string>Opacity</string>
@@ -560,7 +560,7 @@
                  </property>
                 </widget>
                </item>
-               <item row="3" column="1">
+               <item row="12" column="1">
                 <widget class="QSpinBox" name="spinFillOpacity">
                  <property name="minimumSize">
                   <size>
@@ -581,11 +581,11 @@
                   <number>10</number>
                  </property>
                  <property name="value">
-                  <number>100</number>
+                  <number>40</number>
                  </property>
                 </widget>
                </item>
-               <item row="4" column="0">
+               <item row="3" column="0">
                 <widget class="QLabel" name="labelBorder">
                  <property name="text">
                   <string>Border</string>
@@ -595,7 +595,7 @@
                  </property>
                 </widget>
                </item>
-               <item row="4" column="1">
+               <item row="3" column="1">
                 <layout class="QHBoxLayout" name="borderControlsLayout">
                  <property name="spacing">
                   <number>6</number>
@@ -603,8 +603,8 @@
                  <item>
                   <widget class="QComboBox" name="cbBorder">
                    <property name="sizePolicy">
-                    <sizepolicy hsizetype="Expanding" vsizetype="Fixed">
-                     <horstretch>1</horstretch>
+                    <sizepolicy hsizetype="Fixed" vsizetype="Fixed">
+                     <horstretch>0</horstretch>
                      <verstretch>0</verstretch>
                     </sizepolicy>
                    </property>
@@ -613,6 +613,9 @@
                      <width>150</width>
                      <height>0</height>
                     </size>
+                   </property>
+                   <property name="sizeAdjustPolicy">
+                    <enum>QComboBox::AdjustToContents</enum>
                    </property>
                   </widget>
                  </item>
@@ -635,16 +638,29 @@
                    </property>
                   </widget>
                  </item>
+                 <item>
+                  <spacer name="borderControlsSpacer">
+                   <property name="orientation">
+                    <enum>Qt::Horizontal</enum>
+                   </property>
+                   <property name="sizeHint" stdset="0">
+                    <size>
+                     <width>0</width>
+                     <height>0</height>
+                    </size>
+                   </property>
+                  </spacer>
+                 </item>
                 </layout>
                </item>
-               <item row="12" column="0" colspan="2">
+               <item row="13" column="0" colspan="2">
                 <widget class="Line" name="line_7">
                  <property name="orientation">
                   <enum>Qt::Horizontal</enum>
                  </property>
                 </widget>
                </item>
-               <item row="13" column="0">
+               <item row="14" column="0">
                 <widget class="QLabel" name="labelClass">
                  <property name="text">
                   <string>Classes</string>
@@ -654,7 +670,7 @@
                  </property>
                 </widget>
                </item>
-               <item row="13" column="1">
+               <item row="14" column="1">
                 <layout class="QHBoxLayout" name="classControlsLayout">
                  <property name="spacing">
                   <number>6</number>
@@ -729,7 +745,7 @@
                  </item>
                 </layout>
                </item>
-               <item row="14" column="0">
+               <item row="15" column="0">
                 <widget class="QLabel" name="labelClassOrder">
                  <property name="text">
                   <string>Class Order</string>
@@ -739,7 +755,7 @@
                  </property>
                 </widget>
                </item>
-               <item row="14" column="1">
+               <item row="15" column="1">
                 <widget class="QComboBox" name="cbClassOrder">
                  <property name="minimumSize">
                   <size>

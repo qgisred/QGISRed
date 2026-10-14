@@ -1554,9 +1554,12 @@ class QGISRedStylingUtils:
         for value in newValues:
             symbol = template.clone()
             if value == DEMAND_BUILDER_UNCATEGORIZED:
-                symbol.setColor(QColor("orange"))
+                color = QColor("orange")
             else:
-                symbol.setColor(self._demandBuilderClassColor(layer, value, palette, usedColors))
+                color = QColor(self._demandBuilderClassColor(layer, value, palette, usedColors))
+            # The class keeps the opacity the template fills with: a palette colour is opaque
+            color.setAlpha(template.color().alpha())
+            symbol.setColor(color)
             categories.append(QgsRendererCategory(value, symbol, self._translateCategoryLabel(value)))
         categories = self.orderDemandBuilderCategories(layer, categories)
         layer.setRenderer(self._rebuildCategorizedRenderer(renderer, categories))
