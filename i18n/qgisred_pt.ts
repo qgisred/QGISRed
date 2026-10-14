@@ -883,12 +883,12 @@
     <message>
         <location filename="../ui/project/qgisred_legends_dialog.ui" line="599"/>
         <source>Opacity</source>
-        <translation type="unfinished"></translation>
+        <translation>Opacidade</translation>
     </message>
     <message>
         <location filename="../ui/project/qgisred_legends_dialog.ui" line="634"/>
         <source>Border</source>
-        <translation type="unfinished"></translation>
+        <translation>Borda</translation>
     </message>
     <message>
         <location filename="../ui/project/qgisred_legends_dialog.ui" line="778"/>
@@ -6768,52 +6768,52 @@ Não é possível aplicar as alterações.</translation>
     <message>
         <location filename="../ui/project/qgisred_legends_dialog.py" line="710"/>
         <source>Sort the classes by their values when the legend is applied</source>
-        <translation type="unfinished"></translation>
+        <translation>Ordenar as classes pelos seus valores ao aplicar a legenda</translation>
     </message>
     <message>
         <location filename="../ui/project/qgisred_legends_dialog.py" line="874"/>
         <source>No border</source>
-        <translation type="unfinished"></translation>
+        <translation>Sem borda</translation>
     </message>
     <message>
         <location filename="../ui/project/qgisred_legends_dialog.py" line="875"/>
         <source>Black</source>
-        <translation type="unfinished"></translation>
+        <translation>Preto</translation>
     </message>
     <message>
         <location filename="../ui/project/qgisred_legends_dialog.py" line="876"/>
         <source>Fill color</source>
-        <translation type="unfinished"></translation>
+        <translation>Cor do preenchimento</translation>
     </message>
     <message>
         <location filename="../ui/project/qgisred_legends_dialog.py" line="877"/>
         <source>Darker than the fill</source>
-        <translation type="unfinished"></translation>
+        <translation>Mais escuro que o preenchimento</translation>
     </message>
     <message>
         <location filename="../ui/project/qgisred_legends_dialog.py" line="882"/>
         <source>Opacity of every fill: 100 % is solid, 0 % invisible.</source>
-        <translation type="unfinished"></translation>
+        <translation>Opacidade de todos os preenchimentos: 100 % é opaco, 0 % invisível.</translation>
     </message>
     <message>
         <location filename="../ui/project/qgisred_legends_dialog.py" line="884"/>
         <source>Width of the border of every class.</source>
-        <translation type="unfinished"></translation>
+        <translation>Espessura da borda de todas as classes.</translation>
     </message>
     <message>
         <location filename="../ui/project/qgisred_legends_dialog.py" line="1597"/>
         <source>(years)</source>
-        <translation type="unfinished"></translation>
+        <translation>(anos)</translation>
     </message>
     <message>
         <location filename="../ui/project/qgisred_legends_dialog.py" line="3031"/>
         <source>Opacity of the fill: 100 % is solid, 0 % invisible.</source>
-        <translation type="unfinished"></translation>
+        <translation>Opacidade do preenchimento: 100 % é opaco, 0 % invisível.</translation>
     </message>
     <message>
         <location filename="../ui/project/qgisred_legends_dialog.py" line="6388"/>
         <source>Classes: add all values of the layer (%1 now)</source>
-        <translation type="unfinished"></translation>
+        <translation>Classes: adicionar todos os valores da camada (%1 agora)</translation>
     </message>
 </context>
 <context>
@@ -8822,7 +8822,7 @@ Não é possível aplicar as alterações.</translation>
     <message>
         <location filename="../ui/project/qgisred_custom_dialogs.py" line="114"/>
         <source>Sort the classes by their values when the style is loaded</source>
-        <translation type="unfinished"></translation>
+        <translation>Ordenar as classes pelos seus valores ao carregar o estilo</translation>
     </message>
 </context>
 <context>

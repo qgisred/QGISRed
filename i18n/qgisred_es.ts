@@ -883,12 +883,12 @@
     <message>
         <location filename="../ui/project/qgisred_legends_dialog.ui" line="599"/>
         <source>Opacity</source>
-        <translation type="unfinished"></translation>
+        <translation>Opacidad</translation>
     </message>
     <message>
         <location filename="../ui/project/qgisred_legends_dialog.ui" line="634"/>
         <source>Border</source>
-        <translation type="unfinished"></translation>
+        <translation>Borde</translation>
     </message>
     <message>
         <location filename="../ui/project/qgisred_legends_dialog.ui" line="778"/>
@@ -6735,52 +6735,52 @@ No se pueden aplicar los cambios.</translation>
     <message>
         <location filename="../ui/project/qgisred_legends_dialog.py" line="710"/>
         <source>Sort the classes by their values when the legend is applied</source>
-        <translation type="unfinished"></translation>
+        <translation>Ordenar las clases por sus valores al aplicar la leyenda</translation>
     </message>
     <message>
         <location filename="../ui/project/qgisred_legends_dialog.py" line="874"/>
         <source>No border</source>
-        <translation type="unfinished"></translation>
+        <translation>Sin borde</translation>
     </message>
     <message>
         <location filename="../ui/project/qgisred_legends_dialog.py" line="875"/>
         <source>Black</source>
-        <translation type="unfinished"></translation>
+        <translation>Negro</translation>
     </message>
     <message>
         <location filename="../ui/project/qgisred_legends_dialog.py" line="876"/>
         <source>Fill color</source>
-        <translation type="unfinished"></translation>
+        <translation>Color del relleno</translation>
     </message>
     <message>
         <location filename="../ui/project/qgisred_legends_dialog.py" line="877"/>
         <source>Darker than the fill</source>
-        <translation type="unfinished"></translation>
+        <translation>Más oscuro que el relleno</translation>
     </message>
     <message>
         <location filename="../ui/project/qgisred_legends_dialog.py" line="882"/>
         <source>Opacity of every fill: 100 % is solid, 0 % invisible.</source>
-        <translation type="unfinished"></translation>
+        <translation>Opacidad de todos los rellenos: 100 % es opaco, 0 % invisible.</translation>
     </message>
     <message>
         <location filename="../ui/project/qgisred_legends_dialog.py" line="884"/>
         <source>Width of the border of every class.</source>
-        <translation type="unfinished"></translation>
+        <translation>Grosor del borde de todas las clases.</translation>
     </message>
     <message>
         <location filename="../ui/project/qgisred_legends_dialog.py" line="1597"/>
         <source>(years)</source>
-        <translation type="unfinished"></translation>
+        <translation>(años)</translation>
     </message>
     <message>
         <location filename="../ui/project/qgisred_legends_dialog.py" line="3031"/>
         <source>Opacity of the fill: 100 % is solid, 0 % invisible.</source>
-        <translation type="unfinished"></translation>
+        <translation>Opacidad del relleno: 100 % es opaco, 0 % invisible.</translation>
     </message>
     <message>
         <location filename="../ui/project/qgisred_legends_dialog.py" line="6388"/>
         <source>Classes: add all values of the layer (%1 now)</source>
-        <translation type="unfinished"></translation>
+        <translation>Clases: añadir todos los valores de la capa (%1 ahora)</translation>
     </message>
 </context>
 <context>
@@ -8774,7 +8774,7 @@ No se pueden aplicar los cambios.</translation>
     <message>
         <location filename="../ui/project/qgisred_custom_dialogs.py" line="114"/>
         <source>Sort the classes by their values when the style is loaded</source>
-        <translation type="unfinished"></translation>
+        <translation>Ordenar las clases por sus valores al cargar el estilo</translation>
     </message>
 </context>
 <context>

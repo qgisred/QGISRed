@@ -883,12 +883,12 @@
     <message>
         <location filename="../ui/project/qgisred_legends_dialog.ui" line="599"/>
         <source>Opacity</source>
-        <translation type="unfinished"></translation>
+        <translation>Opacité</translation>
     </message>
     <message>
         <location filename="../ui/project/qgisred_legends_dialog.ui" line="634"/>
         <source>Border</source>
-        <translation type="unfinished"></translation>
+        <translation>Bordure</translation>
     </message>
     <message>
         <location filename="../ui/project/qgisred_legends_dialog.ui" line="778"/>
@@ -6723,52 +6723,52 @@ Impossible d'appliquer les modifications.</translation>
     <message>
         <location filename="../ui/project/qgisred_legends_dialog.py" line="710"/>
         <source>Sort the classes by their values when the legend is applied</source>
-        <translation type="unfinished"></translation>
+        <translation>Trier les classes par leurs valeurs lors de l&apos;application de la légende</translation>
     </message>
     <message>
         <location filename="../ui/project/qgisred_legends_dialog.py" line="874"/>
         <source>No border</source>
-        <translation type="unfinished"></translation>
+        <translation>Sans bordure</translation>
     </message>
     <message>
         <location filename="../ui/project/qgisred_legends_dialog.py" line="875"/>
         <source>Black</source>
-        <translation type="unfinished"></translation>
+        <translation>Noir</translation>
     </message>
     <message>
         <location filename="../ui/project/qgisred_legends_dialog.py" line="876"/>
         <source>Fill color</source>
-        <translation type="unfinished"></translation>
+        <translation>Couleur du remplissage</translation>
     </message>
     <message>
         <location filename="../ui/project/qgisred_legends_dialog.py" line="877"/>
         <source>Darker than the fill</source>
-        <translation type="unfinished"></translation>
+        <translation>Plus foncé que le remplissage</translation>
     </message>
     <message>
         <location filename="../ui/project/qgisred_legends_dialog.py" line="882"/>
         <source>Opacity of every fill: 100 % is solid, 0 % invisible.</source>
-        <translation type="unfinished"></translation>
+        <translation>Opacité de tous les remplissages : 100 % est opaque, 0 % invisible.</translation>
     </message>
     <message>
         <location filename="../ui/project/qgisred_legends_dialog.py" line="884"/>
         <source>Width of the border of every class.</source>
-        <translation type="unfinished"></translation>
+        <translation>Épaisseur de la bordure de toutes les classes.</translation>
     </message>
     <message>
         <location filename="../ui/project/qgisred_legends_dialog.py" line="1597"/>
         <source>(years)</source>
-        <translation type="unfinished"></translation>
+        <translation>(années)</translation>
     </message>
     <message>
         <location filename="../ui/project/qgisred_legends_dialog.py" line="3031"/>
         <source>Opacity of the fill: 100 % is solid, 0 % invisible.</source>
-        <translation type="unfinished"></translation>
+        <translation>Opacité du remplissage : 100 % est opaque, 0 % invisible.</translation>
     </message>
     <message>
         <location filename="../ui/project/qgisred_legends_dialog.py" line="6388"/>
         <source>Classes: add all values of the layer (%1 now)</source>
-        <translation type="unfinished"></translation>
+        <translation>Classes : ajouter toutes les valeurs de la couche (%1 actuellement)</translation>
     </message>
 </context>
 <context>
@@ -8767,7 +8767,7 @@ Impossible d'appliquer les modifications.</translation>
     <message>
         <location filename="../ui/project/qgisred_custom_dialogs.py" line="114"/>
         <source>Sort the classes by their values when the style is loaded</source>
-        <translation type="unfinished"></translation>
+        <translation>Trier les classes par leurs valeurs lors du chargement du style</translation>
     </message>
 </context>
 <context>
