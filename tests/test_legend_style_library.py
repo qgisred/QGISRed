@@ -89,6 +89,13 @@ class TestTheSelector:
 
         dialog.btEditStyleLibrary.setVisible.assert_called_with(True)
 
+    def test_the_pencil_keeps_its_place_while_hidden_so_the_row_does_not_shift(self, monkeypatch):
+        dialog = _dialog(monkeypatch)
+        dialog.setupStyleLibrarySelector()
+        policy = dialog.btEditStyleLibrary.sizePolicy.return_value
+        policy.setRetainSizeWhenHidden.assert_called_once_with(True)
+        dialog.btEditStyleLibrary.setSizePolicy.assert_called_once_with(policy)
+
     def test_the_pencil_is_greyed_when_the_library_could_not_be_read(self, monkeypatch):
         dialog = _dialog(monkeypatch, rampKinds={})
         dialog.setupStyleLibrarySelector()

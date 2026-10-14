@@ -58,8 +58,8 @@ class TestSaveStrategyDialog:
         dialog.ckStructural = FakeCheckBox(structural)
         dialog.ckSizes = FakeCheckBox(sizes)
         dialog.ckColors = FakeCheckBox(colors)
-        dialog.cbClassOrder = FakeCheckBox()
-        dialog.labelClassOrder = FakeCheckBox()
+        dialog.ckClassOrder = FakeCheckBox(True)
+        dialog.classOrder = "none"
         return dialog
 
     def test_the_mutual_exclusion_hook_is_gone(self):
@@ -84,10 +84,19 @@ class TestSaveStrategyDialog:
     def test_automatic_with_nothing_ticked_is_a_fixed_legend(self):
         assert self._strategyDialog(True).selectedParts() == []
 
-    def test_classes_can_only_be_rebuilt_along_with_the_colors(self):
+    def test_classes_alone_add_the_missing_values_to_the_saved_ones(self):
+        # "Add all values" is offered whatever the colors do: without them the saved classes
+        # keep their look and the values the layer gained are added on load.
         dialog = self._strategyDialog(True, structural=True, colors=False)
         dialog.updatePartsEnabled()
-        assert dialog.ckStructural.enabled is False and dialog.ckStructural.isChecked() is False
+        assert dialog.ckStructural.enabled is True and dialog.ckStructural.isChecked() is True
+        assert dialog.selectedParts() == ["allValues"]
+        assert self._strategyDialog(True, structural=True, sizes=True).selectedParts() == ["allValues", "sizes"]
+
+    def test_a_file_that_adds_the_values_starts_with_classes_ticked(self):
+        dialog = self._strategyDialog(True, automatic=False)
+        dialog.restoreInitialParts(["allValues", "sizes"])
+        assert dialog.selectedParts() == ["allValues", "sizes"]
 
     def test_a_part_that_cannot_be_recalculated_stays_greyed(self):
         options = dict(APPLICABLE, sizes=("Sizes: kept as shown", "The sizes are set by hand."))
@@ -292,7 +301,9 @@ class TestStrategyPartReasons:
     def test_colors_set_by_hand_say_how_to_change_that(self):
         dialog = self._dialog(colorsSetByHand=True)
         assert "Choose Random, a ramp or a palette" in dialog.colorsPartReason()
-        assert "choose Random, a ramp or a palette in Colors first" in dialog.classesPartReason()
+
+    def test_classes_can_be_added_whatever_the_colors_are(self):
+        assert self._dialog(colorsSetByHand=True).classesPartReason() == ""
 
     def test_classes_from_a_formula_cannot_be_rebuilt(self):
         # Demand Builder classifies a CASE expression: there is no column to read values from.
@@ -313,11 +324,22 @@ class TestLoadBranching:
         dialog.calls = []
 
         class _Layer:
+            # The loader holds the layer signals while it writes the renderer (see holdingLayerSignals)
+            rendererChanged = MagicMock()
+            legendChanged = MagicMock()
+            triggerRepaint = MagicMock()
+
             def customProperty(self, key, default=None):
                 return "qgisred_pipes" if key == "qgisred_identifier" else default
 
             def name(self):
                 return "Pipes"
+
+            def signalsBlocked(self):
+                return False
+
+            def blockSignals(self, blocked):
+                pass
 
         dialog.currentLayer = _Layer()
         dialog.hasUnappliedEdits = False

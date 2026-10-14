@@ -218,14 +218,36 @@ class TestStyleNameForIdentifier:
         assert found is not None, f"{identifier} → {name}.qml has no default style to match"
         assert os.path.basename(found) == defaultFile
 
-    def test_thematic_maps_are_left_to_their_own_scheme(self):
-        # Their styles are named pipe_material.qml and resolved by the thematic maps
+    def test_thematic_maps_without_a_shipped_style_are_left_to_their_own_scheme(self):
+        # Their styles are named valve_types.qml and resolved by the thematic maps
         # dialog, which records the file it used in the styleURI custom property.
-        assert _dialog().getStyleNameForIdentifier("qgisred_query_pipes_material") is None
+        assert _dialog().getStyleNameForIdentifier("qgisred_query_valves_type") is None
 
-    def test_classifiable_thematic_maps_map_to_their_theme_qml(self):
-        assert _dialog().getStyleNameForIdentifier("qgisred_query_pipes_installyear") == "PipeInstallationYears"
-        assert _dialog().getStyleNameForIdentifier("qgisred_query_pipes_age") == "PipeAges"
+    @pytest.mark.parametrize("identifier, expected", [
+        ("qgisred_query_pipes_installyear", "PipeInstallationYears"),
+        ("qgisred_query_pipes_age", "PipeAges"),
+        ("qgisred_query_pipes_material", "PipeMaterials"),
+        ("qgisred_query_pipes_diameter", "PipeDiametersSI"),
+        ("qgisred_query_pipes_length", "PipeLengthsSI"),
+        ("qgisred_query_junctions_elevation", "JunctionElevations"),
+        ("qgisred_query_junctions_totalbasedemand", "JunctionTotalBaseDemands"),
+    ])
+    def test_thematic_maps_with_a_shipped_style_map_to_their_theme_qml(self, identifier, expected):
+        assert _dialog().getStyleNameForIdentifier(identifier) == expected
+        defaults = os.path.join(PLUGIN_ROOT, "defaults", "layerStyles")
+        assert os.path.exists(os.path.join(defaults, expected + ".qml.bak"))
+
+    def test_the_default_style_of_a_thematic_map_is_found_by_its_theme_not_by_style_uri(self):
+        # A map styled from a project copy (Net_PipeMaterials.qml) records that copy in
+        # styleURI, and no shipped file is called Net_PipeMaterials.qml.bak.
+        dialog = _dialog(None)
+        dialog.pluginFolder = PLUGIN_ROOT
+        properties = {"qgisred_identifier": "qgisred_query_pipes_material", "styleURI": "/p/Net_PipeMaterials.qml"}
+        dialog.currentLayer.customProperty.side_effect = lambda key, *a: properties.get(key)
+
+        path, fileName = dialog.findStylePath(dialog.STYLE_SCOPE_DEFAULT)
+
+        assert fileName == "PipeMaterials.qml.bak" and os.path.basename(path) == "PipeMaterials.qml.bak"
 
     def test_a_layer_outside_the_plugin_has_no_derived_name(self):
         assert _dialog().getStyleNameForIdentifier("something_else") is None

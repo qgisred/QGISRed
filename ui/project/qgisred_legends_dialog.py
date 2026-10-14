@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
 
-from contextlib import suppress
+from contextlib import contextmanager, suppress
 import os
 import re
 import json
@@ -896,6 +896,8 @@ class QGISRedLegendsDialog(QDialog, formClass):
             widget.setVisible(isFill)
         # Every drawn border has a width; only "No border" has nothing to size
         self.spinBorderWidth.setVisible(isFill and self.currentBorderMode() != self.BORDER_MODE_NONE)
+        # The border takes the place of the sizes, which a fill does not have
+        self.updateSizeControlsVisibility()
 
     def onBorderModeChanged(self):
         self.updateFillControlsVisibility()
@@ -1143,6 +1145,10 @@ class QGISRedLegendsDialog(QDialog, formClass):
         self.cbStyleLibrary.blockSignals(False)
         self.cbStyleLibrary.currentIndexChanged.connect(self.onStyleLibraryChanged)
         self.btEditStyleLibrary.clicked.connect(self.openStyleManager)
+        # The button keeps its place while hidden, so the row does not shift when it shows
+        buttonPolicy = self.btEditStyleLibrary.sizePolicy()
+        buttonPolicy.setRetainSizeWhenHidden(True)
+        self.btEditStyleLibrary.setSizePolicy(buttonPolicy)
         self.updateStyleLibraryButton()
 
     def updateStyleLibraryButton(self):
@@ -1525,6 +1531,7 @@ class QGISRedLegendsDialog(QDialog, formClass):
         self.updateUiBasedOnFieldType()
         self.populateLegendTable()
         self.applyDefaultClassificationMode()
+        self.showLayerStrategyModes()
         self.updateButtonStates()
         self.updateInputLayerRestrictions()
         self.updateAppearanceWarning()
@@ -1576,7 +1583,8 @@ class QGISRedLegendsDialog(QDialog, formClass):
         """"SI units (m)" for a thematic map, "SI units" for any other layer.
 
         Empty for thematic maps whose values read the same in both unit systems:
-        materials, installation years, ages and the H-W or C-M roughness coefficients.
+        materials, installation years and the H-W or C-M roughness coefficients.
+        Ages are measured in years whatever the unit system.
         """
         units = self.getLayerUnits()
         if not units:
@@ -1586,7 +1594,7 @@ class QGISRedLegendsDialog(QDialog, formClass):
         if not identifier.startswith("qgisred_query_"):
             return unitsText
         if identifier == "qgisred_query_pipes_age":
-            return ""
+            return self.tr("(years)")
         if identifier == "qgisred_query_pipes_roughness" and QGISRedProjectUtils.getHeadlossFormula() != "D-W":
             return ""
         abbreviation = self.getCurrentLayerUnitAbbr()
@@ -1859,23 +1867,31 @@ class QGISRedLegendsDialog(QDialog, formClass):
     # EVENT HANDLERS - SIZE AND COLOR
     # ============================================================
 
-    def onSizeModeChanged(self):
+    def updateSizeControlsVisibility(self):
+        """The Sizes section follows the size mode; a polygon legend has no sizes, only a border."""
         mode = self.currentSizeMode()
-        showEqual = mode == "Equal"
-        showMinMax = mode in [
+        hasSizes = self.getGeometryHint() != "fill"
+        showEqual = hasSizes and mode == "Equal"
+        showMinMax = hasSizes and mode in [
             "Linear",
             "Quadratic",
             "Exponential",
             "Proportional to Value",
         ]
 
+        for widget in (self.labelSizes, self.cbSizes, self.line_5):
+            widget.setVisible(hasSizes)
         self.spinSizeEqual.setVisible(showEqual)
         self.labelSizeValue.setVisible(showEqual)
         self.spinSizeMin.setVisible(showMinMax)
         self.spinSizeMax.setVisible(showMinMax)
         self.labelSpinMin.setVisible(showMinMax)
         self.labelSpinMax.setVisible(showMinMax)
-        self.ckSizeInvert.setVisible(mode != "Manual" and mode != "Equal")
+        self.ckSizeInvert.setVisible(hasSizes and mode != "Manual" and mode != "Equal")
+
+    def onSizeModeChanged(self):
+        mode = self.currentSizeMode()
+        self.updateSizeControlsVisibility()
 
         # Capture anchor sizes when transitioning TO manual while interval mode is automatic
         modeId = self.cbMode.currentData()
@@ -1897,7 +1913,7 @@ class QGISRedLegendsDialog(QDialog, formClass):
         if mode != "Manual":
             self.markLegendEdited()
 
-    def onColorModeChanged(self):
+    def updateColorControlsVisibility(self):
         mode = self.currentColorMode()
         self.btColorEqual.setVisible(mode == "Equal")
 
@@ -1907,7 +1923,11 @@ class QGISRedLegendsDialog(QDialog, formClass):
         self.ckColorInvert.setVisible(isRampOrPalette and mode != PALETTE_KIND_LABELED)
         self.btRefreshColors.setVisible(mode == "Random")
 
-        if isRampOrPalette:
+    def onColorModeChanged(self):
+        mode = self.currentColorMode()
+        self.updateColorControlsVisibility()
+
+        if self.isRampOrPaletteMode(mode):
             self.syncColorRampButton()
 
         self.applyColorLogic()
@@ -4563,12 +4583,13 @@ class QGISRedLegendsDialog(QDialog, formClass):
         self.sortTableRowsByClassOrder()
         renderer = self.buildRendererFromDialog()
         if renderer is not None:
-            self.currentLayer.setRenderer(renderer)
-            self._syncHydraulicSectorSibling(renderer)
-            self._syncDemandBuilderLabelColors(renderer)
-            # Last, so the rule-based wrap is what the layer ends up carrying: the
-            # sibling sync above reads the graduated/categorized renderer as applied.
-            self.restoreResultNullClass()
+            with self.holdingLayerSignals(self.currentLayer):
+                self.currentLayer.setRenderer(renderer)
+                self._syncHydraulicSectorSibling(renderer)
+                self._syncDemandBuilderLabelColors(renderer)
+                # Last, so the rule-based wrap is what the layer ends up carrying: the
+                # sibling sync above reads the graduated/categorized renderer as applied.
+                self.restoreResultNullClass()
 
         self.currentLayer.triggerRepaint()
         self.ensureLayerVisible(self.currentLayer)
@@ -4578,6 +4599,26 @@ class QGISRedLegendsDialog(QDialog, formClass):
             # The sizes just applied are the current ones now: the cell goes back to 100 %
             self.showLayerLegendInTable()
         self.clearLegendEdited()
+
+    @contextmanager
+    def holdingLayerSignals(self, layer):
+        """Hide the intermediate renderer writes from the Layers Panel.
+
+        The panel counts the features of each class on the first renderer it hears of and
+        ignores a second request while that count runs, so when a load or an Apply wrote
+        the renderer more than once every class read "N/D". With the signals held the
+        panel hears of the final renderer only, and counts that one.
+        """
+        wasBlocked = layer.signalsBlocked()
+        layer.blockSignals(True)
+        try:
+            yield
+        finally:
+            layer.blockSignals(wasBlocked)
+        if not wasBlocked:
+            layer.rendererChanged.emit()
+            layer.legendChanged.emit()
+            layer.triggerRepaint()
 
     def rememberAppliedLayer(self):
         self.hasAppliedChanges = True
@@ -5692,7 +5733,8 @@ class QGISRedLegendsDialog(QDialog, formClass):
         if mode == "categorized" and self.currentFieldType == self.FIELD_TYPE_CATEGORICAL:
             self.restoreClassOrderUi(strategy.get("classOrder"))
             # With pinned classes (allClasses) the class list must not be re-derived from data.
-            if "allClasses" not in parts and any(part in parts for part in ("intervals", "sizes", "colors")):
+            addsValues = "allValues" in parts or any(part in parts for part in ("intervals", "sizes", "colors"))
+            if "allClasses" not in parts and addsValues:
                 self.classifyMissingUniqueValues()
 
         if "intervals" in parts:
@@ -5722,6 +5764,89 @@ class QGISRedLegendsDialog(QDialog, formClass):
         index = self.cbClassOrder.findData(classOrder)
         if index >= 0:
             self.cbClassOrder.setCurrentIndex(index)
+
+    def readStrategyFromLayer(self):
+        rawStrategy = self.currentLayer.customProperty("qgisred_legend_strategy") if self.currentLayer else None
+        if not rawStrategy:
+            return None
+        with suppress(Exception):
+            strategy = json.loads(rawStrategy)
+            return strategy if isinstance(strategy, dict) else None
+        return None
+
+    def showLayerStrategyModes(self):
+        """Select the order, intervals, sizes and colors of the strategy the layer carries.
+
+        Only the selectors move: the classes stay as the layer draws them, so what the
+        dialog shows is still what is on the map. Result layers set their intervals in
+        applyDefaultClassificationMode.
+        """
+        strategy = self.readStrategyFromLayer()
+        if strategy is None:
+            return
+        parts = self.strategyParts(strategy)
+        if strategy.get("mode") == "categorized" and self.currentFieldType == self.FIELD_TYPE_CATEGORICAL:
+            self.restoreClassOrderUi(strategy.get("classOrder"))
+        if "intervals" in parts and self.currentFieldType == self.FIELD_TYPE_NUMERIC and not self.isResultsLayer():
+            self.showIntervalsMode(self.readPartBlock(strategy, "intervals"))
+        if "sizes" in parts:
+            self.showSizesMode(strategy.get("sizes") or {})
+        if "colors" in parts:
+            self.showColorsMode(self.readPartBlock(strategy, "colors"))
+
+    def showIntervalsMode(self, intervalsBlock):
+        index = self.cbMode.findData(intervalsBlock.get("classificationMode"))
+        if index < 0:
+            return
+        self.cbMode.blockSignals(True)
+        self.cbMode.setCurrentIndex(index)
+        self.cbMode.blockSignals(False)
+        self.previousClassificationMode = self.cbMode.currentData()
+        self.updateUiBasedOnFieldType()
+
+    def showSizesMode(self, sizesBlock):
+        index = self.cbSizes.findData(sizesBlock.get("mode"))
+        if index < 0:
+            return
+        for spinBox, key in ((self.spinSizeEqual, "value"), (self.spinSizeMin, "min"), (self.spinSizeMax, "max")):
+            if key in sizesBlock:
+                spinBox.blockSignals(True)
+                spinBox.setValue(float(sizesBlock.get(key) or 0.0))
+                spinBox.blockSignals(False)
+        if "invert" in sizesBlock:
+            self.ckSizeInvert.blockSignals(True)
+            self.ckSizeInvert.setChecked(bool(sizesBlock.get("invert")))
+            self.ckSizeInvert.blockSignals(False)
+        self.cbSizes.blockSignals(True)
+        self.cbSizes.setCurrentIndex(index)
+        self.cbSizes.blockSignals(False)
+        self.previousSizeMode = self.currentSizeMode()
+        self.updateSizeControlsVisibility()
+
+    def showColorsMode(self, colorsBlock):
+        source = colorsBlock.get("source") or colorsBlock.get("colorSource")
+        rampName = colorsBlock.get("rampName")
+        if source == "random":
+            mode = "Random"
+        elif source == "ramp" and rampName:
+            mode = self.colorRampKinds.get(rampName) or QGISRedStylingUtils.colorRampKind(self.style, rampName)
+        else:
+            return
+        index = self.cbColors.findData(mode)
+        if index < 0:
+            return
+        self.cbColors.blockSignals(True)
+        self.cbColors.setCurrentIndex(index)
+        self.cbColors.blockSignals(False)
+        self.updateColorControlsVisibility()
+        if source == "ramp":
+            self.btnColorRamp.blockSignals(True)
+            self.syncColorRampButton()
+            self.btnColorRamp.setActiveRampByName(rampName)
+            self.btnColorRamp.blockSignals(False)
+            self.ckColorInvert.blockSignals(True)
+            self.ckColorInvert.setChecked(bool(colorsBlock.get("invertRamp", False)))
+            self.ckColorInvert.blockSignals(False)
 
     def restoreIntervalsUi(self, intervalsBlock):
         classificationMode = intervalsBlock.get("classificationMode")
@@ -5852,16 +5977,17 @@ class QGISRedLegendsDialog(QDialog, formClass):
         # The file goes onto the live layer: it must rebuild the shipped expressions,
         # symbol layers and labels, which the dialog table cannot recreate on its own.
         strategy = None if scope == self.STYLE_SCOPE_DEFAULT else self.readStrategyFromStyleFile(path)
-        self.applyStyleFileToLayer(path)
-        if self.hasLegacyFixedLegend(self.currentLayer):
-            self.restoreEditableInputStyle()
-            self.showAppliedLayerStyle()
-            self.updateLegacyStyleNotice()
-            return
-        if not self.isLiteralStyle(strategy):
-            # The saved classes are on the layer now; regenerate colors/sizes/intervals on top.
-            self.applyStrategyToDialog(strategy)
-            self.applyLegend()
+        with self.holdingLayerSignals(self.currentLayer):
+            self.applyStyleFileToLayer(path)
+            if self.hasLegacyFixedLegend(self.currentLayer):
+                self.restoreEditableInputStyle()
+                self.showAppliedLayerStyle()
+                self.updateLegacyStyleNotice()
+                return
+            if not self.isLiteralStyle(strategy):
+                # The saved classes are on the layer now; regenerate colors/sizes/intervals on top.
+                self.applyStrategyToDialog(strategy)
+                self.applyLegend()
         self.showNotice(self.loadedStyleMessage(scope))
 
     def loadedStyleMessage(self, scope):
@@ -5881,7 +6007,10 @@ class QGISRedLegendsDialog(QDialog, formClass):
         if not name:
             return None, ""
         if scope == self.STYLE_SCOPE_DEFAULT:
-            filename = self.getStyleBasename(name) + ".qml.bak"
+            # A thematic map records in styleURI the project or global copy it was styled
+            # from, whose name is no use for the shipped file: go by the theme instead.
+            identifier = self.currentLayer.customProperty("qgisred_identifier") or ""
+            filename = (self.getThematicQueryStyleName(identifier) or self.getStyleBasename(name)) + ".qml.bak"
             folder = os.path.join(self.pluginFolder, "defaults", "layerStyles")
         elif scope == self.STYLE_SCOPE_GLOBAL:
             filename = self.getStyleBasename(name) + ".qml"
@@ -6086,6 +6215,16 @@ class QGISRedLegendsDialog(QDialog, formClass):
             return "PipeInstallationYears"
         if identifier == "qgisred_query_pipes_age":
             return "PipeAges"
+        if identifier == "qgisred_query_pipes_material":
+            return "PipeMaterials"
+        if identifier == "qgisred_query_pipes_diameter":
+            return "PipeDiameters" + QGISRedProjectUtils.getUnits()
+        if identifier == "qgisred_query_pipes_length":
+            return "PipeLengths" + QGISRedProjectUtils.getUnits()
+        if identifier == "qgisred_query_junctions_elevation":
+            return "JunctionElevations"
+        if identifier == "qgisred_query_junctions_totalbasedemand":
+            return "JunctionTotalBaseDemands"
         if identifier == "qgisred_query_pipes_roughness":
             formula = QGISRedProjectUtils.getHeadlossFormula()
             if formula == "H-W":
@@ -6237,8 +6376,8 @@ class QGISRedLegendsDialog(QDialog, formClass):
         return self.currentSizeMode() in ("Equal", "Linear", "Quadratic", "Exponential", "Proportional to Value")
 
     def canRebuildClassesFromValues(self):
-        """Classes are rebuilt from the values of a column, and only while coloring them."""
-        if not self.canBuildColorsPart():
+        """Classes are rebuilt from the values of a column; a formula has none to read."""
+        if self.currentFieldType != self.FIELD_TYPE_CATEGORICAL or not self.currentFieldName:
             return False
         return self.currentLayer.fields().indexFromName(self.currentFieldName) != -1
 
@@ -6246,7 +6385,7 @@ class QGISRedLegendsDialog(QDialog, formClass):
         """For each part of an automatic legend: what it would store, and why it cannot if so."""
         if self.currentFieldType == self.FIELD_TYPE_CATEGORICAL:
             structuralName = self.tr("Classes")
-            structuralSummary = (self.tr("Classes: rebuilt from the values of the layer (%1 now)")
+            structuralSummary = (self.tr("Classes: add all values of the layer (%1 now)")
                                  .replace("%1", str(self.tableView.rowCount())))
             structuralReason = self.classesPartReason()
         else:
@@ -6290,8 +6429,6 @@ class QGISRedLegendsDialog(QDialog, formClass):
     def classesPartReason(self):
         if self.isAlwaysSavedAsShown():
             return self.ruleBasedLegendReason()
-        if not self.canBuildColorsPart():
-            return self.tr("Classes are rebuilt while coloring them: choose Random, a ramp or a palette in Colors first.")
         if not self.canRebuildClassesFromValues():
             return self.tr("These classes come from a formula, not from a column, so they cannot be rebuilt.")
         return ""

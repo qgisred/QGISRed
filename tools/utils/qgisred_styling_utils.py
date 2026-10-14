@@ -109,6 +109,11 @@ _MAPTIP_ELEMENT_WORDS = (
     "Source", "Valve",
 )
 _LEGACY_DEMAND_MAPTIP_WORD = "Mult_Demand"
+# Demands used to tip their base demand; now they tip their id like every other input layer.
+_LEGACY_DEMAND_MAPTIP_VALUE = (
+    "[% coalesce(attribute($currentfeature,'BaseDem'), attribute($currentfeature,'BaseValue')) %] ..."
+)
+_DEMAND_MAPTIP_ID = "[% coalesce(attribute($currentfeature,'DemandID'), attribute($currentfeature,'Id')) %]"
 
 _METER_TYPE_EXPR = "coalesce(attribute($currentfeature,'MeterType'),attribute($currentfeature,'Type'))"
 _VALVE_TYPE_EXPR = "coalesce(attribute($currentfeature,'ValveType'), attribute($currentfeature,'Type'))"
@@ -408,6 +413,9 @@ class QGISRedStylingUtils:
         if "allClasses" in parts and mode == "categorized":
             self.applyAllClassesSnapshot(layer, field, strategy.get("allClasses") or {})
 
+        if "allValues" in parts and mode == "categorized" and fieldIndex != -1:
+            self.addMissingCategories(layer, field, fieldIndex)
+
         if "intervals" in parts and mode == "graduated":
             self.applyGraduatedClassification(layer, field, self.resolveIntervalsBlock(strategy))
 
@@ -588,6 +596,10 @@ class QGISRedStylingUtils:
                 symbols = renderer.symbols(context)
                 if symbols:
                     return symbols[min(index, len(symbols) - 1)].clone()
+                # A legend shipped without classes still says how they are drawn
+                sourceSymbol = renderer.sourceSymbol()
+                if sourceSymbol is not None:
+                    return sourceSymbol.clone()
         return QgsSymbol.defaultSymbol(layer.geometryType())
 
     def cloneRendererRamp(self, layer):
@@ -671,6 +683,33 @@ class QGISRedStylingUtils:
             categories.append(QgsRendererCategory(nullValues[0], symbol, "#NA"))
 
         layer.setRenderer(QgsCategorizedSymbolRenderer(field, categories))
+
+    def addMissingCategories(self, layer, field, fieldIndex):
+        """A class for every value of `field` the legend does not list yet, coloured the way
+        the legend editor colours a class it adds; the saved classes keep their look."""
+        renderer = layer.renderer()
+        if not isinstance(renderer, QgsCategorizedSymbolRenderer):
+            return
+        knownValues = {category.value() for category in renderer.categories()}
+        uniqueValues = sorted(
+            layer.dataProvider().uniqueValues(fieldIndex),
+            key=lambda value: ("" if value == NULL else str(value)),
+        )
+        newValues = [value for value in uniqueValues if value not in knownValues]
+        if not newValues:
+            return
+
+        templateSymbol = self.cloneRendererTemplateSymbol(layer)
+        categories = list(renderer.categories())
+        for value in newValues:
+            symbol = templateSymbol.clone()
+            if value == NULL:
+                self._setSymbolColor(symbol, QColor.fromRgb(192, 192, 192))
+                categories.append(QgsRendererCategory(value, symbol, "#NA"))
+                continue
+            self._setSymbolColor(symbol, self.resolveCategoryColor(value, 0, 1, None, False))
+            categories.append(QgsRendererCategory(value, symbol, self._translateCategoryLabel(value, field)))
+        layer.setRenderer(self._rebuildCategorizedRenderer(renderer, categories))
 
     def applyCategorizedColorsInPlace(self, layer, colorsBlock):
         """Recolor the existing categories without rebuilding the renderer.
@@ -1158,6 +1197,8 @@ class QGISRedStylingUtils:
             updated = updated.replace("[[%", "[%").replace("%]]", "%]")
         if updated.startswith(_LEGACY_DEMAND_MAPTIP_WORD + " "):
             updated = "Multiple Demand" + updated[len(_LEGACY_DEMAND_MAPTIP_WORD):]
+        if updated.endswith(" " + _LEGACY_DEMAND_MAPTIP_VALUE):
+            updated = updated[:-len(_LEGACY_DEMAND_MAPTIP_VALUE)] + _DEMAND_MAPTIP_ID
         if updated.startswith("[%") and _VALVE_TYPE_EXPR in updated:
             updated = "Valve " + updated
         if updated != template:

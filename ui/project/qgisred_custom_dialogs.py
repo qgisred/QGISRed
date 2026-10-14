@@ -82,12 +82,12 @@ class QGISRedSaveStrategyDialog(QDialog):
         self.isGlobal = isGlobal
         self.isCategorical = isCategorical
         self.partOptions = partOptions
+        self.classOrder = classOrder
 
         self.rbFixedLegend = QRadioButton(self.tr("Fixed legend: save it exactly as shown"))
         self.rbAutomaticLegend = QRadioButton(self.tr("Automatic legend: recalculate it when the style is loaded"))
         self.ckStructural = self.createPartCheckBox("structural")
-        self.labelClassOrder = QLabel(self.tr("Class Order"))
-        self.cbClassOrder = self.createClassOrderCombo(classOrder)
+        self.ckClassOrder = self.createClassOrderCheckBox()
         self.ckSizes = self.createPartCheckBox("sizes")
         self.ckColors = self.createPartCheckBox("colors")
 
@@ -99,8 +99,6 @@ class QGISRedSaveStrategyDialog(QDialog):
         self.setWindowTitle(title)
         self.setupLayout()
         self.rbAutomaticLegend.toggled.connect(self.updatePartsEnabled)
-        self.ckColors.toggled.connect(self.updatePartsEnabled)
-        self.ckStructural.toggled.connect(self.updateClassOrderEnabled)
 
     def createPartCheckBox(self, part):
         summary, reason = self.partOptions[part]
@@ -108,13 +106,16 @@ class QGISRedSaveStrategyDialog(QDialog):
         checkBox.setToolTip(reason)
         return checkBox
 
-    def createClassOrderCombo(self, classOrder):
-        combo = QComboBox()
-        combo.addItem(self.tr("None"), "none")
-        combo.addItem(self.tr("Ascending"), "ascending")
-        combo.addItem(self.tr("Descending"), "descending")
-        combo.setCurrentIndex(max(combo.findData(classOrder), 0))
-        return combo
+    def createClassOrderCheckBox(self):
+        """Keeps the order chosen in the editor's Class Order entry; None offers nothing."""
+        orderNames = {"ascending": self.tr("Ascending"), "descending": self.tr("Descending")}
+        checkBox = QCheckBox(self.tr("Class order: %1").replace("%1", orderNames.get(self.classOrder, "")))
+        checkBox.setChecked(True)
+        checkBox.setToolTip(self.tr("Sort the classes by their values when the style is loaded"))
+        return checkBox
+
+    def hasClassOrder(self):
+        return self.isCategorical and self.classOrder in ("ascending", "descending")
 
     def isPartApplicable(self, part):
         return not self.partOptions[part][1]
@@ -128,7 +129,7 @@ class QGISRedSaveStrategyDialog(QDialog):
         partsLayout = QVBoxLayout()
         partsLayout.setContentsMargins(24, 0, 0, 0)
         partsLayout.addWidget(self.ckStructural)
-        if self.isCategorical:
+        if self.hasClassOrder():
             partsLayout.addLayout(self.createClassOrderRow())
         partsLayout.addWidget(self.ckSizes)
         partsLayout.addWidget(self.ckColors)
@@ -138,8 +139,7 @@ class QGISRedSaveStrategyDialog(QDialog):
     def createClassOrderRow(self):
         rowLayout = QHBoxLayout()
         rowLayout.setContentsMargins(24, 0, 0, 0)
-        rowLayout.addWidget(self.labelClassOrder)
-        rowLayout.addWidget(self.cbClassOrder)
+        rowLayout.addWidget(self.ckClassOrder)
         rowLayout.addStretch()
         return rowLayout
 
@@ -158,7 +158,8 @@ class QGISRedSaveStrategyDialog(QDialog):
         self.ckSizes.setChecked("sizes" in initialParts and "sizes" in applicable)
         self.ckColors.setChecked("colors" in initialParts and "colors" in applicable)
         rebuildsClasses = "colors" in initialParts and "allClasses" not in initialParts
-        structuralTicked = rebuildsClasses if self.isCategorical else "intervals" in initialParts
+        addsValues = rebuildsClasses or "allValues" in initialParts
+        structuralTicked = addsValues if self.isCategorical else "intervals" in initialParts
         self.ckStructural.setChecked(structuralTicked and "structural" in applicable)
         isAutomatic = any(box.isChecked() for box in (self.ckStructural, self.ckSizes, self.ckColors))
         self.rbAutomaticLegend.setChecked(isAutomatic)
@@ -169,21 +170,16 @@ class QGISRedSaveStrategyDialog(QDialog):
         isAutomatic = self.rbAutomaticLegend.isChecked()
         self.ckSizes.setEnabled(isAutomatic and self.isPartApplicable("sizes"))
         self.ckColors.setEnabled(isAutomatic and self.isPartApplicable("colors"))
-        # Classes are rebuilt from the values while coloring them, so only along with the colors.
-        needsColors = self.isCategorical and not self.ckColors.isChecked()
-        structuralEnabled = isAutomatic and self.isPartApplicable("structural") and not needsColors
+        structuralEnabled = isAutomatic and self.isPartApplicable("structural")
         self.ckStructural.setEnabled(structuralEnabled)
         if not structuralEnabled:
             self.ckStructural.setChecked(False)
-        self.updateClassOrderEnabled()
-
-    def updateClassOrderEnabled(self, _checked=None):
-        classOrderEnabled = self.ckStructural.isEnabled() and self.ckStructural.isChecked()
-        self.cbClassOrder.setEnabled(classOrderEnabled)
-        self.labelClassOrder.setEnabled(classOrderEnabled)
+        self.ckClassOrder.setEnabled(isAutomatic)
 
     def selectedClassOrder(self):
-        return self.cbClassOrder.currentData() if self.cbClassOrder.isEnabled() else "none"
+        if self.hasClassOrder() and self.ckClassOrder.isEnabled() and self.ckClassOrder.isChecked():
+            return self.classOrder
+        return "none"
 
     def selectedParts(self):
         if not self.rbAutomaticLegend.isChecked():
@@ -195,8 +191,11 @@ class QGISRedSaveStrategyDialog(QDialog):
             parts.append("colors")
         if not self.isCategorical:
             return (["intervals"] if self.ckStructural.isChecked() else []) + parts
+        if self.ckStructural.isChecked():
+            # Recoloured classes are rebuilt from the values; otherwise the missing values are added.
+            return parts if "colors" in parts else ["allValues"] + parts
         # Classes that are not rebuilt are pinned, so the other parts are applied on top of them.
-        return parts if self.ckStructural.isChecked() or not parts else ["allClasses"] + parts
+        return ["allClasses"] + parts if parts else []
 
 
 class QGISRedSymbolColorSelector(QgsSymbolButton):

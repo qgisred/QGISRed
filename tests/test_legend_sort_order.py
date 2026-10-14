@@ -153,26 +153,37 @@ class FakeCheckBox:
 
 
 class TestTheSaveDialogEntry:
-    def _saveDialog(self, structural, colors=True, order="ascending"):
+    """A tick that keeps the order chosen in the editor, offered for every automatic legend."""
+
+    def _saveDialog(self, automatic=True, order="ascending", ticked=True, isCategorical=True):
         dialog = QGISRedSaveStrategyDialog.__new__(QGISRedSaveStrategyDialog)
-        dialog.isCategorical = True
+        dialog.isCategorical = isCategorical
+        dialog.classOrder = order
         dialog.partOptions = {part: ("", "") for part in ("structural", "sizes", "colors")}
-        dialog.rbAutomaticLegend = FakeCheckBox(True)
-        dialog.ckStructural = FakeCheckBox(structural)
+        dialog.rbAutomaticLegend = FakeCheckBox(automatic)
+        dialog.ckStructural = FakeCheckBox(False)
         dialog.ckSizes = FakeCheckBox(False)
-        dialog.ckColors = FakeCheckBox(colors)
-        dialog.cbClassOrder = FakeClassOrderCombo(order)
-        dialog.labelClassOrder = FakeCheckBox()
+        dialog.ckColors = FakeCheckBox(True)
+        dialog.ckClassOrder = FakeCheckBox(ticked)
         dialog.updatePartsEnabled()
         return dialog
 
-    def test_the_order_is_offered_while_the_classes_are_rebuilt(self):
-        dialog = self._saveDialog(structural=True)
-        assert dialog.cbClassOrder.enabled is True and dialog.selectedClassOrder() == "ascending"
+    def test_the_order_is_offered_for_an_automatic_legend(self):
+        dialog = self._saveDialog()
+        assert dialog.ckClassOrder.enabled is True and dialog.selectedClassOrder() == "ascending"
 
-    def test_the_order_is_greyed_and_none_when_the_classes_are_kept(self):
-        dialog = self._saveDialog(structural=False)
-        assert dialog.cbClassOrder.enabled is False and dialog.selectedClassOrder() == "none"
+    def test_the_tick_is_greyed_and_the_order_none_for_a_fixed_legend(self):
+        dialog = self._saveDialog(automatic=False)
+        assert dialog.ckClassOrder.enabled is False and dialog.selectedClassOrder() == "none"
+
+    def test_an_unticked_order_is_not_saved(self):
+        assert self._saveDialog(ticked=False).selectedClassOrder() == "none"
+
+    def test_the_tick_is_only_shown_when_the_editor_has_an_order(self):
+        assert self._saveDialog(order="descending").hasClassOrder() is True
+        assert self._saveDialog(order="none").hasClassOrder() is False
+        assert self._saveDialog(isCategorical=False).hasClassOrder() is False
+        assert self._saveDialog(order="none").selectedClassOrder() == "none"
 
 
 def _materialLayer(values):

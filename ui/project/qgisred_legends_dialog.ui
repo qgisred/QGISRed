@@ -355,7 +355,7 @@
                  </property>
                 </widget>
                </item>
-               <item row="3" column="0">
+               <item row="6" column="0">
                 <widget class="QLabel" name="labelSizes">
                  <property name="text">
                   <string>Sizes</string>
@@ -365,7 +365,7 @@
                  </property>
                 </widget>
                </item>
-               <item row="3" column="1">
+               <item row="6" column="1">
                 <widget class="QComboBox" name="cbSizes">
                  <property name="sizePolicy">
                   <sizepolicy hsizetype="Expanding" vsizetype="Fixed">
@@ -381,7 +381,7 @@
                  </property>
                 </widget>
                </item>
-               <item row="4" column="0">
+               <item row="7" column="0">
                 <widget class="QLabel" name="labelSizeValue">
                  <property name="text">
                   <string>Value</string>
@@ -391,7 +391,7 @@
                  </property>
                 </widget>
                </item>
-               <item row="4" column="1">
+               <item row="7" column="1">
                 <widget class="QDoubleSpinBox" name="spinSizeEqual">
                  <property name="minimumSize">
                   <size>
@@ -416,7 +416,7 @@
                  </property>
                 </widget>
                </item>
-               <item row="5" column="0">
+               <item row="8" column="0">
                 <widget class="QLabel" name="labelSpinMin">
                  <property name="text">
                   <string>Min</string>
@@ -426,7 +426,7 @@
                  </property>
                 </widget>
                </item>
-               <item row="5" column="1">
+               <item row="8" column="1">
                 <layout class="QHBoxLayout" name="sizeRangeLayout">
                  <property name="spacing">
                   <number>6</number>
@@ -501,14 +501,14 @@
                  </item>
                 </layout>
                </item>
-               <item row="6" column="0" colspan="2">
+               <item row="9" column="0" colspan="2">
                 <widget class="Line" name="line_5">
                  <property name="orientation">
                   <enum>Qt::Horizontal</enum>
                  </property>
                 </widget>
                </item>
-               <item row="7" column="0">
+               <item row="10" column="0">
                 <widget class="QLabel" name="labelColors">
                  <property name="text">
                   <string>Colors</string>
@@ -518,7 +518,7 @@
                  </property>
                 </widget>
                </item>
-               <item row="7" column="1">
+               <item row="10" column="1">
                 <layout class="QHBoxLayout" name="colorControlsLayout">
                  <property name="spacing">
                   <number>6</number>
@@ -583,17 +583,17 @@
                  </item>
                 </layout>
                </item>
-               <item row="8" column="1">
+               <item row="11" column="1">
                 <layout class="QHBoxLayout" name="palletesHorizontalLayout"/>
                </item>
-               <item row="9" column="0" colspan="2">
+               <item row="5" column="0" colspan="2">
                 <widget class="Line" name="line_8">
                  <property name="orientation">
                   <enum>Qt::Horizontal</enum>
                  </property>
                 </widget>
                </item>
-               <item row="10" column="0">
+               <item row="3" column="0">
                 <widget class="QLabel" name="labelFillOpacity">
                  <property name="text">
                   <string>Opacity</string>
@@ -603,7 +603,7 @@
                  </property>
                 </widget>
                </item>
-               <item row="10" column="1">
+               <item row="3" column="1">
                 <widget class="QSpinBox" name="spinFillOpacity">
                  <property name="minimumSize">
                   <size>
@@ -628,7 +628,7 @@
                  </property>
                 </widget>
                </item>
-               <item row="11" column="0">
+               <item row="4" column="0">
                 <widget class="QLabel" name="labelBorder">
                  <property name="text">
                   <string>Border</string>
@@ -638,7 +638,7 @@
                  </property>
                 </widget>
                </item>
-               <item row="11" column="1">
+               <item row="4" column="1">
                 <layout class="QHBoxLayout" name="borderControlsLayout">
                  <property name="spacing">
                   <number>6</number>
@@ -784,16 +784,16 @@
                </item>
                <item row="14" column="1">
                 <widget class="QComboBox" name="cbClassOrder">
-                 <property name="sizePolicy">
-                  <sizepolicy hsizetype="Expanding" vsizetype="Fixed">
-                   <horstretch>1</horstretch>
-                   <verstretch>0</verstretch>
-                  </sizepolicy>
-                 </property>
                  <property name="minimumSize">
                   <size>
-                   <width>150</width>
+                   <width>90</width>
                    <height>0</height>
+                  </size>
+                 </property>
+                 <property name="maximumSize">
+                  <size>
+                   <width>150</width>
+                   <height>16777215</height>
                   </size>
                  </property>
                 </widget>
@@ -903,7 +903,7 @@
        </property>
        <property name="icon">
         <iconset resource="../../resources.qrc">
-         <normaloff>:/images/pencil.svg</normaloff>:/images/pencil.svg</iconset>
+         <normaloff>:/images/iconEditStyleLibrary.svg</normaloff>:/images/iconEditStyleLibrary.svg</iconset>
        </property>
        <property name="autoRaise">
         <bool>true</bool>

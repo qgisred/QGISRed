@@ -145,12 +145,34 @@ def test_every_drawn_border_offers_its_width(mode, widthShown):
 
     dialog = _borderDialog(mode)
     dialog.getGeometryHint = lambda: "fill"
-    for name in ("line_8", "labelFillOpacity", "spinFillOpacity", "labelBorder", "spinBorderWidth"):
+    for name in ("line_8", "labelFillOpacity", "spinFillOpacity", "labelBorder", "spinBorderWidth") + SIZE_WIDGETS:
         setattr(dialog, name, MagicMock())
 
     dialog.updateFillControlsVisibility()
 
     dialog.spinBorderWidth.setVisible.assert_called_once_with(widthShown)
+
+
+SIZE_WIDGETS = ("labelSizes", "cbSizes", "line_5", "spinSizeEqual", "labelSizeValue", "spinSizeMin", "spinSizeMax",
+                "labelSpinMin", "labelSpinMax", "ckSizeInvert")
+
+
+@pytest.mark.parametrize("geometryHint, sizesShown", [("fill", False), ("line", True), ("marker", True)])
+def test_the_border_takes_the_place_of_the_sizes_a_fill_does_not_have(geometryHint, sizesShown):
+    from unittest.mock import MagicMock
+
+    dialog = _borderDialog("black")
+    dialog.getGeometryHint = lambda: geometryHint
+    for name in ("line_8", "labelFillOpacity", "spinFillOpacity", "labelBorder", "spinBorderWidth") + SIZE_WIDGETS:
+        setattr(dialog, name, MagicMock())
+    dialog.cbSizes.currentData.return_value = "Linear"
+
+    dialog.updateFillControlsVisibility()
+
+    for name in ("labelSizes", "cbSizes", "line_5", "spinSizeMin", "labelSpinMax", "ckSizeInvert"):
+        getattr(dialog, name).setVisible.assert_called_with(sizesShown)
+    dialog.spinSizeEqual.setVisible.assert_called_with(False)
+    dialog.labelBorder.setVisible.assert_called_with(not sizesShown)
 
 
 def test_the_swatch_draws_the_fill_with_the_typed_outline_width():
