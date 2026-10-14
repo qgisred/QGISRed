@@ -2135,47 +2135,47 @@
     <message>
         <location filename="../tools/qgisred_translatable_strings.py" line="306"/>
         <source>Connect_Links</source>
-        <translation>Connect_Trechos</translation>
+        <translation>Conect_Trechos</translation>
     </message>
     <message>
         <location filename="../tools/qgisred_translatable_strings.py" line="307"/>
         <source>HydSec_Links</source>
-        <translation>HydSec_Trechos</translation>
+        <translation>SetHid_Trechos</translation>
     </message>
     <message>
         <location filename="../tools/qgisred_translatable_strings.py" line="308"/>
         <source>HydSec_Nodes</source>
-        <translation>HydSec_Nós</translation>
+        <translation>SetHid_Nós</translation>
     </message>
     <message>
         <location filename="../tools/qgisred_translatable_strings.py" line="309"/>
         <source>HydSec_Isolated Demands</source>
-        <translation>HydSec_Consumos Isolados</translation>
+        <translation>SetHid_Consumos Isolados</translation>
     </message>
     <message>
         <location filename="../tools/qgisred_translatable_strings.py" line="310"/>
         <source>DemSec_Links</source>
-        <translation>DemSec_Trechos</translation>
+        <translation>SetCons_Trechos</translation>
     </message>
     <message>
         <location filename="../tools/qgisred_translatable_strings.py" line="311"/>
         <source>DemSec_Nodes</source>
-        <translation>DemSec_Nós</translation>
+        <translation>SetCons_Nós</translation>
     </message>
     <message>
         <location filename="../tools/qgisred_translatable_strings.py" line="312"/>
         <source>IsolSeg_Links</source>
-        <translation>IsolSeg_Trechos</translation>
+        <translation>SegIsol_Trechos</translation>
     </message>
     <message>
         <location filename="../tools/qgisred_translatable_strings.py" line="313"/>
         <source>IsolSeg_Nodes</source>
-        <translation>IsolSeg_Nós</translation>
+        <translation>SegIsol_Nós</translation>
     </message>
     <message>
         <location filename="../tools/qgisred_translatable_strings.py" line="314"/>
         <source>IsolSeg_Isolated Demands</source>
-        <translation>IsolSeg_Consumos Isolados</translation>
+        <translation>SegIsol_Consumos Isolados</translation>
     </message>
     <message>
         <location filename="../tools/qgisred_translatable_strings.py" line="315"/>

@@ -2105,47 +2105,47 @@
     <message>
         <location filename="../tools/qgisred_translatable_strings.py" line="306"/>
         <source>Connect_Links</source>
-        <translation type="unfinished">Connect_Liens</translation>
+        <translation >Connect_Liens</translation>
     </message>
     <message>
         <location filename="../tools/qgisred_translatable_strings.py" line="307"/>
         <source>HydSec_Links</source>
-        <translation type="unfinished">HydSec_Liens</translation>
+        <translation >SecHyd_Liens</translation>
     </message>
     <message>
         <location filename="../tools/qgisred_translatable_strings.py" line="308"/>
         <source>HydSec_Nodes</source>
-        <translation type="unfinished">HydSec_Noeuds</translation>
+        <translation >SecHyd_Noeuds</translation>
     </message>
     <message>
         <location filename="../tools/qgisred_translatable_strings.py" line="309"/>
         <source>HydSec_Isolated Demands</source>
-        <translation type="unfinished">HydSec_Demandes Isolées</translation>
+        <translation >SecHyd_Demandes Isolées</translation>
     </message>
     <message>
         <location filename="../tools/qgisred_translatable_strings.py" line="310"/>
         <source>DemSec_Links</source>
-        <translation type="unfinished">DemSec_Liens</translation>
+        <translation >SecDem_Liens</translation>
     </message>
     <message>
         <location filename="../tools/qgisred_translatable_strings.py" line="311"/>
         <source>DemSec_Nodes</source>
-        <translation type="unfinished">DemSec_Noeuds</translation>
+        <translation >SecDem_Noeuds</translation>
     </message>
     <message>
         <location filename="../tools/qgisred_translatable_strings.py" line="312"/>
         <source>IsolSeg_Links</source>
-        <translation type="unfinished">IsolSeg_Liens</translation>
+        <translation >SegIsol_Liens</translation>
     </message>
     <message>
         <location filename="../tools/qgisred_translatable_strings.py" line="313"/>
         <source>IsolSeg_Nodes</source>
-        <translation type="unfinished">IsolSeg_Noeuds</translation>
+        <translation >SegIsol_Noeuds</translation>
     </message>
     <message>
         <location filename="../tools/qgisred_translatable_strings.py" line="314"/>
         <source>IsolSeg_Isolated Demands</source>
-        <translation type="unfinished">IsolSeg_Demandes Isolées</translation>
+        <translation >SegIsol_Demandes Isolées</translation>
     </message>
     <message>
         <location filename="../tools/qgisred_translatable_strings.py" line="315"/>
