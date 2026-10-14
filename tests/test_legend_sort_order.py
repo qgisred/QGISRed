@@ -220,11 +220,12 @@ class TestTheSaveDialogEntry:
     def test_an_unticked_order_is_not_saved(self):
         assert self._saveDialog(ticked=False).selectedClassOrder() == "none"
 
-    def test_the_tick_is_only_shown_when_the_editor_has_an_order(self):
+    def test_the_tick_is_shown_for_every_categorical_legend_none_included(self):
         assert self._saveDialog(order="descending").hasClassOrder() is True
-        assert self._saveDialog(order="none").hasClassOrder() is False
+        assert self._saveDialog(order="none").hasClassOrder() is True
         assert self._saveDialog(isCategorical=False).hasClassOrder() is False
         assert self._saveDialog(order="none").selectedClassOrder() == "none"
+        assert self._saveDialog(order="none").sortsClasses() is False
 
 
 def _materialLayer(values):

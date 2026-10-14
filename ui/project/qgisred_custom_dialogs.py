@@ -6,7 +6,7 @@ from qgis.PyQt.QtGui import QColor, QPixmap, QPainter, QIcon, QDoubleValidator
 from ...compat import PAINTER_ANTIALIASING, STYLE_CC_COMBOBOX, STYLE_CE_COMBOBOXLABEL, SL_PROP_FILL_COLOR
 from ...compat import SL_PROP_SIZE, SL_PROP_WIDTH, SL_PROP_STROKE_WIDTH, sip
 from ...tools.utils.qgisred_styling_utils import QGISRedStylingUtils
-from qgis.PyQt.QtWidgets import QDialog, QDialogButtonBox, QDoubleSpinBox, QLabel, QVBoxLayout, QHBoxLayout
+from qgis.PyQt.QtWidgets import QDialog, QDialogButtonBox, QDoubleSpinBox, QLabel, QVBoxLayout
 from qgis.PyQt.QtWidgets import QToolButton, QComboBox, QApplication, QStylePainter, QStyleOptionComboBox, QSizePolicy
 from qgis.PyQt.QtWidgets import QCheckBox, QLineEdit, QRadioButton, QSpinBox
 from qgis.PyQt.QtCore import pyqtSignal, Qt, QEvent, QSize, QObject, QPoint, QItemSelectionModel, QItemSelection
@@ -107,15 +107,18 @@ class QGISRedSaveStrategyDialog(QDialog):
         return checkBox
 
     def createClassOrderCheckBox(self):
-        """Keeps the order chosen in the editor's Class Order entry; None offers nothing."""
-        orderNames = {"ascending": self.tr("Ascending"), "descending": self.tr("Descending")}
+        """Keeps the order chosen in the editor's Class Order entry, None included."""
+        orderNames = {"ascending": self.tr("Ascending"), "descending": self.tr("Descending"), "none": self.tr("None")}
         checkBox = QCheckBox(self.tr("Class order: %1").replace("%1", orderNames.get(self.classOrder, "")))
-        checkBox.setChecked(True)
+        checkBox.setChecked(self.classOrder in ("ascending", "descending"))
         checkBox.setToolTip(self.tr("Sort the classes by their values when the style is loaded"))
         return checkBox
 
     def hasClassOrder(self):
-        return self.isCategorical and self.classOrder in ("ascending", "descending")
+        return self.isCategorical
+
+    def sortsClasses(self):
+        return self.hasClassOrder() and self.classOrder in ("ascending", "descending")
 
     def isPartApplicable(self, part):
         return not self.partOptions[part][1]
@@ -130,18 +133,11 @@ class QGISRedSaveStrategyDialog(QDialog):
         partsLayout.setContentsMargins(24, 0, 0, 0)
         partsLayout.addWidget(self.ckStructural)
         if self.hasClassOrder():
-            partsLayout.addLayout(self.createClassOrderRow())
+            partsLayout.addWidget(self.ckClassOrder)
         partsLayout.addWidget(self.ckSizes)
         partsLayout.addWidget(self.ckColors)
         layout.addLayout(partsLayout)
         self.addStandardButtons(layout)
-
-    def createClassOrderRow(self):
-        rowLayout = QHBoxLayout()
-        rowLayout.setContentsMargins(24, 0, 0, 0)
-        rowLayout.addWidget(self.ckClassOrder)
-        rowLayout.addStretch()
-        return rowLayout
 
     def addStandardButtons(self, layout):
         buttonBox = QDialogButtonBox(QDialogButtonBox.StandardButton.Ok | QDialogButtonBox.StandardButton.Cancel)
@@ -152,16 +148,13 @@ class QGISRedSaveStrategyDialog(QDialog):
     def restoreInitialParts(self, initialParts):
         """Start from what the file being overwritten holds, as far as it still applies."""
         applicable = [part for part in ("structural", "sizes", "colors") if self.isPartApplicable(part)]
-        self.rbAutomaticLegend.setEnabled(bool(applicable))
-        if not applicable:
-            self.rbAutomaticLegend.setToolTip(self.tr("Nothing in this legend can be recalculated: hover each line to see why."))
         self.ckSizes.setChecked("sizes" in initialParts and "sizes" in applicable)
         self.ckColors.setChecked("colors" in initialParts and "colors" in applicable)
         rebuildsClasses = "colors" in initialParts and "allClasses" not in initialParts
         addsValues = rebuildsClasses or "allValues" in initialParts
         structuralTicked = addsValues if self.isCategorical else "intervals" in initialParts
         self.ckStructural.setChecked(structuralTicked and "structural" in applicable)
-        isAutomatic = any(box.isChecked() for box in (self.ckStructural, self.ckSizes, self.ckColors))
+        isAutomatic = bool(applicable) or self.sortsClasses()
         self.rbAutomaticLegend.setChecked(isAutomatic)
         self.rbFixedLegend.setChecked(not isAutomatic)
         self.updatePartsEnabled()

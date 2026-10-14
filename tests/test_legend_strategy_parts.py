@@ -113,16 +113,24 @@ class TestSaveStrategyDialog:
         pinned.restoreInitialParts(["allClasses", "colors"])
         assert pinned.selectedParts() == ["allClasses", "colors"]
 
-    def test_a_new_file_starts_as_a_fixed_legend(self):
+    def test_a_new_file_starts_automatic_when_a_part_can_be_recalculated(self):
         dialog = self._strategyDialog(False)
         dialog.restoreInitialParts(())
-        assert dialog.rbFixedLegend.isChecked() and dialog.selectedParts() == []
+        assert dialog.rbAutomaticLegend.isChecked() and dialog.selectedParts() == []
 
-    def test_automatic_is_not_offered_when_nothing_can_be_recalculated(self):
+    def test_it_starts_fixed_when_nothing_can_be_recalculated_and_no_class_order(self):
         nothing = {part: ("kept as shown", "why") for part in APPLICABLE}
         dialog = self._strategyDialog(True, partOptions=nothing)
         dialog.restoreInitialParts(["colors"])
-        assert dialog.rbAutomaticLegend.enabled is False and dialog.selectedParts() == []
+        assert dialog.rbFixedLegend.isChecked() and dialog.selectedParts() == []
+
+    def test_automatic_stays_offered_and_a_class_order_starts_automatic(self):
+        nothing = {part: ("kept as shown", "why") for part in APPLICABLE}
+        dialog = self._strategyDialog(True, partOptions=nothing)
+        dialog.classOrder = "ascending"
+        dialog.restoreInitialParts(())
+        assert dialog.rbAutomaticLegend.enabled is True and dialog.rbAutomaticLegend.isChecked()
+        assert dialog.selectedClassOrder() == "ascending"
 
 
 class TestBuildCategoricalStrategy:
