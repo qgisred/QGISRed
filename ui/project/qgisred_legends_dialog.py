@@ -1583,8 +1583,8 @@ class QGISRedLegendsDialog(QDialog, formClass):
         """"SI units (m)" for a thematic map, "SI units" for any other layer.
 
         Empty for thematic maps whose values read the same in both unit systems:
-        materials, installation years and the H-W or C-M roughness coefficients.
-        Ages are measured in years whatever the unit system.
+        materials and the H-W or C-M roughness coefficients. Installation years and
+        ages are measured in years whatever the unit system.
         """
         units = self.getLayerUnits()
         if not units:
@@ -1593,7 +1593,7 @@ class QGISRedLegendsDialog(QDialog, formClass):
         identifier = self.currentLayer.customProperty("qgisred_identifier") or ""
         if not identifier.startswith("qgisred_query_"):
             return unitsText
-        if identifier == "qgisred_query_pipes_age":
+        if identifier in ("qgisred_query_pipes_age", "qgisred_query_pipes_installyear"):
             return self.tr("(years)")
         if identifier == "qgisred_query_pipes_roughness" and QGISRedProjectUtils.getHeadlossFormula() != "D-W":
             return ""

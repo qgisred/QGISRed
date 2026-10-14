@@ -226,8 +226,9 @@ class TestTheUnitsCaption:
         dialog.getCurrentLayerUnitAbbr = lambda: "mm"
         return dialog
 
-    def test_pipe_ages_read_in_years(self, monkeypatch):
-        assert self._dialog(monkeypatch, "qgisred_query_pipes_age").getLegendUnitsText() == "(years)"
+    @pytest.mark.parametrize("identifier", ["qgisred_query_pipes_age", "qgisred_query_pipes_installyear"])
+    def test_pipe_ages_and_installation_years_read_in_years(self, monkeypatch, identifier):
+        assert self._dialog(monkeypatch, identifier).getLegendUnitsText() == "(years)"
 
     @pytest.mark.parametrize("identifier, expected", [
         ("qgisred_query_pipes_diameter", "SI units (mm)"),
