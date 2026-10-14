@@ -870,6 +870,16 @@
         <source>Style Library</source>
         <translation>Biblioteca de estilos</translation>
     </message>
+    <message>
+        <location filename="../ui/project/qgisred_legends_dialog.ui" line="0"/>
+        <source>Symbol library</source>
+        <translation>Biblioteca de símbolos</translation>
+    </message>
+    <message>
+        <location filename="../ui/project/qgisred_legends_dialog.ui" line="0"/>
+        <source>Edit owner</source>
+        <translation>Editar própria</translation>
+    </message>
 </context>
 <context>
     <name>DigitalTwinSection</name>
@@ -6697,25 +6707,28 @@ Não é possível aplicar as alterações.</translation>
     </message>
     <message>
         <location filename="../ui/project/qgisred_legends_dialog.py" line="0"/>
-        <source>Open Style Manager…</source>
-        <translation>Abrir o Gestor de estilos…</translation>
+        <source>Use default</source>
+        <translation>Usar padrão</translation>
     </message>
     <message>
         <location filename="../ui/project/qgisred_legends_dialog.py" line="0"/>
-        <source>Restore default library</source>
-        <translation>Restaurar a biblioteca padrão</translation>
+        <source>Use owner</source>
+        <translation>Usar própria</translation>
     </message>
     <message>
         <location filename="../ui/project/qgisred_legends_dialog.py" line="0"/>
-        <source>The ramps, palettes and symbols you edited in the QGISRed style library will be lost.
-Restore the default library?</source>
-        <translation>As rampas, paletas e símbolos que editou na biblioteca de estilos do QGISRed serão perdidos.
-Restaurar a biblioteca padrão?</translation>
+        <source>Edit owner</source>
+        <translation>Editar própria</translation>
     </message>
     <message>
         <location filename="../ui/project/qgisred_legends_dialog.py" line="0"/>
-        <source>Edit the ramps, palettes and symbols of the QGISRed style library</source>
-        <translation>Editar as rampas, paletas e símbolos da biblioteca de estilos do QGISRed</translation>
+        <source>Library the ramps and palettes are taken from</source>
+        <translation>Biblioteca de onde vêm as rampas e paletas</translation>
+    </message>
+    <message>
+        <location filename="../ui/project/qgisred_legends_dialog.py" line="0"/>
+        <source>Add, edit or remove ramps, palettes and symbols of your library</source>
+        <translation>Adicionar, editar ou remover rampas, paletas e símbolos da sua biblioteca</translation>
     </message>
 </context>
 <context>

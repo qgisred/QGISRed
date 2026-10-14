@@ -795,6 +795,16 @@
         <source>Style Library</source>
         <translation type="unfinished"></translation>
     </message>
+    <message>
+        <location filename="../ui/project/qgisred_legends_dialog.ui" line="0"/>
+        <source>Symbol library</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="../ui/project/qgisred_legends_dialog.ui" line="0"/>
+        <source>Edit owner</source>
+        <translation type="unfinished"></translation>
+    </message>
 </context>
 <context>
     <name>DigitalTwinSection</name>
@@ -6294,23 +6304,27 @@ Cannot apply changes.</source>
     </message>
     <message>
         <location filename="../ui/project/qgisred_legends_dialog.py" line="0"/>
-        <source>Open Style Manager…</source>
+        <source>Use default</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
         <location filename="../ui/project/qgisred_legends_dialog.py" line="0"/>
-        <source>Restore default library</source>
+        <source>Use owner</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
         <location filename="../ui/project/qgisred_legends_dialog.py" line="0"/>
-        <source>The ramps, palettes and symbols you edited in the QGISRed style library will be lost.
-Restore the default library?</source>
+        <source>Edit owner</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
         <location filename="../ui/project/qgisred_legends_dialog.py" line="0"/>
-        <source>Edit the ramps, palettes and symbols of the QGISRed style library</source>
+        <source>Library the ramps and palettes are taken from</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="../ui/project/qgisred_legends_dialog.py" line="0"/>
+        <source>Add, edit or remove ramps, palettes and symbols of your library</source>
         <translation type="unfinished"></translation>
     </message>
 </context>
