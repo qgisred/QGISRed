@@ -746,6 +746,11 @@ class QGISRedLayerUtils:
         del vlayer
 
     @staticmethod
+    def treeGroupName(treeName):
+        """The C# side bakes a "Tree_" marker into the tree's file name; the legend group shows the bare name."""
+        return treeName[len("Tree_"):] if treeName.startswith("Tree_") else treeName
+
+    @staticmethod
     def treeNameFromLayerPath(layerPath, networkName):
         """Recovers the tree's own name from `{Network}_{TreeName}_Nodes.shp` or `..._Links.shp`,
         the naming WriteTree uses on the C# side -- the tree's identifier is the same for every

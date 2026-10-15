@@ -1093,7 +1093,7 @@ class ToolsSection:
             if os.path.normcase(layerPath) in targetPaths:
                 QgsProject.instance().removeMapLayer(layer.id())
 
-        self.removeEmptyQuerySubGroup(treeName)
+        self.removeEmptyQuerySubGroup(QGISRedLayerUtils.treeGroupName(treeName))
         self.removeEmptyQuerySubGroup("Trees")
 
     def _readAutoTreeInfo(self, layerId):
