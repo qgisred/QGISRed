@@ -284,6 +284,11 @@ class QGISRedResultsDock(
         self.btPlayBackward.setIcon(self._iconPlayBackward)
         self.btAnimLoop.setIcon(self._iconLoop)
         self.btConstantRate.setIcon(self._iconConstantRate)
+
+        side = self.cbTimes.sizeHint().height()
+        for button in (self.btInitTime, self.btLessTime, self.btMoreTime, self.btEndTime,
+                       self.btPlayBackward, self.btPlayForward, self.btConstantRate, self.btAnimLoop):
+            button.setFixedSize(side, side)
         # Highlight the checked state clearly (house style for a selected toggle)
         self.btConstantRate.setStyleSheet(
             "QToolButton:checked { background-color: #d0e4f7; border: 1px solid #3399ff;"

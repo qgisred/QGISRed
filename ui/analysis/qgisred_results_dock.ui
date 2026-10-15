@@ -435,6 +435,19 @@
                       </item>
                       <item>
                        <layout class="QHBoxLayout" name="horizontalLayout_2">
+                        <property name="spacing">
+                         <number>2</number>
+                        </property>
+                        <item>
+                         <widget class="QToolButton" name="btLessTime">
+                          <property name="maximumSize">
+                           <size>
+                            <width>24</width>
+                            <height>24</height>
+                           </size>
+                          </property>
+                         </widget>
+                        </item>
                         <item>
                          <widget class="QComboBox" name="cbTimes">
                           <property name="sizePolicy">
@@ -445,6 +458,16 @@
                           </property>
                           <property name="maxVisibleItems">
                            <number>10</number>
+                          </property>
+                         </widget>
+                        </item>
+                        <item>
+                         <widget class="QToolButton" name="btMoreTime">
+                          <property name="maximumSize">
+                           <size>
+                            <width>24</width>
+                            <height>24</height>
+                           </size>
                           </property>
                          </widget>
                         </item>
@@ -459,18 +482,8 @@
                          <widget class="QToolButton" name="btInitTime">
                           <property name="maximumSize">
                            <size>
-                            <width>18</width>
-                            <height>18</height>
-                           </size>
-                          </property>
-                         </widget>
-                        </item>
-                        <item>
-                         <widget class="QToolButton" name="btLessTime">
-                          <property name="maximumSize">
-                           <size>
-                            <width>18</width>
-                            <height>18</height>
+                            <width>24</width>
+                            <height>24</height>
                            </size>
                           </property>
                          </widget>
@@ -482,8 +495,8 @@
                           </property>
                           <property name="maximumSize">
                            <size>
-                            <width>18</width>
-                            <height>18</height>
+                            <width>24</width>
+                            <height>24</height>
                            </size>
                           </property>
                          </widget>
@@ -495,18 +508,8 @@
                           </property>
                           <property name="maximumSize">
                            <size>
-                            <width>18</width>
-                            <height>18</height>
-                           </size>
-                          </property>
-                         </widget>
-                        </item>
-                        <item>
-                         <widget class="QToolButton" name="btMoreTime">
-                          <property name="maximumSize">
-                           <size>
-                            <width>18</width>
-                            <height>18</height>
+                            <width>24</width>
+                            <height>24</height>
                            </size>
                           </property>
                          </widget>
@@ -515,8 +518,8 @@
                          <widget class="QToolButton" name="btEndTime">
                           <property name="maximumSize">
                            <size>
-                            <width>18</width>
-                            <height>18</height>
+                            <width>24</width>
+                            <height>24</height>
                            </size>
                           </property>
                          </widget>
@@ -528,8 +531,8 @@
                           </property>
                           <property name="maximumSize">
                            <size>
-                            <width>18</width>
-                            <height>18</height>
+                            <width>24</width>
+                            <height>24</height>
                            </size>
                           </property>
                           <property name="toolTip">
@@ -565,7 +568,7 @@
                           <property name="maximumSize">
                            <size>
                             <width>52</width>
-                            <height>18</height>
+                            <height>24</height>
                            </size>
                           </property>
                           <property name="minimum">
@@ -619,8 +622,8 @@
                          <widget class="QToolButton" name="btAnimLoop">
                           <property name="maximumSize">
                            <size>
-                            <width>18</width>
-                            <height>18</height>
+                            <width>24</width>
+                            <height>24</height>
                            </size>
                           </property>
                           <property name="toolTip">
