@@ -5496,7 +5496,7 @@ Continue?</source>
 <context>
     <name>QGISRedLayerUtils</name>
     <message>
-        <location filename="../tools/utils/qgisred_layer_utils.py" line="869"/>
+        <location filename="../tools/utils/qgisred_layer_utils.py" line="874"/>
         <source>Pipes</source>
         <translation type="unfinished"></translation>
     </message>
@@ -8098,7 +8098,7 @@ Cannot apply changes.</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../tools/utils/qgisred_project_io.py" line="271"/>
+        <location filename="../ui/analysis/qgisred_results_rendering.py" line="1173"/>
         <source>Links</source>
         <comment>result layer name</comment>
         <translation type="unfinished"></translation>
@@ -8579,72 +8579,72 @@ Cannot apply changes.</source>
 <context>
     <name>QGISRedStylingUtils</name>
     <message>
-        <location filename="../tools/utils/qgisred_styling_utils.py" line="1170"/>
+        <location filename="../tools/utils/qgisred_styling_utils.py" line="1189"/>
         <source>Errors</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../tools/utils/qgisred_styling_utils.py" line="1171"/>
+        <location filename="../tools/utils/qgisred_styling_utils.py" line="1190"/>
         <source>Warnings</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../tools/utils/qgisred_styling_utils.py" line="1172"/>
+        <location filename="../tools/utils/qgisred_styling_utils.py" line="1191"/>
         <source>Information</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../tools/utils/qgisred_styling_utils.py" line="1947"/>
+        <location filename="../tools/utils/qgisred_styling_utils.py" line="1966"/>
         <source>%1 field not found in layer %2</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../tools/utils/qgisred_styling_utils.py" line="370"/>
+        <location filename="../tools/utils/qgisred_styling_utils.py" line="371"/>
         <source>Failed to apply legend strategy for layer %1: %2</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../tools/utils/qgisred_styling_utils.py" line="402"/>
+        <location filename="../tools/utils/qgisred_styling_utils.py" line="403"/>
         <source>Unsupported legend strategy schema: %1</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../tools/utils/qgisred_styling_utils.py" line="415"/>
+        <location filename="../tools/utils/qgisred_styling_utils.py" line="416"/>
         <source>Legend strategy field &apos;%1&apos; not found on layer &apos;%2&apos;</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../tools/utils/qgisred_styling_utils.py" line="750"/>
+        <location filename="../tools/utils/qgisred_styling_utils.py" line="751"/>
         <source>Color ramp &apos;%1&apos; not found; falling back to random colors</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../tools/utils/qgisred_styling_utils.py" line="501"/>
+        <location filename="../tools/utils/qgisred_styling_utils.py" line="502"/>
         <source>Unsupported classification mode: %1</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../tools/utils/qgisred_styling_utils.py" line="787"/>
+        <location filename="../tools/utils/qgisred_styling_utils.py" line="788"/>
         <source>Color ramp &apos;%1&apos; not found; colors strategy skipped</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../tools/utils/qgisred_styling_utils.py" line="1186"/>
+        <location filename="../tools/utils/qgisred_styling_utils.py" line="1205"/>
         <source>Closed Links</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../tools/utils/qgisred_styling_utils.py" line="1184"/>
+        <location filename="../tools/utils/qgisred_styling_utils.py" line="1203"/>
         <source>Uncategorized</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../tools/utils/qgisred_styling_utils.py" line="1197"/>
+        <location filename="../tools/utils/qgisred_styling_utils.py" line="1216"/>
         <source>Branches</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../tools/utils/qgisred_styling_utils.py" line="1199"/>
+        <location filename="../tools/utils/qgisred_styling_utils.py" line="1218"/>
         <source>Chords</source>
         <translation type="unfinished"></translation>
     </message>
@@ -8699,42 +8699,42 @@ Cannot apply changes.</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../tools/utils/qgisred_styling_utils.py" line="1152"/>
+        <location filename="../tools/utils/qgisred_styling_utils.py" line="1171"/>
         <source>Now closed</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../tools/utils/qgisred_styling_utils.py" line="1153"/>
+        <location filename="../tools/utils/qgisred_styling_utils.py" line="1172"/>
         <source>To close</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../tools/utils/qgisred_styling_utils.py" line="1154"/>
+        <location filename="../tools/utils/qgisred_styling_utils.py" line="1173"/>
         <source>To open</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../tools/utils/qgisred_styling_utils.py" line="1155"/>
+        <location filename="../tools/utils/qgisred_styling_utils.py" line="1174"/>
         <source>Isolated</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../tools/utils/qgisred_styling_utils.py" line="1156"/>
+        <location filename="../tools/utils/qgisred_styling_utils.py" line="1175"/>
         <source>To recover</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../tools/utils/qgisred_styling_utils.py" line="1157"/>
+        <location filename="../tools/utils/qgisred_styling_utils.py" line="1176"/>
         <source>Incidence point</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../tools/utils/qgisred_styling_utils.py" line="1163"/>
+        <location filename="../tools/utils/qgisred_styling_utils.py" line="1182"/>
         <source>Junctions</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../tools/utils/qgisred_styling_utils.py" line="1164"/>
+        <location filename="../tools/utils/qgisred_styling_utils.py" line="1183"/>
         <source>Service Connections</source>
         <translation type="unfinished"></translation>
     </message>
@@ -10329,14 +10329,8 @@ Cannot apply changes.</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../ui/analysis/qgisred_results_rendering.py" line="1190"/>
+        <location filename="../ui/analysis/qgisred_results_rendering.py" line="1192"/>
         <source>No values to classify in field &apos;%1&apos; of layer %2: the legend was left empty</source>
-        <translation type="unfinished"></translation>
-    </message>
-    <message>
-        <location filename="../ui/analysis/qgisred_results_rendering.py" line="1173"/>
-        <source>Links</source>
-        <comment>result layer name</comment>
         <translation type="unfinished"></translation>
     </message>
     <message>

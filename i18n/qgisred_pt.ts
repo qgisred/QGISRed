@@ -5855,7 +5855,7 @@ Continuar?</translation>
 <context>
     <name>QGISRedLayerUtils</name>
     <message>
-        <location filename="../tools/utils/qgisred_layer_utils.py" line="869"/>
+        <location filename="../tools/utils/qgisred_layer_utils.py" line="874"/>
         <source>Pipes</source>
         <translation>Tubulações</translation>
     </message>
@@ -8777,7 +8777,7 @@ Não é possível aplicar as alterações.</translation>
         <translation>Nós:</translation>
     </message>
     <message>
-        <location filename="../tools/utils/qgisred_project_io.py" line="271"/>
+        <location filename="../ui/analysis/qgisred_results_rendering.py" line="1173"/>
         <source>Links</source>
         <comment>result layer name</comment>
         <translation>Trechos</translation>
@@ -9366,67 +9366,67 @@ Não é possível aplicar as alterações.</translation>
 <context>
     <name>QGISRedStylingUtils</name>
     <message>
-        <location filename="../tools/utils/qgisred_styling_utils.py" line="1170"/>
+        <location filename="../tools/utils/qgisred_styling_utils.py" line="1189"/>
         <source>Errors</source>
         <translation>Erros</translation>
     </message>
     <message>
-        <location filename="../tools/utils/qgisred_styling_utils.py" line="1171"/>
+        <location filename="../tools/utils/qgisred_styling_utils.py" line="1190"/>
         <source>Warnings</source>
         <translation>Avisos</translation>
     </message>
     <message>
-        <location filename="../tools/utils/qgisred_styling_utils.py" line="1172"/>
+        <location filename="../tools/utils/qgisred_styling_utils.py" line="1191"/>
         <source>Information</source>
         <translation>Informações</translation>
     </message>
     <message>
-        <location filename="../tools/utils/qgisred_styling_utils.py" line="1947"/>
+        <location filename="../tools/utils/qgisred_styling_utils.py" line="1966"/>
         <source>%1 field not found in layer %2</source>
         <translation>Campo %1 não encontrado na camada %2</translation>
     </message>
     <message>
-        <location filename="../tools/utils/qgisred_styling_utils.py" line="1197"/>
+        <location filename="../tools/utils/qgisred_styling_utils.py" line="1216"/>
         <source>Branches</source>
         <translation type="unfinished">Ramos</translation>
     </message>
     <message>
-        <location filename="../tools/utils/qgisred_styling_utils.py" line="1199"/>
+        <location filename="../tools/utils/qgisred_styling_utils.py" line="1218"/>
         <source>Chords</source>
         <translation type="unfinished">Cordas</translation>
     </message>
     <message>
-        <location filename="../tools/utils/qgisred_styling_utils.py" line="370"/>
+        <location filename="../tools/utils/qgisred_styling_utils.py" line="371"/>
         <source>Failed to apply legend strategy for layer %1: %2</source>
         <translation>Falha ao aplicar a estratégia de legenda para a camada %1: %2</translation>
     </message>
     <message>
-        <location filename="../tools/utils/qgisred_styling_utils.py" line="402"/>
+        <location filename="../tools/utils/qgisred_styling_utils.py" line="403"/>
         <source>Unsupported legend strategy schema: %1</source>
         <translation>Esquema de estratégia de legenda não suportado: %1</translation>
     </message>
     <message>
-        <location filename="../tools/utils/qgisred_styling_utils.py" line="415"/>
+        <location filename="../tools/utils/qgisred_styling_utils.py" line="416"/>
         <source>Legend strategy field &apos;%1&apos; not found on layer &apos;%2&apos;</source>
         <translation>Campo da estratégia de legenda '%1' não encontrado na camada '%2'</translation>
     </message>
     <message>
-        <location filename="../tools/utils/qgisred_styling_utils.py" line="750"/>
+        <location filename="../tools/utils/qgisred_styling_utils.py" line="751"/>
         <source>Color ramp &apos;%1&apos; not found; falling back to random colors</source>
         <translation>Rampa de cores '%1' não encontrada; usando cores aleatórias</translation>
     </message>
     <message>
-        <location filename="../tools/utils/qgisred_styling_utils.py" line="501"/>
+        <location filename="../tools/utils/qgisred_styling_utils.py" line="502"/>
         <source>Unsupported classification mode: %1</source>
         <translation>Modo de classificação não suportado: %1</translation>
     </message>
     <message>
-        <location filename="../tools/utils/qgisred_styling_utils.py" line="787"/>
+        <location filename="../tools/utils/qgisred_styling_utils.py" line="788"/>
         <source>Color ramp &apos;%1&apos; not found; colors strategy skipped</source>
         <translation>Rampa de cores '%1' não encontrada; estratégia de cores ignorada</translation>
     </message>
     <message>
-        <location filename="../tools/utils/qgisred_styling_utils.py" line="1186"/>
+        <location filename="../tools/utils/qgisred_styling_utils.py" line="1205"/>
         <source>Closed Links</source>
         <translation>Trechos Fechados</translation>
     </message>
@@ -9436,7 +9436,7 @@ Não é possível aplicar as alterações.</translation>
         <translation type="obsolete">Indefinido</translation>
     </message>
     <message>
-        <location filename="../tools/utils/qgisred_styling_utils.py" line="1184"/>
+        <location filename="../tools/utils/qgisred_styling_utils.py" line="1203"/>
         <source>Uncategorized</source>
         <translation>Sem categoria</translation>
     </message>
@@ -9561,42 +9561,42 @@ Não é possível aplicar as alterações.</translation>
         <translation type="obsolete">Booster de ponto de ajuste</translation>
     </message>
     <message>
-        <location filename="../tools/utils/qgisred_styling_utils.py" line="1152"/>
+        <location filename="../tools/utils/qgisred_styling_utils.py" line="1171"/>
         <source>Now closed</source>
         <translation>Já fechado</translation>
     </message>
     <message>
-        <location filename="../tools/utils/qgisred_styling_utils.py" line="1153"/>
+        <location filename="../tools/utils/qgisred_styling_utils.py" line="1172"/>
         <source>To close</source>
         <translation>A fechar</translation>
     </message>
     <message>
-        <location filename="../tools/utils/qgisred_styling_utils.py" line="1154"/>
+        <location filename="../tools/utils/qgisred_styling_utils.py" line="1173"/>
         <source>To open</source>
         <translation>A abrir</translation>
     </message>
     <message>
-        <location filename="../tools/utils/qgisred_styling_utils.py" line="1155"/>
+        <location filename="../tools/utils/qgisred_styling_utils.py" line="1174"/>
         <source>Isolated</source>
         <translation>Isolado</translation>
     </message>
     <message>
-        <location filename="../tools/utils/qgisred_styling_utils.py" line="1156"/>
+        <location filename="../tools/utils/qgisred_styling_utils.py" line="1175"/>
         <source>To recover</source>
         <translation>A recuperar</translation>
     </message>
     <message>
-        <location filename="../tools/utils/qgisred_styling_utils.py" line="1157"/>
+        <location filename="../tools/utils/qgisred_styling_utils.py" line="1176"/>
         <source>Incidence point</source>
         <translation>Ponto de incidência</translation>
     </message>
     <message>
-        <location filename="../tools/utils/qgisred_styling_utils.py" line="1163"/>
+        <location filename="../tools/utils/qgisred_styling_utils.py" line="1182"/>
         <source>Junctions</source>
         <translation>Nós de demanda</translation>
     </message>
     <message>
-        <location filename="../tools/utils/qgisred_styling_utils.py" line="1164"/>
+        <location filename="../tools/utils/qgisred_styling_utils.py" line="1183"/>
         <source>Service Connections</source>
         <translation>Ligações de Serviço</translation>
     </message>
@@ -11387,7 +11387,7 @@ Não é possível aplicar as alterações.</translation>
         <translation>%1 símbolos da camada %2 não correspondem à sua geometria e não foram redimensionados</translation>
     </message>
     <message>
-        <location filename="../ui/analysis/qgisred_results_rendering.py" line="1190"/>
+        <location filename="../ui/analysis/qgisred_results_rendering.py" line="1192"/>
         <source>No values to classify in field &apos;%1&apos; of layer %2: the legend was left empty</source>
         <translation>Não há valores a classificar no campo '%1' da camada %2: a legenda foi deixada vazia</translation>
     </message>
@@ -11395,7 +11395,7 @@ Não é possível aplicar as alterações.</translation>
         <location filename="../ui/analysis/qgisred_results_rendering.py" line="1173"/>
         <source>Links</source>
         <comment>result layer name</comment>
-        <translation>Trechos</translation>
+        <translation type="obsolete">Trechos</translation>
     </message>
     <message>
         <location filename="../ui/analysis/qgisred_results_rendering.py" line="1173"/>

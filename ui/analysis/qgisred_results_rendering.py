@@ -10,7 +10,7 @@ from qgis.core import (
     QgsRuleBasedRenderer,
     QgsProject, QgsMessageLog,
 )
-from qgis.PyQt.QtCore import QSizeF
+from qgis.PyQt.QtCore import QCoreApplication, QSizeF
 from qgis.PyQt.QtGui import QColor, QFont
 
 from ...compat import (
@@ -1170,7 +1170,9 @@ class _ResultsRenderingMixin:
             utils.applyNoVariableStyle(layer)
             self.applySymbolScaleFactors(layer)
 
-        layer.setName(self.tr("Links", "result layer name") if is_link else self.tr("Nodes"))
+        layer.setName(
+            QCoreApplication.translate("QGISRedResultsDock", "Links", "result layer name")
+            if is_link else self.tr("Nodes"))
         layer.setMapTipTemplate("")
         QgsProject.instance().writeEntry(
             "QGISRed", f"results_{self.Scenario}_{'Link' if is_link else 'Node'}", NO_VARIABLE_METADATA_TAG)
