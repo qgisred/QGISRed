@@ -2150,12 +2150,12 @@
     <message>
         <location filename="../tools/qgisred_translatable_strings.py" line="315"/>
         <source>Tree_Links</source>
-        <translation type="unfinished">Tree_Liens</translation>
+        <translation>Arbre_Liens</translation>
     </message>
     <message>
         <location filename="../tools/qgisred_translatable_strings.py" line="316"/>
         <source>Tree_Nodes</source>
-        <translation type="unfinished">Tree_Noeuds</translation>
+        <translation>Arbre_Noeuds</translation>
     </message>
     <message>
         <location filename="../tools/qgisred_translatable_strings.py" line="317"/>
