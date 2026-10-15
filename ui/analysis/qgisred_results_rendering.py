@@ -1229,6 +1229,7 @@ class _ResultsRenderingMixin:
                     layer.setLegend(_NullHiddenLegend(layer))
 
         with self.holdingLayerSignals(layer):
+            QGISRedStylingUtils.refreshFrameColors(layer)
             self.applySymbolScaleFactors(layer)
         layer.triggerRepaint()
 

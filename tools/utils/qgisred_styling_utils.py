@@ -105,6 +105,7 @@ FRAME_SVG_MARKER = 'id="qgisred_frame"'
 WATER_SVG_MARKER = 'id="qgisred_water"'
 FRAME_DARKEN_FACTOR = 160
 FRAME_BLEND_DELTA_E = 2
+_backgroundWatched = False
 
 _MAPTIP_ELEMENT_WORDS = (
     "Isolation Valve", "Service Connection", "Multiple Demand", "Junction", "Reservoir", "Tank", "Pipe", "Pump",
@@ -285,6 +286,7 @@ class QGISRedStylingUtils:
         labelsShown = keepLabelVisibility and layer.labelsEnabled()
         self.applyStrategyFromLayer(layer, field)
         self.refreshFrameColors(layer)
+        self.watchCanvasBackground()
         layer.setLabelsEnabled(labelsShown)
         self.convertRendererSizesToMillimeters(layer)
         self.translateRendererLabels(layer)
@@ -1032,6 +1034,23 @@ class QGISRedStylingUtils:
             if cls._isFrameSvgLayer(symbol.symbolLayer(index)):
                 symbol.symbolLayer(index).setColor(frameColor)
         return True
+
+    @classmethod
+    def watchCanvasBackground(cls):
+        """Keep every frame in step with the map background, however it gets changed
+        (Appearance panel, project properties): a frame is only right for the background it was derived from."""
+        global _backgroundWatched
+        if _backgroundWatched:
+            return
+        with suppress(Exception):
+            _iface.mapCanvas().canvasColorChanged.connect(cls._refreshAllFrames)
+            _backgroundWatched = True
+
+    @classmethod
+    def _refreshAllFrames(cls, *_):
+        for layer in QgsProject.instance().mapLayers().values():
+            if isinstance(layer, QgsVectorLayer):
+                cls.refreshFrameColors(layer)
 
     @classmethod
     def refreshFrameColors(cls, layer):
