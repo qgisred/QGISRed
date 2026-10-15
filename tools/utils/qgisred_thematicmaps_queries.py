@@ -426,7 +426,7 @@ def buildQueryCatalogue():
     })
 
     queries.append({
-        'layer_name': 'Pipes_Installation Years',
+        'layer_name': 'Pipes_Installation Year',
         'layer_type': 'Pipes',
         'field': 'InstallYear',
         'qml_file': 'PipeInstallationYears.qml',

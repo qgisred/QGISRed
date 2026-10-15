@@ -2064,7 +2064,7 @@
     </message>
     <message>
         <location filename="../tools/qgisred_translatable_strings.py" line="328"/>
-        <source>Pipes_Installation Years</source>
+        <source>Pipes_Installation Year</source>
         <translation type="unfinished"></translation>
     </message>
     <message>

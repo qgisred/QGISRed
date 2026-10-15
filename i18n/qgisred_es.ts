@@ -2214,8 +2214,8 @@
     </message>
     <message>
         <location filename="../tools/qgisred_translatable_strings.py" line="328"/>
-        <source>Pipes_Installation Years</source>
-        <translation>Tuberías_Años de Instalación</translation>
+        <source>Pipes_Installation Year</source>
+        <translation>Tuberías_Año de instalación</translation>
     </message>
     <message>
         <location filename="../tools/qgisred_translatable_strings.py" line="329"/>

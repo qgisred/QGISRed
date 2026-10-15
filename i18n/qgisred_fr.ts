@@ -2189,8 +2189,8 @@
     </message>
     <message>
         <location filename="../tools/qgisred_translatable_strings.py" line="328"/>
-        <source>Pipes_Installation Years</source>
-        <translation>Conduites_Années d'installation</translation>
+        <source>Pipes_Installation Year</source>
+        <translation>Conduites_Année d'installation</translation>
     </message>
     <message>
         <location filename="../tools/qgisred_translatable_strings.py" line="329"/>
