@@ -23,7 +23,7 @@ def buildQueryCatalogue():
     # Tanks and Reservoirs queries (top)
     # Tanks queries
     queries.append({
-        'layer_name': 'Tank Elevations',
+        'layer_name': 'Tanks_Elevations',
         'layer_type': 'Tanks',
         'field': 'Elevation',
         'qml_file': f'tank_elevations_{units}.qml',
@@ -32,7 +32,7 @@ def buildQueryCatalogue():
     })
 
     queries.append({
-        'layer_name': 'Tank Diameters',
+        'layer_name': 'Tanks_Diameters',
         'layer_type': 'Tanks',
         'field': 'Diameter',
         'qml_file': f'tank_diameters_{units}.qml',
@@ -41,7 +41,7 @@ def buildQueryCatalogue():
     })
 
     queries.append({
-        'layer_name': 'Tank Volumes',
+        'layer_name': 'Tanks_Volumes',
         'layer_type': 'Tanks',
         'field': 'Volume',
         'qml_file': f'tank_volumes_{units}.qml',
@@ -50,7 +50,7 @@ def buildQueryCatalogue():
     })
 
     queries.append({
-        'layer_name': 'Tank Levels',
+        'layer_name': 'Tanks_Levels',
         'layer_type': 'Tanks',
         'field': 'Level',
         'qml_file': f'tank_levels_{units}.qml',
@@ -59,7 +59,7 @@ def buildQueryCatalogue():
     })
 
     queries.append({
-        'layer_name': 'Tank Initial Quality',
+        'layer_name': 'Tanks_Initial Quality',
         'layer_type': 'Tanks',
         'field': 'InitQuality',
         'qml_file': 'tank_init_quality.qml',
@@ -68,7 +68,7 @@ def buildQueryCatalogue():
     })
 
     queries.append({
-        'layer_name': 'Tank Bulk Coefficient',
+        'layer_name': 'Tanks_Bulk Coefficient',
         'layer_type': 'Tanks',
         'field': 'BulkCoeff',
         'qml_file': 'tank_bulk_coeff.qml',
@@ -77,7 +77,7 @@ def buildQueryCatalogue():
     })
 
     queries.append({
-        'layer_name': 'Tank Mixing Models',
+        'layer_name': 'Tanks_Mixing Models',
         'layer_type': 'Tanks',
         'field': 'MixModel',
         'qml_file': 'tank_mixing_model.qml',
@@ -86,7 +86,7 @@ def buildQueryCatalogue():
     })
 
     queries.append({
-        'layer_name': 'Tank Tags',
+        'layer_name': 'Tanks_Tags',
         'layer_type': 'Tanks',
         'field': 'Tag',
         'qml_file': 'tank_tags.qml',
@@ -96,7 +96,7 @@ def buildQueryCatalogue():
 
     # Reservoirs queries
     queries.append({
-        'layer_name': 'Reservoir Total Head',
+        'layer_name': 'Reservoirs_Total Head',
         'layer_type': 'Reservoirs',
         'field': 'TotalHead',
         'qml_file': f'reservoir_total_head_{units}.qml',
@@ -105,7 +105,7 @@ def buildQueryCatalogue():
     })
 
     queries.append({
-        'layer_name': 'Reservoir Head Patterns',
+        'layer_name': 'Reservoirs_Head Patterns',
         'layer_type': 'Reservoirs',
         'field': 'HeadPattern',
         'qml_file': 'reservoir_head_pattern.qml',
@@ -114,7 +114,7 @@ def buildQueryCatalogue():
     })
 
     queries.append({
-        'layer_name': 'Reservoir Initial Quality',
+        'layer_name': 'Reservoirs_Initial Quality',
         'layer_type': 'Reservoirs',
         'field': 'InitQuality',
         'qml_file': 'reservoir_init_quality.qml',
@@ -123,7 +123,7 @@ def buildQueryCatalogue():
     })
 
     queries.append({
-        'layer_name': 'Reservoir Tags',
+        'layer_name': 'Reservoirs_Tags',
         'layer_type': 'Reservoirs',
         'field': 'Tag',
         'qml_file': 'reservoir_tags.qml',
@@ -136,7 +136,7 @@ def buildQueryCatalogue():
     # data); file_name still carries the units because labels, map tip and
     # legend are written in the project's length unit.
     queries.append({
-        'layer_name': 'Junction Elevations',
+        'layer_name': 'Junctions_Elevations',
         'layer_type': 'Junctions',
         'field': 'Elevation',
         'qml_file': 'JunctionElevations.qml',
@@ -145,7 +145,7 @@ def buildQueryCatalogue():
     })
 
     queries.append({
-        'layer_name': 'Junction Total Base Demands',
+        'layer_name': 'Junctions_Total Base Demands',
         'layer_type': 'Junctions',
         'field': 'TotalBaseDemand',
         'qml_file': 'JunctionTotalBaseDemands.qml',
@@ -154,7 +154,7 @@ def buildQueryCatalogue():
     })
 
     queries.append({
-        'layer_name': 'Junction Pattern Demands',
+        'layer_name': 'Junctions_Pattern Demands',
         'layer_type': 'Junctions',
         'field': 'PatternDemand',
         'qml_file': 'junction_pattern_demand.qml',
@@ -163,7 +163,7 @@ def buildQueryCatalogue():
     })
 
     queries.append({
-        'layer_name': 'Junction Emitter Coefficients',
+        'layer_name': 'Junctions_Emitter Coefficients',
         'layer_type': 'Junctions',
         'field': 'EmitterCoeff',
         'qml_file': 'junction_emitter_coeff.qml',
@@ -172,7 +172,7 @@ def buildQueryCatalogue():
     })
 
     queries.append({
-        'layer_name': 'Junction Initial Quality',
+        'layer_name': 'Junctions_Initial Quality',
         'layer_type': 'Junctions',
         'field': 'InitQuality',
         'qml_file': 'junction_init_quality.qml',
@@ -181,7 +181,7 @@ def buildQueryCatalogue():
     })
 
     queries.append({
-        'layer_name': 'Junction Tags',
+        'layer_name': 'Junctions_Tags',
         'layer_type': 'Junctions',
         'field': 'Tag',
         'qml_file': 'junction_tags.qml',
@@ -192,7 +192,7 @@ def buildQueryCatalogue():
     # Valves and Pumps queries (third from top)
     # Valves queries
     queries.append({
-        'layer_name': 'Valve Types',
+        'layer_name': 'Valves_Types',
         'layer_type': 'Valves',
         'field': 'Type',
         'qml_file': 'valve_types.qml',
@@ -201,7 +201,7 @@ def buildQueryCatalogue():
     })
 
     queries.append({
-        'layer_name': 'Valve Diameters',
+        'layer_name': 'Valves_Diameters',
         'layer_type': 'Valves',
         'field': 'Diameter',
         'qml_file': f'valve_diameters_{units}.qml',
@@ -210,7 +210,7 @@ def buildQueryCatalogue():
     })
 
     queries.append({
-        'layer_name': 'Valve Settings',
+        'layer_name': 'Valves_Settings',
         'layer_type': 'Valves',
         'field': 'Setting',
         'qml_file': 'valve_settings.qml',
@@ -219,7 +219,7 @@ def buildQueryCatalogue():
     })
 
     queries.append({
-        'layer_name': 'Valve Initial Status',
+        'layer_name': 'Valves_Initial Status',
         'layer_type': 'Valves',
         'field': 'InitStatus',
         'qml_file': 'valve_init_status.qml',
@@ -228,7 +228,7 @@ def buildQueryCatalogue():
     })
 
     queries.append({
-        'layer_name': 'Valve Loss Coefficients',
+        'layer_name': 'Valves_Loss Coefficients',
         'layer_type': 'Valves',
         'field': 'LossCoeff',
         'qml_file': 'valve_loss_coeff.qml',
@@ -237,7 +237,7 @@ def buildQueryCatalogue():
     })
 
     queries.append({
-        'layer_name': 'Valve Tags',
+        'layer_name': 'Valves_Tags',
         'layer_type': 'Valves',
         'field': 'Tag',
         'qml_file': 'valve_tags.qml',
@@ -247,7 +247,7 @@ def buildQueryCatalogue():
 
     # Pumps queries
     queries.append({
-        'layer_name': 'Pump Types',
+        'layer_name': 'Pumps_Types',
         'layer_type': 'Pumps',
         'field': 'Type',
         'qml_file': 'pump_types.qml',
@@ -256,7 +256,7 @@ def buildQueryCatalogue():
     })
 
     queries.append({
-        'layer_name': 'Pump Curves',
+        'layer_name': 'Pumps_Curves',
         'layer_type': 'Pumps',
         'field': 'PumpCurve',
         'qml_file': 'pump_curves.qml',
@@ -265,7 +265,7 @@ def buildQueryCatalogue():
     })
 
     queries.append({
-        'layer_name': 'Pump Power',
+        'layer_name': 'Pumps_Power',
         'layer_type': 'Pumps',
         'field': 'Power',
         'qml_file': 'pump_power.qml',
@@ -274,7 +274,7 @@ def buildQueryCatalogue():
     })
 
     queries.append({
-        'layer_name': 'Pump Initial Status',
+        'layer_name': 'Pumps_Initial Status',
         'layer_type': 'Pumps',
         'field': 'InitStatus',
         'qml_file': 'pump_init_status.qml',
@@ -283,7 +283,7 @@ def buildQueryCatalogue():
     })
 
     queries.append({
-        'layer_name': 'Pump Speed',
+        'layer_name': 'Pumps_Speed',
         'layer_type': 'Pumps',
         'field': 'Speed',
         'qml_file': 'pump_speed.qml',
@@ -292,7 +292,7 @@ def buildQueryCatalogue():
     })
 
     queries.append({
-        'layer_name': 'Pump Efficiency Curves',
+        'layer_name': 'Pumps_Efficiency Curves',
         'layer_type': 'Pumps',
         'field': 'EffCurve',
         'qml_file': 'pump_efficiency_curves.qml',
@@ -301,7 +301,7 @@ def buildQueryCatalogue():
     })
 
     queries.append({
-        'layer_name': 'Pump Energy Price',
+        'layer_name': 'Pumps_Energy Price',
         'layer_type': 'Pumps',
         'field': 'EnergyPrice',
         'qml_file': 'pump_energy_price.qml',
@@ -310,7 +310,7 @@ def buildQueryCatalogue():
     })
 
     queries.append({
-        'layer_name': 'Pump Tags',
+        'layer_name': 'Pumps_Tags',
         'layer_type': 'Pumps',
         'field': 'Tag',
         'qml_file': 'pump_tags.qml',
@@ -350,7 +350,7 @@ def buildQueryCatalogue():
 
     # Pipes queries (bottom)
     queries.append({
-        'layer_name': 'Pipe Diameters',
+        'layer_name': 'Pipes_Diameters',
         'layer_type': 'Pipes',
         'field': 'Diameter',
         'qml_file': f'PipeDiameters{units}.qml',
@@ -359,7 +359,7 @@ def buildQueryCatalogue():
     })
 
     queries.append({
-        'layer_name': 'Pipe Lengths',
+        'layer_name': 'Pipes_Lengths',
         'layer_type': 'Pipes',
         'field': 'Length',
         'qml_file': f'PipeLengths{units}.qml',
@@ -368,7 +368,7 @@ def buildQueryCatalogue():
     })
 
     queries.append({
-        'layer_name': 'Pipe Materials',
+        'layer_name': 'Pipes_Materials',
         'layer_type': 'Pipes',
         'field': 'Material',
         'qml_file': 'PipeMaterials.qml',
@@ -389,7 +389,7 @@ def buildQueryCatalogue():
         roughnessQml = f'PipeRoughnessesDW{units}.qml'
         formulaAbbreviation = 'DW'
     queries.append({
-        'layer_name': 'Pipe Roughnesses',
+        'layer_name': 'Pipes_Roughnesses',
         'layer_type': 'Pipes',
         'field': 'Roughness',
         'qml_file': roughnessQml,
@@ -399,7 +399,7 @@ def buildQueryCatalogue():
     })
 
     queries.append({
-        'layer_name': 'Pipe Ages',
+        'layer_name': 'Pipes_Ages',
         'layer_type': 'Pipes',
         'field': 'Age',
         'qml_file': 'PipeAges.qml',
@@ -408,7 +408,7 @@ def buildQueryCatalogue():
     })
 
     queries.append({
-        'layer_name': 'Pipe Loss Coefficient',
+        'layer_name': 'Pipes_Loss Coefficient',
         'layer_type': 'Pipes',
         'field': 'LossCoeff',
         'qml_file': 'pipe_loss_coeff.qml',
@@ -417,7 +417,7 @@ def buildQueryCatalogue():
     })
 
     queries.append({
-        'layer_name': 'Pipe Initial Status',
+        'layer_name': 'Pipes_Initial Status',
         'layer_type': 'Pipes',
         'field': 'InitStatus',
         'qml_file': 'pipe_init_status.qml',
@@ -426,7 +426,7 @@ def buildQueryCatalogue():
     })
 
     queries.append({
-        'layer_name': 'Pipe Installation Year',
+        'layer_name': 'Pipes_Installation Years',
         'layer_type': 'Pipes',
         'field': 'InstallYear',
         'qml_file': 'PipeInstallationYears.qml',
@@ -435,7 +435,7 @@ def buildQueryCatalogue():
     })
 
     queries.append({
-        'layer_name': 'Pipe Bulk Coefficient',
+        'layer_name': 'Pipes_Bulk Coefficient',
         'layer_type': 'Pipes',
         'field': 'BulkCoeff',
         'qml_file': 'pipe_bulk_coeff.qml',
@@ -444,7 +444,7 @@ def buildQueryCatalogue():
     })
 
     queries.append({
-        'layer_name': 'Pipe Wall Coefficient',
+        'layer_name': 'Pipes_Wall Coefficient',
         'layer_type': 'Pipes',
         'field': 'WallCoeff',
         'qml_file': 'pipe_wall_coeff.qml',
@@ -453,7 +453,7 @@ def buildQueryCatalogue():
     })
 
     queries.append({
-        'layer_name': 'Pipe Tags',
+        'layer_name': 'Pipes_Tags',
         'layer_type': 'Pipes',
         'field': 'Tag',
         'qml_file': 'pipe_tags.qml',

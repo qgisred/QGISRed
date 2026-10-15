@@ -1984,17 +1984,17 @@
     </message>
     <message>
         <location filename="../tools/qgisred_translatable_strings.py" line="324"/>
-        <source>Pipe Diameters</source>
+        <source>Pipes_Diameters</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
         <location filename="../tools/qgisred_translatable_strings.py" line="325"/>
-        <source>Pipe Lengths</source>
+        <source>Pipes_Lengths</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
         <location filename="../tools/qgisred_translatable_strings.py" line="326"/>
-        <source>Pipe Materials</source>
+        <source>Pipes_Materials</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
@@ -2064,27 +2064,27 @@
     </message>
     <message>
         <location filename="../tools/qgisred_translatable_strings.py" line="328"/>
-        <source>Pipe Installation Year</source>
+        <source>Pipes_Installation Years</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
         <location filename="../tools/qgisred_translatable_strings.py" line="329"/>
-        <source>Pipe Ages</source>
+        <source>Pipes_Ages</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
         <location filename="../tools/qgisred_translatable_strings.py" line="327"/>
-        <source>Pipe Roughnesses</source>
+        <source>Pipes_Roughnesses</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
         <location filename="../tools/qgisred_translatable_strings.py" line="330"/>
-        <source>Junction Total Base Demands</source>
+        <source>Junctions_Total Base Demands</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
         <location filename="../tools/qgisred_translatable_strings.py" line="331"/>
-        <source>Junction Elevations</source>
+        <source>Junctions_Elevations</source>
         <translation type="unfinished"></translation>
     </message>
     <message>

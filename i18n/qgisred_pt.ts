@@ -2119,18 +2119,18 @@
     </message>
     <message>
         <location filename="../tools/qgisred_translatable_strings.py" line="324"/>
-        <source>Pipe Diameters</source>
-        <translation>Diâmetros das Tubulações</translation>
+        <source>Pipes_Diameters</source>
+        <translation>Tubulações_Diâmetros</translation>
     </message>
     <message>
         <location filename="../tools/qgisred_translatable_strings.py" line="325"/>
-        <source>Pipe Lengths</source>
-        <translation>Comprimentos das Tubulações</translation>
+        <source>Pipes_Lengths</source>
+        <translation>Tubulações_Comprimentos</translation>
     </message>
     <message>
         <location filename="../tools/qgisred_translatable_strings.py" line="326"/>
-        <source>Pipe Materials</source>
-        <translation>Materiais das Tubulações</translation>
+        <source>Pipes_Materials</source>
+        <translation>Tubulações_Materiais</translation>
     </message>
     <message>
         <location filename="../tools/qgisred_translatable_strings.py" line="306"/>
@@ -2224,28 +2224,28 @@
     </message>
     <message>
         <location filename="../tools/qgisred_translatable_strings.py" line="328"/>
-        <source>Pipe Installation Year</source>
-        <translation>Ano de Instalação das Tubulações</translation>
+        <source>Pipes_Installation Years</source>
+        <translation>Tubulações_Anos de Instalação</translation>
     </message>
     <message>
         <location filename="../tools/qgisred_translatable_strings.py" line="329"/>
-        <source>Pipe Ages</source>
-        <translation>Idades das Tubulações</translation>
+        <source>Pipes_Ages</source>
+        <translation>Tubulações_Idades</translation>
     </message>
     <message>
         <location filename="../tools/qgisred_translatable_strings.py" line="327"/>
-        <source>Pipe Roughnesses</source>
-        <translation>Rugosidades das Tubulações</translation>
+        <source>Pipes_Roughnesses</source>
+        <translation>Tubulações_Rugosidades</translation>
     </message>
     <message>
         <location filename="../tools/qgisred_translatable_strings.py" line="330"/>
-        <source>Junction Total Base Demands</source>
-        <translation>Consumos Base dos Nós</translation>
+        <source>Junctions_Total Base Demands</source>
+        <translation>Nós_Consumos Base</translation>
     </message>
     <message>
         <location filename="../tools/qgisred_translatable_strings.py" line="331"/>
-        <source>Junction Elevations</source>
-        <translation type="unfinished">Cotas dos Nós de demanda</translation>
+        <source>Junctions_Elevations</source>
+        <translation type="unfinished">Nós_Cotas</translation>
     </message>
 </context>
 <context>
