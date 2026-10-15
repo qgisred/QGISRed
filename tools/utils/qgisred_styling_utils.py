@@ -286,7 +286,6 @@ class QGISRedStylingUtils:
         labelsShown = keepLabelVisibility and layer.labelsEnabled()
         self.applyStrategyFromLayer(layer, field)
         self.refreshFrameColors(layer)
-        self.watchCanvasBackground()
         layer.setLabelsEnabled(labelsShown)
         self.convertRendererSizesToMillimeters(layer)
         self.translateRendererLabels(layer)
@@ -1059,6 +1058,7 @@ class QGISRedStylingUtils:
         Needed on top of _setSymbolColor because the classes a style ships (the white
         negative one among them) and the map background are not known when they are coloured.
         """
+        cls.watchCanvasBackground()
         renderer = layer.renderer()
         with suppress(Exception):
             if isinstance(renderer, QgsGraduatedSymbolRenderer):
