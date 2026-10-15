@@ -6,9 +6,11 @@ import xml.etree.ElementTree as ET  # nosec B405 — parses a local appearance s
 from qgis.PyQt.QtWidgets import QApplication
 from qgis.PyQt.QtCore import Qt, QCoreApplication
 from qgis.PyQt.QtGui import QColor, QPixmap, QIcon, QPainter
+from qgis.core import QgsProject, QgsVectorLayer
 
 from ...compat import PAINTER_ANTIALIASING
 from ...tools.utils.qgisred_field_utils import QGISRedFieldUtils
+from ...tools.utils.qgisred_styling_utils import QGISRedStylingUtils
 from .qgisred_results_data import NODE_RESULT_FIELDS, LINK_RESULT_FIELDS, _STAT_VAR_ALIASES
 
 
@@ -359,6 +361,9 @@ class _ResultsAppearanceMixin:
             if self._savedBgColor is not None:
                 canvas.setCanvasColor(self._savedBgColor)
                 self._savedBgColor = None
+        for layer in QgsProject.instance().mapLayers().values():
+            if isinstance(layer, QgsVectorLayer):
+                QGISRedStylingUtils.refreshFrameColors(layer)
         canvas.refresh()
 
     # ------------------------------------------------------------------

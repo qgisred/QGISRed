@@ -32,6 +32,7 @@ from qgis.utils import iface as _iface
 
 from .qgisred_auxiliary_layers import parseLayerPath, ISOLATED_CONNECTIONS_STYLE_NAME
 from .qgisred_base_demand_fields import resolveBaseDemandField
+from .qgisred_color_utils import deltaE, complementaryColor
 from .qgisred_field_utils import QGISRedFieldUtils
 from .qgisred_legend_rule_utils import scaleNumericLiterals, OPEN_RANGE_BOUND
 from .qgisred_valve_types import getValveTypeName, getValveTypeAbbreviation, VALVE_TYPE_LONG_NAMES
@@ -103,6 +104,7 @@ _DEMAND_BUILDER_PENDING_PRUNE = set()
 FRAME_SVG_MARKER = 'id="qgisred_frame"'
 WATER_SVG_MARKER = 'id="qgisred_water"'
 FRAME_DARKEN_FACTOR = 160
+FRAME_BLEND_DELTA_E = 2
 
 _MAPTIP_ELEMENT_WORDS = (
     "Isolation Valve", "Service Connection", "Multiple Demand", "Junction", "Reservoir", "Tank", "Pipe", "Pump",
@@ -282,6 +284,7 @@ class QGISRedStylingUtils:
         # The strategy replay hides the labels too, so the file's choice is put back after it
         labelsShown = keepLabelVisibility and layer.labelsEnabled()
         self.applyStrategyFromLayer(layer, field)
+        self.refreshFrameColors(layer)
         layer.setLabelsEnabled(labelsShown)
         self.convertRendererSizesToMillimeters(layer)
         self.translateRendererLabels(layer)
@@ -991,16 +994,65 @@ class QGISRedStylingUtils:
         """True for the "water" half of a split tank/reservoir icon, the one the Legend Editor colours."""
         return WATER_SVG_MARKER in cls._svgLayerContent(symbolLayer)
 
+    @staticmethod
+    def _canvasBackground():
+        with suppress(Exception):
+            return _iface.mapCanvas().canvasColor()
+        return None
+
+    @classmethod
+    def frameColorFor(cls, fill):
+        """Frame colour of a tank/reservoir icon filled with `fill`: a darker shade of it,
+        or the complement of the map background when the fill blends into that background."""
+        background = cls._canvasBackground()
+        if background is not None and deltaE(fill, background) < FRAME_BLEND_DELTA_E:
+            return complementaryColor(background)
+        return fill.darker(FRAME_DARKEN_FACTOR)
+
     @classmethod
     def _setSymbolColor(cls, symbol, color):
         """Colour every layer of `symbol` with `color`, except tank/reservoir frame
-        layers, which get a darker shade so the icon keeps its silhouette instead of
-        turning into a single flat-coloured blob (see _isFrameSvgLayer)."""
+        layers, which get their own shade so the icon keeps its silhouette instead of
+        turning into a single flat-coloured blob (see _isFrameSvgLayer, frameColorFor)."""
         for index in range(symbol.symbolLayerCount()):
             symbolLayer = symbol.symbolLayer(index)
-            target = color.darker(FRAME_DARKEN_FACTOR) if cls._isFrameSvgLayer(symbolLayer) else color
+            target = cls.frameColorFor(color) if cls._isFrameSvgLayer(symbolLayer) else color
             with suppress(Exception):
                 symbolLayer.setColor(target)
+
+    @classmethod
+    def _refreshSymbolFrames(cls, symbol):
+        """Re-derive the frame colour from the water colour; True when the symbol has a frame."""
+        water = next((symbol.symbolLayer(index) for index in range(symbol.symbolLayerCount())
+                      if cls.isWaterSvgLayer(symbol.symbolLayer(index))), None)
+        if water is None:
+            return False
+        frameColor = cls.frameColorFor(water.color())
+        for index in range(symbol.symbolLayerCount()):
+            if cls._isFrameSvgLayer(symbol.symbolLayer(index)):
+                symbol.symbolLayer(index).setColor(frameColor)
+        return True
+
+    @classmethod
+    def refreshFrameColors(cls, layer):
+        """Recompute the frames of a results layer's tank/reservoir icons, class by class.
+
+        Needed on top of _setSymbolColor because the classes a style ships (the white
+        negative one among them) and the map background are not known when they are coloured.
+        """
+        renderer = layer.renderer()
+        with suppress(Exception):
+            if isinstance(renderer, QgsGraduatedSymbolRenderer):
+                for index, classRange in enumerate(renderer.ranges()):
+                    symbol = classRange.symbol().clone()
+                    if cls._refreshSymbolFrames(symbol):
+                        renderer.updateRangeSymbol(index, symbol)
+            elif isinstance(renderer, QgsCategorizedSymbolRenderer):
+                for index, category in enumerate(renderer.categories()):
+                    symbol = category.symbol().clone()
+                    if cls._refreshSymbolFrames(symbol):
+                        renderer.updateCategorySymbol(index, symbol)
+            layer.triggerRepaint()
 
     def resolveCategoryColor(self, value, index, valueCount, ramp, invertRamp, kind=None):
         if ramp is not None:
