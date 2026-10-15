@@ -719,8 +719,7 @@ class QGISRedLayerUtils:
     def openTreeLayer(self, group, name, treeName, link=False):
         identifiers = self._identifiers()
         identifierKey = "Tree_Links" if link else "Tree_Nodes"
-        identifier = f"qgisred_{identifierKey.lower()}"
-        showName = identifiers.getTranslatedNameForIdentifier(identifier) or self.tr(name)
+        showName = identifiers.getTreeLayerName(treeName, link)
         originalName = identifiers.getOriginalNameFromLayerName(name)
         candidates = [
             os.path.join(self.LayersDirectory, self.NetworkName + "_" + treeName + "_" + originalName + ".shp"),

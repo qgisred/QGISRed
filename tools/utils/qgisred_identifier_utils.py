@@ -232,11 +232,25 @@ class QGISRedIdentifierUtils:
             return None
         return self.tr(source)
 
+    def getTreeLayerName(self, treeName, link):
+        from .qgisred_layer_utils import QGISRedLayerUtils
+
+        source = "Tree_%1_Links" if link else "Tree_%1_Nodes"
+        return self.tr(source).replace("%1", QGISRedLayerUtils.treeGroupName(treeName))
+
     def getLocaleLayerName(self, layer):
         """Legend name of a QGISRed layer in the active locale, or None when it has no default name."""
         identifier = layer.customProperty("qgisred_identifier")
         if not identifier:
             return None
+        if identifier in ("qgisred_tree_nodes", "qgisred_tree_links"):
+            from .qgisred_layer_utils import QGISRedLayerUtils
+
+            layerPath = self._getLayerPath(layer)
+            treeName = QGISRedLayerUtils.treeNameFromLayerPath(layerPath, self.NetworkName)
+            if not treeName:
+                return None
+            return self.getTreeLayerName(treeName, identifier == "qgisred_tree_links")
         if identifier.startswith("qgisred_demandbuilder_"):
             baseName = os.path.splitext(os.path.basename(self._getLayerPath(layer)))[0]
             return self.getAuxiliaryThemeName(baseName) or None
