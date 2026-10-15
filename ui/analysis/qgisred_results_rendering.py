@@ -1170,7 +1170,7 @@ class _ResultsRenderingMixin:
             utils.applyNoVariableStyle(layer)
             self.applySymbolScaleFactors(layer)
 
-        layer.setName(self.tr("Links") if is_link else self.tr("Nodes"))
+        layer.setName(self.tr("Links", "result layer name") if is_link else self.tr("Nodes"))
         layer.setMapTipTemplate("")
         QgsProject.instance().writeEntry(
             "QGISRed", f"results_{self.Scenario}_{'Link' if is_link else 'Node'}", NO_VARIABLE_METADATA_TAG)

@@ -268,8 +268,10 @@ class QGISRedProjectIO:
                         opened.blockSignals(False)
                     opened.rendererChanged.emit()
                     opened.legendChanged.emit()
-                    opened.setName(QCoreApplication.translate(
-                        "QGISRedResultsDock", "Nodes" if layer_type.lower() == "node" else "Links"))
+                    opened.setName(
+                        QCoreApplication.translate("QGISRedResultsDock", "Nodes")
+                        if layer_type.lower() == "node"
+                        else QCoreApplication.translate("QGISRedResultsDock", "Links", "result layer name"))
                     opened.triggerRepaint()
                     continue
                 QgsProject.instance().writeEntry("QGISRed", f"results_{scenario}_{layer_type}", variable)

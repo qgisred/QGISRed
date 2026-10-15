@@ -556,17 +556,17 @@
         <translation type="obsolete">▲</translation>
     </message>
     <message>
-        <location filename="../ui/project/qgisred_legends_dialog.ui" line="299"/>
+        <location filename="../ui/project/qgisred_legends_dialog.ui" line="256"/>
         <source>Intervals</source>
         <translation>Intervalos</translation>
     </message>
     <message>
-        <location filename="../ui/project/qgisred_legends_dialog.ui" line="325"/>
+        <location filename="../ui/project/qgisred_legends_dialog.ui" line="282"/>
         <source>Interval Range</source>
         <translation>Rango de Intervalos</translation>
     </message>
     <message>
-        <location filename="../ui/project/qgisred_legends_dialog.ui" line="361"/>
+        <location filename="../ui/project/qgisred_legends_dialog.ui" line="318"/>
         <source>Sizes</source>
         <translation>Tamaños</translation>
     </message>
@@ -586,17 +586,17 @@
         <translation type="obsolete">Max:</translation>
     </message>
     <message>
-        <location filename="../ui/project/qgisred_legends_dialog.ui" line="580"/>
+        <location filename="../ui/project/qgisred_legends_dialog.ui" line="537"/>
         <source>Invert</source>
         <translation>Invertir</translation>
     </message>
     <message>
-        <location filename="../ui/project/qgisred_legends_dialog.ui" line="514"/>
+        <location filename="../ui/project/qgisred_legends_dialog.ui" line="471"/>
         <source>Colors</source>
         <translation>Colores</translation>
     </message>
     <message>
-        <location filename="../ui/project/qgisred_legends_dialog.ui" line="693"/>
+        <location filename="../ui/project/qgisred_legends_dialog.ui" line="666"/>
         <source>Classes</source>
         <translation>Clases</translation>
     </message>
@@ -626,7 +626,7 @@
         <translation type="obsolete">Cargar Proyecto</translation>
     </message>
     <message>
-        <location filename="../ui/project/qgisred_legends_dialog.ui" line="939"/>
+        <location filename="../ui/project/qgisred_legends_dialog.ui" line="912"/>
         <source>Apply</source>
         <translation>Aplicar</translation>
     </message>
@@ -651,27 +651,27 @@
         <translation type="unfinished">Tipo de medidor</translation>
     </message>
     <message>
-        <location filename="../ui/project/qgisred_legends_dialog.ui" line="387"/>
+        <location filename="../ui/project/qgisred_legends_dialog.ui" line="344"/>
         <source>Value</source>
         <translation type="unfinished">Valor</translation>
     </message>
     <message>
-        <location filename="../ui/project/qgisred_legends_dialog.ui" line="422"/>
+        <location filename="../ui/project/qgisred_legends_dialog.ui" line="379"/>
         <source>Min</source>
         <translation type="unfinished">Mínimo</translation>
     </message>
     <message>
-        <location filename="../ui/project/qgisred_legends_dialog.ui" line="456"/>
+        <location filename="../ui/project/qgisred_legends_dialog.ui" line="413"/>
         <source>Max</source>
         <translation type="unfinished">Máximo</translation>
     </message>
     <message>
-        <location filename="../ui/project/qgisred_legends_dialog.ui" line="837"/>
+        <location filename="../ui/project/qgisred_legends_dialog.ui" line="810"/>
         <source>Load</source>
         <translation>Cargar</translation>
     </message>
     <message>
-        <location filename="../ui/project/qgisred_legends_dialog.ui" line="856"/>
+        <location filename="../ui/project/qgisred_legends_dialog.ui" line="829"/>
         <source>Save</source>
         <translation>Guardar</translation>
     </message>
@@ -871,27 +871,27 @@
         <translation type="obsolete">Biblioteca de estilos</translation>
     </message>
     <message>
-        <location filename="../ui/project/qgisred_legends_dialog.ui" line="882"/>
+        <location filename="../ui/project/qgisred_legends_dialog.ui" line="855"/>
         <source>Symbol library</source>
         <translation>Biblioteca Símbolos</translation>
     </message>
     <message>
-        <location filename="../ui/project/qgisred_legends_dialog.ui" line="902"/>
+        <location filename="../ui/project/qgisred_legends_dialog.ui" line="875"/>
         <source>Edit owner</source>
         <translation>Editar propia</translation>
     </message>
     <message>
-        <location filename="../ui/project/qgisred_legends_dialog.ui" line="599"/>
+        <location filename="../ui/project/qgisred_legends_dialog.ui" line="556"/>
         <source>Opacity</source>
         <translation>Opacidad</translation>
     </message>
     <message>
-        <location filename="../ui/project/qgisred_legends_dialog.ui" line="634"/>
+        <location filename="../ui/project/qgisred_legends_dialog.ui" line="591"/>
         <source>Border</source>
         <translation>Borde</translation>
     </message>
     <message>
-        <location filename="../ui/project/qgisred_legends_dialog.ui" line="778"/>
+        <location filename="../ui/project/qgisred_legends_dialog.ui" line="751"/>
         <source>Class Order</source>
         <translation>Orden de las clases</translation>
     </message>
@@ -3307,17 +3307,17 @@ Do you want to check them again?</source>
 <context>
     <name>ProjectManagementSection</name>
     <message>
-        <location filename="../sections/project_management_section.py" line="646"/>
+        <location filename="../sections/project_management_section.py" line="651"/>
         <source>Some issues occurred in the process</source>
         <translation>Ha habido algún error en el proceso</translation>
     </message>
     <message>
-        <location filename="../sections/project_management_section.py" line="425"/>
+        <location filename="../sections/project_management_section.py" line="430"/>
         <source>QGISRed: Open project</source>
         <translation>QGISRed: Abrir proyecto</translation>
     </message>
     <message>
-        <location filename="../sections/project_management_section.py" line="601"/>
+        <location filename="../sections/project_management_section.py" line="606"/>
         <source>Project options updated</source>
         <translation>Opciones de proyecto actualizadas</translation>
     </message>
@@ -3327,12 +3327,12 @@ Do you want to check them again?</source>
         <translation>No hay ningún proyecto válido abierto</translation>
     </message>
     <message>
-        <location filename="../sections/project_management_section.py" line="655"/>
+        <location filename="../sections/project_management_section.py" line="660"/>
         <source>Save QGIS project</source>
         <translation>Guardar proyecto de QGIS</translation>
     </message>
     <message>
-        <location filename="../sections/project_management_section.py" line="655"/>
+        <location filename="../sections/project_management_section.py" line="660"/>
         <source>QGIS Projects (*.qgz *.qgs)</source>
         <translation>Proyectos de QGIS (*.qgz *.qgs)</translation>
     </message>
@@ -3377,12 +3377,12 @@ Do you want to check them again?</source>
         <translation>Mapa del proyecto guardado</translation>
     </message>
     <message>
-        <location filename="../sections/project_management_section.py" line="821"/>
+        <location filename="../sections/project_management_section.py" line="826"/>
         <source>Old simulation results found</source>
         <translation>Encontrados Resultados de simulación viejos</translation>
     </message>
     <message>
-        <location filename="../sections/project_management_section.py" line="821"/>
+        <location filename="../sections/project_management_section.py" line="826"/>
         <source>Result layers from a previous version of QGISRed have been detected.They will be removed from QGIS and you will need to run the simulation again.
 
 Do you also want to delete the result files from disk?</source>
@@ -3396,42 +3396,42 @@ Do you also want to delete the result files from disk?</source>
         <translation>Por favor, abre el proyecto desde el Gestor de Proyectos de QGISRed</translation>
     </message>
     <message>
-        <location filename="../sections/project_management_section.py" line="679"/>
+        <location filename="../sections/project_management_section.py" line="684"/>
         <source>The QGIS project file is not in the project folder nor in its parent folder (%1). Use the Move option to relocate it before exporting.</source>
         <translation>El archivo de proyecto de QGIS no está en la carpeta del proyecto ni en su carpeta superior (%1). Use la opción Mover para reubicarlo antes de exportar.</translation>
     </message>
     <message>
-        <location filename="../sections/project_management_section.py" line="1214"/>
+        <location filename="../sections/project_management_section.py" line="1220"/>
         <source>QGISRed</source>
         <translation type="unfinished">QGISRed</translation>
     </message>
     <message>
-        <location filename="../sections/project_management_section.py" line="712"/>
+        <location filename="../sections/project_management_section.py" line="717"/>
         <source>The project could not be exported:</source>
         <translation>No se ha podido exportar el proyecto:</translation>
     </message>
     <message>
-        <location filename="../sections/project_management_section.py" line="717"/>
+        <location filename="../sections/project_management_section.py" line="722"/>
         <source>Zip file stored in:</source>
         <translation>Archivo ZIP guardado en:</translation>
     </message>
     <message>
-        <location filename="../sections/project_management_section.py" line="734"/>
+        <location filename="../sections/project_management_section.py" line="739"/>
         <source>The QGIS project has unsaved changes. Do you want to save it before exporting?</source>
         <translation>El proyecto de QGIS tiene cambios sin guardar. ¿Desea guardarlo antes de exportar?</translation>
     </message>
     <message>
-        <location filename="../sections/project_management_section.py" line="1214"/>
+        <location filename="../sections/project_management_section.py" line="1223"/>
         <source>Do you want to save the map of the current project?</source>
         <translation>¿Quiere guardar el mapa del proyecto actual?</translation>
     </message>
     <message>
-        <location filename="../sections/project_management_section.py" line="1189"/>
+        <location filename="../sections/project_management_section.py" line="1194"/>
         <source>Open Project</source>
         <translation>Abrir proyecto</translation>
     </message>
     <message>
-        <location filename="../sections/project_management_section.py" line="1189"/>
+        <location filename="../sections/project_management_section.py" line="1194"/>
         <source>QGIS files (*.qgz *.qgs *.QGZ *.QGS)</source>
         <translation>Archivos de QGIS (*.qgz *.qgs *.QGZ *.QGS)</translation>
     </message>
@@ -4615,7 +4615,7 @@ La información de sectores existente podría ser reemplazada.
 <context>
     <name>QGISRedGroups</name>
     <message>
-        <location filename="../tools/utils/qgisred_project_io.py" line="335"/>
+        <location filename="../tools/utils/qgisred_project_io.py" line="357"/>
         <source>Tree</source>
         <translation>Árbol</translation>
     </message>
@@ -5835,127 +5835,127 @@ La información de sectores existente podría ser reemplazada.
 <context>
     <name>QGISRedLegendsDialog</name>
     <message>
-        <location filename="../ui/project/qgisred_legends_dialog.py" line="646"/>
+        <location filename="../ui/project/qgisred_legends_dialog.py" line="665"/>
         <source>QGISRed: Legend Editor</source>
         <translation>QGISRed: Editor de Leyendas</translation>
     </message>
     <message>
-        <location filename="../ui/project/qgisred_legends_dialog.py" line="653"/>
+        <location filename="../ui/project/qgisred_legends_dialog.py" line="672"/>
         <source>Color</source>
         <translation>Color</translation>
     </message>
     <message>
-        <location filename="../ui/project/qgisred_legends_dialog.py" line="653"/>
+        <location filename="../ui/project/qgisred_legends_dialog.py" line="672"/>
         <source>Value</source>
         <translation>Valor</translation>
     </message>
     <message>
-        <location filename="../ui/project/qgisred_legends_dialog.py" line="2312"/>
+        <location filename="../ui/project/qgisred_legends_dialog.py" line="2327"/>
         <source>Legend</source>
         <translation>Leyenda</translation>
     </message>
     <message>
         <location filename="../ui/project/qgisred_legends_dialog.py" line="1190"/>
         <source>Move selected class up</source>
-        <translation>Mover la clase seleccionada arriba</translation>
+        <translation type="obsolete">Mover la clase seleccionada arriba</translation>
     </message>
     <message>
         <location filename="../ui/project/qgisred_legends_dialog.py" line="1191"/>
         <source>Move selected class down</source>
-        <translation>Mover la clase seleccionada abajo</translation>
+        <translation type="obsolete">Mover la clase seleccionada abajo</translation>
     </message>
     <message>
-        <location filename="../ui/project/qgisred_legends_dialog.py" line="1192"/>
+        <location filename="../ui/project/qgisred_legends_dialog.py" line="1209"/>
         <source>Remove selected class(es)</source>
         <translation>Eliminar la/s clase/s seleccionada/s</translation>
     </message>
     <message>
-        <location filename="../ui/project/qgisred_legends_dialog.py" line="1193"/>
+        <location filename="../ui/project/qgisred_legends_dialog.py" line="1210"/>
         <source>Add all unique values as separate classes</source>
         <translation>Añadir todos los valores únicos como clases separadas</translation>
     </message>
     <message>
-        <location filename="../ui/project/qgisred_legends_dialog.py" line="1196"/>
+        <location filename="../ui/project/qgisred_legends_dialog.py" line="1213"/>
         <source>Refresh color ramp</source>
         <translation>Refrescar rampa de color</translation>
     </message>
     <message>
-        <location filename="../ui/project/qgisred_legends_dialog.py" line="1204"/>
+        <location filename="../ui/project/qgisred_legends_dialog.py" line="1221"/>
         <source>Apply changes to layer</source>
         <translation>Aplicar cambios a la capa</translation>
     </message>
     <message>
-        <location filename="../ui/project/qgisred_legends_dialog.py" line="1544"/>
+        <location filename="../ui/project/qgisred_legends_dialog.py" line="1559"/>
         <source>Legend for</source>
         <translation>Leyenda para</translation>
     </message>
     <message>
-        <location filename="../ui/project/qgisred_legends_dialog.py" line="1774"/>
+        <location filename="../ui/project/qgisred_legends_dialog.py" line="1789"/>
         <source>Too Many Classes</source>
         <translation>Demasiadas clases</translation>
     </message>
     <message>
-        <location filename="../ui/project/qgisred_legends_dialog.py" line="1785"/>
+        <location filename="../ui/project/qgisred_legends_dialog.py" line="1800"/>
         <source>High Class Count Warning</source>
         <translation>Advertencia de número grande de clases</translation>
     </message>
     <message>
-        <location filename="../ui/project/qgisred_legends_dialog.py" line="2567"/>
+        <location filename="../ui/project/qgisred_legends_dialog.py" line="2582"/>
         <source>Single Symbol</source>
         <translation>Símbolo único</translation>
     </message>
     <message>
-        <location filename="../ui/project/qgisred_legends_dialog.py" line="2561"/>
+        <location filename="../ui/project/qgisred_legends_dialog.py" line="2576"/>
         <source>Categorized</source>
         <translation>Categorizado</translation>
     </message>
     <message>
-        <location filename="../ui/project/qgisred_legends_dialog.py" line="2565"/>
+        <location filename="../ui/project/qgisred_legends_dialog.py" line="2580"/>
         <source>Graduated</source>
         <translation>Graduado</translation>
     </message>
     <message>
-        <location filename="../ui/project/qgisred_legends_dialog.py" line="7035"/>
+        <location filename="../ui/project/qgisred_legends_dialog.py" line="7015"/>
         <source>Other Values</source>
         <translation>Otros valores</translation>
     </message>
     <message>
-        <location filename="../ui/project/qgisred_legends_dialog.py" line="3341"/>
+        <location filename="../ui/project/qgisred_legends_dialog.py" line="3355"/>
         <source>All values are already classified.</source>
         <translation>Todos los valores ya han sido clasificados.</translation>
     </message>
     <message>
-        <location filename="../ui/project/qgisred_legends_dialog.py" line="3411"/>
+        <location filename="../ui/project/qgisred_legends_dialog.py" line="3426"/>
         <source>Limit Exceeded</source>
         <translation>Límite superado</translation>
     </message>
     <message>
-        <location filename="../ui/project/qgisred_legends_dialog.py" line="3372"/>
+        <location filename="../ui/project/qgisred_legends_dialog.py" line="3386"/>
         <source>Adding classes...</source>
         <translation>Añadiendo clases...</translation>
     </message>
     <message>
-        <location filename="../ui/project/qgisred_legends_dialog.py" line="3372"/>
+        <location filename="../ui/project/qgisred_legends_dialog.py" line="3386"/>
         <source>Cancel</source>
         <translation>Cancelar</translation>
     </message>
     <message>
-        <location filename="../ui/project/qgisred_legends_dialog.py" line="5643"/>
+        <location filename="../ui/project/qgisred_legends_dialog.py" line="5642"/>
         <source>Overwrite</source>
         <translation>Sobreescribir</translation>
     </message>
     <message>
-        <location filename="../ui/project/qgisred_legends_dialog.py" line="5643"/>
+        <location filename="../ui/project/qgisred_legends_dialog.py" line="5642"/>
         <source>Overwrite style?</source>
         <translation>¿Sobreescribir estilo?</translation>
     </message>
     <message>
-        <location filename="../ui/project/qgisred_legends_dialog.py" line="6271"/>
+        <location filename="../ui/project/qgisred_legends_dialog.py" line="6273"/>
         <source>No Project</source>
         <translation>No hay proyecto</translation>
     </message>
     <message>
-        <location filename="../ui/project/qgisred_legends_dialog.py" line="6271"/>
+        <location filename="../ui/project/qgisred_legends_dialog.py" line="6273"/>
         <source>Project directory not set.</source>
         <translation>Directorio del proyecto no configurado.</translation>
     </message>
@@ -5965,22 +5965,22 @@ La información de sectores existente podría ser reemplazada.
         <translation>No encontrado</translation>
     </message>
     <message>
-        <location filename="../ui/project/qgisred_legends_dialog.py" line="3411"/>
+        <location filename="../ui/project/qgisred_legends_dialog.py" line="3426"/>
         <source>Maximum of %1 classes reached.</source>
         <translation>Máximo de %1 clases alcanzado.</translation>
     </message>
     <message>
-        <location filename="../ui/project/qgisred_legends_dialog.py" line="5620"/>
+        <location filename="../ui/project/qgisred_legends_dialog.py" line="5619"/>
         <source>Cannot Save</source>
         <translation>No se puede guardar</translation>
     </message>
     <message>
-        <location filename="../ui/project/qgisred_legends_dialog.py" line="5611"/>
+        <location filename="../ui/project/qgisred_legends_dialog.py" line="5610"/>
         <source>This layer is not managed by QGISRed and its style cannot be saved here.</source>
         <translation>Esta capa no es gestionada por QGISRed y su estilo no puede ser guardado aquí.</translation>
     </message>
     <message>
-        <location filename="../ui/project/qgisred_legends_dialog.py" line="5620"/>
+        <location filename="../ui/project/qgisred_legends_dialog.py" line="5619"/>
         <source>Saving styles from this dialog is not supported for this layer type.</source>
         <translation>Guardar estilos desde este diálogo no está soportado para este tipo de capa.</translation>
     </message>
@@ -6000,57 +6000,57 @@ La información de sectores existente podría ser reemplazada.
         <translation>Cargar estilos desde este diálogo no está soportado para este tipo de capa.</translation>
     </message>
     <message>
-        <location filename="../ui/project/qgisred_legends_dialog.py" line="747"/>
+        <location filename="../ui/project/qgisred_legends_dialog.py" line="766"/>
         <source>All types</source>
         <translation>Todos los tipos</translation>
     </message>
     <message>
-        <location filename="../ui/project/qgisred_legends_dialog.py" line="1125"/>
+        <location filename="../ui/project/qgisred_legends_dialog.py" line="1144"/>
         <source>Default Style</source>
         <translation>Estilo por defecto</translation>
     </message>
     <message>
-        <location filename="../ui/project/qgisred_legends_dialog.py" line="1124"/>
+        <location filename="../ui/project/qgisred_legends_dialog.py" line="1143"/>
         <source>Global Style</source>
         <translation>Estilo global</translation>
     </message>
     <message>
-        <location filename="../ui/project/qgisred_legends_dialog.py" line="1123"/>
+        <location filename="../ui/project/qgisred_legends_dialog.py" line="1142"/>
         <source>Project Style</source>
         <translation>Estilo del proyecto</translation>
     </message>
     <message>
-        <location filename="../ui/project/qgisred_legends_dialog.py" line="1127"/>
+        <location filename="../ui/project/qgisred_legends_dialog.py" line="1146"/>
         <source>Revert to Original Legend</source>
         <translation>Volver a la leyenda original</translation>
     </message>
     <message>
-        <location filename="../ui/project/qgisred_legends_dialog.py" line="1133"/>
+        <location filename="../ui/project/qgisred_legends_dialog.py" line="1152"/>
         <source>Saves the legend as shown in the dialog; the layer itself only changes with Apply</source>
         <translation>Guarda la leyenda tal como se muestra en el diálogo; la capa solo cambia al pulsar Aplicar</translation>
     </message>
     <message>
-        <location filename="../ui/project/qgisred_legends_dialog.py" line="1136"/>
+        <location filename="../ui/project/qgisred_legends_dialog.py" line="1155"/>
         <source>To Global…</source>
         <translation>Como estilo global…</translation>
     </message>
     <message>
-        <location filename="../ui/project/qgisred_legends_dialog.py" line="1134"/>
+        <location filename="../ui/project/qgisred_legends_dialog.py" line="1153"/>
         <source>To Project…</source>
         <translation>Como estilo del proyecto…</translation>
     </message>
     <message>
-        <location filename="../ui/project/qgisred_legends_dialog.py" line="1198"/>
+        <location filename="../ui/project/qgisred_legends_dialog.py" line="1215"/>
         <source>Load a saved style or revert to the original legend</source>
         <translation>Cargar un estilo guardado o volver a la leyenda original</translation>
     </message>
     <message>
-        <location filename="../ui/project/qgisred_legends_dialog.py" line="1199"/>
+        <location filename="../ui/project/qgisred_legends_dialog.py" line="1216"/>
         <source>Save the current legend as a style</source>
         <translation>Guardar la leyenda actual como estilo</translation>
     </message>
     <message>
-        <location filename="../ui/project/qgisred_legends_dialog.py" line="1203"/>
+        <location filename="../ui/project/qgisred_legends_dialog.py" line="1220"/>
         <source>Apply changes to layer and close</source>
         <translation>Aplicar los cambios a la capa y cerrar</translation>
     </message>
@@ -6065,102 +6065,102 @@ La información de sectores existente podría ser reemplazada.
         <translation>Advertencia</translation>
     </message>
     <message>
-        <location filename="../ui/project/qgisred_legends_dialog.py" line="741"/>
+        <location filename="../ui/project/qgisred_legends_dialog.py" line="760"/>
         <source>Meter Type</source>
         <translation>Tipo de medidor</translation>
     </message>
     <message>
-        <location filename="../ui/project/qgisred_legends_dialog.py" line="743"/>
+        <location filename="../ui/project/qgisred_legends_dialog.py" line="762"/>
         <source>Demand</source>
         <translation>Demanda</translation>
     </message>
     <message>
-        <location filename="../ui/project/qgisred_legends_dialog.py" line="763"/>
+        <location filename="../ui/project/qgisred_legends_dialog.py" line="782"/>
         <source>All</source>
         <translation>Todos</translation>
     </message>
     <message>
-        <location filename="../ui/project/qgisred_legends_dialog.py" line="744"/>
+        <location filename="../ui/project/qgisred_legends_dialog.py" line="763"/>
         <source>Outflows (&gt; 0)</source>
         <translation>Salidas (&gt; 0)</translation>
     </message>
     <message>
-        <location filename="../ui/project/qgisred_legends_dialog.py" line="744"/>
+        <location filename="../ui/project/qgisred_legends_dialog.py" line="763"/>
         <source>Inflows (&lt; 0)</source>
         <translation>Entradas (&lt; 0)</translation>
     </message>
     <message>
-        <location filename="../ui/project/qgisred_legends_dialog.py" line="747"/>
+        <location filename="../ui/project/qgisred_legends_dialog.py" line="766"/>
         <source>Source Type</source>
         <translation>Tipo de fuente</translation>
     </message>
     <message>
-        <location filename="../ui/project/qgisred_legends_dialog.py" line="753"/>
+        <location filename="../ui/project/qgisred_legends_dialog.py" line="772"/>
         <source>Component</source>
         <translation>Componente</translation>
     </message>
     <message>
-        <location filename="../ui/project/qgisred_legends_dialog.py" line="754"/>
+        <location filename="../ui/project/qgisred_legends_dialog.py" line="773"/>
         <source>Line</source>
         <translation>Línea</translation>
     </message>
     <message>
-        <location filename="../ui/project/qgisred_legends_dialog.py" line="750"/>
+        <location filename="../ui/project/qgisred_legends_dialog.py" line="769"/>
         <source>Demand circle</source>
         <translation>Círculo de demanda</translation>
     </message>
     <message>
-        <location filename="../ui/project/qgisred_legends_dialog.py" line="754"/>
+        <location filename="../ui/project/qgisred_legends_dialog.py" line="773"/>
         <source>Marker</source>
         <translation>Marcador</translation>
     </message>
     <message>
-        <location filename="../ui/project/qgisred_legends_dialog.py" line="1128"/>
+        <location filename="../ui/project/qgisred_legends_dialog.py" line="1147"/>
         <source>Restore the legend the layer had when this dialog was opened</source>
         <translation>Restaurar la leyenda que tenía la capa al abrir este diálogo</translation>
     </message>
     <message>
-        <location filename="../ui/project/qgisred_legends_dialog.py" line="4537"/>
+        <location filename="../ui/project/qgisred_legends_dialog.py" line="4536"/>
         <source>Style restored</source>
         <translation>Estilo restaurado</translation>
     </message>
     <message>
-        <location filename="../ui/project/qgisred_legends_dialog.py" line="4537"/>
+        <location filename="../ui/project/qgisred_legends_dialog.py" line="4536"/>
         <source>This layer carried a style from an older version that the Legend Editor cannot edit, so its default style has been loaded again.</source>
         <translation>Esta capa tenía un estilo de una versión anterior que el Editor de Leyendas no puede editar, por lo que se ha vuelto a cargar su estilo por defecto.</translation>
     </message>
     <message>
-        <location filename="../ui/project/qgisred_legends_dialog.py" line="1636"/>
+        <location filename="../ui/project/qgisred_legends_dialog.py" line="1651"/>
         <source>Size (mm)</source>
         <translation>Tamaño (mm)</translation>
     </message>
     <message>
-        <location filename="../ui/project/qgisred_legends_dialog.py" line="963"/>
+        <location filename="../ui/project/qgisred_legends_dialog.py" line="982"/>
         <source>mm</source>
         <translation>mm</translation>
     </message>
     <message>
-        <location filename="../ui/project/qgisred_legends_dialog.py" line="2504"/>
+        <location filename="../ui/project/qgisred_legends_dialog.py" line="2519"/>
         <source>Manual</source>
         <translation>Manual</translation>
     </message>
     <message>
-        <location filename="../ui/project/qgisred_legends_dialog.py" line="994"/>
+        <location filename="../ui/project/qgisred_legends_dialog.py" line="1013"/>
         <source>Equal</source>
         <translation>Igual</translation>
     </message>
     <message>
-        <location filename="../ui/project/qgisred_legends_dialog.py" line="995"/>
+        <location filename="../ui/project/qgisred_legends_dialog.py" line="1014"/>
         <source>Random</source>
         <translation>Aleatorio</translation>
     </message>
     <message>
-        <location filename="../ui/project/qgisred_legends_dialog.py" line="996"/>
+        <location filename="../ui/project/qgisred_legends_dialog.py" line="1015"/>
         <source>2 colors Ramps</source>
         <translation>Rampas de 2 colores</translation>
     </message>
     <message>
-        <location filename="../ui/project/qgisred_legends_dialog.py" line="997"/>
+        <location filename="../ui/project/qgisred_legends_dialog.py" line="1016"/>
         <source>3 colors Ramps</source>
         <translation>Rampas de 3 colores</translation>
     </message>
@@ -6175,22 +6175,22 @@ La información de sectores existente podría ser reemplazada.
         <translation type="obsolete">Paletas interpoladas</translation>
     </message>
     <message>
-        <location filename="../ui/project/qgisred_legends_dialog.py" line="1000"/>
+        <location filename="../ui/project/qgisred_legends_dialog.py" line="1019"/>
         <source>Sequential Palettes</source>
         <translation>Paletas secuenciales</translation>
     </message>
     <message>
-        <location filename="../ui/project/qgisred_legends_dialog.py" line="1001"/>
+        <location filename="../ui/project/qgisred_legends_dialog.py" line="1020"/>
         <source>Labeled Palettes</source>
         <translation>Paletas etiquetadas</translation>
     </message>
     <message>
-        <location filename="../ui/project/qgisred_legends_dialog.py" line="1052"/>
+        <location filename="../ui/project/qgisred_legends_dialog.py" line="1071"/>
         <source>Recommended for this legend</source>
         <translation>Recomendada para esta leyenda</translation>
     </message>
     <message>
-        <location filename="../ui/project/qgisred_legends_dialog.py" line="6387"/>
+        <location filename="../ui/project/qgisred_legends_dialog.py" line="6388"/>
         <source>Classes</source>
         <translation>Clases</translation>
     </message>
@@ -6200,62 +6200,62 @@ La información de sectores existente podría ser reemplazada.
         <translation type="obsolete">Clases: reconstruidas a partir de los valores de la capa (%1 ahora)</translation>
     </message>
     <message>
-        <location filename="../ui/project/qgisred_legends_dialog.py" line="6392"/>
+        <location filename="../ui/project/qgisred_legends_dialog.py" line="6393"/>
         <source>Intervals</source>
         <translation>Intervalos</translation>
     </message>
     <message>
-        <location filename="../ui/project/qgisred_legends_dialog.py" line="6393"/>
+        <location filename="../ui/project/qgisred_legends_dialog.py" line="6394"/>
         <source>Intervals: %1, %2 classes</source>
         <translation>Intervalos: %1, %2 clases</translation>
     </message>
     <message>
-        <location filename="../ui/project/qgisred_legends_dialog.py" line="6398"/>
+        <location filename="../ui/project/qgisred_legends_dialog.py" line="6399"/>
         <source>Sizes</source>
         <translation>Tamaños</translation>
     </message>
     <message>
-        <location filename="../ui/project/qgisred_legends_dialog.py" line="6399"/>
+        <location filename="../ui/project/qgisred_legends_dialog.py" line="6400"/>
         <source>Colors</source>
         <translation>Colores</translation>
     </message>
     <message>
-        <location filename="../ui/project/qgisred_legends_dialog.py" line="6404"/>
+        <location filename="../ui/project/qgisred_legends_dialog.py" line="6405"/>
         <source>%1: kept as shown</source>
         <translation>%1: sin cambios, tal como se muestra</translation>
     </message>
     <message>
-        <location filename="../ui/project/qgisred_legends_dialog.py" line="6409"/>
+        <location filename="../ui/project/qgisred_legends_dialog.py" line="6410"/>
         <source>Sizes: %1 mm for every class</source>
         <translation>Tamaños: %1 mm para todas las clases</translation>
     </message>
     <message>
-        <location filename="../ui/project/qgisred_legends_dialog.py" line="6410"/>
+        <location filename="../ui/project/qgisred_legends_dialog.py" line="6411"/>
         <source>Sizes: %1, from %2 to %3 mm</source>
         <translation>Tamaños: %1, de %2 a %3 mm</translation>
     </message>
     <message>
-        <location filename="../ui/project/qgisred_legends_dialog.py" line="6416"/>
+        <location filename="../ui/project/qgisred_legends_dialog.py" line="6417"/>
         <source>Colors: random</source>
         <translation>Colores: aleatorios</translation>
     </message>
     <message>
-        <location filename="../ui/project/qgisred_legends_dialog.py" line="6417"/>
+        <location filename="../ui/project/qgisred_legends_dialog.py" line="6418"/>
         <source>Colors: %1, %2</source>
         <translation>Colores: %1, %2</translation>
     </message>
     <message>
-        <location filename="../ui/project/qgisred_legends_dialog.py" line="6419"/>
+        <location filename="../ui/project/qgisred_legends_dialog.py" line="6420"/>
         <source> (inverted)</source>
         <translation> (invertido)</translation>
     </message>
     <message>
-        <location filename="../ui/project/qgisred_legends_dialog.py" line="6422"/>
+        <location filename="../ui/project/qgisred_legends_dialog.py" line="6423"/>
         <source>This legend follows rules set by the plugin, so it is always saved as shown.</source>
         <translation>Esta leyenda sigue reglas definidas por el complemento, por lo que siempre se guarda tal como se muestra.</translation>
     </message>
     <message>
-        <location filename="../ui/project/qgisred_legends_dialog.py" line="6427"/>
+        <location filename="../ui/project/qgisred_legends_dialog.py" line="6428"/>
         <source>The intervals are set by hand. Choose a mode that calculates them to have them recalculated.</source>
         <translation>Los intervalos se definen a mano. Elija un modo que los calcule para que se recalculen.</translation>
     </message>
@@ -6265,42 +6265,42 @@ La información de sectores existente podría ser reemplazada.
         <translation type="obsolete">Las clases se reconstruyen al colorearlas: elija primero Aleatorio, una rampa o una paleta en Colores.</translation>
     </message>
     <message>
-        <location filename="../ui/project/qgisred_legends_dialog.py" line="6433"/>
+        <location filename="../ui/project/qgisred_legends_dialog.py" line="6434"/>
         <source>These classes come from a formula, not from a column, so they cannot be rebuilt.</source>
         <translation>Estas clases proceden de una fórmula, no de una columna, por lo que no se pueden reconstruir.</translation>
     </message>
     <message>
-        <location filename="../ui/project/qgisred_legends_dialog.py" line="6441"/>
+        <location filename="../ui/project/qgisred_legends_dialog.py" line="6442"/>
         <source>The sizes are set by hand. Choose Equal, Linear or another mode in Sizes to have them recalculated.</source>
         <translation>Los tamaños se definen a mano. Elija Igual, Lineal u otro modo en Tamaños para que se recalculen.</translation>
     </message>
     <message>
-        <location filename="../ui/project/qgisred_legends_dialog.py" line="6448"/>
+        <location filename="../ui/project/qgisred_legends_dialog.py" line="6449"/>
         <source>The colors are set by hand. Choose Random, a ramp or a palette in Colors to have them recalculated.</source>
         <translation>Los colores se definen a mano. Elija Aleatorio, una rampa o una paleta en Colores para que se recalculen.</translation>
     </message>
     <message>
-        <location filename="../ui/project/qgisred_legends_dialog.py" line="6636"/>
+        <location filename="../ui/project/qgisred_legends_dialog.py" line="6634"/>
         <source>The number of classes is set by the data or the chosen method</source>
         <translation>El número de clases lo determinan los datos o el método elegido</translation>
     </message>
     <message>
-        <location filename="../ui/project/qgisred_legends_dialog.py" line="703"/>
+        <location filename="../ui/project/qgisred_legends_dialog.py" line="722"/>
         <source>Add all values</source>
         <translation>Añadir todos los valores</translation>
     </message>
     <message>
-        <location filename="../ui/project/qgisred_legends_dialog.py" line="715"/>
+        <location filename="../ui/project/qgisred_legends_dialog.py" line="734"/>
         <source>Add class below the selection</source>
         <translation>Añadir clase debajo de la selección</translation>
     </message>
     <message>
-        <location filename="../ui/project/qgisred_legends_dialog.py" line="716"/>
+        <location filename="../ui/project/qgisred_legends_dialog.py" line="735"/>
         <source>Add class above the selection</source>
         <translation>Añadir clase encima de la selección</translation>
     </message>
     <message>
-        <location filename="../ui/project/qgisred_legends_dialog.py" line="717"/>
+        <location filename="../ui/project/qgisred_legends_dialog.py" line="736"/>
         <source>Add &quot;Other values&quot; class</source>
         <translation>Añadir la clase &quot;Otros valores&quot;</translation>
     </message>
@@ -6310,72 +6310,72 @@ La información de sectores existente podría ser reemplazada.
         <translation type="obsolete">Esta capa tiene un color y un tamaño por fila, definidos en la tabla. Las opciones siguientes se aplican a las capas de resultados y de mapas temáticos.</translation>
     </message>
     <message>
-        <location filename="../ui/project/qgisred_legends_dialog.py" line="757"/>
+        <location filename="../ui/project/qgisred_legends_dialog.py" line="776"/>
         <source>Node</source>
         <translation>Nudo</translation>
     </message>
     <message>
-        <location filename="../ui/project/qgisred_legends_dialog.py" line="782"/>
+        <location filename="../ui/project/qgisred_legends_dialog.py" line="801"/>
         <source>Junctions</source>
         <translation>Uniones</translation>
     </message>
     <message>
-        <location filename="../ui/project/qgisred_legends_dialog.py" line="758"/>
+        <location filename="../ui/project/qgisred_legends_dialog.py" line="777"/>
         <source>Root node</source>
         <translation>Nudo raíz</translation>
     </message>
     <message>
-        <location filename="../ui/project/qgisred_legends_dialog.py" line="763"/>
+        <location filename="../ui/project/qgisred_legends_dialog.py" line="782"/>
         <source>Element</source>
         <translation>Elemento</translation>
     </message>
     <message>
-        <location filename="../ui/project/qgisred_legends_dialog.py" line="768"/>
+        <location filename="../ui/project/qgisred_legends_dialog.py" line="787"/>
         <source>Countermeter</source>
         <translation>Contador</translation>
     </message>
     <message>
-        <location filename="../ui/project/qgisred_legends_dialog.py" line="769"/>
+        <location filename="../ui/project/qgisred_legends_dialog.py" line="788"/>
         <source>Differential Manometer</source>
         <translation>Manómetro diferencial</translation>
     </message>
     <message>
-        <location filename="../ui/project/qgisred_legends_dialog.py" line="770"/>
+        <location filename="../ui/project/qgisred_legends_dialog.py" line="789"/>
         <source>Energy Sensor</source>
         <translation>Sensor de energía</translation>
     </message>
     <message>
-        <location filename="../ui/project/qgisred_legends_dialog.py" line="771"/>
+        <location filename="../ui/project/qgisred_legends_dialog.py" line="790"/>
         <source>Flowmeter</source>
         <translation>Caudalímetro</translation>
     </message>
     <message>
-        <location filename="../ui/project/qgisred_legends_dialog.py" line="772"/>
+        <location filename="../ui/project/qgisred_legends_dialog.py" line="791"/>
         <source>Level Sensor</source>
         <translation>Sensor de nivel</translation>
     </message>
     <message>
-        <location filename="../ui/project/qgisred_legends_dialog.py" line="773"/>
+        <location filename="../ui/project/qgisred_legends_dialog.py" line="792"/>
         <source>Manometer</source>
         <translation>Manómetro</translation>
     </message>
     <message>
-        <location filename="../ui/project/qgisred_legends_dialog.py" line="774"/>
+        <location filename="../ui/project/qgisred_legends_dialog.py" line="793"/>
         <source>Quality Sensor</source>
         <translation>Sensor de calidad</translation>
     </message>
     <message>
-        <location filename="../ui/project/qgisred_legends_dialog.py" line="775"/>
+        <location filename="../ui/project/qgisred_legends_dialog.py" line="794"/>
         <source>Status Sensor</source>
         <translation>Sensor de estado</translation>
     </message>
     <message>
-        <location filename="../ui/project/qgisred_legends_dialog.py" line="776"/>
+        <location filename="../ui/project/qgisred_legends_dialog.py" line="795"/>
         <source>Tachometer</source>
         <translation>Tacómetro</translation>
     </message>
     <message>
-        <location filename="../ui/project/qgisred_legends_dialog.py" line="777"/>
+        <location filename="../ui/project/qgisred_legends_dialog.py" line="796"/>
         <source>Valve Opening</source>
         <translation>Apertura de válvula</translation>
     </message>
@@ -6385,7 +6385,7 @@ La información de sectores existente podría ser reemplazada.
         <translation type="obsolete">Tuberías</translation>
     </message>
     <message>
-        <location filename="../ui/project/qgisred_legends_dialog.py" line="783"/>
+        <location filename="../ui/project/qgisred_legends_dialog.py" line="802"/>
         <source>Service Connections</source>
         <translation>Acometidas</translation>
     </message>
@@ -6420,79 +6420,79 @@ La información de sectores existente podría ser reemplazada.
         <translation type="obsolete">Punto de incidencia</translation>
     </message>
     <message>
-        <location filename="../ui/project/qgisred_legends_dialog.py" line="954"/>
+        <location filename="../ui/project/qgisred_legends_dialog.py" line="973"/>
         <source>Linear</source>
         <translation>Lineal</translation>
     </message>
     <message>
-        <location filename="../ui/project/qgisred_legends_dialog.py" line="955"/>
+        <location filename="../ui/project/qgisred_legends_dialog.py" line="974"/>
         <source>Quadratic</source>
         <translation>Cuadrático</translation>
     </message>
     <message>
-        <location filename="../ui/project/qgisred_legends_dialog.py" line="956"/>
+        <location filename="../ui/project/qgisred_legends_dialog.py" line="975"/>
         <source>Exponential</source>
         <translation>Exponencial</translation>
     </message>
     <message>
-        <location filename="../ui/project/qgisred_legends_dialog.py" line="957"/>
+        <location filename="../ui/project/qgisred_legends_dialog.py" line="976"/>
         <source>Proportional to Value</source>
         <translation>Proporcional al valor</translation>
     </message>
     <message>
-        <location filename="../ui/project/qgisred_legends_dialog.py" line="1026"/>
+        <location filename="../ui/project/qgisred_legends_dialog.py" line="1045"/>
         <source>The style library has no ramps of this kind</source>
         <translation>La biblioteca de estilos no tiene rampas de este tipo</translation>
     </message>
     <message>
-        <location filename="../ui/project/qgisred_legends_dialog.py" line="1028"/>
+        <location filename="../ui/project/qgisred_legends_dialog.py" line="1047"/>
         <source>Labeled palettes need classes with text values</source>
         <translation>Las paletas etiquetadas necesitan clases con valores de texto</translation>
     </message>
     <message>
-        <location filename="../ui/project/qgisred_legends_dialog.py" line="1051"/>
+        <location filename="../ui/project/qgisred_legends_dialog.py" line="1070"/>
         <source>%1 (recommended)</source>
         <translation>%1 (recomendado)</translation>
     </message>
     <message>
-        <location filename="../ui/project/qgisred_legends_dialog.py" line="1205"/>
+        <location filename="../ui/project/qgisred_legends_dialog.py" line="1222"/>
         <source>Close; asks whether to keep or revert the changes applied here</source>
         <translation>Cerrar; pregunta si se conservan o se revierten los cambios aplicados aquí</translation>
     </message>
     <message>
-        <location filename="../ui/project/qgisred_legends_dialog.py" line="1552"/>
+        <location filename="../ui/project/qgisred_legends_dialog.py" line="1567"/>
         <source>Not applied</source>
         <translation>Sin aplicar</translation>
     </message>
     <message>
-        <location filename="../ui/project/qgisred_legends_dialog.py" line="1572"/>
+        <location filename="../ui/project/qgisred_legends_dialog.py" line="1587"/>
         <source>Changes not applied</source>
         <translation>Cambios sin aplicar</translation>
     </message>
     <message>
-        <location filename="../ui/project/qgisred_legends_dialog.py" line="1572"/>
+        <location filename="../ui/project/qgisred_legends_dialog.py" line="1587"/>
         <source>The legend of %1 has changes that were not applied to the map.
 Discard them?</source>
         <translation>La leyenda de %1 tiene cambios que no se han aplicado al mapa.
 ¿Descartarlos?</translation>
     </message>
     <message>
-        <location filename="../ui/project/qgisred_legends_dialog.py" line="1592"/>
+        <location filename="../ui/project/qgisred_legends_dialog.py" line="1607"/>
         <source>%1 units</source>
         <translation>Unidades %1</translation>
     </message>
     <message>
-        <location filename="../ui/project/qgisred_legends_dialog.py" line="1633"/>
+        <location filename="../ui/project/qgisred_legends_dialog.py" line="1648"/>
         <source>Size (%)</source>
         <translation>Tamaño (%)</translation>
     </message>
     <message>
-        <location filename="../ui/project/qgisred_legends_dialog.py" line="1640"/>
+        <location filename="../ui/project/qgisred_legends_dialog.py" line="1655"/>
         <source>Percent of the current sizes: 100 % keeps every component as it is drawn now.</source>
         <translation>Porcentaje de los tamaños actuales: 100 % mantiene cada componente tal como se dibuja ahora.</translation>
     </message>
     <message>
-        <location filename="../ui/project/qgisred_legends_dialog.py" line="1774"/>
+        <location filename="../ui/project/qgisred_legends_dialog.py" line="1789"/>
         <source>The field &apos;%1&apos; has %2 unique values.
 The maximum allowed is %3.
 Please filter the data or choose a different field.</source>
@@ -6501,7 +6501,7 @@ El máximo permitido es %3.
 Por favor, filtre los datos o elija un campo diferente.</translation>
     </message>
     <message>
-        <location filename="../ui/project/qgisred_legends_dialog.py" line="1785"/>
+        <location filename="../ui/project/qgisred_legends_dialog.py" line="1800"/>
         <source>The field &apos;%1&apos; has %2 unique values.
 Creating a categorized legend with more than %3 classes may affect performance and readability.
 
@@ -6512,83 +6512,83 @@ Crear una leyenda categorizada con más de %3 clases puede afectar al rendimient
 ¿Desea continuar?</translation>
     </message>
     <message>
-        <location filename="../ui/project/qgisred_legends_dialog.py" line="2507"/>
+        <location filename="../ui/project/qgisred_legends_dialog.py" line="2522"/>
         <source>Equal Interval</source>
         <translation>Intervalo igual</translation>
     </message>
     <message>
-        <location filename="../ui/project/qgisred_legends_dialog.py" line="2508"/>
+        <location filename="../ui/project/qgisred_legends_dialog.py" line="2523"/>
         <source>Fixed Interval</source>
         <translation>Intervalo fijo</translation>
     </message>
     <message>
-        <location filename="../ui/project/qgisred_legends_dialog.py" line="2509"/>
+        <location filename="../ui/project/qgisred_legends_dialog.py" line="2524"/>
         <source>Quantile (Equal Count)</source>
         <translation>Cuantil (igual cantidad)</translation>
     </message>
     <message>
-        <location filename="../ui/project/qgisred_legends_dialog.py" line="2510"/>
+        <location filename="../ui/project/qgisred_legends_dialog.py" line="2525"/>
         <source>Natural Breaks (Jenks)</source>
         <translation>Rupturas naturales (Jenks)</translation>
     </message>
     <message>
-        <location filename="../ui/project/qgisred_legends_dialog.py" line="2511"/>
+        <location filename="../ui/project/qgisred_legends_dialog.py" line="2526"/>
         <source>Standard Deviation</source>
         <translation>Desviación estándar</translation>
     </message>
     <message>
-        <location filename="../ui/project/qgisred_legends_dialog.py" line="2512"/>
+        <location filename="../ui/project/qgisred_legends_dialog.py" line="2527"/>
         <source>Pretty Breaks</source>
         <translation>Rupturas bonitas</translation>
     </message>
     <message>
-        <location filename="../ui/project/qgisred_legends_dialog.py" line="3599"/>
+        <location filename="../ui/project/qgisred_legends_dialog.py" line="3590"/>
         <source>Pick color</source>
         <translation>Elegir color</translation>
     </message>
     <message>
-        <location filename="../ui/project/qgisred_legends_dialog.py" line="3355"/>
+        <location filename="../ui/project/qgisred_legends_dialog.py" line="3369"/>
         <source>Adding %1 classes would result in %2 total classes,
 which exceeds the maximum limit of %3.</source>
         <translation>Añadir %1 clases resultaría en %2 clases totales,
 lo que supera el límite de %3.</translation>
     </message>
     <message>
-        <location filename="../ui/project/qgisred_legends_dialog.py" line="4072"/>
+        <location filename="../ui/project/qgisred_legends_dialog.py" line="4063"/>
         <source>Invalid Range</source>
         <translation>Rango no válido</translation>
     </message>
     <message>
-        <location filename="../ui/project/qgisred_legends_dialog.py" line="4072"/>
+        <location filename="../ui/project/qgisred_legends_dialog.py" line="4063"/>
         <source>Min value must be less than Max value.</source>
         <translation>El valor mínimo debe ser menor que el valor máximo.</translation>
     </message>
     <message>
-        <location filename="../ui/project/qgisred_legends_dialog.py" line="4091"/>
+        <location filename="../ui/project/qgisred_legends_dialog.py" line="4082"/>
         <source>Range Overflow</source>
         <translation>Rango excedido</translation>
     </message>
     <message>
-        <location filename="../ui/project/qgisred_legends_dialog.py" line="4080"/>
+        <location filename="../ui/project/qgisred_legends_dialog.py" line="4071"/>
         <source>New minimum (%1) is smaller than the previous row&apos;s minimum (%2).
 Cannot apply changes.</source>
         <translation>El nuevo mínimo (%1) es menor que el mínimo de la fila anterior (%2).
 No se pueden aplicar los cambios.</translation>
     </message>
     <message>
-        <location filename="../ui/project/qgisred_legends_dialog.py" line="4091"/>
+        <location filename="../ui/project/qgisred_legends_dialog.py" line="4082"/>
         <source>New maximum (%1) is larger than the next row&apos;s maximum (%2).
 Cannot apply changes.</source>
         <translation>El nuevo máximo (%1) es mayor que el máximo de la fila siguiente (%2).
 No se pueden aplicar los cambios.</translation>
     </message>
     <message>
-        <location filename="../ui/project/qgisred_legends_dialog.py" line="5654"/>
+        <location filename="../ui/project/qgisred_legends_dialog.py" line="5653"/>
         <source>The current legend has been saved as the Global Style.</source>
         <translation>La leyenda actual se ha guardado como Estilo global.</translation>
     </message>
     <message>
-        <location filename="../ui/project/qgisred_legends_dialog.py" line="5656"/>
+        <location filename="../ui/project/qgisred_legends_dialog.py" line="5655"/>
         <source>The current legend has been saved as the Project Style.</source>
         <translation>La leyenda actual se ha guardado como Estilo del proyecto.</translation>
     </message>
@@ -6628,7 +6628,7 @@ No se pueden aplicar los cambios.</translation>
         <translation>Esta capa no tiene Estilo por defecto.</translation>
     </message>
     <message>
-        <location filename="../ui/project/qgisred_legends_dialog.py" line="6620"/>
+        <location filename="../ui/project/qgisred_legends_dialog.py" line="6618"/>
         <source>Add a class below the selection. The arrow offers the other options.</source>
         <translation>Añadir una clase debajo de la selección. La flecha ofrece las demás opciones.</translation>
     </message>
@@ -6638,62 +6638,62 @@ No se pueden aplicar los cambios.</translation>
         <translation type="obsolete">%1 clases</translation>
     </message>
     <message>
-        <location filename="../ui/project/qgisred_legends_dialog.py" line="7088"/>
+        <location filename="../ui/project/qgisred_legends_dialog.py" line="7068"/>
         <source>Close Legend Editor</source>
         <translation>Cerrar el Editor de Leyendas</translation>
     </message>
     <message>
-        <location filename="../ui/project/qgisred_legends_dialog.py" line="7090"/>
+        <location filename="../ui/project/qgisred_legends_dialog.py" line="7070"/>
         <source>Keep</source>
         <translation>Conservar</translation>
     </message>
     <message>
-        <location filename="../ui/project/qgisred_legends_dialog.py" line="7091"/>
+        <location filename="../ui/project/qgisred_legends_dialog.py" line="7071"/>
         <source>Revert all</source>
         <translation>Revertir todo</translation>
     </message>
     <message>
-        <location filename="../ui/project/qgisred_legends_dialog.py" line="7092"/>
+        <location filename="../ui/project/qgisred_legends_dialog.py" line="7072"/>
         <source>Back</source>
         <translation>Volver</translation>
     </message>
     <message>
-        <location filename="../ui/project/qgisred_legends_dialog.py" line="7105"/>
+        <location filename="../ui/project/qgisred_legends_dialog.py" line="7085"/>
         <source>Keep the changes applied to %1?</source>
         <translation>¿Conservar los cambios aplicados a %1?</translation>
     </message>
     <message>
-        <location filename="../ui/project/qgisred_legends_dialog.py" line="7107"/>
+        <location filename="../ui/project/qgisred_legends_dialog.py" line="7087"/>
         <source>Keep the changes applied to %1 layers?</source>
         <translation>¿Conservar los cambios aplicados a %1 capas?</translation>
     </message>
     <message>
-        <location filename="../ui/project/qgisred_legends_dialog.py" line="7109"/>
+        <location filename="../ui/project/qgisred_legends_dialog.py" line="7089"/>
         <source>The changes not applied yet will be lost either way.</source>
         <translation>Los cambios aún no aplicados se perderán en cualquier caso.</translation>
     </message>
     <message>
-        <location filename="../ui/project/qgisred_legends_dialog.py" line="725"/>
+        <location filename="../ui/project/qgisred_legends_dialog.py" line="744"/>
         <source>Single symbol layer: no size or color classes.</source>
         <translation>Capa de símbolo único: sin clases de tamaño ni de color.</translation>
     </message>
     <message>
-        <location filename="../ui/project/qgisred_legends_dialog.py" line="998"/>
+        <location filename="../ui/project/qgisred_legends_dialog.py" line="1017"/>
         <source>&gt; 3 colors Ramps</source>
         <translation>Rampas de &gt; 3 colores</translation>
     </message>
     <message>
-        <location filename="../ui/project/qgisred_legends_dialog.py" line="999"/>
+        <location filename="../ui/project/qgisred_legends_dialog.py" line="1018"/>
         <source>Span Palettes</source>
         <translation>Paletas extendidas</translation>
     </message>
     <message>
-        <location filename="../ui/project/qgisred_legends_dialog.py" line="708"/>
+        <location filename="../ui/project/qgisred_legends_dialog.py" line="727"/>
         <source>Ascending</source>
         <translation>Ascendente</translation>
     </message>
     <message>
-        <location filename="../ui/project/qgisred_legends_dialog.py" line="709"/>
+        <location filename="../ui/project/qgisred_legends_dialog.py" line="728"/>
         <source>Descending</source>
         <translation>Descendente</translation>
     </message>
@@ -6703,82 +6703,82 @@ No se pueden aplicar los cambios.</translation>
         <translation type="obsolete">Orden de los valores al añadir las clases</translation>
     </message>
     <message>
-        <location filename="../ui/project/qgisred_legends_dialog.py" line="1141"/>
+        <location filename="../ui/project/qgisred_legends_dialog.py" line="1160"/>
         <source>Use default</source>
         <translation>Usar por defecto</translation>
     </message>
     <message>
-        <location filename="../ui/project/qgisred_legends_dialog.py" line="1142"/>
+        <location filename="../ui/project/qgisred_legends_dialog.py" line="1161"/>
         <source>Use owner</source>
         <translation>Usar propia</translation>
     </message>
     <message>
-        <location filename="../ui/project/qgisred_legends_dialog.py" line="1201"/>
+        <location filename="../ui/project/qgisred_legends_dialog.py" line="1218"/>
         <source>Edit owner</source>
         <translation>Editar propia</translation>
     </message>
     <message>
-        <location filename="../ui/project/qgisred_legends_dialog.py" line="1200"/>
+        <location filename="../ui/project/qgisred_legends_dialog.py" line="1217"/>
         <source>Library the ramps and palettes are taken from</source>
         <translation>Biblioteca de la que se toman las rampas y paletas</translation>
     </message>
     <message>
-        <location filename="../ui/project/qgisred_legends_dialog.py" line="1201"/>
+        <location filename="../ui/project/qgisred_legends_dialog.py" line="1218"/>
         <source>Add, edit or remove ramps, palettes and symbols of your library</source>
         <translation>Añadir, editar o borrar rampas, paletas y símbolos de su biblioteca</translation>
     </message>
     <message>
-        <location filename="../ui/project/qgisred_legends_dialog.py" line="707"/>
+        <location filename="../ui/project/qgisred_legends_dialog.py" line="726"/>
         <source>None</source>
         <translation type="unfinished">Ninguna</translation>
     </message>
     <message>
-        <location filename="../ui/project/qgisred_legends_dialog.py" line="710"/>
+        <location filename="../ui/project/qgisred_legends_dialog.py" line="729"/>
         <source>Sort the classes by their values when the legend is applied</source>
         <translation>Ordenar las clases por sus valores al aplicar la leyenda</translation>
     </message>
     <message>
-        <location filename="../ui/project/qgisred_legends_dialog.py" line="874"/>
+        <location filename="../ui/project/qgisred_legends_dialog.py" line="893"/>
         <source>No border</source>
         <translation>Sin borde</translation>
     </message>
     <message>
-        <location filename="../ui/project/qgisred_legends_dialog.py" line="875"/>
+        <location filename="../ui/project/qgisred_legends_dialog.py" line="894"/>
         <source>Black</source>
         <translation>Negro</translation>
     </message>
     <message>
-        <location filename="../ui/project/qgisred_legends_dialog.py" line="876"/>
+        <location filename="../ui/project/qgisred_legends_dialog.py" line="895"/>
         <source>Fill color</source>
         <translation>Color del relleno</translation>
     </message>
     <message>
-        <location filename="../ui/project/qgisred_legends_dialog.py" line="877"/>
+        <location filename="../ui/project/qgisred_legends_dialog.py" line="896"/>
         <source>Darker than the fill</source>
         <translation>Más oscuro que el relleno</translation>
     </message>
     <message>
-        <location filename="../ui/project/qgisred_legends_dialog.py" line="882"/>
+        <location filename="../ui/project/qgisred_legends_dialog.py" line="901"/>
         <source>Opacity of every fill: 100 % is solid, 0 % invisible.</source>
         <translation>Opacidad de todos los rellenos: 100 % es opaco, 0 % invisible.</translation>
     </message>
     <message>
-        <location filename="../ui/project/qgisred_legends_dialog.py" line="884"/>
+        <location filename="../ui/project/qgisred_legends_dialog.py" line="903"/>
         <source>Width of the border of every class.</source>
         <translation>Grosor del borde de todas las clases.</translation>
     </message>
     <message>
-        <location filename="../ui/project/qgisred_legends_dialog.py" line="1597"/>
+        <location filename="../ui/project/qgisred_legends_dialog.py" line="1612"/>
         <source>(years)</source>
         <translation>(años)</translation>
     </message>
     <message>
-        <location filename="../ui/project/qgisred_legends_dialog.py" line="3031"/>
+        <location filename="../ui/project/qgisred_legends_dialog.py" line="3046"/>
         <source>Opacity of the fill: 100 % is solid, 0 % invisible.</source>
         <translation>Opacidad del relleno: 100 % es opaco, 0 % invisible.</translation>
     </message>
     <message>
-        <location filename="../ui/project/qgisred_legends_dialog.py" line="6388"/>
+        <location filename="../ui/project/qgisred_legends_dialog.py" line="6389"/>
         <source>Classes: add all values of the layer (%1 now)</source>
         <translation>Clases: añadir todos los valores de la capa (%1 ahora)</translation>
     </message>
@@ -7549,14 +7549,19 @@ No se pueden aplicar los cambios.</translation>
 <context>
     <name>QGISRedProjectIO</name>
     <message>
-        <location filename="../tools/utils/qgisred_project_io.py" line="688"/>
+        <location filename="../tools/utils/qgisred_project_io.py" line="695"/>
         <source>QGISRed Project</source>
         <translation>Proyecto QGISRed</translation>
     </message>
     <message>
         <location filename="../tools/utils/qgisred_project_io.py" line="688"/>
         <source>We cannot find the QGIS project file. Do you want to find this file manually? If not, we will open only the layers from the Inputs group.</source>
-        <translation>No podemos encontrar el archivo del proyecto de QGIS. ¿Quieres encontrarlo manualmente? Si no, abriremos solamente las capas del grupo Inputs.</translation>
+        <translation type="obsolete">No podemos encontrar el archivo del proyecto de QGIS. ¿Quieres encontrarlo manualmente? Si no, abriremos solamente las capas del grupo Inputs.</translation>
+    </message>
+    <message>
+        <location filename="../tools/utils/qgisred_project_io.py" line="695"/>
+        <source>We cannot find the QGIS project file. Do you want to find this file manually? If not, we will open the layers stored in the project metadata.</source>
+        <translation type="unfinished"></translation>
     </message>
 </context>
 <context>
@@ -7752,7 +7757,7 @@ No se pueden aplicar los cambios.</translation>
         <translation>Se ha renombrado el proyecto a %1</translation>
     </message>
     <message>
-        <location filename="../ui/general/qgisred_projectmanager_dialog.py" line="796"/>
+        <location filename="../ui/general/qgisred_projectmanager_dialog.py" line="798"/>
         <source>Project has been moved to %1</source>
         <translation>Se ha movido el proyecto a %1</translation>
     </message>
@@ -8114,12 +8119,12 @@ No se pueden aplicar los cambios.</translation>
         <translation>Evolución</translation>
     </message>
     <message>
-        <location filename="../ui/analysis/qgisred_results_dock.py" line="130"/>
+        <location filename="../ui/analysis/qgisred_results_dock.py" line="131"/>
         <source>Volume</source>
         <translation>Volumen</translation>
     </message>
     <message>
-        <location filename="../ui/analysis/qgisred_results_dock.py" line="131"/>
+        <location filename="../ui/analysis/qgisred_results_dock.py" line="132"/>
         <source>Overflow Flow</source>
         <translation>Caudal desbordado</translation>
     </message>
@@ -8144,32 +8149,32 @@ No se pueden aplicar los cambios.</translation>
         <translation type="obsolete">&gt;|</translation>
     </message>
     <message>
-        <location filename="../ui/analysis/qgisred_results_appearance.py" line="219"/>
+        <location filename="../ui/analysis/qgisred_results_appearance.py" line="221"/>
         <source>Nodes</source>
         <translation>Nudos</translation>
     </message>
     <message>
-        <location filename="../ui/analysis/qgisred_results_appearance.py" line="225"/>
+        <location filename="../ui/analysis/qgisred_results_appearance.py" line="227"/>
         <source>Links</source>
         <translation>Enlaces</translation>
     </message>
     <message>
-        <location filename="../ui/analysis/qgisred_results_dock.ui" line="688"/>
+        <location filename="../ui/analysis/qgisred_results_dock.ui" line="691"/>
         <source>Statistics</source>
         <translation>Estadísticas</translation>
     </message>
     <message>
-        <location filename="../ui/analysis/qgisred_results_dock.ui" line="807"/>
+        <location filename="../ui/analysis/qgisred_results_dock.ui" line="810"/>
         <source>Show Node Labels</source>
         <translation>Mostrar Etiquetas de Nudos</translation>
     </message>
     <message>
-        <location filename="../ui/analysis/qgisred_results_dock.ui" line="937"/>
+        <location filename="../ui/analysis/qgisred_results_dock.ui" line="940"/>
         <source>Show Link Labels</source>
         <translation>Mostrar Etiquetas de Líneas</translation>
     </message>
     <message>
-        <location filename="../ui/analysis/qgisred_results_dock.ui" line="956"/>
+        <location filename="../ui/analysis/qgisred_results_dock.ui" line="959"/>
         <source>Show Flow Directions</source>
         <translation>Mostrar Direcciones de Flujo</translation>
     </message>
@@ -8179,12 +8184,12 @@ No se pueden aplicar los cambios.</translation>
         <translation type="obsolete">Mostrar la distribución de %1</translation>
     </message>
     <message>
-        <location filename="../ui/analysis/qgisred_results_dock.ui" line="1044"/>
+        <location filename="../ui/analysis/qgisred_results_dock.ui" line="1047"/>
         <source>Frequency</source>
         <translation>Frecuencia</translation>
     </message>
     <message>
-        <location filename="../ui/analysis/qgisred_results_dock.ui" line="1089"/>
+        <location filename="../ui/analysis/qgisred_results_dock.ui" line="1092"/>
         <source>Cumulative</source>
         <translation>Acumulada</translation>
     </message>
@@ -8244,147 +8249,147 @@ No se pueden aplicar los cambios.</translation>
         <translation>Tiempos</translation>
     </message>
     <message>
-        <location filename="../ui/analysis/qgisred_results_dock.ui" line="715"/>
+        <location filename="../ui/analysis/qgisred_results_dock.ui" line="718"/>
         <source>Mapping</source>
         <translation>Mapa</translation>
     </message>
     <message>
-        <location filename="../ui/analysis/qgisred_results_dock.ui" line="1235"/>
+        <location filename="../ui/analysis/qgisred_results_dock.ui" line="1238"/>
         <source>Report</source>
         <translation>Informe</translation>
     </message>
     <message>
-        <location filename="../ui/analysis/qgisred_results_dock.py" line="105"/>
+        <location filename="../ui/analysis/qgisred_results_dock.py" line="106"/>
         <source>None</source>
         <translation>Ninguna</translation>
     </message>
     <message>
-        <location filename="../ui/analysis/qgisred_results_dock.py" line="106"/>
+        <location filename="../ui/analysis/qgisred_results_dock.py" line="107"/>
         <source>Maximum</source>
         <translation>Máximo</translation>
     </message>
     <message>
-        <location filename="../ui/analysis/qgisred_results_dock.py" line="107"/>
+        <location filename="../ui/analysis/qgisred_results_dock.py" line="108"/>
         <source>Minimum</source>
         <translation>Mínimo</translation>
     </message>
     <message>
-        <location filename="../ui/analysis/qgisred_results_dock.py" line="108"/>
+        <location filename="../ui/analysis/qgisred_results_dock.py" line="109"/>
         <source>Range</source>
         <translation>Rango</translation>
     </message>
     <message>
-        <location filename="../ui/analysis/qgisred_results_dock.py" line="109"/>
+        <location filename="../ui/analysis/qgisred_results_dock.py" line="110"/>
         <source>Average</source>
         <translation>Promedio</translation>
     </message>
     <message>
-        <location filename="../ui/analysis/qgisred_results_dock.py" line="110"/>
+        <location filename="../ui/analysis/qgisred_results_dock.py" line="111"/>
         <source>StdDev</source>
         <translation>Desviación típica</translation>
     </message>
     <message>
-        <location filename="../ui/analysis/qgisred_results_dock.py" line="111"/>
+        <location filename="../ui/analysis/qgisred_results_dock.py" line="112"/>
         <source>Warning</source>
         <translation>Advertencia</translation>
     </message>
     <message>
-        <location filename="../ui/analysis/qgisred_results_dock.py" line="115"/>
+        <location filename="../ui/analysis/qgisred_results_dock.py" line="116"/>
         <source>Pressure</source>
         <translation>Presión</translation>
     </message>
     <message>
-        <location filename="../ui/analysis/qgisred_results_dock.py" line="116"/>
+        <location filename="../ui/analysis/qgisred_results_dock.py" line="117"/>
         <source>Head</source>
         <translation>Altura</translation>
     </message>
     <message>
-        <location filename="../ui/analysis/qgisred_results_dock.py" line="117"/>
+        <location filename="../ui/analysis/qgisred_results_dock.py" line="118"/>
         <source>Demand</source>
         <translation>Demanda</translation>
     </message>
     <message>
-        <location filename="../ui/analysis/qgisred_results_dock.py" line="1225"/>
+        <location filename="../ui/analysis/qgisred_results_dock.py" line="1217"/>
         <source>Quality</source>
         <translation>Calidad</translation>
     </message>
     <message>
-        <location filename="../ui/analysis/qgisred_results_dock.py" line="119"/>
+        <location filename="../ui/analysis/qgisred_results_dock.py" line="120"/>
         <source>Flow</source>
         <translation>Caudal</translation>
     </message>
     <message>
-        <location filename="../ui/analysis/qgisred_results_dock.py" line="120"/>
+        <location filename="../ui/analysis/qgisred_results_dock.py" line="121"/>
         <source>Velocity</source>
         <translation>Velocidad</translation>
     </message>
     <message>
-        <location filename="../ui/analysis/qgisred_results_dock.py" line="121"/>
+        <location filename="../ui/analysis/qgisred_results_dock.py" line="122"/>
         <source>HeadLoss</source>
         <translation>Pérdidas de carga</translation>
     </message>
     <message>
-        <location filename="../ui/analysis/qgisred_results_dock.py" line="122"/>
+        <location filename="../ui/analysis/qgisred_results_dock.py" line="123"/>
         <source>Unit HeadLoss</source>
         <translation>Pérdidas de carga unitarias</translation>
     </message>
     <message>
-        <location filename="../ui/analysis/qgisred_results_dock.py" line="123"/>
+        <location filename="../ui/analysis/qgisred_results_dock.py" line="124"/>
         <source>Friction Factor</source>
         <translation>Factor de Fricción</translation>
     </message>
     <message>
-        <location filename="../ui/analysis/qgisred_results_dock.py" line="124"/>
+        <location filename="../ui/analysis/qgisred_results_dock.py" line="125"/>
         <source>Status</source>
         <translation>Estado</translation>
     </message>
     <message>
-        <location filename="../ui/analysis/qgisred_results_dock.py" line="125"/>
+        <location filename="../ui/analysis/qgisred_results_dock.py" line="126"/>
         <source>Reaction Rate</source>
         <translation>Velocidad de Reacción</translation>
     </message>
     <message>
-        <location filename="../ui/analysis/qgisred_results_dock.py" line="126"/>
+        <location filename="../ui/analysis/qgisred_results_dock.py" line="127"/>
         <source>Flow (Signed)</source>
         <translation>Caudal (con signo)</translation>
     </message>
     <message>
-        <location filename="../ui/analysis/qgisred_results_dock.py" line="127"/>
+        <location filename="../ui/analysis/qgisred_results_dock.py" line="128"/>
         <source>Flow (Unsigned)</source>
         <translation>Caudal (en valor absoluto)</translation>
     </message>
     <message>
-        <location filename="../ui/analysis/qgisred_results_dock.py" line="134"/>
+        <location filename="../ui/analysis/qgisred_results_dock.py" line="135"/>
         <source>Maximum values</source>
         <translation>Valores máximos</translation>
     </message>
     <message>
-        <location filename="../ui/analysis/qgisred_results_dock.py" line="135"/>
+        <location filename="../ui/analysis/qgisred_results_dock.py" line="136"/>
         <source>Minimum values</source>
         <translation>Valores mínimos</translation>
     </message>
     <message>
-        <location filename="../ui/analysis/qgisred_results_dock.py" line="136"/>
+        <location filename="../ui/analysis/qgisred_results_dock.py" line="137"/>
         <source>Range values</source>
         <translation>Range values</translation>
     </message>
     <message>
-        <location filename="../ui/analysis/qgisred_results_dock.py" line="137"/>
+        <location filename="../ui/analysis/qgisred_results_dock.py" line="138"/>
         <source>Average values</source>
         <translation>Valores medios</translation>
     </message>
     <message>
-        <location filename="../ui/analysis/qgisred_results_dock.py" line="138"/>
+        <location filename="../ui/analysis/qgisred_results_dock.py" line="139"/>
         <source>Standard deviation values</source>
         <translation>Desv. típica de valores</translation>
     </message>
     <message>
-        <location filename="../ui/analysis/qgisred_results_dock.py" line="456"/>
+        <location filename="../ui/analysis/qgisred_results_dock.py" line="462"/>
         <source>The current project has been changed. Please, try again.</source>
         <translation>Se ha hecho algún cambio en el proyecto actual. Por favor, inténtelo de nuevo.</translation>
     </message>
     <message>
-        <location filename="../ui/analysis/qgisred_results_dock.py" line="1940"/>
+        <location filename="../ui/analysis/qgisred_results_dock.py" line="1929"/>
         <source>Some issues occurred in the process</source>
         <translation>Ha habido algún error en el proceso</translation>
     </message>
@@ -8394,27 +8399,27 @@ No se pueden aplicar los cambios.</translation>
         <translation>Los resultados pueden no reflejar lo cambios recientes en la red</translation>
     </message>
     <message>
-        <location filename="../ui/analysis/qgisred_results_dock.ui" line="655"/>
+        <location filename="../ui/analysis/qgisred_results_dock.ui" line="658"/>
         <source>Reported Times</source>
         <translation>Instantes Reportados</translation>
     </message>
     <message>
-        <location filename="../ui/analysis/qgisred_results_data.py" line="260"/>
+        <location filename="../ui/analysis/qgisred_results_data.py" line="271"/>
         <source>Single Period</source>
         <translation>Periodo Único</translation>
     </message>
     <message>
-        <location filename="../ui/analysis/qgisred_results_dock.py" line="113"/>
+        <location filename="../ui/analysis/qgisred_results_dock.py" line="114"/>
         <source>Step times</source>
         <translation>Instantes pautados</translation>
     </message>
     <message>
-        <location filename="../ui/analysis/qgisred_results_dock.py" line="114"/>
+        <location filename="../ui/analysis/qgisred_results_dock.py" line="115"/>
         <source>All calculation times</source>
         <translation>Todos los instantes de cálculo</translation>
     </message>
     <message>
-        <location filename="../ui/analysis/qgisred_results_data.py" line="327"/>
+        <location filename="../ui/analysis/qgisred_results_data.py" line="338"/>
         <source>Results exported to CSV</source>
         <translation>Resultados exportados a CSV</translation>
     </message>
@@ -8424,17 +8429,17 @@ No se pueden aplicar los cambios.</translation>
         <translation>00:00:00</translation>
     </message>
     <message>
-        <location filename="../ui/analysis/qgisred_results_dock.py" line="709"/>
+        <location filename="../ui/analysis/qgisred_results_dock.py" line="715"/>
         <source>%1 results not found</source>
         <translation>%1 resultados no encontrados</translation>
     </message>
     <message>
-        <location filename="../ui/analysis/qgisred_results_dock.py" line="1522"/>
+        <location filename="../ui/analysis/qgisred_results_dock.py" line="1514"/>
         <source>for %1</source>
         <translation>para %1</translation>
     </message>
     <message>
-        <location filename="../ui/analysis/qgisred_results_dock.py" line="1871"/>
+        <location filename="../ui/analysis/qgisred_results_dock.py" line="1865"/>
         <source>No %1 results are available</source>
         <translation>Ningún resultado %1 está disponible</translation>
     </message>
@@ -8444,37 +8449,37 @@ No se pueden aplicar los cambios.</translation>
         <translation>QGISRed: Resultados de la simulación</translation>
     </message>
     <message>
-        <location filename="../ui/analysis/qgisred_results_dock.py" line="1268"/>
+        <location filename="../ui/analysis/qgisred_results_dock.py" line="1260"/>
         <source>24h format</source>
         <translation>Formato 24h</translation>
     </message>
     <message>
-        <location filename="../ui/analysis/qgisred_results_dock.py" line="1268"/>
+        <location filename="../ui/analysis/qgisred_results_dock.py" line="1260"/>
         <source>am/pm format</source>
         <translation>Formato am/pm</translation>
     </message>
     <message>
-        <location filename="../ui/analysis/qgisred_results_dock.py" line="1269"/>
+        <location filename="../ui/analysis/qgisred_results_dock.py" line="1261"/>
         <source>dd hh:mm:ss format</source>
         <translation>Formato dd hh:mm:ss</translation>
     </message>
     <message>
-        <location filename="../ui/analysis/qgisred_results_dock.py" line="1269"/>
+        <location filename="../ui/analysis/qgisred_results_dock.py" line="1261"/>
         <source>HH:mm:ss format</source>
         <translation>Formato HH:mm:ss</translation>
     </message>
     <message>
-        <location filename="../ui/analysis/qgisred_results_dock.py" line="1267"/>
+        <location filename="../ui/analysis/qgisred_results_dock.py" line="1259"/>
         <source>Elapsed time</source>
         <translation>Hora desde el inicio de la simulación</translation>
     </message>
     <message>
-        <location filename="../ui/analysis/qgisred_results_dock.py" line="1267"/>
+        <location filename="../ui/analysis/qgisred_results_dock.py" line="1259"/>
         <source>Civil hour</source>
         <translation>Hora civil</translation>
     </message>
     <message>
-        <location filename="../ui/analysis/qgisred_results_dock.ui" line="627"/>
+        <location filename="../ui/analysis/qgisred_results_dock.ui" line="630"/>
         <source>Loop</source>
         <translation>Bucle</translation>
     </message>
@@ -8484,87 +8489,87 @@ No se pueden aplicar los cambios.</translation>
         <translation type="obsolete">Opciones de apariencia</translation>
     </message>
     <message>
-        <location filename="../ui/analysis/qgisred_results_dock.ui" line="826"/>
+        <location filename="../ui/analysis/qgisred_results_dock.ui" line="829"/>
         <source>Show Node Histogram</source>
         <translation>Mostrar histograma de nudos</translation>
     </message>
     <message>
-        <location filename="../ui/analysis/qgisred_results_dock.ui" line="975"/>
+        <location filename="../ui/analysis/qgisred_results_dock.ui" line="978"/>
         <source>Show Link Histogram</source>
         <translation>Mostrar histograma de líneas</translation>
     </message>
     <message>
-        <location filename="../ui/analysis/qgisred_results_dock.ui" line="1267"/>
+        <location filename="../ui/analysis/qgisred_results_dock.ui" line="1270"/>
         <source>Appearance</source>
         <translation>Apariencia</translation>
     </message>
     <message>
-        <location filename="../ui/analysis/qgisred_results_dock.ui" line="1298"/>
+        <location filename="../ui/analysis/qgisred_results_dock.ui" line="1301"/>
         <source>Map Labels</source>
         <translation>Etiquetas de Mapa</translation>
     </message>
     <message>
-        <location filename="../ui/analysis/qgisred_results_dock.ui" line="1304"/>
+        <location filename="../ui/analysis/qgisred_results_dock.ui" line="1307"/>
         <source>Font size (pt):</source>
         <translation>Tamaño de fuente (pt):</translation>
     </message>
     <message>
-        <location filename="../ui/analysis/qgisred_results_dock.ui" line="1640"/>
+        <location filename="../ui/analysis/qgisred_results_dock.ui" line="1643"/>
         <source>Junctions:</source>
         <translation>Uniones:</translation>
     </message>
     <message>
-        <location filename="../ui/analysis/qgisred_results_dock.ui" line="1732"/>
+        <location filename="../ui/analysis/qgisred_results_dock.ui" line="1735"/>
         <source>Links:</source>
         <translation>Enlaces:</translation>
     </message>
     <message>
-        <location filename="../ui/analysis/qgisred_results_dock.ui" line="1686"/>
+        <location filename="../ui/analysis/qgisred_results_dock.ui" line="1689"/>
         <source>Tanks and reservoirs:</source>
         <translation>Depósitos y embalses:</translation>
     </message>
     <message>
-        <location filename="../ui/analysis/qgisred_results_dock.ui" line="1778"/>
+        <location filename="../ui/analysis/qgisred_results_dock.ui" line="1781"/>
         <source>Pumps and valves:</source>
         <translation>Bombas y válvulas:</translation>
     </message>
     <message>
-        <location filename="../ui/analysis/qgisred_results_dock.ui" line="1424"/>
+        <location filename="../ui/analysis/qgisred_results_dock.ui" line="1427"/>
         <source>Text color:</source>
         <translation>Color de texto:</translation>
     </message>
     <message>
-        <location filename="../ui/analysis/qgisred_results_dock.ui" line="1433"/>
+        <location filename="../ui/analysis/qgisred_results_dock.ui" line="1436"/>
         <source>Default</source>
         <translation>Predeterminado</translation>
     </message>
     <message>
-        <location filename="../ui/analysis/qgisred_results_dock.ui" line="1443"/>
+        <location filename="../ui/analysis/qgisred_results_dock.ui" line="1446"/>
         <source>By range</source>
         <translation>Por rango</translation>
     </message>
     <message>
-        <location filename="../ui/analysis/qgisred_results_dock.ui" line="1457"/>
+        <location filename="../ui/analysis/qgisred_results_dock.ui" line="1460"/>
         <source>Show Node ID</source>
         <translation>Mostrar ID de nudos</translation>
     </message>
     <message>
-        <location filename="../ui/analysis/qgisred_results_dock.ui" line="1464"/>
+        <location filename="../ui/analysis/qgisred_results_dock.ui" line="1467"/>
         <source>Show Link ID</source>
         <translation>Mostrar ID de líneas</translation>
     </message>
     <message>
-        <location filename="../ui/analysis/qgisred_results_dock.ui" line="1824"/>
+        <location filename="../ui/analysis/qgisred_results_dock.ui" line="1827"/>
         <source>Arrows:</source>
         <translation>Flechas:</translation>
     </message>
     <message>
-        <location filename="../ui/analysis/qgisred_results_dock.ui" line="1873"/>
+        <location filename="../ui/analysis/qgisred_results_dock.ui" line="1876"/>
         <source>Map Background</source>
         <translation>Fondo del mapa</translation>
     </message>
     <message>
-        <location filename="../ui/analysis/qgisred_results_appearance.py" line="322"/>
+        <location filename="../ui/analysis/qgisred_results_appearance.py" line="326"/>
         <source>No color</source>
         <translation>Sin color</translation>
     </message>
@@ -8574,42 +8579,42 @@ No se pueden aplicar los cambios.</translation>
         <translation type="obsolete">×</translation>
     </message>
     <message>
-        <location filename="../ui/analysis/qgisred_results_dock.ui" line="1897"/>
+        <location filename="../ui/analysis/qgisred_results_dock.ui" line="1900"/>
         <source>Clear background color</source>
         <translation>Limpiar color del fondo</translation>
     </message>
     <message>
-        <location filename="../ui/analysis/qgisred_results_dock.ui" line="1928"/>
+        <location filename="../ui/analysis/qgisred_results_dock.ui" line="1931"/>
         <source>Reset all</source>
         <translation>Resetar todo</translation>
     </message>
     <message>
-        <location filename="../ui/analysis/qgisred_results_dock.py" line="166"/>
+        <location filename="../ui/analysis/qgisred_results_dock.py" line="167"/>
         <source>Junctions</source>
         <translation>Uniones</translation>
     </message>
     <message>
-        <location filename="../ui/analysis/qgisred_results_dock.py" line="172"/>
+        <location filename="../ui/analysis/qgisred_results_dock.py" line="173"/>
         <source>Arrows</source>
         <translation>Flechas</translation>
     </message>
     <message>
-        <location filename="../ui/analysis/qgisred_results_dock.py" line="167"/>
+        <location filename="../ui/analysis/qgisred_results_dock.py" line="168"/>
         <source>Tanks and reservoirs</source>
         <translation>Depósitos y embalses</translation>
     </message>
     <message>
-        <location filename="../ui/analysis/qgisred_results_dock.py" line="171"/>
+        <location filename="../ui/analysis/qgisred_results_dock.py" line="172"/>
         <source>Pumps and valves</source>
         <translation>Bombas y válvulas</translation>
     </message>
     <message>
-        <location filename="../ui/analysis/qgisred_results_appearance.py" line="303"/>
+        <location filename="../ui/analysis/qgisred_results_appearance.py" line="307"/>
         <source>Map background color</source>
         <translation>Color de fondo del mapa</translation>
     </message>
     <message>
-        <location filename="../ui/analysis/qgisred_results_appearance.py" line="226"/>
+        <location filename="../ui/analysis/qgisred_results_appearance.py" line="228"/>
         <source>%1 decimals</source>
         <translation>Decimales para %1</translation>
     </message>
@@ -8629,99 +8634,105 @@ No se pueden aplicar los cambios.</translation>
         <translation>Histograma</translation>
     </message>
     <message>
-        <location filename="../ui/analysis/qgisred_results_dock.ui" line="1623"/>
+        <location filename="../ui/analysis/qgisred_results_dock.ui" line="1626"/>
         <source>Proportional to value</source>
         <translation>Proporcional al valor</translation>
     </message>
     <message>
-        <location filename="../ui/analysis/qgisred_results_dock.ui" line="1610"/>
+        <location filename="../ui/analysis/qgisred_results_dock.ui" line="1613"/>
         <source>Symbology</source>
         <translation>Simbología</translation>
     </message>
     <message>
-        <location filename="../ui/analysis/qgisred_results_dock.ui" line="1616"/>
+        <location filename="../ui/analysis/qgisred_results_dock.ui" line="1619"/>
         <source>Hide border on junctions</source>
         <translation>Ocultar borde en uniones</translation>
     </message>
     <message>
-        <location filename="../ui/analysis/qgisred_results_dock.ui" line="1630"/>
+        <location filename="../ui/analysis/qgisred_results_dock.ui" line="1633"/>
         <source>Size factor</source>
         <translation>Factor de tamaño</translation>
     </message>
     <message>
-        <location filename="../ui/analysis/qgisred_results_dock.ui" line="1855"/>
+        <location filename="../ui/analysis/qgisred_results_dock.ui" line="1858"/>
         <source>↺</source>
         <translation type="unfinished">↺</translation>
     </message>
     <message>
-        <location filename="../ui/analysis/qgisred_results_dock.ui" line="1858"/>
+        <location filename="../ui/analysis/qgisred_results_dock.ui" line="1861"/>
         <source>Restore value</source>
         <translation>Restaurar valor</translation>
     </message>
     <message>
-        <location filename="../ui/analysis/qgisred_results_dock.ui" line="1486"/>
+        <location filename="../ui/analysis/qgisred_results_dock.ui" line="1489"/>
         <source>Background:</source>
         <translation>Fondo:</translation>
     </message>
     <message>
-        <location filename="../ui/analysis/qgisred_results_dock.ui" line="1511"/>
+        <location filename="../ui/analysis/qgisred_results_dock.ui" line="1514"/>
         <source>Clear label background color</source>
         <translation>Borrar color de fondo de las etiquetas</translation>
     </message>
     <message>
-        <location filename="../ui/analysis/qgisred_results_appearance.py" line="303"/>
+        <location filename="../ui/analysis/qgisred_results_appearance.py" line="307"/>
         <source>Label background color</source>
         <translation>Color de fondo de las etiquetas</translation>
     </message>
     <message>
-        <location filename="../ui/analysis/qgisred_results_appearance.py" line="102"/>
+        <location filename="../ui/analysis/qgisred_results_appearance.py" line="104"/>
         <source>Link the label background to the map background color</source>
         <translation>Vincular el fondo de las etiquetas al color de fondo del mapa</translation>
     </message>
     <message>
-        <location filename="../ui/analysis/qgisred_results_appearance.py" line="102"/>
+        <location filename="../ui/analysis/qgisred_results_appearance.py" line="104"/>
         <source>Label background follows the map background color</source>
         <translation>El fondo de las etiquetas sigue el color de fondo del mapa</translation>
     </message>
     <message>
-        <location filename="../ui/analysis/qgisred_results_dock.ui" line="1551"/>
+        <location filename="../ui/analysis/qgisred_results_dock.ui" line="1554"/>
         <source>Buffer:</source>
         <translation>Búfer:</translation>
     </message>
     <message>
-        <location filename="../ui/analysis/qgisred_results_dock.ui" line="1576"/>
+        <location filename="../ui/analysis/qgisred_results_dock.ui" line="1579"/>
         <source>Clear label buffer color</source>
         <translation>Borrar color del búfer de las etiquetas</translation>
     </message>
     <message>
-        <location filename="../ui/analysis/qgisred_results_appearance.py" line="303"/>
+        <location filename="../ui/analysis/qgisred_results_appearance.py" line="307"/>
         <source>Label buffer color</source>
         <translation>Color del búfer de las etiquetas</translation>
     </message>
     <message>
-        <location filename="../ui/analysis/qgisred_results_dock.ui" line="536"/>
+        <location filename="../ui/analysis/qgisred_results_dock.ui" line="539"/>
         <source>Constant playback rate</source>
         <translation>Velocidad de reproducción constante</translation>
     </message>
     <message>
-        <location filename="../ui/analysis/qgisred_results_dock.ui" line="556"/>
+        <location filename="../ui/analysis/qgisred_results_dock.ui" line="559"/>
         <source>1h in:</source>
         <translation>1h en:</translation>
     </message>
     <message>
-        <location filename="../ui/analysis/qgisred_results_dock.ui" line="598"/>
+        <location filename="../ui/analysis/qgisred_results_dock.ui" line="601"/>
         <source>sec</source>
         <translation>seg</translation>
     </message>
     <message>
-        <location filename="../ui/analysis/qgisred_results_dock.py" line="2064"/>
+        <location filename="../ui/analysis/qgisred_results_dock.py" line="2053"/>
         <source>Reading results...</source>
         <translation type="unfinished">Leyendo resultados...</translation>
     </message>
     <message>
-        <location filename="../ui/analysis/qgisred_results_dock.ui" line="1344"/>
+        <location filename="../ui/analysis/qgisred_results_dock.ui" line="1347"/>
         <source>Nodes:</source>
         <translation>Nudos:</translation>
+    </message>
+    <message>
+        <location filename="../tools/utils/qgisred_project_io.py" line="271"/>
+        <source>Links</source>
+        <comment>result layer name</comment>
+        <translation>Líneas</translation>
     </message>
 </context>
 <context>
@@ -8744,40 +8755,40 @@ No se pueden aplicar los cambios.</translation>
     <message>
         <location filename="../ui/project/qgisred_custom_dialogs.py" line="157"/>
         <source>Nothing in this legend can be recalculated: hover each line to see why.</source>
-        <translation>Nada en esta leyenda se puede recalcular: pase el ratón sobre cada línea para ver por qué.</translation>
+        <translation type="obsolete">Nada en esta leyenda se puede recalcular: pase el ratón sobre cada línea para ver por qué.</translation>
     </message>
     <message>
-        <location filename="../ui/project/qgisred_custom_dialogs.py" line="125"/>
+        <location filename="../ui/project/qgisred_custom_dialogs.py" line="129"/>
         <source>Saving as the Global Style</source>
         <translation>Se guardará como Estilo global</translation>
     </message>
     <message>
-        <location filename="../ui/project/qgisred_custom_dialogs.py" line="125"/>
+        <location filename="../ui/project/qgisred_custom_dialogs.py" line="129"/>
         <source>Saving as the Project Style</source>
         <translation>Se guardará como Estilo del proyecto</translation>
     </message>
     <message>
-        <location filename="../ui/project/qgisred_custom_dialogs.py" line="111"/>
+        <location filename="../ui/project/qgisred_custom_dialogs.py" line="112"/>
         <source>Ascending</source>
         <translation type="unfinished">Ascendente</translation>
     </message>
     <message>
-        <location filename="../ui/project/qgisred_custom_dialogs.py" line="111"/>
+        <location filename="../ui/project/qgisred_custom_dialogs.py" line="112"/>
         <source>Descending</source>
         <translation type="unfinished">Descendente</translation>
     </message>
     <message>
-        <location filename="../ui/project/qgisred_custom_dialogs.py" line="112"/>
+        <location filename="../ui/project/qgisred_custom_dialogs.py" line="114"/>
         <source>Class order: %1</source>
         <translation>Orden de las clases: %1</translation>
     </message>
     <message>
-        <location filename="../ui/project/qgisred_custom_dialogs.py" line="113"/>
+        <location filename="../ui/project/qgisred_custom_dialogs.py" line="112"/>
         <source>No changes</source>
         <translation>Sin cambios</translation>
     </message>
     <message>
-        <location filename="../ui/project/qgisred_custom_dialogs.py" line="114"/>
+        <location filename="../ui/project/qgisred_custom_dialogs.py" line="115"/>
         <source>Sort the classes by their values when the style is loaded</source>
         <translation>Ordenar las clases por sus valores al cargar el estilo</translation>
     </message>
@@ -9447,67 +9458,67 @@ No se pueden aplicar los cambios.</translation>
 <context>
     <name>QGISRedStylingUtils</name>
     <message>
-        <location filename="../tools/utils/qgisred_styling_utils.py" line="1105"/>
+        <location filename="../tools/utils/qgisred_styling_utils.py" line="1170"/>
         <source>Errors</source>
         <translation>Errores</translation>
     </message>
     <message>
-        <location filename="../tools/utils/qgisred_styling_utils.py" line="1106"/>
+        <location filename="../tools/utils/qgisred_styling_utils.py" line="1171"/>
         <source>Warnings</source>
         <translation>Advertencias</translation>
     </message>
     <message>
-        <location filename="../tools/utils/qgisred_styling_utils.py" line="1107"/>
+        <location filename="../tools/utils/qgisred_styling_utils.py" line="1172"/>
         <source>Information</source>
         <translation>Información</translation>
     </message>
     <message>
-        <location filename="../tools/utils/qgisred_styling_utils.py" line="1843"/>
+        <location filename="../tools/utils/qgisred_styling_utils.py" line="1947"/>
         <source>%1 field not found in layer %2</source>
         <translation>Campo %1 no encontrado en capa %2</translation>
     </message>
     <message>
-        <location filename="../tools/utils/qgisred_styling_utils.py" line="1132"/>
+        <location filename="../tools/utils/qgisred_styling_utils.py" line="1197"/>
         <source>Branches</source>
         <translation type="unfinished">Ramas</translation>
     </message>
     <message>
-        <location filename="../tools/utils/qgisred_styling_utils.py" line="1134"/>
+        <location filename="../tools/utils/qgisred_styling_utils.py" line="1199"/>
         <source>Chords</source>
         <translation type="unfinished">Cuerdas</translation>
     </message>
     <message>
-        <location filename="../tools/utils/qgisred_styling_utils.py" line="354"/>
+        <location filename="../tools/utils/qgisred_styling_utils.py" line="370"/>
         <source>Failed to apply legend strategy for layer %1: %2</source>
         <translation>Fallo al aplicar la estrategia de leyenda para la capa %1: %2</translation>
     </message>
     <message>
-        <location filename="../tools/utils/qgisred_styling_utils.py" line="386"/>
+        <location filename="../tools/utils/qgisred_styling_utils.py" line="402"/>
         <source>Unsupported legend strategy schema: %1</source>
         <translation>Esquema de estrategia de leyenda no soportado: %1</translation>
     </message>
     <message>
-        <location filename="../tools/utils/qgisred_styling_utils.py" line="399"/>
+        <location filename="../tools/utils/qgisred_styling_utils.py" line="415"/>
         <source>Legend strategy field &apos;%1&apos; not found on layer &apos;%2&apos;</source>
         <translation>Campo de estrategia de leyenda '%1' no encontrado en la capa '%2'</translation>
     </message>
     <message>
-        <location filename="../tools/utils/qgisred_styling_utils.py" line="734"/>
+        <location filename="../tools/utils/qgisred_styling_utils.py" line="750"/>
         <source>Color ramp &apos;%1&apos; not found; falling back to random colors</source>
         <translation>Rampa de color '%1' no encontrada; volviendo a colores aleatorios</translation>
     </message>
     <message>
-        <location filename="../tools/utils/qgisred_styling_utils.py" line="485"/>
+        <location filename="../tools/utils/qgisred_styling_utils.py" line="501"/>
         <source>Unsupported classification mode: %1</source>
         <translation type="unfinished">Modo de clasificación no compatible: %1</translation>
     </message>
     <message>
-        <location filename="../tools/utils/qgisred_styling_utils.py" line="771"/>
+        <location filename="../tools/utils/qgisred_styling_utils.py" line="787"/>
         <source>Color ramp &apos;%1&apos; not found; colors strategy skipped</source>
         <translation type="unfinished">Rampa de colores '%1' no encontrada; se omite la estrategia de colores</translation>
     </message>
     <message>
-        <location filename="../tools/utils/qgisred_styling_utils.py" line="1121"/>
+        <location filename="../tools/utils/qgisred_styling_utils.py" line="1186"/>
         <source>Closed Links</source>
         <translation>Líneas Cerradas</translation>
     </message>
@@ -9517,7 +9528,7 @@ No se pueden aplicar los cambios.</translation>
         <translation type="obsolete">Indefinido</translation>
     </message>
     <message>
-        <location filename="../tools/utils/qgisred_styling_utils.py" line="1119"/>
+        <location filename="../tools/utils/qgisred_styling_utils.py" line="1184"/>
         <source>Uncategorized</source>
         <translation>Sin categoría</translation>
     </message>
@@ -9642,42 +9653,42 @@ No se pueden aplicar los cambios.</translation>
         <translation type="obsolete">Booster por consigna</translation>
     </message>
     <message>
-        <location filename="../tools/utils/qgisred_styling_utils.py" line="1087"/>
+        <location filename="../tools/utils/qgisred_styling_utils.py" line="1152"/>
         <source>Now closed</source>
         <translation>Ya cerrado</translation>
     </message>
     <message>
-        <location filename="../tools/utils/qgisred_styling_utils.py" line="1088"/>
+        <location filename="../tools/utils/qgisred_styling_utils.py" line="1153"/>
         <source>To close</source>
         <translation>A cerrar</translation>
     </message>
     <message>
-        <location filename="../tools/utils/qgisred_styling_utils.py" line="1089"/>
+        <location filename="../tools/utils/qgisred_styling_utils.py" line="1154"/>
         <source>To open</source>
         <translation>A abrir</translation>
     </message>
     <message>
-        <location filename="../tools/utils/qgisred_styling_utils.py" line="1090"/>
+        <location filename="../tools/utils/qgisred_styling_utils.py" line="1155"/>
         <source>Isolated</source>
         <translation>Aislado</translation>
     </message>
     <message>
-        <location filename="../tools/utils/qgisred_styling_utils.py" line="1091"/>
+        <location filename="../tools/utils/qgisred_styling_utils.py" line="1156"/>
         <source>To recover</source>
         <translation>A recuperar</translation>
     </message>
     <message>
-        <location filename="../tools/utils/qgisred_styling_utils.py" line="1092"/>
+        <location filename="../tools/utils/qgisred_styling_utils.py" line="1157"/>
         <source>Incidence point</source>
         <translation>Punto de incidencia</translation>
     </message>
     <message>
-        <location filename="../tools/utils/qgisred_styling_utils.py" line="1098"/>
+        <location filename="../tools/utils/qgisred_styling_utils.py" line="1163"/>
         <source>Junctions</source>
         <translation>Uniones</translation>
     </message>
     <message>
-        <location filename="../tools/utils/qgisred_styling_utils.py" line="1099"/>
+        <location filename="../tools/utils/qgisred_styling_utils.py" line="1164"/>
         <source>Service Connections</source>
         <translation>Acometidas</translation>
     </message>
@@ -9685,7 +9696,7 @@ No se pueden aplicar los cambios.</translation>
 <context>
     <name>QGISRedSymbolColorSelector</name>
     <message>
-        <location filename="../ui/project/qgisred_custom_dialogs.py" line="258"/>
+        <location filename="../ui/project/qgisred_custom_dialogs.py" line="255"/>
         <source>Click to pick a color.</source>
         <translation>Pincha para elegir un color.</translation>
     </message>
@@ -11430,9 +11441,20 @@ No se pueden aplicar los cambios.</translation>
         <translation>%1 símbolos de la capa %2 no corresponden a su geometría y no se han redimensionado</translation>
     </message>
     <message>
-        <location filename="../ui/analysis/qgisred_results_rendering.py" line="1166"/>
+        <location filename="../ui/analysis/qgisred_results_rendering.py" line="1190"/>
         <source>No values to classify in field &apos;%1&apos; of layer %2: the legend was left empty</source>
         <translation>No hay valores que clasificar en el campo '%1' de la capa %2: la leyenda se ha dejado vacía</translation>
+    </message>
+    <message>
+        <location filename="../ui/analysis/qgisred_results_rendering.py" line="1173"/>
+        <source>Links</source>
+        <comment>result layer name</comment>
+        <translation>Líneas</translation>
+    </message>
+    <message>
+        <location filename="../ui/analysis/qgisred_results_rendering.py" line="1173"/>
+        <source>Nodes</source>
+        <translation type="unfinished">Nudos</translation>
     </message>
 </context>
 <context>
