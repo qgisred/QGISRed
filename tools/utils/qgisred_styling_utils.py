@@ -1004,11 +1004,12 @@ class QGISRedStylingUtils:
     @classmethod
     def frameColorFor(cls, fill):
         """Frame colour of a tank/reservoir icon filled with `fill`: a darker shade of it,
-        or the complement of the map background when the fill blends into that background."""
+        or the complement of the map background when that shade would blend into it."""
+        shade = fill.darker(FRAME_DARKEN_FACTOR)
         background = cls._canvasBackground()
-        if background is not None and deltaE(fill, background) < FRAME_BLEND_DELTA_E:
+        if background is not None and deltaE(shade, background) < FRAME_BLEND_DELTA_E:
             return complementaryColor(background)
-        return fill.darker(FRAME_DARKEN_FACTOR)
+        return shade
 
     @classmethod
     def _setSymbolColor(cls, symbol, color):
@@ -1066,6 +1067,11 @@ class QGISRedStylingUtils:
                     symbol = classRange.symbol().clone()
                     if cls._refreshSymbolFrames(symbol):
                         renderer.updateRangeSymbol(index, symbol)
+            elif isinstance(renderer, QgsRuleBasedRenderer):
+                # Result layers end up here: applyNullStyle wraps the graduated renderer in rules.
+                for rule in renderer.rootRule().children():
+                    if rule.symbol() is not None:
+                        cls._refreshSymbolFrames(rule.symbol())
             elif isinstance(renderer, QgsCategorizedSymbolRenderer):
                 for index, category in enumerate(renderer.categories()):
                     symbol = category.symbol().clone()
