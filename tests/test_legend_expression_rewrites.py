@@ -9,6 +9,7 @@ the rest of the expression untouched.
 import base64
 import copy
 import os
+import re
 import xml.etree.ElementTree as ET
 from unittest.mock import MagicMock
 
@@ -1747,14 +1748,15 @@ ISOLATED_LINK_BASE_SIZES = {
     "connectionLine": 0.6, "connectionCircle": 0, "pipeLine": 0.8, "pump": 0, "valve": 0, "cvPipe": 0,
 }
 # The check valve icon of the Pipes style, drawn on the pipes whose Status is CV
-ISOLATED_CV_SIZE = isolatedLinkSize("PIPE' and \"Status\"='CV", 9)
+ISOLATED_CV_SIZE = isolatedLinkSize("PIPE' and \"Status\"='CV", 8)
 # What each class of the nodes is drawn with: (marker, node type it is drawn for or None for
 # any, size on the map, size in the Layers Panel)
-STATUS_CIRCLES = [("circle", "JUNCTION", 3.5, 0), ("circle", "ISOLATIONVALVE", 3.5, 3.5)]
-JUNCTION_AND_VALVE_CIRCLES = [("circle", "JUNCTION", 2.5, 2.5), ("circle", "ISOLATIONVALVE", 3.5, 0)]
+# A junction is drawn at a (positive demand, negative demand) pair of sizes
+STATUS_CIRCLES = [("circle", "JUNCTION", (3, 3.8), 0), ("circle", "ISOLATIONVALVE", 3, 3)]
+JUNCTION_AND_VALVE_CIRCLES = [("circle", "JUNCTION", (2.2, 3), 2.2), ("circle", "ISOLATIONVALVE", 3, 0)]
 TANK_AND_RESERVOIR_ICONS = [
-    ("qgisred_water", "TANK", 10, 0), ("qgisred_frame", "TANK", 10, 0),
-    ("qgisred_water", "RESERVOIR", 10, 0), ("qgisred_frame", "RESERVOIR", 10, 0),
+    ("qgisred_water", "TANK", 9, 0), ("qgisred_frame", "TANK", 9, 0),
+    ("qgisred_water", "RESERVOIR", 9, 0), ("qgisred_frame", "RESERVOIR", 9, 0),
 ]
 ISOLATED_NODE_LAYERS = {
     "NOW CLOSED": STATUS_CIRCLES + TANK_AND_RESERVOIR_ICONS,
@@ -1762,11 +1764,14 @@ ISOLATED_NODE_LAYERS = {
     "TO OPEN": STATUS_CIRCLES + TANK_AND_RESERVOIR_ICONS,
     "ISOLATED": JUNCTION_AND_VALVE_CIRCLES + TANK_AND_RESERVOIR_ICONS,
     "TO RECOVER": STATUS_CIRCLES + TANK_AND_RESERVOIR_ICONS,
-    "INCIDENCE": [("star", None, 6, 6)],
+    "INCIDENCE": [("star", None, 5.5, 5.5)],
 }
 
 
 def isolatedNodeSize(nodeType, size):
+    if isinstance(size, tuple):
+        positive, negative = size
+        size = f"if(coalesce(attribute($currentfeature,'BaseDem'),0)<0, {negative}, {positive})"
     return f"if(@id is NULL, NULL, if({ISOLATED_NODE_TYPE}='{nodeType}', {size}, 0))"
 
 
@@ -1835,7 +1840,7 @@ class TestShippedFixedLegends:
         assert set(utils.isolatedStatusClassNames()) == set(ISOLATED_NODE_COLORS)
         assert set(utils.isolatedDemandClassNames()) == set(ISOLATED_DEMAND_COLORS)
 
-    @pytest.mark.parametrize("value, size", [("JUNCTION", 2.5), ("CONNECTION", 1.6)])
+    @pytest.mark.parametrize("value, size", [("JUNCTION", 1.6), ("CONNECTION", 2.5)])
     def test_each_class_of_the_isolated_demands_is_a_hollow_circle(self, value, size):
         [ring] = _classLayers(ISOLATED_DEMANDS_STYLE, value)
         assert (ring.get("class"), _option(ring, "name")) == ("SimpleMarker", "circle")
@@ -1851,8 +1856,8 @@ class TestShippedFixedLegends:
         assert _dataDefinedExpressions(connectionLine)["outlineWidth"] == isolatedLinkSize("SERVICECONNECTION", 0.6)
         assert _dataDefinedExpressions(circle)["size"] == isolatedLinkSize("SERVICECONNECTION", 2)
         assert pipeLine.get("class") == "SimpleLine" and "outlineWidth" not in _dataDefinedExpressions(pipeLine)
-        assert _dataDefinedExpressions(pumpIcon)["size"] == isolatedLinkSize("PUMP", 9)
-        assert _dataDefinedExpressions(valveIcon)["size"] == isolatedLinkSize("VALVE", 9)
+        assert _dataDefinedExpressions(pumpIcon)["size"] == isolatedLinkSize("PUMP", 8)
+        assert _dataDefinedExpressions(valveIcon)["size"] == isolatedLinkSize("VALVE", 8)
         assert _dataDefinedExpressions(cvIcon)["size"] == ISOLATED_CV_SIZE
         assert cvIcon.get("class") == "SvgMarker" and _embeddedSvg(cvIcon) == _embeddedSvg(_pipesCheckValveIcon())
         baseSizes = {
@@ -1988,7 +1993,11 @@ def drawnSizes(symbol):
         for propertyKey in (SIZE_KEY, WIDTH_KEY, STROKE_WIDTH_KEY):
             if properties.isActive(propertyKey):
                 expression = properties.property(propertyKey).expressionString()
-                sizes.append(float(expression.rsplit("', ", 1)[1].split(",")[0]))
+                negativeAndPositive = re.search(r"<0,\s*([\d.]+),\s*([\d.]+)\)", expression)
+                if negativeAndPositive:
+                    sizes.extend(float(size) for size in negativeAndPositive.groups())
+                else:
+                    sizes.append(float(expression.rsplit("', ", 1)[1].split(",")[0]))
     return sizes
 
 
@@ -2339,7 +2348,7 @@ class TestCheckValveMarkerInQgis:
         return expression.evaluate(context)
 
     def test_a_check_valve_pipe_gets_the_icon_at_its_size(self):
-        assert self._cvIconSize("PIPE", "CV") == 9
+        assert self._cvIconSize("PIPE", "CV") == 8
 
     @pytest.mark.parametrize("elemType, status", [("PIPE", "OPEN"), ("PIPE", "CLOSED"), ("VALVE", "CV")])
     def test_any_other_link_gets_no_icon(self, elemType, status):

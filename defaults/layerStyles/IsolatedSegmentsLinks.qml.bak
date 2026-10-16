@@ -248,7 +248,7 @@
                   <Option name="properties" type="Map">
                     <Option name="size" type="Map">
                       <Option name="active" value="true" type="bool"/>
-                      <Option name="expression" value="if(@id is NULL, NULL, if(coalesce(attribute($currentfeature,'LinkType'),attribute($currentfeature,'ElemType'))='PUMP', 9, 0))" type="QString"/>
+                      <Option name="expression" value="if(@id is NULL, NULL, if(coalesce(attribute($currentfeature,'LinkType'),attribute($currentfeature,'ElemType'))='PUMP', 8, 0))" type="QString"/>
                       <Option name="type" value="3" type="int"/>
                     </Option>
                   </Option>
@@ -319,7 +319,7 @@
                   <Option name="properties" type="Map">
                     <Option name="size" type="Map">
                       <Option name="active" value="true" type="bool"/>
-                      <Option name="expression" value="if(@id is NULL, NULL, if(coalesce(attribute($currentfeature,'LinkType'),attribute($currentfeature,'ElemType'))='VALVE', 9, 0))" type="QString"/>
+                      <Option name="expression" value="if(@id is NULL, NULL, if(coalesce(attribute($currentfeature,'LinkType'),attribute($currentfeature,'ElemType'))='VALVE', 8, 0))" type="QString"/>
                       <Option name="type" value="3" type="int"/>
                     </Option>
                   </Option>
@@ -390,7 +390,7 @@
                   <Option name="properties" type="Map">
                     <Option name="size" type="Map">
                       <Option name="active" value="true" type="bool"/>
-                      <Option name="expression" value="if(@id is NULL, NULL, if(coalesce(attribute($currentfeature,'LinkType'),attribute($currentfeature,'ElemType'))='PIPE' and &quot;Status&quot;='CV', 9, 0))" type="QString"/>
+                      <Option name="expression" value="if(@id is NULL, NULL, if(coalesce(attribute($currentfeature,'LinkType'),attribute($currentfeature,'ElemType'))='PIPE' and &quot;Status&quot;='CV', 8, 0))" type="QString"/>
                       <Option name="type" value="3" type="int"/>
                     </Option>
                   </Option>
@@ -640,7 +640,7 @@
                   <Option name="properties" type="Map">
                     <Option name="size" type="Map">
                       <Option name="active" value="true" type="bool"/>
-                      <Option name="expression" value="if(@id is NULL, NULL, if(coalesce(attribute($currentfeature,'LinkType'),attribute($currentfeature,'ElemType'))='PUMP', 9, 0))" type="QString"/>
+                      <Option name="expression" value="if(@id is NULL, NULL, if(coalesce(attribute($currentfeature,'LinkType'),attribute($currentfeature,'ElemType'))='PUMP', 8, 0))" type="QString"/>
                       <Option name="type" value="3" type="int"/>
                     </Option>
                   </Option>
@@ -711,7 +711,7 @@
                   <Option name="properties" type="Map">
                     <Option name="size" type="Map">
                       <Option name="active" value="true" type="bool"/>
-                      <Option name="expression" value="if(@id is NULL, NULL, if(coalesce(attribute($currentfeature,'LinkType'),attribute($currentfeature,'ElemType'))='VALVE', 9, 0))" type="QString"/>
+                      <Option name="expression" value="if(@id is NULL, NULL, if(coalesce(attribute($currentfeature,'LinkType'),attribute($currentfeature,'ElemType'))='VALVE', 8, 0))" type="QString"/>
                       <Option name="type" value="3" type="int"/>
                     </Option>
                   </Option>
@@ -782,7 +782,7 @@
                   <Option name="properties" type="Map">
                     <Option name="size" type="Map">
                       <Option name="active" value="true" type="bool"/>
-                      <Option name="expression" value="if(@id is NULL, NULL, if(coalesce(attribute($currentfeature,'LinkType'),attribute($currentfeature,'ElemType'))='PIPE' and &quot;Status&quot;='CV', 9, 0))" type="QString"/>
+                      <Option name="expression" value="if(@id is NULL, NULL, if(coalesce(attribute($currentfeature,'LinkType'),attribute($currentfeature,'ElemType'))='PIPE' and &quot;Status&quot;='CV', 8, 0))" type="QString"/>
                       <Option name="type" value="3" type="int"/>
                     </Option>
                   </Option>
@@ -1032,7 +1032,7 @@
                   <Option name="properties" type="Map">
                     <Option name="size" type="Map">
                       <Option name="active" value="true" type="bool"/>
-                      <Option name="expression" value="if(@id is NULL, NULL, if(coalesce(attribute($currentfeature,'LinkType'),attribute($currentfeature,'ElemType'))='PUMP', 9, 0))" type="QString"/>
+                      <Option name="expression" value="if(@id is NULL, NULL, if(coalesce(attribute($currentfeature,'LinkType'),attribute($currentfeature,'ElemType'))='PUMP', 8, 0))" type="QString"/>
                       <Option name="type" value="3" type="int"/>
                     </Option>
                   </Option>
@@ -1103,7 +1103,7 @@
                   <Option name="properties" type="Map">
                     <Option name="size" type="Map">
                       <Option name="active" value="true" type="bool"/>
-                      <Option name="expression" value="if(@id is NULL, NULL, if(coalesce(attribute($currentfeature,'LinkType'),attribute($currentfeature,'ElemType'))='VALVE', 9, 0))" type="QString"/>
+                      <Option name="expression" value="if(@id is NULL, NULL, if(coalesce(attribute($currentfeature,'LinkType'),attribute($currentfeature,'ElemType'))='VALVE', 8, 0))" type="QString"/>
                       <Option name="type" value="3" type="int"/>
                     </Option>
                   </Option>
@@ -1174,7 +1174,7 @@
                   <Option name="properties" type="Map">
                     <Option name="size" type="Map">
                       <Option name="active" value="true" type="bool"/>
-                      <Option name="expression" value="if(@id is NULL, NULL, if(coalesce(attribute($currentfeature,'LinkType'),attribute($currentfeature,'ElemType'))='PIPE' and &quot;Status&quot;='CV', 9, 0))" type="QString"/>
+                      <Option name="expression" value="if(@id is NULL, NULL, if(coalesce(attribute($currentfeature,'LinkType'),attribute($currentfeature,'ElemType'))='PIPE' and &quot;Status&quot;='CV', 8, 0))" type="QString"/>
                       <Option name="type" value="3" type="int"/>
                     </Option>
                   </Option>
@@ -1424,7 +1424,7 @@
                   <Option name="properties" type="Map">
                     <Option name="size" type="Map">
                       <Option name="active" value="true" type="bool"/>
-                      <Option name="expression" value="if(@id is NULL, NULL, if(coalesce(attribute($currentfeature,'LinkType'),attribute($currentfeature,'ElemType'))='PUMP', 9, 0))" type="QString"/>
+                      <Option name="expression" value="if(@id is NULL, NULL, if(coalesce(attribute($currentfeature,'LinkType'),attribute($currentfeature,'ElemType'))='PUMP', 8, 0))" type="QString"/>
                       <Option name="type" value="3" type="int"/>
                     </Option>
                   </Option>
@@ -1495,7 +1495,7 @@
                   <Option name="properties" type="Map">
                     <Option name="size" type="Map">
                       <Option name="active" value="true" type="bool"/>
-                      <Option name="expression" value="if(@id is NULL, NULL, if(coalesce(attribute($currentfeature,'LinkType'),attribute($currentfeature,'ElemType'))='VALVE', 9, 0))" type="QString"/>
+                      <Option name="expression" value="if(@id is NULL, NULL, if(coalesce(attribute($currentfeature,'LinkType'),attribute($currentfeature,'ElemType'))='VALVE', 8, 0))" type="QString"/>
                       <Option name="type" value="3" type="int"/>
                     </Option>
                   </Option>
@@ -1566,7 +1566,7 @@
                   <Option name="properties" type="Map">
                     <Option name="size" type="Map">
                       <Option name="active" value="true" type="bool"/>
-                      <Option name="expression" value="if(@id is NULL, NULL, if(coalesce(attribute($currentfeature,'LinkType'),attribute($currentfeature,'ElemType'))='PIPE' and &quot;Status&quot;='CV', 9, 0))" type="QString"/>
+                      <Option name="expression" value="if(@id is NULL, NULL, if(coalesce(attribute($currentfeature,'LinkType'),attribute($currentfeature,'ElemType'))='PIPE' and &quot;Status&quot;='CV', 8, 0))" type="QString"/>
                       <Option name="type" value="3" type="int"/>
                     </Option>
                   </Option>
@@ -1816,7 +1816,7 @@
                   <Option name="properties" type="Map">
                     <Option name="size" type="Map">
                       <Option name="active" value="true" type="bool"/>
-                      <Option name="expression" value="if(@id is NULL, NULL, if(coalesce(attribute($currentfeature,'LinkType'),attribute($currentfeature,'ElemType'))='PUMP', 9, 0))" type="QString"/>
+                      <Option name="expression" value="if(@id is NULL, NULL, if(coalesce(attribute($currentfeature,'LinkType'),attribute($currentfeature,'ElemType'))='PUMP', 8, 0))" type="QString"/>
                       <Option name="type" value="3" type="int"/>
                     </Option>
                   </Option>
@@ -1887,7 +1887,7 @@
                   <Option name="properties" type="Map">
                     <Option name="size" type="Map">
                       <Option name="active" value="true" type="bool"/>
-                      <Option name="expression" value="if(@id is NULL, NULL, if(coalesce(attribute($currentfeature,'LinkType'),attribute($currentfeature,'ElemType'))='VALVE', 9, 0))" type="QString"/>
+                      <Option name="expression" value="if(@id is NULL, NULL, if(coalesce(attribute($currentfeature,'LinkType'),attribute($currentfeature,'ElemType'))='VALVE', 8, 0))" type="QString"/>
                       <Option name="type" value="3" type="int"/>
                     </Option>
                   </Option>
@@ -1958,7 +1958,7 @@
                   <Option name="properties" type="Map">
                     <Option name="size" type="Map">
                       <Option name="active" value="true" type="bool"/>
-                      <Option name="expression" value="if(@id is NULL, NULL, if(coalesce(attribute($currentfeature,'LinkType'),attribute($currentfeature,'ElemType'))='PIPE' and &quot;Status&quot;='CV', 9, 0))" type="QString"/>
+                      <Option name="expression" value="if(@id is NULL, NULL, if(coalesce(attribute($currentfeature,'LinkType'),attribute($currentfeature,'ElemType'))='PIPE' and &quot;Status&quot;='CV', 8, 0))" type="QString"/>
                       <Option name="type" value="3" type="int"/>
                     </Option>
                   </Option>
