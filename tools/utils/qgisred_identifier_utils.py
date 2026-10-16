@@ -236,7 +236,7 @@ class QGISRedIdentifierUtils:
         from .qgisred_layer_utils import QGISRedLayerUtils
 
         source = "Tree_%1_Links" if link else "Tree_%1_Nodes"
-        return self.tr(source).replace("%1", QGISRedLayerUtils.treeGroupName(treeName))
+        return self.tr(source).replace("%1", QGISRedLayerUtils.treeBareName(treeName))
 
     def getLocaleLayerName(self, layer):
         """Legend name of a QGISRed layer in the active locale, or None when it has no default name."""

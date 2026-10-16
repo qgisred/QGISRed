@@ -745,9 +745,14 @@ class QGISRedLayerUtils:
         del vlayer
 
     @staticmethod
-    def treeGroupName(treeName):
-        """The C# side bakes a "Tree_" marker into the tree's file name; the legend group shows the bare name."""
+    def treeBareName(treeName):
+        """The C# side bakes a "Tree_" marker into the tree's file name; the legend shows the bare name."""
         return treeName[len("Tree_"):] if treeName.startswith("Tree_") else treeName
+
+    @staticmethod
+    def treeGroupName(treeName):
+        return QCoreApplication.translate("QGISRedGroups", "Tree_%1").replace(
+            "%1", QGISRedLayerUtils.treeBareName(treeName))
 
     @staticmethod
     def treeNameFromLayerPath(layerPath, networkName):

@@ -328,10 +328,27 @@ class QGISRedProjectIO:
         from .qgisred_layer_utils import QGISRedLayerUtils
         self._renameGroupsRecursive(QgsProject.instance().layerTreeRoot(), QGISRedLayerUtils)
 
+    def _renameTreeGroup(self, group, utils_cls):
+        for treeLayer in group.findLayers():
+            layer = treeLayer.layer()
+            if layer is None:
+                continue
+            layerPath = layer.source().split("|")[0].strip()
+            treeName = utils_cls.treeNameFromLayerPath(layerPath, self.NetworkName)
+            if treeName:
+                newName = utils_cls.treeGroupName(treeName)
+                if group.name() != newName:
+                    group.setName(newName)
+                return
+
     def _renameGroupsRecursive(self, parent, utils_cls):
         _canonical_names = set(utils_cls._IDENTIFIER_TO_CANONICAL.values())
+        parentIsTrees = parent.customProperty("qgisred_identifier") == "qgisred_trees"
         for child in parent.children():
             if not isinstance(child, QgsLayerTreeGroup):
+                continue
+            if parentIsTrees:
+                self._renameTreeGroup(child, utils_cls)
                 continue
             identifier = child.customProperty("qgisred_identifier")
             canonical = utils_cls._IDENTIFIER_TO_CANONICAL.get(identifier)
