@@ -1,5 +1,7 @@
 # -*- coding: utf-8 -*-
 from contextlib import suppress
+from itertools import zip_longest
+from xml.etree import ElementTree
 import base64
 import filecmp
 import math
@@ -55,6 +57,16 @@ STYLE_LIBRARY_DEFAULT = "default"
 STYLE_LIBRARY_OWNER = "owner"
 STYLE_LIBRARY_SETTING = "QGISRed/Legends/styleLibrary"
 CONNECTIVITY_STYLE_NAME = "ConnectLinks"
+
+STYLE_VERSION_PROPERTY = "qgisred_style_version"
+STYLE_VERSION_MISSING = "0.0.0"
+
+# Per-family minimum version below which a saved project/global .qml is discarded as if
+# it didn't exist (setStyle/setSavedStyle/resolveStylePath fall through to the next step
+# instead). Keyed the same way those methods normalize a family name: lowercase, no
+# underscores. Add an entry only when a release actually breaks that family's saved
+# files -- see INTERNALS.md §13. Starts empty.
+_FORCED_STYLE_RESET = {}
 
 # The layers the network checks write, one per element type ({Net}_{Element}_Issues). Each
 # ships a legend by the severity of its issues: the same three classes whatever the element.
@@ -280,6 +292,58 @@ class QGISRedStylingUtils:
                 return os.path.join(folder, entry)
         return None
 
+    @staticmethod
+    def _readStyleVersion(qmlPath):
+        """The qgisred_style_version stamped on a .qml, or STYLE_VERSION_MISSING.
+
+        Reads the raw XML instead of loading the file onto a layer: loadNamedStyle is
+        mocked out in tests (see tests/conftest.py) and doing a full layer load for every
+        candidate on every setStyle call would be wasteful outside tests too.
+        """
+        try:
+            root = ElementTree.parse(qmlPath).getroot()
+        except (ElementTree.ParseError, OSError):
+            return STYLE_VERSION_MISSING
+        customProperties = root.find("customproperties")
+        if customProperties is None:
+            return STYLE_VERSION_MISSING
+        for option in customProperties.iter("Option"):
+            if option.get("name") == STYLE_VERSION_PROPERTY:
+                return option.get("value") or STYLE_VERSION_MISSING
+        return STYLE_VERSION_MISSING
+
+    @staticmethod
+    def _parseVersionTuple(versionString):
+        parts = []
+        for segment in (versionString or "").split("."):
+            digits = "".join(character for character in segment if character.isdigit())
+            parts.append(int(digits) if digits else 0)
+        return tuple(parts)
+
+    @staticmethod
+    def _compareVersions(a, b):
+        """-1, 0 or 1, comparing numerically so "0.9" < "0.10" and "0.21" == "0.21.0"."""
+        tupleA = QGISRedStylingUtils._parseVersionTuple(a)
+        tupleB = QGISRedStylingUtils._parseVersionTuple(b)
+        for partA, partB in zip_longest(tupleA, tupleB, fillvalue=0):
+            if partA != partB:
+                return -1 if partA < partB else 1
+        return 0
+
+    @classmethod
+    def _isForcedObsolete(cls, qmlPath, floor):
+        """True when `floor` is set and the style at qmlPath is stamped older than it."""
+        if floor is None:
+            return False
+        return cls._compareVersions(cls._readStyleVersion(qmlPath), floor) < 0
+
+    def stampStyleVersion(self, layer):
+        """Record the current plugin version on `layer`, for the forced-reset check above."""
+        from .qgisred_filesystem_utils import QGISRedFileSystemUtils
+        version = QGISRedFileSystemUtils().getPluginVersion()
+        if version:
+            layer.setCustomProperty(STYLE_VERSION_PROPERTY, version)
+
     def _loadStyleFile(self, layer, qmlPath, field, keepLabelVisibility=False):
         layer.loadNamedStyle(qmlPath)
         # The strategy replay hides the labels too, so the file's choice is put back after it
@@ -306,18 +370,19 @@ class QGISRedStylingUtils:
         if name == "":
             return
         name = name.replace("_", "") if name else ""
+        forcedFloor = _FORCED_STYLE_RESET.get(name.lower())
 
         # 1- project style (network-prefixed first, see projectStyleFileNames)
         projectStylePath = os.path.join(self.ProjectDirectory, "layerStyles")
         qmlPath = self.findStyleFile(projectStylePath, self.projectStyleFileNames(name + ".qml", variant))
-        if qmlPath:
+        if qmlPath and not self._isForcedObsolete(qmlPath, forcedFloor):
             self._loadStyleFile(layer, qmlPath, field, keepLabelVisibility)
             return
 
         # 2- global style (shared by every network, so never prefixed)
         stylePath = os.path.join(self._getQGISRedFolder(), "layerStyles")
         qmlPath = self.findStyleFile(stylePath, [name + ".qml"])
-        if qmlPath:
+        if qmlPath and not self._isForcedObsolete(qmlPath, forcedFloor):
             self._loadStyleFile(layer, qmlPath, field, keepLabelVisibility)
             return
 
@@ -339,24 +404,26 @@ class QGISRedStylingUtils:
         if not name:
             return False
         name = name.replace("_", "")
+        forcedFloor = _FORCED_STYLE_RESET.get(name.lower())
         candidates = (
             (os.path.join(self.ProjectDirectory, "layerStyles"), self.projectStyleFileNames(name + ".qml")),
             (os.path.join(self._getQGISRedFolder(), "layerStyles"), [name + ".qml"]),
         )
         for folder, fileNames in candidates:
             qmlPath = self.findStyleFile(folder, fileNames)
-            if qmlPath:
+            if qmlPath and not self._isForcedObsolete(qmlPath, forcedFloor):
                 self._loadStyleFile(layer, qmlPath, field)
                 return True
         return False
 
     def resolveStylePath(self, qmlFile):
+        forcedFloor = _FORCED_STYLE_RESET.get(os.path.splitext(qmlFile)[0].lower())
         projectFolder = os.path.join(self.ProjectDirectory, "layerStyles")
         projectPath = self.findStyleFile(projectFolder, self.projectStyleFileNames(qmlFile))
-        if projectPath:
+        if projectPath and not self._isForcedObsolete(projectPath, forcedFloor):
             return projectPath
         globalPath = self.findStyleFile(os.path.join(self._getQGISRedFolder(), "layerStyles"), [qmlFile])
-        if globalPath:
+        if globalPath and not self._isForcedObsolete(globalPath, forcedFloor):
             return globalPath
         return os.path.join(_plugin_root(), "defaults", "layerStyles", qmlFile + ".bak")
 
@@ -2020,6 +2087,7 @@ class QGISRedStylingUtils:
         layer.setRenderer(renderer)
         # .qml.bak files are the plugin's shipped defaults and must never be rewritten.
         if qmlFile and not qmlFile.endswith(".qml.bak"):
+            self.stampStyleVersion(layer)
             layer.saveNamedStyle(qmlFile)
 
     def hideFields(self, layer, fieldname, idFieldName=None):

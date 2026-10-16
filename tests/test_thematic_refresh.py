@@ -205,6 +205,20 @@ class TestApplyCategorizedRendererPersistence:
             layer, "Material", "/plugin/defaults/layerStyles/PipeMaterials.qml.bak")
         layer.saveNamedStyle.assert_not_called()
 
+    def test_stamps_the_style_version_before_saving_a_regular_qml(self):
+        # Otherwise this auto-generated colour cache would read as "version 0" forever
+        # once any family gets a _FORCED_STYLE_RESET entry.
+        layer = self._layer()
+        QGISRedStylingUtils("", "", None).applyCategorizedRenderer(layer, "Material", "/proj/mat.qml")
+        layer.setCustomProperty.assert_called_once()
+        assert layer.setCustomProperty.call_args[0][0] == "qgisred_style_version"
+
+    def test_does_not_stamp_the_shipped_bak_defaults(self):
+        layer = self._layer()
+        QGISRedStylingUtils("", "", None).applyCategorizedRenderer(
+            layer, "Material", "/plugin/defaults/layerStyles/PipeMaterials.qml.bak")
+        layer.setCustomProperty.assert_not_called()
+
 
 class _GraduatedRendererStub:
     pass

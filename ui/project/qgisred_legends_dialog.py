@@ -5680,6 +5680,7 @@ class QGISRedLegendsDialog(QDialog, formClass):
             tempLayer.setCustomProperty("qgisred_legend_strategy", json.dumps(strategy))
         else:
             tempLayer.removeCustomProperty("qgisred_legend_strategy")
+        QGISRedStylingUtils().stampStyleVersion(tempLayer)
         tempLayer.saveNamedStyle(path)
 
     def promptForStrategyParts(self, globalStyle, path):

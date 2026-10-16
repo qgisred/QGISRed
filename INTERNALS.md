@@ -535,6 +535,35 @@ If user-writable ramps are ever needed, in order of preference:
 2. `<QGISRedFolder>/layerStyles/{Name}.qml` — *Save → To Global…*
 3. `<plugin>/defaults/layerStyles/{Name}.qml.bak` — shipped
 
+### Forcing a reset of a family after an incompatible change
+
+When a factory style changes in a way that breaks a saved `.qml` (not just makes it look
+different — a field the saved recipe references no longer exists, a key colour changes
+meaning, ...) there is normally no way to tell: `setStyle` serves whatever it finds first
+in the cascade above, saved or not, however old.
+
+Every `.qml` carries a `qgisred_style_version` customProperty stamped with the plugin
+version that wrote it (`QGISRedStylingUtils.stampStyleVersion`, called when the Legends
+dialog saves a style and when `applyCategorizedRenderer` regenerates the cached colours of
+a Material-coloured thematic map). Shipped `.qml.bak` files need no stamp: their effective
+version is always whatever plugin is installed.
+
+`_FORCED_STYLE_RESET` (in `qgisred_styling_utils.py`) is the per-family minimum version
+table. **When a release breaks a family:**
+
+1. Add `"<family>": "<release version>"` to `_FORCED_STYLE_RESET`, keyed lowercase with no
+   underscores — the same form `setStyle`/`setSavedStyle` normalize to internally (e.g.
+   `"linkfricfactor"`, never `"LinkFricFactor"` or `"Link_FricFactor"`).
+2. From that version on, any project or global `.qml` with no stamp or an older one is
+   ignored as if it didn't exist: `setStyle` falls through to the shipped default,
+   `setSavedStyle` falls through to the computed look (families with no shipped file, like
+   demand sectors), `resolveStylePath` (thematic maps) falls through the same way.
+3. Don't add an entry for a cosmetic change (a colour, a line width): the normal cascade
+   already handles that correctly, and forcing a reset would throw away a customization
+   that was still valid.
+4. Never remove a published entry — once it ships it stays forever; whoever opens a
+   project with a style from that era still needs the jump.
+
 ### The project folder is the project **root**
 
 Tool outputs keep their data in a sub-folder (`Issues/Connectivity`, `Queries/Trees`, …) and

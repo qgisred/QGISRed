@@ -80,6 +80,23 @@ class TestSavingIsNotAffected:
         dialog.currentLayer.saveNamedStyle.assert_not_called()
         styling.return_value.applyNullStyle.assert_not_called()
 
+    def test_the_style_version_is_stamped_before_saving(self, styling):
+        """The forced-reset check in setStyle/setSavedStyle needs this written first."""
+        dialog = _dialog()
+        dialog.buildStrategyFromCurrentUi = MagicMock(return_value=None)
+        module = "QGISRed.ui.project.qgisred_legends_dialog."
+        order = []
+        with patch(module + "QgsVectorLayer") as vectorLayer, patch(module + "QgsMapLayerStyle"):
+            tempLayer = vectorLayer.return_value
+            tempLayer.isValid.return_value = True
+            styling.return_value.stampStyleVersion.side_effect = lambda layer: order.append("stamp")
+            tempLayer.saveNamedStyle.side_effect = lambda path: order.append("save")
+
+            dialog.saveDialogLegendToFile("C:/proj/layerStyles/Net_NodePressureSI.qml", [])
+
+        styling.return_value.stampStyleVersion.assert_called_once_with(tempLayer)
+        assert order == ["stamp", "save"]
+
 
 class TestApplyLegendRestoresIt:
     def test_applying_on_a_result_layer_restores_the_null_class(self, styling):
