@@ -190,7 +190,7 @@
               <Option name="properties" type="Map">
                 <Option name="size" type="Map">
                   <Option name="active" value="true" type="bool"/>
-                  <Option name="expression" value="if(@id is NULL, NULL, if(coalesce(attribute($currentfeature,'NodeType'),attribute($currentfeature,'ElemType'))='JUNCTION', if(coalesce(attribute($currentfeature,'BaseDem'),0)&lt;0, 3.8, 3), 0))" type="QString"/>
+                  <Option name="expression" value="if(@id is NULL, NULL, if(coalesce(attribute($currentfeature,'NodeType'),attribute($currentfeature,'ElemType'))='JUNCTION', if(coalesce(attribute($currentfeature,'BaseDem'),0)&lt;0, 4.2, 3), 0))" type="QString"/>
                   <Option name="type" value="3" type="int"/>
                 </Option>
               </Option>
@@ -411,7 +411,7 @@
               <Option name="properties" type="Map">
                 <Option name="size" type="Map">
                   <Option name="active" value="true" type="bool"/>
-                  <Option name="expression" value="if(@id is NULL, NULL, if(coalesce(attribute($currentfeature,'NodeType'),attribute($currentfeature,'ElemType'))='JUNCTION', if(coalesce(attribute($currentfeature,'BaseDem'),0)&lt;0, 3.8, 3), 0))" type="QString"/>
+                  <Option name="expression" value="if(@id is NULL, NULL, if(coalesce(attribute($currentfeature,'NodeType'),attribute($currentfeature,'ElemType'))='JUNCTION', if(coalesce(attribute($currentfeature,'BaseDem'),0)&lt;0, 4.2, 3), 0))" type="QString"/>
                   <Option name="type" value="3" type="int"/>
                 </Option>
               </Option>
@@ -632,7 +632,7 @@
               <Option name="properties" type="Map">
                 <Option name="size" type="Map">
                   <Option name="active" value="true" type="bool"/>
-                  <Option name="expression" value="if(@id is NULL, NULL, if(coalesce(attribute($currentfeature,'NodeType'),attribute($currentfeature,'ElemType'))='JUNCTION', if(coalesce(attribute($currentfeature,'BaseDem'),0)&lt;0, 3.8, 3), 0))" type="QString"/>
+                  <Option name="expression" value="if(@id is NULL, NULL, if(coalesce(attribute($currentfeature,'NodeType'),attribute($currentfeature,'ElemType'))='JUNCTION', if(coalesce(attribute($currentfeature,'BaseDem'),0)&lt;0, 4.2, 3), 0))" type="QString"/>
                   <Option name="type" value="3" type="int"/>
                 </Option>
               </Option>
@@ -1074,7 +1074,7 @@
               <Option name="properties" type="Map">
                 <Option name="size" type="Map">
                   <Option name="active" value="true" type="bool"/>
-                  <Option name="expression" value="if(@id is NULL, NULL, if(coalesce(attribute($currentfeature,'NodeType'),attribute($currentfeature,'ElemType'))='JUNCTION', if(coalesce(attribute($currentfeature,'BaseDem'),0)&lt;0, 3.8, 3), 0))" type="QString"/>
+                  <Option name="expression" value="if(@id is NULL, NULL, if(coalesce(attribute($currentfeature,'NodeType'),attribute($currentfeature,'ElemType'))='JUNCTION', if(coalesce(attribute($currentfeature,'BaseDem'),0)&lt;0, 4.2, 3), 0))" type="QString"/>
                   <Option name="type" value="3" type="int"/>
                 </Option>
               </Option>

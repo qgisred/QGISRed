@@ -1752,7 +1752,7 @@ ISOLATED_CV_SIZE = isolatedLinkSize("PIPE' and \"Status\"='CV", 8)
 # What each class of the nodes is drawn with: (marker, node type it is drawn for or None for
 # any, size on the map, size in the Layers Panel)
 # A junction is drawn at a (positive demand, negative demand) pair of sizes
-STATUS_CIRCLES = [("circle", "JUNCTION", (3, 3.8), 0), ("circle", "ISOLATIONVALVE", 3, 3)]
+STATUS_CIRCLES = [("circle", "JUNCTION", (3, 4.2), 0), ("circle", "ISOLATIONVALVE", 3, 3)]
 JUNCTION_AND_VALVE_CIRCLES = [("circle", "JUNCTION", (2.2, 3), 2.2), ("circle", "ISOLATIONVALVE", 3, 0)]
 TANK_AND_RESERVOIR_ICONS = [
     ("qgisred_water", "TANK", 9, 0), ("qgisred_frame", "TANK", 9, 0),
@@ -1840,7 +1840,7 @@ class TestShippedFixedLegends:
         assert set(utils.isolatedStatusClassNames()) == set(ISOLATED_NODE_COLORS)
         assert set(utils.isolatedDemandClassNames()) == set(ISOLATED_DEMAND_COLORS)
 
-    @pytest.mark.parametrize("value, size", [("JUNCTION", 1.6), ("CONNECTION", 2.5)])
+    @pytest.mark.parametrize("value, size", [("JUNCTION", 2.5), ("CONNECTION", 1.6)])
     def test_each_class_of_the_isolated_demands_is_a_hollow_circle(self, value, size):
         [ring] = _classLayers(ISOLATED_DEMANDS_STYLE, value)
         assert (ring.get("class"), _option(ring, "name")) == ("SimpleMarker", "circle")
