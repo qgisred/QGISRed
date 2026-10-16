@@ -12,7 +12,7 @@ from qgis.PyQt.QtCore import Qt, QTimer
 from ..tools.utils.qgisred_layer_utils import QGISRedLayerUtils
 from ..tools.utils.qgisred_identifier_utils import QGISRedIdentifierUtils
 from ..tools.utils.qgisred_filesystem_utils import (
-    DIR_ISSUES, DIR_QUERIES,
+    DIR_ISSUES, DIR_QUERIES, DIR_AUXILIARY_LAYERS, DIR_DEMAND_SECTORS,
     LAYER_TYPE_CONFIG, QGISRedFileSystemUtils,
 )
 from ..tools.qgisred_dependencies import QGISRedDependencies as GISRed
@@ -34,8 +34,7 @@ class LayerManagementSection:
         utils.removeLayers(self.especificComplementaryLayers)
 
     def removeIssuesLayers(self):
-        issuesFolder = os.path.join(self.ProjectDirectory, DIR_ISSUES)
-        utils = QGISRedLayerUtils(issuesFolder, self.NetworkName, self.iface)
+        utils = QGISRedLayerUtils(self.ProjectDirectory, self.NetworkName, self.iface, group="Issues")
         utils.removeLayers(self.issuesLayers)
 
     def removeLayersAndIssuesLayers(self):
@@ -43,8 +42,7 @@ class LayerManagementSection:
         utils.removeLayers(self.ownMainLayers)
         utils.removeLayers(self.ownFiles, ".dbf")
         utils.removeLayers(self.especificComplementaryLayers)
-        issuesFolder = os.path.join(self.ProjectDirectory, DIR_ISSUES)
-        issuesUtils = QGISRedLayerUtils(issuesFolder, self.NetworkName, self.iface)
+        issuesUtils = QGISRedLayerUtils(self.ProjectDirectory, self.NetworkName, self.iface, group="Issues")
         issuesUtils.removeLayers(self.issuesLayers)
 
     def removeIssuesLayersFiles(self):
@@ -75,8 +73,7 @@ class LayerManagementSection:
         return os.path.join(self.ProjectDirectory, LAYER_TYPE_CONFIG[self.Sectors]["subdir"])
 
     def removeSectorLayers(self):
-        sectorFolder = self.getSectorFolder()
-        utils = QGISRedLayerUtils(sectorFolder, self.NetworkName, self.iface)
+        utils = QGISRedLayerUtils(self.ProjectDirectory, self.NetworkName, self.iface, group=self.Sectors)
         utils.removeLayers([self.Sectors + "_Links", self.Sectors + "_Nodes"])
         sectorGroupName = self.getSectorGroupName()
         self.removeEmptyQuerySubGroup(sectorGroupName)
@@ -166,22 +163,20 @@ class LayerManagementSection:
 
     def openIssuesLayers(self):
         # Open layers
-        issuesFolder = os.path.join(self.ProjectDirectory, DIR_ISSUES)
-        utils = QGISRedLayerUtils(issuesFolder, self.NetworkName, self.iface, self.ProjectDirectory)
+        utils = QGISRedLayerUtils(self.ProjectDirectory, self.NetworkName, self.iface, group="Issues")
         issuesGroup = utils.getOrCreateNestedGroup([self.NetworkName, "Issues"])
         utils.openIssuesLayers(issuesGroup, self.issuesLayers)
 
     def openConnectivityLayer(self):
         cfg = LAYER_TYPE_CONFIG["Connectivity"]
-        connFolder = os.path.join(self.ProjectDirectory, cfg["subdir"])
-        utils = QGISRedLayerUtils(connFolder, self.NetworkName, self.iface, self.ProjectDirectory)
+        utils = QGISRedLayerUtils(self.ProjectDirectory, self.NetworkName, self.iface, group="Connectivity")
         connGroup = utils.getOrCreateNestedGroup([self.NetworkName] + cfg["tree_path"])
         utils.openLayer(connGroup, "Connectivity_Links")
 
     def openSectorLayers(self):
         cfg = LAYER_TYPE_CONFIG[self.Sectors]
         sectorFolder = os.path.join(self.ProjectDirectory, cfg["subdir"])
-        utils = QGISRedLayerUtils(sectorFolder, self.NetworkName, self.iface, self.ProjectDirectory)
+        utils = QGISRedLayerUtils(self.ProjectDirectory, self.NetworkName, self.iface, group=self.Sectors)
         if os.path.exists(os.path.join(sectorFolder, self.NetworkName + "_" + self.Sectors + "_Links.shp")):
             sectorGroup = utils.getOrCreateNestedGroup([self.NetworkName] + cfg["tree_path"])
             utils.openLayer(sectorGroup, self.Sectors + "_Links", **cfg["flags"])
@@ -192,8 +187,7 @@ class LayerManagementSection:
 
     def openIsolatedSegmentsLayers(self):
         isoGroup = self.getIsolatedSegmentsGroup()
-        isoFolder = os.path.join(self.ProjectDirectory, LAYER_TYPE_CONFIG["IsolatedSegments"]["subdir"])
-        utils = QGISRedLayerUtils(isoFolder, self.NetworkName, self.iface, self.ProjectDirectory)
+        utils = QGISRedLayerUtils(self.ProjectDirectory, self.NetworkName, self.iface, group="IsolatedSegments")
         utils.openLayer(isoGroup, "IsolatedSegments_Links")
         utils.openLayer(isoGroup, "IsolatedSegments_Nodes")
         utils.openLayer(isoGroup, "IsolatedSegments_IsolatedDemands")
@@ -373,9 +367,10 @@ class LayerManagementSection:
                 continue
 
             utils = QGISRedLayerUtils(
-                os.path.dirname(path),
+                self.ProjectDirectory,
                 self.NetworkName,
-                self.iface
+                self.iface,
+                group="DemandBuilder"
             )
 
             display_name = os.path.splitext(
@@ -475,9 +470,10 @@ class LayerManagementSection:
             return
 
         utils = QGISRedLayerUtils(
-            os.path.dirname(shpPath),
+            self.ProjectDirectory,
             self.NetworkName,
-            self.iface
+            self.iface,
+            subdir=os.path.join(DIR_AUXILIARY_LAYERS, DIR_DEMAND_SECTORS, sectorizationName)
         )
 
         identifiers = QGISRedIdentifierUtils(
@@ -541,8 +537,7 @@ class LayerManagementSection:
 
     def openTreeLayers(self):
         treeGroup = self.getTreeGroup()
-        treeFolder = os.path.join(self.ProjectDirectory, DIR_QUERIES, "Trees")
-        utils = QGISRedLayerUtils(treeFolder, self.NetworkName, self.iface, self.ProjectDirectory)
+        utils = QGISRedLayerUtils(self.ProjectDirectory, self.NetworkName, self.iface, group="Trees")
         utils.openTreeLayer(treeGroup, "Links", self.treeName, link=True)
         utils.openTreeLayer(treeGroup, "Nodes", self.treeName)
 

@@ -82,8 +82,7 @@ class _FakeLayer:
 def _connectivityUtils(tmp_path, globalFolder):
     """Layer utils as openConnectivityLayer builds it, with a real style lookup behind it."""
     projectRoot = str(tmp_path / "project")
-    subFolder = os.path.join(projectRoot, "Issues", "Connectivity")
-    utils = QGISRedLayerUtils(subFolder, "Net", MagicMock(), projectRoot)
+    utils = QGISRedLayerUtils(projectRoot, "Net", MagicMock(), group="Connectivity")
     styling = utils._styling()
     styling._getQGISRedFolder = lambda: globalFolder
     styling.fillCategoriesFromData = lambda layer, field: None
@@ -98,11 +97,14 @@ class TestProjectRoot:
         assert utils._styling().ProjectDirectory == str(tmp_path)
 
     def test_styles_are_looked_up_in_the_root_not_in_the_sub_folder(self, tmp_path):
-        subFolder = str(tmp_path / "Queries" / "Trees")
-        utils = QGISRedLayerUtils(subFolder, "Net", MagicMock(), str(tmp_path))
+        utils = QGISRedLayerUtils(str(tmp_path), "Net", MagicMock(), group="Trees")
 
-        assert utils.LayersDirectory == subFolder
+        assert utils.LayersDirectory == os.path.join(str(tmp_path), "Queries", "Trees")
         assert utils._styling().ProjectDirectory == str(tmp_path)
+
+    def test_an_unknown_group_fails_loudly_instead_of_silently(self, tmp_path):
+        with pytest.raises(KeyError):
+            QGISRedLayerUtils(str(tmp_path), "Net", MagicMock(), group="NotAGroup")
 
 
 class TestConnectivityStyleLookup:
@@ -197,8 +199,8 @@ class TestRuntimeAndEditorAskForTheSameFile:
 def _demandBuilderUtils(tmp_path, globalFolder):
     """Layer utils as the Layer Manager builds it for the themes, with a real style lookup behind it."""
     projectRoot = str(tmp_path / "project")
-    subFolder = os.path.join(projectRoot, "Auxiliary Layers", "DemandBuilder")
-    utils = QGISRedLayerUtils(subFolder, "Net", MagicMock(), projectRoot)
+    utils = QGISRedLayerUtils(projectRoot, "Net", MagicMock(), group="DemandBuilder")
+    subFolder = utils.LayersDirectory
     styling = utils._styling()
     styling._getQGISRedFolder = lambda: globalFolder
     return styling, subFolder, projectRoot

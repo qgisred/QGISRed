@@ -179,7 +179,7 @@ class QGISRedProjectIO:
                     break
             if tree_name is None or tree_dir is None:
                 return
-            utils = QGISRedLayerUtils(tree_dir, self.NetworkName, self.iface, self.ProjectDirectory)
+            utils = QGISRedLayerUtils(self.ProjectDirectory, self.NetworkName, self.iface, group="Trees")
             group = utils.getOrCreateNestedGroup(
                 [self.NetworkName, "Queries", "Trees", QGISRedLayerUtils.treeGroupName(tree_name)])
             for name in reversed(layerNames):
@@ -209,8 +209,7 @@ class QGISRedProjectIO:
             full_tree_path = tree_path + sub_parts
 
         top = groupName.split("/")[0]
-        layersDir = os.path.join(self.ProjectDirectory, subdir) if subdir else self.ProjectDirectory
-        utils = QGISRedLayerUtils(layersDir, self.NetworkName, self.iface, self.ProjectDirectory)
+        utils = QGISRedLayerUtils(self.ProjectDirectory, self.NetworkName, self.iface, subdir=subdir)
         group = utils.getOrCreateNestedGroup([self.NetworkName] + full_tree_path)
 
         if top == "Results":
@@ -248,7 +247,7 @@ class QGISRedProjectIO:
             for file_name, layer_type, variable, is_stats in style_queue:
                 if not variable or not layer_type:
                     continue
-                layer_path = utils._fs().generatePath(layersDir, self.NetworkName + "_" + file_name + ".shp")
+                layer_path = utils._fs().generatePath(utils.LayersDirectory, self.NetworkName + "_" + file_name + ".shp")
                 opened = utils._findLayerByPath(layer_path)
                 if not opened:
                     continue

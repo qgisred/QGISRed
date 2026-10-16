@@ -110,9 +110,9 @@ class _FakeLayer:
 def _issuesUtils(tmp_path, globalFolder):
     """Layer utils as openIssuesLayers builds them, with a real style lookup behind them."""
     projectRoot = str(tmp_path / "project")
-    issuesFolder = os.path.join(projectRoot, "Issues")
+    utils = QGISRedLayerUtils(projectRoot, "Net", MagicMock(), group="Issues")
+    issuesFolder = utils.LayersDirectory
     os.makedirs(issuesFolder)
-    utils = QGISRedLayerUtils(issuesFolder, "Net", MagicMock(), projectRoot)
     styling = utils._styling()
     styling._getQGISRedFolder = lambda: globalFolder
     utils._styling = lambda: styling
@@ -244,7 +244,7 @@ class TestOpeningAnIssueLayer:
         with patch("QGISRed.sections.layer_management_section.QGISRedLayerUtils") as utilsCls:
             section.openIssuesLayers()
 
-        utilsCls.assert_called_once_with(os.path.join("C:/proj", "Issues"), "Net", section.iface, "C:/proj")
+        utilsCls.assert_called_once_with("C:/proj", "Net", section.iface, group="Issues")
         utilsCls.return_value.openIssuesLayers.assert_called_once_with(
             utilsCls.return_value.getOrCreateNestedGroup.return_value, ["Pipes_Issues"])
 
@@ -375,7 +375,7 @@ class TestShippedIssueStylesInQgis:
         options.driverName = "ESRI Shapefile"
         QgsVectorFileWriter.writeAsVectorFormatV3(
             _issueLayer("Point", ["Error", "Info"]), shapefile, QgsProject.instance().transformContext(), options)
-        utils = QGISRedLayerUtils(issuesFolder, "Net", MagicMock(), projectRoot)
+        utils = QGISRedLayerUtils(projectRoot, "Net", MagicMock(), group="Issues")
         utils._styling()._getQGISRedFolder = lambda: str(tmp_path / "global")
 
         utils.openLayer(None, "Junctions_Issues", issues=True)

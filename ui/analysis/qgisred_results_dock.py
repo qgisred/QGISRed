@@ -701,7 +701,7 @@ class QGISRedResultsDock(
 
     def _openOrReloadLayerResults(self, scenario, nameLayer=None):
         resultPath = self.getResultsPath()
-        utils = QGISRedLayerUtils(resultPath, self.NetworkName + "_" + scenario, self.iface, self.ProjectDirectory)
+        utils = QGISRedLayerUtils(self.ProjectDirectory, self.NetworkName + "_" + scenario, self.iface, group="Results")
         # Navigation utils uses the plain NetworkName so getOrCreateNestedGroup can match
         # the network root group and apply group-visibility logic along the path.
         navUtils = QGISRedLayerUtils(self.ProjectDirectory, self.NetworkName, self.iface)
@@ -757,8 +757,7 @@ class QGISRedResultsDock(
                 self.prepareResultFields(existingLayer, file)
 
     def removeResults(self):
-        resultPath = self.getResultsPath()
-        utils = QGISRedLayerUtils(resultPath, self.NetworkName + "_" + self.Scenario, self.iface)
+        utils = QGISRedLayerUtils(self.ProjectDirectory, self.NetworkName + "_" + self.Scenario, self.iface, group="Results")
         utils.removeLayers(["Node", "Link"])
 
     def getInputGroup(self):

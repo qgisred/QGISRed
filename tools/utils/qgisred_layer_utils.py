@@ -12,6 +12,7 @@ from qgis.core import (
 )
 
 from ...compat import QGIS_WARNING
+from .qgisred_filesystem_utils import LAYER_TYPE_CONFIG
 from .qgisred_spatial_index_rebuilder import maybeRebuildSpatialIndex
 
 
@@ -84,11 +85,13 @@ class QGISRedLayerUtils:
         """Return True if the layer supports categorized legend classification."""
         return layerIdentifier in cls._CATEGORIZED_LAYER_IDS
 
-    def __init__(self, layersDirectory="", networkName="", iface=None, projectRoot=""):
+    def __init__(self, projectRoot="", networkName="", iface=None, group=None, subdir=None):
         self.iface = iface
-        self.LayersDirectory = layersDirectory
-        self.ProjectRoot = projectRoot or layersDirectory
+        self.ProjectRoot = projectRoot
         self.NetworkName = networkName
+        if subdir is None and group:
+            subdir = LAYER_TYPE_CONFIG[group]["subdir"]
+        self.LayersDirectory = os.path.join(projectRoot, subdir) if subdir else projectRoot
 
         self.identifierToGroupName = {
             'qgisred_inputs': 'Inputs',
