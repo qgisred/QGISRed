@@ -41,6 +41,21 @@ ELEMENT_LAYERS = [
 # tree_path: QGIS group path (without the NetworkName root)
 # flags:     kwargs passed to QGISRedLayerUtils.openLayer()
 LAYER_TYPE_CONFIG = {
+    "Issues": {
+        "subdir":    DIR_ISSUES,
+        "tree_path": ["Issues"],
+        "flags":     {"issues": True},
+    },
+    "Results": {
+        "subdir":    DIR_RESULTS,
+        "tree_path": ["Results"],
+        "flags":     {"results": True},
+    },
+    "Trees": {
+        "subdir":    os.path.join(DIR_QUERIES, "Trees"),
+        "tree_path": ["Queries", "Trees"],
+        "flags":     {},
+    },
     "HydraulicSectors": {
         "subdir":    os.path.join(DIR_ISSUES, DIR_HYDRAULIC_SECTORS),
         "tree_path": ["Issues", "Hydraulic Sectors"],
