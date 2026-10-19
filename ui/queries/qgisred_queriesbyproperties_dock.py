@@ -21,7 +21,7 @@ from ...tools.utils.qgisred_layer_utils import QGISRedLayerUtils
 from ...tools.utils.qgisred_project_utils import QGISRedProjectUtils
 from ...tools.utils.qgisred_ui_utils import QGISRED_COMBO_STYLE, QGISRedUIUtils
 from ...tools.utils.qgisred_highlight_manager import QGISRedHighlightOwnerMixin
-from ...tools.utils.qgisred_valve_types import getValveTypeName
+from ...tools.utils.qgisred_valve_types import getValveTypeAbbreviation
 
 # load UI
 FORM_CLASS, _ = uic.loadUiType(os.path.join(os.path.dirname(__file__), "qgisred_queriesbyproperties_dock.ui"))
@@ -1165,10 +1165,10 @@ class QGISRedQueriesByPropertiesDock(QGISRedHighlightOwnerMixin, QDockWidget, FO
             self.cbValueList.clear()
             self.cbValueList.addItem('')
             if isValveType:
-                # Items show the translated long name; the underlying query still
+                # Items show the localized abbreviation; the underlying query still
                 # filters on the raw code, kept as itemData — see currentValueText().
                 for code in strVals:
-                    self.cbValueList.addItem(getValveTypeName(code), code)
+                    self.cbValueList.addItem(getValveTypeAbbreviation(code), code)
                 i = self.cbValueList.findData(previous)
             else:
                 self.cbValueList.addItems(strVals)
