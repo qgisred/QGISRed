@@ -1,5 +1,6 @@
 # -*- coding: utf-8 -*-
 import os
+import re
 from qgis.PyQt.QtCore import QCoreApplication
 from qgis.core import QgsProject, QgsLayerTreeGroup, QgsLayerMetadata
 
@@ -254,7 +255,42 @@ class QGISRedIdentifierUtils:
         if identifier.startswith("qgisred_demandbuilder_"):
             baseName = os.path.splitext(os.path.basename(self._getLayerPath(layer)))[0]
             return self.getAuxiliaryThemeName(baseName) or None
+        if identifier.startswith("qgisred_query_"):
+            return self._getThematicMapLayerName(layer, identifier)
+        if identifier in ("qgisred_node", "qgisred_link"):
+            return self._getResultLayerName(layer, identifier)
         return self.getTranslatedNameForIdentifier(identifier)
+
+    def _getThematicMapLayerName(self, layer, identifier):
+        from .qgisred_thematicmaps_queries import buildQueryCatalogue, queryIdentifier
+
+        for query in buildQueryCatalogue():
+            if queryIdentifier(query) != identifier:
+                continue
+            suffix = query.get("name_suffix", "")
+            if suffix:
+                # The formula suffix records the one the map was built with, which the
+                # project may have changed since; the stale-map check owns that mismatch.
+                currentSuffix = re.search(r"_(DW|HW|CM)$", layer.name())
+                if currentSuffix:
+                    suffix = currentSuffix.group(0)
+            return QCoreApplication.translate("InputLayerNames", query["layer_name"]) + suffix
+        return None
+
+    def _getResultLayerName(self, layer, identifier):
+        from ...ui.analysis.qgisred_results_data import NO_VARIABLE_METADATA_TAG, resultLayerDisplayName
+
+        layerType = "Link" if identifier == "qgisred_link" else "Node"
+        baseName = os.path.splitext(os.path.basename(self._getLayerPath(layer)))[0]
+        scenario = baseName[len(self.NetworkName) + 1:].rsplit("_", 1)[0] if self.NetworkName else ""
+        variable, _ = QgsProject.instance().readEntry("QGISRed", f"results_{scenario}_{layerType}", "")
+        if not variable:
+            return None
+        if variable == NO_VARIABLE_METADATA_TAG:
+            if layerType == "Link":
+                return QCoreApplication.translate("QGISRedResultsDock", "Links", "result layer name")
+            return QCoreApplication.translate("QGISRedResultsDock", "Nodes")
+        return resultLayerDisplayName(layerType, variable)
 
     def renameLayersToLocale(self):
         """Gives every QGISRed layer of the project its default name in the active locale."""

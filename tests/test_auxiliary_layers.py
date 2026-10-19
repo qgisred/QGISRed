@@ -1021,6 +1021,33 @@ class TestRenameLayersToLocale:
 
         theme.setName.assert_called_once_with("ConstDem_Sectores_Barrios")
 
+    def test_a_thematic_map_is_renamed_from_its_query(self):
+        utils = self._identifiers([])
+        layer = self._layer("Pipes_Diameters", "qgisred_query_pipes_diameter")
+        utils._getLayers = lambda: [layer]
+        utils.tr = lambda message: message
+
+        catalogue = [{"layer_name": "Pipes_Diameters", "layer_type": "Pipes", "file_name": "diameter"}]
+        with patch("QGISRed.tools.utils.qgisred_thematicmaps_queries.buildQueryCatalogue", return_value=catalogue),                 patch("QGISRed.tools.utils.qgisred_thematicmaps_queries.queryIdentifier",
+                      return_value="qgisred_query_pipes_diameter"),                 patch("QGISRed.tools.utils.qgisred_identifier_utils.QCoreApplication.translate",
+                      side_effect=lambda ctx, text, *a: "Tuberías_Diámetros" if text == "Pipes_Diameters" else text):
+            utils.renameLayersToLocale()
+
+        layer.setName.assert_called_once_with("Tuberías_Diámetros")
+
+    def test_a_result_layer_is_renamed_from_the_variable_it_shows(self):
+        layer = self._layer("Presiones (mca)", "qgisred_node", "C:/proj/Results/Net_Base_Node.shp")
+        utils = self._identifiers([layer])
+
+        with patch("QGISRed.tools.utils.qgisred_identifier_utils.QgsProject") as project,                 patch("QGISRed.ui.analysis.qgisred_results_data.resultLayerDisplayName",
+                      return_value="Pressures (m)") as display:
+            project.instance.return_value.readEntry.return_value = ("Pressure", True)
+            utils.renameLayersToLocale()
+
+        project.instance.return_value.readEntry.assert_called_once_with("QGISRed", "results_Base_Node", "")
+        display.assert_called_once_with("Node", "Pressure")
+        layer.setName.assert_called_once_with("Pressures (m)")
+
     def test_layers_without_a_default_name_are_left_alone(self):
         foreign = self._layer("Streets", None)
         results = self._layer("Pressure", "qgisred_base_node")
