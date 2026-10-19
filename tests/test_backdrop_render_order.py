@@ -95,7 +95,7 @@ def project(monkeypatch):
 
     holder = {}
 
-    def build(layers, inputIds=(), customOrder=None, hasCustomOrder=False, entry=None):
+    def build(layers, inputIds=(), customOrder=None, hasCustomOrder=False, entry=None, resultIds=()):
         root = _FakeRoot(layers, customOrder, hasCustomOrder)
         instance = _FakeProject(root)
         if entry is not None:
@@ -104,8 +104,10 @@ def project(monkeypatch):
             qgisred_layer_utils, "QgsProject", MagicMock(instance=MagicMock(return_value=instance))
         )
         inputs = [layer for layer in layers if layer is not None and layer.id() in set(inputIds)]
+        results = [layer for layer in layers if layer is not None and layer.id() in set(resultIds)]
         monkeypatch.setattr(
-            QGISRedLayerUtils, "getLayersByGroupIdentifier", classmethod(lambda cls, identifier: inputs)
+            QGISRedLayerUtils, "getLayersByGroupIdentifier",
+            classmethod(lambda cls, identifier: results if identifier == "qgisred_results" else inputs),
         )
         holder["root"] = root
         holder["project"] = instance
@@ -187,6 +189,36 @@ class TestBackdropPlacement:
         QGISRedLayerUtils.applyBackdropRenderOrder()
 
         assert root.orderIds() == ["pipes", "sector"]
+
+
+class TestSourcesAboveResults:
+    def test_sources_are_drawn_over_the_results(self, project):
+        """The legend keeps Sources among the inputs, below the results group."""
+        results = _FakeLayer("nodes", "qgisred_results_nodes")
+        sources = _FakeLayer("sources", "qgisred_sources")
+        pipes = _FakeLayer("pipes", "qgisred_pipes")
+        root, _ = project(
+            [results, sources, pipes], inputIds=["sources", "pipes"], resultIds=["nodes"]
+        )
+
+        assert QGISRedLayerUtils.applyBackdropRenderOrder() is True
+        assert root.orderIds() == ["sources", "nodes", "pipes"]
+
+    def test_sources_already_over_the_results_need_no_custom_order(self, project):
+        results = _FakeLayer("nodes", "qgisred_results_nodes")
+        sources = _FakeLayer("sources", "qgisred_sources")
+        root, _ = project([sources, results], inputIds=["sources"], resultIds=["nodes"])
+
+        assert QGISRedLayerUtils.applyBackdropRenderOrder() is False
+        assert root.hasCustomLayerOrder() is False
+
+    def test_without_results_the_sources_stay_where_the_legend_puts_them(self, project):
+        sources = _FakeLayer("sources", "qgisred_sources")
+        pipes = _FakeLayer("pipes", "qgisred_pipes")
+        root, _ = project([pipes, sources], inputIds=["sources", "pipes"])
+
+        assert QGISRedLayerUtils.applyBackdropRenderOrder() is False
+        assert root.hasCustomLayerOrder() is False
 
 
 class TestWhenNothingHasToChange:

@@ -1003,14 +1003,15 @@ class QGISRedLayerUtils:
 
         order = cls._treeLayerOrder(root)
         backdrops = [layer for layer in order if cls.isBackdropLayer(layer)]
-        if not backdrops:
+        backdropIds = {layer.id() for layer in backdrops}
+        rest = [layer for layer in order if layer.id() not in backdropIds]
+        raised = cls._sourcesAboveResults(rest)
+        if not backdrops and raised == rest:
             cls._clearOwnRenderOrder(root)
             return False
 
-        backdropIds = {layer.id() for layer in backdrops}
-        rest = [layer for layer in order if layer.id() not in backdropIds]
-        position = cls._backdropPosition(rest)
-        wanted = rest[:position] + backdrops + rest[position:]
+        position = cls._backdropPosition(raised)
+        wanted = raised[:position] + backdrops + raised[position:]
 
         # Nothing to say when the order already reads like this: writing it again would
         # redraw the canvas and mark the project modified on every layer that is opened.
@@ -1021,6 +1022,24 @@ class QGISRedLayerUtils:
         root.setHasCustomLayerOrder(True)
         QgsProject.instance().writeEntry(cls._CUSTOM_ORDER_ENTRY[0], cls._CUSTOM_ORDER_ENTRY[1], True)
         return True
+
+    @classmethod
+    def _sourcesAboveResults(cls, order):
+        """Lift the Sources layer over the results layers, wherever the legend keeps it.
+
+        A source is a marker sitting on a node; the result symbology of that node would
+        otherwise paint over it.
+        """
+        resultIds = {layer.id() for layer in cls.getLayersByGroupIdentifier("qgisred_results")}
+        sources = [layer for layer in order if layer.customProperty("qgisred_identifier") == "qgisred_sources"]
+        topResult = next((i for i, layer in enumerate(order) if layer.id() in resultIds), None)
+        if not sources or topResult is None:
+            return order
+
+        sourceIds = {layer.id() for layer in sources}
+        others = [layer for layer in order if layer.id() not in sourceIds]
+        position = next(i for i, layer in enumerate(others) if layer.id() in resultIds)
+        return others[:position] + sources + others[position:]
 
     @staticmethod
     def _sameLayers(current, wanted):
