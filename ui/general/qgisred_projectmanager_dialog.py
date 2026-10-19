@@ -14,7 +14,7 @@ from .qgisred_loadproject_dialog import QGISRedImportProjectDialog
 from .qgisred_cloneproject_dialog import QGISRedCloneProjectDialog
 from .qgisred_renameproject_dialog import QGISRedRenameProjectDialog
 from .qgisred_moveproject_dialog import QGISRedMoveProjectDialog
-from ...tools.utils.qgisred_filesystem_utils import QGISRedFileSystemUtils, DIR_BACKUPS
+from ...tools.utils.qgisred_filesystem_utils import QGISRedFileSystemUtils, DIR_BACKUPS, moveToRecycleBin, deletePermanently
 from ...tools.utils.qgisred_layer_utils import QGISRedLayerUtils
 from ...tools.utils.qgisred_project_io import QGISRedProjectIO
 from ...tools.utils.qgisred_identifier_utils import QGISRedIdentifierUtils
@@ -99,33 +99,55 @@ class QGISRedProjectManagerDialog(QDialog, FORM_CLASS):
     def _getUniformedPath(self, path):
         return self.utils.getUniformedPath(path)
 
-    def _removeFilesFromFolder(self, folder, networkName, _qgisProjectBase=None):
-        folder = self._getUniformedPath(folder)
-        io = self._getIO(folder, networkName)
-
-        if _qgisProjectBase is None:
-            _qgisProjectBase = io.getQGisProjectBase(folder, networkName)
-
+    def _collectProjectFiles(self, folder, networkName, qgisProjectBase):
+        found = []
         for f in os.listdir(folder):
             filepath = os.path.join(folder, f)
             if os.path.isfile(filepath):
-                shouldDelete = f.startswith(networkName + "_")
-                if not shouldDelete and _qgisProjectBase is not None:
-                    shouldDelete = os.path.normcase(io.stripAllExtensions(filepath)) == os.path.normcase(_qgisProjectBase)
-
-                if shouldDelete:
-                    with suppress(Exception):
-                        os.remove(filepath)
+                belongs = f.startswith(networkName + "_")
+                if not belongs and qgisProjectBase is not None and not f.lower().endswith(".inp"):
+                    belongs = os.path.normcase(self._getIO(folder, networkName).stripAllExtensions(filepath)) == os.path.normcase(qgisProjectBase)
+                if belongs:
+                    found.append(filepath)
             elif os.path.isdir(filepath):
-                if os.path.basename(filepath).lower() == "layerstyles":  # Temporal fix
-                    with suppress(Exception):
-                        rmtree(filepath)
+                if os.path.basename(filepath).lower() == "layerstyles":
+                    found.append(filepath)
                 else:
-                    self._removeFilesFromFolder(filepath, networkName, _qgisProjectBase)
+                    found.extend(self._collectProjectFiles(filepath, networkName, qgisProjectBase))
+        return found
 
+    def _removeEmptyFolders(self, folder):
+        for f in os.listdir(folder):
+            filepath = os.path.join(folder, f)
+            if os.path.isdir(filepath):
+                self._removeEmptyFolders(filepath)
         with suppress(Exception):
             if len(os.listdir(folder)) == 0:
                 os.rmdir(folder)
+
+    def _removeFilesFromFolder(self, folder, networkName):
+        folder = self._getUniformedPath(folder)
+        qgisProjectBase = self._getIO(folder, networkName).getQGisProjectBase(folder, networkName)
+        files = self._collectProjectFiles(folder, networkName, qgisProjectBase)
+        failed = moveToRecycleBin(files)
+        if failed:
+            if len(failed) == len(files):
+                message = self.tr("Project could not be moved to the recycle bin. Do you want to delete it permanently?")
+            else:
+                message = self.tr(
+                    "Part of the project could not be moved to the recycle bin. If the rest is not deleted permanently, the project will be left in an inconsistent state. Do you want to delete it permanently?"
+                )
+            request = QMessageBox.question(
+                self.iface.mainWindow(),
+                self.tr("QGISRed"),
+                message,
+                QMessageBox.StandardButtons(QMessageBox.StandardButton.Yes | QMessageBox.StandardButton.No),
+            )
+            if request != QMessageBox.StandardButton.Yes:
+                return False
+            deletePermanently(failed)
+        self._removeEmptyFolders(folder)
+        return True
 
     def _getIO(self, projectPath=None, networkName=None):
         return QGISRedProjectIO(projectPath or self.ProjectDirectory, networkName or self.NetworkName, self.iface)
@@ -527,11 +549,12 @@ class QGISRedProjectManagerDialog(QDialog, FORM_CLASS):
                 request = QMessageBox.question(
                     self.iface.mainWindow(),
                     self.tr("QGISRed"),
-                    self.tr("Project will be removed completely from your computer. Are you sure?"),
+                    self.tr("Project files will be moved to the recycle bin. Are you sure?"),
                     QMessageBox.StandardButtons(QMessageBox.StandardButton.Yes | QMessageBox.StandardButton.No),
                 )
                 if request == QMessageBox.StandardButton.Yes:
-                    self._removeFilesFromFolder(projectPath, projectNetwork)
+                    if not self._removeFilesFromFolder(projectPath, projectNetwork):
+                        return
                 else:
                     return
             else:

@@ -6,6 +6,7 @@ import shutil
 import platform
 from shutil import copyfile
 
+from qgis.PyQt.QtCore import QFile
 from qgis.core import QgsVectorLayer  # noqa: F401 — used in getLayerPath exception path
 
 # Project subdirectory names — single source of truth for all os.path.join calls
@@ -82,6 +83,23 @@ LAYER_TYPE_CONFIG = {
         "flags":     {"demandBuilder": True},
     },
 }
+
+
+def moveToRecycleBin(paths):
+    """Sends paths to the OS recycle bin, stopping at the first failure. Returns the paths left unmoved."""
+    paths = [path for path in paths if os.path.exists(path)]
+    for index, path in enumerate(paths):
+        result = QFile.moveToTrash(path)
+        moved = result[0] if isinstance(result, tuple) else result
+        if not moved:
+            return paths[index:]
+    return []
+
+
+def deletePermanently(paths):
+    for path in paths:
+        with suppress(Exception):
+            shutil.rmtree(path) if os.path.isdir(path) else os.remove(path)
 
 
 class QGISRedFileSystemUtils:
