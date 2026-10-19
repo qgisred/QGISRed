@@ -4768,16 +4768,6 @@ La información de sectores existente podría ser reemplazada.
         <translation>Importar desde INP</translation>
     </message>
     <message>
-        <location filename="../ui/general/qgisred_import_dialog.ui" line="218"/>
-        <source>Some programs export pumps and valves as links whose end nodes share the same coordinates. Enabling this option moves those nodes slightly apart, so that no element is lost on import.</source>
-        <translation>Algunos programas exportan bombas y válvulas como tramos cuyos nudos extremos comparten las mismas coordenadas. Al activar esta opción esos nudos se separan ligeramente, de modo que no se pierda ningún elemento al importar.</translation>
-    </message>
-    <message>
-        <location filename="../ui/general/qgisred_import_dialog.ui" line="221"/>
-        <source>Separate overlapping nodes</source>
-        <translation>Separar nudos superpuestos</translation>
-    </message>
-    <message>
         <location filename="../ui/general/qgisred_import_dialog.ui" line="271"/>
         <source>SHPs</source>
         <translation>SHPs</translation>

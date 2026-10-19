@@ -4756,16 +4756,6 @@ Continuer ?</translation>
         <translation>Importer depuis INP</translation>
     </message>
     <message>
-        <location filename="../ui/general/qgisred_import_dialog.ui" line="218"/>
-        <source>Some programs export pumps and valves as links whose end nodes share the same coordinates. Enabling this option moves those nodes slightly apart, so that no element is lost on import.</source>
-        <translation>Certains logiciels exportent les pompes et les vannes sous forme de tronçons dont les nœuds extrémités partagent les mêmes coordonnées. Cette option écarte légèrement ces nœuds afin qu'aucun élément ne soit perdu à l'importation.</translation>
-    </message>
-    <message>
-        <location filename="../ui/general/qgisred_import_dialog.ui" line="221"/>
-        <source>Separate overlapping nodes</source>
-        <translation>Séparer les nœuds superposés</translation>
-    </message>
-    <message>
         <location filename="../ui/general/qgisred_import_dialog.ui" line="271"/>
         <source>SHPs</source>
         <translation>SHP</translation>

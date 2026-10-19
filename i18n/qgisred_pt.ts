@@ -4801,16 +4801,6 @@ Continuar?</translation>
         <translation>Importar de INP</translation>
     </message>
     <message>
-        <location filename="../ui/general/qgisred_import_dialog.ui" line="218"/>
-        <source>Some programs export pumps and valves as links whose end nodes share the same coordinates. Enabling this option moves those nodes slightly apart, so that no element is lost on import.</source>
-        <translation>Alguns programas exportam bombas e válvulas como trechos cujos nós extremos compartilham as mesmas coordenadas. Ao ativar esta opção, esses nós são ligeiramente afastados, para que nenhum elemento seja perdido na importação.</translation>
-    </message>
-    <message>
-        <location filename="../ui/general/qgisred_import_dialog.ui" line="221"/>
-        <source>Separate overlapping nodes</source>
-        <translation>Separar nós sobrepostos</translation>
-    </message>
-    <message>
         <location filename="../ui/general/qgisred_import_dialog.ui" line="271"/>
         <source>SHPs</source>
         <translation>SHPs</translation>
