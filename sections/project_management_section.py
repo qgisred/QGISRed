@@ -989,6 +989,7 @@ class ProjectManagementSection:
         """
         self._writePluginVersionToProject()
         self._migrateLayersToSubfolders()
+        QGISRedIdentifierUtils(self.ProjectDirectory, self.NetworkName, self.iface).renameLayersToLocale()
 
         from ..tools.utils.qgisred_styling_utils import QGISRedStylingUtils
 
