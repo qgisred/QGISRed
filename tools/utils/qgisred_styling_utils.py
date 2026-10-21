@@ -42,6 +42,34 @@ from .qgisred_meter_types import getMeterTypeName, METER_TYPE_LABELS
 from .qgisred_source_types import getSourceTypeName, SOURCE_TYPE_LABELS
 
 
+_OTHER_VALUES_SOURCE = "Other Values"
+_otherValuesTexts = None
+
+
+def otherValuesTexts():
+    """"Other Values" as every language the plugin ships spells it.
+
+    Older projects stored the "all other values" class with the text of the language it was
+    created in as its value, so it can only be recognised by comparing against every
+    translation, not just the active one."""
+    global _otherValuesTexts
+    if _otherValuesTexts is None:
+        from qgis.PyQt.QtCore import QTranslator
+
+        texts = {_OTHER_VALUES_SOURCE}
+        i18nDir = os.path.join(_plugin_root(), "i18n")
+        for fileName in os.listdir(i18nDir) if os.path.isdir(i18nDir) else ():
+            if not fileName.endswith(".qm"):
+                continue
+            translator = QTranslator()
+            if translator.load(os.path.join(i18nDir, fileName)):
+                translated = translator.translate("QGISRedLegendsDialog", _OTHER_VALUES_SOURCE)
+                if translated:
+                    texts.add(translated)
+        _otherValuesTexts = texts
+    return _otherValuesTexts
+
+
 def _plugin_root():
     """Returns the plugin root directory (two levels up from tools/utils/).
 
@@ -1304,13 +1332,21 @@ class QGISRedStylingUtils:
             for category in renderer.categories():
                 translated = self._translateCategoryLabel(category.value(), classAttribute)
                 label = translated if translated != str(category.value()) else category.label()
-                rebuilt = QgsRendererCategory(category.value(), category.symbol().clone(), label)
+                value = category.value()
+                if value == "" or str(value) in otherValuesTexts():
+                    value = ""
+                    label = QCoreApplication.translate("QGISRedLegendsDialog", _OTHER_VALUES_SOURCE)
+                rebuilt = QgsRendererCategory(value, category.symbol().clone(), label)
                 rebuilt.setRenderState(category.renderState())
                 categories.append(rebuilt)
             layer.setRenderer(self._rebuildCategorizedRenderer(renderer, categories))
 
         elif isinstance(renderer, QgsRuleBasedRenderer):
+            labelsBefore = [rule.label() for rule in renderer.rootRule().descendants()]
             self._translateRuleLabels(renderer.rootRule())
+            if labelsBefore != [rule.label() for rule in renderer.rootRule().descendants()]:
+                # Rules are edited in place, which the legend does not hear about
+                layer.setRenderer(renderer.clone())
 
     def translateMapTip(self, layer):
         """Localize the map tip the loaded style shipped with: both the fixed
@@ -1424,7 +1460,12 @@ class QGISRedStylingUtils:
     def _translateRuleLabels(self, rule):
         if rule is None:
             return
-        label = self._translateCategoryLabel(rule.label())
+        # A saved project keeps the label already translated, so the closed-links rule is
+        # told apart by the value it filters on, not by its text.
+        if "\"SubNet\" = 'ClosedLinks'" in (rule.filterExpression() or ""):
+            label = self.tr("Closed Links")
+        else:
+            label = self._translateCategoryLabel(rule.label())
         if label != rule.label():
             rule.setLabel(label)
         for child in rule.children():

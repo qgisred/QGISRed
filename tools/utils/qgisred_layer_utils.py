@@ -127,6 +127,7 @@ class QGISRedLayerUtils:
             "Isolated Segments": QCoreApplication.translate("QGISRedGroups", "Isolated Segments"),
             "Trees":             QCoreApplication.translate("QGISRedGroups", "Trees"),
             "DemandBuilder":     QCoreApplication.translate("QGISRedGroups", "DemandBuilder"),
+            "Demand Builder":    QCoreApplication.translate("QGISRedGroups", "Demand Builder"),
             "DemandSectors":     QCoreApplication.translate("QGISRedGroups", "DemandSectors"),
             "Auxiliary Layers":   QCoreApplication.translate("QGISRedGroups", "Auxiliary Layers"),
         }

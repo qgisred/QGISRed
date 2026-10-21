@@ -1036,7 +1036,7 @@ class TestRenameLayersToLocale:
         layer.setName.assert_called_once_with("Tuberías_Diámetros")
 
     def test_a_result_layer_is_renamed_from_the_variable_it_shows(self):
-        layer = self._layer("Presiones (mca)", "qgisred_node", "C:/proj/Results/Net_Base_Node.shp")
+        layer = self._layer("Presiones (mca)", "qgisred_node_pressure", "C:/proj/Results/Net_Base_Node.shp")
         utils = self._identifiers([layer])
 
         with patch("QGISRed.tools.utils.qgisred_identifier_utils.QgsProject") as project,                 patch("QGISRed.ui.analysis.qgisred_results_data.resultLayerDisplayName",
@@ -1047,6 +1047,20 @@ class TestRenameLayersToLocale:
         project.instance.return_value.readEntry.assert_called_once_with("QGISRed", "results_Base_Node", "")
         display.assert_called_once_with("Node", "Pressure")
         layer.setName.assert_called_once_with("Pressures (m)")
+
+    def test_the_closed_links_rule_is_found_by_its_filter(self):
+        from QGISRed.tools.utils.qgisred_styling_utils import QGISRedStylingUtils
+
+        styling = object.__new__(QGISRedStylingUtils)
+        styling.tr = lambda message: "Closed Links"
+        rule = MagicMock()
+        rule.label.return_value = "Líneas Cerradas"
+        rule.filterExpression.return_value = "\"Class\" = 'nH-nQ' AND \"SubNet\" = 'ClosedLinks'"
+        rule.children.return_value = []
+
+        styling._translateRuleLabels(rule)
+
+        rule.setLabel.assert_called_once_with("Closed Links")
 
     def test_layers_without_a_default_name_are_left_alone(self):
         foreign = self._layer("Streets", None)

@@ -3337,62 +3337,62 @@ Deseja verificá-los novamente?</translation>
 <context>
     <name>ProjectManagementSection</name>
     <message>
-        <location filename="../sections/project_management_section.py" line="116"/>
+        <location filename="../sections/project_management_section.py" line="122"/>
         <source>No valid project is opened</source>
         <translation>Nenhum projeto válido está aberto</translation>
     </message>
     <message>
-        <location filename="../sections/project_management_section.py" line="651"/>
+        <location filename="../sections/project_management_section.py" line="658"/>
         <source>Some issues occurred in the process</source>
         <translation>Ocorreram alguns problemas no processo</translation>
     </message>
     <message>
-        <location filename="../sections/project_management_section.py" line="430"/>
+        <location filename="../sections/project_management_section.py" line="437"/>
         <source>QGISRed: Open project</source>
         <translation>QGISRed: Abrir projeto</translation>
     </message>
     <message>
-        <location filename="../sections/project_management_section.py" line="606"/>
+        <location filename="../sections/project_management_section.py" line="613"/>
         <source>Project options updated</source>
         <translation>Opções do projeto atualizadas</translation>
     </message>
     <message>
-        <location filename="../sections/project_management_section.py" line="660"/>
+        <location filename="../sections/project_management_section.py" line="667"/>
         <source>Save QGIS project</source>
         <translation>Salvar projeto do QGIS</translation>
     </message>
     <message>
-        <location filename="../sections/project_management_section.py" line="660"/>
+        <location filename="../sections/project_management_section.py" line="667"/>
         <source>QGIS Projects (*.qgz *.qgs)</source>
         <translation>Projetos do QGIS (*.qgz *.qgs)</translation>
     </message>
     <message>
-        <location filename="../sections/project_management_section.py" line="144"/>
+        <location filename="../sections/project_management_section.py" line="150"/>
         <source>Some layer is in Edit Mode. Please, commit it before continuing.</source>
         <translation>Alguma camada está em Modo de Edição. Confirme as alterações antes de continuar.</translation>
     </message>
     <message>
-        <location filename="../sections/project_management_section.py" line="67"/>
+        <location filename="../sections/project_management_section.py" line="73"/>
         <source>The project has changes. Please save them before continuing.</source>
         <translation>O projeto tem alterações. Salve-as antes de continuar.</translation>
     </message>
     <message>
-        <location filename="../sections/project_management_section.py" line="73"/>
+        <location filename="../sections/project_management_section.py" line="79"/>
         <source>Open project</source>
         <translation>Abrir projeto</translation>
     </message>
     <message>
-        <location filename="../sections/project_management_section.py" line="73"/>
+        <location filename="../sections/project_management_section.py" line="79"/>
         <source>Do you want to close the current project and continue?</source>
         <translation>Deseja fechar o projeto atual e continuar?</translation>
     </message>
     <message>
-        <location filename="../sections/project_management_section.py" line="88"/>
+        <location filename="../sections/project_management_section.py" line="94"/>
         <source>Open layers</source>
         <translation>Abrir camadas</translation>
     </message>
     <message>
-        <location filename="../sections/project_management_section.py" line="88"/>
+        <location filename="../sections/project_management_section.py" line="94"/>
         <source>Do you want to close the current layers and continue?</source>
         <translation>Deseja fechar as camadas atuais e continuar?</translation>
     </message>
@@ -3402,17 +3402,17 @@ Deseja verificá-los novamente?</translation>
         <translation type="obsolete">Backup armazenado em:</translation>
     </message>
     <message>
-        <location filename="../sections/project_management_section.py" line="190"/>
+        <location filename="../sections/project_management_section.py" line="197"/>
         <source>Map project saved</source>
         <translation>Projeto salvo</translation>
     </message>
     <message>
-        <location filename="../sections/project_management_section.py" line="826"/>
+        <location filename="../sections/project_management_section.py" line="833"/>
         <source>Old simulation results found</source>
         <translation>Resultados de simulação antigos encontrados</translation>
     </message>
     <message>
-        <location filename="../sections/project_management_section.py" line="826"/>
+        <location filename="../sections/project_management_section.py" line="833"/>
         <source>Result layers from a previous version of QGISRed have been detected.They will be removed from QGIS and you will need to run the simulation again.
 
 Do you also want to delete the result files from disk?</source>
@@ -3421,47 +3421,47 @@ Do you also want to delete the result files from disk?</source>
 Deseja também excluir os arquivos de resultados do disco?</translation>
     </message>
     <message>
-        <location filename="../sections/project_management_section.py" line="129"/>
+        <location filename="../sections/project_management_section.py" line="135"/>
         <source>Please, open the project from the QGISRed Project Manager</source>
         <translation>Abra o projeto a partir do Gerenciador de Projetos do QGISRed</translation>
     </message>
     <message>
-        <location filename="../sections/project_management_section.py" line="684"/>
+        <location filename="../sections/project_management_section.py" line="691"/>
         <source>The QGIS project file is not in the project folder nor in its parent folder (%1). Use the Move option to relocate it before exporting.</source>
         <translation>O arquivo de projeto do QGIS não está na pasta do projeto nem na pasta superior (%1). Use a opção Mover para reposicioná-lo antes de exportar.</translation>
     </message>
     <message>
-        <location filename="../sections/project_management_section.py" line="1220"/>
+        <location filename="../sections/project_management_section.py" line="1238"/>
         <source>QGISRed</source>
         <translation type="unfinished">QGISRed</translation>
     </message>
     <message>
-        <location filename="../sections/project_management_section.py" line="717"/>
+        <location filename="../sections/project_management_section.py" line="724"/>
         <source>The project could not be exported:</source>
         <translation>Não foi possível exportar o projeto:</translation>
     </message>
     <message>
-        <location filename="../sections/project_management_section.py" line="722"/>
+        <location filename="../sections/project_management_section.py" line="729"/>
         <source>Zip file stored in:</source>
         <translation>Arquivo ZIP salvo em:</translation>
     </message>
     <message>
-        <location filename="../sections/project_management_section.py" line="739"/>
+        <location filename="../sections/project_management_section.py" line="746"/>
         <source>The QGIS project has unsaved changes. Do you want to save it before exporting?</source>
         <translation>O projeto do QGIS tem alterações não salvas. Deseja salvá-lo antes de exportar?</translation>
     </message>
     <message>
-        <location filename="../sections/project_management_section.py" line="1223"/>
+        <location filename="../sections/project_management_section.py" line="1241"/>
         <source>Do you want to save the map of the current project?</source>
         <translation>Deseja guardar o mapa do projeto atual?</translation>
     </message>
     <message>
-        <location filename="../sections/project_management_section.py" line="1194"/>
+        <location filename="../sections/project_management_section.py" line="1212"/>
         <source>Open Project</source>
         <translation>Abrir projeto</translation>
     </message>
     <message>
-        <location filename="../sections/project_management_section.py" line="1194"/>
+        <location filename="../sections/project_management_section.py" line="1212"/>
         <source>QGIS files (*.qgz *.qgs *.QGZ *.QGS)</source>
         <translation>Ficheiros QGIS (*.qgz *.qgs *.QGZ *.QGS)</translation>
     </message>
@@ -4713,7 +4713,7 @@ Continuar?</translation>
         <translation>Segmentos Isolados</translation>
     </message>
     <message>
-        <location filename="../tools/utils/qgisred_layer_utils.py" line="131"/>
+        <location filename="../tools/utils/qgisred_layer_utils.py" line="132"/>
         <source>Auxiliary Layers</source>
         <translation>Camadas Auxiliares</translation>
     </message>
@@ -4723,7 +4723,7 @@ Continuar?</translation>
         <translation type="obsolete">Construtor de Consumos</translation>
     </message>
     <message>
-        <location filename="../tools/utils/qgisred_layer_utils.py" line="130"/>
+        <location filename="../tools/utils/qgisred_layer_utils.py" line="131"/>
         <source>DemandSectors</source>
         <translation type="unfinished">Setores de Demanda</translation>
     </message>
@@ -4733,9 +4733,14 @@ Continuar?</translation>
         <translation type="unfinished">Construtor de Consumos</translation>
     </message>
     <message>
-        <location filename="../tools/utils/qgisred_layer_utils.py" line="757"/>
+        <location filename="../tools/utils/qgisred_layer_utils.py" line="758"/>
         <source>Tree_%1</source>
         <translation>Árvore_%1</translation>
+    </message>
+    <message>
+        <location filename="../tools/utils/qgisred_layer_utils.py" line="130"/>
+        <source>Demand Builder</source>
+        <translation type="unfinished">Construtor de Consumos</translation>
     </message>
 </context>
 <context>
@@ -5860,12 +5865,12 @@ Continuar?</translation>
 <context>
     <name>QGISRedLayerUtils</name>
     <message>
-        <location filename="../tools/utils/qgisred_layer_utils.py" line="881"/>
+        <location filename="../tools/utils/qgisred_layer_utils.py" line="882"/>
         <source>Pipes</source>
         <translation>Tubulações</translation>
     </message>
     <message>
-        <location filename="../tools/utils/qgisred_layer_utils.py" line="670"/>
+        <location filename="../tools/utils/qgisred_layer_utils.py" line="671"/>
         <source>%1 I</source>
         <translation>%1 I</translation>
     </message>
@@ -9406,7 +9411,7 @@ Não é possível aplicar as alterações.</translation>
         <translation>Informações</translation>
     </message>
     <message>
-        <location filename="../tools/utils/qgisred_styling_utils.py" line="2039"/>
+        <location filename="../tools/utils/qgisred_styling_utils.py" line="2052"/>
         <source>%1 field not found in layer %2</source>
         <translation>Campo %1 não encontrado na camada %2</translation>
     </message>
@@ -9451,7 +9456,7 @@ Não é possível aplicar as alterações.</translation>
         <translation>Rampa de cores '%1' não encontrada; estratégia de cores ignorada</translation>
     </message>
     <message>
-        <location filename="../tools/utils/qgisred_styling_utils.py" line="1278"/>
+        <location filename="../tools/utils/qgisred_styling_utils.py" line="1438"/>
         <source>Closed Links</source>
         <translation>Trechos Fechados</translation>
     </message>

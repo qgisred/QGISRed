@@ -2,7 +2,7 @@
 import os
 import re
 from qgis.PyQt.QtCore import QCoreApplication
-from qgis.core import QgsProject, QgsLayerTreeGroup, QgsLayerMetadata
+from qgis.core import QgsProject, QgsLayerTreeGroup, QgsLayerMetadata, QgsMessageLog
 
 from .qgisred_filesystem_utils import ELEMENT_LAYERS
 
@@ -252,14 +252,30 @@ class QGISRedIdentifierUtils:
             if not treeName:
                 return None
             return self.getTreeLayerName(treeName, identifier == "qgisred_tree_links")
-        if identifier.startswith("qgisred_demandbuilder_"):
-            baseName = os.path.splitext(os.path.basename(self._getLayerPath(layer)))[0]
-            return self.getAuxiliaryThemeName(baseName) or None
+        if identifier.startswith("qgisred_demand"):
+            themeName = self.getAuxiliaryThemeName(self._layerBaseName(layer))
+            if themeName:
+                return themeName
         if identifier.startswith("qgisred_query_"):
             return self._getThematicMapLayerName(layer, identifier)
-        if identifier in ("qgisred_node", "qgisred_link"):
-            return self._getResultLayerName(layer, identifier)
+        resultType = self._resultLayerType(layer)
+        if resultType:
+            return self._getResultLayerName(layer, resultType)
         return self.getTranslatedNameForIdentifier(identifier)
+
+    def _layerBaseName(self, layer):
+        return os.path.splitext(os.path.basename(self._getLayerPath(layer)))[0]
+
+    def _resultLayerType(self, layer):
+        """"Node" or "Link" for a layer of the Results folder, whatever identifier it carries."""
+        layerPath = self._getLayerPath(layer)
+        if os.path.basename(os.path.dirname(layerPath)) != "Results":
+            return None
+        baseName = self._layerBaseName(layer)
+        if not baseName.startswith(self.NetworkName + "_"):
+            return None
+        suffix = baseName.rsplit("_", 1)[-1]
+        return suffix if suffix in ("Node", "Link") else None
 
     def _getThematicMapLayerName(self, layer, identifier):
         from .qgisred_thematicmaps_queries import buildQueryCatalogue, queryIdentifier
@@ -277,12 +293,11 @@ class QGISRedIdentifierUtils:
             return QCoreApplication.translate("InputLayerNames", query["layer_name"]) + suffix
         return None
 
-    def _getResultLayerName(self, layer, identifier):
+    def _getResultLayerName(self, layer, layerType):
         from ...ui.analysis.qgisred_results_data import NO_VARIABLE_METADATA_TAG, resultLayerDisplayName
 
-        layerType = "Link" if identifier == "qgisred_link" else "Node"
-        baseName = os.path.splitext(os.path.basename(self._getLayerPath(layer)))[0]
-        scenario = baseName[len(self.NetworkName) + 1:].rsplit("_", 1)[0] if self.NetworkName else ""
+        baseName = self._layerBaseName(layer)
+        scenario = baseName[len(self.NetworkName) + 1:].rsplit("_", 1)[0]
         variable, _ = QgsProject.instance().readEntry("QGISRed", f"results_{scenario}_{layerType}", "")
         if not variable:
             return None
@@ -294,12 +309,17 @@ class QGISRedIdentifierUtils:
 
     def renameLayersToLocale(self):
         """Gives every QGISRed layer of the project its default name in the active locale."""
+        self.repairDoubledIdentifiers()
         for layer in self._getLayers():
             if layer is None:
                 continue
-            translatedName = self.getLocaleLayerName(layer)
-            if translatedName and layer.name() != translatedName:
-                layer.setName(translatedName)
+            try:
+                translatedName = self.getLocaleLayerName(layer)
+                if translatedName and layer.name() != translatedName:
+                    layer.setName(translatedName)
+            except Exception as error:
+                QgsMessageLog.logMessage(
+                    f"Could not rename layer '{layer.name()}' to the active language: {error}", "QGISRed")
 
     """Thematic Maps"""
 

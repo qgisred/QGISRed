@@ -5587,7 +5587,8 @@ class QGISRedLegendsDialog(QDialog, formClass):
     def determineRealCategoricalValue(self, value, label):
         if value == "NULL":
             return None
-        if value == "" and label in [self.tr("Other Values"), "Other Values"]:
+        if value in [self.tr("Other Values"), "Other Values"] or (
+                value == "" and label in [self.tr("Other Values"), "Other Values"]):
             return ""
         return value
 

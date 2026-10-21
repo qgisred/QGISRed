@@ -33,6 +33,12 @@ from ..ui.general.qgisred_loadproject_dialog import QGISRedImportProjectDialog
 from ..ui.analysis.timeseries_actions import clear_all_timeseries
 
 
+_TOOL_LAYER_IDENTIFIER_PREFIXES = (
+    "qgisred_connectivity", "qgisred_hydraulicsectors", "qgisred_demandsectors",
+    "qgisred_isolatedsegments", "qgisred_tree", "qgisred_demandbuilder",
+)
+
+
 class ProjectManagementSection:
     """Define/validate project, open/create/import/close project, settings, CRS, backup."""
 
@@ -987,8 +993,11 @@ class ProjectManagementSection:
         enforceAllIdentifiers/assignLayerIdentifiers runs, so that old-project detection
         (layer has no identifier yet) still works correctly.
         """
+        if self.ProjectDirectory == self.TemporalFolder:
+            self.defineCurrentProject()
         self._writePluginVersionToProject()
         self._migrateLayersToSubfolders()
+        QGISRedProjectIO(self.ProjectDirectory, self.NetworkName, self.iface)._renameGroupsToLocale()
         QGISRedIdentifierUtils(self.ProjectDirectory, self.NetworkName, self.iface).renameLayersToLocale()
 
         from ..tools.utils.qgisred_styling_utils import QGISRedStylingUtils
@@ -1000,6 +1009,12 @@ class ProjectManagementSection:
         )
 
         project = QgsProject.instance()
+
+        for treeLayer in project.layerTreeRoot().findLayers():
+            layer = treeLayer.layer()
+            identifier = layer.customProperty("qgisred_identifier") if layer is not None else None
+            if identifier and identifier.startswith(_TOOL_LAYER_IDENTIFIER_PREFIXES):
+                styling.translateRendererLabels(layer)
 
         for layer_id, style_name in snapshot["inputs_to_restyle"]:
             layer = project.mapLayer(layer_id)
