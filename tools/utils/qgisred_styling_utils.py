@@ -43,31 +43,34 @@ from .qgisred_source_types import getSourceTypeName, SOURCE_TYPE_LABELS
 
 
 _OTHER_VALUES_SOURCE = "Other Values"
-_otherValuesTexts = None
+_shippedTranslators = None
+
+
+def allLanguageTexts(context, source):
+    """`source` as every language the plugin ships spells it, the source text included.
+
+    A saved project keeps the text of the language it was last used in, and can only be
+    recognised by comparing against every translation, not just the active one."""
+    global _shippedTranslators
+    if _shippedTranslators is None:
+        from qgis.PyQt.QtCore import QTranslator
+
+        _shippedTranslators = []
+        i18nDir = os.path.join(_plugin_root(), "i18n")
+        for fileName in os.listdir(i18nDir) if os.path.isdir(i18nDir) else ():
+            translator = QTranslator()
+            if fileName.endswith(".qm") and translator.load(os.path.join(i18nDir, fileName)):
+                _shippedTranslators.append(translator)
+    texts = {source}
+    for translator in _shippedTranslators:
+        translated = translator.translate(context, source)
+        if isinstance(translated, str) and translated:
+            texts.add(translated)
+    return texts
 
 
 def otherValuesTexts():
-    """"Other Values" as every language the plugin ships spells it.
-
-    Older projects stored the "all other values" class with the text of the language it was
-    created in as its value, so it can only be recognised by comparing against every
-    translation, not just the active one."""
-    global _otherValuesTexts
-    if _otherValuesTexts is None:
-        from qgis.PyQt.QtCore import QTranslator
-
-        texts = {_OTHER_VALUES_SOURCE}
-        i18nDir = os.path.join(_plugin_root(), "i18n")
-        for fileName in os.listdir(i18nDir) if os.path.isdir(i18nDir) else ():
-            if not fileName.endswith(".qm"):
-                continue
-            translator = QTranslator()
-            if translator.load(os.path.join(i18nDir, fileName)):
-                translated = translator.translate("QGISRedLegendsDialog", _OTHER_VALUES_SOURCE)
-                if translated:
-                    texts.add(translated)
-        _otherValuesTexts = texts
-    return _otherValuesTexts
+    return allLanguageTexts("QGISRedLegendsDialog", _OTHER_VALUES_SOURCE)
 
 
 def _plugin_root():
@@ -1402,11 +1405,12 @@ class QGISRedStylingUtils:
         if not template:
             return
         for word in _MAPTIP_ELEMENT_WORDS:
-            if template.startswith(word + " "):
-                translated = self.tr(word)
-                if translated != word:
-                    layer.setMapTipTemplate(translated + template[len(word):])
-                return
+            for spelling in allLanguageTexts("QGISRedStylingUtils", word):
+                if template.startswith(spelling + " "):
+                    translated = self.tr(word)
+                    if translated != spelling:
+                        layer.setMapTipTemplate(translated + template[len(spelling):])
+                    return
 
     @staticmethod
     def _translateMapTipTypeCode(layer, codeExpr, labels):
@@ -1424,8 +1428,8 @@ class QGISRedStylingUtils:
     @staticmethod
     def _wrapTypeCode(text, codeExpr, labels):
         variableStart = "with_variable('qgisred_type', " + codeExpr
-        if variableStart in text:
-            return text
+        text = re.sub(re.escape(variableStart) + r", CASE .*? ELSE @qgisred_type END\)",
+                      lambda _: codeExpr, text, flags=re.DOTALL)
         cases = " ".join(
             "WHEN @qgisred_type = '" + code + "' THEN '" + label.replace("'", "''") + "'"
             for code, label in labels.items()

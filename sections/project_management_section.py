@@ -998,7 +998,9 @@ class ProjectManagementSection:
         self._writePluginVersionToProject()
         self._migrateLayersToSubfolders()
         QGISRedProjectIO(self.ProjectDirectory, self.NetworkName, self.iface)._renameGroupsToLocale()
-        QGISRedIdentifierUtils(self.ProjectDirectory, self.NetworkName, self.iface).renameLayersToLocale()
+        identifiers = QGISRedIdentifierUtils(self.ProjectDirectory, self.NetworkName, self.iface)
+        identifiers.renameLayersToLocale()
+        identifiers.translateResultMapTips()
 
         from ..tools.utils.qgisred_styling_utils import QGISRedStylingUtils
 
@@ -1015,6 +1017,9 @@ class ProjectManagementSection:
             identifier = layer.customProperty("qgisred_identifier") if layer is not None else None
             if identifier and identifier.startswith(_TOOL_LAYER_IDENTIFIER_PREFIXES):
                 styling.translateRendererLabels(layer)
+            if identifier:
+                styling.translateMapTip(layer)
+                styling.translateValveTypeLabel(layer)
 
         for layer_id, style_name in snapshot["inputs_to_restyle"]:
             layer = project.mapLayer(layer_id)

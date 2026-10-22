@@ -22,7 +22,7 @@ from ...tools.qgisred_dependencies import QGISRedDependencies as GISRed
 from .qgisred_results_rendering import _ResultsRenderingMixin
 from .qgisred_results_data import (_ResultsDataMixin, _STAT_VAR_ALIASES,
                                    NODE_RESULT_FIELDS, LINK_RESULT_FIELDS,
-                                   NO_VARIABLE_METADATA_TAG)
+                                   NO_VARIABLE_METADATA_TAG, RESULTS_TRANSLATION_CONTEXTS)
 from .qgisred_results_distribution import _ResultsDistributionMixin
 from .qgisred_results_evolution import _ResultsEvolutionMixin
 from .qgisred_results_appearance import _ResultsAppearanceMixin
@@ -63,20 +63,7 @@ class QGISRedResultsDock(
     _canvasFreezeDepth = 0
     _frozenCanvases = None
     _pendingResultsCall = None
-    # pylupdate5 files every string under the class (or the variable name) it saw at the
-    # call site, so every mixin and every helper that receives the dock needs its own entry
-    # here; otherwise the string is extracted but never found at runtime.
-    _RESULTS_CONTEXTS = [
-        "QGISRedResultsDock",
-        "_ResultsRenderingMixin",
-        "_ResultsDataMixin",
-        "_ResultsDistributionMixin",
-        "_ResultsEvolutionMixin",
-        "_ResultsAppearanceMixin",
-        "dock",
-        "QGISRed",
-        "AnalysisSection",
-    ]
+    _RESULTS_CONTEXTS = RESULTS_TRANSLATION_CONTEXTS
 
     def tr(self, message):
         """Get the translation for a string searching across multiple results-related contexts."""

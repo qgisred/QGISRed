@@ -12,6 +12,7 @@ from .qgisred_results_hyd import (
     getHyd_Metadata,
 )
 import os
+import re
 
 from qgis.PyQt.QtCore import QCoreApplication
 from ...tools.utils.qgisred_ui_utils import QGISRedUIUtils
@@ -79,6 +80,80 @@ def resultLayerDisplayName(layerType, variable):
     name = fieldUtils.getPluralProperty(element, field)
     unit = fieldUtils.getUnitAbbreviation(element, field)
     return f"{name} ({unit})" if unit else name
+
+
+_RESULT_VARIABLE_SOURCES = {
+    "Pressure": "Pressure", "Head": "Head", "Demand": "Demand", "Flow": "Flow",
+    "Flow_Unsig": "Flow (Unsigned)", "Flow_Sig": "Flow (Signed)", "Velocity": "Velocity",
+    "HeadLoss": "HeadLoss", "UnitHdLoss": "Unit HeadLoss", "FricFactor": "Friction Factor",
+    "Status": "Status", "ReactRate": "Reaction Rate",
+}
+_RESULT_STAT_PREFIX_SOURCES = ("Max", "Min", "Avg", "Rng", "Std")
+_RESULT_ELEMENT_TYPES = ("JUNCTION", "RESERVOIR", "TANK", "PIPE", "PUMP", "VALVE")
+# pylupdate5 files every string under the class (or the variable name) it saw at the call
+# site, so every mixin and every helper that receives the dock needs its own entry here;
+# otherwise the string is extracted but never found at runtime.
+RESULTS_TRANSLATION_CONTEXTS = [
+    "QGISRedResultsDock",
+    "_ResultsRenderingMixin",
+    "_ResultsDataMixin",
+    "_ResultsDistributionMixin",
+    "_ResultsEvolutionMixin",
+    "_ResultsAppearanceMixin",
+    "dock",
+    "QGISRed",
+    "AnalysisSection",
+]
+
+
+def _translateResultsWord(source):
+    for context in RESULTS_TRANSLATION_CONTEXTS:
+        translated = QCoreApplication.translate(context, source)
+        if translated != source:
+            return translated
+    return source
+
+
+def _resultsWordSpellings(source):
+    from ...tools.utils.qgisred_styling_utils import allLanguageTexts
+
+    spellings = set()
+    for context in RESULTS_TRANSLATION_CONTEXTS:
+        spellings |= allLanguageTexts(context, source)
+    return spellings
+
+
+def retranslateResultMapTip(layer, field):
+    """Put the words of a result layer's map tip in the active language.
+
+    The tip is built by the results dock, which a reopened project does not start, so a
+    saved one keeps the words of the language it was built in. Only the words are swapped
+    (variable, element types, statistic prefix); the expressions are left as they are.
+    """
+    template = layer.mapTipTemplate()
+    if not template or field not in _RESULT_VARIABLE_SOURCES and field != "Quality":
+        return
+    if field == "Quality":
+        quality = QGISRedProjectUtils.getQualityModel().upper() != "NONE"
+        variable = QGISRedProjectUtils.getQualityDisplayName() if quality else _translateResultsWord("Quality")
+    else:
+        variable = _translateResultsWord(_RESULT_VARIABLE_SOURCES[field])
+
+    updated = re.sub(r"^<b>.*?</b>", lambda _: "<b>" + variable + "</b>", template, count=1)
+    for elementType in _RESULT_ELEMENT_TYPES:
+        word = _translateResultsWord(elementType.title())
+        updated = re.sub("(= '" + elementType + "' THEN ')[^']*(')",
+                         lambda match: match.group(1) + word + match.group(2), updated)
+
+    lines = updated.split("<br>")
+    if len(lines) > 2:
+        for source in _RESULT_STAT_PREFIX_SOURCES:
+            for spelling in _resultsWordSpellings(source):
+                if lines[2].startswith(spelling + " [%"):
+                    lines[2] = _translateResultsWord(source) + lines[2][len(spelling):]
+        updated = "<br>".join(lines)
+    if updated != template:
+        layer.setMapTipTemplate(updated)
 
 
 # Field definitions for result layers: (name, type [, length]).

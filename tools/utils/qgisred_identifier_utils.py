@@ -293,6 +293,19 @@ class QGISRedIdentifierUtils:
             return QCoreApplication.translate("InputLayerNames", query["layer_name"]) + suffix
         return None
 
+    def translateResultMapTips(self):
+        from ...ui.analysis.qgisred_results_data import NO_VARIABLE_METADATA_TAG, retranslateResultMapTip
+
+        for layer in self._getLayers():
+            layerType = self._resultLayerType(layer) if layer is not None else None
+            if not layerType:
+                continue
+            baseName = self._layerBaseName(layer)
+            scenario = baseName[len(self.NetworkName) + 1:].rsplit("_", 1)[0]
+            field, _ = QgsProject.instance().readEntry("QGISRed", f"results_{scenario}_{layerType}", "")
+            if field and field != NO_VARIABLE_METADATA_TAG:
+                retranslateResultMapTip(layer, field)
+
     def _getResultLayerName(self, layer, layerType):
         from ...ui.analysis.qgisred_results_data import NO_VARIABLE_METADATA_TAG, resultLayerDisplayName
 
