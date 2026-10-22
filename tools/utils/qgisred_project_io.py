@@ -19,7 +19,7 @@ from qgis.core import (
 from .qgisred_ui_utils import QGISRedUIUtils
 from .qgisred_filesystem_utils import (
     DIR_ISSUES, DIR_QUERIES, DIR_RESULTS,
-    LAYER_TYPE_CONFIG,
+    ELEMENT_LAYERS, LAYER_TYPE_CONFIG,
 )
 
 # What counts as a datasource in the QGIS project XML. Single source of truth, shared by the
@@ -302,6 +302,7 @@ class QGISRedProjectIO:
             for name in reversed(layerNames):
                 utils.openLayer(group, name, **flags)
             if top == "Inputs":
+                utils.orderLayers(group)
                 for child in group.children():
                     child.setCustomProperty("showFeatureCount", True)
 
@@ -704,7 +705,7 @@ class QGISRedProjectIO:
                 with open(metadataFile, "w", encoding="latin-1") as mf:
                     mf.write(ElementTree.tostring(xmlRoot, encoding="unicode"))
 
-    _DEFAULT_INPUT_LAYERS = ["Pipes", "Junctions", "Demands", "Valves", "Pumps", "Tanks", "Reservoirs", "Sources"]
+    _DEFAULT_INPUT_LAYERS = ELEMENT_LAYERS
 
     def _askForQGisProject(self):
         """Offers to locate a missing .qgz/.qgs. Returns the chosen path, or None to rebuild from the metadata."""
