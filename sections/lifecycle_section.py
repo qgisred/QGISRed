@@ -189,6 +189,7 @@ class LifecycleSection:
         QgsProject.instance().layersRemoved.connect(self.runLayerOrderChanged)
         QgsProject.instance().layersWillBeRemoved.connect(self._onLayersWillBeRemoved)
         QgsProject.instance().readProject.connect(self.runOpenedQgisProject)
+        QgsProject.instance().layerTreeRoot().visibilityChanged.connect(self.runGroupVisibilityChanged)
 
         # MapTools
         self.myMapTools = {}
@@ -230,6 +231,7 @@ class LifecycleSection:
         self.layerOperationInProgress = False
         self._loading_project = False
         self._backdropOrderPending = False
+        self._groupExclusionRunning = False
 
         with suppress(Exception):
             if QgsProject.instance().mapLayers():
@@ -412,6 +414,8 @@ class LifecycleSection:
             QgsProject.instance().layersWillBeRemoved.disconnect(self._onLayersWillBeRemoved)
         with suppress(Exception):
             QgsProject.instance().readProject.disconnect(self.runOpenedQgisProject)
+        with suppress(Exception):
+            QgsProject.instance().layerTreeRoot().visibilityChanged.disconnect(self.runGroupVisibilityChanged)
         with suppress(Exception):
             QgsProject.instance().readProject.disconnect(QGISRedStylingUtils.registerStyleDatabaseInProject)
         with suppress(Exception):

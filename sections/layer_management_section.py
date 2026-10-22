@@ -5,7 +5,7 @@ from contextlib import suppress
 import os
 import shutil
 
-from qgis.core import QgsProject, QgsVectorLayer, QgsLayerTreeLayer
+from qgis.core import QgsProject, QgsVectorLayer, QgsLayerTreeLayer, QgsLayerTreeGroup
 from qgis.PyQt.QtWidgets import QApplication, QMessageBox
 from qgis.PyQt.QtCore import Qt, QTimer
 
@@ -562,6 +562,37 @@ class LayerManagementSection:
                 return
 
             self.updateMetadata()
+
+    _RESULTS_ID = "qgisred_results"
+    _ALTERNATIVE_TO_RESULTS_IDS = ("qgisred_queries", "qgisred_issues")
+
+    def runGroupVisibilityChanged(self, node):
+        """Keep Results and Queries/Issues mutually exclusive when the user ticks a group.
+
+        Programmatic openings are left alone: they already arrange visibility themselves
+        and run under layerOperationInProgress.
+        """
+        if self.isUnloading or self.layerOperationInProgress or self._groupExclusionRunning:
+            return
+        if not isinstance(node, QgsLayerTreeGroup) or not node.itemVisibilityChecked():
+            return
+        identifier = node.customProperty("qgisred_identifier")
+        if identifier == self._RESULTS_ID:
+            toHide = self._ALTERNATIVE_TO_RESULTS_IDS
+        elif identifier in self._ALTERNATIVE_TO_RESULTS_IDS:
+            toHide = (self._RESULTS_ID,)
+        else:
+            return
+        parent = node.parent()
+        if parent is None:
+            return
+        self._groupExclusionRunning = True
+        try:
+            for sibling in parent.children():
+                if isinstance(sibling, QgsLayerTreeGroup) and sibling.customProperty("qgisred_identifier") in toHide:
+                    sibling.setItemVisibilityChecked(False)
+        finally:
+            self._groupExclusionRunning = False
 
     def runLayerOrderChanged(self, *args):
         """Re-apply the backdrop render order once the layer tree has settled.
