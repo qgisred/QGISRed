@@ -405,14 +405,18 @@ class QGISRedLegendsDialog(QDialog, formClass):
                   self.labelSizeValue, self.labelSpinMin, self.labelColors, self.labelFillOpacity)
         self.optionsGrid.setColumnMinimumWidth(0, max(label.sizeHint().width() for label in labels))
 
+        def width(widget):
+            # A minimum width set in the .ui wins over a narrower size hint
+            return max(widget.sizeHint().width(), widget.minimumWidth())
+
         spacing = max(self.classControlsLayout.spacing(), 0)
-        classButtons = self.btClassPlus.sizeHint().width() + self.btClassMinus.sizeHint().width()
+        classButtons = width(self.btClassPlus) + width(self.btClassMinus)
         countText = self.tr("(%1 classes)").replace("%1", "000")
-        categorizedClassesRow = (self.cbClasses.sizeHint().width() + classButtons + 3 * spacing
+        categorizedClassesRow = (width(self.cbClasses) + classButtons + 3 * spacing
                                  + self.labelClassCount.fontMetrics().horizontalAdvance(countText))
-        graduatedClassesRow = self.leClassCount.sizeHint().width() + classButtons + 2 * spacing
+        graduatedClassesRow = width(self.leClassCount) + classButtons + 2 * spacing
         rowWidths = [categorizedClassesRow, graduatedClassesRow]
-        rowWidths += [widget.sizeHint().width() for widget in (self.cbClassOrder, self.cbMode, self.cbSizes)]
+        rowWidths += [width(widget) for widget in (self.cbClassOrder, self.cbMode, self.cbSizes)]
         self.optionsGrid.setColumnMinimumWidth(1, max(rowWidths))
 
     def resizeToFitContents(self):
@@ -3659,10 +3663,16 @@ class QGISRedLegendsDialog(QDialog, formClass):
             symbol = QgsSymbol.defaultSymbol(self.currentLayer.geometryType())
         if data["color"] is not None:
             self.applyRowColorToSymbol(symbol, data["color"])
-        self.setRowWidgets(row, symbol, data["visible"], data["value"], data["legend"],
-                           self.getGeometryHint(), isReadOnlyValue=True)
-        if data["sizeText"] is not None and isinstance(self.tableView.cellWidget(row, 2), QLineEdit):
+        geometryHint = self.effectiveGeometryHint(symbol, self.getGeometryHint())
+        self.setCheckboxWidget(row, data["visible"])
+        self.setColorWidget(row, symbol, geometryHint, data["value"])
+        # The size typed in the row, which the symbol may not carry yet
+        if data["sizeText"] is not None and not self.isFactorCell():
             self.tableView.setCellWidget(row, 2, self.createSizeLineEdit(data["sizeText"], row))
+        else:
+            self.setSizeWidget(row, symbol, geometryHint)
+        self.setValueWidget(row, data["value"], True)
+        self.setLegendWidget(row, data["legend"])
 
     def moveClassUp(self):
         self.moveRow(-1)
