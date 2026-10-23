@@ -16,6 +16,8 @@ class TestLoadingInTheEditor:
         dialog.currentFieldType = QGISRedLegendsDialog.FIELD_TYPE_CATEGORICAL
         dialog.getCurrentRendererType = lambda: "categorizedSymbol"
         dialog.restoreClassOrderUi = lambda order: None
+        dialog.sortTableRowsByClassOrder = lambda: None
+        dialog.restoreClassesScopeUi = lambda parts: None
         dialog.calls = []
         dialog.classifyMissingUniqueValues = lambda: dialog.calls.append("add values")
         dialog.restoreSizesUi = lambda block: dialog.calls.append("sizes")

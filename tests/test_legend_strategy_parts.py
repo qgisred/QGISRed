@@ -297,7 +297,14 @@ class TestStrategyPartReasons:
         dialog.cbSizes.currentData.return_value = "Linear"
         dialog.currentLayer = MagicMock()
         dialog.currentLayer.fields.return_value.indexFromName.return_value = fieldIndex
+        dialog.currentClassesScope = lambda: "all"
         return dialog
+
+    def test_current_classes_are_kept_as_shown(self):
+        # Only All asks for a class for every value when the style is loaded
+        dialog = self._dialog()
+        dialog.currentClassesScope = lambda: "current"
+        assert "Choose All in Classes" in dialog.classesPartReason()
 
     def test_a_plain_categorized_legend_can_recalculate_everything(self):
         dialog = self._dialog()

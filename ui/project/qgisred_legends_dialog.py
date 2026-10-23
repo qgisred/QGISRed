@@ -393,7 +393,27 @@ class QGISRedLegendsDialog(QDialog, formClass):
         from qgis.PyQt.QtWidgets import QComboBox
         for combo in self.findChildren(QComboBox):
             QGISRedUIUtils.applyComboStyle(combo)
+        self.lockOptionsColumnWidths()
         self.resizeToFitContents()
+
+    def lockOptionsColumnWidths(self):
+        """The wizard keeps one width for graduated and categorized legends, so the table does too.
+
+        Interval Range is left out: it only shows for fixed intervals, and would widen every legend.
+        """
+        labels = (self.labelClass, self.labelClassOrder, self.labelMode, self.labelBorder, self.labelSizes,
+                  self.labelSizeValue, self.labelSpinMin, self.labelColors, self.labelFillOpacity)
+        self.optionsGrid.setColumnMinimumWidth(0, max(label.sizeHint().width() for label in labels))
+
+        spacing = max(self.classControlsLayout.spacing(), 0)
+        classButtons = self.btClassPlus.sizeHint().width() + self.btClassMinus.sizeHint().width()
+        countText = self.tr("(%1 classes)").replace("%1", "000")
+        categorizedClassesRow = (self.cbClasses.sizeHint().width() + classButtons + 3 * spacing
+                                 + self.labelClassCount.fontMetrics().horizontalAdvance(countText))
+        graduatedClassesRow = self.leClassCount.sizeHint().width() + classButtons + 2 * spacing
+        rowWidths = [categorizedClassesRow, graduatedClassesRow]
+        rowWidths += [widget.sizeHint().width() for widget in (self.cbClassOrder, self.cbMode, self.cbSizes)]
+        self.optionsGrid.setColumnMinimumWidth(1, max(rowWidths))
 
     def resizeToFitContents(self):
         # The scroll area adjusts to its contents, so the dialog's own size hint
@@ -621,7 +641,7 @@ class QGISRedLegendsDialog(QDialog, formClass):
         self.setupAppearanceWarning()
         self.setupTableView()
         self.setupClassCountField()
-        self.setupClassifyAllButton()
+        self.setupClassesScopeCombo()
         self.setupClassOrderCombo()
         self.setupAddClassMenu()
         self.setupInputRestrictionNotice()
@@ -720,16 +740,63 @@ class QGISRedLegendsDialog(QDialog, formClass):
         self.classCountRowVisible = False
         self.setClassCountEditable(False)
 
-    def setupClassifyAllButton(self):
-        self.btClassifyAll.setIcon(QIcon(":/images/iconClassifyAll.svg"))
-        self.btClassifyAll.setText(self.tr("Add all values"))
-        self.btClassifyAll.clicked.connect(self.classifyAllUniqueValues)
+    def setupClassesScopeCombo(self):
+        """Categorized legends: the classes shown now, or one class for every value of the layer."""
+        # Plural in the languages that agree with "classes" (Actuales, Todas)
+        self.cbClasses.addItem(self.tr("Current", "classes"), "current")
+        self.cbClasses.addItem(self.tr("All", "classes"), "all")
+        self.cbClasses.setToolTip(
+            self.tr("Current: the classes shown in the table.\nAll: a class for every value of the layer.")
+        )
+        self.cbClasses.currentIndexChanged.connect(self.onClassesScopeChanged)
+
+    def currentClassesScope(self):
+        classesCombo = getattr(self, "cbClasses", None)
+        return classesCombo.currentData() if classesCombo is not None else "current"
+
+    def setClassesScope(self, scope):
+        """Selects Current or All without adding classes."""
+        index = self.cbClasses.findData(scope)
+        if index < 0 or index == self.cbClasses.currentIndex():
+            return
+        self.cbClasses.blockSignals(True)
+        self.cbClasses.setCurrentIndex(index)
+        self.cbClasses.blockSignals(False)
+
+    def syncClassesScopeToValues(self):
+        """All once every value of the layer has its class, Current while some are missing."""
+        if self.currentFieldType == self.FIELD_TYPE_CATEGORICAL:
+            self.setClassesScope("current" if self.availableUniqueValues else "all")
+
+    def onClassesScopeChanged(self, _index=None):
+        if self.currentClassesScope() != "all":
+            return
+        if self.availableUniqueValues:
+            self.classifyMissingUniqueValues()
+        # Values left out (limit reached, adding cancelled) mean the classes are not all there
+        if self.availableUniqueValues:
+            self.setClassesScope("current")
 
     def setupClassOrderCombo(self):
-        self.cbClassOrder.addItem(self.tr("None"), "none")
+        # "none" keeps the classes in the order the table shows them
+        self.cbClassOrder.addItem(self.tr("Current"), "none")
         self.cbClassOrder.addItem(self.tr("Ascending"), "ascending")
         self.cbClassOrder.addItem(self.tr("Descending"), "descending")
-        self.cbClassOrder.setToolTip(self.tr("Sort the classes by their values when the legend is applied"))
+        self.cbClassOrder.setToolTip(self.tr("Order of the classes: as they are now, or sorted by their values"))
+        self.cbClassOrder.currentIndexChanged.connect(self.onClassOrderChanged)
+
+    def onClassOrderChanged(self, _index=None):
+        self.sortTableRowsByClassOrder()
+        self.updateButtonStates()
+
+    def setClassOrderSilently(self, classOrder):
+        """Selects an order without sorting the table again."""
+        index = self.cbClassOrder.findData(classOrder)
+        if index < 0 or index == self.cbClassOrder.currentIndex():
+            return
+        self.cbClassOrder.blockSignals(True)
+        self.cbClassOrder.setCurrentIndex(index)
+        self.cbClassOrder.blockSignals(False)
 
     def setupAddClassMenu(self):
         """Main click adds below the selection; the arrow opens the other insert options."""
@@ -1210,7 +1277,8 @@ class QGISRedLegendsDialog(QDialog, formClass):
 
     def setupTooltips(self):
         self.btClassMinus.setToolTip(self.tr("Remove selected class(es)"))
-        self.btClassifyAll.setToolTip(self.tr("Add all unique values as separate classes"))
+        self.btUp.setToolTip(self.tr("Move selected class up"))
+        self.btDown.setToolTip(self.tr("Move selected class down"))
 
         if hasattr(self, "btRefreshColors"):
             self.btRefreshColors.setToolTip(self.tr("Refresh color ramp"))
@@ -1274,6 +1342,8 @@ class QGISRedLegendsDialog(QDialog, formClass):
         self.spinIntervalRange.valueChanged.connect(self.onIntervalRangeChanged)
         self.btClassPlus.clicked.connect(self.onAddClassClicked)
         self.btClassMinus.clicked.connect(self.removeClass)
+        self.btUp.clicked.connect(self.moveClassUp)
+        self.btDown.clicked.connect(self.moveClassDown)
         self.tableView.cellDoubleClicked.connect(self.onCellDoubleClicked)
         self.tableView.itemSelectionChanged.connect(self.updateButtonStates)
         self.connectLayerTreeSignal()
@@ -2850,6 +2920,7 @@ class QGISRedLegendsDialog(QDialog, formClass):
 
         self.availableUniqueValues = [v for v in self.availableUniqueValues if v not in self.usedUniqueValues]
         self.updateClassCount()
+        self.syncClassesScopeToValues()
         self.updateButtonStates()
         self.updateClassCountLimits()
 
@@ -3242,6 +3313,8 @@ class QGISRedLegendsDialog(QDialog, formClass):
         if self.currentFieldType == self.FIELD_TYPE_CATEGORICAL:
             self.addCategoricalClass()
             self.sortTableRowsByClassOrder()
+            # Adding the last missing value by hand completes the classes too
+            self.syncClassesScopeToValues()
         else:
             self.addNumericClass()
             modeId = self.cbMode.currentData()
@@ -3458,6 +3531,7 @@ class QGISRedLegendsDialog(QDialog, formClass):
 
             self.sortTableRowsByClassOrder()
             self.updateClassCount()
+            self.syncClassesScopeToValues()
             self.updateButtonStates()
             self.handleColorLogicOnClassChange()
             self.handleSizeLogicOnClassChange()
@@ -3481,6 +3555,8 @@ class QGISRedLegendsDialog(QDialog, formClass):
 
         if self.currentFieldType == self.FIELD_TYPE_CATEGORICAL:
             self.removeCategoricalRows(rows)
+            # A value without its class can be added again: the classes are no longer all there
+            self.syncClassesScopeToValues()
         else:
             self.removeNumericRows(rows)
 
@@ -3555,129 +3631,67 @@ class QGISRedLegendsDialog(QDialog, formClass):
         self.markLegendEdited()
 
     def getRowData(self, row):
-        data = []
-
-        for column in range(5):
-            widget = self.tableView.cellWidget(row, column)
-
-            if column == 0:
-                data.append(self.extractCheckboxData(widget))
-            elif column == 1:
-                data.append(self.extractColorSelectorData(widget))
-            elif isinstance(widget, QLineEdit):
-                hasDoubleClick = (
-                    column == 3
-                    and hasattr(widget, "mouseDoubleClickEvent")
-                    and widget.mouseDoubleClickEvent.__name__ == "<lambda>"
-                )
-                data.append(("le", widget.text(), widget.isReadOnly(), hasDoubleClick))
-            else:
-                data.append(None)
-
-        return data
-
-    def extractCheckboxData(self, widget):
-        if widget:
-            checkbox = widget.findChild(QCheckBox)
-            if checkbox:
-                return ("ck", checkbox.isChecked())
-        return None
-
-    def extractColorSelectorData(self, widget):
-        if widget:
-            colorSelector = widget.findChild(QGISRedSymbolColorSelector)
-            if colorSelector:
-                # Index 2 kept as a placeholder: the preview no longer tracks a size
-                return (
-                    "cs",
-                    colorSelector.activeColor,
-                    None,
-                    colorSelector.geometryType,
-                )
-        return None
+        """What a class row shows, to rebuild it in another place of the table."""
+        checkboxContainer = self.tableView.cellWidget(row, 0)
+        checkbox = checkboxContainer.findChild(QCheckBox) if checkboxContainer else None
+        colorContainer = self.tableView.cellWidget(row, 1)
+        colorSelector = colorContainer.findChild(QGISRedSymbolColorSelector) if colorContainer else None
+        sizeWidget = self.tableView.cellWidget(row, 2)
+        valueWidget = self.tableView.cellWidget(row, 3)
+        legendWidget = self.tableView.cellWidget(row, 4)
+        return {
+            "visible": checkbox.isChecked() if checkbox else True,
+            "symbol": colorSelector.previewSymbol() if colorSelector else None,
+            "color": QColor(colorSelector.activeColor) if colorSelector else None,
+            "sizeText": sizeWidget.text() if isinstance(sizeWidget, QLineEdit) else None,
+            "value": valueWidget.text() if isinstance(valueWidget, QLineEdit) else "",
+            "legend": legendWidget.text() if isinstance(legendWidget, QLineEdit) else "",
+        }
 
     def setRowData(self, row, data):
-        for column, columnData in enumerate(data):
-            if not columnData:
-                continue
+        """Rebuilds a class row with the builders of a new class, so it keeps its signals."""
+        symbol = data["symbol"]
+        if symbol is None:
+            symbol = QgsSymbol.defaultSymbol(self.currentLayer.geometryType())
+        if data["color"] is not None:
+            self.applyRowColorToSymbol(symbol, data["color"])
+        self.setRowWidgets(row, symbol, data["visible"], data["value"], data["legend"],
+                           self.getGeometryHint(), isReadOnlyValue=True)
+        if data["sizeText"] is not None and isinstance(self.tableView.cellWidget(row, 2), QLineEdit):
+            self.tableView.setCellWidget(row, 2, self.createSizeLineEdit(data["sizeText"], row))
 
-            dataType = columnData[0]
+    def moveClassUp(self):
+        self.moveRow(-1)
 
-            if dataType == "ck":
-                self.recreateCheckboxWidget(row, column, columnData[1])
-            elif dataType == "cs":
-                self.recreateColorSelectorWidget(row, column, columnData)
-            elif dataType == "le":
-                self.recreateLineEditWidget(row, column, columnData)
+    def moveClassDown(self):
+        self.moveRow(1)
 
-    def recreateCheckboxWidget(self, row, column, isChecked):
-        checkbox = QCheckBox(self.tableView)
-        checkbox.setChecked(isChecked)
-        checkbox.installEventFilter(self.rowSelectionFilter)
-
-        container = QWidget(self.tableView)
-        layout = QHBoxLayout(container)
-        layout.setContentsMargins(0, 0, 0, 0)
-        layout.setSpacing(2)
-        layout.addWidget(checkbox, 0, Qt.AlignmentFlag.AlignVCenter | Qt.AlignmentFlag.AlignHCenter)
-        container.setAutoFillBackground(False)
-
-        self.tableView.setCellWidget(row, column, container)
-
-    def recreateColorSelectorWidget(self, row, column, data):
-        color = data[1]
-        geometryHint = data[3]
-
-        colorSelector = QGISRedSymbolColorSelector(
-            self.tableView,
-            geometryHint,
-            color,
-            True,
-            self.tr("Pick color"),
-        )
-        colorSelector.setAutoFillBackground(False)
-        colorSelector.setFixedSize(*self.COLOR_SWATCH_SIZE)
-
-        container = QWidget(self.tableView)
-        layout = QHBoxLayout(container)
-        layout.setContentsMargins(0, 0, 0, 0)
-        layout.setSpacing(0)
-        layout.addStretch()
-        layout.addWidget(colorSelector)
-        layout.addStretch()
-        container.setAutoFillBackground(False)
-
-        self.tableView.setCellWidget(row, column, container)
-
-    def recreateLineEditWidget(self, row, column, data):
-        text = data[1]
-        isReadOnly = data[2]
-        hasDoubleClick = data[3] if len(data) > 3 else False
-
-        if column == 2:
-            self.tableView.setCellWidget(row, column, self.createSizeLineEdit(text, row))
+    def moveRow(self, offset):
+        rows = self.getSelectedRows()
+        if len(rows) != 1:
             return
+        row = rows[0]
+        target = row + offset
+        if not self.canMoveRowTo(row, target):
+            return
+        self.swapTableRows(row, target)
+        self.tableView.selectRow(target)
+        # A hand-made order is no longer ascending or descending
+        self.setClassOrderSilently("none")
+        self.markLegendEdited()
 
-        lineEdit = QLineEdit(text)
+    def canMoveRowTo(self, row, target):
+        """Other Values is always the last class: it does not move, nor does a class go below it."""
+        if not (0 <= target < self.tableView.rowCount()):
+            return False
+        otherValues = (self.tr("Other Values"), "Other Values")
+        return self.getRowClassValue(row) not in otherValues and self.getRowClassValue(target) not in otherValues
 
-        if isReadOnly:
-            lineEdit.setReadOnly(True)
-            if column == 3:
-                lineEdit.setAlignment(Qt.AlignmentFlag.AlignCenter)
-                if hasDoubleClick:
-                    lineEdit.setStyleSheet(self.getBaseLineEditStyle())
-                    lineEdit.mouseDoubleClickEvent = (
-                        lambda event, r=row: self.openRangeEditor(r)
-                    )
-                else:
-                    lineEdit.setStyleSheet(self.getReadOnlyLineEditStyle())
-            else:
-                lineEdit.setStyleSheet(self.getBaseLineEditStyle())
-        else:
-            lineEdit.setStyleSheet(self.getBaseLineEditStyle())
-
-        lineEdit.installEventFilter(self.rowSelectionFilter)
-        self.tableView.setCellWidget(row, column, lineEdit)
+    def swapTableRows(self, row1, row2):
+        data1 = self.getRowData(row1)
+        data2 = self.getRowData(row2)
+        self.setRowData(row1, data2)
+        self.setRowData(row2, data1)
 
     # ============================================================
     # NUMERIC CLASSIFICATION LOGIC
@@ -5782,6 +5796,8 @@ class QGISRedLegendsDialog(QDialog, formClass):
             addsValues = "allValues" in parts or any(part in parts for part in ("intervals", "sizes", "colors"))
             if "allClasses" not in parts and addsValues:
                 self.classifyMissingUniqueValues()
+            self.sortTableRowsByClassOrder()
+            self.restoreClassesScopeUi(parts)
 
         if "intervals" in parts:
             self.restoreIntervalsUi(self.readPartBlock(strategy, "intervals"))
@@ -5807,9 +5823,15 @@ class QGISRedLegendsDialog(QDialog, formClass):
         return []
 
     def restoreClassOrderUi(self, classOrder):
-        index = self.cbClassOrder.findData(classOrder)
-        if index >= 0:
-            self.cbClassOrder.setCurrentIndex(index)
+        self.setClassOrderSilently(classOrder)
+
+    def restoreClassesScopeUi(self, parts):
+        """All for a style that adds every value of the layer, Current for one that pins its classes."""
+        addsValues = "allValues" in parts or any(part in parts for part in ("intervals", "sizes", "colors"))
+        if "allClasses" not in parts and addsValues:
+            self.syncClassesScopeToValues()
+        else:
+            self.setClassesScope("current")
 
     def readStrategyFromLayer(self):
         rawStrategy = self.currentLayer.customProperty("qgisred_legend_strategy") if self.currentLayer else None
@@ -5833,6 +5855,7 @@ class QGISRedLegendsDialog(QDialog, formClass):
         parts = self.strategyParts(strategy)
         if strategy.get("mode") == "categorized" and self.currentFieldType == self.FIELD_TYPE_CATEGORICAL:
             self.restoreClassOrderUi(strategy.get("classOrder"))
+            self.restoreClassesScopeUi(parts)
         if "intervals" in parts and self.currentFieldType == self.FIELD_TYPE_NUMERIC and not self.isResultsLayer():
             self.showIntervalsMode(self.readPartBlock(strategy, "intervals"))
         if "sizes" in parts:
@@ -6389,6 +6412,7 @@ class QGISRedLegendsDialog(QDialog, formClass):
         self.updateFillControlsVisibility()
         self.refreshColorModeItems()
         self.updateClassButtonsVisibility(isCategorical, isNumeric, isFixedInterval)
+        self.updateNavigationButtonsVisibility(isCategorical)
         self.updateClassCountEditability(isCategorical, isNumeric, isManualNumeric)
         self.updateAddClassTooltip(isCategorical, isNumeric)
 
@@ -6478,6 +6502,9 @@ class QGISRedLegendsDialog(QDialog, formClass):
             return self.ruleBasedLegendReason()
         if not self.canRebuildClassesFromValues():
             return self.tr("These classes come from a formula, not from a column, so they cannot be rebuilt.")
+        if self.currentClassesScope() != "all":
+            return self.tr("Choose All in Classes to have a class for every value of the layer "
+                           "when the style is loaded.")
         return ""
 
     def sizesPartReason(self):
@@ -6641,9 +6668,14 @@ class QGISRedLegendsDialog(QDialog, formClass):
         self.classCountRowVisible = isCategorical or isNumeric
         self.updateClassCountWidgetsVisibility()
         self.labelFrameLegends.setVisible(isNumeric or isCategorical)
-        self.btClassifyAll.setVisible(isCategorical and hasClassTools)
         self.labelClassOrder.setVisible(isCategorical)
         self.cbClassOrder.setVisible(isCategorical)
+        # The separator closes the classes group: nothing to close without it
+        self.line_4.setVisible(isCategorical or isNumeric)
+
+    def updateNavigationButtonsVisibility(self, isCategorical):
+        self.btUp.setVisible(isCategorical)
+        self.btDown.setVisible(isCategorical)
 
     def updateClassCountEditability(self, isCategorical, isNumeric, isManualNumeric):
         if isCategorical:
@@ -6684,7 +6716,13 @@ class QGISRedLegendsDialog(QDialog, formClass):
         self.updateClassCountWidgetsVisibility()
 
     def updateClassCountWidgetsVisibility(self):
-        self.leClassCount.setVisible(self.classCountRowVisible)
+        """Graduated legends set their number of classes; categorized ones choose Current or All."""
+        isCategorical = self.currentFieldType == self.FIELD_TYPE_CATEGORICAL
+        self.leClassCount.setVisible(self.classCountRowVisible and not isCategorical)
+        # Fixed legends and tool outputs bring their own classes: there are none to complete
+        canCompleteClasses = not self.hasToolDefinedClasses() and not self.isFixedLegendLayer()
+        self.cbClasses.setVisible(self.classCountRowVisible and isCategorical and canCompleteClasses)
+        self.labelClassCount.setVisible(self.classCountRowVisible and isCategorical)
 
     def modeHasVariableClassCount(self):
         if self.currentFieldType == self.FIELD_TYPE_CATEGORICAL:
@@ -6713,15 +6751,17 @@ class QGISRedLegendsDialog(QDialog, formClass):
         if not self.currentLayer:
             return
 
+        selectedRows = self.getSelectedRows()
+        selectionCount = len(selectedRows)
+        isCategorical = self.currentFieldType == self.FIELD_TYPE_CATEGORICAL
+        # A fixed legend keeps the order its style ships
+        self.updateMoveButtonsState(isCategorical and not self.isFixedLegendLayer(), selectedRows)
+
         if self.isFixedLegendLayer() or self.hasToolDefinedClasses():
             # The classes of a fixed legend or a tool output are the ones its style or data brings
             self.btClassPlus.setEnabled(False)
             self.btClassMinus.setEnabled(False)
             return
-
-        selectedRows = self.getSelectedRows()
-        selectionCount = len(selectedRows)
-        isCategorical = self.currentFieldType == self.FIELD_TYPE_CATEGORICAL
 
         modeId = self.cbMode.currentData()
         isManualNumeric = self.currentFieldType == self.FIELD_TYPE_NUMERIC and (
@@ -6738,10 +6778,8 @@ class QGISRedLegendsDialog(QDialog, formClass):
             return
 
         if isCategorical:
-            if selectionCount > 1:
-                self.btClassPlus.setEnabled(False)
-            else:
-                self.btClassPlus.setEnabled(len(self.availableUniqueValues) > 0 or not self.hasOtherValuesCategory())
+            # With every value classified there is no class left to add
+            self.btClassPlus.setEnabled(selectionCount <= 1 and len(self.availableUniqueValues) > 0)
         elif isAutoNumeric:
             self.btClassPlus.setEnabled(True)
         else:
@@ -6753,9 +6791,14 @@ class QGISRedLegendsDialog(QDialog, formClass):
         else:
             self.btClassMinus.setEnabled(selectionCount >= 1)
 
+    def updateMoveButtonsState(self, canMoveClasses, selectedRows):
+        row = selectedRows[0] if canMoveClasses and len(selectedRows) == 1 else None
+        self.btUp.setEnabled(row is not None and self.canMoveRowTo(row, row - 1))
+        self.btDown.setEnabled(row is not None and self.canMoveRowTo(row, row + 1))
+
     def updateAddClassButtonState(self):
         if self.currentFieldType == self.FIELD_TYPE_CATEGORICAL:
-            self.btClassPlus.setEnabled(len(self.availableUniqueValues) > 0 or not self.hasOtherValuesCategory())
+            self.btClassPlus.setEnabled(len(self.availableUniqueValues) > 0)
 
     def updateClassCount(self):
         # The maximum may still belong to the previously selected layer; setValue
@@ -6766,6 +6809,10 @@ class QGISRedLegendsDialog(QDialog, formClass):
             self.leClassCount.setMaximum(rowCount)
         self.leClassCount.setValue(rowCount)
         self.leClassCount.blockSignals(False)
+        classCountLabel = getattr(self, "labelClassCount", None)
+        if classCountLabel is not None:
+            text = self.tr("(1 class)") if rowCount == 1 else self.tr("(%1 classes)").replace("%1", str(rowCount))
+            classCountLabel.setText(text)
 
     # ============================================================
     # INPUT LAYER RESTRICTIONS
@@ -6786,9 +6833,12 @@ class QGISRedLegendsDialog(QDialog, formClass):
             self.setClassCountEditable(False)
 
         # Class action buttons
-        self.btClassPlus.setEnabled(not isInput)
-        self.btClassMinus.setEnabled(not isInput)
-        self.btClassifyAll.setEnabled(not isInput)
+        self.cbClasses.setEnabled(not isInput)
+        if isInput:
+            for classButton in (self.btClassPlus, self.btClassMinus, self.btUp, self.btDown):
+                classButton.setEnabled(False)
+        else:
+            self.updateButtonStates()
 
         # Color panel
         self.cbColors.setEnabled(not isInput)

@@ -37,6 +37,9 @@ class FakeCombo:
     def currentData(self):
         return self.values[self.index]
 
+    def currentIndex(self):
+        return self.index
+
     def blockSignals(self, blocked):
         self.blocked = blocked
 
@@ -56,6 +59,8 @@ def _dialog(strategy, fieldType=CATEGORICAL, isResults=False):
     dialog.currentFieldType = fieldType
     dialog.isResultsLayer = lambda: isResults
     dialog.cbClassOrder = FakeCombo(["none", "ascending", "descending"])
+    dialog.cbClasses = FakeCombo(["current", "all"])
+    dialog.availableUniqueValues = []
     dialog.cbMode = FakeCombo(["Manual", "Pretty", "Jenks"])
     dialog.cbSizes = FakeCombo(["Manual", "Equal", "Linear"])
     dialog.cbColors = FakeCombo(["Manual", "Random", PALETTE_KIND_SEQUENTIAL])
@@ -82,6 +87,19 @@ class TestShowingTheStrategyOnOpen:
         dialog = _dialog(_strategy(parts=["colors"], classOrder="descending", colors={"source": "random"}))
         dialog.showLayerStrategyModes()
         assert dialog.cbClassOrder.currentData() == "descending"
+        # Selected with its signals held: opening a layer does not sort its classes
+        assert dialog.cbClassOrder.selections == [("descending", True)]
+
+    def test_a_style_that_adds_every_value_selects_all(self):
+        dialog = _dialog(_strategy(parts=["allValues"]))
+        dialog.showLayerStrategyModes()
+        assert dialog.cbClasses.currentData() == "all"
+
+    def test_a_style_with_pinned_classes_selects_current(self):
+        dialog = _dialog(_strategy(parts=["allClasses", "colors"], colors={"source": "random"}))
+        dialog.cbClasses.index = 1
+        dialog.showLayerStrategyModes()
+        assert dialog.cbClasses.currentData() == "current"
 
     def test_the_palette_is_selected_without_recolouring_the_classes(self):
         colors = {"source": "ramp", "rampName": PALETTE, "invertRamp": True}

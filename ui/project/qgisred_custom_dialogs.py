@@ -107,12 +107,17 @@ class QGISRedSaveStrategyDialog(QDialog):
         return checkBox
 
     def createClassOrderCheckBox(self):
-        """Keeps the order chosen in the editor's Class Order entry; None offers no change."""
-        orderNames = {
-            "ascending": self.tr("Ascending"), "descending": self.tr("Descending"), "none": self.tr("No changes"),
-        }
-        checkBox = QCheckBox(self.tr("Class order: %1").replace("%1", orderNames.get(self.classOrder, "")))
-        checkBox.setToolTip(self.tr("Sort the classes by their values when the style is loaded"))
+        """Keeps the order chosen in the editor's Order entry; Current reads like any other part kept as shown."""
+        if self.classOrder in ("ascending", "descending"):
+            orderName = self.tr("Ascending") if self.classOrder == "ascending" else self.tr("Descending")
+            checkBox = QCheckBox(self.tr("Order: %1").replace("%1", orderName))
+            checkBox.setToolTip(self.tr("Sort the classes by their values when the style is loaded"))
+            return checkBox
+        checkBox = QCheckBox(self.tr("%1: kept as shown").replace("%1", self.tr("Order")))
+        checkBox.setToolTip(
+            self.tr("The classes keep the order shown. Choose Ascending or Descending in Order to have them "
+                    "sorted when the style is loaded.")
+        )
         return checkBox
 
     def hasClassOrder(self):
@@ -230,6 +235,10 @@ class QGISRedSymbolColorSelector(QgsSymbolButton):
         self.configureWidgetStyle()
         self.refreshSymbolDisplay()
         self.installEventFilter(self)
+
+    def previewSymbol(self):
+        """A copy of the symbol the swatch draws, before the picked color is applied."""
+        return self._actualSymbol.clone() if self._actualSymbol else None
 
     def parseInitialColor(self, color):
         if color and isinstance(color, QColor) and color.isValid():

@@ -222,6 +222,49 @@
               </property>
              </widget>
             </item>
+            <item>
+             <layout class="QHBoxLayout" name="moveButtonsLayout">
+              <item>
+               <widget class="QToolButton" name="btUp">
+                <property name="minimumSize">
+                 <size>
+                  <width>28</width>
+                  <height>24</height>
+                 </size>
+                </property>
+                <property name="arrowType">
+                 <enum>Qt::UpArrow</enum>
+                </property>
+               </widget>
+              </item>
+              <item>
+               <widget class="QToolButton" name="btDown">
+                <property name="minimumSize">
+                 <size>
+                  <width>28</width>
+                  <height>24</height>
+                 </size>
+                </property>
+                <property name="arrowType">
+                 <enum>Qt::DownArrow</enum>
+                </property>
+               </widget>
+              </item>
+              <item>
+               <spacer name="moveButtonsSpacer">
+                <property name="orientation">
+                 <enum>Qt::Horizontal</enum>
+                </property>
+                <property name="sizeHint" stdset="0">
+                 <size>
+                  <width>10</width>
+                  <height>10</height>
+                 </size>
+                </property>
+               </spacer>
+              </item>
+             </layout>
+            </item>
            </layout>
           </item>
           <item>
@@ -251,6 +294,114 @@
                 <number>8</number>
                </property>
                <item row="0" column="0">
+                <widget class="QLabel" name="labelClass">
+                 <property name="text">
+                  <string>Classes</string>
+                 </property>
+                 <property name="buddy">
+                  <cstring>cbClasses</cstring>
+                 </property>
+                </widget>
+               </item>
+               <item row="0" column="1">
+                <layout class="QHBoxLayout" name="classControlsLayout">
+                 <property name="spacing">
+                  <number>6</number>
+                 </property>
+                 <item>
+                  <widget class="QComboBox" name="cbClasses">
+                   <property name="sizePolicy">
+                    <sizepolicy hsizetype="Expanding" vsizetype="Fixed">
+                     <horstretch>1</horstretch>
+                     <verstretch>0</verstretch>
+                    </sizepolicy>
+                   </property>
+                   <property name="minimumSize">
+                    <size>
+                     <width>80</width>
+                     <height>0</height>
+                    </size>
+                   </property>
+                  </widget>
+                 </item>
+                 <item>
+                  <widget class="QSpinBox" name="leClassCount">
+                   <property name="sizePolicy">
+                    <sizepolicy hsizetype="Expanding" vsizetype="Fixed">
+                     <horstretch>1</horstretch>
+                     <verstretch>0</verstretch>
+                    </sizepolicy>
+                   </property>
+                   <property name="minimumSize">
+                    <size>
+                     <width>60</width>
+                     <height>0</height>
+                    </size>
+                   </property>
+                  </widget>
+                 </item>
+                 <item>
+                  <widget class="QToolButton" name="btClassPlus">
+                   <property name="minimumSize">
+                    <size>
+                     <width>24</width>
+                     <height>24</height>
+                    </size>
+                   </property>
+                   <property name="text">
+                    <string/>
+                   </property>
+                  </widget>
+                 </item>
+                 <item>
+                  <widget class="QToolButton" name="btClassMinus">
+                   <property name="minimumSize">
+                    <size>
+                     <width>24</width>
+                     <height>24</height>
+                    </size>
+                   </property>
+                   <property name="text">
+                    <string/>
+                   </property>
+                  </widget>
+                 </item>
+                 <item>
+                  <widget class="QLabel" name="labelClassCount">
+                   <property name="text">
+                    <string/>
+                   </property>
+                  </widget>
+                 </item>
+                </layout>
+               </item>
+               <item row="1" column="0">
+                <widget class="QLabel" name="labelClassOrder">
+                 <property name="text">
+                  <string>Order</string>
+                 </property>
+                 <property name="buddy">
+                  <cstring>cbClassOrder</cstring>
+                 </property>
+                </widget>
+               </item>
+               <item row="1" column="1">
+                <widget class="QComboBox" name="cbClassOrder">
+                 <property name="sizePolicy">
+                  <sizepolicy hsizetype="Expanding" vsizetype="Fixed">
+                   <horstretch>1</horstretch>
+                   <verstretch>0</verstretch>
+                  </sizepolicy>
+                 </property>
+                 <property name="minimumSize">
+                  <size>
+                   <width>150</width>
+                   <height>0</height>
+                  </size>
+                 </property>
+                </widget>
+               </item>
+               <item row="2" column="0">
                 <widget class="QLabel" name="labelMode">
                  <property name="text">
                   <string>Intervals</string>
@@ -260,7 +411,7 @@
                  </property>
                 </widget>
                </item>
-               <item row="0" column="1">
+               <item row="2" column="1">
                 <widget class="QComboBox" name="cbMode">
                  <property name="sizePolicy">
                   <sizepolicy hsizetype="Expanding" vsizetype="Fixed">
@@ -276,7 +427,7 @@
                  </property>
                 </widget>
                </item>
-               <item row="1" column="0">
+               <item row="3" column="0">
                 <widget class="QLabel" name="labelIntervalRange">
                  <property name="text">
                   <string>Interval Range</string>
@@ -286,7 +437,7 @@
                  </property>
                 </widget>
                </item>
-               <item row="1" column="1">
+               <item row="3" column="1">
                 <widget class="QDoubleSpinBox" name="spinIntervalRange">
                  <property name="minimumSize">
                   <size>
@@ -305,14 +456,89 @@
                  </property>
                 </widget>
                </item>
-               <item row="2" column="0" colspan="2">
+               <item row="4" column="0" colspan="2">
                 <widget class="Line" name="line_4">
                  <property name="orientation">
                   <enum>Qt::Horizontal</enum>
                  </property>
                 </widget>
                </item>
-               <item row="6" column="0">
+               <item row="5" column="0">
+                <widget class="QLabel" name="labelBorder">
+                 <property name="text">
+                  <string>Border</string>
+                 </property>
+                 <property name="buddy">
+                  <cstring>cbBorder</cstring>
+                 </property>
+                </widget>
+               </item>
+               <item row="5" column="1">
+                <layout class="QHBoxLayout" name="borderControlsLayout">
+                 <property name="spacing">
+                  <number>6</number>
+                 </property>
+                 <item>
+                  <widget class="QComboBox" name="cbBorder">
+                   <property name="sizePolicy">
+                    <sizepolicy hsizetype="Fixed" vsizetype="Fixed">
+                     <horstretch>0</horstretch>
+                     <verstretch>0</verstretch>
+                    </sizepolicy>
+                   </property>
+                   <property name="minimumSize">
+                    <size>
+                     <width>150</width>
+                     <height>0</height>
+                    </size>
+                   </property>
+                   <property name="sizeAdjustPolicy">
+                    <enum>QComboBox::AdjustToContents</enum>
+                   </property>
+                  </widget>
+                 </item>
+                 <item>
+                  <widget class="QDoubleSpinBox" name="spinBorderWidth">
+                   <property name="minimumSize">
+                    <size>
+                     <width>90</width>
+                     <height>0</height>
+                    </size>
+                   </property>
+                   <property name="maximum">
+                    <double>20.000000000000000</double>
+                   </property>
+                   <property name="singleStep">
+                    <double>0.100000000000000</double>
+                   </property>
+                   <property name="value">
+                    <double>0.260000000000000</double>
+                   </property>
+                  </widget>
+                 </item>
+                 <item>
+                  <spacer name="borderControlsSpacer">
+                   <property name="orientation">
+                    <enum>Qt::Horizontal</enum>
+                   </property>
+                   <property name="sizeHint" stdset="0">
+                    <size>
+                     <width>0</width>
+                     <height>0</height>
+                    </size>
+                   </property>
+                  </spacer>
+                 </item>
+                </layout>
+               </item>
+               <item row="6" column="0" colspan="2">
+                <widget class="Line" name="line_8">
+                 <property name="orientation">
+                  <enum>Qt::Horizontal</enum>
+                 </property>
+                </widget>
+               </item>
+               <item row="7" column="0">
                 <widget class="QLabel" name="labelSizes">
                  <property name="text">
                   <string>Sizes</string>
@@ -322,7 +548,7 @@
                  </property>
                 </widget>
                </item>
-               <item row="6" column="1">
+               <item row="7" column="1">
                 <widget class="QComboBox" name="cbSizes">
                  <property name="sizePolicy">
                   <sizepolicy hsizetype="Expanding" vsizetype="Fixed">
@@ -338,7 +564,7 @@
                  </property>
                 </widget>
                </item>
-               <item row="7" column="0">
+               <item row="8" column="0">
                 <widget class="QLabel" name="labelSizeValue">
                  <property name="text">
                   <string>Value</string>
@@ -348,7 +574,7 @@
                  </property>
                 </widget>
                </item>
-               <item row="7" column="1">
+               <item row="8" column="1">
                 <widget class="QDoubleSpinBox" name="spinSizeEqual">
                  <property name="minimumSize">
                   <size>
@@ -373,7 +599,7 @@
                  </property>
                 </widget>
                </item>
-               <item row="8" column="0">
+               <item row="9" column="0">
                 <widget class="QLabel" name="labelSpinMin">
                  <property name="text">
                   <string>Min</string>
@@ -383,7 +609,7 @@
                  </property>
                 </widget>
                </item>
-               <item row="8" column="1">
+               <item row="9" column="1">
                 <layout class="QHBoxLayout" name="sizeRangeLayout">
                  <property name="spacing">
                   <number>6</number>
@@ -458,14 +684,14 @@
                  </item>
                 </layout>
                </item>
-               <item row="9" column="0" colspan="2">
+               <item row="10" column="0" colspan="2">
                 <widget class="Line" name="line_5">
                  <property name="orientation">
                   <enum>Qt::Horizontal</enum>
                  </property>
                 </widget>
                </item>
-               <item row="10" column="0">
+               <item row="11" column="0">
                 <widget class="QLabel" name="labelColors">
                  <property name="text">
                   <string>Colors</string>
@@ -475,7 +701,7 @@
                  </property>
                 </widget>
                </item>
-               <item row="10" column="1">
+               <item row="11" column="1">
                 <layout class="QHBoxLayout" name="colorControlsLayout">
                  <property name="spacing">
                   <number>6</number>
@@ -540,17 +766,10 @@
                  </item>
                 </layout>
                </item>
-               <item row="11" column="1">
+               <item row="12" column="1">
                 <layout class="QHBoxLayout" name="palletesHorizontalLayout"/>
                </item>
-               <item row="4" column="0" colspan="2">
-                <widget class="Line" name="line_8">
-                 <property name="orientation">
-                  <enum>Qt::Horizontal</enum>
-                 </property>
-                </widget>
-               </item>
-               <item row="12" column="0">
+               <item row="13" column="0">
                 <widget class="QLabel" name="labelFillOpacity">
                  <property name="text">
                   <string>Opacity</string>
@@ -560,7 +779,7 @@
                  </property>
                 </widget>
                </item>
-               <item row="12" column="1">
+               <item row="13" column="1">
                 <widget class="QSpinBox" name="spinFillOpacity">
                  <property name="minimumSize">
                   <size>
@@ -582,192 +801,6 @@
                  </property>
                  <property name="value">
                   <number>40</number>
-                 </property>
-                </widget>
-               </item>
-               <item row="3" column="0">
-                <widget class="QLabel" name="labelBorder">
-                 <property name="text">
-                  <string>Border</string>
-                 </property>
-                 <property name="buddy">
-                  <cstring>cbBorder</cstring>
-                 </property>
-                </widget>
-               </item>
-               <item row="3" column="1">
-                <layout class="QHBoxLayout" name="borderControlsLayout">
-                 <property name="spacing">
-                  <number>6</number>
-                 </property>
-                 <item>
-                  <widget class="QComboBox" name="cbBorder">
-                   <property name="sizePolicy">
-                    <sizepolicy hsizetype="Fixed" vsizetype="Fixed">
-                     <horstretch>0</horstretch>
-                     <verstretch>0</verstretch>
-                    </sizepolicy>
-                   </property>
-                   <property name="minimumSize">
-                    <size>
-                     <width>150</width>
-                     <height>0</height>
-                    </size>
-                   </property>
-                   <property name="sizeAdjustPolicy">
-                    <enum>QComboBox::AdjustToContents</enum>
-                   </property>
-                  </widget>
-                 </item>
-                 <item>
-                  <widget class="QDoubleSpinBox" name="spinBorderWidth">
-                   <property name="minimumSize">
-                    <size>
-                     <width>90</width>
-                     <height>0</height>
-                    </size>
-                   </property>
-                   <property name="maximum">
-                    <double>20.000000000000000</double>
-                   </property>
-                   <property name="singleStep">
-                    <double>0.100000000000000</double>
-                   </property>
-                   <property name="value">
-                    <double>0.260000000000000</double>
-                   </property>
-                  </widget>
-                 </item>
-                 <item>
-                  <spacer name="borderControlsSpacer">
-                   <property name="orientation">
-                    <enum>Qt::Horizontal</enum>
-                   </property>
-                   <property name="sizeHint" stdset="0">
-                    <size>
-                     <width>0</width>
-                     <height>0</height>
-                    </size>
-                   </property>
-                  </spacer>
-                 </item>
-                </layout>
-               </item>
-               <item row="13" column="0" colspan="2">
-                <widget class="Line" name="line_7">
-                 <property name="orientation">
-                  <enum>Qt::Horizontal</enum>
-                 </property>
-                </widget>
-               </item>
-               <item row="14" column="0">
-                <widget class="QLabel" name="labelClass">
-                 <property name="text">
-                  <string>Classes</string>
-                 </property>
-                 <property name="buddy">
-                  <cstring>leClassCount</cstring>
-                 </property>
-                </widget>
-               </item>
-               <item row="14" column="1">
-                <layout class="QHBoxLayout" name="classControlsLayout">
-                 <property name="spacing">
-                  <number>6</number>
-                 </property>
-                 <item>
-                  <widget class="QSpinBox" name="leClassCount">
-                   <property name="minimumSize">
-                    <size>
-                     <width>60</width>
-                     <height>0</height>
-                    </size>
-                   </property>
-                  </widget>
-                 </item>
-                 <item>
-                  <widget class="QPushButton" name="btClassifyAll">
-                   <property name="minimumSize">
-                    <size>
-                     <width>24</width>
-                     <height>24</height>
-                    </size>
-                   </property>
-                   <property name="maximumSize">
-                    <size>
-                     <width>16777215</width>
-                     <height>28</height>
-                    </size>
-                   </property>
-                   <property name="text">
-                    <string/>
-                   </property>
-                  </widget>
-                 </item>
-                 <item>
-                  <widget class="QToolButton" name="btClassPlus">
-                   <property name="minimumSize">
-                    <size>
-                     <width>24</width>
-                     <height>24</height>
-                    </size>
-                   </property>
-                   <property name="text">
-                    <string/>
-                   </property>
-                  </widget>
-                 </item>
-                 <item>
-                  <widget class="QToolButton" name="btClassMinus">
-                   <property name="minimumSize">
-                    <size>
-                     <width>24</width>
-                     <height>24</height>
-                    </size>
-                   </property>
-                   <property name="text">
-                    <string/>
-                   </property>
-                  </widget>
-                 </item>
-                 <item>
-                  <spacer name="classControlsSpacer">
-                   <property name="orientation">
-                    <enum>Qt::Horizontal</enum>
-                   </property>
-                   <property name="sizeHint" stdset="0">
-                    <size>
-                     <width>0</width>
-                     <height>0</height>
-                    </size>
-                   </property>
-                  </spacer>
-                 </item>
-                </layout>
-               </item>
-               <item row="15" column="0">
-                <widget class="QLabel" name="labelClassOrder">
-                 <property name="text">
-                  <string>Class Order</string>
-                 </property>
-                 <property name="buddy">
-                  <cstring>cbClassOrder</cstring>
-                 </property>
-                </widget>
-               </item>
-               <item row="15" column="1">
-                <widget class="QComboBox" name="cbClassOrder">
-                 <property name="minimumSize">
-                  <size>
-                   <width>90</width>
-                   <height>0</height>
-                  </size>
-                 </property>
-                 <property name="maximumSize">
-                  <size>
-                   <width>150</width>
-                   <height>16777215</height>
-                  </size>
                  </property>
                 </widget>
                </item>
@@ -943,8 +976,17 @@
   <tabstop>cbVariant</tabstop>
   <tabstop>cbLegendsType</tabstop>
   <tabstop>tableView</tabstop>
+  <tabstop>btUp</tabstop>
+  <tabstop>btDown</tabstop>
+  <tabstop>cbClasses</tabstop>
+  <tabstop>leClassCount</tabstop>
+  <tabstop>btClassPlus</tabstop>
+  <tabstop>btClassMinus</tabstop>
+  <tabstop>cbClassOrder</tabstop>
   <tabstop>cbMode</tabstop>
   <tabstop>spinIntervalRange</tabstop>
+  <tabstop>cbBorder</tabstop>
+  <tabstop>spinBorderWidth</tabstop>
   <tabstop>cbSizes</tabstop>
   <tabstop>spinSizeEqual</tabstop>
   <tabstop>spinSizeMin</tabstop>
@@ -954,11 +996,7 @@
   <tabstop>btRefreshColors</tabstop>
   <tabstop>btColorEqual</tabstop>
   <tabstop>ckColorInvert</tabstop>
-  <tabstop>leClassCount</tabstop>
-  <tabstop>btClassifyAll</tabstop>
-  <tabstop>btClassPlus</tabstop>
-  <tabstop>btClassMinus</tabstop>
-  <tabstop>cbClassOrder</tabstop>
+  <tabstop>spinFillOpacity</tabstop>
   <tabstop>btLoadMenu</tabstop>
   <tabstop>btSaveMenu</tabstop>
   <tabstop>cbStyleLibrary</tabstop>
