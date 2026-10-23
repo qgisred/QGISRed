@@ -588,7 +588,7 @@ class ProjectManagementSection:
             self.legendsDialog.activateWindow()
             return
 
-        self.legendsDialog = QGISRedLegendsDialog()
+        self.legendsDialog = QGISRedLegendsDialog(self.iface.mainWindow())
         self.legendsDialog.config(self.iface, self.ProjectDirectory, self.NetworkName, self)
         self.legendsDialog.show()
 

@@ -686,7 +686,11 @@ class QGISRedLegendsDialog(QDialog, formClass):
     def configureWindow(self):
         self.setWindowIcon(QIcon(":/images/iconLegends.svg"))
         self.setWindowTitle(self.tr("QGISRed: Legend Editor"))
-        self.setWindowFlags(Qt.WindowType.Window | Qt.WindowType.WindowStaysOnTopHint | Qt.WindowType.WindowCloseButtonHint)
+        # Owned by the QGIS window instead of always on top: it still stays above QGIS, and the
+        # questions QGIS asks (removing a group, for one) are no longer hidden behind it
+        self.setWindowFlags(Qt.WindowType.Window | Qt.WindowType.WindowCloseButtonHint)
+        # Its owner would otherwise keep every closed editor alive
+        self.setAttribute(Qt.WidgetAttribute.WA_DeleteOnClose)
         self.btClassPlus.setIcon(QIcon(":/images/iconClassAdd.svg"))
         self.btClassMinus.setIcon(QIcon(":/images/iconClassRemove.svg"))
 
