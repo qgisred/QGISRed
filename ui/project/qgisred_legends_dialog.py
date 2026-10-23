@@ -157,6 +157,9 @@ class QGISRedLegendsDialog(QDialog, formClass):
     WARN_CLASSES = 50
     MAX_CLASSES = 1000
 
+    # Edits the user made since the layer was shown or its legend type switched
+    hasUserEdits = False
+
     # Same size used by QGISRED_COMBO_STYLE, so every input matches the comboboxes
     CONTROL_FONT_SIZE = "8pt"
 
@@ -1570,13 +1573,17 @@ class QGISRedLegendsDialog(QDialog, formClass):
 
     def markLegendEdited(self):
         """The table now differs from the layer: say so until Apply."""
-        if self.hasUnappliedEdits or not self.currentLayer:
+        if not self.currentLayer:
+            return
+        self.hasUserEdits = True
+        if self.hasUnappliedEdits:
             return
         self.hasUnappliedEdits = True
         self.updateFrameLegendLabel(self.currentLayer)
 
     def clearLegendEdited(self):
         self.hasUnappliedEdits = False
+        self.hasUserEdits = False
         if self.currentLayer:
             self.updateFrameLegendLabel(self.currentLayer)
 
@@ -1706,7 +1713,8 @@ class QGISRedLegendsDialog(QDialog, formClass):
         if newType == currentType:
             return
 
-        if not self.confirmDiscardEdits():
+        # The legend the other type shows is generated, so only the user's own edits are at stake
+        if self.hasUserEdits and not self.confirmDiscardEdits():
             self.revertLegendTypeComboBox(currentType)
             return
 
@@ -1715,17 +1723,22 @@ class QGISRedLegendsDialog(QDialog, formClass):
         if not field and newType == "categorizedSymbol" and self.isSingleEditableQueryLayer():
             field = self._detectQueryClassField()
         if not field and newType in ("categorizedSymbol", "graduatedSymbol"):
+            self.revertLegendTypeComboBox(currentType)
             return
 
+        restoredOriginal = False
         if newType == "categorizedSymbol":
             if not self.validateCategorizedConversion(field, currentType):
                 return
-            self.convertToCategorized(field)
+            restoredOriginal = self.restoreOriginalCategorizedRenderer(field)
+            if not restoredOriginal:
+                self.convertToCategorized(field)
             self.currentFieldType = self.FIELD_TYPE_CATEGORICAL
             self.currentFieldName = field
 
         elif newType == "graduatedSymbol":
-            if not self.restoreOriginalGraduatedRenderer(field):
+            restoredOriginal = self.restoreOriginalGraduatedRenderer(field)
+            if not restoredOriginal:
                 self.convertToGraduated(field)
             self.currentFieldType, self.currentFieldName = self.detectFieldType(
                 self.currentLayer
@@ -1742,12 +1755,17 @@ class QGISRedLegendsDialog(QDialog, formClass):
         self.updateUiBasedOnFieldType()
         self.populateLegendTable()
 
-        if newType == "categorizedSymbol" and self.availableUniqueValues:
+        if newType == "categorizedSymbol" and self.availableUniqueValues and not restoredOriginal:
             self.classifyAllUniqueValues()
 
         self.updateButtonStates()
         self.updateInputLayerRestrictions()
-        self.markLegendEdited()
+        # Back on the legend the layer has, nothing is pending; any other type is, until Apply
+        if restoredOriginal:
+            self.clearLegendEdited()
+        else:
+            self.markLegendEdited()
+        self.hasUserEdits = False
 
     def _detectQueryClassField(self):
         """Pick a classification field for query layers styled as a single symbol.
@@ -4174,6 +4192,14 @@ class QGISRedLegendsDialog(QDialog, formClass):
 
         renderer = QgsCategorizedSymbolRenderer(field, categories)
         self._workingRenderer = renderer
+
+    def restoreOriginalCategorizedRenderer(self, field):
+        """Graduated -> Categorized round-trips show the layer's own categories again."""
+        original = self.originalRenderer
+        if isinstance(original, QgsCategorizedSymbolRenderer) and original.classAttribute() == field:
+            self._workingRenderer = original.clone()
+            return True
+        return False
 
     def restoreOriginalGraduatedRenderer(self, field):
         """Reuse the renderer the layer had when the dialog opened instead of synthesizing
