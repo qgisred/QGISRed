@@ -8,6 +8,7 @@ from qgis.PyQt.QtGui import QIcon
 from qgis.PyQt.QtWidgets import QMenu, QToolButton
 from qgis.core import QgsApplication
 
+from ..tools.utils.qgisred_filesystem_utils import QGISRedFileSystemUtils
 from ..ui.general.qgisred_about_dialog import QGISRedAboutDialog
 
 
@@ -123,7 +124,7 @@ class MenuSection:
         for icon, text, cb in [
             (":/images/iconNews.svg",       self.tr("News..."),                          self.runNewsDialogForced),
             (":/images/iconGitHub.svg",     self.tr("Report issues or comments..."),     self.runReportIssues),
-            (":/images/iconGitBook.svg",    self.tr("User manual"),                      self.runUserManual),
+            (":/images/iconUserManual.svg", self.tr("User manual"),                      self.runUserManual),
             (":/images/iconPDF.svg",        self.tr("User manual (offline - Outdated)"), self.runOfflineManual),
             (":/images/iconRatePlugin.svg", self.tr("Rate the plugin..."),               self.runRatePlugin),
             (":/images/iconNewsletter.svg", self.tr("Subscribe to newsletter..."),       self.runNewsletter),
@@ -1225,17 +1226,23 @@ class MenuSection:
     def runReportIssues(self):
         webbrowser.open("https://github.com/qgisred/QGISRed/issues")
 
-    # GitBook spaces per language; any locale not listed falls back to the English manual
-    _USER_MANUAL_URLS = {
-        "es": "https://qgisred.gitbook.io/manual-de-usuario",
-        "fr": "https://qgisred.gitbook.io/qgisred-manuel-dutilisation",
-        "pt": "https://qgisred.gitbook.io/qgisred-manual-do-utilizador",
-    }
-    _USER_MANUAL_DEFAULT_URL = "https://qgisred.gitbook.io/usermanual"
+    _USER_MANUAL_BASE_URL = "https://qgisred.webs.upv.es/manuals"
+    _USER_MANUAL_LANGUAGES = ("es", "fr", "pt")
+    _USER_MANUAL_MIN_VERSION = (0, 19)
+
+    @classmethod
+    def userManualUrl(cls, pluginVersion, locale):
+        try:
+            major, minor = (int(part) for part in pluginVersion.split(".")[:2])
+        except ValueError:
+            major, minor = cls._USER_MANUAL_MIN_VERSION
+        major, minor = max((major, minor), cls._USER_MANUAL_MIN_VERSION)
+        language = locale if locale in cls._USER_MANUAL_LANGUAGES else "en"
+        return f"{cls._USER_MANUAL_BASE_URL}/{major}.{minor}/{language}/"
 
     def runUserManual(self):
-        locale = QgsApplication.locale()[0:2]
-        webbrowser.open(self._USER_MANUAL_URLS.get(locale, self._USER_MANUAL_DEFAULT_URL))
+        version = QGISRedFileSystemUtils().getPluginVersion()
+        webbrowser.open(self.userManualUrl(version, QgsApplication.locale()[0:2]))
 
     def runOfflineManual(self):
         locale = QgsApplication.locale()[0:2]
