@@ -286,6 +286,9 @@ QCoreApplication.translate('UnitFullNames', "Currency /Max kW")
 QCoreApplication.translate('UnitFullNames', "Time as Text")
 QCoreApplication.translate('UnitFullNames', "Year as Text")
 
+# Unit abbreviations that are words (getUnitAbbreviation) — context 'UnitAbbreviations'
+QCoreApplication.translate('UnitAbbreviations', "yrs")
+
 # Layer names shown in QGIS legend (Inputs group)
 QCoreApplication.translate('InputLayerNames', "Pipes")
 QCoreApplication.translate('InputLayerNames', "Junctions")

@@ -145,3 +145,16 @@ class TestMapTipElementWordsAreTranslatable:
             "tools/qgisred_translatable_strings.py (pylupdate5 will mark them obsolete "
             "and translateMapTip will show them untranslated): {}".format(", ".join(missing))
         )
+
+
+class TestUnitAbbreviationWordsAreTranslatable:
+    def test_every_word_is_mirrored(self):
+        from QGISRed.tools.utils.qgisred_field_utils import TRANSLATED_UNIT_ABBREVIATIONS
+
+        literals = _translated_literals("UnitAbbreviations")
+        missing = sorted(set(TRANSLATED_UNIT_ABBREVIATIONS) - literals)
+        assert not missing, (
+            "Unit abbreviations in TRANSLATED_UNIT_ABBREVIATIONS with no "
+            "QCoreApplication.translate('UnitAbbreviations', ...) call in "
+            "tools/qgisred_translatable_strings.py: {}".format(", ".join(missing))
+        )

@@ -1021,6 +1021,9 @@ class ProjectManagementSection:
             if identifier:
                 styling.translateMapTip(layer)
                 styling.translateValveTypeLabel(layer)
+            if identifier == "qgisred_query_pipes_age":
+                # The ages follow the language the project is opened in
+                QGISRedStylingUtils.labelAgesWithUnit(layer)
 
         for layer_id, style_name in snapshot["inputs_to_restyle"]:
             layer = project.mapLayer(layer_id)

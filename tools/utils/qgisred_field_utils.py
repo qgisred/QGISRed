@@ -155,6 +155,10 @@ _PRESSURE_UNITS_MARKER = _UNIT_MARKER_PREFIX + "PressUnits"
 _VOLUME_UNITS_MARKER = _UNIT_MARKER_PREFIX + "VolumeUnits"
 _MASS_UNITS_MARKER = _UNIT_MARKER_PREFIX + "MassUnits"
 _CURRENCY_MARKER = _UNIT_MARKER_PREFIX + "Currency"
+# Unit abbreviations that are words, translated under the 'UnitAbbreviations' context
+# (mirrored in tools/qgisred_translatable_strings.py)
+AGE_UNIT_ABBREVIATION = "yrs"
+TRANSLATED_UNIT_ABBREVIATIONS = (AGE_UNIT_ABBREVIATION,)
 # Exponent characters, plain and superscript. Both tables are built from the same two
 # strings so the rendering done by _formatExponents and the plain spelling recovered by
 # plain_unit_abbr() cannot drift apart.
@@ -390,7 +394,19 @@ class QGISRedFieldUtils:
             return ""
         unitSystem = QGISRedProjectUtils.getUnits()
         abbr = row["si_abbr"] if unitSystem == "SI" else row["us_abbr"]
-        return self._resolveAbbr(abbr)
+        return self.translateUnitAbbreviation(self._resolveAbbr(abbr))
+
+    @staticmethod
+    def translateUnitAbbreviation(abbr):
+        """Abbreviations that are words in each language (years: yrs, años, ans, anos); symbols stay as they are."""
+        if abbr in TRANSLATED_UNIT_ABBREVIATIONS:
+            return QCoreApplication.translate("UnitAbbreviations", abbr)
+        return abbr
+
+    @staticmethod
+    def ageUnit():
+        """The unit ages are measured in, in the user's language."""
+        return QGISRedFieldUtils.translateUnitAbbreviation(AGE_UNIT_ABBREVIATION)
 
     def getUnitFullName(self, element: str, fieldName: str, conditionFeature: str = "") -> str:
         """Return the full unit name for a field (intended for tooltips).

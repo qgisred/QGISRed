@@ -259,6 +259,9 @@ class QGISRedThematicMapsBuilder:
         # the classes; their breaks and their units come from the data and the project.
         if layerType == 'junctions' and field == 'Elevation':
             self.adaptElevationDerivedLayer(derivedLayer)
+        # The style ships its ages in English years
+        if layerType == 'pipes' and field == 'Age':
+            QGISRedStylingUtils.labelAgesWithUnit(derivedLayer)
 
         # hideFields() would otherwise resolve the identity column itself via
         # derivedLayer's own qgisred_identifier -- but that property is set above to this

@@ -229,6 +229,8 @@ def create_combined_cursor(icon, iface=None, icon_size=24):
 # Sentinel label used to identify the hidden NULL/else rule across calls.
 _NULL_RULE_LABEL = "__qgisred_null__"
 _NUMBER_TOKEN = re.compile(r"^-?\d+(?:[.,]\d+)?$")
+# The Age value of a map tip and the unit written after it, if any
+_AGE_MAPTIP_VALUE = re.compile(r'(\[%\s*"Age"\s*%\])[ \t]*[^\s<\[]*')
 _FORMAT_NUMBER_TRIMS_ZEROS = []
 
 
@@ -723,6 +725,21 @@ class QGISRedStylingUtils:
             for rule in renderer.rootRule().children():
                 if _NULL_RULE_LABEL not in rule.label():
                     rule.setLabel(QGISRedStylingUtils.withUnit(rule.label(), unit))
+
+    @staticmethod
+    def labelAgesWithUnit(layer):
+        """Pipe ages read in years in the user's language (yrs, años, ans, anos): classes and map tip."""
+        unit = QGISRedFieldUtils.ageUnit()
+        renderer = layer.renderer()
+        if isinstance(renderer, QgsCategorizedSymbolRenderer):
+            # The thematic map switched to one class per age
+            for index, category in enumerate(renderer.categories()):
+                renderer.updateCategoryLabel(index, QGISRedStylingUtils.withUnit(category.label(), unit))
+        else:
+            QGISRedStylingUtils.labelClassesWithUnit(layer, unit)
+        mapTip = layer.mapTipTemplate()
+        if mapTip:
+            layer.setMapTipTemplate(_AGE_MAPTIP_VALUE.sub(lambda match: match.group(1) + " " + unit, mapTip))
 
     @staticmethod
     def breakPrecision(breaks):
