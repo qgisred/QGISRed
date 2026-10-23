@@ -376,6 +376,24 @@ class TestLabels:
         assert layer.mapTipTemplate() == "[% COALESCE(\"Category\", '<NULL>') %]"
 
 
+def _shownTips(layer):
+    """The map tip of every point, as the user sees it, with Spanish number formatting."""
+    from qgis.core import QgsExpression, QgsExpressionContext, QgsExpressionContextUtils
+    from qgis.PyQt.QtCore import QLocale
+
+    previous = QLocale()
+    QLocale.setDefault(QLocale("es_ES"))
+    try:
+        tips = []
+        for feature in layer.getFeatures():
+            context = QgsExpressionContext(QgsExpressionContextUtils.globalProjectLayerScopes(layer))
+            context.setFeature(feature)
+            tips.append(QgsExpression.replaceExpressionText(layer.mapTipTemplate(), context))
+        return tips
+    finally:
+        QLocale.setDefault(previous)
+
+
 class TestMapTips:
     def test_the_points_tip_shows_the_base_demand_and_follows_its_renamed_column(self):
         layer = _pointsTheme(["Dom"])
@@ -383,7 +401,27 @@ class TestMapTips:
 
         QGISRedStylingUtils().completeDemandBuilderStyle(layer, True)
 
-        assert layer.mapTipTemplate() == "[% COALESCE(\"Fact2024\", '<NULL>') %]"
+        assert '"Fact2024"' in layer.mapTipTemplate() and '"BaseDem"' not in layer.mapTipTemplate()
+
+    def test_the_points_tip_says_the_category_and_the_flow_unit(self):
+        layer = _pointsTheme([])
+        provider = layer.dataProvider()
+        from qgis.core import QgsFeature, QgsGeometry, QgsPointXY
+
+        for index, (category, demand) in enumerate([("Doméstico", 1.3), (None, 1.3), ("undefined", 0.005)]):
+            feature = QgsFeature(layer.fields())
+            feature.setGeometry(QgsGeometry.fromPointXY(QgsPointXY(index, 0)))
+            feature.setAttributes(["D%d" % index, category, demand])
+            provider.addFeature(feature)
+
+        QGISRedStylingUtils().completeDemandBuilderStyle(layer, True)
+
+        assert _shownTips(layer) == ["Doméstico - 1,3 l/s", "1,3 l/s", "0,005 l/s"]
+
+    def test_the_points_label_keeps_the_bare_value(self):
+        layer = _pointsTheme(["Dom"])
+        QGISRedStylingUtils().completeDemandBuilderStyle(layer, True)
+        assert layer.labeling().settings().fieldName == "Fact2024"
 
     def test_the_links_tip_shows_the_demand_percent(self):
         assert _linksTheme([]).mapTipTemplate() == "[% COALESCE(\"%Dem\" || '%', '<NULL>') %]"

@@ -485,6 +485,22 @@ class TestDemandBuilderStyleFlag:
 class TestPointLabelToBaseDemand:
     """The shipped style labels BaseDem; the layer says which column the base demand really is."""
 
+    @pytest.fixture(autouse=True)
+    def projectInLitresPerSecond(self, monkeypatch):
+        import QGISRed.tools.utils.qgisred_styling_utils as stylingModule
+        from QGISRed.tools.utils.qgisred_project_utils import QGISRedProjectUtils
+
+        monkeypatch.setattr(QGISRedProjectUtils, "getFlowUnit", staticmethod(lambda: "LPS"))
+        monkeypatch.setattr(stylingModule, "_formatNumberTrimsZeros", lambda: True)
+
+    def test_without_trimmed_numbers_the_flow_unit_decimals_are_used(self, monkeypatch):
+        import QGISRed.tools.utils.qgisred_styling_utils as stylingModule
+        from QGISRed.tools.utils.qgisred_field_utils import QGISRedFieldUtils
+
+        monkeypatch.setattr(stylingModule, "_formatNumberTrimsZeros", lambda: False)
+        monkeypatch.setattr(QGISRedFieldUtils, "getDecimals", lambda self, *args, **kwargs: 2)
+        assert stylingModule.QGISRedStylingUtils.flowValueExpression('"BaseDem"') == 'format_number("BaseDem", 2)'
+
     def _styling(self):
         from QGISRed.tools.utils.qgisred_styling_utils import QGISRedStylingUtils
 
@@ -537,6 +553,43 @@ class TestPointLabelToBaseDemand:
         self._styling().pointLabelToBaseDemand(layer)
 
         layer.setLabeling.assert_not_called()
+
+    def test_the_map_tip_shows_the_category_the_value_and_the_flow_unit(self, monkeypatch):
+        import QGISRed.tools.utils.qgisred_styling_utils as stylingModule
+        from QGISRed.tools.utils.qgisred_project_utils import QGISRedProjectUtils
+
+        monkeypatch.setattr(QGISRedProjectUtils, "getFlowUnit", staticmethod(lambda: "LPS"))
+        monkeypatch.setattr(stylingModule, "_formatNumberTrimsZeros", lambda: True)
+        labeling, settings = self._labeling()
+        layer = self._layer(["DemID", "Category", "Fact2024"], labeling)
+
+        self._styling().pointLabelToBaseDemand(layer)
+
+        mapTip = layer.setMapTipTemplate.call_args.args[0]
+        assert "format_number(\"Fact2024\", 4, trim_trailing_zeroes:=true) || ' l/s'" in mapTip
+        assert "trim(\"Category\") || ' - '" in mapTip
+
+    def test_a_theme_without_categories_shows_only_the_value(self, monkeypatch):
+        from QGISRed.tools.utils.qgisred_project_utils import QGISRedProjectUtils
+
+        monkeypatch.setattr(QGISRedProjectUtils, "getFlowUnit", staticmethod(lambda: "GPM"))
+        labeling, settings = self._labeling()
+        # An older theme: no Category column, the base demand found by its BaseDem name
+        layer = self._layer(["DemID", "BaseDem"], labeling)
+
+        self._styling().pointLabelToBaseDemand(layer)
+
+        mapTip = layer.setMapTipTemplate.call_args.args[0]
+        assert "' gpm'" in mapTip and "Category" not in mapTip
+
+    @pytest.mark.parametrize("flowUnit, symbol", [("LPS", "l/s"), ("LPM", "l/min"), ("MLD", "ML/d"), ("CMS", "m³/s"),
+                                                  ("CMH", "m³/h"), ("CMD", "m³/d"), ("CFS", "cfs"), ("GPM", "gpm"),
+                                                  ("MGD", "mgd"), ("IMGD", "Imgd"), ("AFD", "ac-ft/d")])
+    def test_every_flow_unit_has_its_symbol(self, monkeypatch, flowUnit, symbol):
+        from QGISRed.tools.utils.qgisred_project_utils import QGISRedProjectUtils
+
+        monkeypatch.setattr(QGISRedProjectUtils, "getFlowUnit", staticmethod(lambda: flowUnit))
+        assert QGISRedProjectUtils.getFlowUnitSymbol() == symbol
 
     def test_a_theme_without_base_demand_columns_keeps_the_label_of_the_file(self):
         labeling, settings = self._labeling()

@@ -36,6 +36,7 @@ from .qgisred_auxiliary_layers import parseLayerPath, ISOLATED_CONNECTIONS_STYLE
 from .qgisred_base_demand_fields import resolveBaseDemandField
 from .qgisred_color_utils import deltaE, complementaryColor
 from .qgisred_field_utils import QGISRedFieldUtils
+from .qgisred_project_utils import QGISRedProjectUtils
 from .qgisred_legend_rule_utils import scaleNumericLiterals, OPEN_RANGE_BOUND
 from .qgisred_valve_types import getValveTypeName, getValveTypeAbbreviation, VALVE_TYPE_LONG_NAMES
 from .qgisred_meter_types import getMeterTypeName, METER_TYPE_LABELS
@@ -228,6 +229,19 @@ def create_combined_cursor(icon, iface=None, icon_size=24):
 # Sentinel label used to identify the hidden NULL/else rule across calls.
 _NULL_RULE_LABEL = "__qgisred_null__"
 _NUMBER_TOKEN = re.compile(r"^-?\d+(?:[.,]\d+)?$")
+_FORMAT_NUMBER_TRIMS_ZEROS = []
+
+
+def _formatNumberTrimsZeros():
+    """format_number takes trim_trailing_zeroes in recent QGIS versions only."""
+    if not _FORMAT_NUMBER_TRIMS_ZEROS:
+        trims = False
+        with suppress(Exception):
+            expression = QgsExpression("format_number(1, 2, trim_trailing_zeroes:=true)")
+            result = expression.evaluate()
+            trims = expression.hasParserError() is False and expression.hasEvalError() is False and result == "1"
+        _FORMAT_NUMBER_TRIMS_ZEROS.append(trims)
+    return _FORMAT_NUMBER_TRIMS_ZEROS[0]
 
 
 class _NullHiddenLegend(QgsMapLayerLegend):
@@ -1816,14 +1830,38 @@ class QGISRedStylingUtils:
         labeling = layer.labeling()
         if labeling is None or labeling.type() != "simple":
             return
-        labelField = resolveBaseDemandField([field.name() for field in layer.fields()], baseDemandField)
+        fieldNames = [field.name() for field in layer.fields()]
+        labelField = resolveBaseDemandField(fieldNames, baseDemandField)
         if not labelField:
             return
         settings = labeling.settings()
-        self._repointMapTip(layer, settings.fieldName, labelField)
+        # The label keeps the bare value; the map tip says its category and its unit
+        layer.setMapTipTemplate(self.consumptionPointMapTip(labelField, "Category" in fieldNames))
         settings.fieldName = labelField
         settings.isExpression = False
         layer.setLabeling(QgsVectorLayerSimpleLabeling(settings))
+
+    @staticmethod
+    def consumptionPointMapTip(baseDemandField, hasCategory=True):
+        """'Doméstico - 1,3 l/s', or '1,3 l/s' for a point without a category: the value in the
+        user's number format and the project's flow unit."""
+        value = QGISRedStylingUtils.flowValueExpression('"%s"' % baseDemandField)
+        unit = QGISRedProjectUtils.getFlowUnitSymbol().replace("'", "''")
+        text = "COALESCE(%s || ' %s', '<NULL>')" % (value, unit)
+        if hasCategory:
+            category = ("CASE WHEN \"Category\" IS NULL OR trim(\"Category\") = '' OR lower(trim(\"Category\")) "
+                        "IN ('null', 'undefined') THEN '' ELSE trim(\"Category\") || ' - ' END")
+            text = category + " || " + text
+        return "[% " + text + " %]"
+
+    @staticmethod
+    def flowValueExpression(valueExpression):
+        """A flow in the user's number format: as many decimals as it has (up to 4) where QGIS
+        can trim the trailing zeros, the decimals of the project's flow unit otherwise."""
+        if _formatNumberTrimsZeros():
+            return "format_number(%s, 4, trim_trailing_zeroes:=true)" % valueExpression
+        decimals = QGISRedFieldUtils().getDecimals("Multiple Demands", "BaseDem", default=2)
+        return "format_number(%s, %d)" % (valueExpression, decimals)
 
     def sectorLabelToClassField(self, layer):
         # A sectors file without SectorID is labelled by what it is classified by instead;

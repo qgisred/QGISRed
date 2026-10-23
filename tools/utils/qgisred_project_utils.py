@@ -3,6 +3,20 @@ from qgis.PyQt.QtCore import QCoreApplication
 from qgis.core import QgsProject
 
 _AMERICAN_UNITS = frozenset(["CFS", "GPM", "MGD", "IMGD", "AFD"])
+# How each EPANET flow unit is written after a value
+_FLOW_UNIT_SYMBOLS = {
+    "LPS": "l/s",
+    "LPM": "l/min",
+    "MLD": "ML/d",
+    "CMS": "m³/s",
+    "CMH": "m³/h",
+    "CMD": "m³/d",
+    "CFS": "cfs",
+    "GPM": "gpm",
+    "MGD": "mgd",
+    "IMGD": "Imgd",
+    "AFD": "ac-ft/d",
+}
 
 
 class QGISRedProjectUtils:
@@ -63,6 +77,12 @@ class QGISRedProjectUtils:
         """Return the raw flow unit code stored in the project (e.g. 'LPS', 'GPM')."""
         units, _ = QgsProject.instance().readEntry("QGISRed", "project_units", "LPS")
         return units
+
+    @staticmethod
+    def getFlowUnitSymbol() -> str:
+        """The project's flow unit as it is written after a value, e.g. 'l/s' or 'gpm'."""
+        flowUnit = QGISRedProjectUtils.getFlowUnit()
+        return _FLOW_UNIT_SYMBOLS.get(flowUnit.upper(), flowUnit.lower())
 
     @staticmethod
     def getConcentrationUnits() -> str:
