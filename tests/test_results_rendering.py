@@ -1193,7 +1193,7 @@ class TestApplySymbolScaleFactorsSymbolTypeMismatch:
 
 
 class TestResultLayerLegendName:
-    """The legend names a result layer by its variable in plural plus its unit."""
+    """The legend names a result layer by its variable in plural; the unit goes in the class labels."""
 
     def _name(self, layerType, variable, flowUnit="LPS"):
         from QGISRed.ui.analysis.qgisred_results_data import resultLayerDisplayName
@@ -1205,19 +1205,19 @@ class TestResultLayerLegendName:
             return resultLayerDisplayName(layerType, variable)
 
     @pytest.mark.parametrize("layerType, variable, expected", [
-        ("Node", "Pressure", "Pressures (m)"),
-        ("Node", "Head", "Heads (m)"),
-        ("Link", "Velocity", "Velocities (m/s)"),
-        ("Link", "Flow", "Flows (lps)"),
-        ("Link", "Flow_Sig", "Flows (lps)"),
-        ("Link", "UnitHdLoss", "Unit HeadLosses (m/Km)"),
+        ("Node", "Pressure", "Pressures"),
+        ("Node", "Head", "Heads"),
+        ("Link", "Velocity", "Velocities"),
+        ("Link", "Flow", "Flows"),
+        ("Link", "Flow_Sig", "Flows"),
+        ("Link", "UnitHdLoss", "Unit HeadLosses"),
     ])
     def test_plural_name_with_unit(self, layerType, variable, expected):
         assert self._name(layerType, variable) == expected
 
     def test_us_units(self):
-        assert self._name("Node", "Head", "GPM") == "Heads (ft)"
-        assert self._name("Link", "Flow", "GPM") == "Flows (gpm)"
+        assert self._name("Node", "Head", "GPM") == "Heads"
+        assert self._name("Link", "Flow", "GPM") == "Flows"
 
     @pytest.mark.parametrize("variable, expected", [
         ("Status", "Statuses"),
@@ -1239,7 +1239,7 @@ class TestResultLayerLegendName:
             MockCore.translate.side_effect = lambda context, text: text
             dock.paintIntervalTimeResults(setRender=True)
 
-        link_layer.setName.assert_called_once_with("Velocities (m/s)")
+        link_layer.setName.assert_called_once_with("Velocities")
 
     def test_quality_keeps_the_name_of_the_quality_model(self):
         from QGISRed.ui.analysis.qgisred_results_data import resultLayerDisplayName
@@ -1256,7 +1256,7 @@ class TestResultLayerLegendName:
             MockProj.instance.return_value = project
             MockCore.translate.side_effect = lambda context, text: text
             MockProjectCore.translate.side_effect = lambda context, text: text
-            assert resultLayerDisplayName("Node", "Quality") == "Age (hr)"
+            assert resultLayerDisplayName("Node", "Quality") == "Age"
 
 
 class TestResultLayersShowTheirFeatureCount:

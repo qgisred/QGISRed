@@ -26,7 +26,7 @@ from ...tools.utils.qgisred_styling_utils import QGISRedStylingUtils, _NULL_RULE
 from ...tools.utils.qgisred_legend_rule_utils import parseRangeFilter
 from ...tools.utils.qgisred_field_utils import QGISRedFieldUtils
 from ...tools.utils.qgisred_result_fields import resultIdField, resultTypeField
-from .qgisred_results_data import resultStyleName, resultLayerDisplayName, qualityStyleKind, NO_VARIABLE_METADATA_TAG
+from .qgisred_results_data import resultStyleName, resultLayerDisplayName, resultVariableUnit, qualityStyleKind, NO_VARIABLE_METADATA_TAG
 from ...tools.utils.qgisred_project_utils import QGISRedProjectUtils
 
 # Default label text colors (used unless the user picks "By range" or overrides them in
@@ -1309,5 +1309,8 @@ class _ResultsRenderingMixin:
 
         with self.writingOwnStyle():
             layer.setRenderer(renderer)
-            QGISRedStylingUtils(self.ProjectDirectory, self.NetworkName, self.iface).applyNullStyle(layer)
+            styling = QGISRedStylingUtils(self.ProjectDirectory, self.NetworkName, self.iface)
+            styling.applyNullStyle(layer)
+            if not is_status:
+                styling.labelClassesWithUnit(layer, resultVariableUnit(nameLayer, db_field_name))
         return renderer

@@ -35,6 +35,20 @@ class TestRangeLabels:
         assert QGISRedStylingUtils.rangeLabels([1, 2], firstLower=0) == ["0 < 1", "1 < 2", "> 2"]
 
 
+class TestWithUnit:
+    @pytest.mark.parametrize("label, unit, expected", [
+        ("< 5", "m", "< 5 m"),
+        ("5 < 10", "lps", "5 < 10 lps"),
+        ("5 < 10 lps", "gpm", "5 < 10 gpm"),
+        ("10 < 20 m3/h", "m3/h", "10 < 20 m3/h"),
+        ("5 < 10 m", "", "5 < 10"),
+        ("> -2.5", "psi", "> -2.5 psi"),
+        ("Open", "m", "Open"),
+    ])
+    def test_unit_follows_the_numbers_and_replaces_a_previous_one(self, label, unit, expected):
+        assert QGISRedStylingUtils.withUnit(label, unit) == expected
+
+
 def _pointLayer(field, values):
     from qgis.core import QgsVectorLayer, QgsFeature, QgsGeometry, QgsPointXY
 

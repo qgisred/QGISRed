@@ -215,7 +215,7 @@ class QGISRedProjectIO:
         if top == "Results":
             from ...ui.analysis.qgisred_results_data import (
                 apply_result_column_visibility, infer_stat_en_from_layer,
-                resultLayerDisplayName, resultStyleName,
+                resultLayerDisplayName, resultStyleName, resultVariableUnit,
                 NO_VARIABLE_METADATA_TAG,
             )
             from ...tools.utils.qgisred_project_utils import QGISRedProjectUtils
@@ -287,6 +287,8 @@ class QGISRedProjectIO:
                     renderer.setClassAttribute(class_attr)
                     opened.setRenderer(renderer)
                 styling.applyNullStyle(opened)
+                if variable != "Status":
+                    styling.labelClassesWithUnit(opened, resultVariableUnit(layer_type, variable))
                 opened.setName(resultLayerDisplayName(layer_type, variable))
                 if is_stats:
                     # project_statistics is only available when a .qgs file was saved.

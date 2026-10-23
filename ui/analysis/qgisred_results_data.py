@@ -65,13 +65,15 @@ def qualityStyleKind():
 
 
 def resultLayerDisplayName(layerType, variable):
-    """Legend name of a result layer — ("Node", "Pressure") → "Pressures (m)"."""
-    element = normalize_element(layerType)
+    """Legend name of a result layer — ("Node", "Pressure") → "Pressures"; the unit goes in the class labels."""
     field = _STAT_VAR_ALIASES.get(variable, variable)
-    fieldUtils = QGISRedFieldUtils()
-    name = fieldUtils.getPluralProperty(element, field)
-    unit = fieldUtils.getUnitAbbreviation(element, field)
-    return f"{name} ({unit})" if unit else name
+    return QGISRedFieldUtils().getPluralProperty(normalize_element(layerType), field)
+
+
+def resultVariableUnit(layerType, variable):
+    """Unit abbreviation of a result variable in the project's unit system, "" when it has none."""
+    field = _STAT_VAR_ALIASES.get(variable, variable)
+    return QGISRedFieldUtils().getUnitAbbreviation(normalize_element(layerType), field)
 
 
 _RESULT_VARIABLE_SOURCES = {

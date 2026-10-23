@@ -54,7 +54,7 @@ from ...tools.utils.qgisred_field_utils import QGISRedFieldUtils, resolve_layer_
 from ...tools.utils.qgisred_layer_utils import QGISRedLayerUtils
 from ...tools.utils.qgisred_project_utils import QGISRedProjectUtils
 from ...tools.utils.qgisred_filesystem_utils import QGISRedFileSystemUtils, DIR_RESULTS
-from ..analysis.qgisred_results_data import resultStyleName
+from ..analysis.qgisred_results_data import resultStyleName, resultVariableUnit
 from ..analysis.qgisred_results_rendering import apply_junction_size, read_node_base_sizes
 from .qgisred_custom_dialogs import QGISRedRangeEditDialog, QGISRedSymbolColorSelector
 from .qgisred_custom_dialogs import QGISRedColorRampSelector, QGISRedRowSelectionFilter
@@ -4581,12 +4581,7 @@ class QGISRedLegendsDialog(QDialog, formClass):
         return None
 
     def getUnitAbbrForLayer(self):
-        if self.utils:
-            layerIdentifier = self.currentLayer.customProperty("qgisred_identifier")
-            field = resolve_layer_id(layerIdentifier) if layerIdentifier else None
-            if field:
-                return self.fieldUtils.getUnitAbbreviation(*field)
-        return ""
+        return self.getCurrentLayerUnitAbbr()
 
     def generateRandomHsvColor(self):
         return QColor.fromHsv(random.randint(0, 359), random.randint(150, 255), random.randint(150, 255))  # nosec B311 — cosmetic legend color, not security-sensitive
@@ -7047,6 +7042,10 @@ class QGISRedLegendsDialog(QDialog, formClass):
             return ""
 
         layerIdent = self.currentLayer.customProperty("qgisred_identifier")
+        for prefix, element in (("qgisred_node_", "Node"), ("qgisred_link_", "Link")):
+            if (layerIdent or "").startswith(prefix):
+                variable = self.getResultStyleVariable(element)
+                return resultVariableUnit(element, variable) if variable else ""
         field = resolve_layer_id(layerIdent) if layerIdent else None
         if field:
             return self.fieldUtils.getUnitAbbreviation(*field)

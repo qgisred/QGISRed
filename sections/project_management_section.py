@@ -1001,6 +1001,7 @@ class ProjectManagementSection:
         identifiers = QGISRedIdentifierUtils(self.ProjectDirectory, self.NetworkName, self.iface)
         identifiers.renameLayersToLocale()
         identifiers.translateResultMapTips()
+        identifiers.labelResultClassesWithUnit()
 
         from ..tools.utils.qgisred_styling_utils import QGISRedStylingUtils
 

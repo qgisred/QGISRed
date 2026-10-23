@@ -306,6 +306,27 @@ class QGISRedIdentifierUtils:
             if field and field != NO_VARIABLE_METADATA_TAG:
                 retranslateResultMapTip(layer, field)
 
+    def labelResultClassesWithUnit(self):
+        """Put the unit after the numbers of every result layer's classes, as the dock does.
+
+        A saved project keeps the labels it was written with, which may have no unit or
+        another system's.
+        """
+        from ...ui.analysis.qgisred_results_data import NO_VARIABLE_METADATA_TAG, resultVariableUnit
+        from .qgisred_styling_utils import QGISRedStylingUtils
+
+        for layer in self._getLayers():
+            layerType = self._resultLayerType(layer) if layer is not None else None
+            if not layerType:
+                continue
+            baseName = self._layerBaseName(layer)
+            scenario = baseName[len(self.NetworkName) + 1:].rsplit("_", 1)[0]
+            field, _ = QgsProject.instance().readEntry("QGISRed", f"results_{scenario}_{layerType}", "")
+            if not field or field in (NO_VARIABLE_METADATA_TAG, "Status"):
+                continue
+            QGISRedStylingUtils.labelClassesWithUnit(layer, resultVariableUnit(layerType, field))
+            layer.legendChanged.emit()
+
     def _getResultLayerName(self, layer, layerType):
         from ...ui.analysis.qgisred_results_data import NO_VARIABLE_METADATA_TAG, resultLayerDisplayName
 

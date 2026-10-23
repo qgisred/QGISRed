@@ -227,6 +227,7 @@ def create_combined_cursor(icon, iface=None, icon_size=24):
 
 # Sentinel label used to identify the hidden NULL/else rule across calls.
 _NULL_RULE_LABEL = "__qgisred_null__"
+_NUMBER_TOKEN = re.compile(r"^-?\d+(?:[.,]\d+)?$")
 
 
 class _NullHiddenLegend(QgsMapLayerLegend):
@@ -686,6 +687,28 @@ class QGISRedStylingUtils:
         labels += [lower + " < " + upper for lower, upper in zip(texts, texts[1:])]
         labels.append("> " + texts[-1])
         return labels
+
+    @staticmethod
+    def withUnit(label, unit):
+        """`label` ending in `unit`, replacing any unit it already ends in; unchanged if it has no number."""
+        head, separator, tail = label.rpartition(" ")
+        if separator and head[-1:].isdigit() and not _NUMBER_TOKEN.match(tail):
+            label = head
+        if not unit or not label[-1:].isdigit():
+            return label
+        return label + " " + unit
+
+    @staticmethod
+    def labelClassesWithUnit(layer, unit):
+        """Write `unit` after the numbers of every class label of a graduated or rule-based legend."""
+        renderer = layer.renderer()
+        if isinstance(renderer, QgsGraduatedSymbolRenderer):
+            for index, classRange in enumerate(renderer.ranges()):
+                renderer.updateRangeLabel(index, QGISRedStylingUtils.withUnit(classRange.label(), unit))
+        elif isinstance(renderer, QgsRuleBasedRenderer):
+            for rule in renderer.rootRule().children():
+                if _NULL_RULE_LABEL not in rule.label():
+                    rule.setLabel(QGISRedStylingUtils.withUnit(rule.label(), unit))
 
     @staticmethod
     def breakPrecision(breaks):
