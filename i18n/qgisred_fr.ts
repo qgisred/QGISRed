@@ -601,9 +601,9 @@
         <translation type="unfinished">Couleurs</translation>
     </message>
     <message>
-        <location filename="../ui/project/qgisred_legends_dialog.ui" line="666"/>
+        <location filename="../ui/project/qgisred_legends_dialog.ui" line="299"/>
         <source>Classes</source>
-        <translation type="unfinished">Classes</translation>
+        <translation>Classes</translation>
     </message>
     <message>
         <location filename="../ui/project/qgisred_legends_dialog.ui" line="712"/>
@@ -891,9 +891,9 @@
         <translation>Bordure</translation>
     </message>
     <message>
-        <location filename="../ui/project/qgisred_legends_dialog.ui" line="751"/>
-        <source>Class Order</source>
-        <translation>Ordre des classes</translation>
+        <location filename="../ui/project/qgisred_legends_dialog.ui" line="381"/>
+        <source>Order</source>
+        <translation>Ordre</translation>
     </message>
 </context>
 <context>
@@ -5868,14 +5868,14 @@ Continuer ?</translation>
 <context>
     <name>QGISRedLegendsDialog</name>
     <message>
-        <location filename="../ui/project/qgisred_legends_dialog.py" line="1190"/>
+        <location filename="../ui/project/qgisred_legends_dialog.py" line="1284"/>
         <source>Move selected class up</source>
-        <translation type="obsolete">Déplacer la classe sélectionnée vers le haut</translation>
+        <translation>Déplacer la classe sélectionnée vers le haut</translation>
     </message>
     <message>
-        <location filename="../ui/project/qgisred_legends_dialog.py" line="1191"/>
+        <location filename="../ui/project/qgisred_legends_dialog.py" line="1285"/>
         <source>Move selected class down</source>
-        <translation type="obsolete">Déplacer la classe sélectionnée vers le bas</translation>
+        <translation>Déplacer la classe sélectionnée vers le bas</translation>
     </message>
     <message>
         <location filename="../ui/project/qgisred_legends_dialog.py" line="1209"/>
@@ -5883,9 +5883,11 @@ Continuer ?</translation>
         <translation>Supprimer la/les classe(s) sélectionnée(s)</translation>
     </message>
     <message>
-        <location filename="../ui/project/qgisred_legends_dialog.py" line="1210"/>
-        <source>Add all unique values as separate classes</source>
-        <translation>Ajouter toutes les valeurs uniques comme classes séparées</translation>
+        <location filename="../ui/project/qgisred_legends_dialog.py" line="753"/>
+        <source>Current: the classes shown in the table.
+All: a class for every value of the layer.</source>
+        <translation>Actuelles : les classes affichées dans le tableau.
+Toutes : une classe pour chaque valeur de la couche.</translation>
     </message>
     <message>
         <location filename="../ui/project/qgisred_legends_dialog.py" line="1213"/>
@@ -6316,11 +6318,6 @@ Continuer ?</translation>
         <location filename="../ui/project/qgisred_legends_dialog.py" line="6635"/>
         <source>The number of classes is set by the data or the chosen method</source>
         <translation>Le nombre de classes est déterminé par les données ou la méthode choisie</translation>
-    </message>
-    <message>
-        <location filename="../ui/project/qgisred_legends_dialog.py" line="722"/>
-        <source>Add all values</source>
-        <translation>Ajouter toutes les valeurs</translation>
     </message>
     <message>
         <location filename="../ui/project/qgisred_legends_dialog.py" line="734"/>
@@ -6761,14 +6758,14 @@ Impossible d'appliquer les modifications.</translation>
         <translation>Ajouter, modifier ou supprimer des rampes, palettes et symboles de votre bibliothèque</translation>
     </message>
     <message>
-        <location filename="../ui/project/qgisred_legends_dialog.py" line="726"/>
-        <source>None</source>
-        <translation type="unfinished"></translation>
+        <location filename="../ui/project/qgisred_legends_dialog.py" line="786"/>
+        <source>Current</source>
+        <translation>Actuel</translation>
     </message>
     <message>
-        <location filename="../ui/project/qgisred_legends_dialog.py" line="729"/>
-        <source>Sort the classes by their values when the legend is applied</source>
-        <translation>Trier les classes par leurs valeurs lors de l'application de la légende</translation>
+        <location filename="../ui/project/qgisred_legends_dialog.py" line="789"/>
+        <source>Order of the classes: as they are now, or sorted by their values</source>
+        <translation>Ordre des classes : tel qu&apos;il est, ou trié par leurs valeurs</translation>
     </message>
     <message>
         <location filename="../ui/project/qgisred_legends_dialog.py" line="893"/>
@@ -6814,6 +6811,33 @@ Impossible d'appliquer les modifications.</translation>
         <location filename="../ui/project/qgisred_legends_dialog.py" line="6390"/>
         <source>Classes: add all values of the layer (%1 now)</source>
         <translation>Classes : ajouter toutes les valeurs de la couche (%1 actuellement)</translation>
+    </message>
+    <message>
+        <location filename="../ui/project/qgisred_legends_dialog.py" line="750"/>
+        <source>Current</source>
+        <comment>classes</comment>
+        <translation>Actuelles</translation>
+    </message>
+    <message>
+        <location filename="../ui/project/qgisred_legends_dialog.py" line="751"/>
+        <source>All</source>
+        <comment>classes</comment>
+        <translation>Toutes</translation>
+    </message>
+    <message>
+        <location filename="../ui/project/qgisred_legends_dialog.py" line="6817"/>
+        <source>(1 class)</source>
+        <translation>(1 classe)</translation>
+    </message>
+    <message>
+        <location filename="../ui/project/qgisred_legends_dialog.py" line="6817"/>
+        <source>(%1 classes)</source>
+        <translation>(%1 classes)</translation>
+    </message>
+    <message>
+        <location filename="../ui/project/qgisred_legends_dialog.py" line="6510"/>
+        <source>Choose All in Classes to have a class for every value of the layer when the style is loaded.</source>
+        <translation>Choisissez Toutes dans Classes pour avoir une classe pour chaque valeur de la couche au chargement du style.</translation>
     </message>
 </context>
 <context>
@@ -8843,27 +8867,37 @@ Impossible d'appliquer les modifications.</translation>
     <message>
         <location filename="../ui/project/qgisred_custom_dialogs.py" line="112"/>
         <source>Ascending</source>
-        <translation type="unfinished">Croissant</translation>
+        <translation>Croissant</translation>
     </message>
     <message>
         <location filename="../ui/project/qgisred_custom_dialogs.py" line="112"/>
         <source>Descending</source>
-        <translation type="unfinished">Décroissant</translation>
+        <translation>Décroissant</translation>
     </message>
     <message>
-        <location filename="../ui/project/qgisred_custom_dialogs.py" line="114"/>
-        <source>Class order: %1</source>
-        <translation>Ordre des classes : %1</translation>
-    </message>
-    <message>
-        <location filename="../ui/project/qgisred_custom_dialogs.py" line="112"/>
-        <source>No changes</source>
-        <translation>Sans changement</translation>
+        <location filename="../ui/project/qgisred_custom_dialogs.py" line="113"/>
+        <source>Order: %1</source>
+        <translation>Ordre : %1</translation>
     </message>
     <message>
         <location filename="../ui/project/qgisred_custom_dialogs.py" line="115"/>
         <source>Sort the classes by their values when the style is loaded</source>
         <translation>Trier les classes par leurs valeurs lors du chargement du style</translation>
+    </message>
+    <message>
+        <location filename="../ui/project/qgisred_custom_dialogs.py" line="116"/>
+        <source>Order</source>
+        <translation>Ordre</translation>
+    </message>
+    <message>
+        <location filename="../ui/project/qgisred_custom_dialogs.py" line="116"/>
+        <source>%1: kept as shown</source>
+        <translation>%1 : sans changement, comme affiché</translation>
+    </message>
+    <message>
+        <location filename="../ui/project/qgisred_custom_dialogs.py" line="118"/>
+        <source>The classes keep the order shown. Choose Ascending or Descending in Order to have them sorted when the style is loaded.</source>
+        <translation>Les classes gardent l&apos;ordre affiché. Choisissez Croissant ou Décroissant dans Ordre pour qu&apos;elles soient triées au chargement du style.</translation>
     </message>
 </context>
 <context>
@@ -10755,6 +10789,14 @@ Impossible d'appliquer les modifications.</translation>
         <location filename="../sections/tools_section.py" line="77"/>
         <source>Any elevation has been estimated</source>
         <translation type="unfinished">Aucune altitude n'a été estimée</translation>
+    </message>
+</context>
+<context>
+    <name>UnitAbbreviations</name>
+    <message>
+        <location filename="../tools/qgisred_translatable_strings.py" line="290"/>
+        <source>yrs</source>
+        <translation>ans</translation>
     </message>
 </context>
 <context>

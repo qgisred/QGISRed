@@ -551,7 +551,7 @@
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../ui/project/qgisred_legends_dialog.ui" line="666"/>
+        <location filename="../ui/project/qgisred_legends_dialog.ui" line="299"/>
         <source>Classes</source>
         <translation type="unfinished"></translation>
     </message>
@@ -811,8 +811,8 @@
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../ui/project/qgisred_legends_dialog.ui" line="751"/>
-        <source>Class Order</source>
+        <location filename="../ui/project/qgisred_legends_dialog.ui" line="381"/>
+        <source>Order</source>
         <translation type="unfinished"></translation>
     </message>
 </context>
@@ -5544,8 +5544,9 @@ Continue?</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../ui/project/qgisred_legends_dialog.py" line="1210"/>
-        <source>Add all unique values as separate classes</source>
+        <location filename="../ui/project/qgisred_legends_dialog.py" line="753"/>
+        <source>Current: the classes shown in the table.
+All: a class for every value of the layer.</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
@@ -5939,11 +5940,6 @@ Continue?</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../ui/project/qgisred_legends_dialog.py" line="722"/>
-        <source>Add all values</source>
-        <translation type="unfinished"></translation>
-    </message>
-    <message>
         <location filename="../ui/project/qgisred_legends_dialog.py" line="734"/>
         <source>Add class below the selection</source>
         <translation type="unfinished"></translation>
@@ -6323,13 +6319,13 @@ Cannot apply changes.</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../ui/project/qgisred_legends_dialog.py" line="726"/>
-        <source>None</source>
+        <location filename="../ui/project/qgisred_legends_dialog.py" line="786"/>
+        <source>Current</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../ui/project/qgisred_legends_dialog.py" line="729"/>
-        <source>Sort the classes by their values when the legend is applied</source>
+        <location filename="../ui/project/qgisred_legends_dialog.py" line="789"/>
+        <source>Order of the classes: as they are now, or sorted by their values</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
@@ -6375,6 +6371,43 @@ Cannot apply changes.</source>
     <message>
         <location filename="../ui/project/qgisred_legends_dialog.py" line="6390"/>
         <source>Classes: add all values of the layer (%1 now)</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="../ui/project/qgisred_legends_dialog.py" line="750"/>
+        <source>Current</source>
+        <comment>classes</comment>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="../ui/project/qgisred_legends_dialog.py" line="751"/>
+        <source>All</source>
+        <comment>classes</comment>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="../ui/project/qgisred_legends_dialog.py" line="6817"/>
+        <source>(1 class)</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="../ui/project/qgisred_legends_dialog.py" line="6817"/>
+        <source>(%1 classes)</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="../ui/project/qgisred_legends_dialog.py" line="6510"/>
+        <source>Choose All in Classes to have a class for every value of the layer when the style is loaded.</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="../ui/project/qgisred_legends_dialog.py" line="1284"/>
+        <source>Move selected class up</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="../ui/project/qgisred_legends_dialog.py" line="1285"/>
+        <source>Move selected class down</source>
         <translation type="unfinished"></translation>
     </message>
 </context>
@@ -8162,18 +8195,28 @@ Cannot apply changes.</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../ui/project/qgisred_custom_dialogs.py" line="114"/>
-        <source>Class order: %1</source>
-        <translation type="unfinished"></translation>
-    </message>
-    <message>
-        <location filename="../ui/project/qgisred_custom_dialogs.py" line="112"/>
-        <source>No changes</source>
+        <location filename="../ui/project/qgisred_custom_dialogs.py" line="113"/>
+        <source>Order: %1</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
         <location filename="../ui/project/qgisred_custom_dialogs.py" line="115"/>
         <source>Sort the classes by their values when the style is loaded</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="../ui/project/qgisred_custom_dialogs.py" line="116"/>
+        <source>Order</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="../ui/project/qgisred_custom_dialogs.py" line="116"/>
+        <source>%1: kept as shown</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="../ui/project/qgisred_custom_dialogs.py" line="118"/>
+        <source>The classes keep the order shown. Choose Ascending or Descending in Order to have them sorted when the style is loaded.</source>
         <translation type="unfinished"></translation>
     </message>
 </context>
@@ -9762,6 +9805,14 @@ Cannot apply changes.</source>
     <message>
         <location filename="../sections/tools_section.py" line="77"/>
         <source>Any elevation has been estimated</source>
+        <translation type="unfinished"></translation>
+    </message>
+</context>
+<context>
+    <name>UnitAbbreviations</name>
+    <message>
+        <location filename="../tools/qgisred_translatable_strings.py" line="290"/>
+        <source>yrs</source>
         <translation type="unfinished"></translation>
     </message>
 </context>
