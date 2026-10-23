@@ -716,7 +716,9 @@ class QGISRedProjectIO:
         )
         if request != QMessageBox.StandardButton.Yes:
             return None
-        selected = QFileDialog.getOpenFileName(QFileDialog(), "Select QGis file", "", "QGIS project (*.qgz *.qgs)")[0]
+        selected = QFileDialog.getOpenFileName(
+            QFileDialog(), self.tr("Select QGIS file"), "", self.tr("QGIS project (*.qgz *.qgs)")
+        )[0]
         return selected or None
 
     def _openLayersFromMetadata(self, root):

@@ -287,8 +287,8 @@ class QGISRedProjectManagerDialog(QDialog, FORM_CLASS):
             self.twProjectList.setCurrentCell(0, 1)  # Select first row (newly added)
             self.twProjectList.setFocus()
         else:
-            message = "'" + net + "' project is not found in selected folder"
-            self.pushMessage("Warning", message, level=1, duration=5)
+            message = self.tr("'%1' project is not found in selected folder").replace("%1", net)
+            self.pushMessage(self.tr("Warning"), message, level=1, duration=5)
 
     def _updateMetadata(self, net, folder):
         filePath = os.path.join(folder, net + "_Metadata.txt")

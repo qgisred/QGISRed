@@ -5475,6 +5475,41 @@ Continuer ?</translation>
         <source>(only when the point falls over a pipe)</source>
         <translation>(uniquement si le point tombe sur une conduite)</translation>
     </message>
+    <message>
+        <location filename="../ui/general/qgisred_import_dialog.py" line="1"/>
+        <source>Error</source>
+        <translation>Erreur</translation>
+    </message>
+    <message>
+        <location filename="../ui/general/qgisred_import_dialog.py" line="1"/>
+        <source>The project name is not valid</source>
+        <translation>Le nom du projet n'est pas valide</translation>
+    </message>
+    <message>
+        <location filename="../ui/general/qgisred_import_dialog.py" line="1"/>
+        <source>The project folder is not valid</source>
+        <translation>Le dossier du projet n'est pas valide</translation>
+    </message>
+    <message>
+        <location filename="../ui/general/qgisred_import_dialog.py" line="1"/>
+        <source>The project folder does not exist</source>
+        <translation>Le dossier du projet n'existe pas</translation>
+    </message>
+    <message>
+        <location filename="../ui/general/qgisred_import_dialog.py" line="1"/>
+        <source>Some issues occurred in the process</source>
+        <translation>Des problèmes sont survenus pendant le processus</translation>
+    </message>
+    <message>
+        <location filename="../ui/general/qgisred_import_dialog.py" line="1"/>
+        <source>INP file is not valid</source>
+        <translation>Le fichier INP n'est pas valide</translation>
+    </message>
+    <message>
+        <location filename="../ui/general/qgisred_import_dialog.py" line="1"/>
+        <source>INP file does not exist</source>
+        <translation>Le fichier INP n'existe pas</translation>
+    </message>
 </context>
 <context>
     <name>QGISRedImportProjectDialog</name>
@@ -7559,7 +7594,17 @@ Impossible d'appliquer les modifications.</translation>
     <message>
         <location filename="../tools/utils/qgisred_project_io.py" line="711"/>
         <source>We cannot find the QGIS project file. Do you want to find this file manually? If not, we will open the layers stored in the project metadata.</source>
-        <translation type="unfinished"></translation>
+        <translation>Nous ne trouvons pas le fichier de projet QGIS. Voulez-vous rechercher ce fichier manuellement ? Sinon, nous ouvrirons les couches stockées dans les métadonnées du projet.</translation>
+    </message>
+    <message>
+        <location filename="../tools/utils/qgisred_project_io.py" line="720"/>
+        <source>Select QGIS file</source>
+        <translation>Sélectionner le fichier QGIS</translation>
+    </message>
+    <message>
+        <location filename="../tools/utils/qgisred_project_io.py" line="720"/>
+        <source>QGIS project (*.qgz *.qgs)</source>
+        <translation>Projet QGIS (*.qgz *.qgs)</translation>
     </message>
 </context>
 <context>
@@ -7793,6 +7838,11 @@ Impossible d'appliquer les modifications.</translation>
         <location filename="../ui/general/qgisred_projectmanager_dialog.py" line="137"/>
         <source>Part of the project could not be moved to the recycle bin. If the rest is not deleted permanently, the project will be left in an inconsistent state. Do you want to delete it permanently?</source>
         <translation>Une partie du projet n'a pas pu être déplacée vers la corbeille. Si le reste n'est pas supprimé définitivement, le projet restera dans un état incohérent. Voulez-vous le supprimer définitivement ?</translation>
+    </message>
+    <message>
+        <location filename="../ui/general/qgisred_projectmanager_dialog.py" line="1"/>
+        <source>&apos;%1&apos; project is not found in selected folder</source>
+        <translation>Le projet &apos;%1&apos; est introuvable dans le dossier sélectionné</translation>
     </message>
 </context>
 <context>

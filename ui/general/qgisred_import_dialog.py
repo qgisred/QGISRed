@@ -212,15 +212,15 @@ class QGISRedImportDialog(QDialog, FORM_CLASS):
             return True
         self.NetworkName = self.tbNetworkName.text()
         if validateName and len(self.NetworkName) == 0:
-            self.pushMessage("Validations", "The project name is not valid", level=1)
+            self.pushMessage(self.tr("Validations"), self.tr("The project name is not valid"), level=1)
             return False
         self.ProjectDirectory = self.tbProjectDirectory.text()
         if len(self.ProjectDirectory) == 0:
-            self.pushMessage("Validations", "The project folder is not valid", level=1)
+            self.pushMessage(self.tr("Validations"), self.tr("The project folder is not valid"), level=1)
             return False
         else:
             if not os.path.exists(self.ProjectDirectory):
-                self.pushMessage("Validations", "The project folder does not exist", level=1)
+                self.pushMessage(self.tr("Validations"), self.tr("The project folder does not exist"), level=1)
                 return False
             elif validateName:
                 if self.cbCreateSubfolder.isChecked():
@@ -254,9 +254,9 @@ class QGISRedImportDialog(QDialog, FORM_CLASS):
         # Message
         if not resMessage == "True":
             if resMessage == "False":
-                self.pushMessage("Warning", "Some issues occurred in the process", level=1, duration=5)
+                self.pushMessage(self.tr("Warning"), self.tr("Some issues occurred in the process"), level=1, duration=5)
             else:
-                self.pushMessage("Error", resMessage, level=2, duration=5)
+                self.pushMessage(self.tr("Error"), resMessage, level=2, duration=5)
             self.close()
             return False
 
@@ -295,11 +295,11 @@ class QGISRedImportDialog(QDialog, FORM_CLASS):
             # Validations INP
             self.InpFile = self.tbInpFile.text()
             if len(self.InpFile) == 0:
-                self.pushMessage("Validations", "INP file is not valid", level=1)
+                self.pushMessage(self.tr("Validations"), self.tr("INP file is not valid"), level=1)
                 return
             else:
                 if not os.path.exists(self.InpFile):
-                    self.pushMessage("Validations", "INP file does not exist", level=1)
+                    self.pushMessage(self.tr("Validations"), self.tr("INP file does not exist"), level=1)
                     return
 
             self.close()
@@ -1238,7 +1238,7 @@ class QGISRedImportDialog(QDialog, FORM_CLASS):
         if isValid:
             # Validations SHP's
             if not os.path.exists(self.tbShpDirectory.text()):
-                self.pushMessage("Validations", self.tr("The SHPs folder is not valid or does not exist"), level=1)
+                self.pushMessage(self.tr("Validations"), self.tr("The SHPs folder is not valid or does not exist"), level=1)
                 return
             # Tolerance
             tolerance = self.tbTolerance.text()
