@@ -17,7 +17,8 @@ the spec "El panel de Resultados de QGISRed y sus estilos" (F. Martinez Alzamora
   and their classes are only placeholders; the breaks of Demand come from the absolute
   values of the junctions and those of Head ignore the reservoirs, and Demand keeps a
   white, larger class below zero like the pressures;
-- Status as three groups of EPANET states: Open, Active, Closed.
+- Status as three groups of EPANET states: Open, Active, Closed;
+- NodeNone and LinkNone for the "None" choice of the dock: one uniform grey symbol.
 
 Run it after changing RESULT_STYLES or a template:
 
@@ -39,6 +40,7 @@ TEMPLATES_DIR = os.path.join(os.path.dirname(os.path.abspath(__file__)), "result
 PALETTE = ("#004eff", "#00ffff", "#00ff00", "#ffd800", "#ff3800")
 PALETTE_NAME = "QGISRed EPANET Results"
 NEGATIVE_COLOR = "#ffffff"
+NONE_COLOR = "#c0c0c0"
 
 # Sizes in millimetres, a little above the input layers so results draw over them.
 JUNCTION_SIZE = 2
@@ -108,6 +110,12 @@ def prettyStyle(name, element, identifier, field, sampleField=None, negativeClas
             "sampleField": sampleField, "negativeClass": negativeClass}
 
 
+def noneStyle(element):
+    """The style of a layer shown without variable: a single grey symbol, no classes."""
+    return {"name": element + "None", "element": element, "identifier": "qgisred_%s_none" % element.lower(),
+            "kind": "none"}
+
+
 def qualityStyles(element):
     identifier = "qgisred_%s_quality" % element.lower()
     return (
@@ -138,6 +146,8 @@ RESULT_STYLES = (
     prettyStyle("LinkReactRate", "Link", "qgisred_link_reactionrate", "ReactRate"),
 ) + qualityStyles("Link") + (
     {"name": "LinkStatus", "element": "Link", "identifier": "qgisred_link_status", "kind": "status"},
+    noneStyle("Node"),
+    noneStyle("Link"),
 )
 
 
@@ -311,6 +321,12 @@ def statusRenderer(spec):
             % (stableUuid(spec["name"], "rules"), rules, symbols, RENDERER_TAIL))
 
 
+def singleSymbolRenderer(spec):
+    return ('  <renderer-v2 forceraster="0" referencescale="-1" type="singleSymbol" symbollevels="0"'
+            ' enableorderby="0">\n    <symbols>\n%s    </symbols>\n%s'
+            % (classSymbol(spec["element"], 0, NONE_COLOR), RENDERER_TAIL))
+
+
 def legendStrategy(spec):
     intervals = {"classificationMode": "Pretty", "classes": len(PALETTE)}
     if spec["sampleField"]:
@@ -352,6 +368,8 @@ def renderStyle(spec):
         renderer = graduatedRenderer(spec, classAttribute(spec), fixedClasses(spec), "Custom", False)
     elif spec["kind"] == "pretty":
         renderer = graduatedRenderer(spec, spec["field"], prettyClasses(spec), "Pretty", True)
+    elif spec["kind"] == "none":
+        renderer = singleSymbolRenderer(spec)
     else:
         renderer = statusRenderer(spec)
     return head + renderer + tailXml(spec)

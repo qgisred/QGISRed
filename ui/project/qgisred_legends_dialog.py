@@ -26,7 +26,7 @@ from qgis.core import QgsProject, QgsVectorLayer, QgsMessageLog, QgsGraduatedSym
 from qgis.core import QgsCategorizedSymbolRenderer, QgsRendererRange, QgsRendererCategory, QgsSymbol
 from qgis.core import QgsLayerTreeGroup, QgsLayerTreeLayer, QgsGradientColorRamp, QgsClassificationJenks
 from qgis.core import QgsClassificationPrettyBreaks, QgsStyle, QgsPresetSchemeColorRamp, QgsProperty
-from qgis.core import QgsRuleBasedRenderer, QgsMapLayerStyle, QgsRandomColorRamp, NULL
+from qgis.core import QgsRuleBasedRenderer, QgsMapLayerStyle, QgsRandomColorRamp, QgsSingleSymbolRenderer, NULL
 from qgis.core import QgsLineSymbol, QgsMarkerSymbol, QgsFillSymbol, QgsIconUtils
 from qgis.gui import QgsStyleManagerDialog
 from qgis.utils import iface
@@ -2611,6 +2611,24 @@ class QGISRedLegendsDialog(QDialog, formClass):
             return None
         return QgsGraduatedSymbolRenderer(classAttr, ranges)
 
+    @staticmethod
+    def ruleBasedAsSingle(renderer):
+        """The single symbol behind the one unfiltered rule applyNoVariableStyle leaves on a result layer."""
+        if not isinstance(renderer, QgsRuleBasedRenderer):
+            return None
+        rules = renderer.rootRule().children()
+        if len(rules) != 1 or rules[0].filterExpression() or rules[0].symbol() is None:
+            return None
+        return QgsSingleSymbolRenderer(rules[0].symbol().clone())
+
+    def singleSymbolRendererOf(self, renderer):
+        """renderer itself when it is a single symbol; for a result layer, the one its rule stands for."""
+        if renderer is None:
+            return None
+        if renderer.type() == "singleSymbol":
+            return renderer
+        return self.ruleBasedAsSingle(renderer) if self.isResultsLayer() else None
+
     def ruleBasedAsCategories(self, renderer):
         """Parse a QgsRuleBasedRenderer with categorical filters into (field, entries).
 
@@ -2654,6 +2672,9 @@ class QGISRedLegendsDialog(QDialog, formClass):
             categorical = self.ruleBasedAsCategories(renderer)
             if categorical:
                 return self.FIELD_TYPE_CATEGORICAL, categorical[0]
+            identifier = layer.customProperty("qgisred_identifier") or ""
+            if identifier.startswith(("qgisred_node_", "qgisred_link_")) and self.ruleBasedAsSingle(renderer):
+                return self.FIELD_TYPE_SINGLE, None
 
         if isinstance(renderer, QgsCategorizedSymbolRenderer):
             fieldName = renderer.classAttribute()
@@ -2673,6 +2694,7 @@ class QGISRedLegendsDialog(QDialog, formClass):
         # singleSymbol renderer for input and single/size-only query layers gets its own field type
         if renderer and renderer.type() == "singleSymbol" and (
             self.isInputLayer() or self.isSizeOnlyQueryLayer() or self.isSingleEditableQueryLayer()
+            or self.isResultsLayer()
         ):
             return self.FIELD_TYPE_SINGLE, None
 
@@ -2822,7 +2844,8 @@ class QGISRedLegendsDialog(QDialog, formClass):
         self._workingRenderer = None
         self.clearTable()
 
-        if not renderer or renderer.type() != "singleSymbol":
+        renderer = self.singleSymbolRendererOf(renderer)
+        if renderer is None:
             return
 
         symbol = renderer.symbol()
@@ -4778,8 +4801,8 @@ class QGISRedLegendsDialog(QDialog, formClass):
         # Mutate a clone, never the live renderer's symbol: the canvas render
         # jobs and the Layers Panel legend nodes share state with the live
         # symbol, and editing it in place is a use-after-free crash risk.
-        liveRenderer = self.currentLayer.renderer()
-        if not liveRenderer or liveRenderer.type() != "singleSymbol":
+        liveRenderer = self.singleSymbolRendererOf(self.currentLayer.renderer())
+        if liveRenderer is None:
             return None
 
         renderer = liveRenderer.clone()

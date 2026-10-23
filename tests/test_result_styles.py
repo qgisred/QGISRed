@@ -258,6 +258,7 @@ class TestIdentifiers:
         ("LinkChlorine", "qgisred_link_quality"), ("LinkChemical", "qgisred_link_quality"),
         ("LinkTrace", "qgisred_link_quality"), ("LinkAge", "qgisred_link_quality"),
         ("LinkStatus", "qgisred_link_status"),
+        ("NodeNone", "qgisred_node_none"), ("LinkNone", "qgisred_link_none"),
     ])
     def test_identifier(self, name, identifier):
         assert _customProperty(name, "qgisred_identifier") == identifier
@@ -272,6 +273,21 @@ class TestStatus:
             ("Closed", "\"Status\" LIKE '%Closed%'"),
         ]
         assert _classColors("LinkStatus") == ["#00ff00", "#ffd800", "#ff3800"]
+
+
+class TestNone:
+    @pytest.mark.parametrize("name", ["NodeNone", "LinkNone"])
+    def test_one_grey_symbol_and_no_classes(self, name):
+        renderer = _root(name).find("renderer-v2")
+        assert renderer.get("type") == "singleSymbol"
+        assert len(_classSymbols(name)) == 1
+        assert _classColors(name) == [generator.NONE_COLOR]
+
+    def test_the_none_choice_names_its_style_like_any_variable(self):
+        from QGISRed.ui.analysis.qgisred_results_data import NO_VARIABLE_METADATA_TAG, resultStyleName
+
+        assert resultStyleName("Node", NO_VARIABLE_METADATA_TAG) == "NodeNone"
+        assert resultStyleName("Link", NO_VARIABLE_METADATA_TAG) == "LinkNone"
 
 
 class TestResultsPalette:

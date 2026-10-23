@@ -2207,6 +2207,9 @@ class QGISRedStylingUtils:
                 renderer.addCategory(category)
                 layer.setRenderer(renderer.clone())
 
+        elif isinstance(renderer, QgsSingleSymbolRenderer):
+            self.applyNoVariableStyle(layer)
+
         elif isinstance(renderer, QgsGraduatedSymbolRenderer):
             # QgsGraduatedSymbolRenderer skips NULL features entirely, so we need an
             # explicit rule-based renderer with a catch-all NULL rule.
@@ -2249,29 +2252,15 @@ class QGISRedStylingUtils:
             layer.setLegend(_NullHiddenLegend(layer))
 
     def applyNoVariableStyle(self, layer):
-        """Replace the renderer with one gray rule, hidden from the legend, keeping the
-        symbol structure of the current style so sizes and arrows can still be scaled."""
+        """Turn the single symbol of NodeNone / LinkNone into one rule hidden from the legend,
+        the rule-based form every result layer carries so Appearance can scale its symbols."""
         renderer = layer.renderer()
-        if renderer is None:
+        if not isinstance(renderer, QgsSingleSymbolRenderer):
             return
-        symbols = renderer.symbols(QgsRenderContext())
-        if symbols:
-            gray_symbol = symbols[-1].clone()
-            _makeSymbolGray(gray_symbol)
-        else:
-            gray_symbol = QgsSymbol.defaultSymbol(layer.geometryType())
-            gray_symbol.setColor(QColor(192, 192, 192))
-
-        if layer.geometryType() == 1:
-            hidden = QgsProperty()
-            hidden.setExpressionString("0")
-            for arrowIndex in (3, 4):
-                with suppress(Exception):
-                    gray_symbol.symbolLayer(arrowIndex).subSymbol().setDataDefinedSize(hidden)
 
         # Converted with QGIS's own convertFromRenderer rather than building the Rule tree
         # by hand: see applyNullStyle for the legend-preview crashes the manual way caused.
-        new_renderer = QgsRuleBasedRenderer.convertFromRenderer(QgsSingleSymbolRenderer(gray_symbol))
+        new_renderer = QgsRuleBasedRenderer.convertFromRenderer(renderer)
         if new_renderer is None:
             return
         for rule in new_renderer.rootRule().children():

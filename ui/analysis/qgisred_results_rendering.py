@@ -26,7 +26,7 @@ from ...tools.utils.qgisred_styling_utils import QGISRedStylingUtils, _NULL_RULE
 from ...tools.utils.qgisred_legend_rule_utils import parseRangeFilter
 from ...tools.utils.qgisred_field_utils import QGISRedFieldUtils
 from ...tools.utils.qgisred_result_fields import resultIdField, resultTypeField
-from .qgisred_results_data import resultStyleName, resultLayerDisplayName, qualityStyleKind, noVariableTemplate, NO_VARIABLE_METADATA_TAG
+from .qgisred_results_data import resultStyleName, resultLayerDisplayName, qualityStyleKind, NO_VARIABLE_METADATA_TAG
 from ...tools.utils.qgisred_project_utils import QGISRedProjectUtils
 
 # Default label text colors (used unless the user picks "By range" or overrides them in
@@ -1154,7 +1154,7 @@ class _ResultsRenderingMixin:
             self.cbFlowDirections.setEnabled(False)
 
     def paintLayerWithoutVariable(self, layer, nameLayer):
-        """Leave the result layer on the map in soft gray, with no legend, for the "None" choice."""
+        """Leave the result layer on the map with the style of the "None" choice (grey, no legend)."""
         self.rememberCurrentRender(layer)
         self.forgetRenderKey(self.getLayerPath(layer))
         is_link = "Link" in nameLayer
@@ -1164,9 +1164,8 @@ class _ResultsRenderingMixin:
             self.displayingNodeField = ""
 
         utils = QGISRedStylingUtils(self.ProjectDirectory, self.NetworkName, self.iface)
-        styleName, classField = noVariableTemplate(nameLayer)
         with self.holdingLayerSignals(layer), self.writingOwnStyle():
-            utils.setStyle(layer, styleName, field=classField)
+            utils.setStyle(layer, resultStyleName(nameLayer, NO_VARIABLE_METADATA_TAG))
             utils.applyNoVariableStyle(layer)
             self.applySymbolScaleFactors(layer)
 

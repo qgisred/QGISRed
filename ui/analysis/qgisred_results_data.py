@@ -53,15 +53,7 @@ def resultStyleName(layerType, variable):
     return element + variable
 
 
-NO_VARIABLE_METADATA_TAG = "None"
-
-
-def noVariableTemplate(layerType):
-    """(style name, class field) of the style whose symbol structure a result layer shown
-    without variable is built from."""
-    if "Link" in layerType:
-        return resultStyleName("Link", "Flow"), "abs(Flow)"
-    return resultStyleName("Node", "Pressure"), "Pressure"
+NO_VARIABLE_METADATA_TAG = "None"  # also the variable of NodeNone.qml / LinkNone.qml
 
 
 def qualityStyleKind():

@@ -215,7 +215,7 @@ class QGISRedProjectIO:
         if top == "Results":
             from ...ui.analysis.qgisred_results_data import (
                 apply_result_column_visibility, infer_stat_en_from_layer,
-                resultLayerDisplayName, resultStyleName, noVariableTemplate,
+                resultLayerDisplayName, resultStyleName,
                 NO_VARIABLE_METADATA_TAG,
             )
             from ...tools.utils.qgisred_project_utils import QGISRedProjectUtils
@@ -255,13 +255,12 @@ class QGISRedProjectIO:
                 if variable == NO_VARIABLE_METADATA_TAG:
                     QgsProject.instance().writeEntry(
                         "QGISRed", f"results_{scenario}_{layer_type}", NO_VARIABLE_METADATA_TAG)
-                    styleName, classField = noVariableTemplate(layer_type)
                     # Panel signals held until the final renderer is in place, as the dock does
                     # (see holdingLayerSignals): the legend counts features in the background
                     # and a renderer replaced under it crashes QGIS.
                     opened.blockSignals(True)
                     try:
-                        styling.setStyle(opened, styleName, field=classField)
+                        styling.setStyle(opened, resultStyleName(layer_type, NO_VARIABLE_METADATA_TAG))
                         styling.applyNoVariableStyle(opened)
                     finally:
                         opened.blockSignals(False)
