@@ -195,6 +195,30 @@ class TestSortingTheRowsOnApply:
         dialog.sortTableRowsByClassOrder()
         assert dialog.tableView.rows == ["b", "a"]
 
+    @pytest.mark.parametrize("order, expected", [
+        ("ascending", ["Uncategorized", "Com", "Dom", "Ind"]),
+        ("descending", ["Uncategorized", "Ind", "Dom", "Com"]),
+    ])
+    def test_a_demand_builder_theme_keeps_uncategorized_first(self, order, expected):
+        dialog = _dialog(order, ["Dom", "Ind", "Uncategorized", "Com"])
+        dialog.currentLayer = FakeLayer("qgisred_demandbuilder_consumptionpoints")
+        dialog.sortTableRowsByClassOrder()
+        assert dialog.tableView.rows == expected
+
+    def test_another_layer_sorts_uncategorized_with_the_other_values(self):
+        dialog = _dialog("ascending", ["Uncategorized", "Dom"])
+        dialog.currentLayer = FakeLayer("qgisred_query_pipes_material")
+        dialog.sortTableRowsByClassOrder()
+        assert dialog.tableView.rows == ["Dom", "Uncategorized"]
+
+
+class FakeLayer:
+    def __init__(self, identifier):
+        self.identifier = identifier
+
+    def customProperty(self, name):
+        return self.identifier if name == "qgisred_identifier" else None
+
 
 def _addingDialog(order, values, available):
     """A dialog whose class creation appends the next available value as a row."""

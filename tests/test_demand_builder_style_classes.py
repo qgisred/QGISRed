@@ -560,3 +560,43 @@ class TestIsolatedDemandsConnectionsStyle:
 
     def test_the_map_tip_names_the_connection(self):
         assert self._layer().mapTipTemplate().startswith("Service Connection [% ")
+
+
+class TestRampColorsInTheEditor:
+    """A palette applied in the Legend Editor colours the classes the way the load does."""
+
+    def _palette(self):
+        from qgis.core import QgsPresetSchemeColorRamp
+        from qgis.PyQt.QtGui import QColor
+        from QGISRed.tools.utils.qgisred_styling_utils import PALETTE_KIND_SEQUENTIAL
+
+        colors = [QColor(name) for name in ("#e41a1c", "#377eb8", "#4daf4a")]
+        return QgsPresetSchemeColorRamp(colors), PALETTE_KIND_SEQUENTIAL
+
+    def test_uncategorized_stays_orange_and_the_palette_starts_with_the_first_category(self):
+        ramp, kind = self._palette()
+
+        colors = QGISRedStylingUtils().demandBuilderRampColors(["Uncategorized", "Com", "Dom"], ramp, False, kind)
+
+        assert [color.name() for color in colors] == ["#ffa500", "#e41a1c", "#377eb8"]
+
+    def test_points_with_uncategorized_and_links_without_give_a_category_one_colour(self):
+        ramp, kind = self._palette()
+        styling = QGISRedStylingUtils()
+
+        points = styling.demandBuilderRampColors(["Uncategorized", "Com", "Dom"], ramp, False, kind)
+        links = styling.demandBuilderRampColors(["Com", "Dom"], ramp, False, kind)
+
+        assert [color.name() for color in points[1:]] == [color.name() for color in links]
+
+    def test_the_editor_matches_the_colours_given_on_load(self):
+        layer = _pointsTheme(["Ind", "", "Dom", "Com"])
+        QGISRedStylingUtils().completeDemandBuilderStyle(layer, True)
+        categories = layer.renderer().categories()
+        styling = QGISRedStylingUtils()
+        ramp = styling.findColorRamp(styling.demandBuilderPaletteName(layer))
+        kind = QGISRedStylingUtils.findColorRampKind(styling.demandBuilderPaletteName(layer))
+
+        colors = styling.demandBuilderRampColors([str(category.value()) for category in categories], ramp, False, kind)
+
+        assert [color.name() for color in colors] == [category.symbol().color().name() for category in categories]

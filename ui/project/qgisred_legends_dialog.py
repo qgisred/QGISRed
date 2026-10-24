@@ -39,6 +39,7 @@ from ...tools.utils.qgisred_styling_utils import RAMP_KINDS, PALETTE_KINDS, RAMP
 from ...tools.utils.qgisred_styling_utils import RAMP_KIND_MORE_COLORS, PALETTE_KIND_SPAN, PALETTE_KIND_SEQUENTIAL
 from ...tools.utils.qgisred_styling_utils import PALETTE_KIND_LABELED, FRAME_DARKEN_FACTOR
 from ...tools.utils.qgisred_styling_utils import STYLE_LIBRARY_DEFAULT, STYLE_LIBRARY_OWNER
+from ...tools.utils.qgisred_styling_utils import DEMAND_BUILDER_UNCATEGORIZED
 from ...tools.utils.qgisred_legend_rule_utils import (
     OPEN_RANGE_BOUND as _OPEN_RANGE_BOUND,
     formatExpressionNumber,
@@ -2252,8 +2253,15 @@ class QGISRedLegendsDialog(QDialog, formClass):
             return [self.generateRandomColor() for _ in range(rows)]
         styling = QGISRedStylingUtils()
         invert = self.ckColorInvert.isChecked()
-        return [styling.resolveCategoryColor(self.getRowClassValue(row), row, rows, ramp, invert, kind)
-                for row in range(rows)]
+        values = [self.getRowClassValue(row) for row in range(rows)]
+        if self.isDemandBuilderLayer():
+            return styling.demandBuilderRampColors(values, ramp, invert, kind)
+        return [styling.resolveCategoryColor(value, row, rows, ramp, invert, kind) for row, value in enumerate(values)]
+
+    def isDemandBuilderLayer(self):
+        layer = getattr(self, "currentLayer", None)
+        identifier = layer.customProperty("qgisred_identifier") if hasattr(layer, "customProperty") else None
+        return isinstance(identifier, str) and identifier in self.DEMANDS_BUILDER_EDITABLE_IDENTIFIERS
 
     def calculateEmulatedPaletteColors(self, rows, previousColors):
         """Generates interpolated colors using the palette emulator from existing colors."""
@@ -3625,19 +3633,25 @@ class QGISRedLegendsDialog(QDialog, formClass):
         return classOrderCombo.currentData() if classOrderCombo is not None else "none"
 
     def sortTableRowsByClassOrder(self):
-        """Reorder the class rows by value; NULL, #NA and Other Values stay last in their order."""
+        """Reorder the class rows by value; NULL, #NA and Other Values stay last in their order.
+
+        A Demand Builder theme keeps Uncategorized first, as its style is built on load.
+        """
         classOrder = self.currentClassOrder()
         if classOrder == "none" or self.currentFieldType != self.FIELD_TYPE_CATEGORICAL:
             return
         specialValues = ["NULL", "#NA", self.tr("Other Values"), "Other Values"]
+        leadingValues = [DEMAND_BUILDER_UNCATEGORIZED] if self.isDemandBuilderLayer() else []
         rows = [(self.getRowClassValue(row), self.getRowData(row)) for row in range(self.tableView.rowCount())]
-        regularRows = sorted((item for item in rows if item[0] not in specialValues),
+        leadingRows = [item for item in rows if item[0] in leadingValues]
+        regularRows = sorted((item for item in rows if item[0] not in specialValues + leadingValues),
                              key=lambda item: QGISRedStylingUtils.classValueSortKey(item[0]),
                              reverse=classOrder == "descending")
         specialRows = [item for item in rows if item[0] in specialValues]
-        if [item[0] for item in regularRows + specialRows] == [item[0] for item in rows]:
+        orderedRows = leadingRows + regularRows + specialRows
+        if [item[0] for item in orderedRows] == [item[0] for item in rows]:
             return
-        for row, (_value, data) in enumerate(regularRows + specialRows):
+        for row, (_value, data) in enumerate(orderedRows):
             self.setRowData(row, data)
         self.markLegendEdited()
 
@@ -6070,7 +6084,10 @@ class QGISRedLegendsDialog(QDialog, formClass):
                 self.showAppliedLayerStyle()
                 self.updateLegacyStyleNotice()
                 return
-            if not self.isLiteralStyle(strategy):
+            if scope == self.STYLE_SCOPE_DEFAULT:
+                # The shipped file built the legend itself: only show the order and palette it names
+                self.showLayerStrategyModes()
+            elif not self.isLiteralStyle(strategy):
                 # The saved classes are on the layer now; regenerate colors/sizes/intervals on top.
                 self.applyStrategyToDialog(strategy)
                 self.applyLegend()

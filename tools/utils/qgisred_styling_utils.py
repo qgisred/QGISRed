@@ -1594,6 +1594,21 @@ class QGISRedStylingUtils:
             return [QColor(name) for name in DEMAND_BUILDER_FALLBACK_COLORS]
         return [QColor(color) for color in ramp.colors()]
 
+    def demandBuilderRampColors(self, values, ramp, invertRamp, kind=None):
+        """The colour of each class when a ramp or palette is applied to a theme, as on load:
+        Uncategorized orange, the palette handed out over the other classes only. Points and
+        links that declare the same categories then give each one the same colour."""
+        categorizedCount = sum(1 for value in values if value != DEMAND_BUILDER_UNCATEGORIZED)
+        colors = []
+        position = 0
+        for value in values:
+            if value == DEMAND_BUILDER_UNCATEGORIZED:
+                colors.append(QColor("orange"))
+                continue
+            colors.append(self.resolveCategoryColor(value, position, categorizedCount, ramp, invertRamp, kind))
+            position += 1
+        return colors
+
     def _siblingDemandBuilderColor(self, layer, value):
         """The colour another open theme gives the same class, when both colour from one palette.
 
