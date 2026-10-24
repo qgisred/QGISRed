@@ -2274,7 +2274,10 @@ class QGISRedLegendsDialog(QDialog, formClass):
             colorContainer = self.tableView.cellWidget(row, 1)
             colorWidget = colorContainer.findChild(QGISRedSymbolColorSelector) if colorContainer else None
             if colorWidget:
-                colorWidget.setSelectorColor(colors[row])
+                # A fill keeps the opacity of its row: ramp and palette colours are opaque
+                opacityWidget = colorContainer.findChild(QGISRedOpacityPercentSpinBox)
+                color = opacityWidget.colorWithOpacity(colors[row]) if opacityWidget else colors[row]
+                colorWidget.setSelectorColor(color)
 
     def collectCurrentTableColors(self):
         """Collects all current colors from the table rows."""

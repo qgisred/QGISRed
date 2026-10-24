@@ -108,6 +108,33 @@ class TestRefreshColorRamps:
         assert set(dialog.btnColorRamp.colorRampCache) == set(fallback)
 
 
+class TestShowingARampWithSignalsBlocked:
+    """The dialog blocks the selector to show the palette a layer's strategy names; the
+    classes must not be recoloured by it (the sectors lost their 40 % fill that way)."""
+
+    def test_selecting_it_emits_nothing_and_leaves_the_signals_blocked(self, databasePath):
+        selector = QGISRedColorRampSelector()
+        applied = []
+        selector.rampChanged.connect(lambda ramp: applied.append(ramp))
+
+        selector.blockSignals(True)
+        selector.addColorRamps({"First": _gradient("#000000", "#ffffff"), "Second": _gradient("#ff0000", "#0000ff")})
+        selector.setActiveRampByName("Second")
+
+        assert applied == [] and selector.signalsBlocked()
+        selector.blockSignals(False)
+
+    def test_without_the_block_selecting_it_applies_it(self, databasePath):
+        selector = QGISRedColorRampSelector()
+        selector.addColorRamps({"First": _gradient("#000000", "#ffffff"), "Second": _gradient("#ff0000", "#0000ff")})
+        applied = []
+        selector.rampChanged.connect(lambda ramp: applied.append(ramp.color1().name()))
+
+        selector.setActiveRampByName("Second")
+
+        assert applied == ["#ff0000"]
+
+
 class TestPickingTheShownRampAgain:
     def test_it_applies_the_ramp_once_more(self, databasePath):
         selector = QGISRedColorRampSelector()

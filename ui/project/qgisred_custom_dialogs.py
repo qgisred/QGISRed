@@ -693,9 +693,11 @@ class QGISRedColorRampSelector(QComboBox):
             self.updateSelectedIndex(index)
 
     def updateSelectedIndex(self, index):
-        self.blockSignals(True)
+        # A caller that blocked the signals only shows a ramp: it must stay silent, or the
+        # dialog would repaint every class with it
+        wasBlocked = self.blockSignals(True)
         self.setCurrentIndex(index)
-        self.blockSignals(False)
+        self.blockSignals(wasBlocked)
         self.rampChanged.emit(self.getActiveRampClone())
 
     def getActiveRampClone(self):

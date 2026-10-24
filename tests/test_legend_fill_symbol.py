@@ -186,3 +186,56 @@ def test_the_swatch_draws_the_fill_with_the_typed_outline_width():
     swatch.applySizeScaling(preview)
 
     assert preview.symbolLayer(0).strokeWidth() == pytest.approx(0.8)
+
+
+class _FakeTable:
+    def __init__(self, cells):
+        self.cells = cells
+
+    def rowCount(self):
+        return len(self.cells)
+
+    def cellWidget(self, row, column):
+        return self.cells[row] if column == 1 else None
+
+
+class _FakeSwatch:
+    def __init__(self, color):
+        self.activeColor = color
+
+    def setSelectorColor(self, color):
+        self.activeColor = color
+
+
+class _FakeColorCell:
+    """The colour cell of a row: the swatch with the opacity of its fill beside it."""
+
+    def __init__(self, swatch, opacityWidget):
+        self.swatch = swatch
+        self.opacityWidget = opacityWidget
+
+    def findChild(self, kind):
+        from QGISRed.ui.project.qgisred_custom_dialogs import QGISRedSymbolColorSelector
+
+        return self.swatch if kind is QGISRedSymbolColorSelector else self.opacityWidget
+
+
+def _fillRow(dialog, color):
+    from QGISRed.ui.project.qgisred_custom_dialogs import QGISRedOpacityPercentSpinBox
+
+    swatch = _FakeSwatch(color)
+    opacityWidget = QGISRedOpacityPercentSpinBox()
+    opacityWidget.showOpacityOf(color)
+    dialog.tableView = _FakeTable([_FakeColorCell(swatch, opacityWidget)])
+    return swatch
+
+
+def test_a_palette_colours_the_fills_and_keeps_their_opacity():
+    from qgis.PyQt.QtGui import QColor
+
+    dialog = _polygonDialog()
+    swatch = _fillRow(dialog, QColor(166, 206, 227, 102))
+
+    dialog.applyColorsToTable([QColor("#e41a1c")])
+
+    assert _rgba(swatch.activeColor) == (228, 26, 28, 102)
