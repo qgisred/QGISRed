@@ -322,6 +322,21 @@ class TestProjectIO:
             shutil.rmtree(src_dir)
             shutil.rmtree(dst_dir)
 
+    def test_processQGisProjectFiles_ignores_files_sharing_only_the_name(self, io_utils):
+        src_dir = tempfile.mkdtemp()
+        dst_dir = tempfile.mkdtemp()
+        try:
+            qgis_base = os.path.join(src_dir, "myProj")
+            open(qgis_base + ".qgz", "w").close()
+            open(qgis_base + ".qgd", "w").close()
+            open(qgis_base + ".inp", "w").close()
+            with patch.object(QGISRedProjectIO, '_fs', return_value=self._make_mock_fs()):
+                io_utils.processQGisProjectFiles(qgis_base, "newProj", dst_dir)
+            assert sorted(os.listdir(dst_dir)) == ["newProj.qgd", "newProj.qgz"]
+        finally:
+            shutil.rmtree(src_dir)
+            shutil.rmtree(dst_dir)
+
     def test_processQGisProjectFiles_delete_source(self, io_utils):
         src_dir = tempfile.mkdtemp()
         dst_dir = tempfile.mkdtemp()

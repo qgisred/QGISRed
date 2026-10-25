@@ -36,6 +36,8 @@ REMOTE_PREFIXES = ("http://", "https://")
 # Suffix QGIS appends to a file datasource, e.g. "roads.shp|layername=roads"
 URI_SUFFIX_SEPARATOR = "|"
 
+RE_QGIS_PROJECT_COMPANION = re.compile(r"^\.(qgz|qgs|qgd)(~|\..*)?$", re.IGNORECASE)
+
 
 def _resolvedNorm(path):
     """The one form in which two paths may be compared for "is this inside that?".
@@ -630,6 +632,8 @@ class QGISRedProjectIO:
                     stripped = self.stripAllExtensions(filepath)
                     if os.path.normcase(stripped) == os.path.normcase(qgisBase):
                         extensions = f[len(oldBaseName):]
+                        if not RE_QGIS_PROJECT_COMPANION.match(extensions):
+                            continue
                         newFilepath = os.path.join(targetDir, newName + extensions)
                         with suppress(Exception):
                             shutil.copy2(filepath, newFilepath)
