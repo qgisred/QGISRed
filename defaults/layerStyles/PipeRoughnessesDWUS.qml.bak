@@ -146,12 +146,12 @@
   </elevation>
   <renderer-v2 symbollevels="0" referencescale="-1" forceraster="0" enableorderby="0" attr="RoughCoeff" type="graduatedSymbol" graduatedMethod="GraduatedColor">
     <ranges>
-      <range upper="0.029900000000000" symbol="0" render="true" label="&lt; 0.03 mft" uuid="{9687cd7b-bfaa-45cc-b4d1-ebb0106c4646}" lower="0.000000000000000"/>
-      <range upper="0.149900000000000" symbol="1" render="true" label="0.03 &lt; 0.15 mft" uuid="{ca2c2c16-6084-4ade-ae68-e06c607c3dd7}" lower="0.029900000000000"/>
-      <range upper="0.299900000000000" symbol="2" render="true" label="0.15 &lt; 0.30 mft" uuid="{cad936f5-e697-4ccb-8e19-f0581b17e4f3}" lower="0.149900000000000"/>
-      <range upper="0.599900000000000" symbol="3" render="true" label="0.30 &lt; 0.60 mft" uuid="{b772c347-5fc7-4262-b55a-96aaff9c1362}" lower="0.299900000000000"/>
-      <range upper="2.999000000000000" symbol="4" render="true" label="0.60 &lt; 3.00 mft " uuid="{9a8cb8ec-fbfa-4695-9f8c-2b46528c30aa}" lower="0.599900000000000"/>
-      <range upper="1000.000000000000000" symbol="5" render="true" label=">= 3.0 mft" uuid="{dbf70447-2d12-4bd2-976b-ce249f14be58}" lower="2.999000000000000"/>
+      <range upper="0.029900000000000" symbol="0" render="true" label="&lt; 0.03  mft" uuid="{9687cd7b-bfaa-45cc-b4d1-ebb0106c4646}" lower="0.000000000000000"/>
+      <range upper="0.149900000000000" symbol="1" render="true" label="0.03 &lt; 0.15  mft" uuid="{ca2c2c16-6084-4ade-ae68-e06c607c3dd7}" lower="0.029900000000000"/>
+      <range upper="0.299900000000000" symbol="2" render="true" label="0.15 &lt; 0.30  mft" uuid="{cad936f5-e697-4ccb-8e19-f0581b17e4f3}" lower="0.149900000000000"/>
+      <range upper="0.599900000000000" symbol="3" render="true" label="0.30 &lt; 0.60  mft" uuid="{b772c347-5fc7-4262-b55a-96aaff9c1362}" lower="0.299900000000000"/>
+      <range upper="2.999000000000000" symbol="4" render="true" label="0.60 &lt; 3.00  mft" uuid="{9a8cb8ec-fbfa-4695-9f8c-2b46528c30aa}" lower="0.599900000000000"/>
+      <range upper="1000.000000000000000" symbol="5" render="true" label=">= 3.0  mft" uuid="{dbf70447-2d12-4bd2-976b-ce249f14be58}" lower="2.999000000000000"/>
     </ranges>
     <symbols>
       <symbol alpha="1" force_rhr="0" clip_to_extent="1" is_animated="0" name="0" type="line" frame_rate="10">

@@ -146,11 +146,11 @@
   </elevation>
   <renderer-v2 referencescale="-1" attr="Length" symbollevels="0" type="graduatedSymbol" enableorderby="0" graduatedMethod="GraduatedColor" forceraster="0">
     <ranges>
-      <range label="0 &lt; 1 ft" render="true" lower="0.000000000000000" symbol="0" uuid="0" upper="0.990000000000000"/>
-      <range label="1 &lt; 10 ft" render="true" lower="0.990000000000000" symbol="1" uuid="1" upper="9.990000000000000"/>
-      <range label="10 &lt; 100 ft" render="true" lower="9.990000000000000" symbol="2" uuid="2" upper="99.989999999999995"/>
-      <range label="100 &lt; 1000 ft" render="true" lower="99.989999999999995" symbol="3" uuid="3" upper="999.990000000000009"/>
-      <range label="> 1000 ft" render="true" lower="999.990000000000009" symbol="4" uuid="4" upper="100000.000000000000000"/>
+      <range label="0 &lt; 1  ft" render="true" lower="0.000000000000000" symbol="0" uuid="0" upper="0.990000000000000"/>
+      <range label="1 &lt; 10  ft" render="true" lower="0.990000000000000" symbol="1" uuid="1" upper="9.990000000000000"/>
+      <range label="10 &lt; 100  ft" render="true" lower="9.990000000000000" symbol="2" uuid="2" upper="99.989999999999995"/>
+      <range label="100 &lt; 1000  ft" render="true" lower="99.989999999999995" symbol="3" uuid="3" upper="999.990000000000009"/>
+      <range label="> 1000  ft" render="true" lower="999.990000000000009" symbol="4" uuid="4" upper="100000.000000000000000"/>
     </ranges>
     <symbols>
       <symbol name="0" type="line" alpha="1" is_animated="0" force_rhr="0" clip_to_extent="1" frame_rate="10">

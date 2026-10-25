@@ -2,13 +2,13 @@
 <qgis labelsEnabled="0" version="3.38.1-Grenoble" styleCategories="Symbology|Labeling|Fields|MapTips">
   <renderer-v2 graduatedMethod="GraduatedColor" enableorderby="0" forceraster="0" referencescale="-1" attr="Diameter" type="graduatedSymbol" symbollevels="0">
     <ranges>
-      <range lower="0.000000000000000" label="&lt; 4 in" symbol="0" uuid="0" upper="3.990000000000000" render="true"/>
-      <range lower="3.990000000000000" label="4 &lt; 6 in" symbol="1" uuid="1" upper="5.990000000000000" render="true"/>
-      <range lower="5.990000000000000" label="6 &lt; 8 in" symbol="2" uuid="2" upper="7.990000000000000" render="true"/>
-      <range lower="7.990000000000000" label="8 &lt; 12 in" symbol="3" uuid="3" upper="11.990000000000000" render="true"/>
-      <range lower="11.990000000000000" label="12 &lt; 16 in" symbol="4" uuid="4" upper="15.990000000000000" render="true"/>
-      <range lower="15.990000000000000" label="16 &lt; 24 in" symbol="5" uuid="5" upper="23.989999999999998" render="true"/>
-      <range lower="23.989999999999998" label="> 24 in" symbol="6" uuid="6" upper="1000.000000000000000" render="true"/>
+      <range lower="0.000000000000000" label="&lt; 4  in" symbol="0" uuid="0" upper="3.990000000000000" render="true"/>
+      <range lower="3.990000000000000" label="4 &lt; 6  in" symbol="1" uuid="1" upper="5.990000000000000" render="true"/>
+      <range lower="5.990000000000000" label="6 &lt; 8  in" symbol="2" uuid="2" upper="7.990000000000000" render="true"/>
+      <range lower="7.990000000000000" label="8 &lt; 12  in" symbol="3" uuid="3" upper="11.990000000000000" render="true"/>
+      <range lower="11.990000000000000" label="12 &lt; 16  in" symbol="4" uuid="4" upper="15.990000000000000" render="true"/>
+      <range lower="15.990000000000000" label="16 &lt; 24  in" symbol="5" uuid="5" upper="23.989999999999998" render="true"/>
+      <range lower="23.989999999999998" label="> 24  in" symbol="6" uuid="6" upper="1000.000000000000000" render="true"/>
     </ranges>
     <symbols>
       <symbol name="0" force_rhr="0" frame_rate="10" alpha="1" is_animated="0" type="line" clip_to_extent="1">

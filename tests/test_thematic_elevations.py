@@ -186,8 +186,8 @@ class TestClassifyElevationByPrettyBreaks:
         _builder().classifyElevationByPrettyBreaks(layer, "m")
 
         assert renderer.updatedClassesWith == (layer, 5)
-        assert renderer.labels == {0: "< 20 m", 1: "20 < 40 m", 2: "40 < 60 m", 3: "60 < 80 m", 4: ">= 80 m"}
-        # A junction at exactly 20 m must read in "20 < 40 m", so the break
+        assert renderer.labels == {0: "< 20  m", 1: "20 < 40  m", 2: "40 < 60  m", 3: "60 < 80  m", 4: ">= 80  m"}
+        # A junction at exactly 20 m must read in "20 < 40  m", so the break
         # moves down by 0.001; the outer classes swallow any edit that follows.
         assert renderer.lowerValues == {0: -100000, 1: 19.999, 2: 39.999, 3: 59.999, 4: 79.999}
         assert renderer.upperValues == {0: 19.999, 1: 39.999, 2: 59.999, 3: 79.999, 4: 100000}
@@ -217,8 +217,8 @@ class TestClassifyElevationByPrettyBreaks:
 
         _builder().classifyElevationByPrettyBreaks(layer, "m")
 
-        assert renderer.labels[0] == "< 50 m"
-        assert renderer.labels[5] == ">= 250 m"
+        assert renderer.labels[0] == "< 50  m"
+        assert renderer.labels[5] == ">= 250  m"
         assert renderer.upperValues[5] == 100000
 
     def test_a_flat_network_keeps_a_single_class_instead_of_none(self, graduatedStub):
@@ -233,7 +233,7 @@ class TestClassifyElevationByPrettyBreaks:
 
         assert len(renderer.addedClasses) == 1
         lower, upper, _symbol, label = renderer.addedClasses[0]
-        assert (lower, upper, label) == (-100000, 100000, "0 m")
+        assert (lower, upper, label) == (-100000, 100000, "0  m")
         assert renderer.labels == {}
 
     def test_other_renderers_are_left_alone(self, graduatedStub):

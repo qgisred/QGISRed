@@ -28,7 +28,7 @@ from ...compat import sip, NODE_TYPE_LAYER, NODE_TYPE_GROUP, PAL_PLACEMENT_OVER_
 from .qgisred_field_utils import QGISRedFieldUtils
 from .qgisred_filesystem_utils import QGISRedFileSystemUtils
 from .qgisred_layer_utils import QGISRedLayerUtils
-from .qgisred_styling_utils import QGISRedStylingUtils
+from .qgisred_styling_utils import QGISRedStylingUtils, UNIT_SEPARATOR
 from .qgisred_project_utils import QGISRedProjectUtils
 from .qgisred_thematicmaps_queries import buildQueryCatalogue, queryIdentifier
 
@@ -436,7 +436,7 @@ class QGISRedThematicMapsBuilder:
             symbol = classRange.symbol().clone()
             symbol.setSize(minimumSize + sizeFactor * (valueOffset ** exponent))
             renderer.updateRangeSymbol(index, symbol)
-            renderer.updateRangeLabel(index, classRange.label() + ' ' + QGISRedProjectUtils.getFlowUnit().lower())
+            renderer.updateRangeLabel(index, classRange.label() + UNIT_SEPARATOR + QGISRedProjectUtils.getFlowUnit().lower())
 
     def hideProportionalLegendTitle(self, layer, layerTreeLayer):
         # The proportional size legend always renders a title row, falling back
@@ -513,7 +513,7 @@ class QGISRedThematicMapsBuilder:
             elevation = layer.minimumValue(layer.fields().indexFromName('Elevation'))
             label = units
             if isinstance(elevation, (int, float)):
-                label = '%s %s' % (self.formatBreakValue(elevation), units)
+                label = self.formatBreakValue(elevation) + UNIT_SEPARATOR + units
             renderer.addClass(QgsRendererRange(-100000, 100000, shippedRanges[0].symbol().clone(), label))
             return
         lastIndex = len(classRanges) - 1
@@ -523,11 +523,11 @@ class QGISRedThematicMapsBuilder:
             lowerText = self.formatBreakValue(classRange.lowerValue())
             upperText = self.formatBreakValue(classRange.upperValue())
             if index == 0:
-                label = '< %s %s' % (upperText, units)
+                label = '< %s%s%s' % (upperText, UNIT_SEPARATOR, units)
             elif index == lastIndex:
-                label = '>= %s %s' % (lowerText, units)
+                label = '>= %s%s%s' % (lowerText, UNIT_SEPARATOR, units)
             else:
-                label = '%s < %s %s' % (lowerText, upperText, units)
+                label = '%s < %s%s%s' % (lowerText, upperText, UNIT_SEPARATOR, units)
             renderer.updateRangeLabel(index, label)
 
     def formatBreakValue(self, value):

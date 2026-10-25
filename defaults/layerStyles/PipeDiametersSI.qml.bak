@@ -2,13 +2,13 @@
 <qgis version="3.38.1-Grenoble" styleCategories="Symbology|Labeling|Fields|MapTips" labelsEnabled="1">
   <renderer-v2 symbollevels="0" graduatedMethod="GraduatedColor" forceraster="0" referencescale="-1" enableorderby="0" type="graduatedSymbol" attr="Diameter">
     <ranges>
-      <range label="&lt; 100 mm" render="true" uuid="0" upper="99.989999999999995" lower="0.000000000000000" symbol="0"/>
-      <range label="100 &lt; 150 mm" render="true" uuid="1" upper="149.990000000000009" lower="99.989999999999995" symbol="1"/>
-      <range label="150 &lt; 200 mm" render="true" uuid="2" upper="199.990000000000009" lower="149.990000000000009" symbol="2"/>
-      <range label="200 &lt; 300 mm" render="true" uuid="3" upper="299.990000000000009" lower="199.990000000000009" symbol="3"/>
-      <range label="300 &lt; 400 mm" render="true" uuid="4" upper="399.990000000000009" lower="299.990000000000009" symbol="4"/>
-      <range label="400 &lt; 600 mm" render="true" uuid="5" upper="599.990000000000009" lower="399.990000000000009" symbol="5"/>
-      <range label="> 600 mm" render="true" uuid="6" upper="100000.000000000000000" lower="599.990000000000009" symbol="6"/>
+      <range label="&lt; 100  mm" render="true" uuid="0" upper="99.989999999999995" lower="0.000000000000000" symbol="0"/>
+      <range label="100 &lt; 150  mm" render="true" uuid="1" upper="149.990000000000009" lower="99.989999999999995" symbol="1"/>
+      <range label="150 &lt; 200  mm" render="true" uuid="2" upper="199.990000000000009" lower="149.990000000000009" symbol="2"/>
+      <range label="200 &lt; 300  mm" render="true" uuid="3" upper="299.990000000000009" lower="199.990000000000009" symbol="3"/>
+      <range label="300 &lt; 400  mm" render="true" uuid="4" upper="399.990000000000009" lower="299.990000000000009" symbol="4"/>
+      <range label="400 &lt; 600  mm" render="true" uuid="5" upper="599.990000000000009" lower="399.990000000000009" symbol="5"/>
+      <range label="> 600  mm" render="true" uuid="6" upper="100000.000000000000000" lower="599.990000000000009" symbol="6"/>
     </ranges>
     <symbols>
       <symbol is_animated="0" name="0" frame_rate="10" alpha="1" clip_to_extent="1" force_rhr="0" type="line">

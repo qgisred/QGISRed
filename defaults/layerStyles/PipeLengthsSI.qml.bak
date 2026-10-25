@@ -146,11 +146,11 @@
   </elevation>
   <renderer-v2 graduatedMethod="GraduatedColor" forceraster="0" symbollevels="0" attr="Length" type="graduatedSymbol" enableorderby="0" referencescale="-1">
     <ranges>
-      <range lower="0.000000000000000" label="0 - 1 m" uuid="0" symbol="0" upper="0.990000000000000" render="true"/>
-      <range lower="0.990000000000000" label="1 - 10 m" uuid="1" symbol="1" upper="9.990000000000000" render="true"/>
-      <range lower="9.990000000000000" label="10 - 100 m" uuid="2" symbol="2" upper="99.989999999999995" render="true"/>
-      <range lower="99.989999999999995" label="100 - 1000 m" uuid="3" symbol="3" upper="999.990000000000009" render="true"/>
-      <range lower="999.990000000000009" label="> 1000 m" uuid="4" symbol="4" upper="100000.000000000000000" render="true"/>
+      <range lower="0.000000000000000" label="0 - 1  m" uuid="0" symbol="0" upper="0.990000000000000" render="true"/>
+      <range lower="0.990000000000000" label="1 - 10  m" uuid="1" symbol="1" upper="9.990000000000000" render="true"/>
+      <range lower="9.990000000000000" label="10 - 100  m" uuid="2" symbol="2" upper="99.989999999999995" render="true"/>
+      <range lower="99.989999999999995" label="100 - 1000  m" uuid="3" symbol="3" upper="999.990000000000009" render="true"/>
+      <range lower="999.990000000000009" label="> 1000  m" uuid="4" symbol="4" upper="100000.000000000000000" render="true"/>
     </ranges>
     <symbols>
       <symbol force_rhr="0" clip_to_extent="1" is_animated="0" type="line" name="0" alpha="1" frame_rate="10">

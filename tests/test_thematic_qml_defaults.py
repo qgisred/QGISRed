@@ -40,7 +40,7 @@ EXPECTED = {
     "PipeAges.qml.bak": {
         "field": "Age",
         # Oldest last: same pipes, read the other way round.
-        "labels": ["< 10 yrs", "10 - 24 yrs", "25 - 49 yrs", "50 - 74 yrs", "75 - 100 yrs", ">= 100 yrs"],
+        "labels": ["< 10  yrs", "10 - 24  yrs", "25 - 49  yrs", "50 - 74  yrs", "75 - 100  yrs", ">= 100  yrs"],
         "bounds": (0.0, 1000.0),
         "mapTip": '[%"Age"%] yr',
     },
