@@ -38,7 +38,7 @@ from ...tools.utils.qgisred_styling_utils import (
 from ...tools.utils.qgisred_styling_utils import RAMP_KINDS, PALETTE_KINDS, RAMP_KIND_TWO_COLORS, RAMP_KIND_THREE_COLORS
 from ...tools.utils.qgisred_styling_utils import RAMP_KIND_MORE_COLORS, PALETTE_KIND_SPAN, PALETTE_KIND_SEQUENTIAL
 from ...tools.utils.qgisred_styling_utils import PALETTE_KIND_LABELED, FRAME_DARKEN_FACTOR
-from ...tools.utils.qgisred_styling_utils import STYLE_LIBRARY_DEFAULT, STYLE_LIBRARY_OWNER
+from ...tools.utils.qgisred_styling_utils import STYLE_LIBRARY_DEFAULT, STYLE_LIBRARY_OWNER, UNIT_SEPARATOR
 from ...tools.utils.qgisred_styling_utils import DEMAND_BUILDER_UNCATEGORIZED
 from ...tools.utils.qgisred_legend_rule_utils import (
     OPEN_RANGE_BOUND as _OPEN_RANGE_BOUND,
@@ -3884,17 +3884,17 @@ class QGISRedLegendsDialog(QDialog, formClass):
 
     def formatFirstRowLegend(self, upper, formatString, unitAbbr):
         if unitAbbr:
-            return f"< {formatString.format(upper)} {unitAbbr}"
+            return f"< {formatString.format(upper)}{UNIT_SEPARATOR}{unitAbbr}"
         return f"< {formatString.format(upper)}"
 
     def formatLastRowLegend(self, lower, formatString, unitAbbr):
         if unitAbbr:
-            return f"> {formatString.format(lower)} {unitAbbr}"
+            return f"> {formatString.format(lower)}{UNIT_SEPARATOR}{unitAbbr}"
         return f"> {formatString.format(lower)}"
 
     def formatMiddleRowLegend(self, lower, upper, formatString, unitAbbr):
         if unitAbbr:
-            return f"{formatString.format(lower)} < {formatString.format(upper)} {unitAbbr}"
+            return f"{formatString.format(lower)} < {formatString.format(upper)}{UNIT_SEPARATOR}{unitAbbr}"
         return f"{formatString.format(lower)} < {formatString.format(upper)}"
 
     def refreshAllLegendLabels(self):

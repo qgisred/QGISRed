@@ -228,6 +228,7 @@ def create_combined_cursor(icon, iface=None, icon_size=24):
 
 # Sentinel label used to identify the hidden NULL/else rule across calls.
 _NULL_RULE_LABEL = "__qgisred_null__"
+UNIT_SEPARATOR = "  "
 _NUMBER_TOKEN = re.compile(r"^-?\d+(?:[.,]\d+)?$")
 # The Age value of a map tip and the unit written after it, if any
 _AGE_MAPTIP_VALUE = re.compile(r'(\[%\s*"Age"\s*%\])[ \t]*[^\s<\[]*')
@@ -708,11 +709,12 @@ class QGISRedStylingUtils:
     def withUnit(label, unit):
         """`label` ending in `unit`, replacing any unit it already ends in; unchanged if it has no number."""
         head, separator, tail = label.rpartition(" ")
+        head = head.rstrip()
         if separator and head[-1:].isdigit() and not _NUMBER_TOKEN.match(tail):
             label = head
         if not unit or not label[-1:].isdigit():
             return label
-        return label + " " + unit
+        return label + UNIT_SEPARATOR + unit
 
     @staticmethod
     def labelClassesWithUnit(layer, unit):

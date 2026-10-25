@@ -126,7 +126,7 @@ class TestThePipeAgeMap:
         layer = FakeAgeLayer(FakeRuleRenderer(SHIPPED_LABELS), '[%"Age"%] yr')
         QGISRedStylingUtils.labelAgesWithUnit(layer)
         assert [rule.label() for rule in layer.renderer().rootRule().children()] == [
-            "< 10 años", "10 - 24 años", "25 - 49 años", "50 - 74 años", "75 - 100 años", ">= 100 años"]
+            "< 10  años", "10 - 24  años", "25 - 49  años", "50 - 74  años", "75 - 100  años", ">= 100  años"]
         assert layer.mapTipTemplate() == '[%"Age"%] años'
 
     def test_reopening_in_another_language_swaps_the_unit(self, monkeypatch):
@@ -135,11 +135,11 @@ class TestThePipeAgeMap:
         QGISRedStylingUtils.labelAgesWithUnit(layer)
         _speaking(monkeypatch, "fr")
         QGISRedStylingUtils.labelAgesWithUnit(layer)
-        assert layer.renderer().rootRule().children()[1].label() == "10 - 24 ans"
+        assert layer.renderer().rootRule().children()[1].label() == "10 - 24  ans"
         assert layer.mapTipTemplate() == '[%"Age"%] ans'
 
     def test_a_categorized_age_map_labels_each_age(self, monkeypatch):
         _speaking(monkeypatch, "pt")
         layer = FakeAgeLayer(FakeCategorizedRenderer(["12 yrs", "30", "NULL"]), "")
         QGISRedStylingUtils.labelAgesWithUnit(layer)
-        assert [category.label() for category in layer.renderer().categories()] == ["12 anos", "30 anos", "NULL"]
+        assert [category.label() for category in layer.renderer().categories()] == ["12  anos", "30  anos", "NULL"]
