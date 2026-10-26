@@ -1246,8 +1246,11 @@ class MenuSection:
 
     def runOfflineManual(self):
         locale = QgsApplication.locale()[0:2]
-        filename = "usermanual_es.pdf" if locale == "es" else "usermanual_en.pdf"
-        pdf = os.path.join(os.path.dirname(os.path.dirname(__file__)), "manuals", filename)
+        language = locale if locale in self._USER_MANUAL_LANGUAGES else "en"
+        manualsDir = os.path.join(os.path.dirname(os.path.dirname(__file__)), "manuals")
+        pdf = os.path.join(manualsDir, f"usermanual_{language}.pdf")
+        if not os.path.exists(pdf):
+            pdf = os.path.join(manualsDir, "usermanual_en.pdf")
         webbrowser.open(pdf)
 
     def runRatePlugin(self):
