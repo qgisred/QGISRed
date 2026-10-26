@@ -584,9 +584,9 @@ class LifecycleSection:
         locale = QgsApplication.locale()[0:2]
         language = locale if locale in ("es", "fr", "pt") else "en"
         # Production version
-        # news_json = "news.json"
+        news_json = "news.json"
         # Development version
-        news_json = "news_dev.json"
+        # news_json = "news_dev.json"
         news_url = "https://qgisred.upv.es/files/news/" + language + "/" + news_json
         _ctx = ssl.create_default_context()
 
