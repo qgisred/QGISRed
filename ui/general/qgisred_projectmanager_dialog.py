@@ -99,21 +99,18 @@ class QGISRedProjectManagerDialog(QDialog, FORM_CLASS):
     def _getUniformedPath(self, path):
         return self.utils.getUniformedPath(path)
 
-    def _collectProjectFiles(self, folder, networkName, qgisProjectBase):
+    def _collectProjectFiles(self, folder, networkName):
         found = []
         for f in os.listdir(folder):
             filepath = os.path.join(folder, f)
             if os.path.isfile(filepath):
-                belongs = f.startswith(networkName + "_")
-                if not belongs and qgisProjectBase is not None and not f.lower().endswith(".inp"):
-                    belongs = os.path.normcase(self._getIO(folder, networkName).stripAllExtensions(filepath)) == os.path.normcase(qgisProjectBase)
-                if belongs:
+                if f.startswith(networkName + "_"):
                     found.append(filepath)
             elif os.path.isdir(filepath):
                 if os.path.basename(filepath).lower() == "layerstyles":
                     found.append(filepath)
                 else:
-                    found.extend(self._collectProjectFiles(filepath, networkName, qgisProjectBase))
+                    found.extend(self._collectProjectFiles(filepath, networkName))
         return found
 
     def _removeEmptyFolders(self, folder):
@@ -127,8 +124,9 @@ class QGISRedProjectManagerDialog(QDialog, FORM_CLASS):
 
     def _removeFilesFromFolder(self, folder, networkName):
         folder = self._getUniformedPath(folder)
-        qgisProjectBase = self._getIO(folder, networkName).getQGisProjectBase(folder, networkName)
-        files = self._collectProjectFiles(folder, networkName, qgisProjectBase)
+        io = self._getIO(folder, networkName)
+        qgisFiles = io.listQGisProjectFiles(io.getQGisProjectBase(folder, networkName))
+        files = list(dict.fromkeys(self._collectProjectFiles(folder, networkName) + qgisFiles))
         failed = moveToRecycleBin(files)
         if failed:
             if len(failed) == len(files):

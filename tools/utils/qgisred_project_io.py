@@ -619,6 +619,27 @@ class QGISRedProjectIO:
                 if self._fs().getUniformedPath(folder) != self._fs().getUniformedPath(targetDir) and not os.listdir(folder):
                     os.rmdir(folder)
 
+    def listQGisProjectFiles(self, qgisBase):
+        """Paths of the .qgz/.qgs and the companions that share its name (.qgd, backups…).
+
+        Wherever the file lives: the QGIS project may sit outside the project folder.
+        """
+        if not qgisBase:
+            return []
+        parentDir = os.path.dirname(qgisBase)
+        baseName = os.path.basename(qgisBase)
+        found = []
+        with suppress(Exception):
+            for f in os.listdir(parentDir):
+                filepath = os.path.join(parentDir, f)
+                if not os.path.isfile(filepath):
+                    continue
+                if os.path.normcase(self.stripAllExtensions(filepath)) != os.path.normcase(qgisBase):
+                    continue
+                if RE_QGIS_PROJECT_COMPANION.match(f[len(baseName):]):
+                    found.append(filepath)
+        return found
+
     def processQGisProjectFiles(self, qgisBase, newName, targetDir, deleteSource=False):
         """Copies/moves QGIS project files (.qgz/.qgs and backups) to targetDir.
         Returns the new relative path of the .qgz/.qgs file."""

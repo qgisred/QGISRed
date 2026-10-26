@@ -337,6 +337,21 @@ class TestProjectIO:
             shutil.rmtree(src_dir)
             shutil.rmtree(dst_dir)
 
+    def test_listQGisProjectFiles_finds_the_project_outside_the_project_folder(self, io_utils):
+        parent = tempfile.mkdtemp()
+        try:
+            qgis_base = os.path.join(parent, "myProj")
+            for ext in (".qgz", ".qgd", ".qgz.bak", ".inp", ".txt"):
+                open(qgis_base + ext, "w").close()
+            open(os.path.join(parent, "otherProj.qgz"), "w").close()
+            names = sorted(os.path.basename(p) for p in io_utils.listQGisProjectFiles(qgis_base))
+            assert names == ["myProj.qgd", "myProj.qgz", "myProj.qgz.bak"]
+        finally:
+            shutil.rmtree(parent)
+
+    def test_listQGisProjectFiles_without_project(self, io_utils):
+        assert io_utils.listQGisProjectFiles(None) == []
+
     def test_processQGisProjectFiles_delete_source(self, io_utils):
         src_dir = tempfile.mkdtemp()
         dst_dir = tempfile.mkdtemp()
