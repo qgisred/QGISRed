@@ -36,6 +36,7 @@ from ..ui.analysis.timeseries_actions import clear_all_timeseries
 _TOOL_LAYER_IDENTIFIER_PREFIXES = (
     "qgisred_connectivity", "qgisred_hydraulicsectors", "qgisred_demandsectors",
     "qgisred_isolatedsegments", "qgisred_tree", "qgisred_demandbuilder",
+    "qgisred_query_pipes_age", "qgisred_query_pipes_installyear",
 )
 
 
@@ -1024,6 +1025,7 @@ class ProjectManagementSection:
             if identifier == "qgisred_query_pipes_age":
                 # The ages follow the language the project is opened in
                 QGISRedStylingUtils.labelAgesWithUnit(layer)
+                layer.legendChanged.emit()
 
         for layer_id, style_name in snapshot["inputs_to_restyle"]:
             layer = project.mapLayer(layer_id)

@@ -129,3 +129,24 @@ class TestPostQgzOpenResolvesTheProject:
             section._post_qgz_open({"inputs_to_restyle": [], "results_no_id": False, "results_with_id": []})
 
         section.defineCurrentProject.assert_not_called()
+
+
+class TestUnknownRuleSavedInAnotherLanguage:
+    def _rule(self, label, filterExpression):
+        rule = MagicMock()
+        rule.label.return_value = label
+        rule.filterExpression.return_value = filterExpression
+        rule.children.return_value = []
+        return rule
+
+    def test_the_else_rule_follows_the_language_whatever_it_was_saved_in(self, shippedLanguages, monkeypatch):
+        monkeypatch.setattr(stylingModule, "allLanguageTexts", lambda context, source: {"Unknown", "Desconocido"})
+        rule = self._rule("Desconocido", "ELSE")
+        _stylingIn({"Unknown": "Inconnu"})._translateRuleLabels(rule)
+        rule.setLabel.assert_called_once_with("Inconnu")
+
+    def test_a_class_called_unknown_that_is_not_the_else_rule_is_left_alone(self, monkeypatch):
+        monkeypatch.setattr(stylingModule, "allLanguageTexts", lambda context, source: {"Unknown"})
+        rule = self._rule("Unknown", '"Age" > 10')
+        _stylingIn({"Unknown": "Inconnu"})._translateRuleLabels(rule)
+        rule.setLabel.assert_not_called()

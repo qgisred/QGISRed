@@ -44,6 +44,7 @@ from .qgisred_source_types import getSourceTypeName, SOURCE_TYPE_LABELS
 
 
 _OTHER_VALUES_SOURCE = "Other Values"
+_UNKNOWN_SOURCE = "Unknown"
 _shippedTranslators = None
 
 
@@ -1524,6 +1525,8 @@ class QGISRedStylingUtils:
         # told apart by the value it filters on, not by its text.
         if "\"SubNet\" = 'ClosedLinks'" in (rule.filterExpression() or ""):
             label = self.tr("Closed Links")
+        elif rule.filterExpression() == "ELSE" and rule.label() in allLanguageTexts("QGISRedStylingUtils", _UNKNOWN_SOURCE):
+            label = self.tr("Unknown")
         else:
             label = self._translateCategoryLabel(rule.label())
         if label != rule.label():

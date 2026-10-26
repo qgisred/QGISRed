@@ -404,6 +404,7 @@ class QGISRedThematicMapsBuilder:
             layer.loadNamedStyle(qmlPath)
             layer.setCustomProperty("styleURI", qmlPath)
             styling.applyStrategyFromLayer(layer)
+            styling.translateRendererLabels(layer)
             layer.triggerRepaint()
         return qmlPath
 
