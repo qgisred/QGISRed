@@ -8,10 +8,10 @@ qgisMinimumVersion=3.28
 qgisMaximumVersion=4.99
 description=Free professional software to build and analyze advanced water distribution network models and Digital Twins.
 version=0.18.1
-author=Fernando Martínez. REDHISP Group (IIAMA- UPV). Developers: WaterPi, Ingeniousware
+author=Fernando Martínez. REDHISP Group (IIAMA- UPV). Developers: Fluit, Ingeniousware, WaterPi
 email=fmartine@hma.upv.es
 
-about=<p>QGISRed is a freeware QGIS plugin developed to assist in building and analyzing hydraulic models of water distribution networks of any complexity, up to the level of detail required by Digital Twins. The plugin works seamlessly with QGIS, which enables the user to georeference all network elements, use geographic background layers, edit graphical and alphanumeric data, use geoprocessing tools, visualize data by layers, customize the symbology, etc.</p><p>QGISRed relies on an easy-to-use relational database of SHP and DBF files based on the EPANET data model, which has been extended to add new capabilities. Starting from the EPANET data model significantly reduces the learning curve.</p><p>In fact, the previous skills required on QGIS are minimal because QGISRed provides numerous tools to help build hydraulic models, to manage demand scenarios and to analyze the results without the need to use the QGIS environment, such as:</p><ul><li>Project manager for easy project loading and storage.</li><li>Automatic creation of new empty projects.</li><li>Import/export EPANET INP files. </li><li>Import basic network components and other auxiliary components managed by the Digital Twin (DT), such as service connections, isolation valves and sensors from Shapefiles.</li><li>Graphical editing tools for all network elements, including those of the DT (add, delete, move, edit vertices and nodes, reverse links, multiple selection, etc.).</li><li>Automatic generation of topological relationships between all the network elements when needed.</li><li>A set of tools to debug the network layout and verify its connectivity and hydraulic viability.</li><li>Default values for newly created elements.</li><li>Property editor for all components of the model and DT, including a browser.</li><li>Complete editor of analysis options and default values.</li><li>Automatic calculation of pipe lengths from the coordinates of the vertices.</li><li>Automatic interpolation of node elevations from DTM.</li><li>Automatic estimation of pipe roughness from the material and age of pipes.</li><li>Conversion of roughness coefficients between different head loss formulas and unit systems.</li><li>Managing multiple demands and quality sources as distinct layers and editing their properties, integrated with those of the nodes.</li><li>Automatic nodal demand allocation from global, sectoral or punctual consumptions.</li><li>Managing scenarios with multiple demands by category.</li><li>Automatic pattern and hydraulic efficiency allocation, either global or by sector.</li><li>Scenario builder for various model parameters by importing/exporting files</li><li>Powerful editors for curves, patterns, controls and rules.</li><li>Validation of any of the model properties against typical data entry errors.</li><li>Management of service connections and isolation valves as differentiated elements.</li><li>Loading demands to service connections from the meter readings, and moving them to the closest nodes.</li><li>Detection of isolated zones when closing the isolation valves and cancelling the demands on them.</li><li>Optional integration of service connections into the model.</li><li>Declaration of the meter sensors as distinct elements and the association of signals to them.</li><li>Reading field data for the simulation period from files and exporting to EPANET.</li><li>Automatic identification of hydraulic sectors and demand zones.</li><li>Identification of the isolated segments in the event of a fault at any point in the network and detection of the isolated demands.</li><li>Creation of thematic maps for most properties of the different network elements.</li><li>Model simulation by using the EPANET toolkit 2.3.</li><li>Visualization of simulation results by means of tables, colour-coded layers, arrows and floating or static labels.</li><li>Use of a navigation bar to view how results change over time, and check them with the status report.</li><li>View the statistical parameters for the entire simulation period for the variables associated with each element.</li><li>Automatic creation of legends and symbols for viewing data and results, which can be edited using a proper Legend Editor.</li><li>Location of any element in the network using its ID, and identify the adjacent elements.</li><li>Explore the properties of any element—whether data or results—from a permanent window.</li><li>Run queries based on one or more criteria to check against the data, the results, or both.</li><li>Show time series curves for one or more results on the same graph, whether or not they are of the same magnitude.</li></ul><p>Nevertheless, if the user decides to use the QGIS tools to edit the data, QGISRed provides powerful facilities to detect potential editing errors before simulating the model or to fill in the missing information.</p><p>QGISRed is currently available in English and Spanish, and automatically adapts to the language selected for the QGIS interface.</p><p>The development of the new QGISRed plugin is an initiative of the <b><a href="https://iiama.webs.upv.es/en/research/research-groups/hydraulic-networks-and-pressurised-systems/">REDHISP</a> Research Group</b> of the Institute of Water and Environmental Engineering (<b><a href="https://iiama.webs.upv.es/en/home/">IIAMA</a></b>) of the <b>Polytechnic University of Valencia</b>, <b><a href="http://www.upv.es/index-en.html">UPV</a></b> (Spain), led by <b>Professor <a href="https://www.researchgate.net/profile/Fernando_Martinez_Alzamora">Fernando Martínez Alzamora</a></b>. Its implementation was carried out up to 2022 by the <b><a href="https://waterpi.com/">WaterPi</a> company</b> under the direction of <b><a href="https://www.researchgate.net/profile/Nestor_Lerma">Néstor Lerma</a></b>, <b>PhD Eng</b>. Subsequently, <b><a href="https://ingeniousware.com/">Ingeniousware</a> GmbH</b> has collaborated in the development. <b>QGISRed versions after 0.17 are being funded by the <a href="https://www.iadb.org/en">Inter-American Development Bank</a> (IDB)</b> through contract C-RG-T4041-P001.</p><p>The QGISRed extension for QGIS is an update of the old GISRed application developed by our group for the ArcView 3.1 environment (<b><a href="https://www.researchgate.net/publication/336170857_Upgrade_of_the_GISRed_application_for_the_free_analysis_of_WDN_under_GIS_environment">see launching paper</a></b>). Currently, the name GISRed has been kept in relation to the libraries developed in .net, which are used by QGISRed to improve the processing time and constitute the core of the GISRed standalone application.</p><p>For more information, the user can check the official website of <b><a href="https://qgisred.upv.es/en">QGISRed</a></b> or the<b><a href="https://plugins.qgis.org/plugins/QGISRed/"> section of QGISRed</a></b> in the official QGIS plugin repository. Also a <b><a href="https://qgisred.gitbook.io/usermanual">User’s Manual</a></b> in English is available.</p><p><b>Requirements</b>: <b>QGIS 3.28 or higher</b> - <b>.Net Framework 4.8</b> - <b>Windows OS</b>.</p>
+about=<p>QGISRed is a freeware QGIS plugin developed to assist in building and analyzing hydraulic models of water distribution networks of any complexity, up to the level of detail required by Digital Twins. The plugin works seamlessly with QGIS, which enables the user to georeference all network elements, use geographic background layers, edit graphical and alphanumeric data, use geoprocessing tools, visualize data by layers, customize the symbology, etc.</p><p>QGISRed relies on an easy-to-use relational database of SHP and DBF files based on the EPANET data model, which has been extended to add new capabilities. Starting from the EPANET data model significantly reduces the learning curve.</p><p>In fact, the previous skills required on QGIS are minimal because QGISRed provides numerous tools to help build hydraulic models, to manage demand scenarios and to analyze the results without the need to use the QGIS environment, such as:</p><ul><li>Project manager for easy project loading and storage.</li><li>Automatic creation of new empty projects.</li><li>Import/export EPANET INP files. </li><li>Import basic network components and other auxiliary components managed by the Digital Twin (DT), such as service connections, isolation valves and sensors from Shapefiles.</li><li>Graphical editing tools for all network elements, including those of the DT (add, delete, move, edit vertices and nodes, reverse links, multiple selection, etc.).</li><li>Automatic generation of topological relationships between all the network elements when needed.</li><li>A set of tools to debug the network layout and verify its connectivity and hydraulic viability.</li><li>Default values for newly created elements.</li><li>Property editor for all components of the model and DT, including a browser.</li><li>Complete editor of analysis options and default values.</li><li>Automatic calculation of pipe lengths from the coordinates of the vertices.</li><li>Automatic interpolation of node elevations from DTM.</li><li>Automatic estimation of pipe roughness from the material and age of pipes.</li><li>Conversion of roughness coefficients between different head loss formulas and unit systems.</li><li>Managing multiple demands and quality sources as distinct layers and editing their properties, integrated with those of the nodes.</li><li>Automatic nodal demand allocation from global, sectoral or punctual consumptions.</li><li>Managing scenarios with multiple demands by category.</li><li>Automatic pattern and hydraulic efficiency allocation, either global or by sector.</li><li>Scenario builder for various model parameters by importing/exporting files</li><li>Powerful editors for curves, patterns, controls and rules.</li><li>Validation of any of the model properties against typical data entry errors.</li><li>Management of service connections and isolation valves as differentiated elements.</li><li>Loading demands to service connections from the meter readings, and moving them to the closest nodes.</li><li>Detection of isolated zones when closing the isolation valves and cancelling the demands on them.</li><li>Optional integration of service connections into the model.</li><li>Declaration of the meter sensors as distinct elements and the association of signals to them.</li><li>Reading field data for the simulation period from files and exporting to EPANET.</li><li>Automatic identification of hydraulic sectors and demand zones.</li><li>Identification of the isolated segments in the event of a fault at any point in the network and detection of the isolated demands.</li><li>Creation of thematic maps for most properties of the different network elements.</li><li>Model simulation by using the EPANET toolkit 2.3.</li><li>Visualization of simulation results by means of tables, colour-coded layers, arrows and floating or static labels.</li><li>Use of a navigation bar to view how results change over time, and check them with the status report.</li><li>View the statistical parameters for the entire simulation period for the variables associated with each element.</li><li>Automatic creation of legends and symbols for viewing data and results, which can be edited using a proper Legend Editor.</li><li>Location of any element in the network using its ID, and identify the adjacent elements.</li><li>Explore the properties of any element—whether data or results—from a permanent window.</li><li>Run queries based on one or more criteria to check against the data, the results, or both.</li><li>Show time series curves for one or more results on the same graph, whether or not they are of the same magnitude.</li></ul><p>Nevertheless, if the user decides to use the QGIS tools to edit the data, QGISRed provides powerful facilities to detect potential editing errors before simulating the model or to fill in the missing information.</p><p>QGISRed is currently available in English and Spanish, and automatically adapts to the language selected for the QGIS interface.</p><p>The development of the new QGISRed plugin is an initiative of the <b><a href="https://iiama.webs.upv.es/en/research/research-groups/hydraulic-networks-and-pressurised-systems/">REDHISP</a> Research Group</b> of the Institute of Water and Environmental Engineering (<b><a href="https://iiama.webs.upv.es/en/home/">IIAMA</a></b>) of the <b>Polytechnic University of Valencia</b>, <b><a href="http://www.upv.es/index-en.html">UPV</a></b> (Spain), led by <b>Professor <a href="https://www.researchgate.net/profile/Fernando_Martinez_Alzamora">Fernando Martínez Alzamora</a></b>. Its implementation was led up to 2022 by <b><a href="https://www.researchgate.net/profile/Nestor_Lerma">Néstor Lerma</a></b> at <b><a href="https://waterpi.com/">WaterPi</a></b>, and from version 0.19 onwards he has resumed it as part of the company <b>Fluit</b>. Subsequently, <b><a href="https://ingeniousware.com/">Ingeniousware</a> GmbH</b> has collaborated in the development. <b>QGISRed versions after 0.17 are being funded by the <a href="https://www.iadb.org/en">Inter-American Development Bank</a> (IDB)</b> through contract C-RG-T4041-P001.</p><p>The QGISRed extension for QGIS is an update of the old GISRed application developed by our group for the ArcView 3.1 environment (<b><a href="https://www.researchgate.net/publication/336170857_Upgrade_of_the_GISRed_application_for_the_free_analysis_of_WDN_under_GIS_environment">see launching paper</a></b>). Currently, the name GISRed has been kept in relation to the libraries developed in .net, which are used by QGISRed to improve the processing time and constitute the core of the GISRed standalone application.</p><p>For more information, the user can check the official website of <b><a href="https://qgisred.upv.es/en">QGISRed</a></b> or the<b><a href="https://plugins.qgis.org/plugins/QGISRed/"> section of QGISRed</a></b> in the official QGIS plugin repository. Also a <b><a href="https://qgisred.upv.es/manuals/0.19/en">User’s Manual</a></b> in English is available (also in Spanish, French and Portuguese).</p><p><b>Requirements</b>: <b>QGIS 3.28 or higher</b> - <b>.Net Framework 4.8</b> - <b>Windows OS</b>.</p>
 
 tracker=https://github.com/qgisred/QGISRed/issues
 repository=https://github.com/qgisred/QGISRed
@@ -23,49 +23,131 @@ homepage=https://qgisred.upv.es/
 
 hasProcessingProvider=no
 # Uncomment the following line and add your changelog:
-changelog=version 0.18:
-      * Improvements to the Project Manager. New buttons for moving and exporting projects, and new options for renaming projects.
-      * Identification of all layers managed by QGISRed using a unique ID, rather than by name, enabling work in multiple languages.
-      * Revision of the map symbols, labels and warnings associated with all layers managed by QGISRed.
-      * Storage of the style of all layers managed by QGISRed in .qml files at three levels: default, user level and project level.
-      * Embedding symbols in .qml style files to avoid path dependencies.
-      * Review of all the network layout’s graphic editing tools to ensure smoother and more robust operation. 
-      * Optional specification of a background grid for creating geometric pipe layouts.
-      * When creating a new pipe, if one end of it overlaps the layout of an existing pipe, it automatically splits to create a T-junction.
-      * The symbol for multiple demands has been replaced by a double circle.
-      * Every editing or other tool that interacts with the map now has its own icon associated with the mouse cursor, making it easier to identify the selected tool.
-      * Greater integration of the Element Properties Editor, maintaining layer properties and refreshing data in all affected windows, including the attribute table.
-      * Storage in a dedicated table of all measurements handled by QGISRed, specifying the units and decimal places to be displayed in the various unit systems and according to specific cases.
-      * Creation of a dedicated Legend Editor to customise ranges or classes, colours and sizes of all legends handled by QGISRed, with wizards to customise legends automatically.
-      * Reorganisation of the layers in the ‘Queries’ group and the storage of the corresponding SHP files in the project folders.
-      * Addition of a new menu and toolbar to house all options related to querying data and results.
-      * New tool to locate any element on the map using its ID, and identify its connected elements with the option to navigate through them.
-      * New panel for viewing the data and results of any selected network element. Synchronisation of results with the current simulation time.
-      * New dialogue box for creating thematic maps of certain properties associated with the different types of elements managed by QGISRed.
-      * New panel for locating elements on the map that meet certain criteria in relation to the data or results. Synchronisation with the results for the current simulation time.
-      * Improving the format in which the INP file is exported from QGISRed, similar to that exported from the EPANET Toolkit.
-      * Replacement of the EPANET 2.2 calculation engine with the new version 2.3, up to the latest revision 2.3.5.
-      * Addition of the Status Report to the results panel in a new tab, always accessible.
-      * Reading simulation results directly from EPANET binary files for faster and more efficient navigation.
-      * Export of all simulation results to a structured CSV file.
-      * New option to display various statistics on the results throughout the entire simulation period.
-      * New window to display the time-series curve for any parameter of an element throughout the simulation period. Option to overlay multiple curves for the same or different parameters.
-      * Revision of the allocating algorithm for punctual demands in the Demand Builder, and automatic loading of both the link layer and a new layer for the demand points.
-      * Revision of the tool for identifying hydraulic sectors and detecting isolated consumption points.
-      * Revision of the algorithm for identifying isolated segments and the detection of isolated consumption points.
-      * New Digital Twin options at the project level to transfer demands from the service connections to nodes. Classification of demands by patterns.
-      * Rewriting the plugin code to avoid large files  and to improve traceability, maintainability and scalability. 
-      * Compatibility of QGISRed version 0.18 with the new versions of QGIS 4.0.
-      * Translation of all QGISRed dialogues, panels, messages, and layer names into Spanish.
-      * Redesign of all icons managed by QGISRed with a more uniform and appealing appearance.
-      * Web hosting of the provisional QGISRed manual in English and Spanish for online consultation via the collaborative platform GitBook.
-      * Acknowledgement to the Inter-American Development Bank (IDB) for its financial support for all the improvements made in this version 0.18.
-      * New notification system to alert users when new versions, courses, updates to the manual, etc. are available.
-      * Fixed an issue when loading field data related to the decimal separator.
-      * Fixed a bug preventing the cancellation of demand for isolated zones.
-      * Limited the size of the ‘Description’ field when used to provide information on service connection demands loaded on each node.
-      * Fixed an issue when the end of the Epanet report did not appear in certain cases. 
-      * Fixed error caused when layers were open in different applications (e.g. two QGIS windows). 
+changelog=version 0.19:
+      User Interface:
+      * Grouping of informative options such as News, Incidents, Manual, Rating, Subscriptions and About... in a new Info entry in the main menu.
+      * Relocation of the Queries menu behind the Tools menu, in the main menu bar.
+      * Incorporation of a brand and a prefix in the title of all QGISRed panels to differentiate them from others.
+      * Incorporation of a warning icon in those layers that may become outdated when changes are made to the data.
+      Project Manager:
+      * Now you can independently change the name of the QGISRed project and the name of the file that houses the map information (qgz).
+      * When moving a project, you can move the data and the map file (qgz) together, or independently to different folders.
+      * The option to make a backup of the project has been removed, and has been replaced by the option to Export the project, with more alternatives.
+      * When exporting a project, you can choose the QGISRed layer groups and the layers outside the project (cartographies, MDT, etc.) to copy, among those present in the layers panel. All of this is saved in a single .zip file.
+      * To export the map qgz file, it must be in the same project folder or at a higher level. The cartographic information should be in folders parallel to the project folder.
+      * When importing a QGISRed project, all previously exported information is restored to a new folder, maintaining the structure of all files.
+      Import of shapes:
+      * Possibility of selecting the candidate pipes to connect the connections that start from the imported consumption points.
+      Material tables:
+      * Declaration of a different default material table for each of the four supported languages.
+      * New options in the materials table editing dialog, to copy, load and edit new tables at a global level, before creating a project or from within it.
+      * New options to choose the desired material table when creating a new project or importing shape files for the first time.
+      Layer management:
+      * Creation of a new group of layers called AuxiliaryLayers to host complementary themes to the basic themes.
+      * Creation of a subgroup within the group of Auxiliary Layers, called Demand Builder, to host its own topics: sectors, specific demands and links.
+      * Adding a new tab to the Layer Manager to create, delete, load or download auxiliary layers linked to the Demand Builder.
+      Graphic edition:
+      * Wand tapping on a pump, valve, or pipe now toggles only between open and closed states.
+      * To toggle between the active or closed state of a valve, or declare a CV on a pipe, hold the Ctrl key when wand-clicking.
+      * When inserting a pump or valve in a section smaller than the separation established between the extreme nodes, they are maintained and no longer move.
+      * When moving a node no layer is left open, avoiding conflicts with other editing tools.
+      * Revised the vertex editing tool to make it more user-friendly.
+      * When splitting a pipe at an intermediate point, the Id is split by adding a numerical suffix. The original Id can be recovered if the sections are merged in the opposite direction to which the intermediate nodes were created.
+      * When two pipes in series cannot be joined by eliminating the intermediate node, the cause is reported.
+      * Revised the tool for merging or separating nodes, allowing greater separation between them.
+      * Creating a T connection now extends the last section of the branch until it intersects with the main pipe.
+      * Revised the undo T and crosses tools, removing some restrictions and standardizing mouse actions.
+      Group property editing:
+      * New Edit menu option to edit the properties of group elements.
+      * Graphical preselection of the elements to modify with multiple selection tools.
+      * Application of filters to restrict the elements to modify, depending on the type of property.
+      * Option to display the elements that are going to be modified on the map.
+      * Multiple options to modify the chosen property, differentiating whether the property is numerical, text or enumerated.
+      * Preview in the attribute table of the changes made before consolidating them.
+      Thematic maps:
+      * Incorporation of new thematic maps linked to pipes: Year of installation, age, and roughness coefficient according to loss formula.
+      * New thematic maps linked to junctions: Elevations and Total Base Demand graduated by size.
+      * When creating the material map, each material is now assigned its own color based on its abbreviation and language, which is editable.
+      * When a thematic map becomes outdated due to a change in units or loss formula, a warning icon is displayed and can be updated by clicking on it.
+      Legend Editor:
+      * Improvements to wizards to automatically create ranges, sizes and colors to set the legend for all layers.
+      * Possibility of modifying some style parameters of the basic themes of the Data group.
+      * Incorporation to the QGISRed Legends Editor of the layers created by Queries (thematic maps, hydraulic sectors, trees, etc.).
+      * Added Results layers to the Legend Editor to customize its style.
+      * Option to save legends at the project level, or at the user level to apply them to new projects.
+      * Option to store wizards with which to adapt the legend to the data, instead of saving a preconfigured legend.
+      * Creation of a QGISRed library of symbols, ramps and color palettes, accessible from the Legend Editor and editable from QGIS.
+      Demand Builder:
+      * Option to consolidate the imported parameters related to the assignment of demands by sectors in a QGISRed theme.
+      * Option to distribute global demand or by sectors based on the diameters that converge at the candidate nodes.
+      * Option to declare consumption by linear sections or by polygons, as an alternative to specific consumption.
+      * Option to consolidate imported specific consumption in a QGISRed theme.
+      * Option to manage specific consumption topics and add several demands to the same topic.
+      * Recognition of various units when declaring the consumption to be imported.
+      * Option to assign specific demands to the ends of the nearest pipe instead of directly searching for the nearest nodes.
+      * Option to consider or not the ends of pumps and valves as possible demand nodes.
+      * Option to distribute specific demands based on the diameters of the pipes that converge at the nodes, or in combination with their distance from the consumption points.
+      * Notification of loaded nodes that are more than a given distance from consumption points.
+      * Possibility of editing and reusing links between consumption points and demand nodes.
+      * Assignment of demands to nodes based on connections declared as elements of the Digital Twin.
+      * Differentiation of base demands by categories, both in specific consumption and by connections, creating multiple demands at the nodes.
+      * Option to load demands only from the selected sectors, consumption points or connections.
+      * Option to use your own theme to assign efficiencies and patterns by sector, import their values and edit them.
+      * Option to apply hydraulic efficiencies and assign demand patterns by categories.
+      * Option to readjust efficiencies and patterns declared at one level using those imposed at a higher level (categories -> sectors -> global).
+      Statistics panel:
+      * New option in the Queries menu to perform all types of statistics with the model data and results.
+      * Evaluation of the statistics of a magnitude, classified by ranges or classes of said magnitude or another magnitude of the same type of element.
+      * Ability to use a second classification magnitude to create double entry tables.
+      * Possibility of applying filters on the starting data and viewing the elements affected by the query on the map.
+      * Display of statistics in histograms or through an exportable table of values.
+      * Export of the query configuration and its subsequent import.
+      Topology queries:
+      * Revised the Connectivity, Hydraulic Sectors and Tree Graphs tools: new names, relocation of layers, style changes, etc.
+      * New topic to highlight isolated demands in the hydraulic sectors.
+      * Possibility of creating and managing the existence of several themes for Tree Graphs (now called Minimum Cost Trees).
+      Simulation:
+      * New progress dialog to show the progress of hydraulic and quality calculations.
+      * The progress dialog can be paused to carefully observe the progress of the calculations.
+      * The progress dialog can be omitted for greater speed in calculations, except for networks with long processing times.
+      Results panel:
+      * Option to show all calculation moments in the results map and other panels in which time intervenes.
+      * Option to show the moment of the simulation in various formats: time elapsed since the beginning (in accumulated hours or grouped by days) or calendar time (in 24 hour or am/pm format).
+      * New button bar to perform animations at controlled speed or step by step.
+      * The variables chosen to display the results of nodes and lines are now highlighted and have their own color assigned.
+      * New tab with several options to improve the visualization of the results on the map, the symbology and the background color.
+      * New option to show in a histogram the distribution of the current variable of nodes or lines and their accumulated values, at the current moment.
+      * New option to show a simplified evolution curve of the current variable of nodes or lines, for the chosen element on the map.
+      * When rescuing the Results Panel, the options from the last action are preserved, instead of applying the default options.
+      * When the scenario data is changed, the result layers display a warning icon, which can be updated by clicking on it.
+      Evolution graphs:
+      * New buttons to navigate the evolution curves graph.
+      * New button with multiple options to customize the appearance of all the components of the graph.
+      * Adaptation of the time scale according to the options chosen in the Results Panel.
+      * Possibility of showing all time moments or only scheduled moments, as chosen in the Results Panel.
+      * Optional synchronization of the cursor with the current moment of the Results Panel.
+      * Incorporation of the evolution of the volume of a tank or the overflow flow, as new variables.
+      * Option to represent the evolution curves of some global variables for the entire system.
+      * New button to display in a table the numerical values of the passing points of the evolution curves and export their values to a CSV file.
+      * New button to export graphs as images.
+      * Option to save and recall evolution chart settings including template creation.
+      * Ability to create and keep open several evolution curve windows at the same time.
+      Languages:
+      * All QGISRed menu options, dialogs and messages are now also displayed in French and Brazilian Portuguese, when this language is chosen for the QGIS interface. Currently they are already shown in English and Spanish.
+      Other changes:
+      * All security controls verified and incidents related to code quality, reported by the QGIS Security Scan system, corrected.
+      * Checked version 0.19 code for compatibility with Qt6 and QGIS 4.xx.
+      * End of support for QGISRed libraries on 32-bit (x86) systems. From now on QGISRed will only work on 64-bit systems.
+      * Removed the minimize and maximize buttons in all dialogs built into the libraries.
+      * Revised the names of some fields in shape files, dbf tables and CSV files, for uniformity. All identifier fields now end with ID.
+      * Revised the property names displayed in all QGISRed dialogs, depending on the language, for uniformity.
+      * Revised the decimals shown in the topic attribute tables, depending on the units used.
+      Bug fixes:
+      * Review of possible situations when loading GISRed libraries to avoid repeated attempts.
+      * Review of the export format of INP files to avoid overlaps that caused reading errors.
+      * Corrected a bug that prevented creating new behavior curves.
+      * Checking that the identifiers of the elements, curves and patterns do not contain any blank space.
+      * Corrected an error that prevented consolidating the civil start time of the simulation.
 
 
 # Tags are comma separated with spaces allowed
