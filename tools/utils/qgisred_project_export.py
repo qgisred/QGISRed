@@ -608,6 +608,9 @@ class QGISRedProjectPackage:
         The network's own files (`<NetworkName>_*`) always travel; anything else (an .inp, notes,
         a shapefile of someone else) cannot be assumed to belong to it, so each one is offered to
         the user like the external layers of the .qgz. A shapefile counts as a single entry.
+
+        When the folder also holds another QGISRed project (a `<Other>_Pipes.shp`), its files are
+        gathered under a subgroup named after it, whichever subfolder they are in.
         """
         ownPrefix = self.NetworkName + "_"
         covered = set()
@@ -634,6 +637,12 @@ class QGISRedProjectPackage:
                         continue
                 candidates[key] = path
 
+        networks = sorted(
+            {os.path.basename(path)[:-len("_Pipes.shp")] for path in candidates.values()
+             if os.path.basename(path).lower().endswith("_pipes.shp")} - {""},
+            key=len, reverse=True,
+        )
+
         items = []
         consumed = set()
         for key, path in sorted(candidates.items()):
@@ -641,13 +650,13 @@ class QGISRedProjectPackage:
                 continue
             sidecars = [s for s in self._findSidecars(path) if norm(s) in candidates]
             consumed.update(norm(s) for s in sidecars)
-            items.append(self._extraItem(path, sidecars))
+            items.append(self._extraItem(path, sidecars, networks))
         for key, path in sorted(candidates.items()):
             if key not in consumed and not path.lower().endswith(".shp"):
-                items.append(self._extraItem(path, []))
+                items.append(self._extraItem(path, [], networks))
         return items
 
-    def _extraItem(self, path, sidecars):
+    def _extraItem(self, path, sidecars, networks):
         sizeBytes = 0
         for candidate in [path] + sidecars:
             with suppress(OSError):
@@ -657,7 +666,10 @@ class QGISRedProjectPackage:
             source=os.path.realpath(path), kind="file", scope=SCOPE_PROJECT,
             sizeBytes=sizeBytes, sidecars=sidecars,
         )
-        item.placements.append(((EXTRA_FILES_GROUP,), relative))
+        name = os.path.basename(path)
+        owner = next((net for net in networks if name.startswith(net + "_")), None)
+        groupPath = (EXTRA_FILES_GROUP, owner) if owner else (EXTRA_FILES_GROUP,)
+        item.placements.append((groupPath, relative))
         return item
 
     """Planning"""

@@ -546,6 +546,25 @@ class TestProjectExtraFiles:
         assert list(extras) == ["zones.shp"]
         assert len(extras["zones.shp"].sidecars) == 3
 
+    def test_the_files_of_another_project_go_in_a_subgroup_by_name(self, workspace):
+        projectDir, _ = _makeProject(workspace, qgzAt="parent")
+        _touch(os.path.join(projectDir, "Other_Pipes.shp"))
+        _touch(os.path.join(projectDir, "Other_Pipes.dbf"))
+        _touch(os.path.join(projectDir, "Results", "Other_Results.txt"))
+        _touch(os.path.join(projectDir, "Other2_Pipes.shp"))
+        _touch(os.path.join(projectDir, "Other_2_Pipes.shp"))
+        _touch(os.path.join(projectDir, "model.inp"))
+        _touch(os.path.join(projectDir, "Loose_file.txt"))
+        plan = QGISRedProjectPackage(projectDir, NET).inspectForExport()
+        groups = {item.placements[0][1]: item.placements[0][0] for item in plan.externalItems}
+
+        assert groups["Other_Pipes.shp"] == (EXTRA_FILES_GROUP, "Other")
+        assert groups["Results/Other_Results.txt"] == (EXTRA_FILES_GROUP, "Other")
+        assert groups["Other2_Pipes.shp"] == (EXTRA_FILES_GROUP, "Other2")
+        assert groups["Other_2_Pipes.shp"] == (EXTRA_FILES_GROUP, "Other_2")
+        assert groups["model.inp"] == (EXTRA_FILES_GROUP,)
+        assert groups["Loose_file.txt"] == (EXTRA_FILES_GROUP,)
+
     def test_a_file_the_qgz_already_lists_is_not_duplicated(self, workspace):
         projectDir, _ = _makeProject(
             workspace, qgzAt="parent", datasources=[("./" + NET + "/data/zones.shp", "Zones")])
