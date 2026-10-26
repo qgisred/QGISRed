@@ -2160,22 +2160,22 @@
     <message>
         <location filename="../tools/qgisred_translatable_strings.py" line="323"/>
         <source>DemBuild_Links</source>
-        <translation>DemBuild_Liens</translation>
+        <translation>ConstDem_Liens</translation>
     </message>
     <message>
         <location filename="../tools/qgisred_translatable_strings.py" line="324"/>
         <source>DemBuild_Consumptions</source>
-        <translation>DemBuild_Consommations</translation>
+        <translation>ConstDem_Consommations</translation>
     </message>
     <message>
         <location filename="../tools/qgisred_translatable_strings.py" line="325"/>
         <source>DemBuild_Isolated Demands Connections</source>
-        <translation type="unfinished">DemBuild_Connexions de Demandes Isolées</translation>
+        <translation type="unfinished">ConstDem_Connexions de Demandes Isolées</translation>
     </message>
     <message>
         <location filename="../tools/qgisred_translatable_strings.py" line="326"/>
         <source>DemBuild_Sectors</source>
-        <translation type="unfinished">DemBuild_Secteurs</translation>
+        <translation type="unfinished">ConstDem_Secteurs</translation>
     </message>
     <message>
         <location filename="../tools/qgisred_translatable_strings.py" line="317"/>

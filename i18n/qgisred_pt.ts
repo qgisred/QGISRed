@@ -2190,17 +2190,17 @@
     <message>
         <location filename="../tools/qgisred_translatable_strings.py" line="323"/>
         <source>DemBuild_Links</source>
-        <translation>DemBuild_Trechos</translation>
+        <translation>ConstCons_Trechos</translation>
     </message>
     <message>
         <location filename="../tools/qgisred_translatable_strings.py" line="324"/>
         <source>DemBuild_Consumptions</source>
-        <translation>DemBuild_Consumos</translation>
+        <translation>ConstCons_Consumos</translation>
     </message>
     <message>
         <location filename="../tools/qgisred_translatable_strings.py" line="325"/>
         <source>DemBuild_Isolated Demands Connections</source>
-        <translation>DemBuild_Conexões de Consumos Isolados</translation>
+        <translation>ConstCons_Conexões de Consumos Isolados</translation>
     </message>
     <message>
         <location filename="../tools/qgisred_translatable_strings.py" line="222"/>
@@ -2210,7 +2210,7 @@
     <message>
         <location filename="../tools/qgisred_translatable_strings.py" line="326"/>
         <source>DemBuild_Sectors</source>
-        <translation type="unfinished">DemBuild_Setores</translation>
+        <translation type="unfinished">ConstCons_Setores</translation>
     </message>
     <message>
         <location filename="../tools/qgisred_translatable_strings.py" line="317"/>
