@@ -4468,6 +4468,11 @@ Continuar?</translation>
         <source>None of the complementary layers can be exported from their current location.</source>
         <translation>Nenhuma das camadas complementares pode ser exportada a partir da sua localização atual.</translation>
     </message>
+    <message>
+        <location filename="../ui/general/qgisred_exportproject_dialog.py" line="193"/>
+        <source>Other project files</source>
+        <translation>Outros arquivos do projeto</translation>
+    </message>
 </context>
 <context>
     <name>QGISRedFieldUtils</name>

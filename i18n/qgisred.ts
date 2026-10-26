@@ -4182,6 +4182,11 @@ Continue?</source>
         <source>None of the complementary layers can be exported from their current location.</source>
         <translation type="unfinished"></translation>
     </message>
+    <message>
+        <location filename="../ui/general/qgisred_exportproject_dialog.py" line="193"/>
+        <source>Other project files</source>
+        <translation type="unfinished"></translation>
+    </message>
 </context>
 <context>
     <name>QGISRedGroupEditDialog</name>

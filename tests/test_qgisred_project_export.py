@@ -18,7 +18,7 @@ from QGISRed.tools.utils.qgisred_project_export import (
     SCOPE_PROJECT, SCOPE_SIBLING, SCOPE_OUTSIDE,
     REASON_QGZ_OUTSIDE, REASON_EXTERNAL_OUTSIDE, REASON_EXTERNAL_EXCLUDED,
     REASON_NO_PIPES_IN_ZIP, REASON_SCHEMA_TOO_NEW, REASON_UNSAFE_MEMBER,
-    MANIFEST_NAME, SCHEMA_VERSION,
+    MANIFEST_NAME, SCHEMA_VERSION, EXTRA_FILES_GROUP,
 )
 
 NET = "Net"
@@ -509,6 +509,66 @@ class TestContentGroups:
         # Net_Pipes.shp + Net_Pipes.dbf + Net_Junctions.shp + Net_Metadata.txt
         assert plan.baseFileCount == 4
         assert plan.baseSizeBytes > 0
+
+
+class TestProjectExtraFiles:
+    def _extras(self, projectDir):
+        plan = QGISRedProjectPackage(projectDir, NET).inspectForExport()
+        return plan, {item.placements[0][1]: item for item in plan.externalItems
+                      if item.placements and item.placements[0][0] == (EXTRA_FILES_GROUP,)}
+
+    def test_files_without_the_network_name_are_offered(self, workspace):
+        projectDir, _ = _makeProject(workspace, qgzAt="parent")
+        _touch(os.path.join(projectDir, "model.inp"))
+        _touch(os.path.join(projectDir, "docs", "notes.txt"))
+        _, extras = self._extras(projectDir)
+        assert set(extras) == {"model.inp", "docs/notes.txt"}
+        assert all(item.selected for item in extras.values())
+
+    def test_the_network_files_and_the_qgz_companions_are_not_offered(self, workspace):
+        projectDir, _ = _makeProject(workspace, qgzAt="project", groups=["Results"])
+        _touch(os.path.join(projectDir, NET + ".qgd"))
+        _touch(os.path.join(projectDir, "backups", "old.zip"))
+        _, extras = self._extras(projectDir)
+        assert extras == {}
+
+    def test_a_inp_named_like_the_qgz_is_offered(self, workspace):
+        projectDir, _ = _makeProject(workspace, qgzAt="project")
+        _touch(os.path.join(projectDir, NET + ".inp"))
+        _, extras = self._extras(projectDir)
+        assert list(extras) == [NET + ".inp"]
+
+    def test_a_foreign_shapefile_is_a_single_entry(self, workspace):
+        projectDir, _ = _makeProject(workspace, qgzAt="parent")
+        for ext in (".shp", ".shx", ".dbf", ".prj"):
+            _touch(os.path.join(projectDir, "zones" + ext))
+        _, extras = self._extras(projectDir)
+        assert list(extras) == ["zones.shp"]
+        assert len(extras["zones.shp"].sidecars) == 3
+
+    def test_a_file_the_qgz_already_lists_is_not_duplicated(self, workspace):
+        projectDir, _ = _makeProject(
+            workspace, qgzAt="parent", datasources=[("./" + NET + "/data/zones.shp", "Zones")])
+        _touch(os.path.join(projectDir, "data", "zones.shp"))
+        _touch(os.path.join(projectDir, "data", "zones.dbf"))
+        plan, extras = self._extras(projectDir)
+        assert extras == {}
+        assert len(plan.externalItems) == 1
+
+    def test_extras_travel_when_ticked_and_stay_when_not(self, workspace):
+        projectDir, _ = _makeProject(workspace, qgzAt="parent")
+        _touch(os.path.join(projectDir, "model.inp"))
+        package = QGISRedProjectPackage(projectDir, NET)
+
+        def exported(**kwargs):
+            zipPath = os.path.join(workspace, "out", "export.zip")
+            ok, reason, _ = package.exportToZip(zipPath, **kwargs)
+            assert ok, reason
+            with ZipFile(zipPath, "r") as z:
+                return z.namelist()
+
+        assert NET + "/model.inp" in exported()
+        assert NET + "/model.inp" not in exported(externalSources=set())
 
 
 class TestExportToZip:

@@ -10,7 +10,7 @@ from qgis.PyQt import uic
 from ...tools.utils.qgisred_ui_utils import QGISRedBanner, QGISRedUIUtils
 from ...tools.utils.qgisred_filesystem_utils import QGISRedFileSystemUtils
 from ...tools.utils.qgisred_project_export import (
-    QGISRedProjectPackage, STRUCTURE_PARENT, SCOPE_OUTSIDE, SCOPE_REMOTE,
+    QGISRedProjectPackage, STRUCTURE_PARENT, SCOPE_OUTSIDE, SCOPE_REMOTE, EXTRA_FILES_GROUP,
 )
 
 FORM_CLASS, _ = uic.loadUiType(os.path.join(os.path.dirname(__file__), "qgisred_exportproject_dialog.ui"))
@@ -190,7 +190,7 @@ class QGISRedExportProjectDialog(QDialog, FORM_CLASS):
             node = self._groupNodes.get(path)
             if node is None:
                 node = QTreeWidgetItem(parent)
-                node.setText(0, name)
+                node.setText(0, self.tr("Other project files") if name == EXTRA_FILES_GROUP else name)
                 node.setFlags(Qt.ItemFlag.ItemIsSelectable | Qt.ItemFlag.ItemIsEnabled
                               | Qt.ItemFlag.ItemIsUserCheckable)
                 node.setCheckState(0, Qt.CheckState.Checked)

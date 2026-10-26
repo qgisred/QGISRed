@@ -4443,6 +4443,11 @@ La información de sectores existente podría ser reemplazada.
         <source>None of the complementary layers can be exported from their current location.</source>
         <translation>Ninguna de las capas complementarias se puede exportar desde su ubicación actual.</translation>
     </message>
+    <message>
+        <location filename="../ui/general/qgisred_exportproject_dialog.py" line="193"/>
+        <source>Other project files</source>
+        <translation>Otros archivos del proyecto</translation>
+    </message>
 </context>
 <context>
     <name>QGISRedGroupEditDialog</name>

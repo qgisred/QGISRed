@@ -48,7 +48,7 @@ from .qgisred_filesystem_utils import (
 from .qgisred_project_io import (
     QGISRedProjectIO,
     RE_DATASOURCE_ATTR_DQ, RE_DATASOURCE_ATTR_SQ, RE_DATASOURCE_ELEMENT,
-    URI_SUFFIX_SEPARATOR, isRemoteDatasource,
+    RE_QGIS_PROJECT_COMPANION, URI_SUFFIX_SEPARATOR, isRemoteDatasource,
 )
 
 SCHEMA_VERSION = 1
@@ -63,6 +63,9 @@ SCOPE_PROJECT = "project"   # under ProjectDirectory            → fits structu
 SCOPE_SIBLING = "sibling"   # under dirname(ProjectDirectory)   → forces structure B
 SCOPE_OUTSIDE = "outside"   # anywhere else                     → cannot be exported
 SCOPE_REMOTE = "remote"     # WMS/XYZ/database — nothing to copy, never blocking
+
+# Placement group of the project-folder files that do not belong to the network
+EXTRA_FILES_GROUP = "Other project files"
 
 # Machine-readable reasons. This module is UI-free: all user-facing wording lives in the dialogs.
 REASON_QGZ_OUTSIDE = "qgz_out_of_scope"
@@ -599,6 +602,64 @@ class QGISRedProjectPackage:
                 item.placements.append(placement)
         return list(items.values())
 
+    def collectProjectExtraFiles(self, qgisPath, knownItems):
+        """Files inside the project folder that are neither the network's nor already listed.
+
+        The network's own files (`<NetworkName>_*`) always travel; anything else (an .inp, notes,
+        a shapefile of someone else) cannot be assumed to belong to it, so each one is offered to
+        the user like the external layers of the .qgz. A shapefile counts as a single entry.
+        """
+        ownPrefix = self.NetworkName + "_"
+        covered = set()
+        for item in knownItems:
+            covered.add(norm(item.source))
+            covered.update(norm(sidecar) for sidecar in item.sidecars)
+        folders = [norm(item.source) for item in knownItems if item.kind == "folder"]
+
+        qgisStem = norm(self._io().stripAllExtensions(qgisPath)) if qgisPath else None
+        io = self._io()
+        candidates = {}
+        for root, dirs, files in os.walk(self.ProjectDirectory):
+            dirs[:] = [d for d in dirs if d.lower() != DIR_BACKUPS.lower()]
+            for name in files:
+                path = os.path.join(root, name)
+                key = norm(path)
+                if name.startswith(ownPrefix) or key in covered:
+                    continue
+                if any(key.startswith(folder + os.sep) for folder in folders):
+                    continue
+                if qgisStem and norm(os.path.dirname(path)) == norm(os.path.dirname(qgisPath)):
+                    extensions = name[len(os.path.basename(qgisStem)):]
+                    if norm(io.stripAllExtensions(path)) == qgisStem and RE_QGIS_PROJECT_COMPANION.match(extensions):
+                        continue
+                candidates[key] = path
+
+        items = []
+        consumed = set()
+        for key, path in sorted(candidates.items()):
+            if key in consumed or not path.lower().endswith(".shp"):
+                continue
+            sidecars = [s for s in self._findSidecars(path) if norm(s) in candidates]
+            consumed.update(norm(s) for s in sidecars)
+            items.append(self._extraItem(path, sidecars))
+        for key, path in sorted(candidates.items()):
+            if key not in consumed and not path.lower().endswith(".shp"):
+                items.append(self._extraItem(path, []))
+        return items
+
+    def _extraItem(self, path, sidecars):
+        sizeBytes = 0
+        for candidate in [path] + sidecars:
+            with suppress(OSError):
+                sizeBytes += os.path.getsize(candidate)
+        relative = relativeToRoot(path, self.ProjectDirectory) or os.path.basename(path)
+        item = ExternalItem(
+            source=os.path.realpath(path), kind="file", scope=SCOPE_PROJECT,
+            sizeBytes=sizeBytes, sidecars=sidecars,
+        )
+        item.placements.append(((EXTRA_FILES_GROUP,), relative))
+        return item
+
     """Planning"""
 
     def inspectForExport(self, includeExternal=True, includeGroups=None, externalSources=None):
@@ -609,6 +670,7 @@ class QGISRedProjectPackage:
             plan.blockingReasons.append(REASON_QGZ_OUTSIDE)
 
         plan.externalItems = self.collectExternalData(plan.qgisPath)
+        plan.externalItems += self.collectProjectExtraFiles(plan.qgisPath, plan.externalItems)
         plan.contentGroups = self.inspectContentGroups()
         plan.baseFileCount, plan.baseSizeBytes = self.inspectBaseFiles()
         if includeGroups is None:

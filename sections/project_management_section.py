@@ -685,7 +685,7 @@ class ProjectManagementSection:
         from ..compat import DIALOG_ACCEPTED
 
         package = QGISRedProjectPackage(projectDirectory, networkName, self.iface)
-        plan = package.inspectForExport()
+        plan = self._inspectForExportBusy(package)
 
         if REASON_QGZ_OUTSIDE in plan.blockingReasons:
             report(
@@ -703,7 +703,7 @@ class ProjectManagementSection:
             if not proceed:
                 return False
             if wasSaved:
-                plan = package.inspectForExport()  # the .qgz changed on disk
+                plan = self._inspectForExportBusy(package)  # the .qgz changed on disk
 
         dlg = QGISRedExportProjectDialog(plan, package, parent)
         if dlg.exec() != DIALOG_ACCEPTED:
@@ -728,6 +728,13 @@ class ProjectManagementSection:
             QDesktopServices.openUrl(QUrl.fromLocalFile(os.path.dirname(zipPath)))
         report(self.tr("Zip file stored in:") + " " + zipPath, 3, 5)
         return True
+
+    def _inspectForExportBusy(self, package):
+        QApplication.setOverrideCursor(Qt.CursorShape.WaitCursor)
+        try:
+            return package.inspectForExport()
+        finally:
+            QApplication.restoreOverrideCursor()
 
     def _saveOpenProjectBeforeExport(self, plan, parent):
         """Offers to save the QGIS project when the one being exported is open and dirty.
