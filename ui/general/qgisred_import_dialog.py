@@ -1436,7 +1436,7 @@ class QGISRedImportDialog(QDialog, FORM_CLASS):
         io.openProjectInQgis()
         QGISRedIdentifierUtils(self.ProjectDirectory, self.NetworkName, self.iface).enforceAllIdentifiers()
 
-        if inspection.hasQgisProject and not includeExternal:
+        if inspection.leavesLayersMissing(includeExternal):
             # Hand over to QGIS's own "Handle unavailable layers" dialog rather than trying to
             # repair paths we deliberately did not bring along.
             QGISRedUIUtils.showGlobalMessage(

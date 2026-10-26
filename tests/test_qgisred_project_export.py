@@ -997,6 +997,33 @@ class TestInspectZip:
         assert inspection.reason
 
 
+class TestMissingLayersOnImport:
+    def _inspect(self, workspace, datasources=(), **exportKwargs):
+        projectDir, _ = _makeProject(workspace, qgzAt="parent", datasources=datasources)
+        zipPath = os.path.join(workspace, "out", "export.zip")
+        ok, reason, _ = QGISRedProjectPackage(projectDir, NET).exportToZip(zipPath, **exportKwargs)
+        assert ok, reason
+        return QGISRedProjectPackage.inspectZip(zipPath)
+
+    def test_a_project_without_background_layers_has_nothing_missing(self, workspace):
+        inspection = self._inspect(workspace)
+        assert inspection.hasQgisProject
+        assert not inspection.leavesLayersMissing(False)
+
+    def test_background_data_left_out_at_import_is_missing(self, workspace):
+        _touch(os.path.join(workspace, "Net", "data", "zones.shp"))
+        inspection = self._inspect(workspace, datasources=[("./Net/data/zones.shp", "Zones")])
+        assert inspection.hasExternalData
+        assert not inspection.leavesLayersMissing(True)
+        assert inspection.leavesLayersMissing(False)
+
+    def test_background_data_left_out_at_export_is_missing(self, workspace):
+        _touch(os.path.join(workspace, "Net", "data", "zones.shp"))
+        inspection = self._inspect(workspace, datasources=[("./Net/data/zones.shp", "Zones")],
+                                   includeExternal=False)
+        assert inspection.leavesLayersMissing(True)
+
+
 class TestExtractZip:
     def _exported(self, workspace, qgzAt, datasources=(), groups=()):
         projectDir, _ = _makeProject(workspace, qgzAt=qgzAt, datasources=datasources, groups=groups)

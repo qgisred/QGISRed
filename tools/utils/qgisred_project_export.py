@@ -235,6 +235,7 @@ class ZipInspection:
         self.networkName = ""
         self.qgisProjectRel = None     # posix path of the .qgz/.qgs, or None
         self.externalRel = []          # posix paths/prefixes of the complementary data
+        self.skippedExternal = []      # complementary data left out when the ZIP was made
         self.manifest = None           # the parsed manifest, or None for a legacy/hand-made ZIP
         self.members = []              # every file entry in the archive
         self.projectSizeBytes = 0
@@ -254,6 +255,12 @@ class ZipInspection:
     def hasOwnRootFolder(self):
         """True when the ZIP already carries the folder the project must live in."""
         return bool(self.projectFolderRel)
+
+    def leavesLayersMissing(self, includeExternal):
+        """True when the QGIS project will reference layers that did not come with the import."""
+        if not self.hasQgisProject:
+            return False
+        return bool(self.skippedExternal) or (self.hasExternalData and not includeExternal)
 
     def isExternalMember(self, name):
         for prefix in self.externalRel:
@@ -953,6 +960,7 @@ class QGISRedProjectPackage:
         inspection.externalRel = [
             prefix + entry["path"] for entry in manifest.get("externalData") or [] if entry.get("path")
         ]
+        inspection.skippedExternal = list(manifest.get("skippedExternalData") or [])
         if not inspection.networkName:
             inspection.reason = REASON_NO_PIPES_IN_ZIP
             return False
