@@ -561,9 +561,9 @@ class LifecycleSection:
                     self._launchInstaller(localFile)
                     installed = self._waitForInstallation(localFile, gisredDir)
                     if installed:
+                        QGISRedFileSystemUtils().copyDependencies()
                         valid = self.checkDependencies()
                         if valid:
-                            QGISRedFileSystemUtils().copyDependencies()
                             self.setCulture()
                     else:
                         with suppress(Exception):
