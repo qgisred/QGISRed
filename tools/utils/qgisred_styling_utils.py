@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 from contextlib import suppress
 from itertools import zip_longest
-from xml.etree import ElementTree
+from xml.etree import ElementTree  # nosec B405 — parses the plugin's own local .qml styles only, no external input
 import base64
 import filecmp
 import math
@@ -351,7 +351,7 @@ class QGISRedStylingUtils:
         candidate on every setStyle call would be wasteful outside tests too.
         """
         try:
-            root = ElementTree.parse(qmlPath).getroot()
+            root = ElementTree.parse(qmlPath).getroot()  # nosec B314 — local style file, not external input
         except (ElementTree.ParseError, OSError):
             return STYLE_VERSION_MISSING
         customProperties = root.find("customproperties")
