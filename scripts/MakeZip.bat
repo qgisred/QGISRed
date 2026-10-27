@@ -38,8 +38,8 @@ if exist "%PS_OUTPUT_ZIP%" del "%PS_OUTPUT_ZIP%"
 ::                               material only, kept for re-editing a style later.
 ::   Excluded dir names (any depth): __pycache__
 ::   Excluded extensions       : .pyc  .pyo  .ts
-::   Excluded file names       : the style database, shipped by the dependencies installer
-::                               instead. By name, never by the .bak extension: the ~30
+::   Excluded file names       : the style database and qgisred_properties_units_decimals.csv,
+::                               shipped by the dependencies installer instead. By name, never by the .bak extension: the ~30
 ::                               default styles in defaults/layerStyles are .qml.bak.
 ::                               Also i18n/QGISRed_PT_BR_glossary.md — a translator reference,
 ::                               not read by the plugin.
@@ -51,7 +51,7 @@ powershell -NoProfile -ExecutionPolicy Bypass -Command ^
     "$exTop = @('.git','.vscode','.claude','news','scripts','.githooks','.github','tests','.gitignore','.gitattributes','.flake8','CLAUDE.md','README.md','INTERNALS.md','pytest.ini','pyproject.toml','qgisred.pro','resources.qrc');" ^
     "$exDir = @('__pycache__','.pytest_cache');" ^
     "$exExt = @('.pyc','.pyo','.ts');" ^
-    "$exFile = @('qgisred_symbology_style.db','qgisred_symbology_style.db.bak','QGISRed_PT_BR_glossary.md');" ^
+    "$exFile = @('qgisred_symbology_style.db','qgisred_symbology_style.db.bak','qgisred_properties_units_decimals.csv','QGISRed_PT_BR_glossary.md');" ^
     "$keepStyleIcons = @('pumps.svg','reservoirs.svg','tanks.svg','valves.svg');" ^
     "Add-Type -Assembly System.IO.Compression.FileSystem;" ^
     "$zip = [System.IO.Compression.ZipFile]::Open($out, 'Create');" ^

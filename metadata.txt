@@ -7,7 +7,7 @@ name=QGISRed
 qgisMinimumVersion=3.28
 qgisMaximumVersion=4.99
 description=Free professional software to build and analyze advanced water distribution network models and Digital Twins.
-version=0.18.1
+version=0.19.0
 author=Fernando Martínez. REDHISP Group (IIAMA- UPV). Developers: Fluit, Ingeniousware, WaterPi
 email=fmartine@hma.upv.es
 
