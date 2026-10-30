@@ -486,15 +486,26 @@ class LifecycleSection:
             return ""
 
     def getInstallerFileName(self):
-        """Return the dependencies installer filename for the current OS and architecture."""
+        """Return the dependencies installer filename for the current OS."""
+        import sys
+        if sys.platform == "win32":
+            ext = "msi"
+        elif sys.platform == "darwin":
+            ext = "pkg"
+        else:
+            ext = "deb"
+        return "QGISRed_Dependencies_{}.{}".format(self.DependenciesVersion, ext)
+
+    def getDependenciesFolder(self):
+        """Return the per-OS/architecture subfolder under /files/dependencies/ on the server."""
         import sys
         import platform
         if sys.platform == "win32":
-            return "QGISRed_Installation.msi"
+            return "windows"
         if sys.platform == "darwin":
             arch = "arm64" if platform.machine().lower() in ("arm64", "aarch64") else "x64"
-            return "QGISRed_Installation-{}.pkg".format(arch)
-        return "QGISRed_Installation.deb"
+            return "mac-{}".format(arch)
+        return "linux"
 
     def _dependenciesInstalled(self, gisredDir):
         """Return True when the required dependencies (right version on Windows) are present."""
@@ -540,7 +551,8 @@ class LifecycleSection:
         valid = self._dependenciesInstalled(gisredDir)
         if not valid:
             installer = self.getInstallerFileName()
-            link = "https://qgisred.upv.es/files/dependencies/" + self.DependenciesVersion + "/" + installer
+            folder = self.getDependenciesFolder()
+            link = "https://qgisred.upv.es/files/dependencies/" + folder + "/" + installer
             request = QMessageBox.question(
                 self.iface.mainWindow(),
                 self.tr("QGISRed Dependencies"),
