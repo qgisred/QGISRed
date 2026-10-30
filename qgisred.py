@@ -41,5 +41,5 @@ class QGISRed(
     especificComplementaryLayers = []
     complementaryLayers = ["IsolationValves", "ServiceConnections", "Meters"]
     TemporalFolder = "Temporal folder"
-    DependenciesVersion = "1.0.19.0"
+    DependenciesVersion = "1.0.19.1"
     gisredDll = None
