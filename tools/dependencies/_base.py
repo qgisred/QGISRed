@@ -18,7 +18,6 @@ def _load_dll():
         dll_path = QGISRedFileSystemUtils().getCurrentDll()
     dll_folder = os.path.dirname(dll_path)
     if sys.platform == "win32":
-        os.chdir(dll_folder)  # Remove when QGISRedDeprecated is deleted
         if dll_folder not in _dll_directories:
             _dll_directories[dll_folder] = os.add_dll_directory(dll_folder)
         return WinDLL(dll_path)
