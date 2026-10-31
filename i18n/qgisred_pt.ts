@@ -2367,7 +2367,7 @@ Deseja verificá-los novamente?</translation>
         <translation type="obsolete">O QGISRed funciona apenas no Windows</translation>
     </message>
     <message>
-        <location filename="../sections/lifecycle_section.py" line="76"/>
+        <location filename="../sections/lifecycle_section.py" line="78"/>
         <source>Click to change it</source>
         <translation>Clique para alterar</translation>
     </message>
@@ -2382,12 +2382,12 @@ Deseja verificá-los novamente?</translation>
         <translation type="obsolete">Relatar problemas ou comentários...</translation>
     </message>
     <message>
-        <location filename="../sections/lifecycle_section.py" line="266"/>
+        <location filename="../sections/lifecycle_section.py" line="268"/>
         <source>Loaded sucssesfully</source>
         <translation>Carregado com sucesso</translation>
     </message>
     <message>
-        <location filename="../sections/lifecycle_section.py" line="571"/>
+        <location filename="../sections/lifecycle_section.py" line="634"/>
         <source>QGISRed Dependencies</source>
         <translation>Dependências do QGISRed</translation>
     </message>
@@ -2402,34 +2402,39 @@ Deseja verificá-los novamente?</translation>
         <translation type="obsolete">Atualizações do QGISRed</translation>
     </message>
     <message>
-        <location filename="../sections/lifecycle_section.py" line="674"/>
+        <location filename="../sections/lifecycle_section.py" line="739"/>
         <source>QGISRed News</source>
         <translation>Novidades do QGISRed</translation>
     </message>
     <message>
-        <location filename="../sections/lifecycle_section.py" line="571"/>
+        <location filename="../sections/lifecycle_section.py" line="634"/>
         <source>The installation may have failed. Please try again or report the issue in GitHub</source>
         <translation>A instalação pode ter falhado. Tente novamente ou relate o problema no GitHub</translation>
     </message>
     <message>
-        <location filename="../sections/lifecycle_section.py" line="544"/>
+        <location filename="../sections/lifecycle_section.py" line="610"/>
         <source>QGISRed plugin requires some dependencies (v{}). Do you want to install them now?</source>
         <translation type="unfinished">O plugin QGISRed requer algumas dependências (v{}). Deseja instalá-las agora?</translation>
     </message>
     <message>
-        <location filename="../sections/lifecycle_section.py" line="629"/>
+        <location filename="../sections/lifecycle_section.py" line="694"/>
         <source>Checking for QGISRed news…</source>
         <translation>A verificar as novidades do QGISRed…</translation>
     </message>
     <message>
-        <location filename="../sections/lifecycle_section.py" line="647"/>
+        <location filename="../sections/lifecycle_section.py" line="712"/>
         <source>QGISRed news are not available: the server could not be reached.</source>
         <translation>As novidades do QGISRed não estão disponíveis: não foi possível contactar o servidor.</translation>
     </message>
     <message>
-        <location filename="../sections/lifecycle_section.py" line="656"/>
+        <location filename="../sections/lifecycle_section.py" line="721"/>
         <source>There are no QGISRed news to show.</source>
         <translation>Não há novidades do QGISRed para mostrar.</translation>
+    </message>
+    <message>
+        <location filename="../sections/lifecycle_section.py" line="596"/>
+        <source>Do you also want to remove the QGISRed dependencies?</source>
+        <translation>Deseja também remover as dependências do QGISRed?</translation>
     </message>
 </context>
 <context>
@@ -3407,12 +3412,12 @@ Deseja verificá-los novamente?</translation>
         <translation>Projeto salvo</translation>
     </message>
     <message>
-        <location filename="../sections/project_management_section.py" line="833"/>
+        <location filename="../sections/project_management_section.py" line="840"/>
         <source>Old simulation results found</source>
         <translation>Resultados de simulação antigos encontrados</translation>
     </message>
     <message>
-        <location filename="../sections/project_management_section.py" line="833"/>
+        <location filename="../sections/project_management_section.py" line="840"/>
         <source>Result layers from a previous version of QGISRed have been detected.They will be removed from QGIS and you will need to run the simulation again.
 
 Do you also want to delete the result files from disk?</source>
@@ -3431,7 +3436,7 @@ Deseja também excluir os arquivos de resultados do disco?</translation>
         <translation>O arquivo de projeto do QGIS não está na pasta do projeto nem na pasta superior (%1). Use a opção Mover para reposicioná-lo antes de exportar.</translation>
     </message>
     <message>
-        <location filename="../sections/project_management_section.py" line="1247"/>
+        <location filename="../sections/project_management_section.py" line="1254"/>
         <source>QGISRed</source>
         <translation type="unfinished">QGISRed</translation>
     </message>
@@ -3446,22 +3451,22 @@ Deseja também excluir os arquivos de resultados do disco?</translation>
         <translation>Arquivo ZIP salvo em:</translation>
     </message>
     <message>
-        <location filename="../sections/project_management_section.py" line="746"/>
+        <location filename="../sections/project_management_section.py" line="753"/>
         <source>The QGIS project has unsaved changes. Do you want to save it before exporting?</source>
         <translation>O projeto do QGIS tem alterações não salvas. Deseja salvá-lo antes de exportar?</translation>
     </message>
     <message>
-        <location filename="../sections/project_management_section.py" line="1250"/>
+        <location filename="../sections/project_management_section.py" line="1257"/>
         <source>Do you want to save the map of the current project?</source>
         <translation>Deseja guardar o mapa do projeto atual?</translation>
     </message>
     <message>
-        <location filename="../sections/project_management_section.py" line="1221"/>
+        <location filename="../sections/project_management_section.py" line="1228"/>
         <source>Open Project</source>
         <translation>Abrir projeto</translation>
     </message>
     <message>
-        <location filename="../sections/project_management_section.py" line="1221"/>
+        <location filename="../sections/project_management_section.py" line="1228"/>
         <source>QGIS files (*.qgz *.qgs *.QGZ *.QGS)</source>
         <translation>Ficheiros QGIS (*.qgz *.qgs *.QGZ *.QGS)</translation>
     </message>
@@ -7656,7 +7661,7 @@ Não é possível aplicar as alterações.</translation>
 <context>
     <name>QGISRedProjectIO</name>
     <message>
-        <location filename="../tools/utils/qgisred_project_io.py" line="717"/>
+        <location filename="../tools/utils/qgisred_project_io.py" line="738"/>
         <source>QGISRed Project</source>
         <translation>Projeto QGISRed</translation>
     </message>
@@ -7666,17 +7671,17 @@ Não é possível aplicar as alterações.</translation>
         <translation type="obsolete">Não foi possível encontrar o arquivo de projeto do QGIS. Deseja localizar este arquivo manualmente? Caso contrário, abriremos apenas as camadas do grupo Entradas.</translation>
     </message>
     <message>
-        <location filename="../tools/utils/qgisred_project_io.py" line="717"/>
+        <location filename="../tools/utils/qgisred_project_io.py" line="738"/>
         <source>We cannot find the QGIS project file. Do you want to find this file manually? If not, we will open the layers stored in the project metadata.</source>
         <translation>Não foi possível encontrar o arquivo de projeto do QGIS. Deseja localizar este arquivo manualmente? Caso contrário, abriremos as camadas armazenadas nos metadados do projeto.</translation>
     </message>
     <message>
-        <location filename="../tools/utils/qgisred_project_io.py" line="725"/>
+        <location filename="../tools/utils/qgisred_project_io.py" line="746"/>
         <source>Select QGIS file</source>
         <translation>Selecionar arquivo do QGIS</translation>
     </message>
     <message>
-        <location filename="../tools/utils/qgisred_project_io.py" line="725"/>
+        <location filename="../tools/utils/qgisred_project_io.py" line="746"/>
         <source>QGIS project (*.qgz *.qgs)</source>
         <translation>Projeto do QGIS (*.qgz *.qgs)</translation>
     </message>
@@ -7754,32 +7759,32 @@ Não é possível aplicar as alterações.</translation>
         <translation>Ir para a Pasta</translation>
     </message>
     <message>
-        <location filename="../ui/general/qgisred_projectmanager_dialog.py" line="561"/>
+        <location filename="../ui/general/qgisred_projectmanager_dialog.py" line="559"/>
         <source>QGISRed</source>
         <translation>QGISRed</translation>
     </message>
     <message>
-        <location filename="../ui/general/qgisred_projectmanager_dialog.py" line="561"/>
+        <location filename="../ui/general/qgisred_projectmanager_dialog.py" line="559"/>
         <source>Project will be unloaded from this list, but will remain in your computer. You could add it back using the Load button. Do you want to continue?</source>
         <translation>O projeto será removido desta lista, mas permanecerá no seu computador. Você pode adicioná-lo novamente usando o botão Carregar. Deseja continuar?</translation>
     </message>
     <message>
-        <location filename="../ui/general/qgisred_projectmanager_dialog.py" line="758"/>
+        <location filename="../ui/general/qgisred_projectmanager_dialog.py" line="756"/>
         <source>Warning</source>
         <translation>Aviso</translation>
     </message>
     <message>
-        <location filename="../ui/general/qgisred_projectmanager_dialog.py" line="353"/>
+        <location filename="../ui/general/qgisred_projectmanager_dialog.py" line="351"/>
         <source>Please, select a row project to move.</source>
         <translation>Selecione um projeto na lista para mover.</translation>
     </message>
     <message>
-        <location filename="../ui/general/qgisred_projectmanager_dialog.py" line="421"/>
+        <location filename="../ui/general/qgisred_projectmanager_dialog.py" line="419"/>
         <source>Selected project is currently opened.</source>
         <translation>O projeto selecionado está aberto no momento.</translation>
     </message>
     <message>
-        <location filename="../ui/general/qgisred_projectmanager_dialog.py" line="427"/>
+        <location filename="../ui/general/qgisred_projectmanager_dialog.py" line="425"/>
         <source>You need to select a project to open it.</source>
         <translation>Você precisa selecionar um projeto para abri-lo.</translation>
     </message>
@@ -7789,27 +7794,27 @@ Não é possível aplicar as alterações.</translation>
         <translation type="obsolete">Arquivo ZIP armazenado em: </translation>
     </message>
     <message>
-        <location filename="../ui/general/qgisred_projectmanager_dialog.py" line="512"/>
+        <location filename="../ui/general/qgisred_projectmanager_dialog.py" line="510"/>
         <source>You need to select a project to export it.</source>
         <translation>Você precisa selecionar um projeto para exportá-lo.</translation>
     </message>
     <message>
-        <location filename="../ui/general/qgisred_projectmanager_dialog.py" line="619"/>
+        <location filename="../ui/general/qgisred_projectmanager_dialog.py" line="617"/>
         <source>You need to select a project to clone.</source>
         <translation>Você precisa selecionar um projeto para cloná-lo.</translation>
     </message>
     <message>
-        <location filename="../ui/general/qgisred_projectmanager_dialog.py" line="627"/>
+        <location filename="../ui/general/qgisred_projectmanager_dialog.py" line="625"/>
         <source>Current project can not be renamed.</source>
         <translation>O projeto atual não pode ser renomeado.</translation>
     </message>
     <message>
-        <location filename="../ui/general/qgisred_projectmanager_dialog.py" line="745"/>
+        <location filename="../ui/general/qgisred_projectmanager_dialog.py" line="743"/>
         <source>You need to select a project to change its name.</source>
         <translation>Você precisa selecionar um projeto para alterar seu nome.</translation>
     </message>
     <message>
-        <location filename="../ui/general/qgisred_projectmanager_dialog.py" line="375"/>
+        <location filename="../ui/general/qgisred_projectmanager_dialog.py" line="373"/>
         <source>You need to select a project to open its folder.</source>
         <translation>Você precisa selecionar um projeto para abrir sua pasta.</translation>
     </message>
@@ -7834,12 +7839,12 @@ Não é possível aplicar as alterações.</translation>
         <translation>Pasta</translation>
     </message>
     <message>
-        <location filename="../ui/general/qgisred_projectmanager_dialog.py" line="543"/>
+        <location filename="../ui/general/qgisred_projectmanager_dialog.py" line="541"/>
         <source>Current project cannot be removed</source>
         <translation>O projeto atual não pode ser removido</translation>
     </message>
     <message>
-        <location filename="../ui/general/qgisred_projectmanager_dialog.py" line="545"/>
+        <location filename="../ui/general/qgisred_projectmanager_dialog.py" line="543"/>
         <source>Current project cannot be unloaded</source>
         <translation>O projeto atual não pode ser descarregado</translation>
     </message>
@@ -7854,47 +7859,47 @@ Não é possível aplicar as alterações.</translation>
         <translation>Mover</translation>
     </message>
     <message>
-        <location filename="../ui/general/qgisred_projectmanager_dialog.py" line="752"/>
+        <location filename="../ui/general/qgisred_projectmanager_dialog.py" line="750"/>
         <source>You need to select a project to move it.</source>
         <translation>Você precisa selecionar um projeto para movê-lo.</translation>
     </message>
     <message>
-        <location filename="../ui/general/qgisred_projectmanager_dialog.py" line="758"/>
+        <location filename="../ui/general/qgisred_projectmanager_dialog.py" line="756"/>
         <source>Current project can not be moved.</source>
         <translation>O projeto atual não pode ser movido.</translation>
     </message>
     <message>
-        <location filename="../ui/general/qgisred_projectmanager_dialog.py" line="588"/>
+        <location filename="../ui/general/qgisred_projectmanager_dialog.py" line="586"/>
         <source>You need to select a project to %1 it.</source>
         <translation>Você precisa selecionar um projeto para %1.</translation>
     </message>
     <message>
-        <location filename="../ui/general/qgisred_projectmanager_dialog.py" line="743"/>
+        <location filename="../ui/general/qgisred_projectmanager_dialog.py" line="741"/>
         <source>Project name has been renamed to %1</source>
         <translation>O projeto foi renomeado para %1</translation>
     </message>
     <message>
-        <location filename="../ui/general/qgisred_projectmanager_dialog.py" line="821"/>
+        <location filename="../ui/general/qgisred_projectmanager_dialog.py" line="819"/>
         <source>Project has been moved to %1</source>
         <translation>O projeto foi movido para %1</translation>
     </message>
     <message>
-        <location filename="../ui/general/qgisred_projectmanager_dialog.py" line="519"/>
+        <location filename="../ui/general/qgisred_projectmanager_dialog.py" line="517"/>
         <source>Error</source>
         <translation type="unfinished">Erro</translation>
     </message>
     <message>
-        <location filename="../ui/general/qgisred_projectmanager_dialog.py" line="394"/>
+        <location filename="../ui/general/qgisred_projectmanager_dialog.py" line="392"/>
         <source>Select a project first.</source>
         <translation>Selecione primeiro um projeto.</translation>
     </message>
     <message>
-        <location filename="../ui/general/qgisred_projectmanager_dialog.py" line="395"/>
+        <location filename="../ui/general/qgisred_projectmanager_dialog.py" line="393"/>
         <source>This is the project currently open in QGIS.</source>
         <translation>Este é o projeto atualmente aberto no QGIS.</translation>
     </message>
     <message>
-        <location filename="../ui/general/qgisred_projectmanager_dialog.py" line="549"/>
+        <location filename="../ui/general/qgisred_projectmanager_dialog.py" line="547"/>
         <source>Project files will be moved to the recycle bin. Are you sure?</source>
         <translation>Os ficheiros do projeto serão movidos para a reciclagem. Tem a certeza?</translation>
     </message>
@@ -7904,17 +7909,17 @@ Não é possível aplicar as alterações.</translation>
         <translation type="obsolete">Não foi possível mover o projeto para a reciclagem</translation>
     </message>
     <message>
-        <location filename="../ui/general/qgisred_projectmanager_dialog.py" line="135"/>
+        <location filename="../ui/general/qgisred_projectmanager_dialog.py" line="133"/>
         <source>Project could not be moved to the recycle bin. Do you want to delete it permanently?</source>
         <translation>Não foi possível mover o projeto para a reciclagem. Deseja eliminá-lo definitivamente?</translation>
     </message>
     <message>
-        <location filename="../ui/general/qgisred_projectmanager_dialog.py" line="137"/>
+        <location filename="../ui/general/qgisred_projectmanager_dialog.py" line="135"/>
         <source>Part of the project could not be moved to the recycle bin. If the rest is not deleted permanently, the project will be left in an inconsistent state. Do you want to delete it permanently?</source>
         <translation>Parte do projeto não pôde ser movida para a reciclagem. Se o resto não for eliminado definitivamente, o projeto ficará num estado inconsistente. Deseja eliminá-lo definitivamente?</translation>
     </message>
     <message>
-        <location filename="../ui/general/qgisred_projectmanager_dialog.py" line="290"/>
+        <location filename="../ui/general/qgisred_projectmanager_dialog.py" line="288"/>
         <source>&apos;%1&apos; project is not found in selected folder</source>
         <translation>O projeto '%1' não foi encontrado na pasta selecionada</translation>
     </message>

@@ -10,7 +10,7 @@ import urllib.request
 import urllib.parse
 import ssl
 
-from qgis.core import Qgis, QgsProject, QgsMessageLog, QgsApplication, QgsTask
+from qgis.core import Qgis, QgsProject, QgsMessageLog, QgsApplication, QgsTask, QgsSettings
 from qgis.PyQt.QtGui import QIcon
 from qgis.PyQt.QtWidgets import QMessageBox, QMenu, QToolButton
 from qgis.PyQt.QtCore import Qt, QTranslator, qVersion, QCoreApplication, QTimer
@@ -42,6 +42,9 @@ class LifecycleSection:
         # Save reference to the QGIS interface
         self.iface = iface
         self.isUnloading = False  # Flag to prevent DLL calls during shutdown
+        # Set True by aboutToQuit (see initGui). Read in unload() to tell a real QGIS shutdown
+        # apart from a plain disable/uninstall/Plugin-Reloader reload, none of which fire it.
+        self._qgisIsQuitting = False
 
         # initialize plugin directory (sections/ is one level below the plugin root)
         self.plugin_dir = os.path.dirname(os.path.dirname(__file__))
@@ -272,6 +275,14 @@ class LifecycleSection:
         self._mapTip = QGISRedMapTip(self.iface)
         self.installCloseGuard()
 
+        # Only a real QGIS quit fires this signal before unload() runs; a plain
+        # disable/uninstall/Plugin-Reloader reload never does (see _offerToRemoveDependencies).
+        with suppress(Exception):
+            QgsApplication.instance().aboutToQuit.connect(self._onAboutToQuit)
+
+    def _onAboutToQuit(self):
+        self._qgisIsQuitting = True
+
     def cleanupDocks(self):
         """Disconnects signals and removes all plugin docks to ensure a clean state."""
         with suppress(Exception):
@@ -365,6 +376,13 @@ class LifecycleSection:
 
     def unload(self):
         """Removes the plugin menu item and icon from QGIS GUI."""
+        if not self._qgisIsQuitting:
+            # Not a real quit, so this is either a plain disable or a real uninstall (unload()
+            # alone cannot tell them apart — see _offerToRemoveDependencies). Deferred so the
+            # check runs after QGIS has finished whatever it was doing to get here.
+            with suppress(Exception):
+                QTimer.singleShot(0, self._offerToRemoveDependencies)
+
         with suppress(Exception):
             self._staleLayerManager.stop()
 
@@ -532,15 +550,22 @@ class LifecycleSection:
                 )
             index += 1
 
+    def _removeExistingDependencies(self):
+        """Uninstall any leftover legacy MSI (Windows) and wipe the extracted DLLs + defaults.
+        Shared by a fresh install (about to extract a new zip) and by the user explicitly
+        choosing to remove the dependencies (see _offerToRemoveDependencies)."""
+        self._uninstallLegacyWindowsMsi()
+        fsUtils = QGISRedFileSystemUtils()
+        fsUtils.removeFolder(fsUtils.getGISRedDllFolder())
+        fsUtils.removeFolder(fsUtils.getDefaultsFolder())
+
     def _installDependenciesZip(self, localFile, gisredDir):
         """Wipe any previous dependencies (DLLs + defaults) and extract the freshly downloaded
         zip in their place. Returns whether the result looks correctly installed."""
         import sys
         import zipfile
-        self._uninstallLegacyWindowsMsi()
+        self._removeExistingDependencies()
         fsUtils = QGISRedFileSystemUtils()
-        fsUtils.removeFolder(fsUtils.getGISRedDllFolder())
-        fsUtils.removeFolder(fsUtils.getDefaultsFolder())
         installFolder = fsUtils.getQGISRedInstallFolder()
         os.makedirs(installFolder, exist_ok=True)
         with zipfile.ZipFile(localFile) as zf:
@@ -553,6 +578,27 @@ class LifecycleSection:
                     with suppress(Exception):
                         os.chmod(path, 0o755)
         return self._dependenciesInstalled(gisredDir)
+
+    def _offerToRemoveDependencies(self):
+        """Runs on the next event-loop tick after a non-quit unload(). QGIS writes
+        /PythonPlugins/QGISRed to False right after calling unload() on a plain disable, and
+        removes the key entirely at the end of a real uninstall — both land here with time to
+        have happened already. A hot reload (e.g. Plugin Reloader) never touches that key, so
+        it is still True and nothing is asked."""
+        missing = object()
+        value = QgsSettings().value("/PythonPlugins/QGISRed", missing)
+        if value is True:
+            return
+        box = QMessageBox(self.iface.mainWindow())
+        box.setWindowTitle(self.tr("QGISRed Dependencies"))
+        box.setWindowIcon(QIcon(":/images/qgisred.svg"))
+        box.setIcon(QMessageBox.Icon.Question)
+        box.setText(self.tr("Do you also want to remove the QGISRed dependencies?"))
+        box.setStandardButtons(QMessageBox.StandardButton.Yes | QMessageBox.StandardButton.No)
+        request = box.exec()
+        if request == QMessageBox.StandardButton.Yes:
+            with suppress(Exception):
+                self._removeExistingDependencies()
 
     def checkDependencies(self):
         gisredDir = QGISRedFileSystemUtils().getGISRedDllFolder()
