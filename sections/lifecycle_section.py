@@ -573,7 +573,16 @@ class LifecycleSection:
         choosing to remove the dependencies (see _offerToRemoveDependencies)."""
         self._uninstallLegacyWindowsMsi()
         fsUtils = QGISRedFileSystemUtils()
-        fsUtils.removeFolder(fsUtils.getGISRedDllFolder())
+        dllFolder = fsUtils.getGISRedDllFolder()
+        fsUtils.removeFolder(dllFolder)
+        # getGISRedDllFolder() is the per-architecture subfolder (dlls/x64, dlls/osx...), so
+        # its parent "dlls" folder is left behind, empty, unless removed separately here. Only
+        # deleted if genuinely empty: never touches sibling user data (materials/, project
+        # list...) that lives next to it under the same per-user QGISRed folder.
+        dllParent = os.path.dirname(dllFolder)
+        with suppress(Exception):
+            if os.path.isdir(dllParent) and not os.listdir(dllParent):
+                os.rmdir(dllParent)
         fsUtils.removeFolder(fsUtils.getDefaultsFolder())
 
     def _installDependenciesZip(self, localFile, gisredDir, progress=None):
