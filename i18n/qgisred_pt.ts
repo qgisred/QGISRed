@@ -2367,7 +2367,7 @@ Deseja verificá-los novamente?</translation>
         <translation type="obsolete">O QGISRed funciona apenas no Windows</translation>
     </message>
     <message>
-        <location filename="../sections/lifecycle_section.py" line="78"/>
+        <location filename="../sections/lifecycle_section.py" line="83"/>
         <source>Click to change it</source>
         <translation>Clique para alterar</translation>
     </message>
@@ -2382,12 +2382,12 @@ Deseja verificá-los novamente?</translation>
         <translation type="obsolete">Relatar problemas ou comentários...</translation>
     </message>
     <message>
-        <location filename="../sections/lifecycle_section.py" line="268"/>
+        <location filename="../sections/lifecycle_section.py" line="273"/>
         <source>Loaded sucssesfully</source>
         <translation>Carregado com sucesso</translation>
     </message>
     <message>
-        <location filename="../sections/lifecycle_section.py" line="634"/>
+        <location filename="../sections/lifecycle_section.py" line="681"/>
         <source>QGISRed Dependencies</source>
         <translation>Dependências do QGISRed</translation>
     </message>
@@ -2402,39 +2402,59 @@ Deseja verificá-los novamente?</translation>
         <translation type="obsolete">Atualizações do QGISRed</translation>
     </message>
     <message>
-        <location filename="../sections/lifecycle_section.py" line="739"/>
+        <location filename="../sections/lifecycle_section.py" line="789"/>
         <source>QGISRed News</source>
         <translation>Novidades do QGISRed</translation>
     </message>
     <message>
-        <location filename="../sections/lifecycle_section.py" line="634"/>
+        <location filename="../sections/lifecycle_section.py" line="681"/>
         <source>The installation may have failed. Please try again or report the issue in GitHub</source>
         <translation>A instalação pode ter falhado. Tente novamente ou relate o problema no GitHub</translation>
     </message>
     <message>
-        <location filename="../sections/lifecycle_section.py" line="610"/>
+        <location filename="../sections/lifecycle_section.py" line="643"/>
         <source>QGISRed plugin requires some dependencies (v{}). Do you want to install them now?</source>
         <translation type="unfinished">O plugin QGISRed requer algumas dependências (v{}). Deseja instalá-las agora?</translation>
     </message>
     <message>
-        <location filename="../sections/lifecycle_section.py" line="694"/>
+        <location filename="../sections/lifecycle_section.py" line="744"/>
         <source>Checking for QGISRed news…</source>
         <translation>A verificar as novidades do QGISRed…</translation>
     </message>
     <message>
-        <location filename="../sections/lifecycle_section.py" line="712"/>
+        <location filename="../sections/lifecycle_section.py" line="762"/>
         <source>QGISRed news are not available: the server could not be reached.</source>
         <translation>As novidades do QGISRed não estão disponíveis: não foi possível contactar o servidor.</translation>
     </message>
     <message>
-        <location filename="../sections/lifecycle_section.py" line="721"/>
+        <location filename="../sections/lifecycle_section.py" line="771"/>
         <source>There are no QGISRed news to show.</source>
         <translation>Não há novidades do QGISRed para mostrar.</translation>
     </message>
     <message>
-        <location filename="../sections/lifecycle_section.py" line="596"/>
+        <location filename="../sections/lifecycle_section.py" line="629"/>
         <source>Do you also want to remove the QGISRed dependencies?</source>
         <translation>Deseja também remover as dependências do QGISRed?</translation>
+    </message>
+    <message>
+        <location filename="../sections/lifecycle_section.py" line="594"/>
+        <source>Removing previous dependencies…</source>
+        <translation>Removendo as dependências anteriores…</translation>
+    </message>
+    <message>
+        <location filename="../sections/lifecycle_section.py" line="599"/>
+        <source>Extracting files…</source>
+        <translation>Extraindo arquivos…</translation>
+    </message>
+    <message>
+        <location filename="../sections/lifecycle_section.py" line="609"/>
+        <source>Finishing up…</source>
+        <translation>Finalizando…</translation>
+    </message>
+    <message>
+        <location filename="../sections/lifecycle_section.py" line="663"/>
+        <source>Downloading dependencies…</source>
+        <translation>Baixando dependências…</translation>
     </message>
 </context>
 <context>

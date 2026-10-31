@@ -12,7 +12,7 @@ import ssl
 
 from qgis.core import Qgis, QgsProject, QgsMessageLog, QgsApplication, QgsTask, QgsSettings
 from qgis.PyQt.QtGui import QIcon
-from qgis.PyQt.QtWidgets import QMessageBox, QMenu, QToolButton
+from qgis.PyQt.QtWidgets import QMessageBox, QMenu, QToolButton, QProgressDialog
 from qgis.PyQt.QtCore import Qt, QTranslator, qVersion, QCoreApplication, QTimer
 from ..compat import QAction, QGIS_INFO
 
@@ -576,15 +576,27 @@ class LifecycleSection:
         fsUtils.removeFolder(fsUtils.getGISRedDllFolder())
         fsUtils.removeFolder(fsUtils.getDefaultsFolder())
 
-    def _installDependenciesZip(self, localFile, gisredDir):
+    def _installDependenciesZip(self, localFile, gisredDir, progress=None):
         """Wipe any previous dependencies (DLLs + defaults) and extract the freshly downloaded
-        zip in their place. Returns whether the result looks correctly installed."""
+        zip in their place. Returns whether the result looks correctly installed.
+
+        progress: optional QProgressDialog already shown by the caller, updated with the
+        current step so the (synchronous, can take several seconds) uninstall/extract/copy
+        sequence does not look like QGIS has simply frozen."""
         import sys
         import zipfile
+
+        def _step(text):
+            if progress is not None:
+                progress.setLabelText(text)
+                QCoreApplication.processEvents()
+
+        _step(self.tr("Removing previous dependencies…"))
         self._removeExistingDependencies()
         fsUtils = QGISRedFileSystemUtils()
         installFolder = fsUtils.getQGISRedInstallFolder()
         os.makedirs(installFolder, exist_ok=True)
+        _step(self.tr("Extracting files…"))
         with zipfile.ZipFile(localFile) as zf:
             zf.extractall(installFolder)
         if sys.platform != "win32" and os.path.isdir(gisredDir):
@@ -594,6 +606,7 @@ class LifecycleSection:
                 if os.path.isfile(path):
                     with suppress(Exception):
                         os.chmod(path, 0o755)  # nosec B103 — rwxr-xr-x on a shared library this user just extracted into their own per-user folder, needed to dlopen() it at all
+        _step(self.tr("Finishing up…"))
         # Refresh the temp copy native calls (GetVersion() included) actually load from, before
         # checking whether the install succeeded — see the note on _dependenciesInstalled().
         fsUtils.copyDependencies()
@@ -640,11 +653,26 @@ class LifecycleSection:
                 _ctx = ssl.create_default_context()
                 fd, localFile = tempfile.mkstemp(suffix=os.path.splitext(installer)[1], prefix="QGISRed_")
                 os.close(fd)
+
+                # No cancel button: half-finished (old deps wiped, new ones half-extracted)
+                # is worse than just waiting. Indeterminate range (0, 0) since none of these
+                # steps report real progress, only which one is currently running.
+                progress = QProgressDialog(self.iface.mainWindow())
+                progress.setWindowTitle(self.tr("QGISRed Dependencies"))
+                progress.setWindowIcon(QIcon(":/images/qgisred.svg"))
+                progress.setLabelText(self.tr("Downloading dependencies…"))
+                progress.setRange(0, 0)
+                progress.setCancelButton(None)
+                progress.setWindowModality(Qt.WindowModality.WindowModal)
+                progress.setMinimumDuration(0)
+                progress.show()
+                QCoreApplication.processEvents()
                 try:
                     with urllib.request.urlopen(link, context=_ctx) as response:  # nosec B310 — link validated startswith("https://") above
                         with open(localFile, "wb") as f:
                             f.write(response.read())
-                    installed = self._installDependenciesZip(localFile, gisredDir)
+                    installed = self._installDependenciesZip(localFile, gisredDir, progress)
+                    progress.close()
                     if installed:
                         valid = self.checkDependencies()
                         if valid:
@@ -656,6 +684,7 @@ class LifecycleSection:
                             self.tr("The installation may have failed. Please try again or report the issue in GitHub"),
                         )
                 except Exception as error:
+                    progress.close()
                     QgsMessageLog.logMessage(
                         "Dependencies download/install failed: %s" % error,
                         "QGISRed", level=Qgis.MessageLevel.Warning)
