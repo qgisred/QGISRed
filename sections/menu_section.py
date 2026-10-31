@@ -711,24 +711,24 @@ class MenuSection:
         self.add_to_group(action, self.toolsMenu, self.toolsToolbar)
         self.add_to_dropdown(action, toolDropButton)
 
-        # action = self._make_action(
-        #     ":/images/iconDemandSectors.svg",
-        #     self.tr("Demand sector builder (new version)..."),
-        #     self.runDemandSectorBuilder,
-        #     parent=self.iface.mainWindow(),
-        # )
-        # self.add_to_group(action, self.toolsMenu, self.toolsToolbar)
-        # self.add_to_dropdown(action, toolDropButton)
+        action = self._make_action(
+            ":/images/iconDemandSectors.svg",
+            self.tr("Demand sector builder (new version)..."),
+            self.runDemandSectorBuilder,
+            parent=self.iface.mainWindow(),
+        )
+        self.add_to_group(action, self.toolsMenu, self.toolsToolbar)
+        self.add_to_dropdown(action, toolDropButton)
 
-        # action = self._make_action(
-        #     ":/images/iconDemandSectors.svg",
-        #     "Demand sector builder (Python)...",
-        #     self.runDemandSectorBuilderPython,
-        #     parent=self.iface.mainWindow(),
-        # )
+        action = self._make_action(
+            ":/images/iconDemandSectors.svg",
+            "Demand sector builder (Python)...",
+            self.runDemandSectorBuilderPython,
+            parent=self.iface.mainWindow(),
+        )
 
-        # self.add_to_group(action, self.toolsMenu, self.toolsToolbar)
-        # self.add_to_dropdown(action, toolDropButton)
+        self.add_to_group(action, self.toolsMenu, self.toolsToolbar)
+        self.add_to_dropdown(action, toolDropButton)
 
         action = self._make_action(
             ":/images/iconGraphTree.svg",
@@ -884,15 +884,15 @@ class MenuSection:
         self.add_to_group(self.timeSeriesButton, self.analysisMenu, self.analysisToolbar)
         self.add_to_dropdown(self.timeSeriesButton, analysisDropButton)
 
-        # self.profileButton = self._make_action(
-        #     ":/images/iconProfile.svg",
-        #     self.tr("Longitudinal profile..."),
-        #     self.runProfile,
-        #     checkable=True,
-        #     parent=self.iface.mainWindow(),
-        # )
-        # self.add_to_group(self.profileButton, self.analysisMenu, self.analysisToolbar)
-        # self.add_to_dropdown(self.profileButton, analysisDropButton)
+        self.profileButton = self._make_action(
+            ":/images/iconProfile.svg",
+            self.tr("Longitudinal profile..."),
+            self.runProfile,
+            checkable=True,
+            parent=self.iface.mainWindow(),
+        )
+        self.add_to_group(self.profileButton, self.analysisMenu, self.analysisToolbar)
+        self.add_to_dropdown(self.profileButton, analysisDropButton)
 
         analysisDropButton.menu().addSeparator()
         self.analysisToolbar.addSeparator()
