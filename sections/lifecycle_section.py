@@ -593,6 +593,7 @@ class LifecycleSection:
         current step so the (synchronous, can take several seconds) uninstall/extract/copy
         sequence does not look like QGIS has simply frozen."""
         import sys
+        import time
         import zipfile
 
         def _step(value, text):
@@ -600,6 +601,10 @@ class LifecycleSection:
                 progress.setValue(value)
                 progress.setLabelText(text)
                 QCoreApplication.processEvents()
+                # Several of these steps can finish in well under a blink (e.g. extracting on
+                # an SSD) — hold each label on screen for a moment so it reads as a sequence of
+                # steps instead of a flash nobody has time to actually read.
+                time.sleep(0.3)
 
         _step(1, self.tr("Removing previous dependencies…"))
         self._removeExistingDependencies()
