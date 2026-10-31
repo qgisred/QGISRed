@@ -26,6 +26,11 @@ from ..tools.utils.qgisred_styling_utils import QGISRedStylingUtils
 from ..tools.utils.qgisred_highlight_manager import QGISRedHighlightManager
 from ..tools.utils.qgisred_maptip import QGISRedMapTip
 
+# Sentinel for "the /PythonPlugins/QGISRed setting does not exist" — a plain None/False default
+# would be indistinguishable from a real stored value of None/False. Shared between unload()
+# and _offerToRemoveDependencies(), which must compare against the very same object.
+_SETTING_MISSING = object()
+
 
 class LifecycleSection:
     """Plugin lifecycle: __init__, tr, action builders, initGui, cleanupDocks, unload,
@@ -379,9 +384,13 @@ class LifecycleSection:
         if not self._qgisIsQuitting:
             # Not a real quit, so this is either a plain disable or a real uninstall (unload()
             # alone cannot tell them apart — see _offerToRemoveDependencies). Deferred so the
-            # check runs after QGIS has finished whatever it was doing to get here.
+            # check runs after QGIS has finished whatever it was doing to get here. Captured
+            # now, before anything else runs: disable/uninstall change this value (to False, or
+            # remove it) as part of the very same call that reaches unload(); a hot reload
+            # (Plugin Reloader) never touches it, whatever its value happens to be right now.
+            valueBeforeUnload = QgsSettings().value("/PythonPlugins/QGISRed", _SETTING_MISSING)
             with suppress(Exception):
-                QTimer.singleShot(0, self._offerToRemoveDependencies)
+                QTimer.singleShot(0, lambda: self._offerToRemoveDependencies(valueBeforeUnload))
 
         with suppress(Exception):
             self._staleLayerManager.stop()
@@ -518,7 +527,15 @@ class LifecycleSection:
         return "linux"
 
     def _dependenciesInstalled(self, gisredDir):
-        """Return True when the required dependencies (right version on Windows) are present."""
+        """Return True when the required dependencies (right version on Windows) are present.
+
+        On Windows this asks the native DLL itself (GetVersion(), loaded from the temp copy
+        made by copyDependencies()) rather than reading the file on disk — correct only as
+        long as that temp copy is refreshed first; _installDependenciesZip() does so before
+        calling this, same as the old installer-based flow always did after its own install
+        finished. Calling this right after writing new files to gisredDir WITHOUT refreshing
+        the temp copy first would still report the previous version: Windows keeps serving an
+        already-loaded module from memory even after the file on disk underneath it changes."""
         import sys
         if sys.platform == "win32":
             if not os.path.isdir(gisredDir):
@@ -576,18 +593,21 @@ class LifecycleSection:
                 path = os.path.join(gisredDir, name)
                 if os.path.isfile(path):
                     with suppress(Exception):
-                        os.chmod(path, 0o755)
+                        os.chmod(path, 0o755)  # nosec B103 — rwxr-xr-x on a shared library this user just extracted into their own per-user folder, needed to dlopen() it at all
+        # Refresh the temp copy native calls (GetVersion() included) actually load from, before
+        # checking whether the install succeeded — see the note on _dependenciesInstalled().
+        fsUtils.copyDependencies()
         return self._dependenciesInstalled(gisredDir)
 
-    def _offerToRemoveDependencies(self):
+    def _offerToRemoveDependencies(self, valueBeforeUnload):
         """Runs on the next event-loop tick after a non-quit unload(). QGIS writes
         /PythonPlugins/QGISRed to False right after calling unload() on a plain disable, and
         removes the key entirely at the end of a real uninstall — both land here with time to
-        have happened already. A hot reload (e.g. Plugin Reloader) never touches that key, so
-        it is still True and nothing is asked."""
-        missing = object()
-        value = QgsSettings().value("/PythonPlugins/QGISRed", missing)
-        if value is True:
+        have happened already. A hot reload (e.g. Plugin Reloader) never touches that key at
+        all, so comparing against its value right before unload() ran (not against a fixed
+        True/False) tells them apart regardless of what that value happened to be."""
+        valueNow = QgsSettings().value("/PythonPlugins/QGISRed", _SETTING_MISSING)
+        if valueNow == valueBeforeUnload:
             return
         box = QMessageBox(self.iface.mainWindow())
         box.setWindowTitle(self.tr("QGISRed Dependencies"))
@@ -626,7 +646,6 @@ class LifecycleSection:
                             f.write(response.read())
                     installed = self._installDependenciesZip(localFile, gisredDir)
                     if installed:
-                        QGISRedFileSystemUtils().copyDependencies()
                         valid = self.checkDependencies()
                         if valid:
                             self.setCulture()
@@ -636,8 +655,10 @@ class LifecycleSection:
                             self.tr("QGISRed Dependencies"),
                             self.tr("The installation may have failed. Please try again or report the issue in GitHub"),
                         )
-                except Exception:
-                    pass
+                except Exception as error:
+                    QgsMessageLog.logMessage(
+                        "Dependencies download/install failed: %s" % error,
+                        "QGISRed", level=Qgis.MessageLevel.Warning)
                 finally:
                     with suppress(Exception):
                         os.remove(localFile)
