@@ -595,17 +595,18 @@ class LifecycleSection:
         import sys
         import zipfile
 
-        def _step(text):
+        def _step(value, text):
             if progress is not None:
+                progress.setValue(value)
                 progress.setLabelText(text)
                 QCoreApplication.processEvents()
 
-        _step(self.tr("Removing previous dependencies…"))
+        _step(1, self.tr("Removing previous dependencies…"))
         self._removeExistingDependencies()
         fsUtils = QGISRedFileSystemUtils()
         installFolder = fsUtils.getQGISRedInstallFolder()
         os.makedirs(installFolder, exist_ok=True)
-        _step(self.tr("Extracting files…"))
+        _step(2, self.tr("Extracting files…"))
         with zipfile.ZipFile(localFile) as zf:
             zf.extractall(installFolder)
         if sys.platform != "win32" and os.path.isdir(gisredDir):
@@ -615,10 +616,12 @@ class LifecycleSection:
                 if os.path.isfile(path):
                     with suppress(Exception):
                         os.chmod(path, 0o755)  # nosec B103 — rwxr-xr-x on a shared library this user just extracted into their own per-user folder, needed to dlopen() it at all
-        _step(self.tr("Finishing up…"))
+        _step(3, self.tr("Finishing up…"))
         # Refresh the temp copy native calls (GetVersion() included) actually load from, before
         # checking whether the install succeeded — see the note on _dependenciesInstalled().
         fsUtils.copyDependencies()
+        if progress is not None:
+            progress.setValue(4)
         return self._dependenciesInstalled(gisredDir)
 
     def _offerToRemoveDependencies(self, valueBeforeUnload):
@@ -664,13 +667,17 @@ class LifecycleSection:
                 os.close(fd)
 
                 # No cancel button: half-finished (old deps wiped, new ones half-extracted)
-                # is worse than just waiting. Indeterminate range (0, 0) since none of these
-                # steps report real progress, only which one is currently running.
+                # is worse than just waiting. A real 4-step range (one per named stage) rather
+                # than an indeterminate (0, 0) "busy" bar: Qt's indeterminate mode only starts
+                # animating on the next timer tick, so it renders with no visible bar at all
+                # until then — a determinate bar draws immediately, even at value 0.
                 progress = QProgressDialog(self.iface.mainWindow())
                 progress.setWindowTitle(self.tr("QGISRed Dependencies"))
                 progress.setWindowIcon(QIcon(":/images/qgisred.svg"))
+                progress.setMinimumWidth(380)  # the label text changes per step and can get long (e.g. French)
                 progress.setLabelText(self.tr("Downloading dependencies…"))
-                progress.setRange(0, 0)
+                progress.setRange(0, 4)
+                progress.setValue(0)
                 progress.setCancelButton(None)
                 progress.setWindowModality(Qt.WindowModality.WindowModal)
                 progress.setMinimumDuration(0)
