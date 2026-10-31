@@ -3,7 +3,6 @@
 
 from contextlib import suppress
 import os
-import time
 import tempfile
 import uuid
 import json
@@ -486,15 +485,8 @@ class LifecycleSection:
             return ""
 
     def getInstallerFileName(self):
-        """Return the dependencies installer filename for the current OS."""
-        import sys
-        if sys.platform == "win32":
-            ext = "msi"
-        elif sys.platform == "darwin":
-            ext = "pkg"
-        else:
-            ext = "deb"
-        return "QGISRed_Dependencies_{}.{}".format(self.DependenciesVersion, ext)
+        """Return the dependencies zip filename (same extension on every OS)."""
+        return "QGISRed_Dependencies_{}.zip".format(self.DependenciesVersion)
 
     def getDependenciesFolder(self):
         """Return the per-OS/architecture subfolder under /files/dependencies/ on the server."""
@@ -518,33 +510,49 @@ class LifecycleSection:
         dll_name = "GISRed.QGISRed.dylib" if sys.platform == "darwin" else "GISRed.QGISRed.so"
         return os.path.isfile(os.path.join(gisredDir, dll_name))
 
-    def _launchInstaller(self, localFile):
-        """Open the downloaded installer with the OS default handler."""
+    def _uninstallLegacyWindowsMsi(self):
+        """Windows only: uninstall any MSI-registered QGISRed product still around from the
+        old .msi-based installers (WPF and the short-lived Avalonia one) — they all share this
+        UpgradeCode. Harmless no-op if none is installed."""
         import sys
-        import subprocess  # nosec B404 — used only to open a verified installer via the OS default handler
-        if sys.platform == "win32":
-            os.startfile(localFile)  # nosec B606 — launches the .msi installer just downloaded over verified HTTPS, by design
-        elif sys.platform == "darwin":
-            subprocess.Popen(["open", localFile])  # nosec B603 B607 — opens the .pkg in the macOS Installer
-        else:
-            subprocess.Popen(["xdg-open", localFile])  # nosec B603 B607 — opens the .deb in the default package installer
+        if sys.platform != "win32":
+            return
+        import ctypes
+        import subprocess  # nosec B404 — fixed executable (msiexec), ProductCode just enumerated below, no user input
+        upgradeCode = "{FCACE4D5-A762-4399-BA7E-42D5BDAAEA4E}"
+        msi = ctypes.windll.msi
+        index = 0
+        buf = ctypes.create_unicode_buffer(39)
+        while msi.MsiEnumRelatedProductsW(upgradeCode, 0, index, buf) == 0:
+            productCode = buf.value
+            with suppress(Exception):
+                subprocess.run(  # nosec B603 B607 — fixed executable and flags, productCode from MsiEnumRelatedProductsW
+                    ["msiexec.exe", "/x", productCode, "/qn"],
+                    check=False, timeout=120,
+                )
+            index += 1
 
-    def _waitForInstallation(self, localFile, gisredDir):
-        """Block up to ~2 min while the user completes the installer, then report success."""
+    def _installDependenciesZip(self, localFile, gisredDir):
+        """Wipe any previous dependencies (DLLs + defaults) and extract the freshly downloaded
+        zip in their place. Returns whether the result looks correctly installed."""
         import sys
-        for _ in range(60):  # 60 × 2 s = 2 min timeout
-            time.sleep(2)
-            QCoreApplication.processEvents()
-            if sys.platform == "win32":
-                # The running MSI keeps the file locked; removal succeeds once it finishes.
-                with suppress(Exception):
-                    os.remove(localFile)
-                    return True
-            elif self._dependenciesInstalled(gisredDir):
-                with suppress(Exception):
-                    os.remove(localFile)
-                return True
-        return False
+        import zipfile
+        self._uninstallLegacyWindowsMsi()
+        fsUtils = QGISRedFileSystemUtils()
+        fsUtils.removeFolder(fsUtils.getGISRedDllFolder())
+        fsUtils.removeFolder(fsUtils.getDefaultsFolder())
+        installFolder = fsUtils.getQGISRedInstallFolder()
+        os.makedirs(installFolder, exist_ok=True)
+        with zipfile.ZipFile(localFile) as zf:
+            zf.extractall(installFolder)
+        if sys.platform != "win32" and os.path.isdir(gisredDir):
+            # A zip does not reliably carry the executable bit for .so/.dylib files.
+            for name in os.listdir(gisredDir):
+                path = os.path.join(gisredDir, name)
+                if os.path.isfile(path):
+                    with suppress(Exception):
+                        os.chmod(path, 0o755)
+        return self._dependenciesInstalled(gisredDir)
 
     def checkDependencies(self):
         gisredDir = QGISRedFileSystemUtils().getGISRedDllFolder()
@@ -570,22 +578,21 @@ class LifecycleSection:
                     with urllib.request.urlopen(link, context=_ctx) as response:  # nosec B310 — link validated startswith("https://") above
                         with open(localFile, "wb") as f:
                             f.write(response.read())
-                    self._launchInstaller(localFile)
-                    installed = self._waitForInstallation(localFile, gisredDir)
+                    installed = self._installDependenciesZip(localFile, gisredDir)
                     if installed:
                         QGISRedFileSystemUtils().copyDependencies()
                         valid = self.checkDependencies()
                         if valid:
                             self.setCulture()
                     else:
-                        with suppress(Exception):
-                            os.remove(localFile)
                         QMessageBox.warning(
                             self.iface.mainWindow(),
                             self.tr("QGISRed Dependencies"),
                             self.tr("The installation may have failed. Please try again or report the issue in GitHub"),
                         )
                 except Exception:
+                    pass
+                finally:
                     with suppress(Exception):
                         os.remove(localFile)
 

@@ -50,35 +50,39 @@ class TestFileSystemUtils:
         with patch("sys.platform", "linux"), patch.dict(os.environ, {"XDG_CONFIG_HOME": xdg}):
             assert utils.getQGISRedFolder() == os.path.join(xdg, "QGISRed")
 
-    # The installer folder is where the MSI/.deb/.pkg deploy dlls and defaults. It is the
-    # per-user folder on Windows only; on Linux/macOS the packages install machine-wide.
-    # These paths must match GISRed.Utils.PlatformPaths.InstallRoot on the C# side.
+    # The install folder is where the dependencies zip is extracted (dlls, defaults). It is
+    # always the same per-user folder as getQGISRedFolder(), on every OS — the dependencies are
+    # a plain zip the plugin extracts itself, not a system-wide installer. These paths must
+    # match GISRed.Utils.PlatformPaths.InstallRoot on the C# side.
 
     def test_getQGISRedInstallFolder_windows_is_the_user_folder(self, utils):
         appdata = os.path.join(tempfile.gettempdir(), "AppData")
         with patch("sys.platform", "win32"), patch.dict(os.environ, {"APPDATA": appdata}):
             assert utils.getQGISRedInstallFolder() == utils.getQGISRedFolder()
 
-    def test_getQGISRedInstallFolder_macos_is_machine_wide(self, utils):
+    def test_getQGISRedInstallFolder_macos_is_the_user_folder(self, utils):
         with patch("sys.platform", "darwin"):
-            assert utils.getQGISRedInstallFolder() == "/Library/Application Support/QGISRed"
+            assert utils.getQGISRedInstallFolder() == utils.getQGISRedFolder()
 
-    def test_getQGISRedInstallFolder_linux_is_machine_wide(self, utils):
-        with patch("sys.platform", "linux"):
-            assert utils.getQGISRedInstallFolder() == "/opt/QGISRed"
+    def test_getQGISRedInstallFolder_linux_is_the_user_folder(self, utils):
+        xdg = os.path.join(tempfile.gettempdir(), "config")
+        with patch("sys.platform", "linux"), patch.dict(os.environ, {"XDG_CONFIG_HOME": xdg}):
+            assert utils.getQGISRedInstallFolder() == utils.getQGISRedFolder()
 
     def test_getDefaultsFolder(self, utils):
         assert utils.getDefaultsFolder() == os.path.join(utils.getQGISRedInstallFolder(), INSTALL_DEFAULTS_FOLDER)
 
-    def test_getDefaultsFolder_linux_is_machine_wide(self, utils):
-        with patch("sys.platform", "linux"):
-            assert utils.getDefaultsFolder() == os.path.join("/opt/QGISRed", INSTALL_DEFAULTS_FOLDER)
+    def test_getDefaultsFolder_linux_is_the_user_folder(self, utils):
+        xdg = os.path.join(tempfile.gettempdir(), "config")
+        with patch("sys.platform", "linux"), patch.dict(os.environ, {"XDG_CONFIG_HOME": xdg}):
+            assert utils.getDefaultsFolder() == os.path.join(xdg, "QGISRed", INSTALL_DEFAULTS_FOLDER)
 
     def test_getMaterialsFolder(self, utils):
         assert utils.getMaterialsFolder() == os.path.join(utils.getQGISRedFolder(), APP_DATA_MATERIALS_FOLDER)
 
     def test_getMaterialsFolder_linux_stays_per_user(self, utils):
-        # Material tables are user data, so they never move to the machine-wide folder.
+        # Material tables are user data, distinct from the install folder even though both
+        # happen to share the same root today.
         xdg = os.path.join(tempfile.gettempdir(), "config")
         with patch("sys.platform", "linux"), patch.dict(os.environ, {"XDG_CONFIG_HOME": xdg}):
             assert utils.getMaterialsFolder() == os.path.join(xdg, "QGISRed", APP_DATA_MATERIALS_FOLDER)
@@ -91,17 +95,21 @@ class TestFileSystemUtils:
 
     def test_getGISRedDllFolder_macos(self, utils):
         with patch("sys.platform", "darwin"):
-            expected = os.path.join("/Library/Application Support/QGISRed", "dlls", "osx")
+            expected = os.path.join(utils.getQGISRedFolder(), "dlls", "osx")
             assert utils.getGISRedDllFolder() == expected
 
     def test_getGISRedDllFolder_linux_x64(self, utils):
-        with patch("sys.platform", "linux"), patch("platform.machine", return_value="x86_64"):
-            expected = os.path.join("/opt/QGISRed", "dlls", "x64")
+        xdg = os.path.join(tempfile.gettempdir(), "config")
+        with patch("sys.platform", "linux"), patch("platform.machine", return_value="x86_64"), \
+                patch.dict(os.environ, {"XDG_CONFIG_HOME": xdg}):
+            expected = os.path.join(xdg, "QGISRed", "dlls", "x64")
             assert utils.getGISRedDllFolder() == expected
 
     def test_getGISRedDllFolder_linux_arm64(self, utils):
-        with patch("sys.platform", "linux"), patch("platform.machine", return_value="aarch64"):
-            expected = os.path.join("/opt/QGISRed", "dlls", "arm64")
+        xdg = os.path.join(tempfile.gettempdir(), "config")
+        with patch("sys.platform", "linux"), patch("platform.machine", return_value="aarch64"), \
+                patch.dict(os.environ, {"XDG_CONFIG_HOME": xdg}):
+            expected = os.path.join(xdg, "QGISRed", "dlls", "arm64")
             assert utils.getGISRedDllFolder() == expected
 
     def test_removeFolder(self, utils):

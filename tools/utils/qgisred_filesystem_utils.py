@@ -141,23 +141,18 @@ class QGISRedFileSystemUtils:
             return os.path.join(xdg, "QGISRed")
 
     def getQGISRedInstallFolder(self):
-        """Folder where the dependencies installer deploys its read-only assets (dlls, defaults).
+        """Folder where the dependencies zip is extracted (dlls, defaults).
 
-        On Windows the MSI installs per-user, so it is the same folder as getQGISRedFolder(). On
-        Linux and macOS the .deb and .pkg install as root, machine-wide. Must stay in sync with
-        GISRed.Utils.PlatformPaths.InstallRoot on the C# side: both read the very same files.
+        Same folder as getQGISRedFolder() on every platform: the dependencies are a plain zip
+        the plugin extracts itself into the user's own folder, not a system-wide installer.
+        Must stay in sync with GISRed.Utils.PlatformPaths.InstallRoot on the C# side: both read
+        the very same files.
         """
-        import sys
-        if sys.platform == "win32":
-            return self.getQGISRedFolder()
-        elif sys.platform == "darwin":
-            return "/Library/Application Support/QGISRed"
-        else:
-            return "/opt/QGISRed"
+        return self.getQGISRedFolder()
 
     def getDefaultsFolder(self):
-        """Installer-deployed folder with the defaults shared by every project (units/decimals
-        CSV and the Materials_*.dbf tables). Read-only: not writable on Linux/macOS."""
+        """Folder with the defaults shared by every project (units/decimals CSV and the
+        Materials_*.dbf tables), extracted from the dependencies zip."""
         return os.path.join(self.getQGISRedInstallFolder(), INSTALL_DEFAULTS_FOLDER)
 
     def getMaterialsFolder(self):
