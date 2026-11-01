@@ -64,21 +64,36 @@ QGISRed uses Qt's `.ts`/`.qm` translation system. Translation files live in the 
 
 The following tools are required:
 
-- **`pylupdate5`** – extracts translatable strings from source files into a `.ts` template.
-- **`lrelease`** – compiles a `.ts` file into the binary `.qm` format that QGIS loads.
+- **`pylupdate5`** – extracts translatable strings from source files into a `.ts` template. Only needed to *update* the `.ts` files (step 1).
+- **`lrelease`** – compiles a `.ts` file into the binary `.qm` format that QGIS loads. Only needed to *compile* (step 4).
 - **Qt Linguist** *(optional)* – GUI editor for `.ts` files.
 
-All three tools ship with **Qt5 Development Tools**. Install them downloading OSGeo4W from https://trac.osgeo.org/osgeo4w/ and in the "Advanced mode" select qt5 and qt6 options (instead of Skip) in CommandLine and Desktop and qt5-devel, qt6-devel, python3-pyqt5 and python3-pyqt6 in libs. 
+> **The regular QGIS installer is not enough.** It bundles only `linguist.exe`; it does not include `pylupdate5` or `lrelease`.
+
+**Full toolchain (OSGeo4W)** – provides all three tools and is what the helper scripts below expect. Install it by downloading OSGeo4W from https://trac.osgeo.org/osgeo4w/ and, in the "Advanced mode", select qt5 and qt6 options (instead of Skip) in CommandLine and Desktop and qt5-devel, qt6-devel, python3-pyqt5 and python3-pyqt6 in libs.
+
+The scripts look for the OSGeo4W shell at `%LOCALAPPDATA%\Programs\OSGeo4W\OSGeo4W.bat` (the per-user install location). If you installed it elsewhere (e.g. `C:\OSGeo4W`), edit the `OSGEO4W_BAT` variable at the top of each `.bat` file.
+
+**Lightweight alternative, compile only** – if you only need to turn already-translated `.ts` files into `.qm` (no OSGeo4W installed), `lrelease` is also shipped by PySide6:
+
+```bash
+pip install PySide6-Essentials
+pyside6-lrelease i18n/qgisred_es.ts
+```
+
+The `.qm` files it produces are readable by both Qt 5 (QGIS 3.x, checked with Qt 5.15) and Qt 6 (QGIS 4, checked with Qt 6.11), and Qt 6 also reads the `.qm` files already committed that were built with Qt 5. This does **not** replace `pylupdate5` for step 1: PySide6's `lupdate` cannot process `qgisred.pro`.
 
 #### 1. Generate / update the `.ts` template
 
-To automatically extract every translatable string from the source code and `.ui` files into a `.ts` template, simply run the `UpdateTranslations.bat` script located at the root of the plugin directory:
+To automatically extract every translatable string from the source code and `.ui` files into a `.ts` template, run the `UpdateTranslations.bat` script located in the plugin's `scripts` folder:
 
 ```bat
-UpdateTranslations.bat
+scripts\UpdateTranslations.bat
 ```
 
-This script will seamlessly locate and open the OSGeo4W Shell and run `pylupdate5 qgisred.pro` in the background. This writes (or updates) the `.ts` files inside the `i18n/` folder.
+This script will seamlessly locate and open the OSGeo4W Shell and run `pylupdate5 qgisred.pro` in the background. This writes (or updates) the `.ts` files inside the `i18n/` folder. The `line="…"` numbers in the `.ts` files are only references and drift between updates; they do not affect the translations.
+
+To drop entries that no longer exist in the code (`type="obsolete"`), run `scripts\CleanTranslations.bat` afterwards.
 
 #### 2. Create a new language file
 
@@ -120,14 +135,13 @@ linguist i18n/qgisred_es.ts
 
 #### 4. Compile the translation
 
-Once all strings are translated, compile the `.ts` file into a binary `.qm` format that QGIS can read. You can easily do this by running the `CompileTranslations.bat` script located at the root of the plugin directory:
+Once all strings are translated, compile the `.ts` file into a binary `.qm` format that QGIS can read. You can easily do this by running the `CompileTranslations.bat` script located in the plugin's `scripts` folder:
 
 ```bat
-CompileTranslations.bat
+scripts\CompileTranslations.bat
 ```
 
-This script will automatically open the OSGeo4W Shell and run `lrelease i18n/qgisred_es.ts` (and the other language defined in the scripts) in the plugin folder. This produces `i18n/qgisred_es.qm` (and the other language defined in the scripts), which QGIS picks up automatically at startup.
-
+This script will automatically open the OSGeo4W Shell and run `lrelease` on `i18n/qgisred_es.ts`, `i18n/qgisred_fr.ts` and `i18n/qgisred_pt.ts` (those three languages are hardcoded in the script; add a line for any new language). This produces the matching `i18n/qgisred_*.qm` files, which QGIS picks up automatically at startup.
 #### 5. Test in QGIS
 
 Set QGIS to the target language (*Settings → Options → General → User interface translation*), restart QGIS, and reload the plugin to verify the translations.
@@ -135,7 +149,7 @@ Set QGIS to the target language (*Settings → Options → General → User inte
 ### Workflow summary
 
 ```
-Install Qt5 tools → Update .ts template (pylupdate5) → Create/edit language file → Compile (lrelease) → Test in QGIS
+Install OSGeo4W (or PySide6 to compile only) → Update .ts template (pylupdate5) → Create/edit language file → Compile (lrelease) → Test in QGIS
 ```
 
 ## Developer Setup
