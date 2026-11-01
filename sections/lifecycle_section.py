@@ -689,10 +689,28 @@ class LifecycleSection:
                 progress.show()
                 QCoreApplication.processEvents()
                 try:
-                    with urllib.request.urlopen(link, context=_ctx) as response:  # nosec B310 — link validated startswith("https://") above
-                        with open(localFile, "wb") as f:
-                            f.write(response.read())
-                    installed = self._installDependenciesZip(localFile, gisredDir, progress)
+                    try:
+                        with urllib.request.urlopen(link, context=_ctx) as response:  # nosec B310 — link validated startswith("https://") above
+                            with open(localFile, "wb") as f:
+                                f.write(response.read())
+                    except Exception as error:
+                        progress.close()
+                        QgsMessageLog.logMessage(
+                            "Dependencies download failed: %s" % error,
+                            "QGISRed", level=Qgis.MessageLevel.Warning)
+                        QMessageBox.warning(
+                            self.iface.mainWindow(),
+                            self.tr("QGISRed Dependencies"),
+                            self.tr("The QGISRed dependencies could not be downloaded. Please try again later, and if the problem persists, report the issue in GitHub."),
+                        )
+                        return valid
+                    try:
+                        installed = self._installDependenciesZip(localFile, gisredDir, progress)
+                    except Exception as error:
+                        installed = False
+                        QgsMessageLog.logMessage(
+                            "Dependencies install failed: %s" % error,
+                            "QGISRed", level=Qgis.MessageLevel.Warning)
                     progress.close()
                     if installed:
                         valid = self.checkDependencies()
@@ -702,13 +720,8 @@ class LifecycleSection:
                         QMessageBox.warning(
                             self.iface.mainWindow(),
                             self.tr("QGISRed Dependencies"),
-                            self.tr("The installation may have failed. Please try again or report the issue in GitHub"),
+                            self.tr("The installation of the QGISRed dependencies failed. Please try again, and if the problem persists, report the issue in GitHub."),
                         )
-                except Exception as error:
-                    progress.close()
-                    QgsMessageLog.logMessage(
-                        "Dependencies download/install failed: %s" % error,
-                        "QGISRed", level=Qgis.MessageLevel.Warning)
                 finally:
                     with suppress(Exception):
                         os.remove(localFile)

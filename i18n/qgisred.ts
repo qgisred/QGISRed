@@ -2218,8 +2218,13 @@ Do you want to check them again?</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../sections/lifecycle_section.py" line="681"/>
-        <source>The installation may have failed. Please try again or report the issue in GitHub</source>
+        <location filename="../sections/lifecycle_section.py" line="705"/>
+        <source>The installation of the QGISRed dependencies failed. Please try again, and if the problem persists, report the issue in GitHub.</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="../sections/lifecycle_section.py" line="705"/>
+        <source>The QGISRed dependencies could not be downloaded. Please try again later, and if the problem persists, report the issue in GitHub.</source>
         <translation type="unfinished"></translation>
     </message>
     <message>

@@ -2382,9 +2382,14 @@ Do you want to check them again?</source>
         <translation>Noticias QGISRed</translation>
     </message>
     <message>
-        <location filename="../sections/lifecycle_section.py" line="681"/>
-        <source>The installation may have failed. Please try again or report the issue in GitHub</source>
-        <translation>La instalación puede haber fallado. Por favor, prueba otra vez o reporta un issue en GitHub</translation>
+        <location filename="../sections/lifecycle_section.py" line="705"/>
+        <source>The installation of the QGISRed dependencies failed. Please try again, and if the problem persists, report the issue in GitHub.</source>
+        <translation>La instalación de las dependencias de QGISRed ha fallado. Por favor, inténtalo de nuevo y, si el problema persiste, reporta un issue en GitHub.</translation>
+    </message>
+    <message>
+        <location filename="../sections/lifecycle_section.py" line="705"/>
+        <source>The QGISRed dependencies could not be downloaded. Please try again later, and if the problem persists, report the issue in GitHub.</source>
+        <translation>No se han podido descargar las dependencias de QGISRed. Por favor, inténtalo de nuevo más tarde y, si el problema persiste, reporta un issue en GitHub.</translation>
     </message>
     <message>
         <location filename="../sections/lifecycle_section.py" line="643"/>
