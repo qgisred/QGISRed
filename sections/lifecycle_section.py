@@ -606,12 +606,12 @@ class LifecycleSection:
                 # steps instead of a flash nobody has time to actually read.
                 time.sleep(0.3)
 
-        _step(1, self.tr("Removing previous dependencies…"))
+        _step(65, self.tr("Removing previous dependencies…"))
         self._removeExistingDependencies()
         fsUtils = QGISRedFileSystemUtils()
         installFolder = fsUtils.getQGISRedInstallFolder()
         os.makedirs(installFolder, exist_ok=True)
-        _step(2, self.tr("Extracting files…"))
+        _step(80, self.tr("Extracting files…"))
         with zipfile.ZipFile(localFile) as zf:
             zf.extractall(installFolder)
         if sys.platform != "win32" and os.path.isdir(gisredDir):
@@ -621,12 +621,12 @@ class LifecycleSection:
                 if os.path.isfile(path):
                     with suppress(Exception):
                         os.chmod(path, 0o755)  # nosec B103 — rwxr-xr-x on a shared library this user just extracted into their own per-user folder, needed to dlopen() it at all
-        _step(3, self.tr("Finishing up…"))
+        _step(95, self.tr("Finishing up…"))
         # Refresh the temp copy native calls (GetVersion() included) actually load from, before
         # checking whether the install succeeded — see the note on _dependenciesInstalled().
         fsUtils.copyDependencies()
         if progress is not None:
-            progress.setValue(4)
+            progress.setValue(100)
         return self._dependenciesInstalled(gisredDir)
 
     def _offerToRemoveDependencies(self, valueBeforeUnload):
@@ -672,27 +672,43 @@ class LifecycleSection:
                 os.close(fd)
 
                 # No cancel button: half-finished (old deps wiped, new ones half-extracted)
-                # is worse than just waiting. A real 4-step range (one per named stage) rather
-                # than an indeterminate (0, 0) "busy" bar: Qt's indeterminate mode only starts
-                # animating on the next timer tick, so it renders with no visible bar at all
-                # until then — a determinate bar draws immediately, even at value 0.
+                # is worse than just waiting. A determinate 0-100 range (download takes the
+                # first 60) rather than an indeterminate (0, 0) "busy" bar: Qt's indeterminate
+                # mode only starts animating on the next timer tick, so it renders with no
+                # visible bar at all until then.
                 progress = QProgressDialog(self.iface.mainWindow())
                 progress.setWindowTitle(self.tr("QGISRed Dependencies"))
                 progress.setWindowIcon(QIcon(":/images/qgisred.svg"))
                 progress.setMinimumWidth(380)  # the label text changes per step and can get long (e.g. French)
                 progress.setLabelText(self.tr("Downloading dependencies…"))
-                progress.setRange(0, 4)
+                progress.setRange(0, 100)
                 progress.setValue(0)
                 progress.setCancelButton(None)
                 progress.setWindowModality(Qt.WindowModality.WindowModal)
                 progress.setMinimumDuration(0)
                 progress.show()
-                QCoreApplication.processEvents()
+                # A new top-level window needs a few event-loop passes before its contents are
+                # first painted, and the download below blocks this thread: with a single pass
+                # the dialog stayed an empty white box (no label, no bar) for the whole download.
+                for _ in range(3):
+                    progress.repaint()
+                    QCoreApplication.processEvents()
                 try:
                     try:
                         with urllib.request.urlopen(link, context=_ctx) as response:  # nosec B310 — link validated startswith("https://") above
+                            total = int(response.headers.get("Content-Length") or 0)
+                            done = 0
                             with open(localFile, "wb") as f:
-                                f.write(response.read())
+                                while True:
+                                    chunk = response.read(65536)
+                                    if not chunk:
+                                        break
+                                    f.write(chunk)
+                                    done += len(chunk)
+                                    if total:
+                                        progress.setValue(int(60 * done / total))
+                                    # Keep the dialog painted and the bar moving during the download.
+                                    QCoreApplication.processEvents()
                     except Exception as error:
                         progress.close()
                         QgsMessageLog.logMessage(
