@@ -1358,6 +1358,8 @@ class ProfileSection:
                 level=1,
             )
             return
+        if self._trimProfileRouteFromEnd(node_id):
+            return
         target, branch = self._profileTargetForNode(node_id, "declared")
         if target == "main":
             previous = list(getattr(self, "_profileReferenceNodes", []) or [])
@@ -1386,6 +1388,77 @@ class ProfileSection:
             self._redrawProfile()
         else:
             self.pushMessage(self.tr("Pick a declared profile point to remove."), level=1)
+
+    def _trimProfileRouteFromEnd(self, node_id):
+        """Removing an end node of a route (main or a branch) removes the whole
+        route from that end back to the nearest bifurcation, or the whole route
+        if there is none. A route extended from its end is a single route, so the
+        extension and what was there before go together.
+
+        Returns True if node_id was a route end and the trim was applied.
+        """
+        main = getattr(self, "_profilePath", None)
+        branches = list(getattr(self, "_profileBranches", []) or [])
+        route = None
+        if main and len(main["nodes"]) > 1 and node_id in (main["nodes"][0], main["nodes"][-1]):
+            route = None, main, node_id == main["nodes"][0]
+        else:
+            for branch in branches:
+                path = branch.get("path")
+                if path and len(path["nodes"]) > 1 and node_id == path["nodes"][-1]:
+                    route = branch, path, False
+                    break
+        if route is None:
+            return False
+        branch, path, from_start = route
+
+        bifurcations = {
+            (b.get("reference_nodes") or [None])[0] for b in branches if b is not branch
+        }
+        nodes = path["nodes"]
+        is_ref = path["is_reference"]
+        # A branch's own origin (index 0) is never a stop: reaching it means the
+        # whole branch goes. The main route can stop at its far end node.
+        last_back = 0 if branch is None else 1
+        indices = range(1, len(nodes)) if from_start else range(len(nodes) - 2, last_back - 1, -1)
+        stop = next((i for i in indices if nodes[i] in bifurcations), None)
+
+        previous_main = list(getattr(self, "_profileReferenceNodes", []) or [])
+        previous_branches = branches
+        previous_branch_refs = list(branch.get("reference_nodes") or []) if branch else None
+
+        if stop is None:
+            if branch is not None:
+                self._profileBranches = [b for b in branches if b is not branch]
+            else:
+                # The main route has no bifurcation, so nothing hangs off it: the
+                # whole profile goes and the next click starts a new path.
+                self._profileReferenceNodes = []
+                self._profileBranches = []
+                self._profileEditSeq = "main"
+                self._profileExtendAtStart = False
+        else:
+            if from_start:
+                kept = [nodes[stop]] + [n for i, n in enumerate(nodes) if i > stop and is_ref[i]]
+            else:
+                kept = [n for i, n in enumerate(nodes) if i < stop and is_ref[i]] + [nodes[stop]]
+            if branch is not None:
+                branch["reference_nodes"] = kept
+            else:
+                self._profileReferenceNodes = kept
+
+        try:
+            self._rebuildProfilePaths()
+        except ProfilePathError:
+            self._profileReferenceNodes = previous_main
+            self._profileBranches = previous_branches
+            if branch is not None:
+                branch["reference_nodes"] = previous_branch_refs
+            with suppress(ProfilePathError):
+                self._rebuildProfilePaths()
+            return True
+        self._redrawProfile()
+        return True
 
     def _applyProfileMove(self, node_id, new_node_id):
         if node_id == new_node_id:
