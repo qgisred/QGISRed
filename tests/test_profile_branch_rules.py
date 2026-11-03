@@ -216,3 +216,26 @@ def test_move_bifurcation_rejected_to_lower_connectivity():
     assert branch["reference_nodes"] == ["B", "F"]
     assert branch["path"]["nodes"] == ["B", "E", "F"]
     assert s.messages and "connectivity" in s.messages[-1][0]
+
+
+def test_remove_end_of_extended_branch_removes_whole_branch():
+    adjacency, lengths = _grid()
+    s = _Section(adjacency, lengths)
+    s._profileReferenceNodes = ["A", "D"]
+    s._profileBranches = [_branch(["B", "E", "G"])]  # B-E traced, then extended to G
+    s._rebuildProfilePaths()
+
+    s._applyProfileRemove("G")
+    assert s._profileBranches == []
+    assert s._profileReferenceNodes == ["A", "D"]
+
+
+def test_remove_end_of_main_only_removes_that_pass_node():
+    adjacency, lengths = _grid()
+    s = _Section(adjacency, lengths)
+    s._profileReferenceNodes = ["A", "C", "D"]  # A-C traced, then extended to D
+    s._profileBranches = []
+    s._rebuildProfilePaths()
+
+    s._applyProfileRemove("D")
+    assert s._profileReferenceNodes == ["A", "C"]

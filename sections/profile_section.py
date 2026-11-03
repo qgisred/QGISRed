@@ -1358,6 +1358,8 @@ class ProfileSection:
                 level=1,
             )
             return
+        if self._trimBranchFromEnd(node_id):
+            return
         target, branch = self._profileTargetForNode(node_id, "declared")
         if target == "main":
             previous = list(getattr(self, "_profileReferenceNodes", []) or [])
@@ -1386,6 +1388,44 @@ class ProfileSection:
             self._redrawProfile()
         else:
             self.pushMessage(self.tr("Pick a declared profile point to remove."), level=1)
+
+    def _trimBranchFromEnd(self, node_id):
+        """Removing the end node of a branch removes the whole branch, back to
+        the nearest sub-branch hanging from it or, if none, to its origin. A
+        branch extended from its end is one branch, so the extension and what was
+        there before go together. The main path is not affected.
+
+        Returns True if node_id was a branch end and the trim was applied.
+        """
+        branches = list(getattr(self, "_profileBranches", []) or [])
+        branch = next(
+            (b for b in branches
+             if b.get("path") and len(b["path"]["nodes"]) > 1 and node_id == b["path"]["nodes"][-1]),
+            None,
+        )
+        if branch is None:
+            return False
+
+        sub_origins = {(b.get("reference_nodes") or [None])[0] for b in branches if b is not branch}
+        nodes = branch["path"]["nodes"]
+        is_ref = branch["path"]["is_reference"]
+        stop = next((i for i in range(len(nodes) - 2, 0, -1) if nodes[i] in sub_origins), None)
+
+        previous_refs = list(branch.get("reference_nodes") or [])
+        if stop is None:
+            self._profileBranches = [b for b in branches if b is not branch]
+        else:
+            branch["reference_nodes"] = [n for i, n in enumerate(nodes) if i < stop and is_ref[i]] + [nodes[stop]]
+        try:
+            self._rebuildProfilePaths()
+        except ProfilePathError:
+            self._profileBranches = branches
+            branch["reference_nodes"] = previous_refs
+            with suppress(ProfilePathError):
+                self._rebuildProfilePaths()
+            return True
+        self._redrawProfile()
+        return True
 
     def _applyProfileMove(self, node_id, new_node_id):
         if node_id == new_node_id:
