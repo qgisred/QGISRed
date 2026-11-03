@@ -468,9 +468,58 @@ class ProfileSection:
             self._setProfileMapTool("one", self._profileEditLeftClick, self._profileEditRightClick,
                                     cursor=":/images/pencil.svg",
                                     double_click_callback=self._profileEditDoubleClick)
+            self._suspendMapTipsWhileEditing(self.myMapTools.get("Profile"))
         else:
             self._setProfileMapTool("one", self._profileTrackingClick, self._profileTrackingContext,
                                     cursor=":/images/iconProfile.svg")
+
+    def _suspendMapTipsWhileEditing(self, tool):
+        # While a path is being traced the results map-tips pop up on every node
+        # and get in the way. Turn "Show Map Tips" off and disable it for as long
+        # as the edit tool is on the canvas; however the tool leaves (edit off,
+        # another map tool picked, panel hidden, plugin unloaded) the button is
+        # put back exactly as the user had it.
+        if tool is None:
+            return
+        action = None
+        with suppress(Exception):
+            action = self.iface.actionMapTips()
+        if action is None:
+            return
+        if getattr(self, "_profileSavedMapTips", None) is None:
+            self._profileSavedMapTips = (action.isChecked(), action.isEnabled())
+        with suppress(Exception):
+            action.setChecked(False)
+            action.setEnabled(False)
+        self._hideProfileMapTip()
+        # Not tool.deactivated: the select-point tool deactivates/reactivates
+        # itself on every click to reset. Only a real canvas tool change counts.
+        self._profileMapTipsTool = tool
+        if not getattr(self, "_profileMapTipsWatching", False):
+            with suppress(Exception):
+                self.iface.mapCanvas().mapToolSet.connect(self._onMapToolSetWhileEditing)
+                self._profileMapTipsWatching = True
+
+    def _onMapToolSetWhileEditing(self, new_tool, _old_tool=None):
+        if new_tool is not None and new_tool is getattr(self, "_profileMapTipsTool", None):
+            return
+        self._restoreMapTipsAfterEditing()
+
+    def _restoreMapTipsAfterEditing(self):
+        if getattr(self, "_profileMapTipsWatching", False):
+            with suppress(Exception):
+                self.iface.mapCanvas().mapToolSet.disconnect(self._onMapToolSetWhileEditing)
+            self._profileMapTipsWatching = False
+        self._profileMapTipsTool = None
+        saved = getattr(self, "_profileSavedMapTips", None)
+        if saved is None:
+            return
+        self._profileSavedMapTips = None
+        checked, enabled = saved
+        with suppress(Exception):
+            action = self.iface.actionMapTips()
+            action.setEnabled(enabled)
+            action.setChecked(checked)
 
     def _profileTrackingClick(self, _point):
         self._syncActiveProfileToVisible()
