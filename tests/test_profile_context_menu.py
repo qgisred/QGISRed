@@ -292,3 +292,29 @@ def test_right_double_click_ignored_without_pending_menu():
     s._profileHandleRightDoubleClickNode("C")
     assert getattr(s, "_profileEditSeq", None) is None
     assert s._profileBranches == []
+
+
+def _tracing_main(right_clicked_node):
+    adjacency, lengths = _linear()
+    s = _Section(adjacency, lengths)
+    s._profileReferenceNodes = ["B", "C", "D"]
+    s._rebuildProfilePaths()
+    s._profileEditSeq = "main"  # trace left open, last traced node is D (E still free)
+    s._resolveProfileNode = lambda _point: right_clicked_node
+    return s
+
+
+def test_right_click_while_tracing_closes_trace_and_opens_menu():
+    s = _tracing_main("D")
+    s._profileEditRightClick(object())
+    assert s._profileEditSeq is None
+    assert s._profileContextPending is True
+    assert s._profilePendingContextNode == "D"
+
+
+def test_right_double_click_while_tracing_only_closes_trace():
+    s = _tracing_main("D")
+    s._profileEditRightClick(object())
+    s._profileHandleRightDoubleClickNode("D")
+    assert s._profileEditSeq is None  # no extend shortcut from D
+    assert s._profileContextPending is False  # menu cancelled

@@ -917,7 +917,7 @@ class ProfileSection:
             return
         self._profileContextPending = False
         self._profileContextToken = getattr(self, "_profileContextToken", 0) + 1  # cancel pending menu
-        if node_id is None:
+        if node_id is None or not getattr(self, "_profileContextShortcuts", True):
             return
         role = self._profileClassifyNode(node_id)
         if role in ("origin", "terminal"):
@@ -934,10 +934,16 @@ class ProfileSection:
             self._profileMoveSource = None
             self._profileEditSeq = None
             return
+        node_id = self._resolveProfileNode(point) if point is not None else None
         if self._profileSequenceHasNodes(seq):
             self._profileFinishSequence()
+            # A right-click on a profile node also opens its menu, so a forgotten
+            # close doesn't swallow the click. Deferred like any other menu: a
+            # right double-click (the usual way to close a trace) cancels it and
+            # only closes the trace, without the extend/branch shortcut.
+            if node_id is not None and self._profileClassifyNode(node_id):
+                self._deferProfileContextMenu(node_id, shortcuts=False)
             return
-        node_id = self._resolveProfileNode(point) if point is not None else None
         role = self._profileClassifyNode(node_id) if node_id else None
         if role in ("origin", "terminal", "through", "bifurcation"):
             # On a pass node, defer the menu so a double right-click (extend /
@@ -946,7 +952,7 @@ class ProfileSection:
         else:
             self._profileShowContextMenu(node_id)
 
-    def _deferProfileContextMenu(self, node_id):
+    def _deferProfileContextMenu(self, node_id, shortcuts=True):
         from qgis.PyQt.QtCore import QTimer
         from qgis.PyQt.QtWidgets import QApplication
 
@@ -954,6 +960,7 @@ class ProfileSection:
         self._hideProfileMapTip()
         self._profilePendingContextNode = node_id
         self._profileContextPending = True
+        self._profileContextShortcuts = shortcuts
         self._profileContextToken = getattr(self, "_profileContextToken", 0) + 1
         token = self._profileContextToken
         with suppress(Exception):
