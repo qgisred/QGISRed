@@ -8698,6 +8698,16 @@ No se pueden aplicar los cambios.</translation>
         <translation>Mostrar ID de líneas</translation>
     </message>
     <message>
+        <location filename="../ui/analysis/qgisred_results_dock.ui" line="1489"/>
+        <source>Show only the most relevant values</source>
+        <translation>Mostrar solo los valores más relevantes</translation>
+    </message>
+    <message>
+        <location filename="../ui/analysis/qgisred_results_dock.ui" line="1492"/>
+        <source>When zoomed out, label only the values that change the most along the main flow paths (or the largest ones); more labels appear as you zoom in</source>
+        <translation>Al alejar el zoom, etiqueta solo los valores que más cambian a lo largo de los caminos principales del flujo (o los mayores); al acercarse aparecen más etiquetas</translation>
+    </message>
+    <message>
         <location filename="../ui/analysis/qgisred_results_dock.ui" line="1827"/>
         <source>Arrows:</source>
         <translation>Flechas:</translation>

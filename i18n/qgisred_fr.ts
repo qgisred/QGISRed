@@ -8696,6 +8696,16 @@ Impossible d'appliquer les modifications.</translation>
         <translation type="unfinished">Afficher l'ID des liens</translation>
     </message>
     <message>
+        <location filename="../ui/analysis/qgisred_results_dock.ui" line="1489"/>
+        <source>Show only the most relevant values</source>
+        <translation type="unfinished">Afficher uniquement les valeurs les plus pertinentes</translation>
+    </message>
+    <message>
+        <location filename="../ui/analysis/qgisred_results_dock.ui" line="1492"/>
+        <source>When zoomed out, label only the values that change the most along the main flow paths (or the largest ones); more labels appear as you zoom in</source>
+        <translation type="unfinished">En vue éloignée, n&apos;étiqueter que les valeurs qui varient le plus le long des chemins principaux de l&apos;écoulement (ou les plus grandes) ; davantage d&apos;étiquettes apparaissent en zoomant</translation>
+    </message>
+    <message>
         <location filename="../ui/analysis/qgisred_results_dock.ui" line="1827"/>
         <source>Arrows:</source>
         <translation type="unfinished">Flèches :</translation>

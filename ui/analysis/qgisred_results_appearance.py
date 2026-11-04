@@ -39,6 +39,7 @@ class _ResultsAppearanceMixin:
         self._labelColorByRange = self.rbColorByRange.isChecked()
         self._labelShowNodeId = self.cbShowNodeId.isChecked()
         self._labelShowLinkId = self.cbShowLinkId.isChecked()
+        self._labelRelevantOnly = self.cbRelevantLabels.isChecked()
         self._saveAppearanceSettings()
         self._refreshLabelsIfShowing("Node")
         self._refreshLabelsIfShowing("Link")
@@ -392,6 +393,7 @@ class _ResultsAppearanceMixin:
         self._labelColorByRange = False
         self._labelShowNodeId = False
         self._labelShowLinkId = False
+        self._labelRelevantOnly = True
         self._labelBgColor = None
         self._labelBgColorLocked = False
         self._labelBufferColor = None
@@ -414,6 +416,7 @@ class _ResultsAppearanceMixin:
         self.rbColorBlack.setChecked(True)
         self.cbShowNodeId.setChecked(False)
         self.cbShowLinkId.setChecked(False)
+        self.cbRelevantLabels.setChecked(True)
         self._setColorButton(self.btLabelBgColor, None)
         self.btClearLabelBgColor.setEnabled(False)
         self._setColorButton(self.btLabelBufferColor, None)
@@ -458,6 +461,7 @@ class _ResultsAppearanceMixin:
                       colorByRange="true" if self._labelColorByRange else "false",
                       showNodeId="true" if self._labelShowNodeId else "false",
                       showLinkId="true" if self._labelShowLinkId else "false",
+                      relevantOnly="true" if self._labelRelevantOnly else "false",
                       bgColor=self._labelBgColor.name() if self._labelBgColor else "",
                       lockBgToMap="true" if self._labelBgColorLocked else "false",
                       bufferColor=self._labelBufferColor.name() if self._labelBufferColor else "")
@@ -494,6 +498,7 @@ class _ResultsAppearanceMixin:
                     legacy_show_id = labels.get("showId", "false") == "true"
                     self._labelShowNodeId = labels.get("showNodeId", "true" if legacy_show_id else "false") == "true"
                     self._labelShowLinkId = labels.get("showLinkId", "true" if legacy_show_id else "false") == "true"
+                    self._labelRelevantOnly = labels.get("relevantOnly", "true") == "true"
                     bg_hex = labels.get("bgColor", "")
                     self._labelBgColor = QColor(bg_hex) if bg_hex else None
                     self._labelBgColorLocked = labels.get("lockBgToMap", "false") == "true"
@@ -537,6 +542,7 @@ class _ResultsAppearanceMixin:
         self.rbColorByRange.blockSignals(False)
         self.cbShowNodeId.setChecked(self._labelShowNodeId)
         self.cbShowLinkId.setChecked(self._labelShowLinkId)
+        self.cbRelevantLabels.setChecked(self._labelRelevantOnly)
         self.btClearLabelBgColor.setEnabled(self._labelBgColor is not None)
         self._setColorButton(self.btLabelBgColor, self._labelBgColor)
         self.btClearLabelBufferColor.setEnabled(self._labelBufferColor is not None)

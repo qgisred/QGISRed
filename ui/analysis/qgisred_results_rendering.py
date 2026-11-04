@@ -1,5 +1,6 @@
 # -*- coding: utf-8 -*-
 from contextlib import contextmanager, suppress
+import os
 import re
 
 from qgis.core import (
@@ -8,7 +9,7 @@ from qgis.core import (
     QgsProperty, QgsRenderContext,
     QgsGraduatedSymbolRenderer,
     QgsRuleBasedRenderer,
-    QgsProject, QgsMessageLog,
+    QgsProject, QgsMessageLog, QgsFeatureRequest,
 )
 from qgis.PyQt.QtCore import QCoreApplication, QSizeF
 from qgis.PyQt.QtGui import QColor, QFont
@@ -18,6 +19,7 @@ from ...compat import (
     TEXT_BG_SHAPE_RECTANGLE, TEXT_BG_SIZE_BUFFER,
     PEN_JOIN_ROUND,
     PAL_PROPERTY_COLOR, PAL_PROPERTY_LABEL_DISTANCE,
+    PAL_PROPERTY_SHOW, PAL_PROPERTY_PRIORITY,
     PAL_PLACEMENT_LINE, PAL_PLACEMENT_AROUND_POINT,
     SL_PROP_SIZE, SL_PROP_STROKE_COLOR, SL_PROP_STROKE_WIDTH,
     QGIS_WARNING,
@@ -28,6 +30,8 @@ from ...tools.utils.qgisred_field_utils import QGISRedFieldUtils
 from ...tools.utils.qgisred_result_fields import resultIdField, resultTypeField
 from .qgisred_results_data import resultStyleName, resultLayerDisplayName, resultVariableUnit, qualityStyleKind, NO_VARIABLE_METADATA_TAG
 from ...tools.utils.qgisred_project_utils import QGISRedProjectUtils
+from .qgisred_results_binary import getOut_Metadata, _NT_JUNCTION
+from .results_label_priority import FlowTree, compute_levels, LEVEL_COUNT
 
 # Default label text colors (used unless the user picks "By range" or overrides them in
 # Appearance). Dark tones close to black so labels stay legible, but distinguishable
@@ -506,7 +510,10 @@ class _ResultsRenderingMixin:
 
                 if field:
                     if not setRender:
-                        # Time-only change: renderer and style are already correct, just repaint
+                        # Time-only change: renderer and style are already correct, just repaint.
+                        # The relevant-values filter depends on the values, so it is rebuilt.
+                        if self._relevantLabelsActive(layer_to_paint):
+                            self.setLayerLabels(layer_to_paint, field)
                         layer_to_paint.triggerRepaint()
                         continue
 
@@ -826,11 +833,123 @@ class _ResultsRenderingMixin:
                 ),
             )
         layer_settings.distUnits = RENDER_UNIT_MILLIMETERS
+        if show_value and getattr(self, '_labelRelevantOnly', True):
+            level_expr = self._labelLevelExpression(layer, fieldName, is_node)
+            net_size = 0.0
+            if level_expr:
+                extent = layer.extent()
+                net_size = max(extent.width(), extent.height())
+            if net_size > 0:
+                # Zoom ratio against the full network: level L appears once zoomed in 2^(L-1)
+                # times. Overlaps among the visible ones are still solved by QGIS, favouring
+                # the most relevant through the label priority.
+                zoom_ratio = (f"max(1, {net_size!r} / max(bounds_width(@map_extent), "
+                              f"bounds_height(@map_extent), 1e-9))")
+                ddp.setProperty(PAL_PROPERTY_SHOW, QgsProperty.fromExpression(
+                    f"({level_expr}) <= 1 + log(2, {zoom_ratio}) + 1e-9"))
+                ddp.setProperty(PAL_PROPERTY_PRIORITY, QgsProperty.fromExpression(
+                    f"max(0, 11 - ({level_expr}))"))
         layer_settings.setDataDefinedProperties(ddp)
         labels = QgsVectorLayerSimpleLabeling(layer_settings)
         layer.setLabeling(labels)
         layer.setLabelsEnabled(True)
         layer.triggerRepaint()
+
+    def _relevantLabelsActive(self, layer):
+        """True when the layer shows value labels filtered to the most relevant ones."""
+        if not getattr(self, '_labelRelevantOnly', True):
+            return False
+        checkbox = self.cbNodeLabels if layer.geometryType() == 0 else self.cbLinkLabels
+        return checkbox.isChecked() and layer.labelsEnabled()
+
+    def _resultsTopology(self):
+        """(node_ids, link_ids, link_ends, roots) read from the .out file, cached by mtime."""
+        path = self._getOutResultsPath()
+        try:
+            key = (path, os.path.getmtime(path))
+        except OSError:
+            return None
+        cached = getattr(self, '_labelTopologyCache', None)
+        if cached and cached[0] == key:
+            return cached[1]
+        topology = None
+        with suppress(Exception), open(path, "rb") as f:
+            meta = getOut_Metadata(f)
+            if meta:
+                topology = (
+                    meta["node_ids"], meta["link_ids"],
+                    list(zip(meta["link_from"], meta["link_to"])),
+                    [i for i, t in enumerate(meta["node_types"]) if t != _NT_JUNCTION],
+                )
+        self._labelTopologyCache = (key, topology)
+        return topology
+
+    @staticmethod
+    def _readLayerColumns(layer, field_names):
+        """{element id: [value per field]} for the given fields (None when missing/NULL)."""
+        fields = layer.fields()
+        id_idx = fields.indexOf(resultIdField(layer))
+        indices = [fields.indexOf(name) for name in field_names]
+        wanted = [i for i in [id_idx] + indices if i >= 0]
+        request = QgsFeatureRequest().setSubsetOfAttributes(wanted)
+        request.setFlags(QgsFeatureRequest.NoGeometry if hasattr(QgsFeatureRequest, "NoGeometry")
+                         else QgsFeatureRequest.Flag.NoGeometry)
+        columns = {}
+        for feature in layer.getFeatures(request):
+            attrs = feature.attributes()
+            row = []
+            for i in indices:
+                value = attrs[i] if i >= 0 else None
+                if value is not None and not isinstance(value, (int, float, str)):
+                    value = None  # QVariant NULL
+                row.append(value)
+            columns[str(attrs[id_idx]) if id_idx >= 0 else str(feature.id())] = row
+        return columns
+
+    def _labelLevelExpression(self, layer, fieldName, is_node):
+        """Expression giving each feature's relevance level (1 = most relevant), or None."""
+        try:
+            topology = self._resultsTopology()
+            link_layer = self._findResultLayer("Link") if topology else None
+        except Exception:
+            return None  # no readable results: label everything
+        if link_layer is None:
+            return None
+        node_ids, link_ids, link_ends, roots = topology
+        try:
+            flow_cols = self._readLayerColumns(link_layer, ["Flow", "Flow_Unsig", "Flow_Sig"])
+            flows_abs = []
+            for lid in link_ids:
+                row = flow_cols.get(lid) or [None, None, None]
+                q = next((v for v in row if isinstance(v, (int, float))), None)
+                flows_abs.append(abs(q) if q is not None else None)
+            tree = FlowTree(len(node_ids), link_ends, flows_abs, roots)
+
+            ids = node_ids if is_node else link_ids
+            extra = [] if is_node else [resultTypeField(layer, default="Type")]
+            cols = self._readLayerColumns(layer, [fieldName] + extra)
+            rows = [cols.get(eid) for eid in ids]
+
+            def column(k):
+                return [row[k] if row and k < len(row) else None for row in rows]
+
+            values = [v if isinstance(v, (int, float)) else None for v in column(0)]
+            levels = compute_levels(
+                fieldName, is_node, tree, values, flows_abs,
+                statuses=column(0), link_types=column(1) if extra else None,
+            )
+        except Exception as exc:  # never break labelling over the relevance filter
+            QgsMessageLog.logMessage(f"Relevant labels: {exc}", "QGISRed", QGIS_WARNING)
+            return None
+
+        entries = []
+        for eid, level in zip(ids, levels):
+            if level < LEVEL_COUNT:
+                entries.append("'" + str(eid).replace("'", "''") + "'," + str(level))
+        id_col = '"' + resultIdField(layer) + '"'
+        if not entries:
+            return str(LEVEL_COUNT)
+        return f"coalesce(map_get(map({','.join(entries)}), to_string({id_col})), {LEVEL_COUNT})"
 
     def _labelMargin(self, has_background):
         """Gap (mm) to leave between the symbol edge and the label, background included.

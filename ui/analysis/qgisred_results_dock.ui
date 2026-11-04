@@ -1484,13 +1484,26 @@
                 </layout>
                </item>
                <item row="6" column="0" colspan="2">
+                <widget class="QCheckBox" name="cbRelevantLabels">
+                 <property name="text">
+                  <string>Show only the most relevant values</string>
+                 </property>
+                 <property name="toolTip">
+                  <string>When zoomed out, label only the values that change the most along the main flow paths (or the largest ones); more labels appear as you zoom in</string>
+                 </property>
+                 <property name="checked">
+                  <bool>true</bool>
+                 </property>
+                </widget>
+               </item>
+               <item row="7" column="0" colspan="2">
                 <widget class="QLabel" name="lbLabelBgColorText">
                  <property name="text">
                   <string>Background:</string>
                  </property>
                 </widget>
                </item>
-               <item row="7" column="0" colspan="2">
+               <item row="8" column="0" colspan="2">
                 <layout class="QHBoxLayout" name="horizontalLayout_labelBgColor">
                  <item>
                   <widget class="QgsColorButton" name="btLabelBgColor">
@@ -1548,14 +1561,14 @@
                  </item>
                 </layout>
                </item>
-               <item row="8" column="0" colspan="2">
+               <item row="9" column="0" colspan="2">
                 <widget class="QLabel" name="lbLabelBufferColorText">
                  <property name="text">
                   <string>Buffer:</string>
                  </property>
                 </widget>
                </item>
-               <item row="9" column="0" colspan="2">
+               <item row="10" column="0" colspan="2">
                 <layout class="QHBoxLayout" name="horizontalLayout_labelBufferColor">
                  <item>
                   <widget class="QgsColorButton" name="btLabelBufferColor">

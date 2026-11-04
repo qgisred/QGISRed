@@ -756,10 +756,12 @@ class _AppearanceDock(_ResultsRenderingMixin, _ResultsAppearanceMixin):
         self.rbColorByRange = MagicMock(); self.rbColorByRange.isChecked.return_value = False
         self.cbShowNodeId = MagicMock(); self.cbShowNodeId.isChecked.return_value = show_id
         self.cbShowLinkId = MagicMock(); self.cbShowLinkId.isChecked.return_value = show_id
+        self.cbRelevantLabels = MagicMock(); self.cbRelevantLabels.isChecked.return_value = True
         self._labelFontSize = 10
         self._labelColorByRange = False
         self._labelShowNodeId = show_id
         self._labelShowLinkId = show_id
+        self._labelRelevantOnly = True
         self._labelBgColor = None
         self._labelBgColorLocked = False
         self.cbNodes = MagicMock()

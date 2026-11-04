@@ -8071,6 +8071,16 @@ Cannot apply changes.</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
+        <location filename="../ui/analysis/qgisred_results_dock.ui" line="1489"/>
+        <source>Show only the most relevant values</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="../ui/analysis/qgisred_results_dock.ui" line="1492"/>
+        <source>When zoomed out, label only the values that change the most along the main flow paths (or the largest ones); more labels appear as you zoom in</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
         <location filename="../ui/analysis/qgisred_results_dock.ui" line="1827"/>
         <source>Arrows:</source>
         <translation type="unfinished"></translation>

@@ -169,6 +169,7 @@ class QGISRedResultsDock(
         self.rbColorByRange.toggled.connect(self._onLabelStyleChanged)
         self.cbShowNodeId.clicked.connect(self._onLabelStyleChanged)
         self.cbShowLinkId.clicked.connect(self._onLabelStyleChanged)
+        self.cbRelevantLabels.clicked.connect(self._onLabelStyleChanged)
         self.btLabelBgColor.colorChanged.connect(self._onLabelBgColorChanged)
         self.btClearLabelBgColor.clicked.connect(self._onClearLabelBgColor)
         self.btLockLabelBgColor.toggled.connect(self._onLockLabelBgColor)
@@ -220,6 +221,7 @@ class QGISRedResultsDock(
         self._labelColorByRange = False
         self._labelShowNodeId = False
         self._labelShowLinkId = False
+        self._labelRelevantOnly = True
         self._labelBgColor = None
         self._labelBgColorLocked = False   # when True, labels use the map background color
         self._labelBufferColor = None      # halo around the label text; not linked to anything
