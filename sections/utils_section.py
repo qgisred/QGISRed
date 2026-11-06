@@ -1,11 +1,12 @@
 # -*- coding: utf-8 -*-
 """Utility helper methods for QGISRed."""
 
-from qgis.core import QgsCoordinateTransform, QgsProject, QgsRectangle
+from qgis.core import QgsCoordinateTransform, QgsPointXY, QgsProject, QgsRectangle
 from qgis.PyQt.QtGui import QCursor
 import sys
 
 from ..tools.utils.qgisred_filesystem_utils import QGISRedFileSystemUtils
+from ..tools.utils.qgisred_flash_boxes import QGISRedFlashBoxes, boundingExtent
 from ..tools.utils.qgisred_layer_utils import QGISRedLayerUtils
 from ..tools.utils.qgisred_ui_utils import QGISRedUIUtils
 
@@ -317,6 +318,47 @@ class UtilsSection:
                 self.iface.mapCanvas().setExtent(box)
                 self.iface.mapCanvas().refresh()
                 return
+
+    def zoomToElementsFromProperties(self, layerName, elementIds):
+        layer = None
+        target_id = self._getQgisRedIdentifierFromLayerName(layerName)
+        for la in self.getLayers():
+            if la.customProperty("qgisred_identifier") == target_id:
+                layer = la
+                break
+        if layer is None:
+            return
+
+        idFieldName = self._getIdFieldName(layerName, layer)
+        if idFieldName is None:
+            return
+
+        wanted = {str(elementId) for elementId in elementIds}
+        canvas = self.iface.mapCanvas()
+        toCanvas = QgsCoordinateTransform(layer.crs(), canvas.mapSettings().destinationCrs(), QgsProject.instance())
+        fids = []
+        points = []
+        for feat in layer.getFeatures():
+            if str(feat[idFieldName]) not in wanted:
+                continue
+            geom = feat.geometry()
+            if geom.isNull():
+                continue
+            fids.append(feat.id())
+            center = toCanvas.transform(geom.boundingBox().center())
+            points.append(QgsPointXY(center))
+        if not points:
+            return
+
+        layer.selectByIds(fids)
+        extent = canvas.extent()
+        xmin, ymin, xmax, ymax = boundingExtent([(p.x(), p.y()) for p in points], (extent.width(), extent.height()))
+        canvas.setExtent(QgsRectangle(xmin, ymin, xmax, ymax))
+        canvas.refresh()
+
+        if getattr(self, "_flashBoxes", None) is None:
+            self._flashBoxes = QGISRedFlashBoxes(canvas)
+        self._flashBoxes.show(points)
 
     def transformPoint(self, point):
         utils = QGISRedLayerUtils(self.ProjectDirectory, self.NetworkName, self.iface)

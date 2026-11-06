@@ -217,9 +217,15 @@ class DigitalTwinSection:
 
         # Process
         self.especificComplementaryLayers = ["Meters"]
-        QApplication.setOverrideCursor(Qt.CursorShape.WaitCursor)
-        resMessage = GISRed.ManageFieldData(self.ProjectDirectory, self.NetworkName, self.tempFolder)
-        QApplication.restoreOverrideCursor()
+        while True:
+            QApplication.setOverrideCursor(Qt.CursorShape.WaitCursor)
+            resMessage = GISRed.ManageFieldData(self.ProjectDirectory, self.NetworkName, self.tempFolder)
+            QApplication.restoreOverrideCursor()
+
+            if not resMessage.startswith("["):
+                break
+            layerName, _, elementIds = resMessage[1:].partition("]")
+            self.zoomToElementsFromProperties(layerName, elementIds.split(";"))
 
         self.processCsharpResult(resMessage, "")
 
