@@ -1118,18 +1118,18 @@ class MenuSection:
         self.add_to_dropdown(action, dtDropButton)
 
         action = self._make_action(
-            ":/images/iconSetPipeStatusFromValves.svg",
-            self.tr("Set pipe's initial status from isolation valves"),
-            self.runSetPipeStatus,
+            ":/images/iconLoadFieldData.svg",
+            self.tr("Load field data..."),
+            self.runLoadScada,
             parent=self.iface.mainWindow(),
         )
         self.add_to_group(action, self.dtMenu, self.dtToolbar)
         self.add_to_dropdown(action, dtDropButton)
 
         action = self._make_action(
-            ":/images/iconLoadFieldData.svg",
-            self.tr("Load field data..."),
-            self.runLoadScada,
+            ":/images/iconSetPipeStatusFromValves.svg",
+            self.tr("Set pipe's initial status from isolation valves"),
+            self.runSetPipeStatus,
             parent=self.iface.mainWindow(),
         )
         self.add_to_group(action, self.dtMenu, self.dtToolbar)
