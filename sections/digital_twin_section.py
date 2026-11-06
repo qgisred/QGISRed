@@ -227,7 +227,7 @@ class DigitalTwinSection:
         resMessage = GISRed.SetInitialStatusPipes(self.ProjectDirectory, self.NetworkName, self.tempFolder)
         QApplication.restoreOverrideCursor()
 
-        self.processCsharpResult(resMessage, "")
+        self.processCsharpResult(resMessage, self.tr("The isolation valves do not change the initial status of any pipe"))
 
     def runAddConnections(self):
         if not self.checkDependencies():

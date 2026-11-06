@@ -908,6 +908,11 @@
         <source>The Service Connections SHP file does not exist</source>
         <translation>El archivo SHP de acometidas no existe</translation>
     </message>
+    <message>
+        <location filename="../sections/digital_twin_section.py" line="230"/>
+        <source>The isolation valves do not change the initial status of any pipe</source>
+        <translation>Las válvulas de seccionamiento no modifican el estado inicial de ninguna tubería</translation>
+    </message>
 </context>
 <context>
     <name>DockWidget</name>
@@ -2357,7 +2362,7 @@ Do you want to check them again?</source>
         <translation>Cargado exitósamente</translation>
     </message>
     <message>
-        <location filename="../sections/lifecycle_section.py" line="681"/>
+        <location filename="../sections/lifecycle_section.py" line="736"/>
         <source>QGISRed Dependencies</source>
         <translation>Dependencias de QGISRed</translation>
     </message>
@@ -2377,62 +2382,62 @@ Do you want to check them again?</source>
         <translation>Pincha para cambiar</translation>
     </message>
     <message>
-        <location filename="../sections/lifecycle_section.py" line="789"/>
+        <location filename="../sections/lifecycle_section.py" line="839"/>
         <source>QGISRed News</source>
         <translation>Noticias QGISRed</translation>
     </message>
     <message>
-        <location filename="../sections/lifecycle_section.py" line="705"/>
+        <location filename="../sections/lifecycle_section.py" line="736"/>
         <source>The installation of the QGISRed dependencies failed. Please try again, and if the problem persists, report the issue in GitHub.</source>
         <translation>La instalación de las dependencias de QGISRed ha fallado. Por favor, inténtalo de nuevo y, si el problema persiste, reporta un issue en GitHub.</translation>
     </message>
     <message>
-        <location filename="../sections/lifecycle_section.py" line="705"/>
+        <location filename="../sections/lifecycle_section.py" line="717"/>
         <source>The QGISRed dependencies could not be downloaded. Please try again later, and if the problem persists, report the issue in GitHub.</source>
         <translation>No se han podido descargar las dependencias de QGISRed. Por favor, inténtalo de nuevo más tarde y, si el problema persiste, reporta un issue en GitHub.</translation>
     </message>
     <message>
-        <location filename="../sections/lifecycle_section.py" line="643"/>
+        <location filename="../sections/lifecycle_section.py" line="660"/>
         <source>QGISRed plugin requires some dependencies (v{}). Do you want to install them now?</source>
         <translation type="unfinished">El complemento QGISRed requiere algunas dependencias (v{}). ¿Desea instalarlas ahora?</translation>
     </message>
     <message>
-        <location filename="../sections/lifecycle_section.py" line="744"/>
+        <location filename="../sections/lifecycle_section.py" line="794"/>
         <source>Checking for QGISRed news…</source>
         <translation>Comprobando las noticias de QGISRed…</translation>
     </message>
     <message>
-        <location filename="../sections/lifecycle_section.py" line="762"/>
+        <location filename="../sections/lifecycle_section.py" line="812"/>
         <source>QGISRed news are not available: the server could not be reached.</source>
         <translation>Las noticias de QGISRed no están disponibles: no se ha podido conectar con el servidor.</translation>
     </message>
     <message>
-        <location filename="../sections/lifecycle_section.py" line="771"/>
+        <location filename="../sections/lifecycle_section.py" line="821"/>
         <source>There are no QGISRed news to show.</source>
         <translation>No hay noticias de QGISRed que mostrar.</translation>
     </message>
     <message>
-        <location filename="../sections/lifecycle_section.py" line="629"/>
+        <location filename="../sections/lifecycle_section.py" line="646"/>
         <source>Do you also want to remove the QGISRed dependencies?</source>
         <translation>¿Desea eliminar también las dependencias de QGISRed?</translation>
     </message>
     <message>
-        <location filename="../sections/lifecycle_section.py" line="594"/>
+        <location filename="../sections/lifecycle_section.py" line="609"/>
         <source>Removing previous dependencies…</source>
         <translation>Eliminando las dependencias anteriores…</translation>
     </message>
     <message>
-        <location filename="../sections/lifecycle_section.py" line="599"/>
+        <location filename="../sections/lifecycle_section.py" line="614"/>
         <source>Extracting files…</source>
         <translation>Extrayendo archivos…</translation>
     </message>
     <message>
-        <location filename="../sections/lifecycle_section.py" line="609"/>
+        <location filename="../sections/lifecycle_section.py" line="624"/>
         <source>Finishing up…</source>
         <translation>Finalizando…</translation>
     </message>
     <message>
-        <location filename="../sections/lifecycle_section.py" line="663"/>
+        <location filename="../sections/lifecycle_section.py" line="683"/>
         <source>Downloading dependencies…</source>
         <translation>Descargando dependencias…</translation>
     </message>
@@ -3000,9 +3005,9 @@ Do you want to check them again?</source>
         <translation type="obsolete">Constructor de sectores de demanda...</translation>
     </message>
     <message>
-        <location filename="../sections/menu_section.py" line="886"/>
+        <location filename="../sections/menu_section.py" line="887"/>
         <source>Longitudinal profile...</source>
-        <translation type="obsolete">Perfil longitudinal...</translation>
+        <translation type="unfinished">Perfil longitudinal...</translation>
     </message>
     <message>
         <location filename="../sections/menu_section.py" line="801"/>
@@ -3013,6 +3018,11 @@ Do you want to check them again?</source>
         <location filename="../sections/menu_section.py" line="713"/>
         <source>Demand sector builder (to be removed in future)...</source>
         <translation type="obsolete">Constructor de sectores de demanda (se eliminará en el futuro)...</translation>
+    </message>
+    <message>
+        <location filename="../sections/menu_section.py" line="714"/>
+        <source>Demand sector builder (new version)...</source>
+        <translation type="unfinished"></translation>
     </message>
 </context>
 <context>
@@ -3094,47 +3104,47 @@ Do you want to check them again?</source>
 <context>
     <name>ProfileSection</name>
     <message>
-        <location filename="../sections/profile_section.py" line="956"/>
+        <location filename="../sections/profile_section.py" line="1012"/>
         <source>Extend path</source>
         <translation>Prolongar trayecto</translation>
     </message>
     <message>
-        <location filename="../sections/profile_section.py" line="957"/>
+        <location filename="../sections/profile_section.py" line="1013"/>
         <source>Create branch</source>
         <translation>Crear rama</translation>
     </message>
     <message>
-        <location filename="../sections/profile_section.py" line="958"/>
+        <location filename="../sections/profile_section.py" line="1014"/>
         <source>Declare pass node</source>
         <translation>Declarar nudo de paso</translation>
     </message>
     <message>
-        <location filename="../sections/profile_section.py" line="959"/>
+        <location filename="../sections/profile_section.py" line="1015"/>
         <source>Move pass node</source>
         <translation>Mover nudo de paso</translation>
     </message>
     <message>
-        <location filename="../sections/profile_section.py" line="960"/>
+        <location filename="../sections/profile_section.py" line="1016"/>
         <source>Delete pass node</source>
         <translation>Eliminar nudo de paso</translation>
     </message>
     <message>
-        <location filename="../sections/profile_section.py" line="961"/>
+        <location filename="../sections/profile_section.py" line="1017"/>
         <source>Start new path here</source>
         <translation>Iniciar nuevo trayecto aquí</translation>
     </message>
     <message>
-        <location filename="../sections/profile_section.py" line="1036"/>
+        <location filename="../sections/profile_section.py" line="1092"/>
         <source>Click nodes to trace the path; right-click to finish.</source>
         <translation>Pulse nudos para trazar el trayecto; clic derecho para terminar.</translation>
     </message>
     <message>
-        <location filename="../sections/profile_section.py" line="1062"/>
+        <location filename="../sections/profile_section.py" line="1118"/>
         <source>Click nodes to build the branch; right-click to finish.</source>
         <translation>Pulse nudos para construir la rama; clic derecho para terminar.</translation>
     </message>
     <message>
-        <location filename="../sections/profile_section.py" line="1068"/>
+        <location filename="../sections/profile_section.py" line="1124"/>
         <source>Click the destination node for the pass point.</source>
         <translation>Pulse el nudo de destino para el punto de paso.</translation>
     </message>
@@ -3144,12 +3154,12 @@ Do you want to check them again?</source>
         <translation type="obsolete">Perfil longitudinal...</translation>
     </message>
     <message>
-        <location filename="../sections/profile_section.py" line="1649"/>
+        <location filename="../sections/profile_section.py" line="1745"/>
         <source>Longitudinal profiles at {0}</source>
         <translation>Perfiles longitudinales a las {0}</translation>
     </message>
     <message>
-        <location filename="../sections/profile_section.py" line="1651"/>
+        <location filename="../sections/profile_section.py" line="1747"/>
         <source>Longitudinal profiles</source>
         <translation>Perfiles longitudinales</translation>
     </message>
@@ -3159,32 +3169,32 @@ Do you want to check them again?</source>
         <translation>Ejecute primero una simulación para construir un perfil longitudinal.</translation>
     </message>
     <message>
-        <location filename="../sections/profile_section.py" line="814"/>
+        <location filename="../sections/profile_section.py" line="863"/>
         <source>No network node found at this location.</source>
         <translation>No se ha encontrado ningún nudo de la red en esta ubicación.</translation>
     </message>
     <message>
-        <location filename="../sections/profile_section.py" line="1142"/>
+        <location filename="../sections/profile_section.py" line="1198"/>
         <source>Selected node is not connected to the previous one along the network.</source>
         <translation>El nudo seleccionado no está conectado con el anterior a lo largo de la red.</translation>
     </message>
     <message>
-        <location filename="../sections/profile_section.py" line="1357"/>
+        <location filename="../sections/profile_section.py" line="1453"/>
         <source>A branching point can only be moved to a node with the same or higher connectivity.</source>
         <translation>Un nudo con bifurcación solo puede moverse a un nudo de conectividad igual o mayor.</translation>
     </message>
     <message>
-        <location filename="../sections/profile_section.py" line="1155"/>
+        <location filename="../sections/profile_section.py" line="1211"/>
         <source>That node is already part of the current path and cannot be repeated.</source>
         <translation>Ese nudo ya forma parte del trayecto actual y no se puede repetir.</translation>
     </message>
     <message>
-        <location filename="../sections/profile_section.py" line="1166"/>
+        <location filename="../sections/profile_section.py" line="1222"/>
         <source>That node cannot be added because reaching it would pass again through a node already in the path. Pick a different node.</source>
         <translation>Ese nudo no se puede añadir porque para llegar a él habría que pasar de nuevo por un nudo que ya está en el trayecto. Elija otro nudo.</translation>
     </message>
     <message>
-        <location filename="../sections/profile_section.py" line="1573"/>
+        <location filename="../sections/profile_section.py" line="1669"/>
         <source>Accumulated head loss</source>
         <translation>Pérdidas acumuladas</translation>
     </message>
@@ -3194,12 +3204,12 @@ Do you want to check them again?</source>
         <translation type="obsolete">Perfil longitudinal</translation>
     </message>
     <message>
-        <location filename="../sections/profile_section.py" line="1713"/>
+        <location filename="../sections/profile_section.py" line="1809"/>
         <source>Distance</source>
         <translation>Distancia</translation>
     </message>
     <message>
-        <location filename="../sections/profile_section.py" line="1820"/>
+        <location filename="../sections/profile_section.py" line="1916"/>
         <source>Elevation</source>
         <translation>Cotas</translation>
     </message>
@@ -3214,37 +3224,37 @@ Do you want to check them again?</source>
         <translation type="obsolete">Presión</translation>
     </message>
     <message>
-        <location filename="../sections/profile_section.py" line="1690"/>
+        <location filename="../sections/profile_section.py" line="1786"/>
         <source>Quality</source>
         <translation type="unfinished">Calidad</translation>
     </message>
     <message>
-        <location filename="../sections/profile_section.py" line="1296"/>
+        <location filename="../sections/profile_section.py" line="1352"/>
         <source>Pick an intermediate node of the current profile path.</source>
         <translation>Seleccione un nudo intermedio del trazado actual del perfil.</translation>
     </message>
     <message>
-        <location filename="../sections/profile_section.py" line="1339"/>
+        <location filename="../sections/profile_section.py" line="1397"/>
         <source>Pick a declared profile point to remove.</source>
         <translation>Seleccione un nudo de paso declarado para eliminarlo.</translation>
     </message>
     <message>
-        <location filename="../sections/profile_section.py" line="1349"/>
+        <location filename="../sections/profile_section.py" line="1445"/>
         <source>Only declared profile points can be moved.</source>
         <translation>Solo se pueden mover los nudos de paso declarados.</translation>
     </message>
     <message>
-        <location filename="../sections/profile_section.py" line="1307"/>
+        <location filename="../sections/profile_section.py" line="1363"/>
         <source>This point starts a branch and cannot be removed. Trim the branch from its far end first.</source>
         <translation>Este nudo es el origen de una rama y no se puede eliminar. Recorte la rama desde su extremo primero.</translation>
     </message>
     <message>
-        <location filename="../sections/profile_section.py" line="1380"/>
+        <location filename="../sections/profile_section.py" line="1476"/>
         <source>The point cannot be moved there without reusing already declared pipes or nodes.</source>
         <translation>El nudo no se puede mover ahí sin reutilizar tuberías o nudos ya declarados.</translation>
     </message>
     <message>
-        <location filename="../sections/profile_section.py" line="1407"/>
+        <location filename="../sections/profile_section.py" line="1503"/>
         <source>This branch has derivations. Remove them first from their far ends.</source>
         <translation>Esta rama tiene derivaciones. Elimínelas primero desde sus extremos.</translation>
     </message>
@@ -3254,12 +3264,12 @@ Do you want to check them again?</source>
         <translation type="obsolete">El nudo desplazado no puede conectarse a lo largo de la red.</translation>
     </message>
     <message>
-        <location filename="../sections/profile_section.py" line="1800"/>
+        <location filename="../sections/profile_section.py" line="1896"/>
         <source>Branch</source>
         <translation>Rama</translation>
     </message>
     <message>
-        <location filename="../sections/profile_section.py" line="1644"/>
+        <location filename="../sections/profile_section.py" line="1740"/>
         <source>Main path</source>
         <translation>Trayecto principal</translation>
     </message>
@@ -3269,72 +3279,72 @@ Do you want to check them again?</source>
         <translation type="obsolete">Pulse un nudo del perfil actual para iniciar una rama.</translation>
     </message>
     <message>
-        <location filename="../sections/profile_section.py" line="1172"/>
+        <location filename="../sections/profile_section.py" line="1228"/>
         <source>Selected node is not connected to the branch along the network.</source>
         <translation>El nudo seleccionado no está conectado con la rama a lo largo de la red.</translation>
     </message>
     <message>
-        <location filename="../sections/profile_section.py" line="1719"/>
+        <location filename="../sections/profile_section.py" line="1815"/>
         <source>Id</source>
         <translation>Id</translation>
     </message>
     <message>
-        <location filename="../sections/profile_section.py" line="748"/>
+        <location filename="../sections/profile_section.py" line="797"/>
         <source>The profile configuration could not be exported.</source>
         <translation>No se pudo exportar la configuración del perfil.</translation>
     </message>
     <message>
-        <location filename="../sections/profile_section.py" line="750"/>
+        <location filename="../sections/profile_section.py" line="799"/>
         <source>Profile configuration exported.</source>
         <translation>Configuración del perfil exportada.</translation>
     </message>
     <message>
-        <location filename="../sections/profile_section.py" line="762"/>
+        <location filename="../sections/profile_section.py" line="811"/>
         <source>The profile configuration could not be imported.</source>
         <translation>No se pudo importar la configuración del perfil.</translation>
     </message>
     <message>
-        <location filename="../sections/profile_section.py" line="776"/>
+        <location filename="../sections/profile_section.py" line="825"/>
         <source>The saved profile does not match the current network.</source>
         <translation>El perfil guardado no coincide con la red actual.</translation>
     </message>
     <message>
-        <location filename="../sections/profile_section.py" line="808"/>
+        <location filename="../sections/profile_section.py" line="857"/>
         <source>Profile configuration imported.</source>
         <translation>Configuración del perfil importada.</translation>
     </message>
     <message>
-        <location filename="../sections/profile_section.py" line="588"/>
+        <location filename="../sections/profile_section.py" line="637"/>
         <source>Maxima</source>
         <translation>Máximos</translation>
     </message>
     <message>
-        <location filename="../sections/profile_section.py" line="589"/>
+        <location filename="../sections/profile_section.py" line="638"/>
         <source>Minima</source>
         <translation>Mínimos</translation>
     </message>
     <message>
-        <location filename="../sections/profile_section.py" line="590"/>
+        <location filename="../sections/profile_section.py" line="639"/>
         <source>Envelope</source>
         <translation>Envolvente</translation>
     </message>
     <message>
-        <location filename="../sections/profile_section.py" line="1726"/>
+        <location filename="../sections/profile_section.py" line="1822"/>
         <source>Maximum</source>
         <translation>Máximo</translation>
     </message>
     <message>
-        <location filename="../sections/profile_section.py" line="1726"/>
+        <location filename="../sections/profile_section.py" line="1822"/>
         <source>Max. time</source>
         <translation>Hora máx.</translation>
     </message>
     <message>
-        <location filename="../sections/profile_section.py" line="1726"/>
+        <location filename="../sections/profile_section.py" line="1822"/>
         <source>Minimum</source>
         <translation>Mínimo</translation>
     </message>
     <message>
-        <location filename="../sections/profile_section.py" line="1726"/>
+        <location filename="../sections/profile_section.py" line="1822"/>
         <source>Min. time</source>
         <translation>Hora mín.</translation>
     </message>
