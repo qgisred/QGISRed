@@ -83,6 +83,18 @@ class QGISRedDigitalTwinMixin:
         return _to_string(b)
 
     @staticmethod
+    def ManageFieldData(projectFolder, networkName, tempFolder):
+        projectFolder = _encode(projectFolder)
+        networkName = _encode(networkName)
+        tempFolder = _encode(tempFolder)
+
+        mydll = _load_dll()
+        mydll.ManageFieldData.argtypes = (c_char_p, c_char_p, c_char_p)
+        mydll.ManageFieldData.restype = c_char_p
+        b = mydll.ManageFieldData(projectFolder, networkName, tempFolder)
+        return _to_string(b)
+
+    @staticmethod
     def SetInitialStatusPipes(projectFolder, networkName, tempFolder):
         projectFolder = _encode(projectFolder)
         networkName = _encode(networkName)

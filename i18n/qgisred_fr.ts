@@ -2820,6 +2820,11 @@ Voulez-vous les vérifier à nouveau ?</translation>
         <translation type="unfinished">Charger les données de terrain...</translation>
     </message>
     <message>
+        <location filename="../sections/menu_section.py" line="1138"/>
+        <source>Field Data Manager</source>
+        <translation>Gestionnaire de données de terrain</translation>
+    </message>
+    <message>
         <location filename="../sections/menu_section.py" line="1142"/>
         <source>Convert service connections into pipes/nodes</source>
         <translation type="unfinished">Convertir les branchements en conduites/noeuds</translation>

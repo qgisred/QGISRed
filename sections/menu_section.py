@@ -1140,6 +1140,15 @@ class MenuSection:
         self.add_to_dropdown(action, dtDropButton)
 
         action = self._make_action(
+            ":/images/iconFieldDataManager.svg",
+            self.tr("Field Data Manager"),
+            self.runManageFieldData,
+            parent=self.iface.mainWindow(),
+        )
+        self.add_to_group(action, self.dtMenu, self.dtToolbar)
+        self.add_to_dropdown(action, dtDropButton)
+
+        action = self._make_action(
             ":/images/iconSetPipeStatusFromValves.svg",
             self.tr("Set pipe's initial status from isolation valves"),
             self.runSetPipeStatus,

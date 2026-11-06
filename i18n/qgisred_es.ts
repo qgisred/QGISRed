@@ -2840,6 +2840,11 @@ Do you want to check them again?</source>
         <translation>Cargar datos de campo...</translation>
     </message>
     <message>
+        <location filename="../sections/menu_section.py" line="1138"/>
+        <source>Field Data Manager</source>
+        <translation>Gestor de Datos de Campo</translation>
+    </message>
+    <message>
         <location filename="../sections/menu_section.py" line="1142"/>
         <source>Convert service connections into pipes/nodes</source>
         <translation>Convertir acometidas en tuberías/nudos</translation>

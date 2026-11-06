@@ -2666,6 +2666,11 @@ Do you want to check them again?</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
+        <location filename="../sections/menu_section.py" line="1138"/>
+        <source>Field Data Manager</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
         <location filename="../sections/menu_section.py" line="1142"/>
         <source>Convert service connections into pipes/nodes</source>
         <translation type="unfinished"></translation>

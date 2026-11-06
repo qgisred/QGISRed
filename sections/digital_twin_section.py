@@ -205,6 +205,24 @@ class DigitalTwinSection:
 
         self.processCsharpResult(resMessage, "")
 
+    def runManageFieldData(self):
+        if not self.checkDependencies():
+            return
+        # Validations
+        self.defineCurrentProject()
+        if not self.isValidProject():
+            return
+        if self.isLayerOnEdition():
+            return
+
+        # Process
+        self.especificComplementaryLayers = ["Meters"]
+        QApplication.setOverrideCursor(Qt.CursorShape.WaitCursor)
+        resMessage = GISRed.ManageFieldData(self.ProjectDirectory, self.NetworkName, self.tempFolder)
+        QApplication.restoreOverrideCursor()
+
+        self.processCsharpResult(resMessage, "")
+
     def runSetPipeStatus(self):
         if not self.checkDependencies():
             return
