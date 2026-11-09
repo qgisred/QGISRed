@@ -2,10 +2,12 @@
 """Thin red boxes drawn over map points for a few seconds."""
 from contextlib import suppress
 
-from qgis.core import Qgis, QgsGeometry, QgsRectangle
+from qgis.core import QgsGeometry, QgsRectangle
 from qgis.gui import QgsRubberBand
 from qgis.PyQt.QtCore import QTimer
 from qgis.PyQt.QtGui import QColor
+
+from ...compat import WKB_POLYGON_GEOMETRY
 
 BOX_COLOR = (255, 0, 0)
 BOX_WIDTH = 1
@@ -45,7 +47,7 @@ class QGISRedFlashBoxes:
         self.clear()
         half = self._canvas.mapUnitsPerPixel() * BOX_HALF_SIZE_PIXELS
         for point in points:
-            band = QgsRubberBand(self._canvas, Qgis.GeometryType.Polygon)
+            band = QgsRubberBand(self._canvas, WKB_POLYGON_GEOMETRY)
             band.setColor(QColor(*BOX_COLOR))
             band.setFillColor(QColor(0, 0, 0, 0))
             band.setWidth(BOX_WIDTH)
