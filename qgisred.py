@@ -14,6 +14,7 @@ from .sections.digital_twin_section import DigitalTwinSection
 from .sections.queries_section import QueriesSection
 
 from .sections.profile_section import ProfileSection
+from .sections.flow_paths_section import FlowPathsSection
 
 
 class QGISRed(
@@ -29,6 +30,7 @@ class QGISRed(
     DigitalTwinSection,
     QueriesSection,
     ProfileSection,
+    FlowPathsSection,
 ):
     """QGISRed Plugin Implementation."""
 

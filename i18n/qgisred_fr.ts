@@ -2430,6 +2430,11 @@ Voulez-vous les vérifier à nouveau ?</translation>
 <context>
     <name>MenuSection</name>
     <message>
+        <location filename="../sections/menu_section.py" line="902"/>
+        <source>Upstream and downstream paths...</source>
+        <translation>Trajets amont et aval...</translation>
+    </message>
+    <message>
         <location filename="../sections/menu_section.py" line="63"/>
         <source>General</source>
         <translation type="unfinished">Général</translation>
@@ -11562,6 +11567,29 @@ Impossible d'appliquer les modifications.</translation>
         <location filename="../ui/analysis/results_distribution_renderer.py" line="429"/>
         <source>Cumulative</source>
         <translation>Cumulée</translation>
+    </message>
+</context>
+<context>
+    <name>FlowPathsSection</name>
+    <message>
+        <location filename="../sections/flow_paths_section.py" line="64"/>
+        <source>Run a simulation first to identify the flow paths.</source>
+        <translation>Lancez d'abord une simulation pour identifier les trajets.</translation>
+    </message>
+    <message>
+        <location filename="../sections/flow_paths_section.py" line="168"/>
+        <source>Node {0} has no upstream or downstream paths at this instant.</source>
+        <translation>Le nœud {0} n'a aucun trajet amont ni aval à cet instant.</translation>
+    </message>
+    <message>
+        <location filename="../sections/flow_paths_section.py" line="170"/>
+        <source>Node {0} has no upstream paths at this instant.</source>
+        <translation>Le nœud {0} n'a aucun trajet amont à cet instant.</translation>
+    </message>
+    <message>
+        <location filename="../sections/flow_paths_section.py" line="172"/>
+        <source>Node {0} has no downstream paths at this instant.</source>
+        <translation>Le nœud {0} n'a aucun trajet aval à cet instant.</translation>
     </message>
 </context>
 </TS>

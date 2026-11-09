@@ -35,6 +35,9 @@ class MenuSection:
     AnalysisSection:
         timeSeriesButton, analysisDropButton
 
+    FlowPathsSection:
+        flowPathsButton
+
     ToolsSection:
         isolatedSegmentsButton
 
@@ -893,6 +896,16 @@ class MenuSection:
         )
         self.add_to_group(self.profileButton, self.analysisMenu, self.analysisToolbar)
         self.add_to_dropdown(self.profileButton, analysisDropButton)
+
+        self.flowPathsButton = self._make_action(
+            ":/images/iconFlowPaths.svg",
+            self.tr("Upstream and downstream paths..."),
+            self.runFlowPaths,
+            checkable=True,
+            parent=self.iface.mainWindow(),
+        )
+        self.add_to_group(self.flowPathsButton, self.analysisMenu, self.analysisToolbar)
+        self.add_to_dropdown(self.flowPathsButton, analysisDropButton)
 
         analysisDropButton.menu().addSeparator()
         self.analysisToolbar.addSeparator()

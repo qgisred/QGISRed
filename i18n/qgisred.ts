@@ -2281,6 +2281,11 @@ Do you want to check them again?</source>
 <context>
     <name>MenuSection</name>
     <message>
+        <location filename="../sections/menu_section.py" line="902"/>
+        <source>Upstream and downstream paths...</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
         <location filename="../sections/menu_section.py" line="63"/>
         <source>General</source>
         <translation type="unfinished"></translation>
@@ -10587,6 +10592,29 @@ Cannot apply changes.</source>
         <location filename="../ui/analysis/results_distribution_renderer.py" line="429"/>
         <source>Cumulative</source>
         <translation type="unfinished">Cumulative</translation>
+    </message>
+</context>
+<context>
+    <name>FlowPathsSection</name>
+    <message>
+        <location filename="../sections/flow_paths_section.py" line="64"/>
+        <source>Run a simulation first to identify the flow paths.</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="../sections/flow_paths_section.py" line="168"/>
+        <source>Node {0} has no upstream or downstream paths at this instant.</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="../sections/flow_paths_section.py" line="170"/>
+        <source>Node {0} has no upstream paths at this instant.</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="../sections/flow_paths_section.py" line="172"/>
+        <source>Node {0} has no downstream paths at this instant.</source>
+        <translation type="unfinished"></translation>
     </message>
 </context>
 </TS>

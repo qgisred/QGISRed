@@ -107,6 +107,7 @@ class LifecycleSection:
         "ToolsSection",
         "UtilsSection",
         "ProfileSection",
+        "FlowPathsSection",
     ]
 
     def tr(self, message):
@@ -292,6 +293,8 @@ class LifecycleSection:
         """Disconnects signals and removes all plugin docks to ensure a clean state."""
         with suppress(Exception):
             self._resetResultsEvolutionMapState()
+        with suppress(Exception):
+            self.resetFlowPaths()
         # Drops the focusChanged / mapToolSet connections and the whole owner
         # registry in one go; the docks recreated afterwards register again.
         with suppress(Exception):

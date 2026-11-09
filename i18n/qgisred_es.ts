@@ -2445,6 +2445,11 @@ Do you want to check them again?</source>
 <context>
     <name>MenuSection</name>
     <message>
+        <location filename="../sections/menu_section.py" line="902"/>
+        <source>Upstream and downstream paths...</source>
+        <translation>Trayectos aguas arriba y aguas abajo...</translation>
+    </message>
+    <message>
         <location filename="../sections/menu_section.py" line="63"/>
         <source>General</source>
         <translation>General</translation>
@@ -11701,6 +11706,29 @@ No se pueden aplicar los cambios.</translation>
         <location filename="../ui/analysis/results_distribution_renderer.py" line="429"/>
         <source>Cumulative</source>
         <translation type="unfinished">Acumulada</translation>
+    </message>
+</context>
+<context>
+    <name>FlowPathsSection</name>
+    <message>
+        <location filename="../sections/flow_paths_section.py" line="64"/>
+        <source>Run a simulation first to identify the flow paths.</source>
+        <translation>Ejecute primero una simulación para identificar los trayectos.</translation>
+    </message>
+    <message>
+        <location filename="../sections/flow_paths_section.py" line="168"/>
+        <source>Node {0} has no upstream or downstream paths at this instant.</source>
+        <translation>El nudo {0} no tiene trayectos aguas arriba ni aguas abajo en este instante.</translation>
+    </message>
+    <message>
+        <location filename="../sections/flow_paths_section.py" line="170"/>
+        <source>Node {0} has no upstream paths at this instant.</source>
+        <translation>El nudo {0} no tiene trayectos aguas arriba en este instante.</translation>
+    </message>
+    <message>
+        <location filename="../sections/flow_paths_section.py" line="172"/>
+        <source>Node {0} has no downstream paths at this instant.</source>
+        <translation>El nudo {0} no tiene trayectos aguas abajo en este instante.</translation>
     </message>
 </context>
 </TS>
