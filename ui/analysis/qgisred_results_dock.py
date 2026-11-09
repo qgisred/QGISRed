@@ -1990,6 +1990,7 @@ class QGISRedResultsDock(
         self._applyTimeDisplay(labels)
 
         self.Computing = False
+        self._updateAppearanceEnablement()
 
         # Open results
         self.openAllResults()
