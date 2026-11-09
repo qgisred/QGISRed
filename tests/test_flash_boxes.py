@@ -2,6 +2,8 @@
 """Extent and temporary boxes used to show elements on the map."""
 from unittest.mock import MagicMock
 
+import pytest
+
 from QGISRed.tools.utils import qgisred_flash_boxes as flash
 from QGISRed.tools.utils.qgisred_flash_boxes import QGISRedFlashBoxes, boundingExtent
 
@@ -34,6 +36,7 @@ def _point(x, y):
     return point
 
 
+@pytest.mark.mock_only
 def test_show_drawsOneBandPerPointAndClearRemovesThem():
     canvas = MagicMock()
     canvas.mapUnitsPerPixel.return_value = 2.0
