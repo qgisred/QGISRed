@@ -899,17 +899,17 @@
 <context>
     <name>DigitalTwinSection</name>
     <message>
-        <location filename="../sections/digital_twin_section.py" line="219"/>
+        <location filename="../sections/digital_twin_section.py" line="243"/>
         <source>The Isolation Valves SHP file does not exist</source>
         <translation>O arquivo SHP de Válvulas de Isolamento não existe</translation>
     </message>
     <message>
-        <location filename="../sections/digital_twin_section.py" line="243"/>
+        <location filename="../sections/digital_twin_section.py" line="267"/>
         <source>The Service Connections SHP file does not exist</source>
         <translation>O arquivo SHP de Ligações de Serviço não existe</translation>
     </message>
     <message>
-        <location filename="../sections/digital_twin_section.py" line="230"/>
+        <location filename="../sections/digital_twin_section.py" line="254"/>
         <source>The isolation valves do not change the initial status of any pipe</source>
         <translation>As válvulas de seccionamento não alteram o estado inicial de nenhuma tubulação</translation>
     </message>
@@ -2046,6 +2046,29 @@
     </message>
 </context>
 <context>
+    <name>FlowPathsSection</name>
+    <message>
+        <location filename="../sections/flow_paths_section.py" line="64"/>
+        <source>Run a simulation first to identify the flow paths.</source>
+        <translation type="obsolete">Execute primeiro uma simulação para identificar os trajetos.</translation>
+    </message>
+    <message>
+        <location filename="../sections/flow_paths_section.py" line="168"/>
+        <source>Node {0} has no upstream or downstream paths at this instant.</source>
+        <translation type="obsolete">O nó {0} não tem trajetos a montante nem a jusante neste instante.</translation>
+    </message>
+    <message>
+        <location filename="../sections/flow_paths_section.py" line="170"/>
+        <source>Node {0} has no upstream paths at this instant.</source>
+        <translation type="obsolete">O nó {0} não tem trajetos a montante neste instante.</translation>
+    </message>
+    <message>
+        <location filename="../sections/flow_paths_section.py" line="172"/>
+        <source>Node {0} has no downstream paths at this instant.</source>
+        <translation type="obsolete">O nó {0} não tem trajetos a jusante neste instante.</translation>
+    </message>
+</context>
+<context>
     <name>InputLayerNames</name>
     <message>
         <location filename="../tools/qgisred_translatable_strings.py" line="293"/>
@@ -2387,12 +2410,12 @@ Deseja verificá-los novamente?</translation>
         <translation type="obsolete">Relatar problemas ou comentários...</translation>
     </message>
     <message>
-        <location filename="../sections/lifecycle_section.py" line="273"/>
+        <location filename="../sections/lifecycle_section.py" line="274"/>
         <source>Loaded sucssesfully</source>
         <translation>Carregado com sucesso</translation>
     </message>
     <message>
-        <location filename="../sections/lifecycle_section.py" line="736"/>
+        <location filename="../sections/lifecycle_section.py" line="739"/>
         <source>QGISRed Dependencies</source>
         <translation>Dependências do QGISRed</translation>
     </message>
@@ -2407,62 +2430,62 @@ Deseja verificá-los novamente?</translation>
         <translation type="obsolete">Atualizações do QGISRed</translation>
     </message>
     <message>
-        <location filename="../sections/lifecycle_section.py" line="839"/>
+        <location filename="../sections/lifecycle_section.py" line="842"/>
         <source>QGISRed News</source>
         <translation>Novidades do QGISRed</translation>
     </message>
     <message>
-        <location filename="../sections/lifecycle_section.py" line="736"/>
+        <location filename="../sections/lifecycle_section.py" line="739"/>
         <source>The installation of the QGISRed dependencies failed. Please try again, and if the problem persists, report the issue in GitHub.</source>
         <translation>A instalação das dependências do QGISRed falhou. Tente novamente e, se o problema persistir, relate o problema no GitHub.</translation>
     </message>
     <message>
-        <location filename="../sections/lifecycle_section.py" line="717"/>
+        <location filename="../sections/lifecycle_section.py" line="720"/>
         <source>The QGISRed dependencies could not be downloaded. Please try again later, and if the problem persists, report the issue in GitHub.</source>
         <translation>Não foi possível baixar as dependências do QGISRed. Tente novamente mais tarde e, se o problema persistir, relate o problema no GitHub.</translation>
     </message>
     <message>
-        <location filename="../sections/lifecycle_section.py" line="660"/>
+        <location filename="../sections/lifecycle_section.py" line="663"/>
         <source>QGISRed plugin requires some dependencies (v{}). Do you want to install them now?</source>
         <translation type="unfinished">O plugin QGISRed requer algumas dependências (v{}). Deseja instalá-las agora?</translation>
     </message>
     <message>
-        <location filename="../sections/lifecycle_section.py" line="794"/>
+        <location filename="../sections/lifecycle_section.py" line="797"/>
         <source>Checking for QGISRed news…</source>
         <translation>A verificar as novidades do QGISRed…</translation>
     </message>
     <message>
-        <location filename="../sections/lifecycle_section.py" line="812"/>
+        <location filename="../sections/lifecycle_section.py" line="815"/>
         <source>QGISRed news are not available: the server could not be reached.</source>
         <translation>As novidades do QGISRed não estão disponíveis: não foi possível contactar o servidor.</translation>
     </message>
     <message>
-        <location filename="../sections/lifecycle_section.py" line="821"/>
+        <location filename="../sections/lifecycle_section.py" line="824"/>
         <source>There are no QGISRed news to show.</source>
         <translation>Não há novidades do QGISRed para mostrar.</translation>
     </message>
     <message>
-        <location filename="../sections/lifecycle_section.py" line="646"/>
+        <location filename="../sections/lifecycle_section.py" line="649"/>
         <source>Do you also want to remove the QGISRed dependencies?</source>
         <translation>Deseja também remover as dependências do QGISRed?</translation>
     </message>
     <message>
-        <location filename="../sections/lifecycle_section.py" line="609"/>
+        <location filename="../sections/lifecycle_section.py" line="612"/>
         <source>Removing previous dependencies…</source>
         <translation>Removendo as dependências anteriores…</translation>
     </message>
     <message>
-        <location filename="../sections/lifecycle_section.py" line="614"/>
+        <location filename="../sections/lifecycle_section.py" line="617"/>
         <source>Extracting files…</source>
         <translation>Extraindo arquivos…</translation>
     </message>
     <message>
-        <location filename="../sections/lifecycle_section.py" line="624"/>
+        <location filename="../sections/lifecycle_section.py" line="627"/>
         <source>Finishing up…</source>
         <translation>Finalizando…</translation>
     </message>
     <message>
-        <location filename="../sections/lifecycle_section.py" line="683"/>
+        <location filename="../sections/lifecycle_section.py" line="686"/>
         <source>Downloading dependencies…</source>
         <translation>Baixando dependências…</translation>
     </message>
@@ -2470,77 +2493,77 @@ Deseja verificá-los novamente?</translation>
 <context>
     <name>MenuSection</name>
     <message>
-        <location filename="../sections/menu_section.py" line="902"/>
+        <location filename="../sections/menu_section.py" line="900"/>
         <source>Upstream and downstream paths...</source>
         <translation>Trajetos a montante e a jusante...</translation>
     </message>
     <message>
-        <location filename="../sections/menu_section.py" line="63"/>
+        <location filename="../sections/menu_section.py" line="66"/>
         <source>General</source>
         <translation>Geral</translation>
     </message>
     <message>
-        <location filename="../sections/menu_section.py" line="58"/>
+        <location filename="../sections/menu_section.py" line="61"/>
         <source>QGISRed General</source>
         <translation>QGISRed Geral</translation>
     </message>
     <message>
-        <location filename="../sections/menu_section.py" line="73"/>
+        <location filename="../sections/menu_section.py" line="76"/>
         <source>Project manager...</source>
         <translation>Gerenciador de projetos...</translation>
     </message>
     <message>
-        <location filename="../sections/menu_section.py" line="82"/>
+        <location filename="../sections/menu_section.py" line="85"/>
         <source>Open project...</source>
         <translation>Abrir projeto...</translation>
     </message>
     <message>
-        <location filename="../sections/menu_section.py" line="91"/>
+        <location filename="../sections/menu_section.py" line="94"/>
         <source>Create project...</source>
         <translation>Criar projeto...</translation>
     </message>
     <message>
-        <location filename="../sections/menu_section.py" line="100"/>
+        <location filename="../sections/menu_section.py" line="103"/>
         <source>Import project...</source>
         <translation>Importar projeto...</translation>
     </message>
     <message>
-        <location filename="../sections/menu_section.py" line="147"/>
+        <location filename="../sections/menu_section.py" line="150"/>
         <source>Project</source>
         <translation>Projeto</translation>
     </message>
     <message>
-        <location filename="../sections/menu_section.py" line="142"/>
+        <location filename="../sections/menu_section.py" line="145"/>
         <source>QGISRed Project</source>
         <translation>Projeto QGISRed</translation>
     </message>
     <message>
-        <location filename="../sections/menu_section.py" line="158"/>
+        <location filename="../sections/menu_section.py" line="161"/>
         <source>Summary...</source>
         <translation>Resumo...</translation>
     </message>
     <message>
-        <location filename="../sections/menu_section.py" line="167"/>
+        <location filename="../sections/menu_section.py" line="170"/>
         <source>Add data by import...</source>
         <translation>Adicionar dados por importação...</translation>
     </message>
     <message>
-        <location filename="../sections/menu_section.py" line="176"/>
+        <location filename="../sections/menu_section.py" line="179"/>
         <source>Layer manager...</source>
         <translation>Gerenciador de camadas...</translation>
     </message>
     <message>
-        <location filename="../sections/menu_section.py" line="185"/>
+        <location filename="../sections/menu_section.py" line="188"/>
         <source>Legend editor...</source>
         <translation>Editor de legendas...</translation>
     </message>
     <message>
-        <location filename="../sections/menu_section.py" line="198"/>
+        <location filename="../sections/menu_section.py" line="201"/>
         <source>Project settings...</source>
         <translation>Configurações do projeto...</translation>
     </message>
     <message>
-        <location filename="../sections/menu_section.py" line="207"/>
+        <location filename="../sections/menu_section.py" line="210"/>
         <source>Default values...</source>
         <translation>Valores predefinidos...</translation>
     </message>
@@ -2550,472 +2573,472 @@ Deseja verificá-los novamente?</translation>
         <translation type="obsolete">Backup do projeto</translation>
     </message>
     <message>
-        <location filename="../sections/menu_section.py" line="238"/>
+        <location filename="../sections/menu_section.py" line="241"/>
         <source>Close project</source>
         <translation>Fechar projeto</translation>
     </message>
     <message>
-        <location filename="../sections/menu_section.py" line="258"/>
+        <location filename="../sections/menu_section.py" line="261"/>
         <source>Edition</source>
         <translation>Edição</translation>
     </message>
     <message>
-        <location filename="../sections/menu_section.py" line="252"/>
+        <location filename="../sections/menu_section.py" line="255"/>
         <source>QGISRed Edition</source>
         <translation>QGISRed Edição</translation>
     </message>
     <message>
-        <location filename="../sections/menu_section.py" line="269"/>
+        <location filename="../sections/menu_section.py" line="272"/>
         <source>Add pipe</source>
         <translation>Adicionar tubulação</translation>
     </message>
     <message>
-        <location filename="../sections/menu_section.py" line="276"/>
+        <location filename="../sections/menu_section.py" line="279"/>
         <source>Add tank</source>
         <translation>Adicionar tanque</translation>
     </message>
     <message>
-        <location filename="../sections/menu_section.py" line="286"/>
+        <location filename="../sections/menu_section.py" line="289"/>
         <source>Add reservoir</source>
         <translation>Adicionar reservatório</translation>
     </message>
     <message>
-        <location filename="../sections/menu_section.py" line="296"/>
+        <location filename="../sections/menu_section.py" line="299"/>
         <source>Insert valve in pipe</source>
         <translation>Inserir válvula na tubulação</translation>
     </message>
     <message>
-        <location filename="../sections/menu_section.py" line="306"/>
+        <location filename="../sections/menu_section.py" line="309"/>
         <source>Insert pump in pipe</source>
         <translation>Inserir bomba na tubulação</translation>
     </message>
     <message>
-        <location filename="../sections/menu_section.py" line="320"/>
+        <location filename="../sections/menu_section.py" line="323"/>
         <source>Select multiple elements</source>
         <translation>Selecionar múltiplos elementos</translation>
     </message>
     <message>
-        <location filename="../sections/menu_section.py" line="330"/>
+        <location filename="../sections/menu_section.py" line="333"/>
         <source>Move nodes</source>
         <translation>Mover nós</translation>
     </message>
     <message>
-        <location filename="../sections/menu_section.py" line="340"/>
+        <location filename="../sections/menu_section.py" line="343"/>
         <source>Edit link vertices</source>
         <translation>Editar vértices do trecho</translation>
     </message>
     <message>
-        <location filename="../sections/menu_section.py" line="350"/>
+        <location filename="../sections/menu_section.py" line="353"/>
         <source>Reverse elements</source>
         <translation>Inverter elementos</translation>
     </message>
     <message>
-        <location filename="../sections/menu_section.py" line="360"/>
+        <location filename="../sections/menu_section.py" line="363"/>
         <source>Split/Join pipes</source>
         <translation>Dividir/Unir tubulações</translation>
     </message>
     <message>
-        <location filename="../sections/menu_section.py" line="370"/>
+        <location filename="../sections/menu_section.py" line="373"/>
         <source>Merge/Dissolve junctions</source>
         <translation>Mesclar/Dissolver junções</translation>
     </message>
     <message>
-        <location filename="../sections/menu_section.py" line="380"/>
+        <location filename="../sections/menu_section.py" line="383"/>
         <source>Create/Remove T connections</source>
         <translation>Criar/Remover conexões em T</translation>
     </message>
     <message>
-        <location filename="../sections/menu_section.py" line="390"/>
+        <location filename="../sections/menu_section.py" line="393"/>
         <source>Create/Remove crossings</source>
         <translation>Criar/Remover cruzamentos</translation>
     </message>
     <message>
-        <location filename="../sections/menu_section.py" line="400"/>
+        <location filename="../sections/menu_section.py" line="403"/>
         <source>Move valves/pumps</source>
         <translation>Mover válvulas/bombas</translation>
     </message>
     <message>
-        <location filename="../sections/menu_section.py" line="410"/>
+        <location filename="../sections/menu_section.py" line="413"/>
         <source>Change element status</source>
         <translation>Alterar estado do elemento</translation>
     </message>
     <message>
-        <location filename="../sections/menu_section.py" line="420"/>
+        <location filename="../sections/menu_section.py" line="423"/>
         <source>Delete elements</source>
         <translation>Excluir elementos</translation>
     </message>
     <message>
-        <location filename="../sections/menu_section.py" line="434"/>
+        <location filename="../sections/menu_section.py" line="437"/>
         <source>Edit element properties...</source>
         <translation>Editar propriedades do elemento...</translation>
     </message>
     <message>
-        <location filename="../sections/menu_section.py" line="453"/>
+        <location filename="../sections/menu_section.py" line="456"/>
         <source>Edit patterns and curves...</source>
         <translation>Editar padrões e curvas...</translation>
     </message>
     <message>
-        <location filename="../sections/menu_section.py" line="462"/>
+        <location filename="../sections/menu_section.py" line="465"/>
         <source>Edit controls...</source>
         <translation>Editar controles...</translation>
     </message>
     <message>
-        <location filename="../sections/menu_section.py" line="481"/>
+        <location filename="../sections/menu_section.py" line="484"/>
         <source>Debug</source>
         <translation>Depuração</translation>
     </message>
     <message>
-        <location filename="../sections/menu_section.py" line="476"/>
+        <location filename="../sections/menu_section.py" line="479"/>
         <source>QGISRed Debug</source>
         <translation>QGISRed Depuração</translation>
     </message>
     <message>
-        <location filename="../sections/menu_section.py" line="501"/>
+        <location filename="../sections/menu_section.py" line="504"/>
         <source>Remove overlapping elements</source>
         <translation>Remover elementos sobrepostos</translation>
     </message>
     <message>
-        <location filename="../sections/menu_section.py" line="510"/>
+        <location filename="../sections/menu_section.py" line="513"/>
         <source>Simplify link vertices</source>
         <translation>Simplificar vértices do trecho</translation>
     </message>
     <message>
-        <location filename="../sections/menu_section.py" line="539"/>
+        <location filename="../sections/menu_section.py" line="542"/>
         <source>Check connectivity</source>
         <translation>Verificar conectividade</translation>
     </message>
     <message>
-        <location filename="../sections/menu_section.py" line="550"/>
+        <location filename="../sections/menu_section.py" line="553"/>
         <source>Delete issolated subzones</source>
         <translation>Excluir subzonas isoladas</translation>
     </message>
     <message>
-        <location filename="../sections/menu_section.py" line="563"/>
+        <location filename="../sections/menu_section.py" line="566"/>
         <source>Check pipe lengths</source>
         <translation>Verificar comprimentos das tubulações</translation>
     </message>
     <message>
-        <location filename="../sections/menu_section.py" line="572"/>
+        <location filename="../sections/menu_section.py" line="575"/>
         <source>Check diameters</source>
         <translation>Verificar diâmetros</translation>
     </message>
     <message>
-        <location filename="../sections/menu_section.py" line="581"/>
+        <location filename="../sections/menu_section.py" line="584"/>
         <source>Check pipe materials</source>
         <translation>Verificar materiais das tubulações</translation>
     </message>
     <message>
-        <location filename="../sections/menu_section.py" line="590"/>
+        <location filename="../sections/menu_section.py" line="593"/>
         <source>Check pipe installation dates</source>
         <translation>Verificar datas de instalação das tubulações</translation>
     </message>
     <message>
-        <location filename="../sections/menu_section.py" line="603"/>
+        <location filename="../sections/menu_section.py" line="606"/>
         <source>Check hydraulic sectors</source>
         <translation>Verificar setores hidráulicos</translation>
     </message>
     <message>
-        <location filename="../sections/menu_section.py" line="622"/>
+        <location filename="../sections/menu_section.py" line="625"/>
         <source>Tools</source>
         <translation>Ferramentas</translation>
     </message>
     <message>
-        <location filename="../sections/menu_section.py" line="617"/>
+        <location filename="../sections/menu_section.py" line="620"/>
         <source>QGISRed Tools</source>
         <translation>Ferramentas do QGISRed</translation>
     </message>
     <message>
-        <location filename="../sections/menu_section.py" line="642"/>
+        <location filename="../sections/menu_section.py" line="645"/>
         <source>Interpolate elevation from .asc files...</source>
         <translation>Interpolar cota a partir de arquivos .asc...</translation>
     </message>
     <message>
-        <location filename="../sections/menu_section.py" line="705"/>
+        <location filename="../sections/menu_section.py" line="708"/>
         <source>Obtain demand sectors</source>
         <translation type="unfinished">Obter setores de consumo</translation>
     </message>
     <message>
-        <location filename="../sections/menu_section.py" line="820"/>
+        <location filename="../sections/menu_section.py" line="823"/>
         <source>Analysis</source>
         <translation>Análise</translation>
     </message>
     <message>
-        <location filename="../sections/menu_section.py" line="815"/>
+        <location filename="../sections/menu_section.py" line="818"/>
         <source>QGISRed Analysis</source>
         <translation>Análise do QGISRed</translation>
     </message>
     <message>
-        <location filename="../sections/menu_section.py" line="833"/>
+        <location filename="../sections/menu_section.py" line="836"/>
         <source>Run model</source>
         <translation>Executar modelo</translation>
     </message>
     <message>
-        <location filename="../sections/menu_section.py" line="844"/>
+        <location filename="../sections/menu_section.py" line="847"/>
         <source>Results browser</source>
         <translation>Navegador de resultados</translation>
     </message>
     <message>
-        <location filename="../sections/menu_section.py" line="854"/>
+        <location filename="../sections/menu_section.py" line="857"/>
         <source>Status report</source>
         <translation>Relatório de Estado</translation>
     </message>
     <message>
-        <location filename="../sections/menu_section.py" line="864"/>
+        <location filename="../sections/menu_section.py" line="867"/>
         <source>Analysis options...</source>
         <translation>Opções de análise...</translation>
     </message>
     <message>
-        <location filename="../sections/menu_section.py" line="929"/>
+        <location filename="../sections/menu_section.py" line="942"/>
         <source>Digital Twin</source>
         <translation>Gêmeo Digital</translation>
     </message>
     <message>
-        <location filename="../sections/menu_section.py" line="924"/>
+        <location filename="../sections/menu_section.py" line="937"/>
         <source>QGISRed Digital Twin</source>
         <translation>Gêmeo Digital do QGISRed</translation>
     </message>
     <message>
-        <location filename="../sections/menu_section.py" line="940"/>
+        <location filename="../sections/menu_section.py" line="953"/>
         <source>Add service connection</source>
         <translation>Adicionar ligação de serviço</translation>
     </message>
     <message>
-        <location filename="../sections/menu_section.py" line="950"/>
+        <location filename="../sections/menu_section.py" line="963"/>
         <source>Add isolation valve</source>
         <translation>Adicionar válvula de isolamento</translation>
     </message>
     <message>
-        <location filename="../sections/menu_section.py" line="971"/>
+        <location filename="../sections/menu_section.py" line="984"/>
         <source>Add meter</source>
         <translation>Adicionar medidor</translation>
     </message>
     <message>
-        <location filename="../sections/menu_section.py" line="980"/>
+        <location filename="../sections/menu_section.py" line="993"/>
         <source>Add automatic meter</source>
         <translation>Adicionar medidor automático</translation>
     </message>
     <message>
-        <location filename="../sections/menu_section.py" line="991"/>
+        <location filename="../sections/menu_section.py" line="1004"/>
         <source>Add manometer</source>
         <translation>Adicionar manômetro</translation>
     </message>
     <message>
-        <location filename="../sections/menu_section.py" line="1001"/>
+        <location filename="../sections/menu_section.py" line="1014"/>
         <source>Add flowmeter</source>
         <translation>Adicionar medidor de vazão</translation>
     </message>
     <message>
-        <location filename="../sections/menu_section.py" line="1011"/>
+        <location filename="../sections/menu_section.py" line="1024"/>
         <source>Add countermeter</source>
         <translation>Adicionar hidrômetro</translation>
     </message>
     <message>
-        <location filename="../sections/menu_section.py" line="1021"/>
+        <location filename="../sections/menu_section.py" line="1034"/>
         <source>Add level sensor</source>
         <translation>Adicionar sensor de nível</translation>
     </message>
     <message>
-        <location filename="../sections/menu_section.py" line="1031"/>
+        <location filename="../sections/menu_section.py" line="1044"/>
         <source>Add differential manometer</source>
         <translation>Adicionar manômetro diferencial</translation>
     </message>
     <message>
-        <location filename="../sections/menu_section.py" line="1041"/>
+        <location filename="../sections/menu_section.py" line="1054"/>
         <source>Add quality sensor</source>
         <translation>Adicionar sensor de qualidade</translation>
     </message>
     <message>
-        <location filename="../sections/menu_section.py" line="1051"/>
+        <location filename="../sections/menu_section.py" line="1064"/>
         <source>Add energy sensor</source>
         <translation>Adicionar sensor de energia</translation>
     </message>
     <message>
-        <location filename="../sections/menu_section.py" line="1061"/>
+        <location filename="../sections/menu_section.py" line="1074"/>
         <source>Add status sensor</source>
         <translation>Adicionar sensor de estado</translation>
     </message>
     <message>
-        <location filename="../sections/menu_section.py" line="1071"/>
+        <location filename="../sections/menu_section.py" line="1084"/>
         <source>Add valve opening</source>
         <translation>Adicionar abertura de válvula</translation>
     </message>
     <message>
-        <location filename="../sections/menu_section.py" line="1081"/>
+        <location filename="../sections/menu_section.py" line="1094"/>
         <source>Add tachometer</source>
         <translation>Adicionar tacômetro</translation>
     </message>
     <message>
-        <location filename="../sections/menu_section.py" line="1111"/>
+        <location filename="../sections/menu_section.py" line="1124"/>
         <source>Load meter readings...</source>
         <translation>Carregar leituras dos medidores...</translation>
     </message>
     <message>
-        <location filename="../sections/menu_section.py" line="1120"/>
+        <location filename="../sections/menu_section.py" line="1151"/>
         <source>Set pipe&apos;s initial status from isolation valves</source>
         <translation>Definir estado inicial das tubulações a partir das válvulas de isolamento</translation>
     </message>
     <message>
-        <location filename="../sections/menu_section.py" line="1129"/>
+        <location filename="../sections/menu_section.py" line="1133"/>
         <source>Load field data...</source>
         <translation>Carregar dados de campo...</translation>
     </message>
     <message>
-        <location filename="../sections/menu_section.py" line="1138"/>
+        <location filename="../sections/menu_section.py" line="1142"/>
         <source>Field Data Manager</source>
         <translation>Gestor de Dados de Campo</translation>
     </message>
     <message>
-        <location filename="../sections/menu_section.py" line="1142"/>
+        <location filename="../sections/menu_section.py" line="1164"/>
         <source>Convert service connections into pipes/nodes</source>
         <translation>Converter ligações de serviço em tubulações/nós</translation>
     </message>
     <message>
-        <location filename="../sections/menu_section.py" line="752"/>
+        <location filename="../sections/menu_section.py" line="755"/>
         <source>Queries</source>
         <translation>Consultas</translation>
     </message>
     <message>
-        <location filename="../sections/menu_section.py" line="747"/>
+        <location filename="../sections/menu_section.py" line="750"/>
         <source>QGISRed Queries</source>
         <translation>Consultas do QGISRed</translation>
     </message>
     <message>
-        <location filename="../sections/menu_section.py" line="229"/>
+        <location filename="../sections/menu_section.py" line="232"/>
         <source>Save project map</source>
         <translation>Salvar mapa</translation>
     </message>
     <message>
-        <location filename="../sections/menu_section.py" line="519"/>
+        <location filename="../sections/menu_section.py" line="522"/>
         <source>Join consecutive pipes (= diameter, material and year)</source>
         <translation>Unir tubulações consecutivas (= diâmetro, material e ano)</translation>
     </message>
     <message>
-        <location filename="../sections/menu_section.py" line="216"/>
+        <location filename="../sections/menu_section.py" line="219"/>
         <source>Materials table...</source>
         <translation>Tabela de materiais...</translation>
     </message>
     <message>
-        <location filename="../sections/menu_section.py" line="633"/>
+        <location filename="../sections/menu_section.py" line="636"/>
         <source>Automatically calculate pipe lengths</source>
         <translation>Calcular automaticamente os comprimentos das tubulações</translation>
     </message>
     <message>
-        <location filename="../sections/menu_section.py" line="492"/>
+        <location filename="../sections/menu_section.py" line="495"/>
         <source>Check &amp;&amp; commit data</source>
         <translation>Verificar &amp;&amp; confirmar dados</translation>
     </message>
     <message>
-        <location filename="../sections/menu_section.py" line="528"/>
+        <location filename="../sections/menu_section.py" line="531"/>
         <source>Create T connections</source>
         <translation>Criar conexões em T</translation>
     </message>
     <message>
-        <location filename="../sections/menu_section.py" line="673"/>
+        <location filename="../sections/menu_section.py" line="676"/>
         <source>Nodal demand builder...</source>
         <translation>Construtor de consumos nodais...</translation>
     </message>
     <message>
-        <location filename="../sections/menu_section.py" line="682"/>
+        <location filename="../sections/menu_section.py" line="685"/>
         <source>Scenario builder...</source>
         <translation>Construtor de cenários...</translation>
     </message>
     <message>
-        <location filename="../sections/menu_section.py" line="877"/>
+        <location filename="../sections/menu_section.py" line="880"/>
         <source>Time series...</source>
         <translation>Séries temporais...</translation>
     </message>
     <message>
-        <location filename="../sections/menu_section.py" line="910"/>
+        <location filename="../sections/menu_section.py" line="923"/>
         <source>Export model to INP...</source>
         <translation>Exportar modelo para INP...</translation>
     </message>
     <message>
-        <location filename="../sections/menu_section.py" line="901"/>
+        <location filename="../sections/menu_section.py" line="914"/>
         <source>Export results to CSV...</source>
         <translation>Exportar resultados para CSV...</translation>
     </message>
     <message>
-        <location filename="../sections/menu_section.py" line="772"/>
+        <location filename="../sections/menu_section.py" line="775"/>
         <source>Find elements by ID...</source>
         <translation>Encontrar elementos por ID...</translation>
     </message>
     <message>
-        <location filename="../sections/menu_section.py" line="763"/>
+        <location filename="../sections/menu_section.py" line="766"/>
         <source>Thematic maps...</source>
         <translation>Mapas temáticos...</translation>
     </message>
     <message>
-        <location filename="../sections/menu_section.py" line="792"/>
+        <location filename="../sections/menu_section.py" line="795"/>
         <source>Queries by properties...</source>
         <translation>Consultas por propriedades...</translation>
     </message>
     <message>
-        <location filename="../sections/menu_section.py" line="691"/>
+        <location filename="../sections/menu_section.py" line="694"/>
         <source>Isolated segments...</source>
         <translation>Segmentos isolados...</translation>
     </message>
     <message>
-        <location filename="../sections/menu_section.py" line="651"/>
+        <location filename="../sections/menu_section.py" line="654"/>
         <source>Set roughness coefficients (from Material and Date)</source>
         <translation>Definir coeficientes de rugosidade (a partir de Material e Data)</translation>
     </message>
     <message>
-        <location filename="../sections/menu_section.py" line="660"/>
+        <location filename="../sections/menu_section.py" line="663"/>
         <source>Convert roughness coefficients...</source>
         <translation>Converter coeficientes de rugosidade...</translation>
     </message>
     <message>
-        <location filename="../sections/menu_section.py" line="782"/>
+        <location filename="../sections/menu_section.py" line="785"/>
         <source>Element properties...</source>
         <translation>Propriedades do elemento...</translation>
     </message>
     <message>
-        <location filename="../sections/menu_section.py" line="733"/>
+        <location filename="../sections/menu_section.py" line="736"/>
         <source>Minimum Cost Tree...</source>
         <translation>Árvore de Custo Mínimo...</translation>
     </message>
     <message>
-        <location filename="../sections/menu_section.py" line="116"/>
+        <location filename="../sections/menu_section.py" line="119"/>
         <source>Info</source>
         <translation>Info</translation>
     </message>
     <message>
-        <location filename="../sections/menu_section.py" line="112"/>
+        <location filename="../sections/menu_section.py" line="115"/>
         <source>QGISRed Info</source>
         <translation>Informações do QGISRed</translation>
     </message>
     <message>
-        <location filename="../sections/menu_section.py" line="125"/>
+        <location filename="../sections/menu_section.py" line="128"/>
         <source>News...</source>
         <translation>Novidades...</translation>
     </message>
     <message>
-        <location filename="../sections/menu_section.py" line="126"/>
+        <location filename="../sections/menu_section.py" line="129"/>
         <source>Report issues or comments...</source>
         <translation>Relatar problemas ou comentários...</translation>
     </message>
     <message>
-        <location filename="../sections/menu_section.py" line="127"/>
+        <location filename="../sections/menu_section.py" line="130"/>
         <source>User manual</source>
         <translation>Manual do usuário</translation>
     </message>
     <message>
-        <location filename="../sections/menu_section.py" line="128"/>
+        <location filename="../sections/menu_section.py" line="131"/>
         <source>User manual (offline - Outdated)</source>
         <translation>Manual do usuário (offline - Desatualizado)</translation>
     </message>
     <message>
-        <location filename="../sections/menu_section.py" line="129"/>
+        <location filename="../sections/menu_section.py" line="132"/>
         <source>Rate the plugin...</source>
         <translation>Avaliar o plugin...</translation>
     </message>
     <message>
-        <location filename="../sections/menu_section.py" line="130"/>
+        <location filename="../sections/menu_section.py" line="133"/>
         <source>Subscribe to newsletter...</source>
         <translation>Inscrever-se na newsletter...</translation>
     </message>
     <message>
-        <location filename="../sections/menu_section.py" line="131"/>
+        <location filename="../sections/menu_section.py" line="134"/>
         <source>About...</source>
         <translation>Sobre...</translation>
     </message>
@@ -3025,7 +3048,7 @@ Deseja verificá-los novamente?</translation>
         <translation type="obsolete">Estatísticas...</translation>
     </message>
     <message>
-        <location filename="../sections/menu_section.py" line="444"/>
+        <location filename="../sections/menu_section.py" line="447"/>
         <source>Edit properties by group...</source>
         <translation type="unfinished">Editar propriedades por grupo...</translation>
     </message>
@@ -3035,12 +3058,12 @@ Deseja verificá-los novamente?</translation>
         <translation type="obsolete">Construtor de setores de demanda...</translation>
     </message>
     <message>
-        <location filename="../sections/menu_section.py" line="887"/>
+        <location filename="../sections/menu_section.py" line="890"/>
         <source>Longitudinal profile...</source>
         <translation type="unfinished">Perfil longitudinal...</translation>
     </message>
     <message>
-        <location filename="../sections/menu_section.py" line="801"/>
+        <location filename="../sections/menu_section.py" line="804"/>
         <source>Statistics on properties...</source>
         <translation type="unfinished">Estatísticas sobre propriedades...</translation>
     </message>
@@ -3050,7 +3073,7 @@ Deseja verificá-los novamente?</translation>
         <translation type="obsolete">Construtor de setores de consumo (será removido no futuro)...</translation>
     </message>
     <message>
-        <location filename="../sections/menu_section.py" line="714"/>
+        <location filename="../sections/menu_section.py" line="717"/>
         <source>Demand sector builder (new version)...</source>
         <translation type="unfinished"></translation>
     </message>
@@ -4708,6 +4731,61 @@ Continuar?</translation>
         <location filename="../ui/edition/qgisred_groupedit_dialog.py" line="1556"/>
         <source>Continue?</source>
         <translation>Continuar?</translation>
+    </message>
+    <message>
+        <location filename="../tools/qgisred_translatable_strings.py" line="427"/>
+        <source>Replace with</source>
+        <translation>Substituir por</translation>
+    </message>
+    <message>
+        <location filename="../tools/qgisred_translatable_strings.py" line="428"/>
+        <source>Multiply by</source>
+        <translation>Multiplicar por</translation>
+    </message>
+    <message>
+        <location filename="../tools/qgisred_translatable_strings.py" line="429"/>
+        <source>Add</source>
+        <translation>Somar</translation>
+    </message>
+    <message>
+        <location filename="../tools/qgisred_translatable_strings.py" line="430"/>
+        <source>Subtract</source>
+        <translation>Subtrair</translation>
+    </message>
+    <message>
+        <location filename="../tools/qgisred_translatable_strings.py" line="431"/>
+        <source>Divide by</source>
+        <translation>Dividir por</translation>
+    </message>
+    <message>
+        <location filename="../tools/qgisred_translatable_strings.py" line="432"/>
+        <source>Clamp minimum to</source>
+        <translation>Limitar mínimo a</translation>
+    </message>
+    <message>
+        <location filename="../tools/qgisred_translatable_strings.py" line="433"/>
+        <source>Clamp maximum to</source>
+        <translation>Limitar máximo a</translation>
+    </message>
+    <message>
+        <location filename="../tools/qgisred_translatable_strings.py" line="434"/>
+        <source>Set to</source>
+        <translation>Definir como</translation>
+    </message>
+    <message>
+        <location filename="../tools/qgisred_translatable_strings.py" line="435"/>
+        <source>Prepend</source>
+        <translation>Prefixar</translation>
+    </message>
+    <message>
+        <location filename="../tools/qgisred_translatable_strings.py" line="436"/>
+        <source>Append</source>
+        <translation>Sufixar</translation>
+    </message>
+    <message>
+        <location filename="../tools/qgisred_translatable_strings.py" line="437"/>
+        <source>Find and replace</source>
+        <translation>Localizar e substituir</translation>
     </message>
 </context>
 <context>
@@ -8351,7 +8429,7 @@ Não é possível aplicar as alterações.</translation>
         <translation type="obsolete">&gt;|</translation>
     </message>
     <message>
-        <location filename="../ui/analysis/qgisred_results_appearance.py" line="221"/>
+        <location filename="../ui/analysis/qgisred_results_appearance.py" line="222"/>
         <source>Nodes</source>
         <translation>Nós</translation>
     </message>
@@ -8376,12 +8454,12 @@ Não é possível aplicar as alterações.</translation>
         <translation>Consumo</translation>
     </message>
     <message>
-        <location filename="../ui/analysis/qgisred_results_dock.py" line="1203"/>
+        <location filename="../ui/analysis/qgisred_results_dock.py" line="1205"/>
         <source>Quality</source>
         <translation>Qualidade</translation>
     </message>
     <message>
-        <location filename="../ui/analysis/qgisred_results_appearance.py" line="227"/>
+        <location filename="../ui/analysis/qgisred_results_appearance.py" line="228"/>
         <source>Links</source>
         <translation>Trechos</translation>
     </message>
@@ -8411,7 +8489,7 @@ Não é possível aplicar as alterações.</translation>
         <translation>Estado</translation>
     </message>
     <message>
-        <location filename="../ui/analysis/qgisred_results_dock.py" line="1915"/>
+        <location filename="../ui/analysis/qgisred_results_dock.py" line="1917"/>
         <source>Some issues occurred in the process</source>
         <translation>Ocorreram alguns problemas no processo</translation>
     </message>
@@ -8526,7 +8604,7 @@ Não é possível aplicar as alterações.</translation>
         <translation>Taxa de Reação</translation>
     </message>
     <message>
-        <location filename="../ui/analysis/qgisred_results_dock.py" line="449"/>
+        <location filename="../ui/analysis/qgisred_results_dock.py" line="451"/>
         <source>The current project has been changed. Please, try again.</source>
         <translation>O projeto atual foi alterado. Tente novamente.</translation>
     </message>
@@ -8631,17 +8709,17 @@ Não é possível aplicar as alterações.</translation>
         <translation>00:00:00</translation>
     </message>
     <message>
-        <location filename="../ui/analysis/qgisred_results_dock.py" line="702"/>
+        <location filename="../ui/analysis/qgisred_results_dock.py" line="704"/>
         <source>%1 results not found</source>
         <translation>Resultados de %1 não encontrados</translation>
     </message>
     <message>
-        <location filename="../ui/analysis/qgisred_results_dock.py" line="1500"/>
+        <location filename="../ui/analysis/qgisred_results_dock.py" line="1502"/>
         <source>for %1</source>
         <translation>para %1</translation>
     </message>
     <message>
-        <location filename="../ui/analysis/qgisred_results_dock.py" line="1851"/>
+        <location filename="../ui/analysis/qgisred_results_dock.py" line="1853"/>
         <source>No %1 results are available</source>
         <translation>Nenhum resultado de %1 está disponível</translation>
     </message>
@@ -8656,32 +8734,32 @@ Não é possível aplicar as alterações.</translation>
         <translation type="obsolete">hh</translation>
     </message>
     <message>
-        <location filename="../ui/analysis/qgisred_results_dock.py" line="1246"/>
+        <location filename="../ui/analysis/qgisred_results_dock.py" line="1248"/>
         <source>24h format</source>
         <translation>Formato 24h</translation>
     </message>
     <message>
-        <location filename="../ui/analysis/qgisred_results_dock.py" line="1247"/>
+        <location filename="../ui/analysis/qgisred_results_dock.py" line="1249"/>
         <source>dd hh:mm:ss format</source>
         <translation>Formato dd hh:mm:ss</translation>
     </message>
     <message>
-        <location filename="../ui/analysis/qgisred_results_dock.py" line="1247"/>
+        <location filename="../ui/analysis/qgisred_results_dock.py" line="1249"/>
         <source>HH:mm:ss format</source>
         <translation>Formato HH:mm:ss</translation>
     </message>
     <message>
-        <location filename="../ui/analysis/qgisred_results_dock.py" line="1245"/>
+        <location filename="../ui/analysis/qgisred_results_dock.py" line="1247"/>
         <source>Elapsed time</source>
         <translation>Tempo decorrido</translation>
     </message>
     <message>
-        <location filename="../ui/analysis/qgisred_results_dock.py" line="1245"/>
+        <location filename="../ui/analysis/qgisred_results_dock.py" line="1247"/>
         <source>Civil hour</source>
         <translation>Hora civil</translation>
     </message>
     <message>
-        <location filename="../ui/analysis/qgisred_results_dock.py" line="1246"/>
+        <location filename="../ui/analysis/qgisred_results_dock.py" line="1248"/>
         <source>am/pm format</source>
         <translation>Formato am/pm</translation>
     </message>
@@ -8721,22 +8799,22 @@ Não é possível aplicar as alterações.</translation>
         <translation>Tamanho da fonte (pt):</translation>
     </message>
     <message>
-        <location filename="../ui/analysis/qgisred_results_dock.ui" line="1643"/>
+        <location filename="../ui/analysis/qgisred_results_dock.ui" line="1656"/>
         <source>Junctions:</source>
         <translation>Nós de demanda:</translation>
     </message>
     <message>
-        <location filename="../ui/analysis/qgisred_results_dock.ui" line="1735"/>
+        <location filename="../ui/analysis/qgisred_results_dock.ui" line="1748"/>
         <source>Links:</source>
         <translation>Trechos:</translation>
     </message>
     <message>
-        <location filename="../ui/analysis/qgisred_results_dock.ui" line="1689"/>
+        <location filename="../ui/analysis/qgisred_results_dock.ui" line="1702"/>
         <source>Tanks and reservoirs:</source>
         <translation>Tanques e reservatórios:</translation>
     </message>
     <message>
-        <location filename="../ui/analysis/qgisred_results_dock.ui" line="1781"/>
+        <location filename="../ui/analysis/qgisred_results_dock.ui" line="1794"/>
         <source>Pumps and valves:</source>
         <translation>Bombas e válvulas:</translation>
     </message>
@@ -8776,17 +8854,17 @@ Não é possível aplicar as alterações.</translation>
         <translation>Com o zoom afastado, rotula apenas os valores que mais variam ao longo dos caminhos principais do escoamento (ou os maiores); ao aproximar aparecem mais rótulos</translation>
     </message>
     <message>
-        <location filename="../ui/analysis/qgisred_results_dock.ui" line="1827"/>
+        <location filename="../ui/analysis/qgisred_results_dock.ui" line="1840"/>
         <source>Arrows:</source>
         <translation>Setas:</translation>
     </message>
     <message>
-        <location filename="../ui/analysis/qgisred_results_dock.ui" line="1876"/>
+        <location filename="../ui/analysis/qgisred_results_dock.ui" line="1889"/>
         <source>Map Background</source>
         <translation>Plano de Fundo do Mapa</translation>
     </message>
     <message>
-        <location filename="../ui/analysis/qgisred_results_appearance.py" line="326"/>
+        <location filename="../ui/analysis/qgisred_results_appearance.py" line="327"/>
         <source>No color</source>
         <translation>Sem cor</translation>
     </message>
@@ -8796,12 +8874,12 @@ Não é possível aplicar as alterações.</translation>
         <translation type="obsolete">×</translation>
     </message>
     <message>
-        <location filename="../ui/analysis/qgisred_results_dock.ui" line="1900"/>
+        <location filename="../ui/analysis/qgisred_results_dock.ui" line="1913"/>
         <source>Clear background color</source>
         <translation>Limpar cor de fundo</translation>
     </message>
     <message>
-        <location filename="../ui/analysis/qgisred_results_dock.ui" line="1931"/>
+        <location filename="../ui/analysis/qgisred_results_dock.ui" line="1944"/>
         <source>Reset all</source>
         <translation>Redefinir tudo</translation>
     </message>
@@ -8826,12 +8904,12 @@ Não é possível aplicar as alterações.</translation>
         <translation>Bombas e válvulas</translation>
     </message>
     <message>
-        <location filename="../ui/analysis/qgisred_results_appearance.py" line="228"/>
+        <location filename="../ui/analysis/qgisred_results_appearance.py" line="229"/>
         <source>%1 decimals</source>
         <translation>%1 casas decimais</translation>
     </message>
     <message>
-        <location filename="../ui/analysis/qgisred_results_appearance.py" line="307"/>
+        <location filename="../ui/analysis/qgisred_results_appearance.py" line="308"/>
         <source>Map background color</source>
         <translation>Cor de fundo do mapa</translation>
     </message>
@@ -8851,72 +8929,72 @@ Não é possível aplicar as alterações.</translation>
         <translation>Histograma</translation>
     </message>
     <message>
-        <location filename="../ui/analysis/qgisred_results_dock.ui" line="1626"/>
+        <location filename="../ui/analysis/qgisred_results_dock.ui" line="1639"/>
         <source>Proportional to value</source>
         <translation>Proporcional ao valor</translation>
     </message>
     <message>
-        <location filename="../ui/analysis/qgisred_results_dock.ui" line="1613"/>
+        <location filename="../ui/analysis/qgisred_results_dock.ui" line="1626"/>
         <source>Symbology</source>
         <translation>Simbologia</translation>
     </message>
     <message>
-        <location filename="../ui/analysis/qgisred_results_dock.ui" line="1619"/>
+        <location filename="../ui/analysis/qgisred_results_dock.ui" line="1632"/>
         <source>Hide border on junctions</source>
         <translation>Ocultar borda nas junções</translation>
     </message>
     <message>
-        <location filename="../ui/analysis/qgisred_results_dock.ui" line="1633"/>
+        <location filename="../ui/analysis/qgisred_results_dock.ui" line="1646"/>
         <source>Size factor</source>
         <translation>ator de dimensão</translation>
     </message>
     <message>
-        <location filename="../ui/analysis/qgisred_results_dock.ui" line="1858"/>
+        <location filename="../ui/analysis/qgisred_results_dock.ui" line="1871"/>
         <source>↺</source>
         <translation type="unfinished">↺</translation>
     </message>
     <message>
-        <location filename="../ui/analysis/qgisred_results_dock.ui" line="1861"/>
+        <location filename="../ui/analysis/qgisred_results_dock.ui" line="1874"/>
         <source>Restore value</source>
         <translation type="unfinished">Restaurar valor</translation>
     </message>
     <message>
-        <location filename="../ui/analysis/qgisred_results_dock.ui" line="1489"/>
+        <location filename="../ui/analysis/qgisred_results_dock.ui" line="1502"/>
         <source>Background:</source>
         <translation type="unfinished">Fundo:</translation>
     </message>
     <message>
-        <location filename="../ui/analysis/qgisred_results_dock.ui" line="1514"/>
+        <location filename="../ui/analysis/qgisred_results_dock.ui" line="1527"/>
         <source>Clear label background color</source>
         <translation type="unfinished">Limpar cor de fundo dos rótulos</translation>
     </message>
     <message>
-        <location filename="../ui/analysis/qgisred_results_appearance.py" line="307"/>
+        <location filename="../ui/analysis/qgisred_results_appearance.py" line="308"/>
         <source>Label background color</source>
         <translation type="unfinished">Cor de fundo dos rótulos</translation>
     </message>
     <message>
-        <location filename="../ui/analysis/qgisred_results_appearance.py" line="104"/>
+        <location filename="../ui/analysis/qgisred_results_appearance.py" line="105"/>
         <source>Link the label background to the map background color</source>
         <translation>Vincular o fundo das etiquetas à cor de fundo do mapa</translation>
     </message>
     <message>
-        <location filename="../ui/analysis/qgisred_results_appearance.py" line="104"/>
+        <location filename="../ui/analysis/qgisred_results_appearance.py" line="105"/>
         <source>Label background follows the map background color</source>
         <translation>O fundo das etiquetas segue a cor de fundo do mapa</translation>
     </message>
     <message>
-        <location filename="../ui/analysis/qgisred_results_dock.ui" line="1554"/>
+        <location filename="../ui/analysis/qgisred_results_dock.ui" line="1567"/>
         <source>Buffer:</source>
         <translation>Buffer:</translation>
     </message>
     <message>
-        <location filename="../ui/analysis/qgisred_results_dock.ui" line="1579"/>
+        <location filename="../ui/analysis/qgisred_results_dock.ui" line="1592"/>
         <source>Clear label buffer color</source>
         <translation>Limpar a cor do buffer das etiquetas</translation>
     </message>
     <message>
-        <location filename="../ui/analysis/qgisred_results_appearance.py" line="307"/>
+        <location filename="../ui/analysis/qgisred_results_appearance.py" line="308"/>
         <source>Label buffer color</source>
         <translation>Cor do buffer das etiquetas</translation>
     </message>
@@ -8936,7 +9014,7 @@ Não é possível aplicar as alterações.</translation>
         <translation type="unfinished">seg</translation>
     </message>
     <message>
-        <location filename="../ui/analysis/qgisred_results_dock.py" line="2039"/>
+        <location filename="../ui/analysis/qgisred_results_dock.py" line="2042"/>
         <source>Reading results...</source>
         <translation type="unfinished">Lendo resultados...</translation>
     </message>
@@ -8946,7 +9024,7 @@ Não é possível aplicar as alterações.</translation>
         <translation>Nós:</translation>
     </message>
     <message>
-        <location filename="../ui/analysis/qgisred_results_rendering.py" line="1172"/>
+        <location filename="../ui/analysis/qgisred_results_rendering.py" line="1291"/>
         <source>Links</source>
         <comment>result layer name</comment>
         <translation>Trechos</translation>
@@ -11539,47 +11617,47 @@ Não é possível aplicar as alterações.</translation>
         <translation type="obsolete">Ocorreu um problema ao aplicar o estilo à camada %1</translation>
     </message>
     <message>
-        <location filename="../ui/analysis/qgisred_results_rendering.py" line="756"/>
+        <location filename="../ui/analysis/qgisred_results_rendering.py" line="763"/>
         <source>Closed</source>
         <translation type="unfinished">Fechada</translation>
     </message>
     <message>
-        <location filename="../ui/analysis/qgisred_results_rendering.py" line="757"/>
+        <location filename="../ui/analysis/qgisred_results_rendering.py" line="764"/>
         <source>Active</source>
         <translation type="unfinished">Ativa</translation>
     </message>
     <message>
-        <location filename="../ui/analysis/qgisred_results_rendering.py" line="569"/>
+        <location filename="../ui/analysis/qgisred_results_rendering.py" line="576"/>
         <source>Max</source>
         <translation type="unfinished">Máx</translation>
     </message>
     <message>
-        <location filename="../ui/analysis/qgisred_results_rendering.py" line="570"/>
+        <location filename="../ui/analysis/qgisred_results_rendering.py" line="577"/>
         <source>Min</source>
         <translation type="unfinished">Mín</translation>
     </message>
     <message>
-        <location filename="../ui/analysis/qgisred_results_rendering.py" line="571"/>
+        <location filename="../ui/analysis/qgisred_results_rendering.py" line="578"/>
         <source>Avg</source>
         <translation type="unfinished">Média</translation>
     </message>
     <message>
-        <location filename="../ui/analysis/qgisred_results_rendering.py" line="572"/>
+        <location filename="../ui/analysis/qgisred_results_rendering.py" line="579"/>
         <source>Rng</source>
         <translation type="unfinished">Amp</translation>
     </message>
     <message>
-        <location filename="../ui/analysis/qgisred_results_rendering.py" line="573"/>
+        <location filename="../ui/analysis/qgisred_results_rendering.py" line="580"/>
         <source>Std</source>
         <translation type="unfinished">Desv</translation>
     </message>
     <message>
-        <location filename="../ui/analysis/qgisred_results_rendering.py" line="1122"/>
+        <location filename="../ui/analysis/qgisred_results_rendering.py" line="1241"/>
         <source>%1 symbols of layer %2 do not match its geometry and were not resized</source>
         <translation>%1 símbolos da camada %2 não correspondem à sua geometria e não foram redimensionados</translation>
     </message>
     <message>
-        <location filename="../ui/analysis/qgisred_results_rendering.py" line="1191"/>
+        <location filename="../ui/analysis/qgisred_results_rendering.py" line="1310"/>
         <source>No values to classify in field &apos;%1&apos; of layer %2: the legend was left empty</source>
         <translation>Não há valores a classificar no campo '%1' da camada %2: a legenda foi deixada vazia</translation>
     </message>
@@ -11590,7 +11668,7 @@ Não é possível aplicar as alterações.</translation>
         <translation type="obsolete">Trechos</translation>
     </message>
     <message>
-        <location filename="../ui/analysis/qgisred_results_rendering.py" line="1172"/>
+        <location filename="../ui/analysis/qgisred_results_rendering.py" line="1291"/>
         <source>Nodes</source>
         <translation type="unfinished">Nós</translation>
     </message>
@@ -11657,29 +11735,6 @@ Não é possível aplicar as alterações.</translation>
         <location filename="../ui/analysis/results_distribution_renderer.py" line="429"/>
         <source>Cumulative</source>
         <translation type="unfinished">Acumulada</translation>
-    </message>
-</context>
-<context>
-    <name>FlowPathsSection</name>
-    <message>
-        <location filename="../sections/flow_paths_section.py" line="64"/>
-        <source>Run a simulation first to identify the flow paths.</source>
-        <translation>Execute primeiro uma simulação para identificar os trajetos.</translation>
-    </message>
-    <message>
-        <location filename="../sections/flow_paths_section.py" line="168"/>
-        <source>Node {0} has no upstream or downstream paths at this instant.</source>
-        <translation>O nó {0} não tem trajetos a montante nem a jusante neste instante.</translation>
-    </message>
-    <message>
-        <location filename="../sections/flow_paths_section.py" line="170"/>
-        <source>Node {0} has no upstream paths at this instant.</source>
-        <translation>O nó {0} não tem trajetos a montante neste instante.</translation>
-    </message>
-    <message>
-        <location filename="../sections/flow_paths_section.py" line="172"/>
-        <source>Node {0} has no downstream paths at this instant.</source>
-        <translation>O nó {0} não tem trajetos a jusante neste instante.</translation>
     </message>
 </context>
 </TS>
