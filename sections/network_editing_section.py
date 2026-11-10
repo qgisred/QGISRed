@@ -665,7 +665,7 @@ class NetworkEditingSection:
             comp = resMessage.split("]")
             layerName = comp[0].replace("[", "")
             elementId = comp[1]
-            self.zoomToElementFromProperties(layerName, elementId)
+            self.zoomToElementsFromProperties(layerName, [elementId])
 
             self.runProperties("")
         else:

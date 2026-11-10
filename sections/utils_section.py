@@ -272,53 +272,6 @@ class UtilsSection:
 
         self.selectedIds = {}
 
-    def zoomToElementFromProperties(self, layerName, elementId):
-        layers = self.getLayers()
-        layer = None
-
-        target_id = self._getQgisRedIdentifierFromLayerName(layerName)
-
-        for la in layers:
-            if la.customProperty("qgisred_identifier") == target_id:
-                layer = la
-                break
-
-        if layer:
-            idFieldName = self._getIdFieldName(layerName, layer)
-
-            if idFieldName is None:
-                return
-
-            safeElementId = str(elementId).replace("'", "''")
-            features = layer.getFeatures(f'"{idFieldName}" = \'{safeElementId}\'')
-
-            for feat in features:
-                layer.selectByIds([feat.id()])
-
-                geom = feat.geometry()
-                if geom.isNull():
-                    continue
-
-                box = geom.boundingBox()
-
-                canvas_extent = self.iface.mapCanvas().extent()
-                buffer = max(canvas_extent.width(), canvas_extent.height()) * 0.10
-
-                if box.width() == 0 or box.height() == 0:
-                    center = box.center()
-                    box = QgsRectangle(
-                        center.x() - buffer,
-                        center.y() - buffer,
-                        center.x() + buffer,
-                        center.y() + buffer
-                    )
-                else:
-                    box.grow(buffer * 0.15)
-
-                self.iface.mapCanvas().setExtent(box)
-                self.iface.mapCanvas().refresh()
-                return
-
     def zoomToElementsFromProperties(self, layerName, elementIds):
         layer = None
         target_id = self._getQgisRedIdentifierFromLayerName(layerName)
