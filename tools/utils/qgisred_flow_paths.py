@@ -121,3 +121,73 @@ def flow_path_widths(link_flows, link_ids, min_width, max_width):
         lid: min_width + (max_width - min_width) * value / top
         for lid, value in magnitudes.items()
     }
+
+
+def upstream_link_sources(start_node, up_links, oriented, flows, source_nodes):
+    """Tell, for each upstream link, which source most of its water comes from.
+
+    The upstream sub-network starts at a handful of nodes nothing feeds within
+    it (reservoirs, tanks, negative demands). Walking it downstream from them,
+    every node mixes the water of its inflows in proportion to their flows, and
+    each link leaving the node takes the source that brings most of it. A source
+    met along the way (a tank, say) starts afresh as a new intermediate source.
+
+    Returns ({link_id: source_node}, [source_node, ...]); the list is ordered
+    by the flow leaving each source, largest first.
+    """
+    incoming, outgoing = {}, {}
+    for lid in up_links:
+        ends = oriented.get(lid)
+        if ends is None:
+            continue
+        up_node, down_node = ends
+        incoming.setdefault(down_node, []).append((lid, up_node))
+        outgoing.setdefault(up_node, []).append((lid, down_node))
+        incoming.setdefault(up_node, [])
+        outgoing.setdefault(down_node, [])
+
+    def magnitude(lid):
+        try:
+            return abs(float(flows.get(lid) or 0.0))
+        except (TypeError, ValueError):
+            return 0.0
+
+    pending = {node: len(links) for node, links in incoming.items()}
+    ready = deque(sorted((n for n, count in pending.items() if count == 0), key=str))
+    mixes, link_source = {}, {}
+    while pending:
+        if not ready:
+            # A loop of flows (numerical noise): break it at the node whose
+            # inflows are best known.
+            node = max(pending, key=lambda n: (
+                sum(1 for _l, up in incoming[n] if up in mixes), str(n)))
+        else:
+            node = ready.popleft()
+            if node not in pending:
+                continue
+        del pending[node]
+        known = [(lid, up) for lid, up in incoming[node] if up in mixes]
+        if not known or (node != start_node and node in source_nodes):
+            mix = {node: 1.0}
+        else:
+            mix = {}
+            total = sum(magnitude(lid) for lid, _up in known) or float(len(known))
+            for lid, up in known:
+                weight = (magnitude(lid) or (0.0 if total else 1.0)) / total
+                for source, share in mixes[up].items():
+                    mix[source] = mix.get(source, 0.0) + share * weight
+        mixes[node] = mix
+        main = max(mix.items(), key=lambda item: (item[1], str(item[0])))[0]
+        for lid, down in outgoing.get(node, ()):
+            link_source[lid] = main
+            if down in pending:
+                pending[down] -= 1
+                if pending[down] == 0:
+                    ready.append(down)
+
+    out_flow = {}
+    for lid, source in link_source.items():
+        if oriented[lid][0] == source:
+            out_flow[source] = out_flow.get(source, 0.0) + magnitude(lid)
+    order = sorted(set(link_source.values()), key=lambda s: (-out_flow.get(s, 0.0), str(s)))
+    return link_source, order

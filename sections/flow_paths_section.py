@@ -12,15 +12,21 @@ from ..tools.utils.qgisred_flow_paths import (
     oriented_links,
     source_nodes_from,
     trace_flow_paths,
+    upstream_link_sources,
 )
 
 _NODE_LAYER_IDENTIFIERS = ("qgisred_junctions", "qgisred_tanks", "qgisred_reservoirs")
 _LINK_LAYER_IDENTIFIERS = ("qgisred_pipes", "qgisred_pumps", "qgisred_valves")
 
-# Routes reaching the node directly first, then those that only reach it through
-# one, two, three or more sources (tanks, reservoirs, negative demands).
-_UPSTREAM_COLORS = ((215, 25, 28), (245, 120, 20), (250, 170, 90), (252, 210, 160))
+# Downstream routes reaching the node directly first, then those that only
+# reach it through one, two, three or more sources (tanks, reservoirs,
+# negative demands).
 _DOWNSTREAM_COLORS = ((20, 70, 200), (60, 140, 230), (120, 185, 240), (180, 215, 245))
+
+# Upstream routes take a hue per source, from red to cadmium yellow, and lose
+# saturation with each source standing between them and the node.
+_UPSTREAM_HUE_RANGE = (0.0, 56.0)
+_UPSTREAM_LEVEL_SATURATION = (0.95, 0.6, 0.4, 0.25)
 
 _MIN_WIDTH_MM = 0.5
 _MAX_WIDTH_MM = 2.5
@@ -31,6 +37,15 @@ def _level_color(colors, level):
 
     rgb = colors[min(max(int(level), 0), len(colors) - 1)]
     return QColor(rgb[0], rgb[1], rgb[2])
+
+
+def _source_color(index, count, level):
+    from qgis.PyQt.QtGui import QColor
+
+    first, last = _UPSTREAM_HUE_RANGE
+    hue = first if count <= 1 else first + (last - first) * index / (count - 1)
+    saturation = _UPSTREAM_LEVEL_SATURATION[min(max(int(level), 0), len(_UPSTREAM_LEVEL_SATURATION) - 1)]
+    return QColor.fromHsvF(hue / 360.0, saturation, 0.9 if level <= 0 else 1.0)
 
 
 def _link_kind(link_type):
@@ -311,8 +326,11 @@ class FlowPathsSection:
         flows, demands, closed = self._flowPathsValues()
         oriented = oriented_links(network["endpoints"], flows, closed_links=closed)
         sources = source_nodes_from(network["node_types"], demands)
+        upstream = trace_flow_paths(node_id, oriented, sources, UPSTREAM)
+        upstream["sources"], upstream["source_order"] = upstream_link_sources(
+            node_id, upstream["links"], oriented, flows, sources)
         return {
-            UPSTREAM: trace_flow_paths(node_id, oriented, sources, UPSTREAM),
+            UPSTREAM: upstream,
             DOWNSTREAM: trace_flow_paths(node_id, oriented, sources, DOWNSTREAM),
             "flows": flows,
         }
@@ -382,9 +400,20 @@ class FlowPathsSection:
         entries = [(geometry, crs, background[kind]) for kind, geometry, crs in entries]
 
         # Links of the same colour and width share one symbol as well.
+        link_source = result[UPSTREAM].get("sources", {})
+        source_order = result[UPSTREAM].get("source_order", [])
+        source_index = {source: i for i, source in enumerate(source_order)}
+
+        def up_color(lid, level):
+            index = source_index.get(link_source.get(lid), 0)
+            return _source_color(index, len(source_order), level)
+
+        def down_color(_lid, level):
+            return _level_color(_DOWNSTREAM_COLORS, level)
+
         symbols = {}
         items = []
-        for links, colors in ((down_links, _DOWNSTREAM_COLORS), (up_links, _UPSTREAM_COLORS)):
+        for links, color_of in ((down_links, down_color), (up_links, up_color)):
             for lid, level in links.items():
                 found = geometries["links"].get(str(lid))
                 if found is None:
@@ -394,12 +423,13 @@ class FlowPathsSection:
                     # Turn the line so the arrow points the way the water goes.
                     with suppress(Exception):
                         geometry = self._reversedLine(geometry)
-                key = (_link_kind(link_types.get(lid)), colors, level, round(widths[lid], 1))
+                color = color_of(lid, level)
+                key = (_link_kind(link_types.get(lid)), color.rgb(), round(widths[lid], 1))
                 if key not in symbols:
-                    symbols[key] = build_link_symbol(key[0], _level_color(colors, level), key[3])
+                    symbols[key] = build_link_symbol(key[0], color, key[2])
                 items.append((level, key, geometry, crs))
         # Routes that only arrive through a source sit underneath the direct ones.
-        items.sort(key=lambda item: (-item[0], item[1][3], item[1][0]))
+        items.sort(key=lambda item: (-item[0], item[1][2], item[1][0]))
         entries.extend((geometry, crs, symbols[key]) for _level, key, geometry, crs in items)
 
         node_geometry = geometries["nodes"].get(str(node_id))
@@ -411,7 +441,8 @@ class FlowPathsSection:
         if item is None:
             item = QGISRedFlowPathsCanvasItem(canvas)
             self._flowPathsItem = item
-        item.setEntries(entries)
+        # Their labels stay as the results panel draws them, clear of the veil.
+        item.setEntries(entries, kept_labels=on_route)
         return result
 
     @staticmethod

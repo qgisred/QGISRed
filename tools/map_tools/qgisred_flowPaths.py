@@ -2,8 +2,8 @@
 """Map tool of the upstream / downstream routes.
 
 Unlike QGISRedSelectPointTool, a click away from every node is meaningful here:
-it clears the routes. So the tool reports every left click, snapped or not,
-and leaves deciding what was hit to its owner.
+it clears the routes. So the tool reports every click, left or right, snapped
+or not, and leaves deciding what was hit to its owner.
 """
 from qgis.PyQt.QtCore import Qt
 from qgis.core import QgsPointXY
@@ -42,7 +42,6 @@ class QGISRedFlowPathsTool(QgsMapTool):
     def canvasReleaseEvent(self, event):
         if getattr(self.parent, "isUnloading", False):
             return
-        if event.button() == Qt.MouseButton.LeftButton:
+        # Both buttons do the same: pick a node, or clear the routes off one.
+        if event.button() in (Qt.MouseButton.LeftButton, Qt.MouseButton.RightButton):
             self.method(QgsPointXY(self.toMapCoordinates(event.pos())))
-        elif event.button() == Qt.MouseButton.RightButton:
-            self.canvas.unsetMapTool(self)

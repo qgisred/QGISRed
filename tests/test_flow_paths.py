@@ -5,6 +5,7 @@ from QGISRed.tools.utils.qgisred_flow_paths import (
     oriented_links,
     source_nodes_from,
     trace_flow_paths,
+    upstream_link_sources,
 )
 
 # R1 --P1--> J1 --P2--> N <--P3-- T1 <--P4-- J2 <--P5-- R1
@@ -40,3 +41,19 @@ def test_upstream_levels_prefer_the_direct_route():
 def test_downstream_continues_past_a_tank_with_a_lighter_level():
     links = _trace(DOWNSTREAM)["links"]
     assert links == {"P6": 0, "P7": 0, "P8": 1}
+
+
+def test_upstream_links_take_the_source_bringing_most_of_their_water():
+    # A tank on the way is a new source: P3 leaves T1, the rest comes from R1.
+    oriented = oriented_links(ENDPOINTS, FLOWS, closed_links={"P10"})
+    sources = source_nodes_from(NODE_TYPES, {})
+    up = _trace(UPSTREAM)["links"]
+    link_source, order = upstream_link_sources("N", up, oriented, FLOWS, sources)
+    assert link_source == {"P1": "R1", "P2": "R1", "P9": "R1", "P5": "R1", "P4": "R1", "P3": "T1"}
+    assert order == ["R1", "T1"]
+
+    # X mixes 2 from A with 5 from B, so what leaves X towards N is B's.
+    mixed = {"L1": ("A", "X"), "L2": ("B", "X"), "L3": ("X", "N")}
+    flows = {"L1": 2.0, "L2": 5.0, "L3": 7.0}
+    link_source, order = upstream_link_sources("N", mixed, mixed, flows, {"A", "B"})
+    assert link_source["L3"] == "B" and order == ["B", "A"]
