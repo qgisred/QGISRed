@@ -1370,8 +1370,13 @@ class _ResultsRenderingMixin:
 
         # It does not work in QGIS 4 (no other option found)
         node = QgsProject.instance().layerTreeRoot().findLayer(layer)
-        if node and not node.isExpanded():
-            node.setExpanded(True)
+        if node:
+            # Enabled only now: on a freshly added layer the panel would start counting
+            # with the first style, and QGIS keeps that count (with that style's legend keys)
+            # even though the renderer is replaced while it runs, so every class reads "N/D".
+            node.setCustomProperty("showFeatureCount", True)
+            if not node.isExpanded():
+                node.setExpanded(True)
 
     @contextmanager
     def holdingLayerSignals(self, layer):

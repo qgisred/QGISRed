@@ -1264,7 +1264,7 @@ class TestResultLayerLegendName:
 class TestResultLayersShowTheirFeatureCount:
     """Result layers come up with the element count per class, like the input layers do."""
 
-    def test_open_result_layer_turns_the_count_on(self, tmp_path):
+    def test_open_result_layer_leaves_the_count_off_until_it_is_painted(self, tmp_path):
         from QGISRed.tools.utils.qgisred_layer_utils import QGISRedLayerUtils
         utils = QGISRedLayerUtils.__new__(QGISRedLayerUtils)
         utils.NetworkName = "Net"
@@ -1286,4 +1286,4 @@ class TestResultLayersShowTheirFeatureCount:
                 patch("QGISRed.tools.utils.qgisred_layer_utils.QgsProject"):
             utils.openLayer(group, "Base_Link", results=True)
 
-        child.setCustomProperty.assert_called_once_with("showFeatureCount", True)
+        child.setCustomProperty.assert_not_called()
