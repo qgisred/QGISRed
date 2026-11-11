@@ -14,9 +14,14 @@ follows the main flows of the network:
 * Node demand-like magnitudes and link relative magnitudes (velocity, unit headloss,
   friction factor, reaction rate...): the value itself.
 * Link flow and headloss: the flow, discounted when it just carries on the incoming
-  flow of its upstream node (main continuation with little change).
+  flow of its upstream node (main continuation with little change). Links entering or
+  leaving a reservoir or tank get level 0: always shown, even over other labels.
 * Link quality: the change from the upstream link.
 * Link status: closed elements, active valves and pumps/valves first; open pipes last.
+
+Levels are handed out by area so labels spread over the whole map: at each level the
+network is split into cells (CELLS_PER_SCREEN per screen side at the zoom where that
+level appears) and the most relevant element of every cell not yet labelled takes it.
 
 Pure Python (no QGIS imports) so it can be unit tested on its own.
 """
@@ -24,8 +29,13 @@ import heapq
 import math
 
 LEVEL_COUNT = 8
-# Labels allowed at the full network extent. Each level up quadruples the count, which
-# keeps the density of labels on screen roughly constant as the zoom doubles.
+# Level 0: always shown and allowed to overlap other labels (flows at sources).
+ALWAYS_LEVEL = 0
+# Cells per screen side for the spatial spread: each level adds at most one label per
+# cell, so a screen holds about CELLS_PER_SCREEN² new labels at every zoom step.
+CELLS_PER_SCREEN = 6
+# Without positions, labels allowed at the full network extent. Each level up
+# quadruples the count, which keeps the density on screen roughly constant.
 BASE_COUNT = 20
 
 _INF = float("inf")
@@ -46,6 +56,7 @@ class FlowTree:
             if 0 <= a < n_nodes and 0 <= b < n_nodes and a != b:
                 self.node_links[a].append((li, b))
                 self.node_links[b].append((li, a))
+        self.sources = {r for r in roots if 0 <= r < n_nodes}
         self.parent_link = [-1] * n_nodes
         self.parent_node = [-1] * n_nodes
         self.is_root = [False] * n_nodes
@@ -194,24 +205,68 @@ def status_levels(statuses, link_types):
     return levels
 
 
-def scores_to_levels(scores):
-    """Rank by score: the top BASE_COUNT get level 1, the top BASE_COUNT*4 level 2, ...
+def _valid(score):
+    return score is not None and score > 0 and not math.isnan(score)
 
-    Elements with no score (no change, zero, missing) go right after the last level in
-    use, so they appear as soon as every scored label is on screen instead of waiting
-    for the deepest zoom.
-    """
-    ranked = sorted((i for i, s in enumerate(scores) if s and s > 0 and not math.isnan(s)),
-                    key=lambda i: -scores[i])
-    levels = [LEVEL_COUNT] * len(scores)
+
+def _global_levels(ranked, levels):
     limit, level = BASE_COUNT, 1
     for rank, i in enumerate(ranked):
         while rank >= limit and level < LEVEL_COUNT:
             limit *= 4
             level += 1
         levels[i] = level
+
+
+def _spatial_levels(ranked, positions, levels):
+    """Best element per cell at each level; cells halve in size with every level."""
+    placed = [i for i in ranked if positions[i] is not None]
+    for i in ranked:
+        if positions[i] is None:
+            levels[i] = LEVEL_COUNT
+    if not placed:
+        return
+    min_x = min(positions[i][0] for i in placed)
+    min_y = min(positions[i][1] for i in placed)
+    size = max(max(positions[i][0] for i in placed) - min_x,
+               max(positions[i][1] for i in placed) - min_y) or 1.0
+    remaining = placed
+    for level in range(1, LEVEL_COUNT):
+        if not remaining:
+            return
+        cells = CELLS_PER_SCREEN * 2 ** (level - 1)
+        cell = size / cells
+        taken, rest = set(), []
+        for i in remaining:  # most relevant first
+            x, y = positions[i]
+            # min() keeps the far edge of the network inside the last cell.
+            key = (min(int((x - min_x) // cell), cells - 1), min(int((y - min_y) // cell), cells - 1))
+            if key in taken:
+                rest.append(i)
+            else:
+                taken.add(key)
+                levels[i] = level
+        remaining = rest
+    for i in remaining:
+        levels[i] = LEVEL_COUNT
+
+
+def scores_to_levels(scores, positions=None):
+    """Turn scores into levels: spread by area when positions (x, y) are given, by rank
+    otherwise (top BASE_COUNT level 1, top BASE_COUNT*4 level 2...).
+
+    Elements with no score (no change, zero, missing) go right after the last level in
+    use, so they appear as soon as every scored label is on screen instead of waiting
+    for the deepest zoom.
+    """
+    ranked = sorted((i for i, s in enumerate(scores) if _valid(s)), key=lambda i: -scores[i])
+    levels = [LEVEL_COUNT] * len(scores)
+    if positions is None:
+        _global_levels(ranked, levels)
+    else:
+        _spatial_levels(ranked, positions, levels)
     if ranked:
-        unscored_level = min(LEVEL_COUNT, level + 1)
+        unscored_level = min(LEVEL_COUNT, max(levels[i] for i in ranked) + 1)
         ranked_set = set(ranked)
         for i in range(len(scores)):
             if i not in ranked_set:
@@ -223,16 +278,24 @@ def scores_to_levels(scores):
 # Entry point
 # ----------------------------------------------------------------------
 
-def compute_levels(field, is_node, tree, values, flows_abs, statuses=None, link_types=None):
-    """Return a level per element (node indices if is_node, link indices otherwise)."""
+def compute_levels(field, is_node, tree, values, flows_abs, statuses=None, link_types=None,
+                   positions=None):
+    """Return a level per element (node indices if is_node, link indices otherwise).
+
+    positions: (x, y) per element (or None) to spread the labels over the map.
+    """
     if is_node:
         if field in NODE_CHANGE_FIELDS:
-            return scores_to_levels(node_change_scores(tree, values))
-        return scores_to_levels(value_scores(values))
+            return scores_to_levels(node_change_scores(tree, values), positions)
+        return scores_to_levels(value_scores(values), positions)
     if field == "Status":
         return status_levels(statuses or [], link_types or [])
     if field in LINK_FLOW_FIELDS:
-        return scores_to_levels(link_flow_scores(tree, flows_abs))
+        levels = scores_to_levels(link_flow_scores(tree, flows_abs), positions)
+        for li, (a, b) in enumerate(tree.link_ends):
+            if a in tree.sources or b in tree.sources:
+                levels[li] = ALWAYS_LEVEL
+        return levels
     if field in LINK_CHANGE_FIELDS:
-        return scores_to_levels(link_change_scores(tree, values))
-    return scores_to_levels(value_scores(values))
+        return scores_to_levels(link_change_scores(tree, values), positions)
+    return scores_to_levels(value_scores(values), positions)

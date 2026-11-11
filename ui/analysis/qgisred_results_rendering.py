@@ -19,7 +19,7 @@ from ...compat import (
     TEXT_BG_SHAPE_RECTANGLE, TEXT_BG_SIZE_BUFFER,
     PEN_JOIN_ROUND,
     PAL_PROPERTY_COLOR, PAL_PROPERTY_LABEL_DISTANCE,
-    PAL_PROPERTY_SHOW, PAL_PROPERTY_PRIORITY,
+    PAL_PROPERTY_SHOW, PAL_PROPERTY_PRIORITY, PAL_PROPERTY_ALWAYS_SHOW,
     PAL_PLACEMENT_LINE, PAL_PLACEMENT_AROUND_POINT,
     SL_PROP_SIZE, SL_PROP_STROKE_COLOR, SL_PROP_STROKE_WIDTH,
     QGIS_WARNING,
@@ -31,7 +31,7 @@ from ...tools.utils.qgisred_result_fields import resultIdField, resultTypeField
 from .qgisred_results_data import resultStyleName, resultLayerDisplayName, resultVariableUnit, qualityStyleKind, NO_VARIABLE_METADATA_TAG
 from ...tools.utils.qgisred_project_utils import QGISRedProjectUtils
 from .qgisred_results_binary import getOut_Metadata, _NT_JUNCTION
-from .results_label_priority import FlowTree, compute_levels, LEVEL_COUNT
+from .results_label_priority import FlowTree, compute_levels, LEVEL_COUNT, ALWAYS_LEVEL
 
 # Default label text colors (used unless the user picks "By range" or overrides them in
 # Appearance). Dark tones close to black so labels stay legible, but distinguishable
@@ -848,7 +848,10 @@ class _ResultsRenderingMixin:
                 ddp.setProperty(PAL_PROPERTY_SHOW, QgsProperty.fromExpression(
                     f"({level_expr}) <= 1 + log(2, {zoom_ratio}) + 1e-9"))
                 ddp.setProperty(PAL_PROPERTY_PRIORITY, QgsProperty.fromExpression(
-                    f"max(0, 11 - ({level_expr}))"))
+                    f"max(0, min(10, 11 - ({level_expr})))"))
+                # Flows at reservoirs and tanks: drawn even when they overlap other labels.
+                ddp.setProperty(PAL_PROPERTY_ALWAYS_SHOW, QgsProperty.fromExpression(
+                    f"({level_expr}) = {ALWAYS_LEVEL}"))
         layer_settings.setDataDefinedProperties(ddp)
         labels = QgsVectorLayerSimpleLabeling(layer_settings)
         layer.setLabeling(labels)
@@ -885,15 +888,20 @@ class _ResultsRenderingMixin:
         return topology
 
     @staticmethod
-    def _readLayerColumns(layer, field_names):
-        """{element id: [value per field]} for the given fields (None when missing/NULL)."""
+    def _readLayerColumns(layer, field_names, positions=None):
+        """{element id: [value per field]} for the given fields (None when missing/NULL).
+
+        When a positions dict is given it is filled with {element id: (x, y)} (the centre
+        of each feature's bounding box), used to spread the labels over the map.
+        """
         fields = layer.fields()
         id_idx = fields.indexOf(resultIdField(layer))
         indices = [fields.indexOf(name) for name in field_names]
         wanted = [i for i in [id_idx] + indices if i >= 0]
         request = QgsFeatureRequest().setSubsetOfAttributes(wanted)
-        request.setFlags(QgsFeatureRequest.NoGeometry if hasattr(QgsFeatureRequest, "NoGeometry")
-                         else QgsFeatureRequest.Flag.NoGeometry)
+        if positions is None:
+            request.setFlags(QgsFeatureRequest.NoGeometry if hasattr(QgsFeatureRequest, "NoGeometry")
+                             else QgsFeatureRequest.Flag.NoGeometry)
         columns = {}
         for feature in layer.getFeatures(request):
             attrs = feature.attributes()
@@ -903,7 +911,11 @@ class _ResultsRenderingMixin:
                 if value is not None and not isinstance(value, (int, float, str)):
                     value = None  # QVariant NULL
                 row.append(value)
-            columns[str(attrs[id_idx]) if id_idx >= 0 else str(feature.id())] = row
+            key = str(attrs[id_idx]) if id_idx >= 0 else str(feature.id())
+            columns[key] = row
+            if positions is not None and feature.hasGeometry():
+                center = feature.geometry().boundingBox().center()
+                positions[key] = (center.x(), center.y())
         return columns
 
     def _labelLevelExpression(self, layer, fieldName, is_node):
@@ -927,8 +939,10 @@ class _ResultsRenderingMixin:
 
             ids = node_ids if is_node else link_ids
             extra = [] if is_node else [resultTypeField(layer, default="Type")]
-            cols = self._readLayerColumns(layer, [fieldName] + extra)
+            position_map = {}
+            cols = self._readLayerColumns(layer, [fieldName] + extra, position_map)
             rows = [cols.get(eid) for eid in ids]
+            positions = [position_map.get(eid) for eid in ids]
 
             def column(k):
                 return [row[k] if row and k < len(row) else None for row in rows]
@@ -937,6 +951,7 @@ class _ResultsRenderingMixin:
             levels = compute_levels(
                 fieldName, is_node, tree, values, flows_abs,
                 statuses=column(0), link_types=column(1) if extra else None,
+                positions=positions,
             )
         except Exception as exc:  # never break labelling over the relevance filter
             QgsMessageLog.logMessage(f"Relevant labels: {exc}", "QGISRed", QGIS_WARNING)

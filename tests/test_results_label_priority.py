@@ -1,7 +1,6 @@
 # -*- coding: utf-8 -*-
 from QGISRed.ui.analysis.results_label_priority import (
-    BASE_COUNT,
-    LEVEL_COUNT,
+    ALWAYS_LEVEL,
     FlowTree,
     compute_levels,
     link_flow_scores,
@@ -30,11 +29,20 @@ def test_node_pressure_relevance_follows_the_change_along_the_flow_tree():
 def test_link_flow_relevance_discounts_the_plain_continuation():
     tree, flows = _main_with_branch()
     scores = link_flow_scores(tree, flows)
-    # The reservoir outlet and both legs of the tee outrank pipes that just carry the
-    # same flow on.
-    assert scores[0] > scores[2] > scores[1]
+    # Both legs of the tee outrank pipes that just carry the same flow on.
+    assert scores[2] > scores[1]
     assert scores[4] > scores[5]
-    # Top BASE_COUNT -> level 1, next ones -> level 2; a zero score -> the level after
-    # the last one in use, not the deepest zoom.
-    levels = scores_to_levels([float(i) for i in range(BASE_COUNT * 2 + 1)])
-    assert levels[-1] == 1 and levels[-BASE_COUNT - 1] == 2 and levels[0] == 3 < LEVEL_COUNT
+    # The reservoir outlet is always shown.
+    assert compute_levels("Flow", False, tree, [None] * 6, flows)[0] == ALWAYS_LEVEL
+
+
+def test_levels_spread_the_labels_over_the_whole_map():
+    # A busy cluster with big scores on the left and a quiet one with small scores on
+    # the right: the quiet area still gets a level-1 label, and a zero score is not
+    # left for the deepest zoom.
+    positions = [(0, 0), (1, 0), (2, 0), (100, 0), (101, 0), (102, 0)]
+    scores = [90.0, 80.0, 70.0, 3.0, 2.0, 0.0]
+    levels = scores_to_levels(scores, positions)
+    assert levels[0] == 1 and levels[3] == 1
+    assert levels[1] > 1 and levels[4] > 1
+    assert levels[5] == max(levels[:5]) + 1

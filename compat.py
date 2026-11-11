@@ -335,9 +335,11 @@ except AttributeError:
 try:
     PAL_PROPERTY_SHOW = _QgsPalLayerSettings.Property.Show
     PAL_PROPERTY_PRIORITY = _QgsPalLayerSettings.Property.Priority
+    PAL_PROPERTY_ALWAYS_SHOW = _QgsPalLayerSettings.Property.AlwaysShow
 except AttributeError:
     PAL_PROPERTY_SHOW = _QgsPalLayerSettings.Show
     PAL_PROPERTY_PRIORITY = _QgsPalLayerSettings.Priority
+    PAL_PROPERTY_ALWAYS_SHOW = _QgsPalLayerSettings.AlwaysShow
 
 try:
     PAL_PLACEMENT_LINE        = _QgsPalLayerSettings.Placement.Line
