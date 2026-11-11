@@ -18,6 +18,9 @@ from ..compat import QAction, QGIS_INFO
 
 from .. import resources3x  # noqa: F401  (registers Qt resources)
 from ..tools.utils.qgisred_filesystem_utils import QGISRedFileSystemUtils
+from ..tools.utils.qgisred_temp_folders import (
+    KIND_WORK, createSessionTempFolder, removeSessionTempFolder, removeStaleTempFolders,
+)
 from ..tools.qgisred_dependencies import QGISRedDependencies as GISRed
 from ..ui.queries.qgisred_element_explorer_dock import QGISRedElementExplorerDock
 from ..ui.general.qgisred_news_dialog import QGISRedNewsDialog
@@ -203,7 +206,6 @@ class LifecycleSection:
         self.myMapTools = {}
 
         # QGISRed dependencies
-        self.dllTempFolderFile = os.path.join(QGISRedFileSystemUtils().getQGISRedFolder(), "dllTempFolders.dat")
         QGISRedFileSystemUtils().copyDependencies()
         self.removeTempFolders()
         # QGISRed news
@@ -217,7 +219,7 @@ class LifecycleSection:
         self.gplFile = os.path.join(self.gplFolder, "qgisredprojectlist.gpl")
 
         # SHPs temporal folder
-        self.tempFolder = tempfile.mkdtemp(prefix="QGISRed_")
+        self.tempFolder = createSessionTempFolder(KIND_WORK)
         self.KeyTemp = uuid.uuid4().hex
 
         # Issue layers
@@ -456,11 +458,7 @@ class LifecycleSection:
                 "unregisterStyleDatabaseFromProject failed during unload: %s" % error,
                 "QGISRed", Qgis.MessageLevel.Warning)
 
-        QGISRedFileSystemUtils().removeFolder(self.tempFolder)
-
-        if QGISRedFileSystemUtils.DllTempoFolder is not None:
-            with open(self.dllTempFolderFile, "a+") as file:
-                file.write(QGISRedFileSystemUtils.DllTempoFolder + "\n")
+        removeSessionTempFolder(self.tempFolder)
 
         # Cleanup Docks
         self.cleanupDocks()
@@ -853,14 +851,8 @@ class LifecycleSection:
                 f.write(self._latestNewsId + "\n")
 
     def removeTempFolders(self):
-        if not os.path.exists(self.dllTempFolderFile):
-            return
-        allDeleted = True
-        with open(self.dllTempFolderFile, "r") as file:
-            lines = file.readlines()
-            for line in lines:
-                filePath = line.strip("\n")
-                if not QGISRedFileSystemUtils().removeFolder(filePath):
-                    allDeleted = False
-        if allDeleted:
-            os.remove(self.dllTempFolderFile)
+        with suppress(Exception):
+            removeStaleTempFolders()
+        legacyRegistry = os.path.join(QGISRedFileSystemUtils().getQGISRedFolder(), "dllTempFolders.dat")
+        with suppress(OSError):
+            os.remove(legacyRegistry)

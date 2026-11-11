@@ -11,6 +11,7 @@ from qgis.gui import QgsDualView
 from ...compat import sip, FIELD_TYPE_STRING, FIELD_TYPE_DOUBLE, ATCOL_TYPE_FIELD
 
 from ...tools.utils.qgisred_filesystem_utils import QGISRedFileSystemUtils, DIR_RESULTS
+from ...tools.utils.qgisred_temp_folders import KIND_COMPUTE, createSessionTempFolder, removeSessionTempFolder
 from ...tools.utils.qgisred_layer_utils import QGISRedLayerUtils
 from ...tools.utils.qgisred_spatial_index_rebuilder import maybeRebuildSpatialIndex
 from ...tools.utils.qgisred_ui_utils import QGISRedUIUtils
@@ -31,7 +32,6 @@ from .timeseries_time_utils import simulation_start_clock_seconds, format_civil_
 import os
 import glob as _glob
 import shutil
-import tempfile
 
 FORM_CLASS, _ = uic.loadUiType(os.path.join(os.path.dirname(__file__), "qgisred_results_dock.ui"))
 
@@ -1887,7 +1887,7 @@ class QGISRedResultsDock(
         # Write results to a temp folder so the DLL never deletes files that other
         # QGIS instances may have open. Python then copies them in-place into Results/,
         # keeping the existing inodes valid for any other open handle.
-        tempFolder = tempfile.mkdtemp(prefix="QGISRed_")
+        tempFolder = createSessionTempFolder(KIND_COMPUTE)
         try:
             resMessage = GISRed.Compute(self.ProjectDirectory, self.NetworkName, tempFolder)
 
@@ -1908,7 +1908,7 @@ class QGISRedResultsDock(
                     self._resultFileStamps.clear()
                     self.unfreezeCanvases()
         finally:
-            shutil.rmtree(tempFolder, ignore_errors=True)
+            removeSessionTempFolder(tempFolder)
 
         # Message
         if resMessage == "Cancelled":

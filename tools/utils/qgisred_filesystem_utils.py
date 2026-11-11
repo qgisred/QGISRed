@@ -1,13 +1,14 @@
 # -*- coding: utf-8 -*-
 from contextlib import suppress
 import os
-import tempfile
 import shutil
 import platform
 from shutil import copyfile
 
 from qgis.PyQt.QtCore import QFile
 from qgis.core import QgsVectorLayer  # noqa: F401 — used in getLayerPath exception path
+
+from .qgisred_temp_folders import KIND_DLL, createSessionTempFolder
 
 # Project subdirectory names — single source of truth for all os.path.join calls
 DIR_ISSUES            = "Issues"
@@ -234,7 +235,7 @@ class QGISRedFileSystemUtils:
         src_folder = self.getGISRedDllFolder()
         if not os.path.exists(src_folder):
             return
-        tmp = tempfile.mkdtemp(prefix="QGISRed_")
+        tmp = createSessionTempFolder(KIND_DLL)
         QGISRedFileSystemUtils.DllTempoFolder = tmp
         for name in os.listdir(src_folder):
             src = os.path.join(src_folder, name)

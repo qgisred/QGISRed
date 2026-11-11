@@ -135,11 +135,11 @@ DLL writes directly to `tempFolder`, then
 
 ### Result layers — `ui/analysis/qgisred_results_dock.py`
 
-> **Pending DLL change**: `GISRed.Compute()` must be updated to accept a `tempFolder`
-> parameter and write output there instead of directly to `projectDir/Results/`.
+> **Pending DLL change**: `GISRed.Compute()` already takes a `tempFolder` parameter but
+> ignores it and still writes directly to `projectDir/Results/`.
 
 Current Python side is ready:
-- `simulationProcess()` creates a temp dir, calls `GISRed.Compute(projectDir, networkName, tempFolder)`
+- `simulationProcess()` creates a `QGISRed_compute_*` folder (see §14), calls `GISRed.Compute(projectDir, networkName, tempFolder)`
 - Copies result files from `tempFolder` → `projectDir/Results/` with `shutil.copy2()`
 - `openLayerResults()` reloads existing layers via `_tryReloadExistingLayer()` or opens fresh
 
@@ -660,3 +660,51 @@ The swatch draws symbols at the size the map draws them. `QgsSymbolButton` rende
 at the screen's *physical* dpi while the canvas uses the *logical* one unless "respect screen
 dpi" is on, so the preview is scaled by `mapDpi() / swatchDpi()`; without that a millimetre
 is not the same pixels in both.
+
+---
+
+## 14. Session temp folders — how leftovers are cleaned up
+
+Each QGIS session creates its own folders under `%TEMP%`, all through
+`tools/utils/qgisred_temp_folders.py`:
+
+| Folder | Created by | Holds | Removed |
+|---|---|---|---|
+| `QGISRed_dll_*` | `copyDependencies()` | Copy of the DLLs that `ctypes` loads, so the originals (installed or rebuilt during development) stay free | Never by the session that loaded it; see below |
+| `QGISRed_work_*` | `initGui()` → `self.tempFolder` | Scratch output the DLL writes (imports, validations, default values…) | `unload()` |
+| `QGISRed_compute_*` | `simulationProcess()` | Output of one `GISRed.Compute()` run | `finally` of that run |
+
+### Why the DLL folder outlives its session
+
+A library loaded with `ctypes` is never unloaded, and Windows refuses to delete a loaded
+library. A Plugin Reload therefore copies the DLLs to a **new** `QGISRed_dll_*` folder and
+loads that one; the previous copy stays loaded, unused, until QGIS exits. That is what lets
+a rebuilt DLL be picked up without restarting QGIS, and it is also why the folder can only be
+deleted by a later session.
+
+### How the cleanup knows a folder is free
+
+`createSessionTempFolder()` writes `<folder>.owner` next to the folder, holding the PID of
+the QGIS process. It sits beside the folder, never inside it: the work and compute folders
+are copied file by file (`os.listdir`) into the project, and a marker inside would end up in
+`Results/`.
+
+On every start, `removeTempFolders()` → `removeStaleTempFolders()` scans `QGISRed_*` in
+`%TEMP%` and deletes a folder only when nobody can be using it:
+
+| Folder state | Decision |
+|---|---|
+| `.owner` names a process that is no longer running | Deleted, with its `.owner` |
+| `.owner` names a running process (this session after a reload, or another QGIS open at the same time) | Kept |
+| No `.owner`, created less than 2 minutes ago | Kept: its `.owner` may still be being written |
+| No `.owner` (older plugin versions) and `GISRed.QGISRed.dll` cannot be deleted | Kept intact: some process still runs from it, and deleting the rest would break it |
+| No `.owner`, older, nothing locked | Deleted |
+
+A folder left behind by a killed or crashed QGIS (where `unload()` never ran) is thus
+removed by the next start. PIDs are reused, so a dead session's PID may match an unrelated
+live process; the folder then simply waits for that process to end. The check can only err
+towards keeping a folder, never towards deleting one in use.
+
+Do not reintroduce a registry written in `unload()` (the old `dllTempFolders.dat`): it
+missed every session that ended without `unload()`, which is how `%TEMP%` piled up dozens of
+DLL copies (~110 MB each). A leftover `dllTempFolders.dat` is deleted on start.
