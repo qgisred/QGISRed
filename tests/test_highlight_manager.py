@@ -479,6 +479,59 @@ def test_putting_a_layer_into_edit_mode_suspends_everything(manager):
     assert manager.activeOwner() is a  # comes back when the dock is refocused
 
 
+class _FakeSignal:
+    def __init__(self):
+        self.slots = []
+
+    def connect(self, slot):
+        self.slots.append(slot)
+
+    def disconnect(self, slot):
+        self.slots.remove(slot)
+
+    def emit(self, *args):
+        for slot in list(self.slots):
+            slot(*args)
+
+
+class _FakeProject:
+    def __init__(self):
+        self.layersAdded = _FakeSignal()
+
+    def mapLayers(self):
+        return {}
+
+
+@pytest.fixture
+def fakeProject(monkeypatch):
+    import sys
+
+    project = _FakeProject()
+    monkeypatch.setattr(sys.modules["qgis.core"].QgsProject, "instance", lambda: project, raising=False)
+    return project
+
+
+def test_adding_layers_does_not_multiply_the_layers_added_connection(manager, fakeProject):
+    """Each emission used to connect the handler again, so the connections
+    doubled per batch and opening a project froze QGIS."""
+    manager.register(FakeOwner("a"))
+
+    for _ in range(5):
+        fakeProject.layersAdded.emit([])
+
+    assert len(fakeProject.layersAdded.slots) == 1
+
+
+def test_shutdown_leaves_no_layers_added_connection_behind(manager, fakeProject):
+    manager.register(FakeOwner("a"))
+    fakeProject.layersAdded.emit([])
+    fakeProject.layersAdded.emit([])
+
+    manager.shutdown()
+
+    assert fakeProject.layersAdded.slots == []
+
+
 def test_a_tool_owned_by_another_dock_hands_the_canvas_over(manager):
     tool = QGISRedIdentifyFeature()
     a = manager.register(FakeOwner("a"))

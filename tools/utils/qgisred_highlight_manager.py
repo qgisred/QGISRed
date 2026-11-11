@@ -650,6 +650,10 @@ class QGISRedHighlightManager:
             QApplication.instance().focusChanged.connect(self.onFocusChanged)
         with suppress(Exception):
             self.iface.mapCanvas().mapToolSet.connect(self.onMapToolSet)
+        with suppress(Exception):
+            from qgis.core import QgsProject
+
+            QgsProject.instance().layersAdded.connect(self._onLayersAdded)
         self._connected = True
         self.watchLayerEditing()
 
@@ -660,10 +664,11 @@ class QGISRedHighlightManager:
         fires; without this, a highlight would sit on top of geometry the user
         is about to move. Re-run whenever the layer set changes.
         """
-        with suppress(Exception):
-            from qgis.core import QgsProject
+        from ...compat import sip
 
-            QgsProject.instance().layersAdded.connect(self._onLayersAdded)
+        self._editingWatchedLayers = [
+            layer for layer in self._editingWatchedLayers if not sip.isdeleted(layer)
+        ]
         for layer in self._projectVectorLayers():
             if any(watched is layer for watched in self._editingWatchedLayers):
                 continue
