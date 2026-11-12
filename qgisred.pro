@@ -12,6 +12,7 @@ SOURCES = qgisred.py \
           sections/digital_twin_section.py \
           sections/utils_section.py \
           sections/profile_section.py \
+          sections/flow_paths_section.py \
           ui/analysis/qgisred_profile_dock.py \
           ui/analysis/qgisred_profile_plot.py \
           ui/analysis/qgisred_profile_chart_options_dialog.py \
