@@ -9,6 +9,7 @@ from qgis.PyQt import uic
 
 from ...tools.utils.qgisred_ui_utils import QGISRedBanner, QGISRedUIUtils
 from ...tools.utils.qgisred_filesystem_utils import QGISRedFileSystemUtils
+from ...tools.utils.qgisred_layer_utils import QGISRedLayerUtils
 from ...tools.utils.qgisred_project_export import (
     QGISRedProjectPackage, STRUCTURE_PARENT, SCOPE_OUTSIDE, SCOPE_REMOTE, EXTRA_FILES_GROUP,
 )
@@ -117,18 +118,19 @@ class QGISRedExportProjectDialog(QDialog, FORM_CLASS):
         )
         for group in self._plan.contentGroups:
             checkbox = QCheckBox(self.gbContent)
+            displayName = QGISRedLayerUtils._translateGroupName(group.dirName)
             if group.exists:
                 checkbox.setChecked(group.key in self._plan.includeGroups)
                 checkbox.setText(
                     self.tr("%1 (%2 files, %3)")
-                    .replace("%1", group.dirName)
+                    .replace("%1", displayName)
                     .replace("%2", str(group.fileCount))
                     .replace("%3", self._formatSize(group.sizeBytes))
                 )
             else:
                 checkbox.setChecked(False)
                 checkbox.setEnabled(False)
-                checkbox.setText(self.tr("%1 — no data").replace("%1", group.dirName))
+                checkbox.setText(self.tr("%1 — no data").replace("%1", displayName))
             checkbox.toggled.connect(self._onSelectionChanged)
             self.verticalLayoutContent.addWidget(checkbox)
             self._groupCheckboxes[group.key] = checkbox
