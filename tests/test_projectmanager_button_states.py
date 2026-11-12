@@ -4,10 +4,11 @@
 The dialog cannot be instantiated (conftest stubs loadUiType), so the widgets are mocked and
 updateButtonStates() is exercised directly.
 """
-from unittest.mock import MagicMock
+from unittest.mock import MagicMock, patch
 
 import pytest
 
+from QGISRed.ui.general import qgisred_projectmanager_dialog as pm_module
 from QGISRed.ui.general.qgisred_projectmanager_dialog import QGISRedProjectManagerDialog
 
 ROW_ONLY = ("btExport", "btClone", "btGo2Folder")
@@ -101,6 +102,26 @@ class TestReordering:
         dialog.updateButtonStates()
         assert _enabled(dialog, "btUp") is up
         assert _enabled(dialog, "btDown") is down
+
+
+class TestImportAfterClosingTheOpenProject:
+    """Closing the open project leaves this dialog holding its folder; passing that on opened the
+    import dialog in "Add data" mode instead of creating a new project."""
+
+    def test_the_plugin_import_runs_on_the_project_it_re_reads(self):
+        dialog = _dialog()
+        dialog.parent = MagicMock()
+        dialog.parent.TemporalFolder = "Temporal folder"
+        dialog.parent.isOpenedProject.return_value = True
+        dialog.close = MagicMock()
+
+        with patch.object(pm_module, "QGISRedLayerUtils") as layerUtils:
+            layerUtils.return_value.runTask.side_effect = lambda process, post: (process(), post())
+            with patch.object(pm_module, "QgsProject"):
+                dialog.importData()
+
+        dialog.parent.runImport.assert_called_once_with()
+        dialog.close.assert_called_once_with()
 
 
 class TestGuardsAreKept:

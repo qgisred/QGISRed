@@ -9,7 +9,6 @@ from qgis.PyQt.QtWidgets import QHeaderView
 
 # Import the code for the dialog
 from .qgisred_createproject_dialog import QGISRedCreateProjectDialog
-from .qgisred_import_dialog import QGISRedImportDialog
 from .qgisred_loadproject_dialog import QGISRedImportProjectDialog
 from .qgisred_cloneproject_dialog import QGISRedCloneProjectDialog
 from .qgisred_renameproject_dialog import QGISRedRenameProjectDialog
@@ -500,11 +499,10 @@ class QGISRedProjectManagerDialog(QDialog, FORM_CLASS):
                 QGISRedLayerUtils().runTask(self._clearQGisProject, self.importDataProcess)
 
     def importDataProcess(self):
-        dlg = QGISRedImportDialog()
-        dlg.config(self.iface, self.ProjectDirectory, self.NetworkName, self.parent)
-        # Run the dialog event loop
+        # The plugin re-reads the current project after closing it; this dialog still holds the
+        # one just closed, which would open the import dialog in "Add data" mode.
         self.close()
-        dlg.exec()
+        self.parent.runImport()
 
     def exportData(self):
         ok, name, project, _ = self._getSelectedRowInfo()
