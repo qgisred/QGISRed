@@ -56,6 +56,35 @@ def isRemoteDatasource(value):
     return any(marker in lowered for marker in REMOTE_MARKERS)
 
 
+NETWORK_MARKER_SUFFIXES = ("_Metadata.txt", ".gqp")
+
+
+def networkNamesInFolder(folder):
+    """Names of every network whose marker file sits in the project folder."""
+    names = set()
+    with suppress(OSError):
+        for f in os.listdir(folder):
+            for suffix in NETWORK_MARKER_SUFFIXES:
+                if f.endswith(suffix) and len(f) > len(suffix):
+                    names.add(f[: -len(suffix)])
+    return names
+
+
+def belongsToNetwork(fileName, networkName, otherNetworks=()):
+    """True when the file is networkName's own, not a sibling's whose name extends it.
+
+    With Net1 and Net1_v2 in one folder, Net1_v2_Pipes.shp also starts with "Net1_"; the
+    longest network name that prefixes the file owns it.
+    """
+    prefix = networkName + "_"
+    if not fileName.startswith(prefix):
+        return False
+    return not any(
+        other != networkName and other.startswith(prefix) and fileName.startswith(other + "_")
+        for other in otherNetworks
+    )
+
+
 class QGISRedProjectIO:
     def __init__(self, directory="", networkName="", iface=None):
         self.iface = iface
@@ -568,28 +597,31 @@ class QGISRedProjectIO:
             return qgisBase + ".qgs"
         return None
 
-    def _hasProjectFiles(self, folder, prefix):
-        """Returns True if folder (recursively) contains any file starting with prefix + '_'."""
+    def _hasProjectFiles(self, folder, networkName, otherNetworks=()):
+        """Returns True if folder (recursively) contains any file of networkName."""
         with suppress(Exception):
             for f in os.listdir(folder):
                 filepath = os.path.join(folder, f)
-                if os.path.isfile(filepath) and f.startswith(prefix + "_"):
+                if os.path.isfile(filepath) and belongsToNetwork(f, networkName, otherNetworks):
                     return True
-                if os.path.isdir(filepath) and self._hasProjectFiles(filepath, prefix):
+                if os.path.isdir(filepath) and self._hasProjectFiles(filepath, networkName, otherNetworks):
                     return True
         return False
 
-    def processProjectFiles(self, folder, oldName, newName, targetDir, deleteSource=False, excludeDirs=None):
-        """Copies/moves project files (oldName_*) recursively to targetDir, renaming any file that starts with oldName_."""
+    def processProjectFiles(self, folder, oldName, newName, targetDir, deleteSource=False, excludeDirs=None,
+                            otherNetworks=None):
+        """Copies/moves oldName's files recursively to targetDir, renaming their oldName_ prefix."""
         if excludeDirs is None:
             excludeDirs = []
         folder = self._fs().getUniformedPath(folder)
+        if otherNetworks is None:
+            otherNetworks = networkNamesInFolder(folder) - {oldName}
         if not os.path.exists(targetDir):
             os.makedirs(targetDir, exist_ok=True)
 
         for f in os.listdir(folder):
             filepath = os.path.join(folder, f)
-            if os.path.isfile(filepath) and f.startswith(oldName + "_"):
+            if os.path.isfile(filepath) and belongsToNetwork(f, oldName, otherNetworks):
                 with suppress(Exception):
                     destName = f.replace(oldName + "_", newName + "_", 1)
                     shutil.copy2(filepath, os.path.join(targetDir, destName))
@@ -604,12 +636,12 @@ class QGISRedProjectIO:
                 if normalizedTarget == normalizedFilepath or normalizedTarget.startswith(normalizedFilepath + '/'):
                     continue
                 # Skip subdirectories that contain no project files (avoid creating empty target dirs)
-                if not self._hasProjectFiles(filepath, oldName):
+                if not self._hasProjectFiles(filepath, oldName, otherNetworks):
                     continue
                 subTarget = os.path.join(targetDir, f)
                 if self._fs().getUniformedPath(folder) != self._fs().getUniformedPath(targetDir):
                     os.makedirs(subTarget, exist_ok=True)
-                self.processProjectFiles(filepath, oldName, newName, subTarget, deleteSource, excludeDirs)
+                self.processProjectFiles(filepath, oldName, newName, subTarget, deleteSource, excludeDirs, otherNetworks)
                 if deleteSource:
                     with suppress(Exception):
                         if not os.listdir(filepath):

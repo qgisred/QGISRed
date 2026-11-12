@@ -16,7 +16,7 @@ from .qgisred_renameproject_dialog import QGISRedRenameProjectDialog
 from .qgisred_moveproject_dialog import QGISRedMoveProjectDialog
 from ...tools.utils.qgisred_filesystem_utils import QGISRedFileSystemUtils, DIR_BACKUPS, moveToRecycleBin, deletePermanently
 from ...tools.utils.qgisred_layer_utils import QGISRedLayerUtils
-from ...tools.utils.qgisred_project_io import QGISRedProjectIO
+from ...tools.utils.qgisred_project_io import QGISRedProjectIO, belongsToNetwork, networkNamesInFolder
 from ...tools.utils.qgisred_identifier_utils import QGISRedIdentifierUtils
 from ...tools.utils.qgisred_ui_utils import QGISRedBanner
 
@@ -99,18 +99,21 @@ class QGISRedProjectManagerDialog(QDialog, FORM_CLASS):
     def _getUniformedPath(self, path):
         return self.utils.getUniformedPath(path)
 
-    def _collectProjectFiles(self, folder, networkName):
+    def _collectProjectFiles(self, folder, networkName, otherNetworks=None):
+        if otherNetworks is None:
+            otherNetworks = networkNamesInFolder(folder) - {networkName}
         found = []
         for f in os.listdir(folder):
             filepath = os.path.join(folder, f)
             if os.path.isfile(filepath):
-                if f.startswith(networkName + "_"):
+                if belongsToNetwork(f, networkName, otherNetworks):
                     found.append(filepath)
             elif os.path.isdir(filepath):
-                if os.path.basename(filepath).lower() == "layerstyles":
+                # Unprefixed styles in layerStyles are shared by every network in the folder.
+                if f.lower() == "layerstyles" and not otherNetworks:
                     found.append(filepath)
                 else:
-                    found.extend(self._collectProjectFiles(filepath, networkName))
+                    found.extend(self._collectProjectFiles(filepath, networkName, otherNetworks))
         return found
 
     def _removeEmptyFolders(self, folder):
@@ -660,8 +663,9 @@ class QGISRedProjectManagerDialog(QDialog, FORM_CLASS):
                 if os.path.isdir(backupsFolder):
                     oldPrefix = projectNetwork + "_"
                     newPrefix = (newProjectName or projectNetwork) + "_"
+                    otherNetworks = networkNamesInFolder(projectPath) - {projectNetwork}
                     for f in os.listdir(backupsFolder):
-                        if f.startswith(oldPrefix) and f.endswith(".zip"):
+                        if belongsToNetwork(f, projectNetwork, otherNetworks) and f.endswith(".zip"):
                             zipPath = os.path.join(backupsFolder, f)
                             # 1. Rename inner files
                             io.renameFilesInZip(zipPath, oldPrefix, newPrefix)
