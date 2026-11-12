@@ -6,6 +6,7 @@ from unittest.mock import MagicMock, patch
 import pytest
 
 from QGISRed.tools.utils.qgisred_project_io import QGISRedProjectIO, belongsToNetwork, networkNamesInFolder
+from QGISRed.ui.general import qgisred_projectmanager_dialog as pm_module
 from QGISRed.ui.general.qgisred_projectmanager_dialog import QGISRedProjectManagerDialog
 
 
@@ -89,3 +90,63 @@ class TestRemoveProject:
         found = self._dialog()._collectProjectFiles(root, "Net1")
         assert os.path.join(root, "layerStyles") in found
 
+
+class TestRenameFolderFailure:
+    def _dialog(self, tmp_path, projectPath):
+        dialog = QGISRedProjectManagerDialog.__new__(QGISRedProjectManagerDialog)
+        dialog.tr = lambda text: text
+        dialog.ProjectDirectory = "C:/elsewhere"
+        dialog.NetworkName = "Other"
+        dialog.utils = _uniformFs()
+        dialog.utils.writeFile.side_effect = lambda handle, text: handle.write(text)
+        dialog.twProjectList = MagicMock()
+        dialog.gplFile = str(tmp_path / "list.gpl")
+        with open(dialog.gplFile, "w") as f:
+            f.write("Net1;" + projectPath + "\n")
+        dialog._getSelectedRowInfo = lambda: (True, "Net1", projectPath, 0)
+        io = MagicMock()
+        io.getQGisProjectBase.return_value = None
+        dialog._getIO = lambda *args: io
+        dialog.pushMessage = MagicMock()
+        return dialog
+
+    def _renameDialog(self):
+        dlg = MagicMock()
+        dlg.ProcessDone = True
+        dlg.RenameProject = False
+        dlg.RenameQGISProject = False
+        dlg.RenameBackups = False
+        dlg.RenameFolder = True
+        dlg.NewFolderName = "Renamed"
+        return dlg
+
+    def test_a_locked_folder_is_reported_and_nothing_moves(self, tmp_path):
+        projectPath = str(tmp_path / "Project")
+        _touch(projectPath, "Net1_Metadata.txt")
+        dialog = self._dialog(tmp_path, projectPath)
+
+        with patch.object(pm_module, "QGISRedRenameProjectDialog", return_value=self._renameDialog()), \
+             patch.object(pm_module, "QApplication"), \
+             patch.object(pm_module.os, "rename", side_effect=PermissionError(13, "Access is denied")):
+            dialog.changeName()
+
+        title, text = dialog.pushMessage.call_args[0][:2]
+        assert title == "Error"
+        assert "Access is denied" in text
+        assert os.path.isdir(projectPath)
+        with open(dialog.gplFile) as f:
+            assert f.read() == "Net1;" + projectPath + "\n"
+
+    def test_the_folder_is_renamed_in_one_step(self, tmp_path):
+        projectPath = str(tmp_path / "Project")
+        _touch(projectPath, "Net1_Metadata.txt")
+        dialog = self._dialog(tmp_path, projectPath)
+
+        with patch.object(pm_module, "QGISRedRenameProjectDialog", return_value=self._renameDialog()), \
+             patch.object(pm_module, "QApplication"):
+            dialog.changeName()
+
+        renamed = os.path.join(str(tmp_path), "Renamed")
+        assert os.path.exists(os.path.join(renamed, "Net1_Metadata.txt"))
+        assert not os.path.exists(projectPath)
+        assert dialog.pushMessage.call_args[0][0] == "QGISRed"

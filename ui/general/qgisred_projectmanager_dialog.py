@@ -21,7 +21,6 @@ from ...tools.utils.qgisred_identifier_utils import QGISRedIdentifierUtils
 from ...tools.utils.qgisred_ui_utils import QGISRedBanner
 
 import os
-from shutil import copytree, rmtree
 from xml.etree import ElementTree  # nosec B405 — parses local project files only, no external input
 
 
@@ -678,16 +677,20 @@ class QGISRedProjectManagerDialog(QDialog, FORM_CLASS):
                 io.processProjectFiles(projectPath, projectNetwork, newProjectName, projectPath, deleteSource=True, excludeDirs=[DIR_BACKUPS])
             if newQgisPath:
                 io.updateMetadataQGisProject(projectPath, newProjectName or projectNetwork, newQgisPath)
+            folderError = None
             if dlg.RenameFolder:
                 newProjectPath = os.path.join(os.path.dirname(projectPath), dlg.NewFolderName)
-                if not os.path.exists(newProjectPath):
-                    with suppress(Exception):
-                        copytree(projectPath, newProjectPath)
-                        rmtree(projectPath)
-                        projectPath = self._getUniformedPath(newProjectPath)
-                        if newQgisPath:
-                            newQgisPath = self._getUniformedPath(newQgisPath.replace(oldProjectPath, projectPath))
-                        self.twProjectList.setItem(rowIndex, 3, QTableWidgetItem(projectPath))
+                # A single rename either moves the whole folder or nothing; copy-then-delete
+                # could leave half the project in each place when a file is locked.
+                try:
+                    os.rename(projectPath, newProjectPath)
+                except OSError as e:
+                    folderError = e.strerror or str(e)
+                else:
+                    projectPath = self._getUniformedPath(newProjectPath)
+                    if newQgisPath:
+                        newQgisPath = self._getUniformedPath(newQgisPath.replace(oldProjectPath, projectPath))
+                    self.twProjectList.setItem(rowIndex, 3, QTableWidgetItem(projectPath))
             if qgisBase:
                 oldQgisDir = os.path.dirname(qgisBase)
                 if newQgisPath and os.path.exists(newQgisPath):
@@ -742,7 +745,14 @@ class QGISRedProjectManagerDialog(QDialog, FORM_CLASS):
                     if row != rowIndex and item and self._getUniformedPath(item.text()) == oldProjectPath:
                         self.twProjectList.setItem(row, 3, QTableWidgetItem(projectPath))
 
-            self.pushMessage("QGISRed", self.tr("Project name has been renamed to %1").replace("%1", effectiveName), level=0, duration=5)
+            if folderError is None:
+                self.pushMessage("QGISRed", self.tr("Project name has been renamed to %1").replace("%1", effectiveName), level=0, duration=5)
+            elif newProjectName or newQgisPath:
+                message = self.tr("Project has been renamed to %1, but its folder could not be renamed: %2")
+                self.pushMessage(self.tr("Warning"), message.replace("%1", effectiveName).replace("%2", folderError), level=1, duration=10)
+            else:
+                message = self.tr("The project folder could not be renamed: %1")
+                self.pushMessage(self.tr("Error"), message.replace("%1", folderError), level=2, duration=10)
         else:
             self.pushMessage(
                 self.tr("Warning"), self.tr("You need to select a project to change its name."), level=1, duration=5

@@ -1932,6 +1932,26 @@
         <source>Range and standard deviation carry no flow direction: choose another statistic to see the paths.</source>
         <translation type="unfinished"></translation>
     </message>
+    <message>
+        <location filename="../sections/flow_paths_section.py" line="101"/>
+        <source>Run a simulation first to identify the flow paths.</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="../sections/flow_paths_section.py" line="216"/>
+        <source>Node {0} has no upstream or downstream paths at this instant.</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="../sections/flow_paths_section.py" line="218"/>
+        <source>Node {0} has no upstream paths at this instant.</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="../sections/flow_paths_section.py" line="220"/>
+        <source>Node {0} has no downstream paths at this instant.</source>
+        <translation type="unfinished"></translation>
+    </message>
 </context>
 <context>
     <name>InputLayerNames</name>
@@ -2211,77 +2231,77 @@ Do you want to check them again?</source>
 <context>
     <name>LifecycleSection</name>
     <message>
-        <location filename="../sections/lifecycle_section.py" line="274"/>
+        <location filename="../sections/lifecycle_section.py" line="276"/>
         <source>Loaded sucssesfully</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../sections/lifecycle_section.py" line="739"/>
+        <location filename="../sections/lifecycle_section.py" line="737"/>
         <source>QGISRed Dependencies</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../sections/lifecycle_section.py" line="83"/>
+        <location filename="../sections/lifecycle_section.py" line="86"/>
         <source>Click to change it</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../sections/lifecycle_section.py" line="842"/>
+        <location filename="../sections/lifecycle_section.py" line="840"/>
         <source>QGISRed News</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../sections/lifecycle_section.py" line="739"/>
+        <location filename="../sections/lifecycle_section.py" line="737"/>
         <source>The installation of the QGISRed dependencies failed. Please try again, and if the problem persists, report the issue in GitHub.</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../sections/lifecycle_section.py" line="720"/>
+        <location filename="../sections/lifecycle_section.py" line="718"/>
         <source>The QGISRed dependencies could not be downloaded. Please try again later, and if the problem persists, report the issue in GitHub.</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../sections/lifecycle_section.py" line="663"/>
+        <location filename="../sections/lifecycle_section.py" line="661"/>
         <source>QGISRed plugin requires some dependencies (v{}). Do you want to install them now?</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../sections/lifecycle_section.py" line="797"/>
+        <location filename="../sections/lifecycle_section.py" line="795"/>
         <source>Checking for QGISRed news…</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../sections/lifecycle_section.py" line="815"/>
+        <location filename="../sections/lifecycle_section.py" line="813"/>
         <source>QGISRed news are not available: the server could not be reached.</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../sections/lifecycle_section.py" line="824"/>
+        <location filename="../sections/lifecycle_section.py" line="822"/>
         <source>There are no QGISRed news to show.</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../sections/lifecycle_section.py" line="649"/>
+        <location filename="../sections/lifecycle_section.py" line="647"/>
         <source>Do you also want to remove the QGISRed dependencies?</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../sections/lifecycle_section.py" line="612"/>
+        <location filename="../sections/lifecycle_section.py" line="610"/>
         <source>Removing previous dependencies…</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../sections/lifecycle_section.py" line="617"/>
+        <location filename="../sections/lifecycle_section.py" line="615"/>
         <source>Extracting files…</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../sections/lifecycle_section.py" line="627"/>
+        <location filename="../sections/lifecycle_section.py" line="625"/>
         <source>Finishing up…</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../sections/lifecycle_section.py" line="686"/>
+        <location filename="../sections/lifecycle_section.py" line="684"/>
         <source>Downloading dependencies…</source>
         <translation type="unfinished"></translation>
     </message>
@@ -4487,7 +4507,7 @@ Continue?</source>
 <context>
     <name>QGISRedGroups</name>
     <message>
-        <location filename="../tools/utils/qgisred_project_io.py" line="377"/>
+        <location filename="../tools/utils/qgisred_project_io.py" line="406"/>
         <source>Tree</source>
         <translation type="unfinished"></translation>
     </message>
@@ -4557,7 +4577,7 @@ Continue?</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../tools/utils/qgisred_layer_utils.py" line="758"/>
+        <location filename="../tools/utils/qgisred_layer_utils.py" line="755"/>
         <source>Tree_%1</source>
         <translation type="unfinished"></translation>
     </message>
@@ -5664,7 +5684,7 @@ Continue?</source>
 <context>
     <name>QGISRedLayerUtils</name>
     <message>
-        <location filename="../tools/utils/qgisred_layer_utils.py" line="882"/>
+        <location filename="../tools/utils/qgisred_layer_utils.py" line="879"/>
         <source>Pipes</source>
         <translation type="unfinished"></translation>
     </message>
@@ -7170,22 +7190,22 @@ Cannot apply changes.</source>
 <context>
     <name>QGISRedProjectIO</name>
     <message>
-        <location filename="../tools/utils/qgisred_project_io.py" line="738"/>
+        <location filename="../tools/utils/qgisred_project_io.py" line="770"/>
         <source>QGISRed Project</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../tools/utils/qgisred_project_io.py" line="738"/>
+        <location filename="../tools/utils/qgisred_project_io.py" line="770"/>
         <source>We cannot find the QGIS project file. Do you want to find this file manually? If not, we will open the layers stored in the project metadata.</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../tools/utils/qgisred_project_io.py" line="746"/>
+        <location filename="../tools/utils/qgisred_project_io.py" line="778"/>
         <source>Select QGIS file</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../tools/utils/qgisred_project_io.py" line="746"/>
+        <location filename="../tools/utils/qgisred_project_io.py" line="778"/>
         <source>QGIS project (*.qgz *.qgs)</source>
         <translation type="unfinished"></translation>
     </message>
@@ -7263,87 +7283,87 @@ Cannot apply changes.</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../ui/general/qgisred_projectmanager_dialog.py" line="71"/>
+        <location filename="../ui/general/qgisred_projectmanager_dialog.py" line="70"/>
         <source>Name</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../ui/general/qgisred_projectmanager_dialog.py" line="73"/>
+        <location filename="../ui/general/qgisred_projectmanager_dialog.py" line="72"/>
         <source>Last update</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../ui/general/qgisred_projectmanager_dialog.py" line="75"/>
+        <location filename="../ui/general/qgisred_projectmanager_dialog.py" line="74"/>
         <source>Creation date</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../ui/general/qgisred_projectmanager_dialog.py" line="77"/>
+        <location filename="../ui/general/qgisred_projectmanager_dialog.py" line="76"/>
         <source>Folder</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../ui/general/qgisred_projectmanager_dialog.py" line="756"/>
+        <location filename="../ui/general/qgisred_projectmanager_dialog.py" line="770"/>
         <source>Warning</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../ui/general/qgisred_projectmanager_dialog.py" line="351"/>
+        <location filename="../ui/general/qgisred_projectmanager_dialog.py" line="353"/>
         <source>Please, select a row project to move.</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../ui/general/qgisred_projectmanager_dialog.py" line="541"/>
+        <location filename="../ui/general/qgisred_projectmanager_dialog.py" line="543"/>
         <source>Current project cannot be removed</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../ui/general/qgisred_projectmanager_dialog.py" line="543"/>
+        <location filename="../ui/general/qgisred_projectmanager_dialog.py" line="545"/>
         <source>Current project cannot be unloaded</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../ui/general/qgisred_projectmanager_dialog.py" line="559"/>
+        <location filename="../ui/general/qgisred_projectmanager_dialog.py" line="561"/>
         <source>QGISRed</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../ui/general/qgisred_projectmanager_dialog.py" line="559"/>
+        <location filename="../ui/general/qgisred_projectmanager_dialog.py" line="561"/>
         <source>Project will be unloaded from this list, but will remain in your computer. You could add it back using the Load button. Do you want to continue?</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../ui/general/qgisred_projectmanager_dialog.py" line="419"/>
+        <location filename="../ui/general/qgisred_projectmanager_dialog.py" line="421"/>
         <source>Selected project is currently opened.</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../ui/general/qgisred_projectmanager_dialog.py" line="425"/>
+        <location filename="../ui/general/qgisred_projectmanager_dialog.py" line="427"/>
         <source>You need to select a project to open it.</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../ui/general/qgisred_projectmanager_dialog.py" line="510"/>
+        <location filename="../ui/general/qgisred_projectmanager_dialog.py" line="512"/>
         <source>You need to select a project to export it.</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../ui/general/qgisred_projectmanager_dialog.py" line="617"/>
+        <location filename="../ui/general/qgisred_projectmanager_dialog.py" line="619"/>
         <source>You need to select a project to clone.</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../ui/general/qgisred_projectmanager_dialog.py" line="625"/>
+        <location filename="../ui/general/qgisred_projectmanager_dialog.py" line="627"/>
         <source>Current project can not be renamed.</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../ui/general/qgisred_projectmanager_dialog.py" line="743"/>
+        <location filename="../ui/general/qgisred_projectmanager_dialog.py" line="757"/>
         <source>You need to select a project to change its name.</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../ui/general/qgisred_projectmanager_dialog.py" line="373"/>
+        <location filename="../ui/general/qgisred_projectmanager_dialog.py" line="375"/>
         <source>You need to select a project to open its folder.</source>
         <translation type="unfinished"></translation>
     </message>
@@ -7353,63 +7373,73 @@ Cannot apply changes.</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../ui/general/qgisred_projectmanager_dialog.py" line="750"/>
+        <location filename="../ui/general/qgisred_projectmanager_dialog.py" line="764"/>
         <source>You need to select a project to move it.</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../ui/general/qgisred_projectmanager_dialog.py" line="756"/>
+        <location filename="../ui/general/qgisred_projectmanager_dialog.py" line="770"/>
         <source>Current project can not be moved.</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../ui/general/qgisred_projectmanager_dialog.py" line="586"/>
+        <location filename="../ui/general/qgisred_projectmanager_dialog.py" line="588"/>
         <source>You need to select a project to %1 it.</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../ui/general/qgisred_projectmanager_dialog.py" line="741"/>
+        <location filename="../ui/general/qgisred_projectmanager_dialog.py" line="749"/>
         <source>Project name has been renamed to %1</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../ui/general/qgisred_projectmanager_dialog.py" line="819"/>
+        <location filename="../ui/general/qgisred_projectmanager_dialog.py" line="833"/>
         <source>Project has been moved to %1</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../ui/general/qgisred_projectmanager_dialog.py" line="517"/>
+        <location filename="../ui/general/qgisred_projectmanager_dialog.py" line="755"/>
         <source>Error</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../ui/general/qgisred_projectmanager_dialog.py" line="392"/>
+        <location filename="../ui/general/qgisred_projectmanager_dialog.py" line="394"/>
         <source>Select a project first.</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../ui/general/qgisred_projectmanager_dialog.py" line="393"/>
+        <location filename="../ui/general/qgisred_projectmanager_dialog.py" line="395"/>
         <source>This is the project currently open in QGIS.</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../ui/general/qgisred_projectmanager_dialog.py" line="547"/>
+        <location filename="../ui/general/qgisred_projectmanager_dialog.py" line="549"/>
         <source>Project files will be moved to the recycle bin. Are you sure?</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../ui/general/qgisred_projectmanager_dialog.py" line="133"/>
+        <location filename="../ui/general/qgisred_projectmanager_dialog.py" line="135"/>
         <source>Project could not be moved to the recycle bin. Do you want to delete it permanently?</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../ui/general/qgisred_projectmanager_dialog.py" line="135"/>
+        <location filename="../ui/general/qgisred_projectmanager_dialog.py" line="137"/>
         <source>Part of the project could not be moved to the recycle bin. If the rest is not deleted permanently, the project will be left in an inconsistent state. Do you want to delete it permanently?</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../ui/general/qgisred_projectmanager_dialog.py" line="288"/>
+        <location filename="../ui/general/qgisred_projectmanager_dialog.py" line="290"/>
         <source>&apos;%1&apos; project is not found in selected folder</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="../ui/general/qgisred_projectmanager_dialog.py" line="751"/>
+        <source>Project has been renamed to %1, but its folder could not be renamed: %2</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="../ui/general/qgisred_projectmanager_dialog.py" line="754"/>
+        <source>The project folder could not be renamed: %1</source>
         <translation type="unfinished"></translation>
     </message>
 </context>
@@ -8334,7 +8364,7 @@ Cannot apply changes.</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../ui/analysis/qgisred_results_rendering.py" line="1291"/>
+        <location filename="../ui/analysis/qgisred_results_rendering.py" line="1306"/>
         <source>Links</source>
         <comment>result layer name</comment>
         <translation type="unfinished"></translation>
@@ -10583,17 +10613,17 @@ Cannot apply changes.</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../ui/analysis/qgisred_results_rendering.py" line="1241"/>
+        <location filename="../ui/analysis/qgisred_results_rendering.py" line="1256"/>
         <source>%1 symbols of layer %2 do not match its geometry and were not resized</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../ui/analysis/qgisred_results_rendering.py" line="1310"/>
+        <location filename="../ui/analysis/qgisred_results_rendering.py" line="1325"/>
         <source>No values to classify in field &apos;%1&apos; of layer %2: the legend was left empty</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../ui/analysis/qgisred_results_rendering.py" line="1291"/>
+        <location filename="../ui/analysis/qgisred_results_rendering.py" line="1306"/>
         <source>Nodes</source>
         <translation type="unfinished"></translation>
     </message>
