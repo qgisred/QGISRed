@@ -2035,22 +2035,27 @@
     <message>
         <location filename="../sections/flow_paths_section.py" line="64"/>
         <source>Run a simulation first to identify the flow paths.</source>
-        <translation type="obsolete">Ejecute primero una simulación para identificar los trayectos.</translation>
+        <translation>Ejecute primero una simulación para identificar los trayectos.</translation>
     </message>
     <message>
         <location filename="../sections/flow_paths_section.py" line="168"/>
         <source>Node {0} has no upstream or downstream paths at this instant.</source>
-        <translation type="obsolete">El nudo {0} no tiene trayectos aguas arriba ni aguas abajo en este instante.</translation>
+        <translation>El nudo {0} no tiene trayectos aguas arriba ni aguas abajo en este instante.</translation>
     </message>
     <message>
         <location filename="../sections/flow_paths_section.py" line="170"/>
         <source>Node {0} has no upstream paths at this instant.</source>
-        <translation type="obsolete">El nudo {0} no tiene trayectos aguas arriba en este instante.</translation>
+        <translation>El nudo {0} no tiene trayectos aguas arriba en este instante.</translation>
     </message>
     <message>
         <location filename="../sections/flow_paths_section.py" line="172"/>
         <source>Node {0} has no downstream paths at this instant.</source>
-        <translation type="obsolete">El nudo {0} no tiene trayectos aguas abajo en este instante.</translation>
+        <translation>El nudo {0} no tiene trayectos aguas abajo en este instante.</translation>
+    </message>
+    <message>
+        <location filename="../sections/flow_paths_section.py" line="209"/>
+        <source>Range and standard deviation carry no flow direction: choose another statistic to see the paths.</source>
+        <translation>El rango y la desviación típica no tienen sentido del flujo: elija otra estadística para ver los trayectos.</translation>
     </message>
 </context>
 <context>
@@ -2469,8 +2474,8 @@ Do you want to check them again?</source>
     <name>MenuSection</name>
     <message>
         <location filename="../sections/menu_section.py" line="900"/>
-        <source>Upstream and downstream paths...</source>
-        <translation>Trayectos aguas arriba y aguas abajo...</translation>
+        <source>Flow tracing...</source>
+        <translation>Seguimiento del flujo...</translation>
     </message>
     <message>
         <location filename="../sections/menu_section.py" line="66"/>

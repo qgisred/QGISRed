@@ -2020,22 +2020,27 @@
     <message>
         <location filename="../sections/flow_paths_section.py" line="64"/>
         <source>Run a simulation first to identify the flow paths.</source>
-        <translation type="obsolete">Lancez d'abord une simulation pour identifier les trajets.</translation>
+        <translation>Lancez d'abord une simulation pour identifier les trajets.</translation>
     </message>
     <message>
         <location filename="../sections/flow_paths_section.py" line="168"/>
         <source>Node {0} has no upstream or downstream paths at this instant.</source>
-        <translation type="obsolete">Le nœud {0} n'a aucun trajet amont ni aval à cet instant.</translation>
+        <translation>Le nœud {0} n'a aucun trajet amont ni aval à cet instant.</translation>
     </message>
     <message>
         <location filename="../sections/flow_paths_section.py" line="170"/>
         <source>Node {0} has no upstream paths at this instant.</source>
-        <translation type="obsolete">Le nœud {0} n'a aucun trajet amont à cet instant.</translation>
+        <translation>Le nœud {0} n'a aucun trajet amont à cet instant.</translation>
     </message>
     <message>
         <location filename="../sections/flow_paths_section.py" line="172"/>
         <source>Node {0} has no downstream paths at this instant.</source>
-        <translation type="obsolete">Le nœud {0} n'a aucun trajet aval à cet instant.</translation>
+        <translation>Le nœud {0} n'a aucun trajet aval à cet instant.</translation>
+    </message>
+    <message>
+        <location filename="../sections/flow_paths_section.py" line="209"/>
+        <source>Range and standard deviation carry no flow direction: choose another statistic to see the paths.</source>
+        <translation>L'étendue et l'écart type n'ont pas de sens d'écoulement : choisissez une autre statistique pour voir les trajets.</translation>
     </message>
 </context>
 <context>
@@ -2454,8 +2459,8 @@ Voulez-vous les vérifier à nouveau ?</translation>
     <name>MenuSection</name>
     <message>
         <location filename="../sections/menu_section.py" line="900"/>
-        <source>Upstream and downstream paths...</source>
-        <translation>Trajets amont et aval...</translation>
+        <source>Flow tracing...</source>
+        <translation>Suivi de l&apos;écoulement...</translation>
     </message>
     <message>
         <location filename="../sections/menu_section.py" line="66"/>

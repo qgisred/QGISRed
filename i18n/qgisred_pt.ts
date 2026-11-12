@@ -2050,22 +2050,27 @@
     <message>
         <location filename="../sections/flow_paths_section.py" line="64"/>
         <source>Run a simulation first to identify the flow paths.</source>
-        <translation type="obsolete">Execute primeiro uma simulação para identificar os trajetos.</translation>
+        <translation>Execute primeiro uma simulação para identificar os trajetos.</translation>
     </message>
     <message>
         <location filename="../sections/flow_paths_section.py" line="168"/>
         <source>Node {0} has no upstream or downstream paths at this instant.</source>
-        <translation type="obsolete">O nó {0} não tem trajetos a montante nem a jusante neste instante.</translation>
+        <translation>O nó {0} não tem trajetos a montante nem a jusante neste instante.</translation>
     </message>
     <message>
         <location filename="../sections/flow_paths_section.py" line="170"/>
         <source>Node {0} has no upstream paths at this instant.</source>
-        <translation type="obsolete">O nó {0} não tem trajetos a montante neste instante.</translation>
+        <translation>O nó {0} não tem trajetos a montante neste instante.</translation>
     </message>
     <message>
         <location filename="../sections/flow_paths_section.py" line="172"/>
         <source>Node {0} has no downstream paths at this instant.</source>
-        <translation type="obsolete">O nó {0} não tem trajetos a jusante neste instante.</translation>
+        <translation>O nó {0} não tem trajetos a jusante neste instante.</translation>
+    </message>
+    <message>
+        <location filename="../sections/flow_paths_section.py" line="209"/>
+        <source>Range and standard deviation carry no flow direction: choose another statistic to see the paths.</source>
+        <translation>A amplitude e o desvio padrão não têm sentido de escoamento: escolha outra estatística para ver os trajetos.</translation>
     </message>
 </context>
 <context>
@@ -2494,8 +2499,8 @@ Deseja verificá-los novamente?</translation>
     <name>MenuSection</name>
     <message>
         <location filename="../sections/menu_section.py" line="900"/>
-        <source>Upstream and downstream paths...</source>
-        <translation>Trajetos a montante e a jusante...</translation>
+        <source>Flow tracing...</source>
+        <translation>Rastreamento do fluxo...</translation>
     </message>
     <message>
         <location filename="../sections/menu_section.py" line="66"/>

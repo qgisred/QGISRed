@@ -28,6 +28,10 @@ _DOWNSTREAM_COLORS = ((20, 70, 200), (60, 140, 230), (120, 185, 240), (180, 215,
 _UPSTREAM_HUE_RANGE = (0.0, 56.0)
 _UPSTREAM_LEVEL_SATURATION = (0.95, 0.6, 0.4, 0.25)
 
+# Statistics whose flows keep their sign, and so the direction of the water.
+# Range and standard deviation are computed on |Q| and say nothing of it.
+_SIGNED_STATISTICS = {"Maximum": "Flow", "Minimum": "Flow", "Average": "Flow_Sig"}
+
 _MIN_WIDTH_MM = 0.5
 _MAX_WIDTH_MM = 2.5
 
@@ -39,11 +43,29 @@ def _level_color(colors, level):
     return QColor(rgb[0], rgb[1], rgb[2])
 
 
-def _source_color(index, count, level):
+def _source_hue_fraction(slot):
+    """Where the source in `slot` sits between red (0) and cadmium yellow (1).
+
+    The first two sources take both ends and the next ones keep halving the
+    gaps, so every slot keeps its hue however many sources come later.
+    """
+    if slot <= 0:
+        return 0.0
+    if slot == 1:
+        return 1.0
+    k, fraction, denominator = slot - 1, 0.0, 1.0
+    while k:
+        denominator *= 2.0
+        k, bit = divmod(k, 2)
+        fraction += bit / denominator
+    return fraction
+
+
+def _source_color(slot, level):
     from qgis.PyQt.QtGui import QColor
 
     first, last = _UPSTREAM_HUE_RANGE
-    hue = first if count <= 1 else first + (last - first) * index / (count - 1)
+    hue = first + (last - first) * _source_hue_fraction(slot)
     saturation = _UPSTREAM_LEVEL_SATURATION[min(max(int(level), 0), len(_UPSTREAM_LEVEL_SATURATION) - 1)]
     return QColor.fromHsvF(hue / 360.0, saturation, 0.9 if level <= 0 else 1.0)
 
@@ -86,7 +108,8 @@ class FlowPathsSection:
 
         tool = self.myMapTools.get(self.FLOW_PATHS_TOOL)
         if tool is None:
-            tool = QGISRedFlowPathsTool(button, self, self._flowPathsClick, cursor=":/images/iconFlowPaths.svg")
+            tool = QGISRedFlowPathsTool(button, self, self._flowPathsClick, cursor=":/images/iconFlowPaths.svg",
+                                        doubleClickMethod=self._flowPathsDoubleClick)
             self.myMapTools[self.FLOW_PATHS_TOOL] = tool
         # Taking the canvas makes the arbiter hand the highlights back to the routes.
         self.iface.mapCanvas().setMapTool(tool)
@@ -162,21 +185,31 @@ class FlowPathsSection:
         self._clearFlowPathsDrawing()
         self._disconnectFlowPathsFromResults()
         self._flowPathsNode = None
+        self._flowPathsSourceSlots = {}
         self._flowPathsStructure = None
         self._flowPathsStatCache = None
         self._flowPathsGeometries = None
 
     # -- Map interaction ---------------------------------------------------
     def _flowPathsClick(self, point):
+        """A click on a node traces its routes; a click elsewhere does nothing,
+        so a stray click while moving around the map keeps them."""
         node_id = self._resolveFlowPathsNode(point)
+        if node_id is None:
+            return
+        same_node = node_id == getattr(self, "_flowPathsNode", None)
+        if not same_node:
+            # Each node starts its own set of source colours.
+            self._flowPathsSourceSlots = {}
         self._flowPathsNode = node_id
         # A new click re-reads the geometries: the network may have been edited.
         self._flowPathsGeometries = None
-        if node_id is None:
+        if self._flowPathsStatistic() is False:
             self._clearFlowPathsDrawing()
+            self.pushMessage(self.tr("Range and standard deviation carry no flow direction: choose another statistic to see the paths."), level=1)  # noqa: E501
             return
         result = self._redrawFlowPaths()
-        if result is None:
+        if result is None or same_node:
             return
         has_up, has_down = bool(result[UPSTREAM]["links"]), bool(result[DOWNSTREAM]["links"])
         if not has_up and not has_down:
@@ -185,6 +218,14 @@ class FlowPathsSection:
             self.pushMessage(self.tr("Node {0} has no upstream paths at this instant.").format(node_id))
         elif not has_down:
             self.pushMessage(self.tr("Node {0} has no downstream paths at this instant.").format(node_id))
+
+    def _flowPathsDoubleClick(self, point):
+        """A double click away from the nodes takes the routes off the map."""
+        if self._resolveFlowPathsNode(point) is not None:
+            return
+        self._flowPathsNode = None
+        self._flowPathsSourceSlots = {}
+        self._clearFlowPathsDrawing()
 
     def _resolveFlowPathsNode(self, point):
         from qgis.core import QgsRectangle
@@ -254,9 +295,21 @@ class FlowPathsSection:
         self._flowPathsStructure = structure
         return structure
 
-    def _flowPathsStatsMode(self):
+    def _flowPathsStatistic(self):
+        """The statistic shown by the results panel: None outside statistics,
+        "Maximum", "Minimum" or "Average", or False for one without a flow sign."""
         dock = getattr(self, "ResultDockwidget", None)
-        return bool(getattr(dock, "_statsMode", False)) if dock is not None else False
+        if dock is None or not getattr(dock, "_statsMode", False):
+            return None
+        text = None
+        with suppress(Exception):
+            text = dock.cbStatistics.currentText()
+        names = {
+            getattr(dock, "lbl_maximum", None): "Maximum",
+            getattr(dock, "lbl_minimum", None): "Minimum",
+            getattr(dock, "lbl_average", None): "Average",
+        }
+        return names.get(text, False)
 
     def _flowPathsCurrentSeconds(self, source):
         dock = getattr(self, "ResultDockwidget", None)
@@ -272,30 +325,28 @@ class FlowPathsSection:
     def _flowPathsValues(self):
         """Return (link flows, node demands, closed links) for the instant shown.
 
-        With statistics on, the signed average flows are used whatever the
-        statistic: the sign carries the direction, which is all the routes need.
+        With statistics on, the flows of the statistic shown are used, signed:
+        Maximum and Minimum keep the sign of the flow at that time, and Average
+        has its own signed column. The sign is all the routes need.
         """
         out_path = self._outFilePath()
-        if self._flowPathsStatsMode():
-            stamp = self._flowPathsOutStamp()
-            cache = getattr(self, "_flowPathsStatCache", None)
-            if cache is None or cache[0] != stamp:
-                from ..ui.analysis.qgisred_results_binary import (
-                    getOut_StatLinksProperties,
-                    getOut_StatNodesProperties,
-                )
-
-                links = getOut_StatLinksProperties(out_path, "Average")
-                nodes = getOut_StatNodesProperties(out_path, "Average")
-                flows = {lid: (p.get("Flow_Sig") or {}).get("Value") for lid, p in links.items()}
-                demands = {nid: (p.get("Demand") or {}).get("Value") for nid, p in nodes.items()}
-                cache = (stamp, flows, demands)
-                self._flowPathsStatCache = cache
-            return cache[1], cache[2], set()
-
         source = None
         with suppress(Exception):
             source = self._getTimeSeriesSource()
+        hyd = source if source and source.get("kind") == "hyd" else None
+        statistic = self._flowPathsStatistic()
+        if statistic:
+            key = (self._flowPathsOutStamp(), statistic, hyd is not None)
+            cache = getattr(self, "_flowPathsStatCache", None)
+            if cache is None or cache[0] != key:
+                links, nodes = self._flowPathsStatistics(statistic, out_path, hyd)
+                flow_field = _SIGNED_STATISTICS[statistic]
+                flows = {lid: (p.get(flow_field) or {}).get("Value") for lid, p in links.items()}
+                demands = {nid: (p.get("Demand") or {}).get("Value") for nid, p in nodes.items()}
+                cache = (key, flows, demands)
+                self._flowPathsStatCache = cache
+            return cache[1], cache[2], set()
+
         seconds = self._flowPathsCurrentSeconds(source)
         if source and source.get("kind") == "hyd":
             from ..ui.analysis.qgisred_results_hyd import (
@@ -317,6 +368,29 @@ class FlowPathsSection:
         closed = {lid for lid, p in links.items() if str(p.get("Status") or "").startswith("Closed")}
         demands = {nid: p.get("Demand") for nid, p in nodes.items()}
         return flows, demands, closed
+
+    @staticmethod
+    def _flowPathsStatistics(statistic, out_path, hyd):
+        """Link and node statistics from the same file the results panel uses."""
+        links = nodes = None
+        if hyd is not None:
+            with suppress(Exception):
+                from ..ui.analysis.qgisred_results_hyd import (
+                    getHyd_StatLinksProperties,
+                    getHyd_StatNodesProperties,
+                )
+
+                links = getHyd_StatLinksProperties(hyd["hyd_path"], out_path, statistic)
+                nodes = getHyd_StatNodesProperties(hyd["hyd_path"], out_path, statistic)
+        if not links:
+            from ..ui.analysis.qgisred_results_binary import (
+                getOut_StatLinksProperties,
+                getOut_StatNodesProperties,
+            )
+
+            links = getOut_StatLinksProperties(out_path, statistic)
+            nodes = getOut_StatNodesProperties(out_path, statistic)
+        return links or {}, nodes or {}
 
     def computeFlowPaths(self, node_id):
         """Return {UPSTREAM: trace, DOWNSTREAM: trace, "flows": flows} or None."""
@@ -361,7 +435,8 @@ class FlowPathsSection:
         """
         self._clearFlowPathsDrawing()
         node_id = getattr(self, "_flowPathsNode", None)
-        if node_id is None:
+        if node_id is None or self._flowPathsStatistic() is False:
+            # Without a flow sign there are no routes: wait for another statistic.
             return None
         try:
             result = self.computeFlowPaths(node_id)
@@ -401,12 +476,16 @@ class FlowPathsSection:
 
         # Links of the same colour and width share one symbol as well.
         link_source = result[UPSTREAM].get("sources", {})
-        source_order = result[UPSTREAM].get("source_order", [])
-        source_index = {source: i for i, source in enumerate(source_order)}
+        # A source keeps its colour while the node stays selected, even if it
+        # stops feeding for a while; newcomers take the next free one.
+        slots = getattr(self, "_flowPathsSourceSlots", None)
+        if slots is None:
+            slots = self._flowPathsSourceSlots = {}
+        for source in result[UPSTREAM].get("source_order", []):
+            slots.setdefault(source, len(slots))
 
         def up_color(lid, level):
-            index = source_index.get(link_source.get(lid), 0)
-            return _source_color(index, len(source_order), level)
+            return _source_color(slots.get(link_source.get(lid), 0), level)
 
         def down_color(_lid, level):
             return _level_color(_DOWNSTREAM_COLORS, level)

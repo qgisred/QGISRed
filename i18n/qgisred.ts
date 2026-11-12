@@ -1927,6 +1927,11 @@
 </context>
 <context>
     <name>FlowPathsSection</name>
+    <message>
+        <location filename="../sections/flow_paths_section.py" line="209"/>
+        <source>Range and standard deviation carry no flow direction: choose another statistic to see the paths.</source>
+        <translation type="unfinished"></translation>
+    </message>
 </context>
 <context>
     <name>InputLayerNames</name>
@@ -2285,7 +2290,7 @@ Do you want to check them again?</source>
     <name>MenuSection</name>
     <message>
         <location filename="../sections/menu_section.py" line="900"/>
-        <source>Upstream and downstream paths...</source>
+        <source>Flow tracing...</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
