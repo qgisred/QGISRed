@@ -8623,7 +8623,7 @@ No se pueden aplicar los cambios.</translation>
     <message>
         <location filename="../ui/analysis/qgisred_results_dock.py" line="124"/>
         <source>Range values</source>
-        <translation>Range values</translation>
+        <translation>Rango de valores</translation>
     </message>
     <message>
         <location filename="../ui/analysis/qgisred_results_dock.py" line="125"/>
@@ -8648,7 +8648,7 @@ No se pueden aplicar los cambios.</translation>
     <message>
         <location filename="../ui/analysis/qgisred_results_dock.ui" line="73"/>
         <source>Results may not reflect recent network changes</source>
-        <translation>Los resultados pueden no reflejar lo cambios recientes en la red</translation>
+        <translation>Los resultados pueden no reflejar los cambios recientes en la red</translation>
     </message>
     <message>
         <location filename="../ui/analysis/qgisred_results_dock.ui" line="658"/>
@@ -8848,7 +8848,7 @@ No se pueden aplicar los cambios.</translation>
     <message>
         <location filename="../ui/analysis/qgisred_results_dock.ui" line="1944"/>
         <source>Reset all</source>
-        <translation>Resetar todo</translation>
+        <translation>Restablecer todo</translation>
     </message>
     <message>
         <location filename="../ui/analysis/qgisred_results_dock.py" line="154"/>
