@@ -986,7 +986,7 @@ class AnalysisSection:
         self._evaluateEvolutionTankButtons()
         self._pushResultsEvolutionCursorFromDock()
 
-    def _evolutionElementLabel(self, category, layer_identifier, element_id):
+    def _elementTypeLabel(self, layer_identifier, category):
         type_mapping = {
             "qgisred_junctions": self.tr("Junction"),
             "qgisred_tanks": self.tr("Tank"),
@@ -994,9 +994,13 @@ class AnalysisSection:
             "qgisred_pipes": self.tr("Pipe"),
             "qgisred_valves": self.tr("Valve"),
             "qgisred_pumps": self.tr("Pump"),
+            "Node": self.tr("Node"),
+            "Link": self.tr("Link"),
         }
-        specific_type = type_mapping.get(layer_identifier, category)
-        return f"{specific_type} {element_id}"
+        return type_mapping.get(layer_identifier) or type_mapping.get(category, category)
+
+    def _evolutionElementLabel(self, category, layer_identifier, element_id):
+        return f"{self._elementTypeLabel(layer_identifier, category)} {element_id}"
 
     def _buildResultsEvolutionSeries(self, category, layer_identifier, element_id, prop_internal_override=None):
         from ..ui.analysis.results_evolution_utils import evolution_prop_internal, map_status_series
@@ -1792,6 +1796,7 @@ class AnalysisSection:
 
             label = f"{element_id}"
             legend_type = category
+            element_type = ""
             if category == "Global":
                 label = (
                     it.get("legend_label")
@@ -1801,17 +1806,11 @@ class AnalysisSection:
                 legend_type = "global"
             elif layer:
                 identifier = layer.customProperty("qgisred_identifier")
-                type_mapping = {
-                    "qgisred_junctions": self.tr("Junction"),
-                    "qgisred_tanks": self.tr("Tank"),
-                    "qgisred_reservoirs": self.tr("Reservoir"),
-                    "qgisred_pipes": self.tr("Pipe"),
-                    "qgisred_valves": self.tr("Valve"),
-                    "qgisred_pumps": self.tr("Pump")
-                }
-                specific_type = type_mapping.get(identifier, category)
-                label = f"{specific_type} {element_id}"
+                element_type = self._elementTypeLabel(identifier, category)
+                label = f"{element_type} {element_id}"
                 legend_type = identifier or category
+            else:
+                element_type = self._elementTypeLabel("", category)
 
             series_entry = {
                 "x": x_data,
@@ -1821,6 +1820,7 @@ class AnalysisSection:
                 "is_stepped": bool(is_stepped),
                 "y_categorical_labels": y_categorical_labels,
                 "legend_type": legend_type,
+                "element_type": element_type,
                 "series_key": f"{category}:{layer_identifier}:{prop_internal}:{element_id}",
                 "magnitude": (
                     global_axis_group_label()

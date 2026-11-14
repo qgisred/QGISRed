@@ -158,6 +158,7 @@ def test_values_table_data_matches_table_layout():
                 "magnitude": "Pressure (m)",
                 "series_key": "Node:layer:Pressure:J1",
                 "legend_type": "Node",
+                "element_type": "Node",
             },
             {
                 "x": [0.0, 1.0],
@@ -165,6 +166,7 @@ def test_values_table_data_matches_table_layout():
                 "magnitude": "Flow (gpm)",
                 "series_key": "Link:layer:Flow:P1",
                 "legend_type": "Link",
+                "element_type": "Link",
             },
         ]
 
@@ -314,6 +316,7 @@ def test_series_table_column_header_two_lines():
         "magnitude": "Pressure (m)",
         "series_key": "Node:layer:Pressure:J1",
         "legend_type": "Node",
+        "element_type": "Node",
     }
     assert d._seriesTableColumnHeaderParts(series) == ("Node J1", "Pressure (m)")
     assert d._seriesTableColumnHeaderLabel(series) == "Node J1\nPressure (m)"

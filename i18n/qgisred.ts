@@ -67,57 +67,57 @@
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../sections/analysis_section.py" line="2019"/>
+        <location filename="../sections/analysis_section.py" line="1751"/>
         <source>Results file not found. Please run the model.</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../sections/analysis_section.py" line="2035"/>
+        <location filename="../sections/analysis_section.py" line="991"/>
         <source>Junction</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../sections/analysis_section.py" line="2036"/>
+        <location filename="../sections/analysis_section.py" line="992"/>
         <source>Tank</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../sections/analysis_section.py" line="2037"/>
+        <location filename="../sections/analysis_section.py" line="993"/>
         <source>Reservoir</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../sections/analysis_section.py" line="2038"/>
+        <location filename="../sections/analysis_section.py" line="994"/>
         <source>Pipe</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../sections/analysis_section.py" line="2039"/>
+        <location filename="../sections/analysis_section.py" line="995"/>
         <source>Valve</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../sections/analysis_section.py" line="2040"/>
+        <location filename="../sections/analysis_section.py" line="996"/>
         <source>Pump</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../sections/analysis_section.py" line="2062"/>
+        <location filename="../sections/analysis_section.py" line="1651"/>
         <source>Closed</source>
         <translation type="unfinished">Closed</translation>
     </message>
     <message>
-        <location filename="../sections/analysis_section.py" line="2062"/>
+        <location filename="../sections/analysis_section.py" line="1651"/>
         <source>Active</source>
         <translation type="unfinished">Active</translation>
     </message>
     <message>
-        <location filename="../sections/analysis_section.py" line="2062"/>
+        <location filename="../sections/analysis_section.py" line="1651"/>
         <source>Open</source>
         <translation type="unfinished">Open</translation>
     </message>
     <message>
-        <location filename="../sections/analysis_section.py" line="2068"/>
+        <location filename="../sections/analysis_section.py" line="1855"/>
         <source>Time</source>
         <translation type="unfinished"></translation>
     </message>
@@ -142,7 +142,7 @@
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../sections/analysis_section.py" line="1592"/>
+        <location filename="../sections/analysis_section.py" line="1596"/>
         <source>No network element found at this location.</source>
         <translation type="unfinished"></translation>
     </message>
@@ -152,27 +152,27 @@
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../sections/analysis_section.py" line="1292"/>
+        <location filename="../sections/analysis_section.py" line="1296"/>
         <source>All selected curves will be lost. Continue?</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../sections/analysis_section.py" line="1631"/>
+        <location filename="../sections/analysis_section.py" line="1635"/>
         <source>Pressure</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../sections/analysis_section.py" line="1642"/>
+        <location filename="../sections/analysis_section.py" line="1646"/>
         <source>Flow</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../sections/analysis_section.py" line="1855"/>
+        <location filename="../sections/analysis_section.py" line="1856"/>
         <source>Value</source>
         <translation type="unfinished">Value</translation>
     </message>
     <message>
-        <location filename="../sections/analysis_section.py" line="1533"/>
+        <location filename="../sections/analysis_section.py" line="1537"/>
         <source>Magnitude</source>
         <translation type="unfinished"></translation>
     </message>
@@ -182,43 +182,53 @@
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../sections/analysis_section.py" line="1292"/>
+        <location filename="../sections/analysis_section.py" line="1296"/>
         <source>Clear selection</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../sections/analysis_section.py" line="1186"/>
+        <location filename="../sections/analysis_section.py" line="1190"/>
         <source>This system variable is already on the chart.</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../sections/analysis_section.py" line="1224"/>
+        <location filename="../sections/analysis_section.py" line="1228"/>
         <source>Could not read the selected system variable.</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../sections/analysis_section.py" line="2169"/>
+        <location filename="../sections/analysis_section.py" line="2069"/>
         <source>The chart configuration could not be exported.</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../sections/analysis_section.py" line="2171"/>
+        <location filename="../sections/analysis_section.py" line="2071"/>
         <source>Chart configuration exported.</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../sections/analysis_section.py" line="2285"/>
+        <location filename="../sections/analysis_section.py" line="2185"/>
         <source>Configuration file not found.</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../sections/analysis_section.py" line="2290"/>
+        <location filename="../sections/analysis_section.py" line="2190"/>
         <source>The chart configuration could not be read.</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../sections/analysis_section.py" line="2326"/>
+        <location filename="../sections/analysis_section.py" line="2225"/>
         <source>Chart configuration imported.</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="../sections/analysis_section.py" line="997"/>
+        <source>Node</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="../sections/analysis_section.py" line="998"/>
+        <source>Link</source>
         <translation type="unfinished"></translation>
     </message>
 </context>
@@ -4116,157 +4126,157 @@ Continue?</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../ui/general/qgisred_exportproject_dialog.py" line="113"/>
+        <location filename="../ui/general/qgisred_exportproject_dialog.py" line="114"/>
         <source>Base layers — always included (%1 files, %2)</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../ui/general/qgisred_exportproject_dialog.py" line="131"/>
+        <location filename="../ui/general/qgisred_exportproject_dialog.py" line="133"/>
         <source>%1 — no data</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../ui/general/qgisred_exportproject_dialog.py" line="122"/>
+        <location filename="../ui/general/qgisred_exportproject_dialog.py" line="124"/>
         <source>%1 (%2 files, %3)</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../ui/general/qgisred_exportproject_dialog.py" line="145"/>
+        <location filename="../ui/general/qgisred_exportproject_dialog.py" line="147"/>
         <source>Layer</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../ui/general/qgisred_exportproject_dialog.py" line="145"/>
+        <location filename="../ui/general/qgisred_exportproject_dialog.py" line="147"/>
         <source>Location</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../ui/general/qgisred_exportproject_dialog.py" line="145"/>
+        <location filename="../ui/general/qgisred_exportproject_dialog.py" line="147"/>
         <source>Status</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../ui/general/qgisred_exportproject_dialog.py" line="307"/>
+        <location filename="../ui/general/qgisred_exportproject_dialog.py" line="309"/>
         <source>Estimated size: %1</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../ui/general/qgisred_exportproject_dialog.py" line="310"/>
+        <location filename="../ui/general/qgisred_exportproject_dialog.py" line="312"/>
         <source>ZIP content: %1</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../ui/general/qgisred_exportproject_dialog.py" line="316"/>
+        <location filename="../ui/general/qgisred_exportproject_dialog.py" line="318"/>
         <source>a single folder %1 holding everything</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../ui/general/qgisred_exportproject_dialog.py" line="344"/>
+        <location filename="../ui/general/qgisred_exportproject_dialog.py" line="346"/>
         <source>Select the folder for the ZIP file</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../ui/general/qgisred_exportproject_dialog.py" line="355"/>
+        <location filename="../ui/general/qgisred_exportproject_dialog.py" line="357"/>
         <source>%1 complementary layer(s) are outside the project folder and its parent, so they will NOT be exported. Move them into the project folder (or next to it) with the file explorer and reopen the project to relink them.</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../ui/general/qgisred_exportproject_dialog.py" line="364"/>
+        <location filename="../ui/general/qgisred_exportproject_dialog.py" line="366"/>
         <source>The QGIS project references layers in %1. Whoever imports it will have to locate or remove them.</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../ui/general/qgisred_exportproject_dialog.py" line="386"/>
+        <location filename="../ui/general/qgisred_exportproject_dialog.py" line="388"/>
         <source>Validations</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../ui/general/qgisred_exportproject_dialog.py" line="375"/>
+        <location filename="../ui/general/qgisred_exportproject_dialog.py" line="377"/>
         <source>Enter a name for the ZIP file</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../ui/general/qgisred_exportproject_dialog.py" line="378"/>
+        <location filename="../ui/general/qgisred_exportproject_dialog.py" line="380"/>
         <source>The file name is not valid</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../ui/general/qgisred_exportproject_dialog.py" line="383"/>
+        <location filename="../ui/general/qgisred_exportproject_dialog.py" line="385"/>
         <source>Select an existing folder</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../ui/general/qgisred_exportproject_dialog.py" line="386"/>
+        <location filename="../ui/general/qgisred_exportproject_dialog.py" line="388"/>
         <source>The selected folder is not writable</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../ui/general/qgisred_exportproject_dialog.py" line="392"/>
+        <location filename="../ui/general/qgisred_exportproject_dialog.py" line="394"/>
         <source>QGISRed</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../ui/general/qgisred_exportproject_dialog.py" line="392"/>
+        <location filename="../ui/general/qgisred_exportproject_dialog.py" line="394"/>
         <source>The file already exists. Do you want to overwrite it?</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../ui/general/qgisred_exportproject_dialog.py" line="404"/>
+        <location filename="../ui/general/qgisred_exportproject_dialog.py" line="406"/>
         <source>Warning</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../ui/general/qgisred_exportproject_dialog.py" line="404"/>
+        <location filename="../ui/general/qgisred_exportproject_dialog.py" line="406"/>
         <source>Press OK again to export anyway.</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../ui/general/qgisred_exportproject_dialog.py" line="56"/>
+        <location filename="../ui/general/qgisred_exportproject_dialog.py" line="57"/>
         <source>No QGIS project file was found, so the map appearance will not be exported. Save the QGIS project inside the project folder to include it.</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../ui/general/qgisred_exportproject_dialog.py" line="222"/>
+        <location filename="../ui/general/qgisred_exportproject_dialog.py" line="224"/>
         <source>Not exportable</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../ui/general/qgisred_exportproject_dialog.py" line="223"/>
+        <location filename="../ui/general/qgisred_exportproject_dialog.py" line="225"/>
         <source>It is outside the project folder and its parent folder. Move it with the file explorer into the project folder (or next to it) and reopen the project to relink it.</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../ui/general/qgisred_exportproject_dialog.py" line="229"/>
+        <location filename="../ui/general/qgisred_exportproject_dialog.py" line="231"/>
         <source>Included</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../ui/general/qgisred_exportproject_dialog.py" line="230"/>
+        <location filename="../ui/general/qgisred_exportproject_dialog.py" line="232"/>
         <source>It will travel inside the ZIP file.</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../ui/general/qgisred_exportproject_dialog.py" line="232"/>
+        <location filename="../ui/general/qgisred_exportproject_dialog.py" line="234"/>
         <source>Not included</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../ui/general/qgisred_exportproject_dialog.py" line="233"/>
+        <location filename="../ui/general/qgisred_exportproject_dialog.py" line="235"/>
         <source>Whoever imports the project is expected to have it already.</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../ui/general/qgisred_exportproject_dialog.py" line="290"/>
+        <location filename="../ui/general/qgisred_exportproject_dialog.py" line="292"/>
         <source>&apos;%1&apos; is used in more than one group. Leaving it out removes it from all of them.</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../ui/general/qgisred_exportproject_dialog.py" line="172"/>
+        <location filename="../ui/general/qgisred_exportproject_dialog.py" line="174"/>
         <source>None of the complementary layers can be exported from their current location.</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../ui/general/qgisred_exportproject_dialog.py" line="193"/>
+        <location filename="../ui/general/qgisred_exportproject_dialog.py" line="195"/>
         <source>Other project files</source>
         <translation type="unfinished"></translation>
     </message>
@@ -7283,87 +7293,87 @@ Cannot apply changes.</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../ui/general/qgisred_projectmanager_dialog.py" line="70"/>
+        <location filename="../ui/general/qgisred_projectmanager_dialog.py" line="69"/>
         <source>Name</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../ui/general/qgisred_projectmanager_dialog.py" line="72"/>
+        <location filename="../ui/general/qgisred_projectmanager_dialog.py" line="71"/>
         <source>Last update</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../ui/general/qgisred_projectmanager_dialog.py" line="74"/>
+        <location filename="../ui/general/qgisred_projectmanager_dialog.py" line="73"/>
         <source>Creation date</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../ui/general/qgisred_projectmanager_dialog.py" line="76"/>
+        <location filename="../ui/general/qgisred_projectmanager_dialog.py" line="75"/>
         <source>Folder</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../ui/general/qgisred_projectmanager_dialog.py" line="770"/>
+        <location filename="../ui/general/qgisred_projectmanager_dialog.py" line="768"/>
         <source>Warning</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../ui/general/qgisred_projectmanager_dialog.py" line="353"/>
+        <location filename="../ui/general/qgisred_projectmanager_dialog.py" line="352"/>
         <source>Please, select a row project to move.</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../ui/general/qgisred_projectmanager_dialog.py" line="543"/>
+        <location filename="../ui/general/qgisred_projectmanager_dialog.py" line="541"/>
         <source>Current project cannot be removed</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../ui/general/qgisred_projectmanager_dialog.py" line="545"/>
+        <location filename="../ui/general/qgisred_projectmanager_dialog.py" line="543"/>
         <source>Current project cannot be unloaded</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../ui/general/qgisred_projectmanager_dialog.py" line="561"/>
+        <location filename="../ui/general/qgisred_projectmanager_dialog.py" line="559"/>
         <source>QGISRed</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../ui/general/qgisred_projectmanager_dialog.py" line="561"/>
+        <location filename="../ui/general/qgisred_projectmanager_dialog.py" line="559"/>
         <source>Project will be unloaded from this list, but will remain in your computer. You could add it back using the Load button. Do you want to continue?</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../ui/general/qgisred_projectmanager_dialog.py" line="421"/>
+        <location filename="../ui/general/qgisred_projectmanager_dialog.py" line="420"/>
         <source>Selected project is currently opened.</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../ui/general/qgisred_projectmanager_dialog.py" line="427"/>
+        <location filename="../ui/general/qgisred_projectmanager_dialog.py" line="426"/>
         <source>You need to select a project to open it.</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../ui/general/qgisred_projectmanager_dialog.py" line="512"/>
+        <location filename="../ui/general/qgisred_projectmanager_dialog.py" line="510"/>
         <source>You need to select a project to export it.</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../ui/general/qgisred_projectmanager_dialog.py" line="619"/>
+        <location filename="../ui/general/qgisred_projectmanager_dialog.py" line="617"/>
         <source>You need to select a project to clone.</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../ui/general/qgisred_projectmanager_dialog.py" line="627"/>
+        <location filename="../ui/general/qgisred_projectmanager_dialog.py" line="625"/>
         <source>Current project can not be renamed.</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../ui/general/qgisred_projectmanager_dialog.py" line="757"/>
+        <location filename="../ui/general/qgisred_projectmanager_dialog.py" line="755"/>
         <source>You need to select a project to change its name.</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../ui/general/qgisred_projectmanager_dialog.py" line="375"/>
+        <location filename="../ui/general/qgisred_projectmanager_dialog.py" line="374"/>
         <source>You need to select a project to open its folder.</source>
         <translation type="unfinished"></translation>
     </message>
@@ -7373,72 +7383,72 @@ Cannot apply changes.</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../ui/general/qgisred_projectmanager_dialog.py" line="764"/>
+        <location filename="../ui/general/qgisred_projectmanager_dialog.py" line="762"/>
         <source>You need to select a project to move it.</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../ui/general/qgisred_projectmanager_dialog.py" line="770"/>
+        <location filename="../ui/general/qgisred_projectmanager_dialog.py" line="768"/>
         <source>Current project can not be moved.</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../ui/general/qgisred_projectmanager_dialog.py" line="588"/>
+        <location filename="../ui/general/qgisred_projectmanager_dialog.py" line="586"/>
         <source>You need to select a project to %1 it.</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../ui/general/qgisred_projectmanager_dialog.py" line="749"/>
+        <location filename="../ui/general/qgisred_projectmanager_dialog.py" line="747"/>
         <source>Project name has been renamed to %1</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../ui/general/qgisred_projectmanager_dialog.py" line="833"/>
+        <location filename="../ui/general/qgisred_projectmanager_dialog.py" line="831"/>
         <source>Project has been moved to %1</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../ui/general/qgisred_projectmanager_dialog.py" line="755"/>
+        <location filename="../ui/general/qgisred_projectmanager_dialog.py" line="753"/>
         <source>Error</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../ui/general/qgisred_projectmanager_dialog.py" line="394"/>
+        <location filename="../ui/general/qgisred_projectmanager_dialog.py" line="393"/>
         <source>Select a project first.</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../ui/general/qgisred_projectmanager_dialog.py" line="395"/>
+        <location filename="../ui/general/qgisred_projectmanager_dialog.py" line="394"/>
         <source>This is the project currently open in QGIS.</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../ui/general/qgisred_projectmanager_dialog.py" line="549"/>
+        <location filename="../ui/general/qgisred_projectmanager_dialog.py" line="547"/>
         <source>Project files will be moved to the recycle bin. Are you sure?</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../ui/general/qgisred_projectmanager_dialog.py" line="135"/>
+        <location filename="../ui/general/qgisred_projectmanager_dialog.py" line="134"/>
         <source>Project could not be moved to the recycle bin. Do you want to delete it permanently?</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../ui/general/qgisred_projectmanager_dialog.py" line="137"/>
+        <location filename="../ui/general/qgisred_projectmanager_dialog.py" line="136"/>
         <source>Part of the project could not be moved to the recycle bin. If the rest is not deleted permanently, the project will be left in an inconsistent state. Do you want to delete it permanently?</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../ui/general/qgisred_projectmanager_dialog.py" line="290"/>
+        <location filename="../ui/general/qgisred_projectmanager_dialog.py" line="289"/>
         <source>&apos;%1&apos; project is not found in selected folder</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../ui/general/qgisred_projectmanager_dialog.py" line="751"/>
+        <location filename="../ui/general/qgisred_projectmanager_dialog.py" line="749"/>
         <source>Project has been renamed to %1, but its folder could not be renamed: %2</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../ui/general/qgisred_projectmanager_dialog.py" line="754"/>
+        <location filename="../ui/general/qgisred_projectmanager_dialog.py" line="752"/>
         <source>The project folder could not be renamed: %1</source>
         <translation type="unfinished"></translation>
     </message>
@@ -9057,7 +9067,7 @@ Cannot apply changes.</source>
 <context>
     <name>QGISRedTimeSeriesDock</name>
     <message>
-        <location filename="../ui/analysis/qgisred_timeseries_dock.py" line="1269"/>
+        <location filename="../ui/analysis/qgisred_timeseries_dock.py" line="1257"/>
         <source>New chart window</source>
         <translation type="unfinished"></translation>
     </message>
@@ -9067,7 +9077,7 @@ Cannot apply changes.</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../ui/analysis/qgisred_timeseries_dock.py" line="1330"/>
+        <location filename="../ui/analysis/qgisred_timeseries_dock.py" line="1318"/>
         <source>Clear all curves</source>
         <translation type="unfinished"></translation>
     </message>
@@ -9077,262 +9087,222 @@ Cannot apply changes.</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../ui/analysis/qgisred_timeseries_dock.py" line="1278"/>
+        <location filename="../ui/analysis/qgisred_timeseries_dock.py" line="1266"/>
         <source>Pan</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../ui/analysis/qgisred_timeseries_dock.py" line="1286"/>
+        <location filename="../ui/analysis/qgisred_timeseries_dock.py" line="1274"/>
         <source>Zoom in</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../ui/analysis/qgisred_timeseries_dock.py" line="1290"/>
+        <location filename="../ui/analysis/qgisred_timeseries_dock.py" line="1278"/>
         <source>Zoom out</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../ui/analysis/qgisred_timeseries_dock.py" line="1294"/>
+        <location filename="../ui/analysis/qgisred_timeseries_dock.py" line="1282"/>
         <source>Zoom to full extent</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../ui/analysis/qgisred_timeseries_dock.py" line="1302"/>
+        <location filename="../ui/analysis/qgisred_timeseries_dock.py" line="1290"/>
         <source>Chart options</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../ui/analysis/qgisred_timeseries_dock.py" line="1282"/>
+        <location filename="../ui/analysis/qgisred_timeseries_dock.py" line="1270"/>
         <source>Zoom window</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../ui/analysis/qgisred_timeseries_dock.py" line="2228"/>
+        <location filename="../ui/analysis/qgisred_timeseries_dock.py" line="2216"/>
         <source>Export chart as image</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../ui/analysis/qgisred_timeseries_dock.py" line="2246"/>
+        <location filename="../ui/analysis/qgisred_timeseries_dock.py" line="2234"/>
         <source>Time evolution curves</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../ui/analysis/qgisred_timeseries_dock.py" line="2330"/>
+        <location filename="../ui/analysis/qgisred_timeseries_dock.py" line="2300"/>
         <source>Export chart points to CSV</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../ui/analysis/qgisred_timeseries_dock.py" line="2325"/>
+        <location filename="../ui/analysis/qgisred_timeseries_dock.py" line="2295"/>
         <source>No curves to export</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../ui/analysis/qgisred_timeseries_dock.py" line="2219"/>
+        <location filename="../ui/analysis/qgisred_timeseries_dock.py" line="2207"/>
         <source>PNG image (*.png)</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../ui/analysis/qgisred_timeseries_dock.py" line="2220"/>
+        <location filename="../ui/analysis/qgisred_timeseries_dock.py" line="2208"/>
         <source>JPEG image (*.jpg *.jpeg)</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../ui/analysis/qgisred_timeseries_dock.py" line="2221"/>
+        <location filename="../ui/analysis/qgisred_timeseries_dock.py" line="2209"/>
         <source>BMP image (*.bmp)</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../ui/analysis/qgisred_timeseries_dock.py" line="2222"/>
+        <location filename="../ui/analysis/qgisred_timeseries_dock.py" line="2210"/>
         <source>TIFF image (*.tif *.tiff)</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../ui/analysis/qgisred_timeseries_dock.py" line="2225"/>
+        <location filename="../ui/analysis/qgisred_timeseries_dock.py" line="2213"/>
         <source>SVG image (*.svg)</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../ui/analysis/qgisred_timeseries_dock.py" line="2240"/>
+        <location filename="../ui/analysis/qgisred_timeseries_dock.py" line="2228"/>
         <source>SVG export is not available</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../ui/analysis/qgisred_timeseries_dock.py" line="2257"/>
+        <location filename="../ui/analysis/qgisred_timeseries_dock.py" line="2245"/>
         <source>The chart image could not be exported</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../ui/analysis/qgisred_timeseries_dock.py" line="2260"/>
+        <location filename="../ui/analysis/qgisred_timeseries_dock.py" line="2248"/>
         <source>Chart image exported</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../ui/analysis/qgisred_timeseries_dock.py" line="2330"/>
+        <location filename="../ui/analysis/qgisred_timeseries_dock.py" line="2300"/>
         <source>CSV file (*.csv)</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../ui/analysis/qgisred_timeseries_dock.py" line="2346"/>
+        <location filename="../ui/analysis/qgisred_timeseries_dock.py" line="2316"/>
         <source>No chart points to export</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../ui/analysis/qgisred_timeseries_dock.py" line="2358"/>
+        <location filename="../ui/analysis/qgisred_timeseries_dock.py" line="2328"/>
         <source>The CSV file could not be exported</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../ui/analysis/qgisred_timeseries_dock.py" line="2361"/>
+        <location filename="../ui/analysis/qgisred_timeseries_dock.py" line="2331"/>
         <source>Chart points exported to CSV</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../ui/analysis/qgisred_timeseries_dock.py" line="2273"/>
-        <source>Junction</source>
-        <translation type="unfinished"></translation>
-    </message>
-    <message>
-        <location filename="../ui/analysis/qgisred_timeseries_dock.py" line="2274"/>
-        <source>Tank</source>
-        <translation type="unfinished"></translation>
-    </message>
-    <message>
-        <location filename="../ui/analysis/qgisred_timeseries_dock.py" line="2275"/>
-        <source>Reservoir</source>
-        <translation type="unfinished"></translation>
-    </message>
-    <message>
-        <location filename="../ui/analysis/qgisred_timeseries_dock.py" line="2276"/>
-        <source>Pipe</source>
-        <translation type="unfinished"></translation>
-    </message>
-    <message>
-        <location filename="../ui/analysis/qgisred_timeseries_dock.py" line="2277"/>
-        <source>Valve</source>
-        <translation type="unfinished"></translation>
-    </message>
-    <message>
-        <location filename="../ui/analysis/qgisred_timeseries_dock.py" line="2278"/>
-        <source>Pump</source>
-        <translation type="unfinished"></translation>
-    </message>
-    <message>
-        <location filename="../ui/analysis/qgisred_timeseries_dock.py" line="2279"/>
-        <source>Node</source>
-        <translation type="unfinished"></translation>
-    </message>
-    <message>
-        <location filename="../ui/analysis/qgisred_timeseries_dock.py" line="2280"/>
-        <source>Link</source>
-        <translation type="unfinished"></translation>
-    </message>
-    <message>
-        <location filename="../ui/analysis/qgisred_timeseries_dock.py" line="1866"/>
+        <location filename="../ui/analysis/qgisred_timeseries_dock.py" line="1854"/>
         <source>Time (h)</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../ui/analysis/qgisred_timeseries_dock.py" line="1863"/>
+        <location filename="../ui/analysis/qgisred_timeseries_dock.py" line="1851"/>
         <source>Value</source>
         <translation type="unfinished">Value</translation>
     </message>
     <message>
-        <location filename="../ui/analysis/qgisred_timeseries_dock.py" line="1298"/>
+        <location filename="../ui/analysis/qgisred_timeseries_dock.py" line="1286"/>
         <source>Sync cursor with Results panel</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../ui/analysis/qgisred_timeseries_dock.py" line="1306"/>
+        <location filename="../ui/analysis/qgisred_timeseries_dock.py" line="1294"/>
         <source>Show/Hide values table</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../ui/analysis/qgisred_timeseries_dock.py" line="1866"/>
+        <location filename="../ui/analysis/qgisred_timeseries_dock.py" line="1854"/>
         <source>Time of day</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../ui/analysis/qgisred_timeseries_dock.py" line="2008"/>
+        <location filename="../ui/analysis/qgisred_timeseries_dock.py" line="1996"/>
         <source>Results panel is not available</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../ui/analysis/qgisred_timeseries_dock.py" line="1618"/>
+        <location filename="../ui/analysis/qgisred_timeseries_dock.py" line="1606"/>
         <source>Copy selection</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../ui/analysis/qgisred_timeseries_dock.py" line="1619"/>
+        <location filename="../ui/analysis/qgisred_timeseries_dock.py" line="1607"/>
         <source>Copy entire table</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../ui/analysis/qgisred_timeseries_dock.py" line="1715"/>
+        <location filename="../ui/analysis/qgisred_timeseries_dock.py" line="1703"/>
         <source>The values table could not be copied</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../ui/analysis/qgisred_timeseries_dock.py" line="1717"/>
+        <location filename="../ui/analysis/qgisred_timeseries_dock.py" line="1705"/>
         <source>Values table copied to clipboard</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../ui/analysis/qgisred_timeseries_dock.py" line="1725"/>
+        <location filename="../ui/analysis/qgisred_timeseries_dock.py" line="1713"/>
         <source>No table selection to copy</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../ui/analysis/qgisred_timeseries_dock.py" line="1740"/>
+        <location filename="../ui/analysis/qgisred_timeseries_dock.py" line="1728"/>
         <source>No table values to copy</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../ui/analysis/qgisred_timeseries_dock.py" line="2160"/>
+        <location filename="../ui/analysis/qgisred_timeseries_dock.py" line="2148"/>
         <source>Single Period</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../ui/analysis/qgisred_timeseries_dock.py" line="1335"/>
+        <location filename="../ui/analysis/qgisred_timeseries_dock.py" line="1323"/>
         <source>System:</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../ui/analysis/qgisred_timeseries_dock.py" line="1367"/>
+        <location filename="../ui/analysis/qgisred_timeseries_dock.py" line="1355"/>
         <source>— System variable —</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../ui/analysis/qgisred_timeseries_dock.py" line="1342"/>
+        <location filename="../ui/analysis/qgisred_timeseries_dock.py" line="1330"/>
         <source>Add a system-wide variable curve (no map selection needed)</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../ui/analysis/qgisred_timeseries_dock.py" line="2386"/>
+        <location filename="../ui/analysis/qgisred_timeseries_dock.py" line="2356"/>
         <source>Export chart configuration</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../ui/analysis/qgisred_timeseries_dock.py" line="2442"/>
+        <location filename="../ui/analysis/qgisred_timeseries_dock.py" line="2412"/>
         <source>Import chart configuration</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../ui/analysis/qgisred_timeseries_dock.py" line="2442"/>
+        <location filename="../ui/analysis/qgisred_timeseries_dock.py" line="2412"/>
         <source>Configuration file (*.cfg)</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../ui/analysis/qgisred_timeseries_dock.py" line="1326"/>
+        <location filename="../ui/analysis/qgisred_timeseries_dock.py" line="1314"/>
         <source>Edit chart description</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../ui/analysis/qgisred_timeseries_dock.py" line="2401"/>
+        <location filename="../ui/analysis/qgisred_timeseries_dock.py" line="2371"/>
         <source>Chart description</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../ui/analysis/qgisred_timeseries_dock.py" line="2403"/>
+        <location filename="../ui/analysis/qgisred_timeseries_dock.py" line="2373"/>
         <source>Describe the chart content (up to 256 characters):</source>
         <translation type="unfinished"></translation>
     </message>
@@ -9993,7 +9963,7 @@ Cannot apply changes.</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../ui/analysis/qgisred_timeseries_dock.py" line="510"/>
+        <location filename="../ui/analysis/qgisred_timeseries_dock.py" line="498"/>
         <source>Magnitude</source>
         <translation type="unfinished"></translation>
     </message>
@@ -10639,17 +10609,17 @@ Cannot apply changes.</source>
 <context>
     <name>dock</name>
     <message>
-        <location filename="../sections/analysis_section.py" line="1074"/>
+        <location filename="../sections/analysis_section.py" line="1078"/>
         <source>Show stored volume instead</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../sections/analysis_section.py" line="1079"/>
+        <location filename="../sections/analysis_section.py" line="1083"/>
         <source>Overflow</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../sections/analysis_section.py" line="1079"/>
+        <location filename="../sections/analysis_section.py" line="1083"/>
         <source>Show overflow flow instead</source>
         <translation type="unfinished"></translation>
     </message>

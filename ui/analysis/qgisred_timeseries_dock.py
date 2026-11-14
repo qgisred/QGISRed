@@ -2248,27 +2248,9 @@ class QGISRedTimeSeriesDock(QGISRedDockActivationMixin, QDockWidget, FORM_CLASS)
         self._showMessage(self.tr("Chart image exported"), level=3)
 
     def _seriesElementInfo(self, series_dict):
-        series_key = str(series_dict.get("series_key") or "")
-        parts = series_key.split(":")
-        if len(parts) >= 4:
-            category = parts[0]
-            element_id = parts[3]
-        else:
-            category = str(series_dict.get("legend_type") or "")
-            element_id = str(series_dict.get("label") or "")
-
-        type_mapping = {
-            "qgisred_junctions": self.tr("Junction"),
-            "qgisred_tanks": self.tr("Tank"),
-            "qgisred_reservoirs": self.tr("Reservoir"),
-            "qgisred_pipes": self.tr("Pipe"),
-            "qgisred_valves": self.tr("Valve"),
-            "qgisred_pumps": self.tr("Pump"),
-            "Node": self.tr("Node"),
-            "Link": self.tr("Link"),
-        }
-        legend_type = str(series_dict.get("legend_type") or category)
-        return element_id, type_mapping.get(legend_type, type_mapping.get(category, legend_type))
+        parts = str(series_dict.get("series_key") or "").split(":")
+        element_id = parts[3] if len(parts) >= 4 else str(series_dict.get("label") or "")
+        return element_id, str(series_dict.get("element_type") or "")
 
     def _refreshStartClockSeconds(self) -> None:
         dock = getattr(self, "_resultsDock", None)
