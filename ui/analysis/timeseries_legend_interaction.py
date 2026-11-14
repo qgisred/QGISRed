@@ -148,11 +148,16 @@ class LegendInteractionController:
         is_shift = bool(modifiers & Qt.KeyboardModifier.ShiftModifier)
 
         if is_shift:
+            others = [
+                s for i, s in enumerate(self._w.series)
+                if i != clicked_idx and not self._fixed_emphasis_mode(s)
+            ]
+            already_isolated = bool(clicked.get("highlighted")) and all(s.get("muted") for s in others)
             for i, s in enumerate(self._w.series):
                 if self._fixed_emphasis_mode(s):
                     continue
-                s["highlighted"] = (i == clicked_idx)
-                s["muted"] = (i != clicked_idx)
+                s["highlighted"] = (i == clicked_idx) and not already_isolated
+                s["muted"] = (i != clicked_idx) and not already_isolated
             self._apply_fixed_emphasis_modes()
             return True
 

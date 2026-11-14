@@ -168,3 +168,39 @@ class TestTimeSeriesLegendActions:
         # internal state: delete candidate set, drag candidate cleared
         assert c._delete_candidate_idx == 1
         assert c._drag_candidate_idx is None
+
+
+def _shift_click(controller, idx):
+    controller._drag_candidate_idx = idx
+    controller._moved = False
+    controller._pressed_modifiers = Qt.KeyboardModifier.ShiftModifier
+    return controller.apply_toggle_if_click()
+
+
+class TestLegendShiftClickIsolation:
+    def _widget(self):
+        w = _Widget()
+        w.series = [{"series_key": k} for k in ("a", "b", "c")]
+        return w
+
+    def test_shift_click_isolates_the_curve(self):
+        w = self._widget()
+        c = LegendInteractionController(w)
+        assert _shift_click(c, 1) is True
+        assert [bool(s.get("highlighted")) for s in w.series] == [False, True, False]
+        assert [bool(s.get("muted")) for s in w.series] == [True, False, True]
+
+    def test_second_shift_click_on_the_same_curve_restores_all(self):
+        w = self._widget()
+        c = LegendInteractionController(w)
+        _shift_click(c, 1)
+        _shift_click(c, 1)
+        assert not any(s.get("highlighted") or s.get("muted") for s in w.series)
+
+    def test_shift_click_on_another_curve_moves_the_isolation(self):
+        w = self._widget()
+        c = LegendInteractionController(w)
+        _shift_click(c, 1)
+        _shift_click(c, 2)
+        assert [bool(s.get("highlighted")) for s in w.series] == [False, False, True]
+        assert [bool(s.get("muted")) for s in w.series] == [True, True, False]
