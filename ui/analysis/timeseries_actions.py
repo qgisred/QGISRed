@@ -27,6 +27,14 @@ _LINK_MENU_FIELDS = (
 )
 
 
+def _hidden_quality_attrs(dock) -> set:
+    if not getattr(dock, "isQualitySimulated", True):
+        return {"lbl_quality", "lbl_reaction_rate"}
+    if not getattr(dock, "_showReactRate", True):
+        return {"lbl_reaction_rate"}
+    return set()
+
+
 def node_magnitude_field_map(dock, is_tank=False) -> dict:
     """Ordered display-label → internal-property map for node magnitudes.
 
@@ -36,8 +44,11 @@ def node_magnitude_field_map(dock, is_tank=False) -> dict:
     fields = list(_NODE_BASE_FIELDS)
     if is_tank:
         fields += list(_NODE_TANK_FIELDS)
+    hidden = _hidden_quality_attrs(dock)
     result = {}
     for attr, internal in fields:
+        if attr in hidden:
+            continue
         label = getattr(dock, attr, "")
         if not label:
             continue
@@ -52,8 +63,11 @@ def magnitude_choices(dock, category, is_tank=False) -> list:
     """Ordered, de-duplicated magnitude labels for the right-click picker menu."""
     if category == "Node":
         return list(node_magnitude_field_map(dock, is_tank=is_tank).keys())
+    hidden = _hidden_quality_attrs(dock)
     out = []
     for attr in _LINK_MENU_FIELDS:
+        if attr in hidden:
+            continue
         label = getattr(dock, attr, "")
         if not label:
             continue

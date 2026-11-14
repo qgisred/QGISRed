@@ -53,6 +53,31 @@ class TestMagnitudeChoices:
         assert tank["Pressure"] == "Pressure"
 
 
+class TestQualityMagnitudesFollowTheSimulation:
+    def test_without_quality_simulation_quality_and_reaction_rate_are_hidden(self):
+        dock = _MagDock()
+        dock.isQualitySimulated = False
+        dock._showReactRate = False
+        assert "Quality" not in magnitude_choices(dock, "Node")
+        links = magnitude_choices(dock, "Link")
+        assert "Quality" not in links and "Reaction Rate" not in links
+        assert "Quality" not in node_magnitude_field_map(dock)
+
+    def test_age_or_trace_keeps_quality_but_hides_reaction_rate(self):
+        dock = _MagDock()
+        dock.isQualitySimulated = True
+        dock._showReactRate = False
+        links = magnitude_choices(dock, "Link")
+        assert "Quality" in links and "Reaction Rate" not in links
+
+    def test_chemical_quality_shows_both(self):
+        dock = _MagDock()
+        dock.isQualitySimulated = True
+        dock._showReactRate = True
+        links = magnitude_choices(dock, "Link")
+        assert "Quality" in links and "Reaction Rate" in links
+
+
 class _Dock:
     def __init__(self):
         self.selection = [{"dummy": 1}]
