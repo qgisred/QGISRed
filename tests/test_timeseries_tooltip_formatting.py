@@ -3,7 +3,7 @@ from unittest.mock import patch
 
 import pytest
 
-from QGISRed.ui.analysis.timeseries_plot_renderer import TimeSeriesPlotRenderer
+from QGISRed.ui.analysis.timeseries_plot_renderer import TimeSeriesPlotRenderer, format_fixed_decimals
 from QGISRed.ui.analysis.timeseries_time_utils import (
     civil_midnight_elapsed_hours,
     format_civil_time,
@@ -391,3 +391,15 @@ class TestAxisUnitExtraction:
     def test_axis_title_keeps_original_when_no_units(self):
         r = TimeSeriesPlotRenderer()
         assert r._axis_title_from_magnitude("Estado") == "Estado"
+
+
+@pytest.mark.parametrize("value, decimals, expected", [
+    (-0.000001, 2, "0.00"),
+    (-0.0, 0, "0"),
+    (-0.004, 2, "0.00"),
+    (-0.005001, 2, "-0.01"),
+    (12.345, 1, "12.3"),
+])
+def test_fixed_decimals_never_show_negative_zero(value, decimals, expected):
+    assert format_fixed_decimals(value, decimals) == expected
+    assert TimeSeriesPlotRenderer()._format_value_with_decimal_places(value, decimals) == expected

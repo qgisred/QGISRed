@@ -41,6 +41,14 @@ from .timeseries_plot_style import (
 )
 
 
+def format_fixed_decimals(value, decimal_places: int) -> str:
+    """Fixed-point text that never shows a negative zero such as ``-0.00``."""
+    text = f"{float(value):.{max(0, int(decimal_places))}f}"
+    if text.startswith("-") and float(text) == 0:
+        return text[1:]
+    return text
+
+
 class TimeSeriesPlotRenderer:
     _UNIT_RE = re.compile(r"\(([^()]+)\)\s*$")
     _UNIT_ANY_RE = re.compile(r"\(([^()]+)\)")
@@ -367,9 +375,7 @@ class TimeSeriesPlotRenderer:
         if decimal_places is None:
             return self._format_value_full(value)
         try:
-            v = float(value)
-            dec = max(0, int(decimal_places))
-            return f"{v:.{dec}f}"
+            return format_fixed_decimals(value, decimal_places)
         except (TypeError, ValueError):
             return str(value)
 

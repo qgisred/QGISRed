@@ -38,7 +38,7 @@ from .qgisred_timeseries_axis_dialog import TimeSeriesAxisOptionsDialog
 from .timeseries_axis_settings import default_axis_settings, default_general_settings
 from .timeseries_plot_layout import PlotLayoutCalculator
 from .timeseries_legend_interaction import LegendInteractionController
-from .timeseries_plot_renderer import TimeSeriesPlotRenderer
+from .timeseries_plot_renderer import TimeSeriesPlotRenderer, format_fixed_decimals
 from .timeseries_plot_style import DEFAULT_SERIES_COLOR, LEGEND_ICON_SIZE, LEGEND_ROW_GAP, PLOT_TOP_PAD, qfont
 from .timeseries_globals import (
     GLOBAL_SYSTEM_VARIABLE_KEYS,
@@ -2271,7 +2271,7 @@ class QGISRedTimeSeriesDock(QGISRedDockActivationMixin, QDockWidget, FORM_CLASS)
         display_decimals = series_dict.get("y_display_decimals")
         if display_decimals is not None:
             with suppress(TypeError, ValueError):
-                return f"{float(value):.{max(0, int(display_decimals))}f}"
+                return format_fixed_decimals(value, display_decimals)
         renderer = getattr(getattr(self, "plot", None), "_renderer", None)
         if renderer is not None:
             return renderer._point_value_text(series_dict, value)
@@ -2287,7 +2287,7 @@ class QGISRedTimeSeriesDock(QGISRedDockActivationMixin, QDockWidget, FORM_CLASS)
             parts = str(series_dict.get("series_key") or "").split(":")
             if len(parts) >= 3 and parts[2]:
                 dec = QGISRedFieldUtils().getDecimals(normalize_element(parts[0]), parts[2])
-                return f"{float(value):.{max(0, int(dec))}f}"
+                return format_fixed_decimals(value, dec)
         return value
 
     def _onExportCsvClicked(self) -> None:
