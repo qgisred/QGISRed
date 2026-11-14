@@ -23,6 +23,7 @@ from qgis.PyQt.QtWidgets import (
     QTableWidget,
     QTableWidgetItem,
     QToolButton,
+    QToolTip,
     QVBoxLayout,
     QWidget,
 )
@@ -36,10 +37,17 @@ from ...tools.utils.qgisred_ui_utils import QGISRedUIUtils
 
 from .qgisred_timeseries_axis_dialog import TimeSeriesAxisOptionsDialog
 from .timeseries_axis_settings import default_axis_settings, default_general_settings
-from .timeseries_plot_layout import PlotLayoutCalculator
+from .timeseries_plot_layout import PlotLayoutCalculator, place_side_legend
 from .timeseries_legend_interaction import LegendInteractionController
 from .timeseries_plot_renderer import TimeSeriesPlotRenderer, format_fixed_decimals
-from .timeseries_plot_style import DEFAULT_SERIES_COLOR, LEGEND_ICON_SIZE, LEGEND_ROW_GAP, PLOT_TOP_PAD, qfont
+from .timeseries_plot_style import (
+    DEFAULT_SERIES_COLOR,
+    LEGEND_ICON_SIZE,
+    LEGEND_PAD,
+    LEGEND_ROW_GAP,
+    LEGEND_ROW_H,
+    qfont,
+)
 from .timeseries_globals import (
     GLOBAL_SYSTEM_VARIABLE_KEYS,
     global_axis_group_label,
@@ -104,6 +112,8 @@ class TimeSeriesPlotWidget(QWidget):
         self._legend_reserved_h = 0
         self._legend_hitboxes = []
         self._legend_delete_hitboxes = []
+        self._legend_overflow_rect = None
+        self._legend_overflow_labels = []
         self._hover_series_idx = None
         self._legend = LegendInteractionController(self)
         self._renderer = TimeSeriesPlotRenderer()
@@ -580,19 +590,13 @@ class TimeSeriesPlotWidget(QWidget):
                 cur_w += gap + item_w
         return max(2, 1 + item_rows)
 
-    def _legendSideAvailableHeight(self) -> float:
-        top = float(getattr(self, "margin_top", 40) + PLOT_TOP_PAD)
-        bottom = float(getattr(self, "margin_bottom", 40))
-        return max(float(_LEGEND_ROW_GAP), float(self.height()) - top - bottom)
-
     def _legendSideNeedsTwoColumns(self) -> bool:
         groups = self._legendGroups()
         if not groups:
             return False
-        usable_h = max(float(_LEGEND_ROW_GAP), self._legendSideAvailableHeight() - 20.0)
-        max_rows = max(1, int(usable_h // float(_LEGEND_ROW_GAP)))
-        single_rows = sum(1 + len(items) + 1 for _mag, items in groups)
-        return single_rows > max_rows
+        content_h = PlotLayoutCalculator.side_legend_available_height(self) - 2 * LEGEND_PAD
+        _headers, _placed, hidden = place_side_legend(groups, 0.0, content_h, 1, LEGEND_ROW_H, LEGEND_ROW_GAP)
+        return bool(hidden)
 
     def _legendRequiredHeight(self) -> int:
         groups = self._legendGroups()
@@ -890,6 +894,14 @@ class TimeSeriesPlotWidget(QWidget):
     def paintEvent(self, event):
         painter = QPainter(self)
         self._renderer.render(self, painter)
+
+    def event(self, event):
+        if event is not None and event.type() == QEvent.Type.ToolTip:
+            rect = getattr(self, "_legend_overflow_rect", None)
+            if rect is not None and rect.contains(QPointF(event.pos())):
+                QToolTip.showText(event.globalPos(), "\n".join(self._legend_overflow_labels), self, rect.toRect())
+                return True
+        return super(TimeSeriesPlotWidget, self).event(event)
 
     def leaveEvent(self, event):
         if self.hover_index is not None:

@@ -20,6 +20,7 @@ from ...tools.utils.qgisred_axis_scale_utils import (
 
 from ...tools.utils.qgisred_field_utils import QGISRedFieldUtils, normalize_element
 from .timeseries_axis_settings import TimeSeriesAxisSettings, build_fixed_linear_scale
+from .timeseries_plot_layout import layout_side_legend
 from .timeseries_time_utils import civil_time_parts, merge_time_of_day_x_ticks
 from .timeseries_plot_style import (
     AXIS_MAX_TICKS,
@@ -30,6 +31,7 @@ from .timeseries_plot_style import (
     LEGEND_POINT_SYMBOL_SIZE_MAX,
     LEGEND_OUTSIDE_BOTTOM_EXTRA,
     LEGEND_OUTSIDE_TOP_EXTRA,
+    LEGEND_PAD,
     LEGEND_ROW_GAP,
     LEGEND_ROW_H,
     PLOT_BG_COLOR,
@@ -118,6 +120,8 @@ class TimeSeriesPlotRenderer:
         plot_rect, local_margin_left, right_axis_label_w = widget.getPlotRect()
         widget._legend_hitboxes = []
         widget._legend_delete_hitboxes = []
+        widget._legend_overflow_rect = None
+        widget._legend_overflow_labels = []
 
         self._draw_chart_title(widget, painter, plot_rect, gen)
 
@@ -232,6 +236,8 @@ class TimeSeriesPlotRenderer:
         frame, axes and legend settings — and save it as a reusable template."""
         widget._legend_hitboxes = []
         widget._legend_delete_hitboxes = []
+        widget._legend_overflow_rect = None
+        widget._legend_overflow_labels = []
 
         painter.setRenderHint(PAINTER_ANTIALIASING)
         gen = getattr(widget, "_general_cfg", None)
@@ -1316,6 +1322,15 @@ class TimeSeriesPlotRenderer:
         point_size = min(float(size), float(LEGEND_POINT_SYMBOL_SIZE_MAX))
         painter.drawEllipse(QPointF(cx, cy), (point_size - 4) / 2, (point_size - 4) / 2)
 
+    def _draw_legend_overflow(self, widget, painter, content_rect, hidden_labels):
+        rect = QRectF(content_rect.left(), content_rect.bottom() - LEGEND_ROW_H, content_rect.width(), LEGEND_ROW_H)
+        template = QCoreApplication.translate("TimeSeriesPlotWidget", "+%1 more...")
+        painter.setFont(qfont(8, bold=True))
+        painter.setPen(TEXT_DARK)
+        painter.drawText(rect, Qt.AlignmentFlag.AlignLeft | Qt.AlignmentFlag.AlignVCenter, template.replace("%1", str(len(hidden_labels))))
+        widget._legend_overflow_rect = rect
+        widget._legend_overflow_labels = list(hidden_labels)
+
     def _draw_legend(self, widget, painter, plot_rect, x_state=None):
         groups = widget._legendGroups()
         if not groups:
@@ -1353,7 +1368,7 @@ class TimeSeriesPlotRenderer:
             legend_w = float(plot_rect.width())
             legend_h = float(getattr(widget, "_legend_reserved_h", legend_h) or legend_h)
 
-        pad = 6
+        pad = LEGEND_PAD
         if legend_pos == "right":
             x0 = plot_rect.right() + 10 + (widget._right_axis_label_w if getattr(widget, "_right_axis_label_w", 0) else 0) + 20
             y0 = plot_rect.top() + pad
@@ -1468,30 +1483,19 @@ class TimeSeriesPlotRenderer:
                     painter.setPen(QPen(QColor(30, 30, 30), 2))
                     painter.drawLine(QPointF(hit_rect.left(), hit_rect.top() - 1), QPointF(hit_rect.right(), hit_rect.top() - 1))
 
-            cur_y = float(content_rect.top())
-            max_y = float(content_rect.bottom())
-            for mag_title, items in groups:
-                if cur_y + LEGEND_ROW_H > max_y:
-                    break
+            headers, placed, hidden = layout_side_legend(
+                groups, float(content_rect.top()), float(content_rect.bottom()), item_cols, LEGEND_ROW_H, LEGEND_ROW_GAP
+            )
+            for group_idx, cy in headers:
                 painter.setFont(qfont(8, bold=True))
                 painter.setPen(TEXT_DARK)
-                painter.drawText(QRectF(content_rect.left(), cur_y, content_rect.width(), LEGEND_ROW_H), Qt.AlignmentFlag.AlignLeft | Qt.AlignmentFlag.AlignVCenter, str(mag_title))
-                group_item_start_y = cur_y + float(LEGEND_ROW_GAP)
-                y_cols = [group_item_start_y for _ in range(item_cols)]
-
-                for item_idx, (series_idx, color, label, legend_type) in enumerate(items):
-                    col = 0
-                    if item_cols > 1 and y_cols[0] + LEGEND_ROW_H > max_y:
-                        col = 1
-                    elif item_cols > 1 and item_idx >= (len(items) + 1) // 2:
-                        col = 1
-                    cx = float(content_rect.left() + col * (item_col_w + gap_cols))
-                    cy = y_cols[col]
-                    if cy + LEGEND_ROW_H > max_y:
-                        continue
-                    draw_item(series_idx, color, label, legend_type, cx, cy, item_col_w)
-                    y_cols[col] += float(LEGEND_ROW_GAP)
-                cur_y = max(y_cols) + float(LEGEND_ROW_GAP)
+                header_rect = QRectF(content_rect.left(), cy, content_rect.width(), LEGEND_ROW_H)
+                painter.drawText(header_rect, Qt.AlignmentFlag.AlignLeft | Qt.AlignmentFlag.AlignVCenter, str(groups[group_idx][0]))
+            for (series_idx, color, label, legend_type), col, cy in placed:
+                cx = float(content_rect.left() + col * (item_col_w + gap_cols))
+                draw_item(series_idx, color, label, legend_type, cx, cy, item_col_w)
+            if hidden and content_rect.height() >= LEGEND_ROW_H:
+                self._draw_legend_overflow(widget, painter, content_rect, [label for _i, _c, label, _t in hidden])
             painter.restore()
             return
 

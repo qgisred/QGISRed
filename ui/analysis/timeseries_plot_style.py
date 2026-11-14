@@ -32,6 +32,7 @@ LEGEND_ICON_SIZE = 12
 LEGEND_POINT_SYMBOL_SIZE_MAX = 14
 LEGEND_ROW_H = 14
 LEGEND_ROW_GAP = 16
+LEGEND_PAD = 6
 # Extra horizontal space between outside-left legend and Y-axis title (px).
 LEGEND_OUTSIDE_LEFT_EXTRA = 16
 # Extra vertical space between plot bottom and outside-bottom legend (px).

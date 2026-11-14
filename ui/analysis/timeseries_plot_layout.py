@@ -11,6 +11,37 @@ from .timeseries_time_utils import civil_time_parts
 from .timeseries_plot_style import FONT_FAMILY, LEGEND_OUTSIDE_BOTTOM_EXTRA, LEGEND_OUTSIDE_LEFT_EXTRA, LEGEND_OUTSIDE_TOP_EXTRA, PLOT_TOP_PAD
 
 
+def place_side_legend(groups, top, bottom, item_cols, row_h, row_gap):
+    """Header and item rows of a side legend, plus the items that do not fit."""
+    headers, placed, hidden = [], [], []
+    cur_y = float(top)
+    for group_idx, (_mag, items) in enumerate(groups):
+        if cur_y + row_h > bottom:
+            hidden.extend(items)
+            continue
+        headers.append((group_idx, cur_y))
+        y_cols = [cur_y + row_gap] * item_cols
+        for item_idx, item in enumerate(items):
+            col = 0
+            if item_cols > 1 and (y_cols[0] + row_h > bottom or item_idx >= (len(items) + 1) // 2):
+                col = 1
+            if y_cols[col] + row_h > bottom:
+                hidden.append(item)
+                continue
+            placed.append((item, col, y_cols[col]))
+            y_cols[col] += row_gap
+        cur_y = max(y_cols) + row_gap
+    return headers, placed, hidden
+
+
+def layout_side_legend(groups, top, bottom, item_cols, row_h, row_gap):
+    """Like :func:`place_side_legend`, keeping the last row free when something is hidden."""
+    headers, placed, hidden = place_side_legend(groups, top, bottom, item_cols, row_h, row_gap)
+    if hidden:
+        headers, placed, hidden = place_side_legend(groups, top, bottom - row_gap, item_cols, row_h, row_gap)
+    return headers, placed, hidden
+
+
 class PlotLayoutCalculator:
     @staticmethod
     def _effective_x_title(widget) -> str:
@@ -80,25 +111,65 @@ class PlotLayoutCalculator:
         return max(0.0, float(max_label_w + 18 + title_extra))
 
     @classmethod
+    def _compute_vertical_margins(cls, widget) -> Tuple[float, float]:
+        """Top and bottom margins around the plot area, not counting a top or bottom legend."""
+        cfg_x = getattr(widget, "_axis_cfg_x", None)
+        sz_x = max(5, min(int(getattr(cfg_x, "tick_font_size", 10) or 10), 48)) if cfg_x else 10
+        sz_title_x = max(5, min(int(getattr(cfg_x, "title_font_size", 10) or 10), 48)) if cfg_x else 10
+        fam_x = cfg_x.resolved_font_family() if cfg_x else FONT_FAMILY
+        fam_title_x = cfg_x.resolved_title_font_family() if cfg_x else FONT_FAMILY
+        fm_x = QFontMetrics(QFont(fam_x, sz_x))
+        fm_title_x = QFontMetrics(QFont(fam_title_x, sz_title_x))
+        gen = getattr(widget, "_general_cfg", None)
+
+        local_margin_bottom = widget.margin_bottom
+        if widget.data_x and len(widget.data_x) > 1:
+            if cfg_x and not cfg_x.auto_scale:
+                eff_max = float(cfg_x.fixed_max)
+            else:
+                eff_max = max(widget.data_x)
+            hour_format = (getattr(cfg_x, "x_hour_format", "") or "hm").strip() if cfg_x is not None else "hm"
+            day_format = (getattr(cfg_x, "x_day_format", "") or "split_days").strip() if cfg_x is not None else "split_days"
+            if hour_format in ("hm", "hm_ampm", "tod_hm", "tod_ampm"):
+                start_clock_seconds = int(getattr(widget, "_start_clock_seconds", 0) or 0)
+                min_parts = civil_time_parts(min(widget.data_x), start_clock_seconds)
+                max_parts = civil_time_parts(eff_max, start_clock_seconds)
+                has_days = bool(day_format == "split_days" and min_parts is not None and max_parts is not None and max_parts[0] > min_parts[0])
+            else:
+                has_days = eff_max >= 24 and day_format == "split_days"
+            tick_block_h = fm_x.height() * 2 + 16 if has_days else fm_x.height() + 20
+            axis_title_h = (fm_title_x.height() + 2 + 2 + 6) if cls._effective_x_title(widget) else 0
+            extra = tick_block_h + axis_title_h
+            local_margin_bottom = max(local_margin_bottom, extra)
+
+        title_txt = (getattr(gen, "title", "") or getattr(widget, "title", "") or "").strip() if gen is not None else (getattr(widget, "title", "") or "").strip()
+        title_margin_top = float(widget.margin_top)
+        if title_txt:
+            title_size = max(5, min(int(getattr(gen, "title_font_size", 10) or 10), 48)) if gen is not None else 10
+            title_family = gen.resolved_title_font_family() if gen is not None else FONT_FAMILY
+            title_fm = QFontMetrics(QFont(title_family, title_size))
+            title_margin_top = max(title_margin_top, float(title_fm.height() + 12))
+        local_margin_top = title_margin_top + PLOT_TOP_PAD
+        return local_margin_top, float(local_margin_bottom)
+
+    @classmethod
+    def side_legend_available_height(cls, widget) -> float:
+        top, bottom = cls._compute_vertical_margins(widget)
+        return float(widget.height()) - top - bottom
+
+    @classmethod
     def compute_plot_rect(cls, widget) -> Tuple[QRectF, float, float]:
         w = widget.width()
         h = widget.height()
 
         cfg_yl = getattr(widget, "_axis_cfg_y_left", None)
         cfg_yr = getattr(widget, "_axis_cfg_y_right", None)
-        cfg_x = getattr(widget, "_axis_cfg_x", None)
         sz_l = max(5, min(int(getattr(cfg_yl, "tick_font_size", 10) or 10), 48)) if cfg_yl else 10
         sz_r = max(5, min(int(getattr(cfg_yr, "tick_font_size", 10) or 10), 48)) if cfg_yr else 10
-        sz_x = max(5, min(int(getattr(cfg_x, "tick_font_size", 10) or 10), 48)) if cfg_x else 10
-        sz_title_x = max(5, min(int(getattr(cfg_x, "title_font_size", 10) or 10), 48)) if cfg_x else 10
         fam_l = cfg_yl.resolved_font_family() if cfg_yl else FONT_FAMILY
         fam_r = cfg_yr.resolved_font_family() if cfg_yr else FONT_FAMILY
-        fam_x = cfg_x.resolved_font_family() if cfg_x else FONT_FAMILY
-        fam_title_x = cfg_x.resolved_title_font_family() if cfg_x else FONT_FAMILY
         fm_left = QFontMetrics(QFont(fam_l, sz_l))
         fm_right = QFontMetrics(QFont(fam_r, sz_r))
-        fm_x = QFontMetrics(QFont(fam_x, sz_x))
-        fm_title_x = QFontMetrics(QFont(fam_title_x, sz_title_x))
 
         left_series, right_series = widget._seriesByAxis()
         _x_l, all_y_left, y_cat_left, _st_left = widget._axisSeriesData(left_series)
@@ -128,25 +199,7 @@ class PlotLayoutCalculator:
             widget=widget,
         )
 
-        local_margin_bottom = widget.margin_bottom
-        if widget.data_x and len(widget.data_x) > 1:
-            if cfg_x and not cfg_x.auto_scale:
-                eff_max = float(cfg_x.fixed_max)
-            else:
-                eff_max = max(widget.data_x)
-            hour_format = (getattr(cfg_x, "x_hour_format", "") or "hm").strip() if cfg_x is not None else "hm"
-            day_format = (getattr(cfg_x, "x_day_format", "") or "split_days").strip() if cfg_x is not None else "split_days"
-            if hour_format in ("hm", "hm_ampm", "tod_hm", "tod_ampm"):
-                start_clock_seconds = int(getattr(widget, "_start_clock_seconds", 0) or 0)
-                min_parts = civil_time_parts(min(widget.data_x), start_clock_seconds)
-                max_parts = civil_time_parts(eff_max, start_clock_seconds)
-                has_days = bool(day_format == "split_days" and min_parts is not None and max_parts is not None and max_parts[0] > min_parts[0])
-            else:
-                has_days = eff_max >= 24 and day_format == "split_days"
-            tick_block_h = fm_x.height() * 2 + 16 if has_days else fm_x.height() + 20
-            axis_title_h = (fm_title_x.height() + 2 + 2 + 6) if cls._effective_x_title(widget) else 0
-            extra = tick_block_h + axis_title_h
-            local_margin_bottom = max(local_margin_bottom, extra)
+        local_margin_top, local_margin_bottom = cls._compute_vertical_margins(widget)
 
         if legend_pos == "bottom" and getattr(widget, "_legend_reserved_h", 0):
             local_margin_bottom += float(widget._legend_reserved_h + LEGEND_OUTSIDE_BOTTOM_EXTRA)
@@ -154,14 +207,6 @@ class PlotLayoutCalculator:
         if legend_pos == "left" and widget._legend_reserved_w:
             local_margin_left += float(widget._legend_reserved_w + 10 + LEGEND_OUTSIDE_LEFT_EXTRA)
 
-        title_txt = (getattr(gen, "title", "") or getattr(widget, "title", "") or "").strip() if gen is not None else (getattr(widget, "title", "") or "").strip()
-        title_margin_top = float(widget.margin_top)
-        if title_txt:
-            title_size = max(5, min(int(getattr(gen, "title_font_size", 10) or 10), 48)) if gen is not None else 10
-            title_family = gen.resolved_title_font_family() if gen is not None else FONT_FAMILY
-            title_fm = QFontMetrics(QFont(title_family, title_size))
-            title_margin_top = max(title_margin_top, float(title_fm.height() + 12))
-        local_margin_top = title_margin_top + PLOT_TOP_PAD
         if legend_pos == "top" and getattr(widget, "_legend_reserved_h", 0):
             local_margin_top += float(widget._legend_reserved_h + LEGEND_OUTSIDE_TOP_EXTRA)
 
