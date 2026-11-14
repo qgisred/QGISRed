@@ -42,11 +42,11 @@ from .timeseries_plot_renderer import TimeSeriesPlotRenderer
 from .timeseries_plot_style import DEFAULT_SERIES_COLOR, LEGEND_ICON_SIZE, LEGEND_ROW_GAP, PLOT_TOP_PAD, qfont
 from .timeseries_globals import (
     GLOBAL_SYSTEM_VARIABLE_KEYS,
-    assign_default_series_axes,
     global_axis_group_label,
     global_system_variable_choices,
     global_variable_key_from_series_key,
     global_variable_table_column_label,
+    resolve_series_axes,
 )
 from .timeseries_time_utils import (
     format_civil_time,
@@ -305,20 +305,8 @@ class TimeSeriesPlotWidget(QWidget):
         return ", ".join(parts)
 
     def _assignYAxisByMagnitude(self) -> None:
-        magnitudes: List[str] = []
-        for s in self.series:
-            m = (s.get("magnitude") or "").strip()
-            if m and m not in magnitudes:
-                magnitudes.append(m)
-
-        has_explicit = any((s.get("y_axis") or "").strip().lower() in ("left", "right") for s in self.series)
-        if not has_explicit and magnitudes:
-            for s, axis in zip(self.series, assign_default_series_axes(self.series)):
-                s["y_axis"] = axis
-        else:
-            for s in self.series:
-                axis = (s.get("y_axis") or "").strip().lower()
-                s["y_axis"] = axis if axis in ("left", "right") else "left"
+        for s, axis in zip(self.series, resolve_series_axes(self.series)):
+            s["y_axis"] = axis
 
         # Build per-side magnitude lists from each series' actual axis, so a
         # magnitude split across both axes (e.g. ``System`` curves moved one by
@@ -2473,6 +2461,7 @@ class QGISRedTimeSeriesDock(QGISRedDockActivationMixin, QDockWidget, FORM_CLASS)
                 "emphasis_mode": s.get("emphasis_mode") or "normal",
                 "legend_font_family": s.get("legend_font_family") or "",
                 "legend_font_size": s.get("legend_font_size") or 8,
+                "y_axis": s.get("y_axis") or "",
             })
         self.curveSettingsChanged.emit(settings)
 

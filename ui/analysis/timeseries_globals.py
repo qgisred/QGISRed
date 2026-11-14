@@ -265,6 +265,27 @@ def assign_default_series_axes(series):
     return [sides[bucket] for bucket in buckets]
 
 
+def resolve_series_axes(series):
+    """Left/right Y axis per series, keeping the ones the user set explicitly.
+
+    A series without an axis joins the axis of an explicit series in its scale
+    group; failing that, it takes the default from :func:`assign_default_series_axes`.
+    """
+    defaults = assign_default_series_axes(series)
+    explicit_by_bucket = {}
+    for s in series:
+        axis = (s.get("y_axis") or "").strip().lower()
+        if axis in ("left", "right"):
+            explicit_by_bucket.setdefault(_series_scale_bucket(s), axis)
+    resolved = []
+    for s, default in zip(series, defaults):
+        axis = (s.get("y_axis") or "").strip().lower()
+        if axis not in ("left", "right"):
+            axis = explicit_by_bucket.get(_series_scale_bucket(s), default)
+        resolved.append(axis)
+    return resolved
+
+
 def global_variable_unit_abbreviation(variable_key: str) -> str:
     from ...tools.utils.qgisred_field_utils import QGISRedFieldUtils, normalize_element
 

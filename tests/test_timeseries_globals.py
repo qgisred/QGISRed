@@ -8,6 +8,7 @@ from QGISRed.ui.analysis.timeseries_globals import (
     TOTAL_WATER_DEMAND_KEY,
     TOTAL_WATER_SUPPLY_KEY,
     assign_default_series_axes,
+    resolve_series_axes,
     get_global_timeseries,
     global_variable_rgb,
     global_series_y_display_decimals,
@@ -264,6 +265,29 @@ def _global(variable_key):
 
 def _element(magnitude):
     return {"legend_type": "qgisred_pipes", "series_key": f"Results:l:Flow:{magnitude}", "magnitude": magnitude}
+
+
+def _with_axis(series, axis):
+    return {**series, "y_axis": axis}
+
+
+class TestResolveSeriesAxes:
+    def test_without_explicit_axes_uses_defaults(self):
+        series = [_element("Flow (LPS)"), _element("Pressure (m)")]
+        assert resolve_series_axes(series) == ["left", "right"]
+
+    def test_explicit_axes_are_kept(self):
+        series = [_with_axis(_element("Flow (LPS)"), "right"), _with_axis(_element("Pressure (m)"), "left")]
+        assert resolve_series_axes(series) == ["right", "left"]
+
+    def test_new_series_joins_explicit_axis_of_its_magnitude(self):
+        series = [_with_axis(_element("Flow (LPS)"), "right"), _element("Flow (LPS)")]
+        assert resolve_series_axes(series) == ["right", "right"]
+
+    def test_new_series_of_other_magnitude_takes_its_default(self):
+        series = [_with_axis(_element("Flow (LPS)"), "left"), _with_axis(_global(TOTAL_WATER_SUPPLY_KEY), "left"),
+                  _global(TOTAL_STORED_VOLUME_KEY)]
+        assert resolve_series_axes(series) == ["left", "left", "right"]
 
 
 class TestAssignDefaultSeriesAxes:

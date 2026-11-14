@@ -1842,6 +1842,7 @@ class AnalysisSection:
                 "emphasis_mode": it.get("emphasis_mode") or "normal",
                 "legend_font_family": it.get("legend_font_family") or "",
                 "legend_font_size": it.get("legend_font_size") or 8,
+                "y_axis": it.get("y_axis") or "",
             }
             display_decimals = it.get("y_display_decimals")
             if display_decimals is not None:
@@ -1930,6 +1931,7 @@ class AnalysisSection:
                 it["emphasis_mode"] = (cfg or {}).get("emphasis_mode") or "normal"
                 it["legend_font_family"] = (cfg or {}).get("legend_font_family") or ""
                 it["legend_font_size"] = (cfg or {}).get("legend_font_size") or 8
+                it["y_axis"] = (cfg or {}).get("y_axis") or ""
             with suppress(Exception):
                 self._syncTimeSeriesHighlights(dock.lastLayer, dock.lastFeature, dock=dock)
         except Exception:
@@ -2207,7 +2209,6 @@ class AnalysisSection:
             with suppress(Exception):
                 self._syncTimeSeriesHighlights(dock=dock)
             self._renderTimeSeriesSelection(dock)
-            self._timeSeriesRestoreExplicitYAxis(plot, selection)
         elif not had_curves:
             dock._chartComment = config.get("comment", "") or ""
             with suppress(Exception):
@@ -2222,26 +2223,3 @@ class AnalysisSection:
             dock._updatePanAvailability()
 
         self.pushMessage(self.tr("Chart configuration imported."), level=3)
-
-    def _timeSeriesRestoreExplicitYAxis(self, plot, selection):
-        """Re-apply each curve's saved Y axis after the auto-by-magnitude pass."""
-        yaxis_by_key = {}
-        for it in selection:
-            axis = (it.get("y_axis") or "").strip().lower()
-            if axis in ("left", "right"):
-                key = (
-                    f"{it.get('category') or ''}:{it.get('layer_identifier') or ''}:"
-                    f"{it.get('prop_internal') or ''}:{it.get('element_id') or ''}"
-                )
-                yaxis_by_key[key] = axis
-        if not yaxis_by_key:
-            return
-        changed = False
-        for s in (plot.series or []):
-            key = str(s.get("series_key") or "")
-            if key in yaxis_by_key:
-                s["y_axis"] = yaxis_by_key[key]
-                changed = True
-        if changed:
-            with suppress(Exception):
-                plot._assignYAxisByMagnitude()
