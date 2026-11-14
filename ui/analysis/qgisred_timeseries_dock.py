@@ -2554,15 +2554,6 @@ class QGISRedTimeSeriesDock(QGISRedDockActivationMixin, QDockWidget, FORM_CLASS)
         self._updateClearToolbarVisibility()
         self._updatePanAvailability()
 
-    def updatePlot(self, x, y, title, x_label, y_label, is_stepped=False, y_categorical_labels=None, series_label=""):
-        self._refreshStartClockSeconds()
-        self.plot.setData(x, y, title, x_label, y_label, is_stepped, y_categorical_labels, series_label)
-        if hasattr(self, "btnSyncCursor") and self.btnSyncCursor is not None and self.btnSyncCursor.isChecked():
-            self._syncCurrentResultsTime()
-        self._rebuildValuesTable()
-        self._updateClearToolbarVisibility()
-        self._updatePanAvailability()
-
     def updatePlotSeries(self, series, title, x_label, y_label):
         self._refreshStartClockSeconds()
         self.plot.setSeries(series, title, x_label, y_label)
