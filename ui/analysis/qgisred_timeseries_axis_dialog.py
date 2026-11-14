@@ -1588,15 +1588,6 @@ class TimeSeriesAxisOptionsDialog(QDialog):
         self._ui_dirty = False
         self.accept()
 
-    def _notify_curve_settings_changed(self) -> None:
-        w = self._plot.parent()
-        while w is not None:
-            if hasattr(w, "_emitCurveSettingsChanged"):
-                with suppress(Exception):
-                    w._emitCurveSettingsChanged()
-                return
-            w = w.parent()
-
     def _apply_curve_cfg_to_series(self, curve: dict, s: dict) -> None:
         s["label"] = (curve.get("label") or "").strip() or self.tr("Series")
         s["legend_font_family"] = curve.get("legend_font_family") or ""
