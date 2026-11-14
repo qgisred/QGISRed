@@ -1522,7 +1522,7 @@ class TimeSeriesAxisOptionsDialog(QDialog):
         cfg.tick_font_family = tab._font_combo.currentFont().family()
         tick_color = getattr(tab._tick_style_row, "_text_style_color", QColor("#000000"))
         cfg.tick_color_hex = tick_color.name(QColor.NameFormat.HexRgb) if isinstance(tick_color, QColor) else "#000000"
-        if tab._sp_dec.isVisible():
+        if not tab._sp_dec.isHidden():
             dv = int(tab._sp_dec.value())
             cfg.decimal_places = -1 if dv < 0 else dv
         else:
