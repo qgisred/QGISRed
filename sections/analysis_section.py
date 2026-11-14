@@ -699,7 +699,7 @@ class AnalysisSection:
                     manager.suspend(manager.ownerByKey(self.TIMESERIES_HIGHLIGHT_KEY))
             self._clearTimeSeriesHighlight()
 
-    def _createTimeSeriesDock(self):
+    def _createTimeSeriesDock(self, tabifyWith=None):
         if not getattr(self, "timeSeriesDocks", None):
             self.timeSeriesDocks = []
         dock = QGISRedTimeSeriesDock(self.iface)
@@ -721,17 +721,24 @@ class AnalysisSection:
         dock.topLevelChanged.connect(lambda floating, d=dock: self._onTimeSeriesDockTopLevelChanged(floating, d))
         self.timeSeriesDocks.append(dock)
         self._registerTimeSeriesHighlightOwner()
-        self.iface.addDockWidget(Qt.DockWidgetArea.BottomDockWidgetArea, dock)
+        mainWindow = self.iface.mainWindow()
+        docked = (
+            tabifyWith is not None
+            and not tabifyWith.isFloating()
+            and mainWindow.dockWidgetArea(tabifyWith) != Qt.DockWidgetArea.NoDockWidgetArea
+        )
+        if docked:
+            # Adding it first would lay it out next to the anchor for a moment; the bottom
+            # area then needs both minimum widths and takes them from the Layers panel for good.
+            mainWindow.tabifyDockWidget(tabifyWith, dock)
+        else:
+            self.iface.addDockWidget(Qt.DockWidgetArea.BottomDockWidgetArea, dock)
         with suppress(Exception):
             dock.connectResultsDock(self.ResultDockwidget)
         return dock
 
     def _onTimeSeriesNewChartRequested(self):
-        anchor = self.activeTimeSeriesDock
-        dock = self._createTimeSeriesDock()
-        with suppress(Exception):
-            if anchor is not None and anchor is not dock:
-                self.iface.mainWindow().tabifyDockWidget(anchor, dock)
+        dock = self._createTimeSeriesDock(tabifyWith=self.activeTimeSeriesDock)
         dock.show()
         dock.raise_()
         dock.setFocus()
