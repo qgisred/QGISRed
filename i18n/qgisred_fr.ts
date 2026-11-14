@@ -87,12 +87,12 @@
         <translation type="unfinished">Il est nécessaire de simuler au préalable.</translation>
     </message>
     <message>
-        <location filename="../sections/analysis_section.py" line="1596"/>
+        <location filename="../sections/analysis_section.py" line="1603"/>
         <source>No network element found at this location.</source>
         <translation type="unfinished">Aucun élément du réseau trouvé à cet emplacement.</translation>
     </message>
     <message>
-        <location filename="../sections/analysis_section.py" line="1751"/>
+        <location filename="../sections/analysis_section.py" line="1762"/>
         <source>Results file not found. Please run the model.</source>
         <translation type="unfinished">Fichier de résultats introuvable. Veuillez exécuter le modèle.</translation>
     </message>
@@ -127,22 +127,22 @@
         <translation type="unfinished">Pompe</translation>
     </message>
     <message>
-        <location filename="../sections/analysis_section.py" line="1651"/>
+        <location filename="../sections/analysis_section.py" line="1662"/>
         <source>Closed</source>
         <translation type="unfinished">Fermé</translation>
     </message>
     <message>
-        <location filename="../sections/analysis_section.py" line="1651"/>
+        <location filename="../sections/analysis_section.py" line="1662"/>
         <source>Active</source>
         <translation type="unfinished">Actif</translation>
     </message>
     <message>
-        <location filename="../sections/analysis_section.py" line="1651"/>
+        <location filename="../sections/analysis_section.py" line="1662"/>
         <source>Open</source>
         <translation type="unfinished">Ouvert</translation>
     </message>
     <message>
-        <location filename="../sections/analysis_section.py" line="1855"/>
+        <location filename="../sections/analysis_section.py" line="1866"/>
         <source>Time</source>
         <translation type="unfinished">Temps</translation>
     </message>
@@ -157,17 +157,17 @@
         <translation>Toutes les courbes sélectionnées seront perdues. Continuer ?</translation>
     </message>
     <message>
-        <location filename="../sections/analysis_section.py" line="1635"/>
+        <location filename="../sections/analysis_section.py" line="1646"/>
         <source>Pressure</source>
         <translation type="unfinished">Pression</translation>
     </message>
     <message>
-        <location filename="../sections/analysis_section.py" line="1646"/>
+        <location filename="../sections/analysis_section.py" line="1657"/>
         <source>Flow</source>
         <translation type="unfinished">Débit</translation>
     </message>
     <message>
-        <location filename="../sections/analysis_section.py" line="1856"/>
+        <location filename="../sections/analysis_section.py" line="1867"/>
         <source>Value</source>
         <translation type="unfinished">Valeur</translation>
     </message>
@@ -202,27 +202,27 @@
         <translation type="obsolete">Aucune courbe à exporter</translation>
     </message>
     <message>
-        <location filename="../sections/analysis_section.py" line="2069"/>
+        <location filename="../sections/analysis_section.py" line="2080"/>
         <source>The chart configuration could not be exported.</source>
         <translation>Impossible d'exporter la configuration du graphique.</translation>
     </message>
     <message>
-        <location filename="../sections/analysis_section.py" line="2071"/>
+        <location filename="../sections/analysis_section.py" line="2082"/>
         <source>Chart configuration exported.</source>
         <translation>Configuration du graphique exportée.</translation>
     </message>
     <message>
-        <location filename="../sections/analysis_section.py" line="2185"/>
+        <location filename="../sections/analysis_section.py" line="2196"/>
         <source>Configuration file not found.</source>
         <translation>Fichier de configuration introuvable.</translation>
     </message>
     <message>
-        <location filename="../sections/analysis_section.py" line="2190"/>
+        <location filename="../sections/analysis_section.py" line="2201"/>
         <source>The chart configuration could not be read.</source>
         <translation>Impossible de lire la configuration du graphique.</translation>
     </message>
     <message>
-        <location filename="../sections/analysis_section.py" line="2225"/>
+        <location filename="../sections/analysis_section.py" line="2236"/>
         <source>Chart configuration imported.</source>
         <translation>Configuration du graphique importée.</translation>
     </message>
@@ -239,7 +239,12 @@
     <message>
         <location filename="../sections/analysis_section.py" line="707"/>
         <source>Time evolution curves</source>
-        <translation>Courbes d&apos;évolution temporelle</translation>
+        <translation>Courbes d'évolution temporelle</translation>
+    </message>
+    <message>
+        <location filename="../sections/analysis_section.py" line="1607"/>
+        <source>No variable selected in the Results panel.</source>
+        <translation>Aucune variable sélectionnée dans le panneau Résultats.</translation>
     </message>
 </context>
 <context>
@@ -3055,7 +3060,7 @@ Voulez-vous les vérifier à nouveau ?</translation>
     <message>
         <location filename="../sections/menu_section.py" line="880"/>
         <source>Time evolution curves...</source>
-        <translation>Courbes d&apos;évolution temporelle...</translation>
+        <translation>Courbes d'évolution temporelle...</translation>
     </message>
 </context>
 <context>
@@ -9917,7 +9922,7 @@ Impossible d'appliquer les modifications.</translation>
     <message>
         <location filename="../ui/analysis/qgisred_timeseries_dock.py" line="2234"/>
         <source>Time evolution curves</source>
-        <translation>Courbes d&apos;évolution temporelle</translation>
+        <translation>Courbes d'évolution temporelle</translation>
     </message>
     <message>
         <location filename="../ui/analysis/qgisred_timeseries_dock.py" line="2300"/>
@@ -10187,7 +10192,7 @@ Impossible d'appliquer les modifications.</translation>
     <message>
         <location filename="../ui/analysis/qgisred_timeseries_dock.ui" line="14"/>
         <source>QGISRed: Time evolution curves</source>
-        <translation>QGISRed : Courbes d&apos;évolution temporelle</translation>
+        <translation>QGISRed : Courbes d'évolution temporelle</translation>
     </message>
 </context>
 <context>
@@ -10958,7 +10963,7 @@ Impossible d'appliquer les modifications.</translation>
     <message>
         <location filename="../ui/analysis/timeseries_plot_renderer.py" line="194"/>
         <source>Time evolution curves</source>
-        <translation>Courbes d&apos;évolution temporelle</translation>
+        <translation>Courbes d'évolution temporelle</translation>
     </message>
     <message>
         <location filename="../ui/analysis/timeseries_plot_renderer.py" line="847"/>

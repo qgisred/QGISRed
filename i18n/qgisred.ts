@@ -62,7 +62,7 @@
 <context>
     <name>AnalysisSection</name>
     <message>
-        <location filename="../sections/analysis_section.py" line="1751"/>
+        <location filename="../sections/analysis_section.py" line="1762"/>
         <source>Results file not found. Please run the model.</source>
         <translation type="unfinished"></translation>
     </message>
@@ -97,22 +97,22 @@
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../sections/analysis_section.py" line="1651"/>
+        <location filename="../sections/analysis_section.py" line="1662"/>
         <source>Closed</source>
         <translation type="unfinished">Closed</translation>
     </message>
     <message>
-        <location filename="../sections/analysis_section.py" line="1651"/>
+        <location filename="../sections/analysis_section.py" line="1662"/>
         <source>Active</source>
         <translation type="unfinished">Active</translation>
     </message>
     <message>
-        <location filename="../sections/analysis_section.py" line="1651"/>
+        <location filename="../sections/analysis_section.py" line="1662"/>
         <source>Open</source>
         <translation type="unfinished">Open</translation>
     </message>
     <message>
-        <location filename="../sections/analysis_section.py" line="1855"/>
+        <location filename="../sections/analysis_section.py" line="1866"/>
         <source>Time</source>
         <translation type="unfinished"></translation>
     </message>
@@ -137,7 +137,7 @@
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../sections/analysis_section.py" line="1596"/>
+        <location filename="../sections/analysis_section.py" line="1603"/>
         <source>No network element found at this location.</source>
         <translation type="unfinished"></translation>
     </message>
@@ -152,17 +152,17 @@
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../sections/analysis_section.py" line="1635"/>
+        <location filename="../sections/analysis_section.py" line="1646"/>
         <source>Pressure</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../sections/analysis_section.py" line="1646"/>
+        <location filename="../sections/analysis_section.py" line="1657"/>
         <source>Flow</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../sections/analysis_section.py" line="1856"/>
+        <location filename="../sections/analysis_section.py" line="1867"/>
         <source>Value</source>
         <translation type="unfinished">Value</translation>
     </message>
@@ -192,27 +192,27 @@
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../sections/analysis_section.py" line="2069"/>
+        <location filename="../sections/analysis_section.py" line="2080"/>
         <source>The chart configuration could not be exported.</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../sections/analysis_section.py" line="2071"/>
+        <location filename="../sections/analysis_section.py" line="2082"/>
         <source>Chart configuration exported.</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../sections/analysis_section.py" line="2185"/>
+        <location filename="../sections/analysis_section.py" line="2196"/>
         <source>Configuration file not found.</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../sections/analysis_section.py" line="2190"/>
+        <location filename="../sections/analysis_section.py" line="2201"/>
         <source>The chart configuration could not be read.</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../sections/analysis_section.py" line="2225"/>
+        <location filename="../sections/analysis_section.py" line="2236"/>
         <source>Chart configuration imported.</source>
         <translation type="unfinished"></translation>
     </message>
@@ -229,6 +229,11 @@
     <message>
         <location filename="../sections/analysis_section.py" line="707"/>
         <source>Time evolution curves</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="../sections/analysis_section.py" line="1607"/>
+        <source>No variable selected in the Results panel.</source>
         <translation type="unfinished"></translation>
     </message>
 </context>

@@ -87,12 +87,12 @@
         <translation>É necessário simular primeiro.</translation>
     </message>
     <message>
-        <location filename="../sections/analysis_section.py" line="1596"/>
+        <location filename="../sections/analysis_section.py" line="1603"/>
         <source>No network element found at this location.</source>
         <translation>Nenhum elemento da rede foi encontrado neste local.</translation>
     </message>
     <message>
-        <location filename="../sections/analysis_section.py" line="1751"/>
+        <location filename="../sections/analysis_section.py" line="1762"/>
         <source>Results file not found. Please run the model.</source>
         <translation>Arquivo de resultados não encontrado. Execute o modelo.</translation>
     </message>
@@ -127,22 +127,22 @@
         <translation>Bomba</translation>
     </message>
     <message>
-        <location filename="../sections/analysis_section.py" line="1651"/>
+        <location filename="../sections/analysis_section.py" line="1662"/>
         <source>Closed</source>
         <translation>Fechado</translation>
     </message>
     <message>
-        <location filename="../sections/analysis_section.py" line="1651"/>
+        <location filename="../sections/analysis_section.py" line="1662"/>
         <source>Active</source>
         <translation>Ativa</translation>
     </message>
     <message>
-        <location filename="../sections/analysis_section.py" line="1651"/>
+        <location filename="../sections/analysis_section.py" line="1662"/>
         <source>Open</source>
         <translation>Aberto</translation>
     </message>
     <message>
-        <location filename="../sections/analysis_section.py" line="1855"/>
+        <location filename="../sections/analysis_section.py" line="1866"/>
         <source>Time</source>
         <translation>Tempo</translation>
     </message>
@@ -157,17 +157,17 @@
         <translation>Todas as curvas selecionadas serão perdidas. Continuar?</translation>
     </message>
     <message>
-        <location filename="../sections/analysis_section.py" line="1635"/>
+        <location filename="../sections/analysis_section.py" line="1646"/>
         <source>Pressure</source>
         <translation>Pressão</translation>
     </message>
     <message>
-        <location filename="../sections/analysis_section.py" line="1646"/>
+        <location filename="../sections/analysis_section.py" line="1657"/>
         <source>Flow</source>
         <translation>Vazão</translation>
     </message>
     <message>
-        <location filename="../sections/analysis_section.py" line="1856"/>
+        <location filename="../sections/analysis_section.py" line="1867"/>
         <source>Value</source>
         <translation>Valor</translation>
     </message>
@@ -202,27 +202,27 @@
         <translation type="obsolete">Não há curvas para exportar</translation>
     </message>
     <message>
-        <location filename="../sections/analysis_section.py" line="2069"/>
+        <location filename="../sections/analysis_section.py" line="2080"/>
         <source>The chart configuration could not be exported.</source>
         <translation>Não foi possível exportar a configuração do gráfico.</translation>
     </message>
     <message>
-        <location filename="../sections/analysis_section.py" line="2071"/>
+        <location filename="../sections/analysis_section.py" line="2082"/>
         <source>Chart configuration exported.</source>
         <translation>Configuração do gráfico exportada.</translation>
     </message>
     <message>
-        <location filename="../sections/analysis_section.py" line="2185"/>
+        <location filename="../sections/analysis_section.py" line="2196"/>
         <source>Configuration file not found.</source>
         <translation>Arquivo de configuração não encontrado.</translation>
     </message>
     <message>
-        <location filename="../sections/analysis_section.py" line="2190"/>
+        <location filename="../sections/analysis_section.py" line="2201"/>
         <source>The chart configuration could not be read.</source>
         <translation>Não foi possível ler a configuração do gráfico.</translation>
     </message>
     <message>
-        <location filename="../sections/analysis_section.py" line="2225"/>
+        <location filename="../sections/analysis_section.py" line="2236"/>
         <source>Chart configuration imported.</source>
         <translation>Configuração do gráfico importada.</translation>
     </message>
@@ -240,6 +240,11 @@
         <location filename="../sections/analysis_section.py" line="707"/>
         <source>Time evolution curves</source>
         <translation>Curvas de evolução temporal</translation>
+    </message>
+    <message>
+        <location filename="../sections/analysis_section.py" line="1607"/>
+        <source>No variable selected in the Results panel.</source>
+        <translation>Nenhuma variável selecionada no painel de resultados.</translation>
     </message>
 </context>
 <context>

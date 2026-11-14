@@ -1547,6 +1547,13 @@ class AnalysisSection:
         except Exception:
             return None
 
+    def _timeSeriesNoVariableSelected(self, category):
+        dock = getattr(self, "ResultDockwidget", None)
+        if dock is None:
+            return False
+        combo = dock.cbNodes if category == "Node" else dock.cbLinks
+        return combo.currentText() == dock.lbl_none
+
     def updateTimeSeriesPlot(self, point, modifiers=None, mouse_button=None):
         target = self._currentVisibleTimeSeriesDock()
         if target is None:
@@ -1594,6 +1601,10 @@ class AnalysisSection:
 
         if not found_feature:
             self.pushMessage(self.tr("No network element found at this location."), level=1)
+            return
+
+        if mouse_button != Qt.MouseButton.RightButton and self._timeSeriesNoVariableSelected(category):
+            self.pushMessage(self.tr("No variable selected in the Results panel."), level=1)
             return
 
         if not add_mode:
