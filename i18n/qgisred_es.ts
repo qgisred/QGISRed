@@ -64,7 +64,7 @@
     <message>
         <location filename="../sections/analysis_section.py" line="707"/>
         <source>Time series</source>
-        <translation>Curvas de evolución</translation>
+        <translation type="obsolete">Curvas de evolución</translation>
     </message>
     <message>
         <location filename="../sections/analysis_section.py" line="1751"/>
@@ -235,6 +235,11 @@
         <location filename="../sections/analysis_section.py" line="998"/>
         <source>Link</source>
         <translation type="unfinished">Línea</translation>
+    </message>
+    <message>
+        <location filename="../sections/analysis_section.py" line="707"/>
+        <source>Time evolution curves</source>
+        <translation>Curvas de evolución temporal</translation>
     </message>
 </context>
 <context>
@@ -2935,7 +2940,7 @@ Do you want to check them again?</source>
     <message>
         <location filename="../sections/menu_section.py" line="880"/>
         <source>Time series...</source>
-        <translation>Curvas de evolución...</translation>
+        <translation type="obsolete">Curvas de evolución...</translation>
     </message>
     <message>
         <location filename="../sections/menu_section.py" line="923"/>
@@ -3071,6 +3076,11 @@ Do you want to check them again?</source>
         <location filename="../sections/menu_section.py" line="717"/>
         <source>Demand sector builder (new version)...</source>
         <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="../sections/menu_section.py" line="880"/>
+        <source>Time evolution curves...</source>
+        <translation>Curvas de evolución temporal...</translation>
     </message>
 </context>
 <context>
@@ -10044,7 +10054,7 @@ No se pueden aplicar los cambios.</translation>
     <message>
         <location filename="../ui/analysis/qgisred_timeseries_dock.ui" line="14"/>
         <source>QGISRed: Time Series</source>
-        <translation>QGISRed: Curvas de evolución</translation>
+        <translation type="obsolete">QGISRed: Curvas de evolución</translation>
     </message>
     <message>
         <location filename="../ui/analysis/qgisred_timeseries_dock.py" line="1266"/>
@@ -10244,7 +10254,7 @@ No se pueden aplicar los cambios.</translation>
     <message>
         <location filename="../ui/analysis/qgisred_timeseries_dock.py" line="1854"/>
         <source>Time (h)</source>
-        <translation>Tiempo (h)</translation>
+        <translation>Instante (h)</translation>
     </message>
     <message>
         <location filename="../ui/analysis/qgisred_timeseries_dock.py" line="2022"/>
@@ -10345,6 +10355,11 @@ No se pueden aplicar los cambios.</translation>
         <location filename="../ui/analysis/qgisred_timeseries_dock.py" line="2563"/>
         <source>(no description)</source>
         <translation type="obsolete">(sin descripción)</translation>
+    </message>
+    <message>
+        <location filename="../ui/analysis/qgisred_timeseries_dock.ui" line="14"/>
+        <source>QGISRed: Time evolution curves</source>
+        <translation>QGISRed: Curvas de evolución temporal</translation>
     </message>
 </context>
 <context>

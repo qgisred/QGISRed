@@ -879,7 +879,7 @@ class MenuSection:
 
         self.timeSeriesButton = self._make_action(
             ":/images/iconTimeSeries.svg",
-            self.tr("Time series..."),
+            self.tr("Time evolution curves..."),
             self.runTimeSeries,
             checkable=True,
             parent=self.iface.mainWindow(),

@@ -62,11 +62,6 @@
 <context>
     <name>AnalysisSection</name>
     <message>
-        <location filename="../sections/analysis_section.py" line="707"/>
-        <source>Time series</source>
-        <translation type="unfinished"></translation>
-    </message>
-    <message>
         <location filename="../sections/analysis_section.py" line="1751"/>
         <source>Results file not found. Please run the model.</source>
         <translation type="unfinished"></translation>
@@ -229,6 +224,11 @@
     <message>
         <location filename="../sections/analysis_section.py" line="998"/>
         <source>Link</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="../sections/analysis_section.py" line="707"/>
+        <source>Time evolution curves</source>
         <translation type="unfinished"></translation>
     </message>
 </context>
@@ -2759,11 +2759,6 @@ Do you want to check them again?</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../sections/menu_section.py" line="880"/>
-        <source>Time series...</source>
-        <translation type="unfinished"></translation>
-    </message>
-    <message>
         <location filename="../sections/menu_section.py" line="923"/>
         <source>Export model to INP...</source>
         <translation type="unfinished"></translation>
@@ -2881,6 +2876,11 @@ Do you want to check them again?</source>
     <message>
         <location filename="../sections/menu_section.py" line="890"/>
         <source>Longitudinal profile...</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="../sections/menu_section.py" line="880"/>
+        <source>Time evolution curves...</source>
         <translation type="unfinished"></translation>
     </message>
 </context>
@@ -9082,11 +9082,6 @@ Cannot apply changes.</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../ui/analysis/qgisred_timeseries_dock.ui" line="14"/>
-        <source>QGISRed: Time Series</source>
-        <translation type="unfinished"></translation>
-    </message>
-    <message>
         <location filename="../ui/analysis/qgisred_timeseries_dock.py" line="1266"/>
         <source>Pan</source>
         <translation type="unfinished"></translation>
@@ -9304,6 +9299,11 @@ Cannot apply changes.</source>
     <message>
         <location filename="../ui/analysis/qgisred_timeseries_dock.py" line="2373"/>
         <source>Describe the chart content (up to 256 characters):</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="../ui/analysis/qgisred_timeseries_dock.ui" line="14"/>
+        <source>QGISRed: Time evolution curves</source>
         <translation type="unfinished"></translation>
     </message>
 </context>

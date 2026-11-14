@@ -704,7 +704,7 @@ class AnalysisSection:
             self.timeSeriesDocks = []
         dock = QGISRedTimeSeriesDock(self.iface)
         self._timeSeriesDockCounter = int(getattr(self, "_timeSeriesDockCounter", 0)) + 1
-        base_title = dock.windowTitle() or self.tr("Time series")
+        base_title = dock.windowTitle() or self.tr("Time evolution curves")
         dock.setWindowTitle(f"{base_title} {self._timeSeriesDockCounter}")
         dock.visibilityChanged.connect(self.timeSeriesDockVisibilityChanged)
         dock.destroyed.connect(self._onTimeSeriesDockDestroyed)
