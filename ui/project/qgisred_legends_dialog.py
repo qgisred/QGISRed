@@ -4114,6 +4114,10 @@ class QGISRedLegendsDialog(QDialog, formClass):
     def openRangeEditor(self, row):
         modeId = self.cbMode.currentData()
         if modeId and modeId != "Manual":
+            self.showNotice(
+                self.tr("The ranges are calculated by the %1 mode. Switch the mode to Manual to edit them.")
+                .replace("%1", self.cbMode.currentText())
+            )
             return
 
         currentRange = self.getRangeValues(row)
