@@ -1572,7 +1572,7 @@
     <message>
         <location filename="../tools/qgisred_translatable_strings.py" line="141"/>
         <source>Unit HeadLoss</source>
-        <translation>Pérdidas de carga unitarias</translation>
+        <translation>Pérdidas unitarias</translation>
     </message>
     <message>
         <location filename="../tools/qgisred_translatable_strings.py" line="142"/>
@@ -2017,7 +2017,7 @@
     <message>
         <location filename="../tools/qgisred_translatable_strings.py" line="223"/>
         <source>Unit HeadLosses</source>
-        <translation>Pérdidas de carga unitarias</translation>
+        <translation>Pérdidas unitarias</translation>
     </message>
     <message>
         <location filename="../tools/qgisred_translatable_strings.py" line="224"/>
@@ -8608,7 +8608,7 @@ No se pueden aplicar los cambios.</translation>
     <message>
         <location filename="../ui/analysis/qgisred_results_dock.py" line="110"/>
         <source>Unit HeadLoss</source>
-        <translation>Pérdidas de carga unitarias</translation>
+        <translation>Pérdidas unitarias</translation>
     </message>
     <message>
         <location filename="../ui/analysis/qgisred_results_dock.py" line="111"/>
