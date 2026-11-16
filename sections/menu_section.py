@@ -899,7 +899,7 @@ class MenuSection:
 
         self.flowPathsButton = self._make_action(
             ":/images/iconFlowPaths.svg",
-            self.tr("Flow tracing..."),
+            self.tr("Water paths..."),
             self.runFlowPaths,
             checkable=True,
             parent=self.iface.mainWindow(),

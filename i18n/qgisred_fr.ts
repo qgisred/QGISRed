@@ -2484,8 +2484,8 @@ Voulez-vous les vérifier à nouveau ?</translation>
     <name>MenuSection</name>
     <message>
         <location filename="../sections/menu_section.py" line="900"/>
-        <source>Flow tracing...</source>
-        <translation>Suivi des écoulements...</translation>
+        <source>Water paths...</source>
+        <translation>Trajets de l&apos;eau...</translation>
     </message>
     <message>
         <location filename="../sections/menu_section.py" line="66"/>

@@ -2325,7 +2325,7 @@ Do you want to check them again?</source>
     <name>MenuSection</name>
     <message>
         <location filename="../sections/menu_section.py" line="900"/>
-        <source>Flow tracing...</source>
+        <source>Water paths...</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
