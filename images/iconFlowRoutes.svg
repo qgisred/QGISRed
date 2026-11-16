@@ -1,0 +1,7 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64" width="64" height="64">
+  <path d="M 12 32 L 22 50 L 42 50 L 52 32" fill="none" stroke="#7fa828" stroke-width="4" stroke-linecap="round" stroke-linejoin="round" stroke-dasharray="1 8" />
+  <path d="M 12 32 L 22 14 L 42 14 L 52 32" fill="none" stroke="#60bcd3" stroke-width="5" stroke-linecap="round" stroke-linejoin="round" />
+  <polyline points="29,8 36,14 29,20" fill="none" stroke="#60bcd3" stroke-width="4" stroke-linecap="round" stroke-linejoin="round" />
+  <circle cx="12" cy="32" r="7" fill="#ffffff" stroke="#60bcd3" stroke-width="4" />
+  <path d="M 52 23 L 61 32 L 52 41 L 43 32 Z" fill="#ffffff" stroke="#7fa828" stroke-width="4" stroke-linejoin="round" />
+</svg>

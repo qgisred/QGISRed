@@ -36,7 +36,7 @@ class MenuSection:
         timeSeriesButton, analysisDropButton
 
     FlowPathsSection:
-        flowPathsButton
+        flowPathsButton, flowRoutesButton
 
     ToolsSection:
         isolatedSegmentsButton
@@ -906,6 +906,16 @@ class MenuSection:
         )
         self.add_to_group(self.flowPathsButton, self.analysisMenu, self.analysisToolbar)
         self.add_to_dropdown(self.flowPathsButton, analysisDropButton)
+
+        self.flowRoutesButton = self._make_action(
+            ":/images/iconFlowRoutes.svg",
+            self.tr("Routes between two nodes..."),
+            self.runFlowRoutes,
+            checkable=True,
+            parent=self.iface.mainWindow(),
+        )
+        self.add_to_group(self.flowRoutesButton, self.analysisMenu, self.analysisToolbar)
+        self.add_to_dropdown(self.flowRoutesButton, analysisDropButton)
 
         analysisDropButton.menu().addSeparator()
         self.analysisToolbar.addSeparator()

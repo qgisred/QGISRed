@@ -1,36 +1,47 @@
 # -*- coding: utf-8 -*-
-"""Upstream / downstream routes of a node, following the results panel time."""
-
 import os
 from contextlib import suppress
 
 from ..tools.utils.qgisred_field_utils import QGISRedFieldUtils
 from ..tools.utils.qgisred_flow_paths import (
     DOWNSTREAM,
+    ROUTE_MAX_FLOW,
+    ROUTE_MIN_ENERGY,
+    ROUTE_MIN_LENGTH,
+    ROUTE_MIN_TIME,
     UPSTREAM,
     flow_path_widths,
     oriented_links,
+    route_decomposition,
+    route_link_costs,
+    route_summary,
     source_nodes_from,
     trace_flow_paths,
+    trace_routes,
     upstream_link_sources,
 )
 
 _NODE_LAYER_IDENTIFIERS = ("qgisred_junctions", "qgisred_tanks", "qgisred_reservoirs")
 _LINK_LAYER_IDENTIFIERS = ("qgisred_pipes", "qgisred_pumps", "qgisred_valves")
 
-# Downstream routes reaching the node directly first, then those that only
-# reach it through one, two, three or more sources (tanks, reservoirs,
-# negative demands).
 _DOWNSTREAM_COLORS = ((20, 70, 200), (60, 140, 230), (120, 185, 240), (180, 215, 245))
 
-# Upstream routes take a hue per source, from red to cadmium yellow, and lose
-# saturation with each source standing between them and the node.
 _UPSTREAM_HUE_RANGE = (0.0, 56.0)
 _UPSTREAM_LEVEL_SATURATION = (0.95, 0.6, 0.4, 0.25)
 
-# Statistics whose flows keep their sign, and so the direction of the water.
-# Range and standard deviation are computed on |Q| and say nothing of it.
 _SIGNED_STATISTICS = {"Maximum": "Flow", "Minimum": "Flow", "Average": "Flow_Sig"}
+
+_ROUTE_COLORS = {
+    UPSTREAM: (((215, 25, 28), (125, 10, 15)), ((242, 168, 163), (180, 120, 118))),
+    DOWNSTREAM: (((26, 115, 232), (16, 64, 150)), ((160, 195, 245), (112, 142, 192))),
+}
+_ROUTE_WIDTH_MM = 1.8
+_ALTERNATIVE_WIDTH_MM = 1.3
+_LABELED_ROUTES = 3
+
+_ROUTE_OK = "ok"
+_ROUTE_DISCONNECTED = "disconnected"
+_ROUTE_STATISTIC = "statistic"
 
 _MIN_WIDTH_MM = 0.5
 _MAX_WIDTH_MM = 2.5
@@ -44,11 +55,6 @@ def _level_color(colors, level):
 
 
 def _source_hue_fraction(slot):
-    """Where the source in `slot` sits between red (0) and cadmium yellow (1).
-
-    The first two sources take both ends and the next ones keep halving the
-    gaps, so every slot keeps its hue however many sources come later.
-    """
     if slot <= 0:
         return 0.0
     if slot == 1:
@@ -78,48 +84,68 @@ def _link_kind(link_type):
     return "pipe"
 
 
+_MODE_PATHS = "paths"
+_MODE_ROUTES = "routes"
+
+
 class FlowPathsSection:
-    # Identifies the routes in the highlight arbiter.
     FLOW_PATHS_HIGHLIGHT_KEY = "flowPaths"
     FLOW_PATHS_TOOL = "FlowPaths"
+    FLOW_ROUTES_TOOL = "FlowRoutes"
 
-    # -- Entry point -------------------------------------------------------
     def runFlowPaths(self):
-        button = getattr(self, "flowPathsButton", None)
+        self._runFlowTool(_MODE_PATHS)
+
+    def runFlowRoutes(self):
+        if self._runFlowTool(_MODE_ROUTES) and getattr(self, "_flowRoutesOrigin", None) is None:
+            self.pushMessage(self.tr("Click the start node and then the end node of the routes."))
+
+    def _flowToolParts(self, mode):
+        if mode == _MODE_ROUTES:
+            return (getattr(self, "flowRoutesButton", None), self.FLOW_ROUTES_TOOL, ":/images/iconFlowRoutes.svg",
+                    self._flowRoutesClick, None, self._flowRoutesRightClick, self._clearFlowRoutes)
+        return (getattr(self, "flowPathsButton", None), self.FLOW_PATHS_TOOL, ":/images/iconFlowPaths.svg",
+                self._flowPathsClick, self._flowPathsDoubleClick, None, None)
+
+    def _runFlowTool(self, mode):
+        button, key, cursor, click, double_click, right_click, escape = self._flowToolParts(mode)
         if button is not None and not button.isChecked():
-            self._leaveFlowPaths()
-            return
+            self._leaveFlowPaths(key)
+            return False
         if not self.checkDependencies():
-            self._setFlowPathsButtonChecked(False)
-            return
+            self._setFlowPathsButtonChecked(button, False)
+            return False
         self.defineCurrentProject()
         if not self.isValidProject():
-            self._setFlowPathsButtonChecked(False)
-            return
+            self._setFlowPathsButtonChecked(button, False)
+            return False
         self._ensureResultsDockVisibleForTimeSeries()
         if not os.path.exists(self._outFilePath()):
             self.pushMessage(self.tr("Run a simulation first to identify the flow paths."), level=1)
-            self._setFlowPathsButtonChecked(False)
-            return
+            self._setFlowPathsButtonChecked(button, False)
+            return False
         self._connectFlowPathsToResults()
         self._registerFlowPathsHighlightOwner()
 
         from ..tools.map_tools.qgisred_flowPaths import QGISRedFlowPathsTool
 
-        tool = self.myMapTools.get(self.FLOW_PATHS_TOOL)
+        tool = self.myMapTools.get(key)
         if tool is None:
-            tool = QGISRedFlowPathsTool(button, self, self._flowPathsClick, cursor=":/images/iconFlowPaths.svg",
-                                        doubleClickMethod=self._flowPathsDoubleClick)
-            self.myMapTools[self.FLOW_PATHS_TOOL] = tool
-        # Taking the canvas makes the arbiter hand the highlights back to the routes.
+            tool = QGISRedFlowPathsTool(button, self, click, cursor=cursor, doubleClickMethod=double_click,
+                                        rightClickMethod=right_click, escapeMethod=escape)
+            self.myMapTools[key] = tool
+        changed = mode != getattr(self, "_flowPathsMode", None)
+        self._flowPathsMode = mode
         self.iface.mapCanvas().setMapTool(tool)
-        self._setFlowPathsButtonChecked(True)
+        self._setFlowPathsButtonChecked(button, True)
+        if changed:
+            self._redrawFlowPaths()
+        return True
 
-    def _leaveFlowPaths(self):
-        """The button was switched off: hide the routes but keep them to come back."""
+    def _leaveFlowPaths(self, key):
         manager = getattr(self, "highlightManager", None)
         owner = manager.ownerByKey(self.FLOW_PATHS_HIGHLIGHT_KEY) if manager is not None else None
-        tool = (getattr(self, "myMapTools", None) or {}).get(self.FLOW_PATHS_TOOL)
+        tool = (getattr(self, "myMapTools", None) or {}).get(key)
         if tool is not None and self.iface.mapCanvas().mapTool() is tool:
             self.iface.mapCanvas().unsetMapTool(tool)
         if owner is not None:
@@ -127,8 +153,8 @@ class FlowPathsSection:
         else:
             self._clearFlowPathsDrawing()
 
-    def _setFlowPathsButtonChecked(self, checked):
-        button = getattr(self, "flowPathsButton", None)
+    @staticmethod
+    def _setFlowPathsButtonChecked(button, checked):
         if button is None:
             return
         with suppress(Exception):
@@ -170,7 +196,8 @@ class FlowPathsSection:
             lambda: [],
             self._clearFlowPathsDrawing,
             self._redrawFlowPaths,
-            ownedTools=lambda: [(getattr(self, "myMapTools", None) or {}).get(self.FLOW_PATHS_TOOL)],
+            ownedTools=lambda: [(getattr(self, "myMapTools", None) or {}).get(key)
+                                for key in (self.FLOW_PATHS_TOOL, self.FLOW_ROUTES_TOOL)],
         ))
 
     def _flowPathsSuspended(self):
@@ -181,28 +208,71 @@ class FlowPathsSection:
         return owner is not None and manager.isSuspended(owner)
 
     def resetFlowPaths(self):
-        """Forget the routes entirely (project closed, plugin unloaded)."""
         self._clearFlowPathsDrawing()
         self._disconnectFlowPathsFromResults()
         self._flowPathsNode = None
+        self._flowRoutesOrigin = None
+        self._flowRoutesTarget = None
+        self._flowPathsRouteState = None
+        self._flowPathsRouteChoice = None
+        self._flowPathsShownRoutes = []
         self._flowPathsSourceSlots = {}
         self._flowPathsStructure = None
         self._flowPathsStatCache = None
         self._flowPathsGeometries = None
 
-    # -- Map interaction ---------------------------------------------------
     def _flowPathsClick(self, point):
-        """A click on a node traces its routes; a click elsewhere does nothing,
-        so a stray click while moving around the map keeps them."""
         node_id = self._resolveFlowPathsNode(point)
-        if node_id is None:
+        if node_id is not None:
+            self._selectFlowPathsNode(node_id)
+
+    def _flowPathsDoubleClick(self, point):
+        node_id = self._resolveFlowPathsNode(point)
+        if node_id is not None:
+            self._selectFlowPathsNode(node_id)
             return
+        self._flowPathsNode = None
+        self._flowPathsSourceSlots = {}
+        self._clearFlowPathsDrawing()
+
+    def _flowRoutesClick(self, point):
+        origin = getattr(self, "_flowRoutesOrigin", None)
+        target = getattr(self, "_flowRoutesTarget", None)
+        if origin is not None and target is not None:
+            if self._selectFlowRouteAt(point, labels_only=True):
+                return
+            node_id = self._resolveFlowPathsNode(point)
+            if node_id is not None and node_id != target:
+                self._flowPathsShownRoutes = []
+                self._setFlowRoutesNodes(node_id, None)
+                return
+            self._selectFlowRouteAt(point)
+            return
+        node_id = self._resolveFlowPathsNode(point)
+        if node_id is None or node_id == origin:
+            return
+        if origin is None:
+            self._setFlowRoutesNodes(node_id, None)
+        else:
+            self._setFlowRoutesNodes(origin, node_id)
+
+    def _setFlowRoutesNodes(self, origin, target):
+        self._flowRoutesOrigin = origin
+        self._flowRoutesTarget = target
+        self._flowPathsRouteChoice = None
+        self._flowPathsRouteState = None
+        self._flowPathsGeometries = None
+        self._redrawFlowPaths()
+
+    def _clearFlowRoutes(self):
+        self._flowPathsShownRoutes = []
+        self._setFlowRoutesNodes(None, None)
+
+    def _selectFlowPathsNode(self, node_id):
         same_node = node_id == getattr(self, "_flowPathsNode", None)
         if not same_node:
-            # Each node starts its own set of source colours.
             self._flowPathsSourceSlots = {}
         self._flowPathsNode = node_id
-        # A new click re-reads the geometries: the network may have been edited.
         self._flowPathsGeometries = None
         if self._flowPathsStatistic() is False:
             self._clearFlowPathsDrawing()
@@ -219,13 +289,97 @@ class FlowPathsSection:
         elif not has_down:
             self.pushMessage(self.tr("Node {0} has no downstream paths at this instant.").format(node_id))
 
-    def _flowPathsDoubleClick(self, point):
-        """A double click away from the nodes takes the routes off the map."""
-        if self._resolveFlowPathsNode(point) is not None:
-            return
-        self._flowPathsNode = None
-        self._flowPathsSourceSlots = {}
-        self._clearFlowPathsDrawing()
+    def _selectFlowRouteAt(self, point, labels_only=False):
+        routes = getattr(self, "_flowPathsShownRoutes", None) or []
+        if getattr(self, "_flowRoutesTarget", None) is None or len(routes) < 2:
+            return False
+        index = None
+        item = getattr(self, "_flowPathsItem", None)
+        if item is not None:
+            with suppress(Exception):
+                index = item.routeLabelAt(self.iface.mapCanvas().getCoordinateTransform().transform(point))
+        if index is None and not labels_only:
+            index = self._flowRouteNear(point, routes)
+        if index is None or index >= len(routes):
+            return False
+        choice = tuple(routes[index]["own"])
+        if choice != getattr(self, "_flowPathsRouteChoice", None):
+            self._flowPathsRouteChoice = choice
+            self._redrawFlowPaths()
+        return True
+
+    def _flowRouteNear(self, point, routes):
+        from qgis.core import QgsCoordinateTransform, QgsGeometry, QgsProject
+
+        canvas = self.iface.mapCanvas()
+        tolerance = canvas.getCoordinateTransform().mapUnitsPerPixel() * 6
+        destination = canvas.mapSettings().destinationCrs()
+        links = self._flowPathsGeometryIndex()["links"]
+        best, best_distance = None, None
+        for index, route in enumerate(routes):
+            for lid in route["own"]:
+                found = links.get(str(lid))
+                if found is None:
+                    continue
+                geometry, crs = found
+                geom = QgsGeometry(geometry)
+                if crs is not None and crs.isValid() and destination.isValid() and crs != destination:
+                    with suppress(Exception):
+                        geom.transform(QgsCoordinateTransform(crs, destination, QgsProject.instance()))
+                distance = geom.distance(QgsGeometry.fromPointXY(point))
+                if distance <= tolerance and (best_distance is None or distance < best_distance):
+                    best, best_distance = index, distance
+        return best
+
+    def _flowRoutesRightClick(self, _point):
+        from qgis.PyQt.QtGui import QCursor
+        from qgis.PyQt.QtWidgets import QMenu
+
+        menu = QMenu()
+        clear = None
+        current = self._flowRoutesCriterion()
+        labels = dict(self._flowRoutesCriteria())
+        menu.addSection(self.tr("Optimal route"))
+        for key, label in labels.items():
+            action = menu.addAction(label)
+            action.setCheckable(True)
+            action.setChecked(key == current)
+            action.setData(key)
+        if getattr(self, "_flowRoutesOrigin", None) is not None:
+            menu.addSeparator()
+            clear = menu.addAction(self.tr("Clear routes"))
+        chosen = menu.exec(QCursor.pos())
+        if chosen is None:
+            return True
+        if chosen is clear:
+            self._clearFlowRoutes()
+        elif chosen.data() in labels:
+            self._flowPathsCriterion = chosen.data()
+            self._applyFlowRoutesCriterion(labels[chosen.data()])
+        return True
+
+    def _flowRoutesCriteria(self):
+        return (
+            (ROUTE_MAX_FLOW, self.tr("Maximum flow")),
+            (ROUTE_MIN_TIME, self.tr("Minimum travel time")),
+            (ROUTE_MIN_ENERGY, self.tr("Minimum energy dissipated")),
+            (ROUTE_MIN_LENGTH, self.tr("Minimum length")),
+        )
+
+    def _flowRoutesCriterion(self):
+        return getattr(self, "_flowPathsCriterion", None) or ROUTE_MAX_FLOW
+
+    def _applyFlowRoutesCriterion(self, label):
+        origin = getattr(self, "_flowRoutesOrigin", None)
+        target = getattr(self, "_flowRoutesTarget", None)
+        self._flowPathsRouteChoice = None
+        result = self._redrawFlowPaths() if target is not None else None
+        if result and result.get("state") == _ROUTE_OK and len(result["routes"]) == 1:
+            self.pushMessage(self.tr(
+                "There is only one route between nodes {0} and {1}: every criterion gives the same one.").format(
+                    origin, target))
+        else:
+            self.pushMessage(self.tr("Optimal route: {0}.").format(label))
 
     def _resolveFlowPathsNode(self, point):
         from qgis.core import QgsRectangle
@@ -233,17 +387,27 @@ class FlowPathsSection:
         tolerance = self.iface.mapCanvas().getCoordinateTransform().mapUnitsPerPixel() * 10
         rect = QgsRectangle(point.x() - tolerance, point.y() - tolerance,
                             point.x() + tolerance, point.y() + tolerance)
+        settings = self.iface.mapCanvas().mapSettings()
+        nearest, nearest_distance = None, None
         for identifier in _NODE_LAYER_IDENTIFIERS:
             layer = self._flowPathsLayer(identifier)
             if layer is None or not layer.isSpatial():
                 continue
             layer_rect = rect
             with suppress(Exception):
-                layer_rect = self.iface.mapCanvas().mapSettings().mapToLayerCoordinates(layer, rect)
+                layer_rect = settings.mapToLayerCoordinates(layer, rect)
             id_field = QGISRedFieldUtils().getIdFieldName(layer)
             for feature in layer.getFeatures(layer_rect):
-                return str(feature.attribute(id_field))
-        return None
+                geometry = feature.geometry()
+                if geometry is None or geometry.isEmpty():
+                    continue
+                location = geometry.asPoint()
+                with suppress(Exception):
+                    location = settings.layerToMapCoordinates(layer, location)
+                distance = location.sqrDist(point)
+                if nearest_distance is None or distance < nearest_distance:
+                    nearest, nearest_distance = str(feature.attribute(id_field)), distance
+        return nearest
 
     @staticmethod
     def _flowPathsLayer(identifier):
@@ -255,12 +419,11 @@ class FlowPathsSection:
         return None
 
     def _onFlowPathsResultsChanged(self, *_args):
-        if getattr(self, "_flowPathsNode", None) is None or self._flowPathsSuspended():
+        if self._flowPathsSuspended():
             return
         with suppress(Exception):
             self._redrawFlowPaths()
 
-    # -- Data --------------------------------------------------------------
     def _flowPathsOutStamp(self):
         out_path = self._outFilePath()
         with suppress(OSError):
@@ -276,7 +439,7 @@ class FlowPathsSection:
         from ..ui.analysis.qgisred_results_binary import getOut_Metadata
 
         with open(stamp[0], "rb") as f:
-            meta = getOut_Metadata(f)
+            meta = getOut_Metadata(f, include_lengths=True)
         if not meta:
             return None
         node_ids = meta["node_ids"]
@@ -290,14 +453,14 @@ class FlowPathsSection:
             "stamp": stamp,
             "endpoints": endpoints,
             "link_types": dict(zip(link_ids, meta["link_types"])),
+            "lengths": dict(zip(link_ids, meta.get("link_lengths") or [])),
+            "flow_units": meta.get("flow_units"),
             "node_types": dict(zip(node_ids, meta["node_types"])),
         }
         self._flowPathsStructure = structure
         return structure
 
     def _flowPathsStatistic(self):
-        """The statistic shown by the results panel: None outside statistics,
-        "Maximum", "Minimum" or "Average", or False for one without a flow sign."""
         dock = getattr(self, "ResultDockwidget", None)
         if dock is None or not getattr(dock, "_statsMode", False):
             return None
@@ -323,12 +486,10 @@ class FlowPathsSection:
         return times[-1] if times else 0
 
     def _flowPathsValues(self):
-        """Return (link flows, node demands, closed links) for the instant shown.
+        results = self._flowPathsResults()
+        return results["flows"], results["demands"], results["closed"]
 
-        With statistics on, the flows of the statistic shown are used, signed:
-        Maximum and Minimum keep the sign of the flow at that time, and Average
-        has its own signed column. The sign is all the routes need.
-        """
+    def _flowPathsResults(self):
         out_path = self._outFilePath()
         source = None
         with suppress(Exception):
@@ -341,11 +502,19 @@ class FlowPathsSection:
             if cache is None or cache[0] != key:
                 links, nodes = self._flowPathsStatistics(statistic, out_path, hyd)
                 flow_field = _SIGNED_STATISTICS[statistic]
-                flows = {lid: (p.get(flow_field) or {}).get("Value") for lid, p in links.items()}
-                demands = {nid: (p.get("Demand") or {}).get("Value") for nid, p in nodes.items()}
-                cache = (key, flows, demands)
+
+                def stat(props, name):
+                    return {k: (p.get(name) or {}).get("Value") for k, p in props.items()}
+
+                cache = (key, {
+                    "flows": stat(links, flow_field),
+                    "demands": stat(nodes, "Demand"),
+                    "closed": set(),
+                    "velocities": stat(links, "Velocity"),
+                    "headlosses": stat(links, "HeadLoss"),
+                })
                 self._flowPathsStatCache = cache
-            return cache[1], cache[2], set()
+            return cache[1]
 
         seconds = self._flowPathsCurrentSeconds(source)
         if source and source.get("kind") == "hyd":
@@ -364,14 +533,16 @@ class FlowPathsSection:
 
             links = getOut_TimeLinksProperties(out_path, seconds)
             nodes = getOut_TimeNodesProperties(out_path, seconds)
-        flows = {lid: p.get("Flow") for lid, p in links.items()}
-        closed = {lid for lid, p in links.items() if str(p.get("Status") or "").startswith("Closed")}
-        demands = {nid: p.get("Demand") for nid, p in nodes.items()}
-        return flows, demands, closed
+        return {
+            "flows": {lid: p.get("Flow") for lid, p in links.items()},
+            "demands": {nid: p.get("Demand") for nid, p in nodes.items()},
+            "closed": {lid for lid, p in links.items() if str(p.get("Status") or "").startswith("Closed")},
+            "velocities": {lid: p.get("Velocity") for lid, p in links.items()},
+            "headlosses": {lid: p.get("HeadLoss") for lid, p in links.items()},
+        }
 
     @staticmethod
     def _flowPathsStatistics(statistic, out_path, hyd):
-        """Link and node statistics from the same file the results panel uses."""
         links = nodes = None
         if hyd is not None:
             with suppress(Exception):
@@ -393,7 +564,6 @@ class FlowPathsSection:
         return links or {}, nodes or {}
 
     def computeFlowPaths(self, node_id):
-        """Return {UPSTREAM: trace, DOWNSTREAM: trace, "flows": flows} or None."""
         network = self._flowPathsNetwork()
         if network is None:
             return None
@@ -409,7 +579,40 @@ class FlowPathsSection:
             "flows": flows,
         }
 
-    # -- Drawing -----------------------------------------------------------
+    def computeFlowRoutes(self, origin, target, criterion):
+        empty = {"direction": None, "routes": [], "summaries": [], "flows": {}}
+        network = self._flowPathsNetwork()
+        if network is None:
+            return None
+        if self._flowPathsStatistic() not in (None, "Average"):
+            return dict(empty, state=_ROUTE_STATISTIC)
+        values = self._flowPathsResults()
+        flows = values["flows"]
+        oriented = oriented_links(network["endpoints"], flows, closed_links=values["closed"])
+        sources = source_nodes_from(network["node_types"], values["demands"])
+        lengths = network.get("lengths")
+        for direction in (DOWNSTREAM, UPSTREAM):
+            trace = trace_flow_paths(origin, oriented, sources, direction)
+            if target not in trace["nodes"]:
+                continue
+            links = trace_routes(origin, target, oriented, trace["links"], direction)
+            if not links:
+                continue
+            upstream_end, downstream_end = (origin, target) if direction == DOWNSTREAM else (target, origin)
+            costs = route_link_costs(criterion, links, flows, values["velocities"], values["headlosses"], lengths)
+            routes = route_decomposition(upstream_end, downstream_end, oriented, links, costs, flows,
+                                         by_flow=criterion == ROUTE_MAX_FLOW)
+            if not routes:
+                continue
+            summaries = []
+            for route in routes:
+                summary = route_summary(route["links"], flows, values["velocities"], values["headlosses"], lengths)
+                summary["flow"] = route_summary(route["own"][:1], flows)["flow"]
+                summaries.append(summary)
+            return {"state": _ROUTE_OK, "direction": direction, "routes": routes,
+                    "summaries": summaries, "flows": flows}
+        return dict(empty, state=_ROUTE_DISCONNECTED, flows=flows)
+
     def _flowPathsGeometryIndex(self):
         cached = getattr(self, "_flowPathsGeometries", None)
         if cached is not None:
@@ -429,14 +632,14 @@ class FlowPathsSection:
         return cached
 
     def _redrawFlowPaths(self):
-        """Draw the routes of the selected node for the current instant.
-
-        Returns the computed routes, or None when nothing could be drawn.
-        """
         self._clearFlowPathsDrawing()
+        if getattr(self, "_flowPathsMode", None) == _MODE_ROUTES:
+            origin = getattr(self, "_flowRoutesOrigin", None)
+            if origin is None:
+                return None
+            return self._redrawFlowRoutes(origin, getattr(self, "_flowRoutesTarget", None))
         node_id = getattr(self, "_flowPathsNode", None)
         if node_id is None or self._flowPathsStatistic() is False:
-            # Without a flow sign there are no routes: wait for another statistic.
             return None
         try:
             result = self.computeFlowPaths(node_id)
@@ -459,8 +662,6 @@ class FlowPathsSection:
         down_links = result[DOWNSTREAM]["links"]
         widths = flow_path_widths(flows, set(up_links) | set(down_links), _MIN_WIDTH_MM, _MAX_WIDTH_MM)
 
-        # The rest of the network goes underneath in grey, one shared symbol per
-        # link type so the canvas item can draw it in a single run.
         entries = []
         background = {}
         on_route = {str(lid) for lid in set(up_links) | set(down_links)}
@@ -474,10 +675,7 @@ class FlowPathsSection:
         entries.sort(key=lambda entry: entry[0])
         entries = [(geometry, crs, background[kind]) for kind, geometry, crs in entries]
 
-        # Links of the same colour and width share one symbol as well.
         link_source = result[UPSTREAM].get("sources", {})
-        # A source keeps its colour while the node stays selected, even if it
-        # stops feeding for a while; newcomers take the next free one.
         slots = getattr(self, "_flowPathsSourceSlots", None)
         if slots is None:
             slots = self._flowPathsSourceSlots = {}
@@ -499,7 +697,6 @@ class FlowPathsSection:
                     continue
                 geometry, crs = found
                 if (flows.get(lid) or 0) < 0:
-                    # Turn the line so the arrow points the way the water goes.
                     with suppress(Exception):
                         geometry = self._reversedLine(geometry)
                 color = color_of(lid, level)
@@ -507,7 +704,6 @@ class FlowPathsSection:
                 if key not in symbols:
                     symbols[key] = build_link_symbol(key[0], color, key[2])
                 items.append((level, key, geometry, crs))
-        # Routes that only arrive through a source sit underneath the direct ones.
         items.sort(key=lambda item: (-item[0], item[1][2], item[1][0]))
         entries.extend((geometry, crs, symbols[key]) for _level, key, geometry, crs in items)
 
@@ -520,15 +716,204 @@ class FlowPathsSection:
         if item is None:
             item = QGISRedFlowPathsCanvasItem(canvas)
             self._flowPathsItem = item
-        # Their labels stay as the results panel draws them, clear of the veil.
         item.setEntries(entries, kept_labels=on_route)
         return result
+
+    def _redrawFlowRoutes(self, origin, target):
+        self._flowPathsShownRoutes = []
+        if target is None:
+            result = {"state": None, "direction": None, "routes": [], "summaries": [], "flows": {}}
+        else:
+            try:
+                result = self.computeFlowRoutes(origin, target, self._flowRoutesCriterion())
+            except Exception:
+                result = None
+        if result is None:
+            return None
+
+        from ..tools.utils.qgisred_flow_paths_canvas_item import (
+            QGISRedFlowPathsCanvasItem,
+            build_background_symbol,
+            build_node_symbol,
+            build_route_symbol,
+        )
+        from qgis.PyQt.QtGui import QColor
+
+        geometries = self._flowPathsGeometryIndex()
+        link_types = (self._flowPathsNetwork() or {}).get("link_types", {})
+        flows = result["flows"]
+        routes = result["routes"]
+        self._flowPathsShownRoutes = routes
+        choice = getattr(self, "_flowPathsRouteChoice", None)
+        state = result["state"]
+        selected = next((i for i, route in enumerate(routes) if tuple(route["own"]) == choice), 0)
+        on_route = {str(lid) for route in routes for lid in route["links"]}
+
+        entries = []
+        background = {}
+        for lid, (geometry, crs) in geometries["links"].items():
+            if lid in on_route:
+                continue
+            kind = _link_kind(link_types.get(lid))
+            if kind not in background:
+                background[kind] = build_background_symbol(kind)
+            entries.append((kind, geometry, crs))
+        entries.sort(key=lambda entry: entry[0])
+        entries = [(geometry, crs, background[kind]) for kind, geometry, crs in entries]
+
+        labels = []
+        if result["direction"] is not None:
+            (fill, border), (alt_fill, alt_border) = _ROUTE_COLORS[result["direction"]]
+            colors = {True: (QColor(*fill), QColor(*border)), False: (QColor(*alt_fill), QColor(*alt_border))}
+            symbols = {}
+            strong = set(routes[selected]["links"])
+            pale = [lid for route in routes for lid in route["own"] if lid not in strong]
+            for lid, is_selected in [(lid, False) for lid in pale] + [(lid, True) for lid in routes[selected]["links"]]:
+                found = geometries["links"].get(str(lid))
+                if found is None:
+                    continue
+                geometry, crs = found
+                if (flows.get(lid) or 0) < 0:
+                    with suppress(Exception):
+                        geometry = self._reversedLine(geometry)
+                key = (_link_kind(link_types.get(lid)), is_selected)
+                if key not in symbols:
+                    color, casing = colors[is_selected]
+                    symbols[key] = build_route_symbol(
+                        key[0], color, casing, _ROUTE_WIDTH_MM if is_selected else _ALTERNATIVE_WIDTH_MM,
+                        arrows=is_selected)
+                entries.append((geometry, crs, symbols[key]))
+            ranked = [0] + sorted(range(1, len(routes)), key=lambda i: self._flowRouteRank(result["summaries"][i]))
+            rank = {index: position for position, index in enumerate(ranked)}
+            order = [i for i in ranked if i != selected] + [selected]
+            for index in order:
+                label = self._flowRouteLabel(index, routes, result["summaries"][index], geometries)
+                if label is not None:
+                    label["selected"] = index == selected
+                    label["rank"] = rank[index]
+                    label["dot"] = rank[index] >= _LABELED_ROUTES
+                    label["color"] = colors[True][0]
+                    labels.append(label)
+
+        for node_id, shape in ((origin, "circle"), (target, "diamond")):
+            node_geometry = geometries["nodes"].get(str(node_id))
+            if node_geometry is not None:
+                entries.append((node_geometry[0], node_geometry[1], build_node_symbol(shape)))
+
+        canvas = self.iface.mapCanvas()
+        item = getattr(self, "_flowPathsItem", None)
+        if item is None:
+            item = QGISRedFlowPathsCanvasItem(canvas)
+            self._flowPathsItem = item
+        kept = {str(lid) for lid in routes[selected]["links"]} if routes else set()
+        item.setEntries(entries, kept_labels=kept)
+        obstacles = [geometries["links"][lid] for lid in on_route if lid in geometries["links"]]
+        item.setRouteLabels(labels, obstacles)
+
+        previous = getattr(self, "_flowPathsRouteState", None)
+        if state != previous:
+            if state == _ROUTE_DISCONNECTED:
+                self.pushMessage(self.tr(
+                    "There is no one-way route between nodes {0} and {1} at this instant.").format(origin, target))
+                if previous is None:
+                    self._clearFlowRoutes()
+                    return None
+            elif state == _ROUTE_STATISTIC:
+                self.pushMessage(self.tr(
+                    "The routes between two nodes are only available for the average statistic."), level=1)
+        self._flowPathsRouteState = state
+        return result
+
+    def _flowRouteRank(self, summary):
+        criterion = self._flowRoutesCriterion()
+        if criterion == ROUTE_MAX_FLOW:
+            return -summary["flow"]
+        return summary[{ROUTE_MIN_TIME: "time", ROUTE_MIN_ENERGY: "energy", ROUTE_MIN_LENGTH: "length"}[criterion]]
+
+    def _flowRouteLabel(self, index, routes, summary, geometries):
+        own = list(routes[index]["own"])
+        found = None
+        for lid in own[len(own) // 2:] + own[:len(own) // 2]:
+            found = geometries["links"].get(str(lid))
+            if found is not None:
+                break
+        if found is None:
+            return None
+        geometry, crs = found
+        point = geometry.interpolate(geometry.length() / 2.0)
+        if point is None or point.isEmpty():
+            return None
+        title, subtitle = self._flowRouteTexts(summary)
+        if index == 0 and len(routes) > 1:
+            title = "\u2605 " + title
+        return {"geometry": point, "crs": crs, "title": title, "subtitle": subtitle, "index": index}
+
+    def _flowRouteTexts(self, summary):
+        texts = {
+            ROUTE_MIN_TIME: self._formatFlowRouteTime(summary["time"]),
+            ROUTE_MIN_LENGTH: self._formatFlowRouteLength(summary["length"]),
+            ROUTE_MAX_FLOW: self._formatFlowRouteFlow(summary["flow"]),
+            ROUTE_MIN_ENERGY: self._formatFlowRouteEnergy(summary["energy"]),
+        }
+        criterion = self._flowRoutesCriterion()
+        rest = [texts[key] for key in (ROUTE_MIN_TIME, ROUTE_MIN_LENGTH, ROUTE_MAX_FLOW) if key != criterion]
+        return texts[criterion], " \u00b7 ".join(rest[:2])
+
+    @staticmethod
+    def _formatNumber(value, decimals):
+        from qgis.PyQt.QtCore import QLocale
+
+        return QLocale().toString(float(value), "f", decimals)
+
+    def _flowRouteMetric(self):
+        network = self._flowPathsNetwork() or {}
+        units = network.get("flow_units")
+        return units is None or int(units) >= 5
+
+    def _formatFlowRouteTime(self, seconds):
+        if seconds == float("inf"):
+            return "\u221e"
+        if seconds < 60:
+            return "{0} s".format(int(round(seconds)))
+        minutes = int(round(seconds / 60.0))
+        if minutes < 60:
+            return "{0} min".format(minutes)
+        return "{0} h {1} min".format(minutes // 60, minutes % 60)
+
+    def _formatFlowRouteLength(self, length):
+        if self._flowRouteMetric():
+            if length >= 1000:
+                return "{0} km".format(self._formatNumber(length / 1000.0, 2))
+            return "{0} m".format(self._formatNumber(length, 0))
+        if length >= 5280:
+            return "{0} mi".format(self._formatNumber(length / 5280.0, 2))
+        return "{0} ft".format(self._formatNumber(length, 0))
+
+    def _formatFlowRouteFlow(self, flow):
+        from ..tools.utils.qgisred_project_utils import _FLOW_UNIT_SYMBOLS
+
+        codes = ("CFS", "GPM", "MGD", "IMGD", "AFD", "LPS", "LPM", "MLD", "CMH", "CMD")
+        unit = ""
+        with suppress(Exception):
+            unit = _FLOW_UNIT_SYMBOLS.get(codes[int((self._flowPathsNetwork() or {}).get("flow_units"))], "")
+        return "{0} {1}".format(self._formatNumber(flow, 2), unit).strip()
+
+    def _formatFlowRouteEnergy(self, energy):
+        from ..ui.analysis.qgisred_results_hyd import _CFS_TO_FLOW, _CFS_TO_M3S
+
+        units = (self._flowPathsNetwork() or {}).get("flow_units")
+        with suppress(Exception):
+            per_cfs = _CFS_TO_FLOW.get(int(units))
+            if per_cfs:
+                head_to_m = 1.0 if self._flowRouteMetric() else 0.3048
+                kilowatts = 9.81 * energy / per_cfs * _CFS_TO_M3S * head_to_m
+                return "{0} kW".format(self._formatNumber(kilowatts, 2))
+        return self._formatNumber(energy, 2)
 
     @staticmethod
     def _reversedLine(geometry):
         from qgis.core import QgsGeometry
 
-        # QgsCurve and QgsMultiCurve both know how to reverse themselves.
         return QgsGeometry(geometry.constGet().reversed())
 
     def _clearFlowPathsDrawing(self):

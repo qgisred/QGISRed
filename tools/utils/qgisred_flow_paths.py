@@ -1,38 +1,13 @@
 # -*- coding: utf-8 -*-
-"""Upstream / downstream sub-networks of a node at a given instant.
-
-Pure graph logic, free of QGIS, so it can be unit tested on its own.
-
-The network is oriented by the sign of the link flows: a link with a positive
-flow carries water from its start node to its end node, a negative flow the
-other way round, and a link with (practically) no flow carries nothing and is
-never crossed.
-
-Upstream routes start at the selected node and walk *against* the flow, through
-the links that feed it, until nothing more feeds the route. Downstream routes
-walk *with* the flow until the terminal nodes where water only comes in.
-
-A source — a tank, a reservoir or a junction with negative demand — met along
-the way does not stop the walk: the routes keep going through the links that
-feed it (upstream) or that leave it (downstream). Every link gets a *level*:
-the smallest number of sources standing between the link and the selected
-node. Level 0 links reach the selected node directly; level 1 links only reach
-it through one source, and so on. When a link reaches the node both directly
-and through a source, the direct route wins (level 0), which is what the
-minimum gives.
-"""
 from collections import deque
 
 UPSTREAM = "up"
 DOWNSTREAM = "down"
 
-# Flows at or below this magnitude are treated as "no flow": a closed link in
-# EPANET reports a tiny residual flow, not an exact zero.
 DEFAULT_FLOW_TOLERANCE = 1e-4
 
 
 def oriented_links(link_endpoints, flows, tolerance=DEFAULT_FLOW_TOLERANCE, closed_links=None):
-    """Return {link_id: (upstream_node, downstream_node)} for links carrying water."""
     closed = closed_links or set()
     oriented = {}
     for link_id, ends in link_endpoints.items():
@@ -53,12 +28,6 @@ def oriented_links(link_endpoints, flows, tolerance=DEFAULT_FLOW_TOLERANCE, clos
 
 
 def trace_flow_paths(start_node, oriented, source_nodes, direction):
-    """Walk the oriented network from `start_node` and level every link reached.
-
-    Returns {"links": {link_id: level}, "nodes": {node_id: level}}. The start
-    node is not in "nodes" and never counts as a source, so clicking on a tank
-    still shows its own routes at level 0.
-    """
     adjacency = {}
     for link_id, (up_node, down_node) in oriented.items():
         if direction == UPSTREAM:
@@ -68,7 +37,6 @@ def trace_flow_paths(start_node, oriented, source_nodes, direction):
 
     node_level = {start_node: 0}
     link_level = {}
-    # 0-1 BFS: crossing a source costs one level, everything else is free.
     queue = deque([(start_node, 0)])
     while queue:
         node, level = queue.popleft()
@@ -91,11 +59,6 @@ def trace_flow_paths(start_node, oriented, source_nodes, direction):
 
 
 def source_nodes_from(node_types, node_demands, tolerance=DEFAULT_FLOW_TOLERANCE):
-    """Nodes that bring water from outside: tanks, reservoirs and negative demands.
-
-    node_types uses the EPANET codes of the .out metadata: 0 junction,
-    1 reservoir, 2 tank.
-    """
     sources = {nid for nid, kind in node_types.items() if kind in (1, 2)}
     for nid, demand in (node_demands or {}).items():
         try:
@@ -107,7 +70,6 @@ def source_nodes_from(node_types, node_demands, tolerance=DEFAULT_FLOW_TOLERANCE
 
 
 def flow_path_widths(link_flows, link_ids, min_width, max_width):
-    """Line width for each link, proportional to the magnitude of its flow."""
     magnitudes = {}
     for lid in link_ids:
         try:
@@ -124,17 +86,6 @@ def flow_path_widths(link_flows, link_ids, min_width, max_width):
 
 
 def upstream_link_sources(start_node, up_links, oriented, flows, source_nodes):
-    """Tell, for each upstream link, which source most of its water comes from.
-
-    The upstream sub-network starts at a handful of nodes nothing feeds within
-    it (reservoirs, tanks, negative demands). Walking it downstream from them,
-    every node mixes the water of its inflows in proportion to their flows, and
-    each link leaving the node takes the source that brings most of it. A source
-    met along the way (a tank, say) starts afresh as a new intermediate source.
-
-    Returns ({link_id: source_node}, [source_node, ...]); the list is ordered
-    by the flow leaving each source, largest first.
-    """
     incoming, outgoing = {}, {}
     for lid in up_links:
         ends = oriented.get(lid)
@@ -157,8 +108,6 @@ def upstream_link_sources(start_node, up_links, oriented, flows, source_nodes):
     mixes, link_source = {}, {}
     while pending:
         if not ready:
-            # A loop of flows (numerical noise): break it at the node whose
-            # inflows are best known.
             node = max(pending, key=lambda n: (
                 sum(1 for _l, up in incoming[n] if up in mixes), str(n)))
         else:
@@ -191,3 +140,269 @@ def upstream_link_sources(start_node, up_links, oriented, flows, source_nodes):
             out_flow[source] = out_flow.get(source, 0.0) + magnitude(lid)
     order = sorted(set(link_source.values()), key=lambda s: (-out_flow.get(s, 0.0), str(s)))
     return link_source, order
+
+
+ROUTE_MAX_FLOW = "flow"
+ROUTE_MIN_TIME = "time"
+ROUTE_MIN_ENERGY = "energy"
+ROUTE_MIN_LENGTH = "length"
+ROUTE_CRITERIA = (ROUTE_MAX_FLOW, ROUTE_MIN_TIME, ROUTE_MIN_ENERGY, ROUTE_MIN_LENGTH)
+
+
+def trace_routes(start_node, end_node, oriented, subnetwork_links, direction):
+    adjacency = {}
+    for link_id in subnetwork_links:
+        ends = oriented.get(link_id)
+        if ends is None:
+            continue
+        up_node, down_node = ends
+        if direction == DOWNSTREAM:
+            adjacency.setdefault(down_node, []).append((link_id, up_node))
+        else:
+            adjacency.setdefault(up_node, []).append((link_id, down_node))
+
+    links = set()
+    seen = {end_node}
+    stack = [end_node]
+    while stack:
+        node = stack.pop()
+        if node == start_node:
+            continue
+        for link_id, neighbor in adjacency.get(node, ()):
+            links.add(link_id)
+            if neighbor not in seen:
+                seen.add(neighbor)
+                stack.append(neighbor)
+    return links if start_node in seen else set()
+
+
+def _as_float(value):
+    try:
+        return float(value)
+    except (TypeError, ValueError):
+        return None
+
+
+def route_link_costs(criterion, link_ids, flows, velocities=None, headlosses=None, lengths=None):
+    velocities = velocities or {}
+    headlosses = headlosses or {}
+    lengths = lengths or {}
+    costs = {}
+    for lid in link_ids:
+        flow = abs(_as_float(flows.get(lid)) or 0.0)
+        if criterion == ROUTE_MAX_FLOW:
+            costs[lid] = flow
+        elif criterion == ROUTE_MIN_LENGTH:
+            costs[lid] = abs(_as_float(lengths.get(lid)) or 0.0)
+        elif criterion == ROUTE_MIN_TIME:
+            length = abs(_as_float(lengths.get(lid)) or 0.0)
+            velocity = abs(_as_float(velocities.get(lid)) or 0.0)
+            if length <= 0:
+                costs[lid] = 0.0
+            else:
+                costs[lid] = length / velocity if velocity > 0 else float("inf")
+        elif criterion == ROUTE_MIN_ENERGY:
+            costs[lid] = flow * max(_as_float(headlosses.get(lid)) or 0.0, 0.0)
+        else:
+            costs[lid] = 0.0
+    return costs
+
+
+def optimal_route(origin, destination, oriented, route_links, link_costs, bottleneck=False):
+    import heapq
+
+    adjacency = {}
+    for link_id in route_links:
+        ends = oriented.get(link_id)
+        if ends is not None:
+            adjacency.setdefault(ends[0], []).append((link_id, ends[1]))
+
+    best = {origin: float("inf") if bottleneck else 0.0}
+    previous = {}
+    done = set()
+    counter = 0
+    heap = [(-best[origin] if bottleneck else best[origin], counter, origin)]
+    while heap:
+        _key, _order, node = heapq.heappop(heap)
+        if node in done:
+            continue
+        done.add(node)
+        if node == destination:
+            break
+        for link_id, neighbor in adjacency.get(node, ()):
+            if neighbor in done:
+                continue
+            cost = link_costs.get(link_id, 0.0)
+            if bottleneck:
+                value = min(best[node], cost)
+                better = value > best.get(neighbor, float("-inf"))
+                key = -value
+            else:
+                value = best[node] + max(cost, 0.0)
+                better = value < best.get(neighbor, float("inf"))
+                key = value
+            if better:
+                best[neighbor] = value
+                previous[neighbor] = (link_id, node)
+                counter += 1
+                heapq.heappush(heap, (key, counter, neighbor))
+
+    if destination == origin or destination not in previous:
+        return []
+    path = []
+    node = destination
+    while node != origin:
+        link_id, node = previous[node]
+        path.append(link_id)
+    path.reverse()
+    return path
+
+
+def _route_nodes(origin, route, oriented):
+    nodes = [origin]
+    for lid in route:
+        nodes.append(oriented[lid][1])
+    return nodes
+
+
+def _magnitude(flows, lid):
+    return abs(_as_float(flows.get(lid)) or 0.0)
+
+
+def _busiest_way(start, targets, outgoing, oriented, flows):
+    route, node, seen = [], start, {start}
+    while not route or node not in targets:
+        options = outgoing.get(node)
+        if not options:
+            return []
+        lid = max(options, key=lambda link: (_magnitude(flows, link), str(link)))
+        node = oriented[lid][1]
+        if node in seen:
+            return []
+        seen.add(node)
+        route.append(lid)
+    return route
+
+
+def _cheapest_way(start, targets, outgoing, oriented, costs):
+    import heapq
+
+    best, previous, done = {start: 0.0}, {}, set()
+    heap, counter = [(0.0, 0, start)], 0
+    while heap:
+        cost, _order, node = heapq.heappop(heap)
+        if node in done:
+            continue
+        done.add(node)
+        if node != start and node in targets:
+            route = []
+            while node != start:
+                lid, node = previous[node]
+                route.append(lid)
+            return route[::-1]
+        for lid in outgoing.get(node, ()):
+            neighbor = oriented[lid][1]
+            value = cost + max(costs.get(lid, 0.0), 0.0)
+            if neighbor not in done and value < best.get(neighbor, float("inf")):
+                best[neighbor] = value
+                previous[neighbor] = (lid, node)
+                counter += 1
+                heapq.heappush(heap, (value, counter, neighbor))
+    return []
+
+
+def _best_way(start, targets, oriented, allowed, costs, flows, by_flow):
+    outgoing = {}
+    for lid in allowed:
+        ends = oriented.get(lid)
+        if ends is not None:
+            outgoing.setdefault(ends[0], []).append(lid)
+    if by_flow:
+        return _busiest_way(start, targets, outgoing, oriented, flows)
+    return _cheapest_way(start, targets, outgoing, oriented, costs)
+
+
+def largest_flow_route(origin, destination, oriented, route_links, flows):
+    return _best_way(origin, {destination}, oriented, route_links, {}, flows, True)
+
+
+def route_decomposition(origin, destination, oriented, route_links, link_costs, flows, by_flow=False):
+    best = []
+    if by_flow:
+        best = largest_flow_route(origin, destination, oriented, route_links, flows)
+    if not best:
+        costs = {lid: _magnitude(flows, lid) for lid in route_links} if by_flow else link_costs
+        best = optimal_route(origin, destination, oriented, route_links, costs, bottleneck=by_flow)
+    if not best:
+        return []
+    routes = [{"links": best, "own": list(best)}]
+    covered = set(best)
+    visited = set(_route_nodes(origin, best, oriented))
+    skipped = set()
+    while True:
+        leaving = [lid for lid in route_links
+                   if lid not in covered and lid not in skipped and lid in oriented and oriented[lid][0] in visited]
+        if not leaving:
+            break
+        first = max(leaving, key=lambda lid: (_magnitude(flows, lid), str(lid)))
+        head = oriented[first][1]
+        own = [first]
+        if head not in visited:
+            free = {lid for lid in route_links if lid not in covered and lid != first}
+            rest = _best_way(head, visited, oriented, free, link_costs, flows, by_flow)
+            if not rest:
+                skipped.add(first)
+                continue
+            own += rest
+        start, end = oriented[own[0]][0], oriented[own[-1]][1]
+        to_start = {lid: 1.0 / max(_magnitude(flows, lid), 1e-9) for lid in covered} if by_flow else link_costs
+        before = _best_way(origin, {start}, oriented, covered, to_start, flows, False) if start != origin else []
+        after = _best_way(end, {destination}, oriented, covered, link_costs, flows, by_flow) \
+            if end != destination else []
+        routes.append({"links": before + own + after, "own": own})
+        covered.update(own)
+        visited.update(_route_nodes(start, own, oriented))
+    return routes
+
+
+def route_summary(route, flows, velocities=None, headlosses=None, lengths=None):
+    length = sum(route_link_costs(ROUTE_MIN_LENGTH, route, flows, lengths=lengths).values())
+    time = sum(route_link_costs(ROUTE_MIN_TIME, route, flows, velocities=velocities, lengths=lengths).values())
+    energy = sum(route_link_costs(ROUTE_MIN_ENERGY, route, flows, headlosses=headlosses).values())
+    carried = route_link_costs(ROUTE_MAX_FLOW, route, flows).values()
+    return {"length": length, "time": time, "energy": energy, "flow": min(carried) if carried else 0.0}
+
+
+def place_callouts(callouts, bounds, overlap=None, gap=7.0, margin=3.0):
+    left, top, right, bottom = bounds
+    placed, result = [], []
+    for x, y, width, height, required in callouts:
+        candidates = [spot for reach in (gap, gap * 3.5, gap * 7.0) for spot in (
+            (x - width / 2.0, y - reach - height), (x - width / 2.0, y + reach),
+            (x + reach, y - height / 2.0), (x - reach - width, y - height / 2.0),
+            (x + reach, y - reach - height), (x - reach - width, y - reach - height),
+            (x + reach, y + reach), (x - reach - width, y + reach),
+        )]
+        best = None
+        for cx, cy in candidates:
+            rect = (cx, cy, cx + width, cy + height)
+            if rect[0] < left or rect[1] < top or rect[2] > right or rect[3] > bottom:
+                continue
+            if any(rect[0] < other[2] + margin and other[0] < rect[2] + margin
+                   and rect[1] < other[3] + margin and other[1] < rect[3] + margin for other in placed):
+                continue
+            hidden = overlap(rect) if overlap is not None else 0.0
+            if best is None or hidden < best[0]:
+                best = (hidden, rect)
+            if hidden <= 0:
+                break
+        if best is None and required:
+            cx = min(max(candidates[0][0], left), max(right - width, left))
+            cy = min(max(candidates[0][1], top), max(bottom - height, top))
+            best = (0.0, (cx, cy, cx + width, cy + height))
+        if best is None:
+            result.append(None)
+            continue
+        placed.append(best[1])
+        result.append(best[1][:2])
+    return result

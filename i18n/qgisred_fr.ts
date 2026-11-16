@@ -2067,6 +2067,61 @@
         <source>Range and standard deviation carry no flow direction: choose another statistic to see the paths.</source>
         <translation>L'étendue et l'écart type n'ont pas de sens d'écoulement : choisissez une autre statistique pour voir les trajets.</translation>
     </message>
+    <message>
+        <location filename="../sections/flow_paths_section.py" line="364"/>
+        <source>Maximum flow</source>
+        <translation>Débit maximal</translation>
+    </message>
+    <message>
+        <location filename="../sections/flow_paths_section.py" line="365"/>
+        <source>Minimum travel time</source>
+        <translation>Temps de parcours minimal</translation>
+    </message>
+    <message>
+        <location filename="../sections/flow_paths_section.py" line="366"/>
+        <source>Minimum energy dissipated</source>
+        <translation>Énergie dissipée minimale</translation>
+    </message>
+    <message>
+        <location filename="../sections/flow_paths_section.py" line="367"/>
+        <source>Minimum length</source>
+        <translation>Longueur minimale</translation>
+    </message>
+    <message>
+        <location filename="../sections/flow_paths_section.py" line="380"/>
+        <source>Optimal route</source>
+        <translation>Itinéraire optimal</translation>
+    </message>
+    <message>
+        <location filename="../sections/flow_paths_section.py" line="408"/>
+        <source>There is only one route between nodes {0} and {1}: every criterion gives the same one.</source>
+        <translation>Il n&apos;y a qu&apos;un seul itinéraire entre les nœuds {0} et {1} : tous les critères donnent le même.</translation>
+    </message>
+    <message>
+        <location filename="../sections/flow_paths_section.py" line="411"/>
+        <source>Optimal route: {0}.</source>
+        <translation>Itinéraire optimal : {0}.</translation>
+    </message>
+    <message>
+        <location filename="../sections/flow_paths_section.py" line="875"/>
+        <source>There is no one-way route between nodes {0} and {1} at this instant.</source>
+        <translation>Il n&apos;existe aucun itinéraire à sens unique entre les nœuds {0} et {1} à cet instant.</translation>
+    </message>
+    <message>
+        <location filename="../sections/flow_paths_section.py" line="878"/>
+        <source>The routes between two nodes are only available for the average statistic.</source>
+        <translation>Les itinéraires entre deux nœuds ne sont disponibles que pour la statistique des valeurs moyennes.</translation>
+    </message>
+    <message>
+        <location filename="../sections/flow_paths_section.py" line="1"/>
+        <source>Click the start node and then the end node of the routes.</source>
+        <translation>Cliquez sur le nœud de départ puis sur le nœud d&apos;arrivée des itinéraires.</translation>
+    </message>
+    <message>
+        <location filename="../sections/flow_paths_section.py" line="1"/>
+        <source>Clear routes</source>
+        <translation>Effacer les itinéraires</translation>
+    </message>
 </context>
 <context>
     <name>InputLayerNames</name>
@@ -3066,6 +3121,11 @@ Voulez-vous les vérifier à nouveau ?</translation>
         <location filename="../sections/menu_section.py" line="880"/>
         <source>Time evolution curves...</source>
         <translation>Courbes d'évolution temporelle...</translation>
+    </message>
+    <message>
+        <location filename="../sections/menu_section.py" line="1"/>
+        <source>Routes between two nodes...</source>
+        <translation>Itinéraires entre deux nœuds...</translation>
     </message>
 </context>
 <context>

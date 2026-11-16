@@ -1967,6 +1967,61 @@
         <source>Node {0} has no downstream paths at this instant.</source>
         <translation type="unfinished"></translation>
     </message>
+    <message>
+        <location filename="../sections/flow_paths_section.py" line="364"/>
+        <source>Maximum flow</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="../sections/flow_paths_section.py" line="365"/>
+        <source>Minimum travel time</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="../sections/flow_paths_section.py" line="366"/>
+        <source>Minimum energy dissipated</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="../sections/flow_paths_section.py" line="367"/>
+        <source>Minimum length</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="../sections/flow_paths_section.py" line="380"/>
+        <source>Optimal route</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="../sections/flow_paths_section.py" line="408"/>
+        <source>There is only one route between nodes {0} and {1}: every criterion gives the same one.</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="../sections/flow_paths_section.py" line="411"/>
+        <source>Optimal route: {0}.</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="../sections/flow_paths_section.py" line="875"/>
+        <source>There is no one-way route between nodes {0} and {1} at this instant.</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="../sections/flow_paths_section.py" line="878"/>
+        <source>The routes between two nodes are only available for the average statistic.</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="../sections/flow_paths_section.py" line="1"/>
+        <source>Click the start node and then the end node of the routes.</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="../sections/flow_paths_section.py" line="1"/>
+        <source>Clear routes</source>
+        <translation type="unfinished"></translation>
+    </message>
 </context>
 <context>
     <name>InputLayerNames</name>
@@ -2886,6 +2941,11 @@ Do you want to check them again?</source>
     <message>
         <location filename="../sections/menu_section.py" line="880"/>
         <source>Time evolution curves...</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="../sections/menu_section.py" line="1"/>
+        <source>Routes between two nodes...</source>
         <translation type="unfinished"></translation>
     </message>
 </context>
