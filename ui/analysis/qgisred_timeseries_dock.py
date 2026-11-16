@@ -1344,6 +1344,10 @@ class QGISRedTimeSeriesDock(QGISRedDockActivationMixin, QDockWidget, FORM_CLASS)
             self.btnExportImage.clicked.connect(self._onExportImageClicked)
             hl.addWidget(self.btnExportImage, 0, Qt.AlignmentFlag.AlignLeft)
 
+            self.btnCopyImage = _make_btn("btnCopyImageTimeSeries", QIcon(":/images/iconTsCopyImage.svg"), self.tr("Copy chart to clipboard"))
+            self.btnCopyImage.clicked.connect(self._onCopyImageClicked)
+            hl.addWidget(self.btnCopyImage, 0, Qt.AlignmentFlag.AlignLeft)
+
             self.btnExportConfig = _make_btn("btnExportConfigTimeSeries", QIcon(":/images/iconStatisticsExport.svg"), self.tr("Export chart configuration"))
             self.btnExportConfig.clicked.connect(self._onExportConfigClicked)
             hl.addWidget(self.btnExportConfig, 0, Qt.AlignmentFlag.AlignLeft)
@@ -2245,6 +2249,20 @@ class QGISRedTimeSeriesDock(QGISRedDockActivationMixin, QDockWidget, FORM_CLASS)
             return path
         return path + self._selectedFilterExtension(selected_filter)
 
+    def _renderPlotToPixmap(self) -> QPixmap:
+        pixmap = QPixmap(self.plot.size())
+        pixmap.fill(Qt.GlobalColor.white)
+        painter = QPainter(pixmap)
+        self.plot.render(painter)
+        painter.end()
+        return pixmap
+
+    def _onCopyImageClicked(self) -> None:
+        if not self._plotHasCurves():
+            return
+        QApplication.clipboard().setPixmap(self._renderPlotToPixmap())
+        self._showMessage(self.tr("Chart copied to clipboard"), level=3)
+
     def _onExportImageClicked(self) -> None:
         if not self._plotHasCurves():
             self._showMessage(self.tr("No curves to export"), level=1)
@@ -2283,12 +2301,7 @@ class QGISRedTimeSeriesDock(QGISRedDockActivationMixin, QDockWidget, FORM_CLASS)
             self.plot.render(painter)
             painter.end()
         else:
-            pixmap = QPixmap(self.plot.size())
-            pixmap.fill(Qt.GlobalColor.white)
-            painter = QPainter(pixmap)
-            self.plot.render(painter)
-            painter.end()
-            if not pixmap.save(path):
+            if not self._renderPlotToPixmap().save(path):
                 self._showMessage(self.tr("The chart image could not be exported"), level=2)
                 return
 
@@ -2545,7 +2558,7 @@ class QGISRedTimeSeriesDock(QGISRedDockActivationMixin, QDockWidget, FORM_CLASS)
                     btn.setEnabled(bool(has_curves and auto_scale_x and is_zoomed))
                 else:
                     btn.setEnabled(bool(has_curves and auto_scale_x))
-        for btn_name in ("btnExportImage", "btnExportCsv"):
+        for btn_name in ("btnExportImage", "btnCopyImage", "btnExportCsv"):
             btn = getattr(self, btn_name, None)
             if btn is not None:
                 btn.setEnabled(bool(has_curves))

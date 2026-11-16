@@ -7723,6 +7723,16 @@ No se pueden aplicar los cambios.</translation>
         <translation>Imagen de la gráfica guardada</translation>
     </message>
     <message>
+        <location filename="../ui/analysis/qgisred_profile_dock.py" line="553"/>
+        <source>Copy chart to clipboard</source>
+        <translation>Copiar gráfica al portapapeles</translation>
+    </message>
+    <message>
+        <location filename="../ui/analysis/qgisred_profile_dock.py" line="553"/>
+        <source>Chart copied to clipboard</source>
+        <translation>Gráfica copiada al portapapeles</translation>
+    </message>
+    <message>
         <location filename="../ui/analysis/qgisred_profile_dock.py" line="702"/>
         <source>Export profile configuration</source>
         <translation>Exportar configuración del perfil</translation>
@@ -10190,6 +10200,16 @@ No se pueden aplicar los cambios.</translation>
         <location filename="../ui/analysis/qgisred_timeseries_dock.py" line="2295"/>
         <source>Chart image exported</source>
         <translation>Imagen de la gráfica exportada</translation>
+    </message>
+    <message>
+        <location filename="../ui/analysis/qgisred_timeseries_dock.py" line="2295"/>
+        <source>Copy chart to clipboard</source>
+        <translation>Copiar gráfica al portapapeles</translation>
+    </message>
+    <message>
+        <location filename="../ui/analysis/qgisred_timeseries_dock.py" line="2295"/>
+        <source>Chart copied to clipboard</source>
+        <translation>Gráfica copiada al portapapeles</translation>
     </message>
     <message>
         <location filename="../ui/analysis/qgisred_timeseries_dock.py" line="2347"/>

@@ -1,9 +1,9 @@
 # -*- coding: utf-8 -*-
 import math
 
-from qgis.PyQt.QtCore import Qt, QPointF, QRectF, QSize, pyqtSignal
+from qgis.PyQt.QtCore import Qt, QEvent, QPointF, QRectF, QSize, pyqtSignal
 from qgis.PyQt.QtGui import QPainter, QColor, QPen, QBrush, QFont, QFontMetrics, QPolygonF
-from qgis.PyQt.QtWidgets import QWidget, QSizePolicy
+from qgis.PyQt.QtWidgets import QWidget, QSizePolicy, QToolTip
 
 from ...tools.utils.qgisred_axis_scale_utils import compute_nice_scale, format_number_tick
 from ...tools.utils.qgisred_profile_plot_utils import (
@@ -78,6 +78,7 @@ class ProfilePlotWidget(QWidget):
         self._hover_y = None
         self._hover_node_index = -1
         self._hover_node_id = ""
+        self.description = ""
         self._cursor_node_index = None
         self._cursor_data_x = None
         self._cursor_path_key = None
@@ -1117,6 +1118,23 @@ class ProfilePlotWidget(QWidget):
         if node_id != self._hover_node_id:
             self._hover_node_id = node_id
             self.cursorNodeIdChanged.emit(node_id)
+
+    def _tooltipTextAt(self, pos):
+        # Same rule as the Time Series chart: the node readout wins over the description.
+        if self._hover_x is not None:
+            return None
+        return self.description or None
+
+    def event(self, event):
+        if event is not None and event.type() == QEvent.Type.ToolTip:
+            text = self._tooltipTextAt(QPointF(event.pos()))
+            if not text:
+                QToolTip.hideText()
+                event.ignore()
+            else:
+                QToolTip.showText(event.globalPos(), text, self)
+            return True
+        return super(ProfilePlotWidget, self).event(event)
 
     def mouseMoveEvent(self, event):
         x, y = self._eventPos(event)

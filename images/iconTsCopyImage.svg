@@ -1,0 +1,8 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64" width="64" height="64">
+  <!-- Back sheet (teal): only the part that shows behind the front one -->
+  <path d="M20,16 V11 a4,4 0 0 1 4,-4 H54 a4,4 0 0 1 4,4 V37 a4,4 0 0 1 -4,4 H50" fill="none" stroke="#60bcd3" stroke-width="4.5" stroke-linecap="round" stroke-linejoin="round"/>
+  <!-- Front sheet (teal) -->
+  <rect x="6" y="21" width="40" height="36" rx="4" fill="none" stroke="#60bcd3" stroke-width="4.5"/>
+  <!-- Chart line on the front sheet (green) -->
+  <polyline points="13,49 21,39 29,44 39,31" fill="none" stroke="#7fa828" stroke-width="4" stroke-linecap="round" stroke-linejoin="round"/>
+</svg>

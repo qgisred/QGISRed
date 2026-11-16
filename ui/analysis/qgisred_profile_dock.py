@@ -6,7 +6,7 @@ from qgis.PyQt.QtGui import QIcon, QPixmap, QPainter
 from qgis.PyQt.QtWidgets import (
     QDockWidget, QWidget, QVBoxLayout, QHBoxLayout, QToolButton, QComboBox, QLabel, QFrame,
     QSplitter, QTableWidget, QTableWidgetItem, QAbstractItemView, QFileDialog, QHeaderView, QMenu,
-    QDialog, QDialogButtonBox, QPlainTextEdit, QScrollArea
+    QDialog, QDialogButtonBox, QPlainTextEdit, QScrollArea, QApplication
 )
 
 from ...tools.utils.qgisred_highlight_manager import QGISRedDockActivationMixin
@@ -196,6 +196,11 @@ class QGISRedProfileDock(QGISRedDockActivationMixin, QDockWidget):
                                                    self.tr("Save chart as image"))
         self.btnExportImage.clicked.connect(self._onExportImage)
         toolbar.addWidget(self.btnExportImage)
+
+        self.btnCopyImage = self._makeIconButton(toolbar_widget, ":/images/iconTsCopyImage.svg",
+                                                 self.tr("Copy chart to clipboard"))
+        self.btnCopyImage.clicked.connect(self._onCopyImage)
+        toolbar.addWidget(self.btnCopyImage)
 
         self.btnExportConfig = self._makeIconButton(toolbar_widget, ":/images/iconStatisticsExport.svg",
                                                     self.tr("Export profile configuration"))
@@ -443,7 +448,7 @@ class QGISRedProfileDock(QGISRedDockActivationMixin, QDockWidget):
         for button in (self.btnClear,
                        self.btnZoomWindow, self.btnPan, self.btnZoomIn, self.btnZoomOut, self.btnFit,
                        self.btnLabels, self.btnSymbols, self.btnEnvelope, self.btnChartOptions,
-                       self.btnTable, self.btnExportCsv, self.btnExportImage,
+                       self.btnTable, self.btnExportCsv, self.btnExportImage, self.btnCopyImage,
                        self.btnExportConfig, self.btnEditComment):
             button.setEnabled(has_data)
         self.table.setVisible(has_data and self.btnTable.isChecked())
@@ -551,6 +556,12 @@ class QGISRedProfileDock(QGISRedDockActivationMixin, QDockWidget):
             self._notify(self.tr("The chart image could not be saved"), level=2)
             return
         self._notify(self.tr("Chart image saved"))
+
+    def _onCopyImage(self):
+        if not self._chartHasCurves():
+            return
+        QApplication.clipboard().setPixmap(self._renderPlotToPixmap())
+        self._notify(self.tr("Chart copied to clipboard"))
 
     def _renderPlotToPixmap(self):
         pixmap = QPixmap(self.plot.size())
@@ -721,7 +732,9 @@ class QGISRedProfileDock(QGISRedDockActivationMixin, QDockWidget):
 
     def _onEditCommentClicked(self):
         MAX = 256
-        dlg = QDialog(self)
+        # Owned by the main window, like the Time Series one: as a child of the dock every
+        # click inside it re-activates and restyles the dock, and OK/Cancel stop answering.
+        dlg = QDialog(self.iface.mainWindow())
         dlg.setWindowTitle(self.tr("Chart description"))
         layout = QVBoxLayout(dlg)
         info = QLabel(self.tr("Describe the chart content (up to 256 characters):"), dlg)
@@ -757,13 +770,14 @@ class QGISRedProfileDock(QGISRedDockActivationMixin, QDockWidget):
         layout.addWidget(buttons)
         dlg.resize(420, 220)
         if dlg.exec():
-            self._chartComment = editor.toPlainText().strip()[:MAX]
+            self.setComment(editor.toPlainText().strip())
 
     def comment(self):
         return self._chartComment or ""
 
     def setComment(self, text):
         self._chartComment = (text or "")[:256]
+        self.plot.description = self._chartComment
 
     def setVariableKey(self, key):
         index = self.cbVariable.findData(key)
