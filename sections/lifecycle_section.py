@@ -528,23 +528,24 @@ class LifecycleSection:
         return "linux"
 
     def _dependenciesInstalled(self, gisredDir):
-        """Return True when the required dependencies (right version on Windows) are present.
+        """Return True when the native library is present and reports the required version.
 
-        On Windows this asks the native DLL itself (GetVersion(), loaded from the temp copy
-        made by copyDependencies()) rather than reading the file on disk — correct only as
-        long as that temp copy is refreshed first; _installDependenciesZip() does so before
-        calling this, same as the old installer-based flow always did after its own install
-        finished. Calling this right after writing new files to gisredDir WITHOUT refreshing
-        the temp copy first would still report the previous version: Windows keeps serving an
-        already-loaded module from memory even after the file on disk underneath it changes."""
+        The version comes from the native library itself (GetVersion(), loaded from the temp
+        copy made by copyDependencies()), not from the file on disk — correct only as long as
+        that temp copy is refreshed first; _installDependenciesZip() does so before calling
+        this. Without the refresh it would still report the previous version: an already
+        loaded library keeps being served from memory after the file underneath it changes."""
         import sys
         if sys.platform == "win32":
-            if not os.path.isdir(gisredDir):
-                return False
-            currentVersion = self.getVersion(os.path.join(gisredDir, "GISRed.QGISRed.dll"), "FileVersion")
-            return currentVersion == self.DependenciesVersion
-        dll_name = "GISRed.QGISRed.dylib" if sys.platform == "darwin" else "GISRed.QGISRed.so"
-        return os.path.isfile(os.path.join(gisredDir, dll_name))
+            libName = "GISRed.QGISRed.dll"
+        elif sys.platform == "darwin":
+            libName = "GISRed.QGISRed.dylib"
+        else:
+            libName = "GISRed.QGISRed.so"
+        libPath = os.path.join(gisredDir, libName)
+        if not os.path.isfile(libPath):
+            return False
+        return self.getVersion(libPath, "FileVersion") == self.DependenciesVersion
 
     def _uninstallLegacyWindowsMsi(self):
         """Windows only: uninstall any MSI-registered QGISRed product still around from the
