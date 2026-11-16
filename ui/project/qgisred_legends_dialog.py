@@ -1237,7 +1237,7 @@ class QGISRedLegendsDialog(QDialog, formClass):
 
     def setupStyleLibrarySelector(self):
         self.cbStyleLibrary.addItem(self.tr("Use default"), STYLE_LIBRARY_DEFAULT)
-        self.cbStyleLibrary.addItem(self.tr("Use owner"), STYLE_LIBRARY_OWNER)
+        self.cbStyleLibrary.addItem(self.tr("Use own"), STYLE_LIBRARY_OWNER)
         self.cbStyleLibrary.blockSignals(True)
         self.cbStyleLibrary.setCurrentIndex(self.cbStyleLibrary.findData(QGISRedStylingUtils.selectedStyleLibrary()))
         self.cbStyleLibrary.blockSignals(False)
@@ -1295,7 +1295,7 @@ class QGISRedLegendsDialog(QDialog, formClass):
         self.btLoadMenu.setToolTip(self.tr("Load a saved style or revert to the original legend"))
         self.btSaveMenu.setToolTip(self.tr("Save the current legend as a style"))
         self.cbStyleLibrary.setToolTip(self.tr("Library the ramps and palettes are taken from"))
-        self.btEditStyleLibrary.setToolTip(self.tr("Edit owner") + "\n"
+        self.btEditStyleLibrary.setToolTip(self.tr("Edit own") + "\n"
                                            + self.tr("Add, edit or remove ramps, palettes and symbols of your library"))
         self.btAcceptLegend.setToolTip(self.tr("Apply changes to layer and close"))
         self.btApplyLegend.setToolTip(self.tr("Apply changes to layer"))

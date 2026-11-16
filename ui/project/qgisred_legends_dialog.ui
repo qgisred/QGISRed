@@ -905,7 +905,7 @@
      <item>
       <widget class="QToolButton" name="btEditStyleLibrary">
        <property name="text">
-        <string>Edit owner</string>
+        <string>Edit own</string>
        </property>
        <property name="icon">
         <iconset resource="../../resources.qrc">
