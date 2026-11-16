@@ -556,6 +556,13 @@ class TestVariantItems:
         assert items[0] == ("All types", None)
         assert [data for _, data in items[1:]] == list(QGISRedLegendsDialog.SOURCE_TYPES)
 
+    def test_sources_show_the_translated_type_names(self, monkeypatch):
+        import QGISRed.ui.project.qgisred_legends_dialog as legendsModule
+
+        monkeypatch.setattr(legendsModule, "getSourceTypeName", lambda code: "name:" + code)
+        _label, items = self._items(monkeypatch, "qgisred_sources")
+        assert items[1:] == [("name:" + t, t) for t in QGISRedLegendsDialog.SOURCE_TYPES]
+
     def test_junctions_offer_all_then_the_demand_signs(self, monkeypatch):
         label, items = self._items(monkeypatch, "qgisred_junctions")
         assert label == "Demand"

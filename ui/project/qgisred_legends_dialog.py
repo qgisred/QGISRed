@@ -51,6 +51,7 @@ from ...tools.utils.qgisred_legend_rule_utils import (
 from ...tools.utils.qgisred_ui_utils import QGISRedUIUtils, QGISRedBanner
 from ...tools.utils.qgisred_identifier_utils import QGISRedIdentifierUtils
 from ...tools.utils.qgisred_auxiliary_layers import parseLayerPath, DEMAND_BUILDER_STYLE_NAMES
+from ...tools.utils.qgisred_source_types import getSourceTypeName
 from ...tools.utils.qgisred_field_utils import QGISRedFieldUtils, resolve_layer_id
 from ...tools.utils.qgisred_layer_utils import QGISRedLayerUtils
 from ...tools.utils.qgisred_project_utils import QGISRedProjectUtils
@@ -842,7 +843,7 @@ class QGISRedLegendsDialog(QDialog, formClass):
                 (self.tr("All"), None), (self.tr("Outflows (> 0)"), "positive"), (self.tr("Inflows (< 0)"), "negative")
             ]
         if identifier == "qgisred_sources":
-            return self.tr("Source Type"), [(self.tr("All types"), None)] + [(t, t) for t in self.SOURCE_TYPES]
+            return self.tr("Source Type"), [(self.tr("All types"), None)] + [(getSourceTypeName(t), t) for t in self.SOURCE_TYPES]
         if identifier == "qgisred_serviceconnections":
             return self.tr("Component"), [
                 (self.tr("All"), None), (self.tr("Line"), "line"), (self.tr("Demand circle"), "circle")
