@@ -8433,7 +8433,7 @@ No se pueden aplicar los cambios.</translation>
     <message>
         <location filename="../ui/analysis/qgisred_results_appearance.py" line="228"/>
         <source>Links</source>
-        <translation>Enlaces</translation>
+        <translation>Líneas</translation>
     </message>
     <message>
         <location filename="../ui/analysis/qgisred_results_dock.ui" line="691"/>
@@ -8798,7 +8798,7 @@ No se pueden aplicar los cambios.</translation>
     <message>
         <location filename="../ui/analysis/qgisred_results_dock.ui" line="1748"/>
         <source>Links:</source>
-        <translation>Enlaces:</translation>
+        <translation>Líneas:</translation>
     </message>
     <message>
         <location filename="../ui/analysis/qgisred_results_dock.ui" line="1702"/>

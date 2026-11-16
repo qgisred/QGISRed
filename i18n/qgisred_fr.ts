@@ -8105,7 +8105,7 @@ Impossible d'appliquer les modifications.</translation>
     <message>
         <location filename="../ui/queries/qgisred_queriesbyproperties_dock.py" line="590"/>
         <source>Links</source>
-        <translation type="unfinished">Liens</translation>
+        <translation>Lignes</translation>
     </message>
     <message>
         <location filename="../ui/queries/qgisred_queriesbyproperties_dock.py" line="1664"/>
@@ -8456,7 +8456,7 @@ Impossible d'appliquer les modifications.</translation>
     <message>
         <location filename="../ui/analysis/qgisred_results_appearance.py" line="228"/>
         <source>Links</source>
-        <translation>Liens</translation>
+        <translation>Lignes</translation>
     </message>
     <message>
         <location filename="../ui/analysis/qgisred_results_dock.py" line="107"/>
@@ -8796,7 +8796,7 @@ Impossible d'appliquer les modifications.</translation>
     <message>
         <location filename="../ui/analysis/qgisred_results_dock.ui" line="1748"/>
         <source>Links:</source>
-        <translation type="unfinished">Liens :</translation>
+        <translation>Lignes :</translation>
     </message>
     <message>
         <location filename="../ui/analysis/qgisred_results_dock.ui" line="1702"/>
@@ -9164,7 +9164,7 @@ Impossible d'appliquer les modifications.</translation>
     <message>
         <location filename="../ui/queries/qgisred_statisticsandgraphs_dock.py" line="885"/>
         <source>Links</source>
-        <translation type="unfinished">Liens</translation>
+        <translation>Lignes</translation>
     </message>
     <message>
         <location filename="../ui/queries/qgisred_statisticsandgraphs_dock.py" line="1417"/>
