@@ -1354,7 +1354,6 @@ class QGISRedLegendsDialog(QDialog, formClass):
         self.btClassMinus.clicked.connect(self.removeClass)
         self.btUp.clicked.connect(self.moveClassUp)
         self.btDown.clicked.connect(self.moveClassDown)
-        self.tableView.cellDoubleClicked.connect(self.onCellDoubleClicked)
         self.tableView.itemSelectionChanged.connect(self.updateButtonStates)
         self.connectLayerTreeSignal()
         self.connectProjectLayerSignals()
@@ -1971,10 +1970,6 @@ class QGISRedLegendsDialog(QDialog, formClass):
         self.updateClassCountLimits()
         self.handleColorLogicOnClassChange()
         self.handleSizeLogicOnClassChange(isRemoval=isRemoval)
-
-    def onCellDoubleClicked(self, row, column):
-        if column == 2 and self.currentFieldType == self.FIELD_TYPE_NUMERIC:
-            self.openRangeEditor(row)
 
     # ============================================================
     # EVENT HANDLERS - SIZE AND COLOR
