@@ -2525,7 +2525,7 @@ Deseja verificá-los novamente?</translation>
     <message>
         <location filename="../sections/menu_section.py" line="900"/>
         <source>Flow tracing...</source>
-        <translation>Rastreamento do fluxo...</translation>
+        <translation>Rastreamento de escoamentos...</translation>
     </message>
     <message>
         <location filename="../sections/menu_section.py" line="66"/>

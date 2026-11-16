@@ -2500,7 +2500,7 @@ Do you want to check them again?</source>
     <message>
         <location filename="../sections/menu_section.py" line="900"/>
         <source>Flow tracing...</source>
-        <translation>Seguimiento del flujo...</translation>
+        <translation>Seguimiento de flujos...</translation>
     </message>
     <message>
         <location filename="../sections/menu_section.py" line="66"/>

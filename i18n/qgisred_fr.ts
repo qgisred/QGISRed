@@ -2485,7 +2485,7 @@ Voulez-vous les vérifier à nouveau ?</translation>
     <message>
         <location filename="../sections/menu_section.py" line="900"/>
         <source>Flow tracing...</source>
-        <translation>Suivi de l'écoulement...</translation>
+        <translation>Suivi des écoulements...</translation>
     </message>
     <message>
         <location filename="../sections/menu_section.py" line="66"/>
