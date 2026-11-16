@@ -2387,6 +2387,7 @@ class QGISRedTimeSeriesDock(QGISRedDockActivationMixin, QDockWidget, FORM_CLASS)
         MAX = 256
         dlg = QDialog(self)
         dlg.setWindowTitle(self.tr("Chart description"))
+        dlg.setWindowIcon(QIcon(":/images/iconComment.svg"))
         layout = QVBoxLayout(dlg)
         info = QLabel(self.tr("Describe the chart content (up to 256 characters):"), dlg)
         info.setWordWrap(True)

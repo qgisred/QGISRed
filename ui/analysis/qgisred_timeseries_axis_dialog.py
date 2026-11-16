@@ -6,7 +6,7 @@ import copy
 import math
 
 from qgis.PyQt.QtCore import Qt, QTimer
-from qgis.PyQt.QtGui import QColor, QFont
+from qgis.PyQt.QtGui import QColor, QFont, QIcon
 from qgis.PyQt.QtWidgets import (
     QApplication,
     QCheckBox,
@@ -53,6 +53,7 @@ class TimeSeriesAxisOptionsDialog(QDialog):
         super().__init__(win if win is not None else parent)
         self._plot = plot_widget
         self.setWindowTitle(self.tr("QGISRed: Chart options"))
+        self.setWindowIcon(QIcon(":/images/iconTsAxes.svg"))
         self.setMinimumSize(self._MIN_DIALOG_WIDTH, self._MIN_DIALOG_HEIGHT)
         self.setSizeGripEnabled(True)
 
