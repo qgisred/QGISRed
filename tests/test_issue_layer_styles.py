@@ -22,7 +22,7 @@ from QGISRed.tools.utils.qgisred_styling_utils import (
 )
 from QGISRed.ui.project.qgisred_legends_dialog import QGISRedLegendsDialog
 
-PLUGIN_ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
+PLUGIN_ROOT = os.path.dirname(os.path.dirname(os.path.realpath(__file__)))
 SHIPPED = os.path.join(PLUGIN_ROOT, "defaults", "layerStyles")
 
 # Per identifier: the layer name openIssuesLayers passes, and the geometry the DLL writes

@@ -16,7 +16,7 @@ from QGISRed.tools.utils.qgisred_layer_utils import QGISRedLayerUtils
 from QGISRed.tools.utils.qgisred_styling_utils import CONNECTIVITY_STYLE_NAME
 from QGISRed.ui.project.qgisred_legends_dialog import QGISRedLegendsDialog
 
-PLUGIN_ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
+PLUGIN_ROOT = os.path.dirname(os.path.dirname(os.path.realpath(__file__)))
 
 
 def _writeStyle(folder, fileName):
