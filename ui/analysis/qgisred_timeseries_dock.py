@@ -2193,6 +2193,12 @@ class QGISRedTimeSeriesDock(QGISRedDockActivationMixin, QDockWidget, FORM_CLASS)
         name = "".join(safe).strip("_")
         return name or "time_series"
 
+    def _exportStartDirectory(self) -> str:
+        project_directory = getattr(self._resultsDock, "ProjectDirectory", "") or ""
+        if project_directory and os.path.isdir(project_directory):
+            return project_directory
+        return os.path.expanduser("~")
+
     def _selectedFilterExtension(self, selected_filter: str) -> str:
         if ".svg" in selected_filter:
             return ".svg"
@@ -2224,7 +2230,7 @@ class QGISRedTimeSeriesDock(QGISRedDockActivationMixin, QDockWidget, FORM_CLASS)
         if QSvgGenerator is not None:
             filters.append(self.tr("SVG image (*.svg)"))
 
-        default_path = os.path.join(os.path.expanduser("~"), self._safeExportBaseName() + ".png")
+        default_path = os.path.join(self._exportStartDirectory(), self._safeExportBaseName() + ".png")
         path, selected_filter = QFileDialog.getSaveFileName(
             self,
             self.tr("Export chart as image"),
@@ -2308,7 +2314,7 @@ class QGISRedTimeSeriesDock(QGISRedDockActivationMixin, QDockWidget, FORM_CLASS)
             return
         self._refreshStartClockSeconds()
 
-        default_path = os.path.join(os.path.expanduser("~"), self._safeExportBaseName() + ".csv")
+        default_path = os.path.join(self._exportStartDirectory(), self._safeExportBaseName() + ".csv")
         path, _selected_filter = QFileDialog.getSaveFileName(
             self,
             self.tr("Export chart points to CSV"),
