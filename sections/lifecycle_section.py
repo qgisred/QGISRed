@@ -527,6 +527,12 @@ class LifecycleSection:
             return "mac-{}".format(arch)
         return "linux"
 
+    def _isUnsupportedPlatform(self):
+        """True on platforms no dependencies zip is published for (Linux ARM64)."""
+        import sys
+        import platform
+        return sys.platform.startswith("linux") and platform.machine().lower() in ("aarch64", "arm64")
+
     def _dependenciesInstalled(self, gisredDir):
         """Return True when the native library is present and reports the required version.
 
@@ -653,6 +659,13 @@ class LifecycleSection:
                 self._removeExistingDependencies()
 
     def checkDependencies(self):
+        if self._isUnsupportedPlatform():
+            QMessageBox.information(
+                self.iface.mainWindow(),
+                self.tr("QGISRed Dependencies"),
+                self.tr("QGISRed is not available for Linux ARM64 yet. If you need it, please let us know in GitHub."),
+            )
+            return False
         gisredDir = QGISRedFileSystemUtils().getGISRedDllFolder()
         valid = self._dependenciesInstalled(gisredDir)
         if not valid:

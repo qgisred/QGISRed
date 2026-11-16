@@ -2073,82 +2073,82 @@
 <context>
     <name>FlowPathsSection</name>
     <message>
-        <location filename="../sections/flow_paths_section.py" line="101"/>
+        <location filename="../sections/flow_paths_section.py" line="124"/>
         <source>Run a simulation first to identify the flow paths.</source>
         <translation>Execute primeiro uma simulação para identificar os trajetos.</translation>
     </message>
     <message>
-        <location filename="../sections/flow_paths_section.py" line="216"/>
+        <location filename="../sections/flow_paths_section.py" line="286"/>
         <source>Node {0} has no upstream or downstream paths at this instant.</source>
         <translation>O nó {0} não tem trajetos a montante nem a jusante neste instante.</translation>
     </message>
     <message>
-        <location filename="../sections/flow_paths_section.py" line="218"/>
+        <location filename="../sections/flow_paths_section.py" line="288"/>
         <source>Node {0} has no upstream paths at this instant.</source>
         <translation>O nó {0} não tem trajetos a montante neste instante.</translation>
     </message>
     <message>
-        <location filename="../sections/flow_paths_section.py" line="220"/>
+        <location filename="../sections/flow_paths_section.py" line="290"/>
         <source>Node {0} has no downstream paths at this instant.</source>
         <translation>O nó {0} não tem trajetos a jusante neste instante.</translation>
     </message>
     <message>
-        <location filename="../sections/flow_paths_section.py" line="209"/>
+        <location filename="../sections/flow_paths_section.py" line="279"/>
         <source>Range and standard deviation carry no flow direction: choose another statistic to see the paths.</source>
         <translation>A amplitude e o desvio padrão não têm sentido de escoamento: escolha outra estatística para ver os trajetos.</translation>
     </message>
     <message>
-        <location filename="../sections/flow_paths_section.py" line="364"/>
+        <location filename="../sections/flow_paths_section.py" line="362"/>
         <source>Maximum flow</source>
         <translation>Caudal máximo</translation>
     </message>
     <message>
-        <location filename="../sections/flow_paths_section.py" line="365"/>
+        <location filename="../sections/flow_paths_section.py" line="362"/>
         <source>Minimum travel time</source>
         <translation>Tempo de percurso mínimo</translation>
     </message>
     <message>
-        <location filename="../sections/flow_paths_section.py" line="366"/>
+        <location filename="../sections/flow_paths_section.py" line="362"/>
         <source>Minimum energy dissipated</source>
         <translation>Energia dissipada mínima</translation>
     </message>
     <message>
-        <location filename="../sections/flow_paths_section.py" line="367"/>
+        <location filename="../sections/flow_paths_section.py" line="362"/>
         <source>Minimum length</source>
         <translation>Comprimento mínimo</translation>
     </message>
     <message>
-        <location filename="../sections/flow_paths_section.py" line="380"/>
+        <location filename="../sections/flow_paths_section.py" line="342"/>
         <source>Optimal route</source>
         <translation>Rota ótima</translation>
     </message>
     <message>
-        <location filename="../sections/flow_paths_section.py" line="408"/>
+        <location filename="../sections/flow_paths_section.py" line="378"/>
         <source>There is only one route between nodes {0} and {1}: every criterion gives the same one.</source>
         <translation>Só existe uma rota entre os nós {0} e {1}: todos os critérios dão a mesma.</translation>
     </message>
     <message>
-        <location filename="../sections/flow_paths_section.py" line="411"/>
+        <location filename="../sections/flow_paths_section.py" line="382"/>
         <source>Optimal route: {0}.</source>
         <translation>Rota ótima: {0}.</translation>
     </message>
     <message>
-        <location filename="../sections/flow_paths_section.py" line="875"/>
+        <location filename="../sections/flow_paths_section.py" line="816"/>
         <source>There is no one-way route between nodes {0} and {1} at this instant.</source>
         <translation>Não existe nenhuma rota de sentido único entre os nós {0} e {1} neste instante.</translation>
     </message>
     <message>
-        <location filename="../sections/flow_paths_section.py" line="878"/>
+        <location filename="../sections/flow_paths_section.py" line="822"/>
         <source>The routes between two nodes are only available for the average statistic.</source>
         <translation>As rotas entre dois nós só estão disponíveis para a estatística dos valores médios.</translation>
     </message>
     <message>
-        <location filename="../sections/flow_paths_section.py" line="1"/>
+        <location filename="../sections/flow_paths_section.py" line="101"/>
         <source>Click the start node and then the end node of the routes.</source>
         <translation>Clique no nó inicial e depois no nó final das rotas.</translation>
     </message>
     <message>
-        <location filename="../sections/flow_paths_section.py" line="1"/>
+        <location filename="../sections/flow_paths_section.py" line="350"/>
         <source>Clear routes</source>
         <translation>Limpar rotas</translation>
     </message>
@@ -2500,7 +2500,7 @@ Deseja verificá-los novamente?</translation>
         <translation>Carregado com sucesso</translation>
     </message>
     <message>
-        <location filename="../sections/lifecycle_section.py" line="737"/>
+        <location filename="../sections/lifecycle_section.py" line="751"/>
         <source>QGISRed Dependencies</source>
         <translation>Dependências do QGISRed</translation>
     </message>
@@ -2515,64 +2515,69 @@ Deseja verificá-los novamente?</translation>
         <translation type="obsolete">Atualizações do QGISRed</translation>
     </message>
     <message>
-        <location filename="../sections/lifecycle_section.py" line="840"/>
+        <location filename="../sections/lifecycle_section.py" line="854"/>
         <source>QGISRed News</source>
         <translation>Novidades do QGISRed</translation>
     </message>
     <message>
-        <location filename="../sections/lifecycle_section.py" line="737"/>
+        <location filename="../sections/lifecycle_section.py" line="751"/>
         <source>The installation of the QGISRed dependencies failed. Please try again, and if the problem persists, report the issue in GitHub.</source>
         <translation>A instalação das dependências do QGISRed falhou. Tente novamente e, se o problema persistir, relate o problema no GitHub.</translation>
     </message>
     <message>
-        <location filename="../sections/lifecycle_section.py" line="718"/>
+        <location filename="../sections/lifecycle_section.py" line="732"/>
         <source>The QGISRed dependencies could not be downloaded. Please try again later, and if the problem persists, report the issue in GitHub.</source>
         <translation>Não foi possível baixar as dependências do QGISRed. Tente novamente mais tarde e, se o problema persistir, relate o problema no GitHub.</translation>
     </message>
     <message>
-        <location filename="../sections/lifecycle_section.py" line="661"/>
+        <location filename="../sections/lifecycle_section.py" line="675"/>
         <source>QGISRed plugin requires some dependencies (v{}). Do you want to install them now?</source>
         <translation type="unfinished">O plugin QGISRed requer algumas dependências (v{}). Deseja instalá-las agora?</translation>
     </message>
     <message>
-        <location filename="../sections/lifecycle_section.py" line="795"/>
+        <location filename="../sections/lifecycle_section.py" line="809"/>
         <source>Checking for QGISRed news…</source>
         <translation>A verificar as novidades do QGISRed…</translation>
     </message>
     <message>
-        <location filename="../sections/lifecycle_section.py" line="813"/>
+        <location filename="../sections/lifecycle_section.py" line="827"/>
         <source>QGISRed news are not available: the server could not be reached.</source>
         <translation>As novidades do QGISRed não estão disponíveis: não foi possível contactar o servidor.</translation>
     </message>
     <message>
-        <location filename="../sections/lifecycle_section.py" line="822"/>
+        <location filename="../sections/lifecycle_section.py" line="836"/>
         <source>There are no QGISRed news to show.</source>
         <translation>Não há novidades do QGISRed para mostrar.</translation>
     </message>
     <message>
-        <location filename="../sections/lifecycle_section.py" line="647"/>
+        <location filename="../sections/lifecycle_section.py" line="654"/>
         <source>Do you also want to remove the QGISRed dependencies?</source>
         <translation>Deseja também remover as dependências do QGISRed?</translation>
     </message>
     <message>
-        <location filename="../sections/lifecycle_section.py" line="610"/>
+        <location filename="../sections/lifecycle_section.py" line="617"/>
         <source>Removing previous dependencies…</source>
         <translation>Removendo as dependências anteriores…</translation>
     </message>
     <message>
-        <location filename="../sections/lifecycle_section.py" line="615"/>
+        <location filename="../sections/lifecycle_section.py" line="622"/>
         <source>Extracting files…</source>
         <translation>Extraindo arquivos…</translation>
     </message>
     <message>
-        <location filename="../sections/lifecycle_section.py" line="625"/>
+        <location filename="../sections/lifecycle_section.py" line="632"/>
         <source>Finishing up…</source>
         <translation>Finalizando…</translation>
     </message>
     <message>
-        <location filename="../sections/lifecycle_section.py" line="684"/>
+        <location filename="../sections/lifecycle_section.py" line="698"/>
         <source>Downloading dependencies…</source>
         <translation>Baixando dependências…</translation>
+    </message>
+    <message>
+        <location filename="../sections/lifecycle_section.py" line="663"/>
+        <source>QGISRed is not available for Linux ARM64 yet. If you need it, please let us know in GitHub.</source>
+        <translation>O QGISRed ainda não está disponível para Linux ARM64. Se precisar dele, avise-nos no GitHub.</translation>
     </message>
 </context>
 <context>
@@ -2873,107 +2878,107 @@ Deseja verificá-los novamente?</translation>
         <translation>Opções de análise...</translation>
     </message>
     <message>
-        <location filename="../sections/menu_section.py" line="942"/>
+        <location filename="../sections/menu_section.py" line="952"/>
         <source>Digital Twin</source>
         <translation>Gêmeo Digital</translation>
     </message>
     <message>
-        <location filename="../sections/menu_section.py" line="937"/>
+        <location filename="../sections/menu_section.py" line="947"/>
         <source>QGISRed Digital Twin</source>
         <translation>Gêmeo Digital do QGISRed</translation>
     </message>
     <message>
-        <location filename="../sections/menu_section.py" line="953"/>
+        <location filename="../sections/menu_section.py" line="963"/>
         <source>Add service connection</source>
         <translation>Adicionar ligação de serviço</translation>
     </message>
     <message>
-        <location filename="../sections/menu_section.py" line="963"/>
+        <location filename="../sections/menu_section.py" line="973"/>
         <source>Add isolation valve</source>
         <translation>Adicionar válvula de isolamento</translation>
     </message>
     <message>
-        <location filename="../sections/menu_section.py" line="984"/>
+        <location filename="../sections/menu_section.py" line="994"/>
         <source>Add meter</source>
         <translation>Adicionar medidor</translation>
     </message>
     <message>
-        <location filename="../sections/menu_section.py" line="993"/>
+        <location filename="../sections/menu_section.py" line="1003"/>
         <source>Add automatic meter</source>
         <translation>Adicionar medidor automático</translation>
     </message>
     <message>
-        <location filename="../sections/menu_section.py" line="1004"/>
+        <location filename="../sections/menu_section.py" line="1014"/>
         <source>Add manometer</source>
         <translation>Adicionar manômetro</translation>
     </message>
     <message>
-        <location filename="../sections/menu_section.py" line="1014"/>
+        <location filename="../sections/menu_section.py" line="1024"/>
         <source>Add flowmeter</source>
         <translation>Adicionar medidor de vazão</translation>
     </message>
     <message>
-        <location filename="../sections/menu_section.py" line="1024"/>
+        <location filename="../sections/menu_section.py" line="1034"/>
         <source>Add countermeter</source>
         <translation>Adicionar hidrômetro</translation>
     </message>
     <message>
-        <location filename="../sections/menu_section.py" line="1034"/>
+        <location filename="../sections/menu_section.py" line="1044"/>
         <source>Add level sensor</source>
         <translation>Adicionar sensor de nível</translation>
     </message>
     <message>
-        <location filename="../sections/menu_section.py" line="1044"/>
+        <location filename="../sections/menu_section.py" line="1054"/>
         <source>Add differential manometer</source>
         <translation>Adicionar manômetro diferencial</translation>
     </message>
     <message>
-        <location filename="../sections/menu_section.py" line="1054"/>
+        <location filename="../sections/menu_section.py" line="1064"/>
         <source>Add quality sensor</source>
         <translation>Adicionar sensor de qualidade</translation>
     </message>
     <message>
-        <location filename="../sections/menu_section.py" line="1064"/>
+        <location filename="../sections/menu_section.py" line="1074"/>
         <source>Add energy sensor</source>
         <translation>Adicionar sensor de energia</translation>
     </message>
     <message>
-        <location filename="../sections/menu_section.py" line="1074"/>
+        <location filename="../sections/menu_section.py" line="1084"/>
         <source>Add status sensor</source>
         <translation>Adicionar sensor de estado</translation>
     </message>
     <message>
-        <location filename="../sections/menu_section.py" line="1084"/>
+        <location filename="../sections/menu_section.py" line="1094"/>
         <source>Add valve opening</source>
         <translation>Adicionar abertura de válvula</translation>
     </message>
     <message>
-        <location filename="../sections/menu_section.py" line="1094"/>
+        <location filename="../sections/menu_section.py" line="1104"/>
         <source>Add tachometer</source>
         <translation>Adicionar tacômetro</translation>
     </message>
     <message>
-        <location filename="../sections/menu_section.py" line="1124"/>
+        <location filename="../sections/menu_section.py" line="1134"/>
         <source>Load meter readings...</source>
         <translation>Carregar leituras dos medidores...</translation>
     </message>
     <message>
-        <location filename="../sections/menu_section.py" line="1151"/>
+        <location filename="../sections/menu_section.py" line="1161"/>
         <source>Set pipe&apos;s initial status from isolation valves</source>
         <translation>Definir estado inicial das tubulações a partir das válvulas de isolamento</translation>
     </message>
     <message>
-        <location filename="../sections/menu_section.py" line="1133"/>
+        <location filename="../sections/menu_section.py" line="1143"/>
         <source>Load field data...</source>
         <translation>Carregar dados de campo...</translation>
     </message>
     <message>
-        <location filename="../sections/menu_section.py" line="1142"/>
+        <location filename="../sections/menu_section.py" line="1152"/>
         <source>Field Data Manager</source>
         <translation>Gestor de Dados de Campo</translation>
     </message>
     <message>
-        <location filename="../sections/menu_section.py" line="1164"/>
+        <location filename="../sections/menu_section.py" line="1174"/>
         <source>Convert service connections into pipes/nodes</source>
         <translation>Converter ligações de serviço em tubulações/nós</translation>
     </message>
@@ -3033,12 +3038,12 @@ Deseja verificá-los novamente?</translation>
         <translation type="obsolete">Séries temporais...</translation>
     </message>
     <message>
-        <location filename="../sections/menu_section.py" line="923"/>
+        <location filename="../sections/menu_section.py" line="933"/>
         <source>Export model to INP...</source>
         <translation>Exportar modelo para INP...</translation>
     </message>
     <message>
-        <location filename="../sections/menu_section.py" line="914"/>
+        <location filename="../sections/menu_section.py" line="924"/>
         <source>Export results to CSV...</source>
         <translation>Exportar resultados para CSV...</translation>
     </message>
@@ -3168,7 +3173,7 @@ Deseja verificá-los novamente?</translation>
         <translation>Curvas de evolução temporal...</translation>
     </message>
     <message>
-        <location filename="../sections/menu_section.py" line="1"/>
+        <location filename="../sections/menu_section.py" line="910"/>
         <source>Routes between two nodes...</source>
         <translation>Rotas entre dois nós...</translation>
     </message>
@@ -7446,37 +7451,37 @@ Não é possível aplicar as alterações.</translation>
         <translation type="obsolete">Ative «Editar trajetos» e clique nos nós no mapa</translation>
     </message>
     <message>
-        <location filename="../ui/analysis/qgisred_profile_dock.py" line="611"/>
+        <location filename="../ui/analysis/qgisred_profile_dock.py" line="622"/>
         <source>Trace the first path</source>
         <translation>Traçar o primeiro trajeto</translation>
     </message>
     <message>
-        <location filename="../ui/analysis/qgisred_profile_dock.py" line="639"/>
+        <location filename="../ui/analysis/qgisred_profile_dock.py" line="650"/>
         <source>Double right-click an end pass node to extend the path.</source>
         <translation>Duplo clique direito num ponto de passagem de extremidade para prolongar o trajeto.</translation>
     </message>
     <message>
-        <location filename="../ui/analysis/qgisred_profile_dock.py" line="640"/>
+        <location filename="../ui/analysis/qgisred_profile_dock.py" line="651"/>
         <source>Double right-click an interior pass node to start a branch.</source>
         <translation>Duplo clique direito num ponto de passagem interior para iniciar um ramo.</translation>
     </message>
     <message>
-        <location filename="../ui/analysis/qgisred_profile_dock.py" line="634"/>
+        <location filename="../ui/analysis/qgisred_profile_dock.py" line="645"/>
         <source>Mouse shortcuts</source>
         <translation>Atalhos do mouse</translation>
     </message>
     <message>
-        <location filename="../ui/analysis/qgisred_profile_dock.py" line="636"/>
+        <location filename="../ui/analysis/qgisred_profile_dock.py" line="647"/>
         <source>Left-click a pass node to start moving it, then click the free destination node.</source>
         <translation>Clique esquerdo num ponto de passagem para começar a movê-lo; depois clique no nó de destino livre.</translation>
     </message>
     <message>
-        <location filename="../ui/analysis/qgisred_profile_dock.py" line="637"/>
+        <location filename="../ui/analysis/qgisred_profile_dock.py" line="648"/>
         <source>Double-click an intermediate node to turn it into a pass node.</source>
         <translation>Duplo clique num nó intermédio para o tornar num ponto de passagem.</translation>
     </message>
     <message>
-        <location filename="../ui/analysis/qgisred_profile_dock.py" line="638"/>
+        <location filename="../ui/analysis/qgisred_profile_dock.py" line="649"/>
         <source>Double-click a pass node to delete it.</source>
         <translation>Duplo clique num ponto de passagem para o eliminar.</translation>
     </message>
@@ -7486,47 +7491,47 @@ Não é possível aplicar as alterações.</translation>
         <translation>Editar trajetos: clique nos nós para traçar, clique com o botão direito num nó para as suas opções. Clique no botão seguinte para mais informação</translation>
     </message>
     <message>
-        <location filename="../ui/analysis/qgisred_profile_dock.py" line="584"/>
+        <location filename="../ui/analysis/qgisred_profile_dock.py" line="595"/>
         <source>How to edit paths</source>
         <translation>Como editar trajetos</translation>
     </message>
     <message>
-        <location filename="../ui/analysis/qgisred_profile_dock.py" line="293"/>
+        <location filename="../ui/analysis/qgisred_profile_dock.py" line="298"/>
         <source>Turn on &apos;Edit paths&apos; and click nodes on the map</source>
         <translation>Ative 'Editar trajetos' e clique nos nós no mapa</translation>
     </message>
     <message>
-        <location filename="../ui/analysis/qgisred_profile_dock.py" line="604"/>
+        <location filename="../ui/analysis/qgisred_profile_dock.py" line="615"/>
         <source>A profile can follow a single path or a tree (a main path with branches). Everything starts by activating the Edit paths button: with editing on, click network nodes to trace the first path and right-click any node to open its options menu, which lists only the actions available for that node. With editing off, moving over a path just tracks it and shows its values on the chart.</source>
         <translation>Um perfil pode seguir um único trajeto ou uma árvore (um trajeto principal com ramos). Tudo começa ativando o botão Editar trajetos: com a edição ativada, clique nos nós da rede para traçar o primeiro trajeto e clique com o botão direito em qualquer nó para abrir o seu menu de opções, que só mostra as ações disponíveis para esse nó. Com a edição desativada, passar sobre um trajeto apenas o segue e mostra os seus valores no gráfico.</translation>
     </message>
     <message>
-        <location filename="../ui/analysis/qgisred_profile_dock.py" line="611"/>
+        <location filename="../ui/analysis/qgisred_profile_dock.py" line="622"/>
         <source>With Edit paths on and no path yet, click the pass nodes one after another and right-click to finish (just like drawing a pipe in QGISRed).</source>
         <translation>Com Editar trajetos ativado e ainda sem nenhum trajeto, clique nos nós de passagem um a um e clique com o botão direito para terminar (tal como ao desenhar uma tubagem no QGISRed).</translation>
     </message>
     <message>
-        <location filename="../ui/analysis/qgisred_profile_dock.py" line="614"/>
+        <location filename="../ui/analysis/qgisred_profile_dock.py" line="625"/>
         <source>Right-click an end node, choose Extend path, and keep clicking nodes to prolong it; right-click to finish.</source>
         <translation>Clique com o botão direito num nó de extremidade, escolha Prolongar trajeto e continue a clicar em nós para o prolongar; clique com o botão direito para terminar.</translation>
     </message>
     <message>
-        <location filename="../ui/analysis/qgisred_profile_dock.py" line="617"/>
+        <location filename="../ui/analysis/qgisred_profile_dock.py" line="628"/>
         <source>Right-click an intermediate node of a path (one that is not a pass node yet) and choose Declare pass node.</source>
         <translation>Clique com o botão direito num nó intermédio de um trajeto (que ainda não seja ponto de passagem) e escolha Declarar ponto de passagem.</translation>
     </message>
     <message>
-        <location filename="../ui/analysis/qgisred_profile_dock.py" line="620"/>
+        <location filename="../ui/analysis/qgisred_profile_dock.py" line="631"/>
         <source>Right-click an interior pass node, choose Create branch, and click the new branch nodes one after another; right-click to finish. A branch needs a converging line that is not already part of a path, so it is only offered where one is free.</source>
         <translation>Clique com o botão direito num ponto de passagem interior, escolha Criar ramo e clique nos novos nós do ramo um a um; clique com o botão direito para terminar. Um ramo precisa de uma linha convergente que ainda não faça parte de um trajeto, por isso só é oferecido onde existe alguma livre.</translation>
     </message>
     <message>
-        <location filename="../ui/analysis/qgisred_profile_dock.py" line="624"/>
+        <location filename="../ui/analysis/qgisred_profile_dock.py" line="635"/>
         <source>Right-click it, choose Move pass node, then click the destination node. A branch point can only be moved to a node with the same or higher connectivity.</source>
         <translation>Clique com o botão direito nele, escolha Mover ponto de passagem e depois clique no nó de destino. Um nó de bifurcação só pode ser movido para um nó com conectividade igual ou superior.</translation>
     </message>
     <message>
-        <location filename="../ui/analysis/qgisred_profile_dock.py" line="627"/>
+        <location filename="../ui/analysis/qgisred_profile_dock.py" line="638"/>
         <source>Right-click it and choose Delete pass node. A branch origin cannot be removed directly.</source>
         <translation>Clique com o botão direito nele e escolha Eliminar ponto de passagem. A origem de um ramo não pode ser eliminada diretamente.</translation>
     </message>
@@ -7536,7 +7541,7 @@ Não é possível aplicar as alterações.</translation>
         <translation type="obsolete">Ative Editar, clique nos pontos de passagem um após outro e clique com o botão direito para terminar (tal como ao desenhar uma tubagem no QGISRed).</translation>
     </message>
     <message>
-        <location filename="../ui/analysis/qgisred_profile_dock.py" line="614"/>
+        <location filename="../ui/analysis/qgisred_profile_dock.py" line="625"/>
         <source>Extend a path</source>
         <translation>Prolongar um trajeto</translation>
     </message>
@@ -7546,7 +7551,7 @@ Não é possível aplicar as alterações.</translation>
         <translation type="obsolete">Clique com o botão direito no seu nó final e continue a clicar em nós para o prolongar; clique com o botão direito para terminar.</translation>
     </message>
     <message>
-        <location filename="../ui/analysis/qgisred_profile_dock.py" line="617"/>
+        <location filename="../ui/analysis/qgisred_profile_dock.py" line="628"/>
         <source>Declare a pass node</source>
         <translation>Declarar um ponto de passagem</translation>
     </message>
@@ -7556,7 +7561,7 @@ Não é possível aplicar as alterações.</translation>
         <translation type="obsolete">Clique com o botão direito num nó intermédio de qualquer trajeto atual (que ainda não seja ponto de passagem).</translation>
     </message>
     <message>
-        <location filename="../ui/analysis/qgisred_profile_dock.py" line="624"/>
+        <location filename="../ui/analysis/qgisred_profile_dock.py" line="635"/>
         <source>Move a pass node</source>
         <translation>Mover um ponto de passagem</translation>
     </message>
@@ -7566,7 +7571,7 @@ Não é possível aplicar as alterações.</translation>
         <translation type="obsolete">Clique com o botão direito nele, escolha Mover e depois clique num nó livre (pode ser uma bifurcação, o final de um ramo ou a origem da árvore).</translation>
     </message>
     <message>
-        <location filename="../ui/analysis/qgisred_profile_dock.py" line="627"/>
+        <location filename="../ui/analysis/qgisred_profile_dock.py" line="638"/>
         <source>Remove a pass node</source>
         <translation>Eliminar um ponto de passagem</translation>
     </message>
@@ -7576,7 +7581,7 @@ Não é possível aplicar as alterações.</translation>
         <translation type="obsolete">Clique com o botão direito nele e escolha Eliminar. Uma bifurcação não pode ser eliminada diretamente.</translation>
     </message>
     <message>
-        <location filename="../ui/analysis/qgisred_profile_dock.py" line="620"/>
+        <location filename="../ui/analysis/qgisred_profile_dock.py" line="631"/>
         <source>Create a branch</source>
         <translation>Criar um ramo</translation>
     </message>
@@ -7586,12 +7591,12 @@ Não é possível aplicar as alterações.</translation>
         <translation type="obsolete">Clique com o botão direito em qualquer ponto de passagem e depois clique nos nós do novo ramo um após outro (sem repetir nenhum nó já declarado); clique com o botão direito para terminar.</translation>
     </message>
     <message>
-        <location filename="../ui/analysis/qgisred_profile_dock.py" line="630"/>
+        <location filename="../ui/analysis/qgisred_profile_dock.py" line="641"/>
         <source>Remove a branch</source>
         <translation>Eliminar um ramo</translation>
     </message>
     <message>
-        <location filename="../ui/analysis/qgisred_profile_dock.py" line="630"/>
+        <location filename="../ui/analysis/qgisred_profile_dock.py" line="641"/>
         <source>Delete its pass nodes from the far end toward the origin. When only the branch end is left, deleting it removes the whole branch.</source>
         <translation>Elimine os seus pontos de passagem desde o extremo até à origem. Quando restar apenas o final do ramo, ao eliminá-lo remove-se o ramo completo.</translation>
     </message>
@@ -7686,12 +7691,12 @@ Não é possível aplicar as alterações.</translation>
         <translation type="obsolete">Limpar</translation>
     </message>
     <message>
-        <location filename="../ui/analysis/qgisred_profile_dock.py" line="217"/>
+        <location filename="../ui/analysis/qgisred_profile_dock.py" line="222"/>
         <source>Remove the current profile path</source>
         <translation>Remover o trajeto do perfil atual</translation>
     </message>
     <message>
-        <location filename="../ui/analysis/qgisred_profile_dock.py" line="223"/>
+        <location filename="../ui/analysis/qgisred_profile_dock.py" line="228"/>
         <source>Variable:</source>
         <translation>Variável:</translation>
     </message>
@@ -7761,12 +7766,12 @@ Não é possível aplicar as alterações.</translation>
         <translation>Mostrar/Ocultar tabela de valores</translation>
     </message>
     <message>
-        <location filename="../ui/analysis/qgisred_profile_dock.py" line="502"/>
+        <location filename="../ui/analysis/qgisred_profile_dock.py" line="507"/>
         <source>Export values to CSV</source>
         <translation>Exportar valores para CSV</translation>
     </message>
     <message>
-        <location filename="../ui/analysis/qgisred_profile_dock.py" line="539"/>
+        <location filename="../ui/analysis/qgisred_profile_dock.py" line="544"/>
         <source>Save chart as image</source>
         <translation>Salvar o gráfico como imagem</translation>
     </message>
@@ -7776,87 +7781,87 @@ Não é possível aplicar as alterações.</translation>
         <translation>Opções do gráfico</translation>
     </message>
     <message>
-        <location filename="../ui/analysis/qgisred_profile_dock.py" line="502"/>
+        <location filename="../ui/analysis/qgisred_profile_dock.py" line="507"/>
         <source>CSV file (*.csv)</source>
         <translation>Arquivo CSV (*.csv)</translation>
     </message>
     <message>
-        <location filename="../ui/analysis/qgisred_profile_dock.py" line="537"/>
+        <location filename="../ui/analysis/qgisred_profile_dock.py" line="542"/>
         <source>PNG image (*.png)</source>
         <translation>Imagem PNG (*.png)</translation>
     </message>
     <message>
-        <location filename="../ui/analysis/qgisred_profile_dock.py" line="537"/>
+        <location filename="../ui/analysis/qgisred_profile_dock.py" line="542"/>
         <source>SVG image (*.svg)</source>
         <translation>Imagem SVG (*.svg)</translation>
     </message>
     <message>
-        <location filename="../ui/analysis/qgisred_profile_dock.py" line="499"/>
+        <location filename="../ui/analysis/qgisred_profile_dock.py" line="504"/>
         <source>There are no values to export</source>
         <translation>Não há valores para exportar</translation>
     </message>
     <message>
-        <location filename="../ui/analysis/qgisred_profile_dock.py" line="528"/>
+        <location filename="../ui/analysis/qgisred_profile_dock.py" line="533"/>
         <source>The values could not be exported</source>
         <translation>Não foi possível exportar os valores</translation>
     </message>
     <message>
-        <location filename="../ui/analysis/qgisred_profile_dock.py" line="530"/>
+        <location filename="../ui/analysis/qgisred_profile_dock.py" line="535"/>
         <source>Values exported to CSV</source>
         <translation>Valores exportados para CSV</translation>
     </message>
     <message>
-        <location filename="../ui/analysis/qgisred_profile_dock.py" line="535"/>
+        <location filename="../ui/analysis/qgisred_profile_dock.py" line="540"/>
         <source>There is no chart to export</source>
         <translation>Não há gráfico para exportar</translation>
     </message>
     <message>
-        <location filename="../ui/analysis/qgisred_profile_dock.py" line="551"/>
+        <location filename="../ui/analysis/qgisred_profile_dock.py" line="556"/>
         <source>The chart image could not be saved</source>
         <translation>Não foi possível salvar a imagem do gráfico</translation>
     </message>
     <message>
-        <location filename="../ui/analysis/qgisred_profile_dock.py" line="553"/>
+        <location filename="../ui/analysis/qgisred_profile_dock.py" line="558"/>
         <source>Chart image saved</source>
         <translation>Imagem do gráfico salva</translation>
     </message>
     <message>
-        <location filename="../ui/analysis/qgisred_profile_dock.py" line="553"/>
+        <location filename="../ui/analysis/qgisred_profile_dock.py" line="200"/>
         <source>Copy chart to clipboard</source>
         <translation>Copiar gráfico para a área de transferência</translation>
     </message>
     <message>
-        <location filename="../ui/analysis/qgisred_profile_dock.py" line="553"/>
+        <location filename="../ui/analysis/qgisred_profile_dock.py" line="564"/>
         <source>Chart copied to clipboard</source>
         <translation>Gráfico copiado para a área de transferência</translation>
     </message>
     <message>
-        <location filename="../ui/analysis/qgisred_profile_dock.py" line="702"/>
+        <location filename="../ui/analysis/qgisred_profile_dock.py" line="713"/>
         <source>Export profile configuration</source>
         <translation>Exportar configuração do perfil</translation>
     </message>
     <message>
-        <location filename="../ui/analysis/qgisred_profile_dock.py" line="715"/>
+        <location filename="../ui/analysis/qgisred_profile_dock.py" line="726"/>
         <source>Import profile configuration</source>
         <translation>Importar configuração do perfil</translation>
     </message>
     <message>
-        <location filename="../ui/analysis/qgisred_profile_dock.py" line="210"/>
+        <location filename="../ui/analysis/qgisred_profile_dock.py" line="215"/>
         <source>Edit chart description</source>
         <translation>Editar a descrição do gráfico</translation>
     </message>
     <message>
-        <location filename="../ui/analysis/qgisred_profile_dock.py" line="715"/>
+        <location filename="../ui/analysis/qgisred_profile_dock.py" line="726"/>
         <source>Configuration file (*.cfg)</source>
         <translation>Arquivo de configuração (*.cfg)</translation>
     </message>
     <message>
-        <location filename="../ui/analysis/qgisred_profile_dock.py" line="725"/>
+        <location filename="../ui/analysis/qgisred_profile_dock.py" line="738"/>
         <source>Chart description</source>
         <translation>Descrição do gráfico</translation>
     </message>
     <message>
-        <location filename="../ui/analysis/qgisred_profile_dock.py" line="727"/>
+        <location filename="../ui/analysis/qgisred_profile_dock.py" line="740"/>
         <source>Describe the chart content (up to 256 characters):</source>
         <translation>Descreva o conteúdo do gráfico (até 256 caracteres):</translation>
     </message>
@@ -7891,12 +7896,12 @@ Não é possível aplicar as alterações.</translation>
         <translation type="obsolete">Altura piezométrica + Cotas</translation>
     </message>
     <message>
-        <location filename="../ui/analysis/qgisred_profile_dock.py" line="235"/>
+        <location filename="../ui/analysis/qgisred_profile_dock.py" line="240"/>
         <source>2nd axis:</source>
         <translation>2º eixo:</translation>
     </message>
     <message>
-        <location filename="../ui/analysis/qgisred_profile_dock.py" line="350"/>
+        <location filename="../ui/analysis/qgisred_profile_dock.py" line="355"/>
         <source>None</source>
         <translation>Nenhuma</translation>
     </message>
@@ -10050,7 +10055,7 @@ Não é possível aplicar as alterações.</translation>
         <translation>Seleção necessária...</translation>
     </message>
     <message>
-        <location filename="../ui/analysis/qgisred_timeseries_dock.py" line="1359"/>
+        <location filename="../ui/analysis/qgisred_timeseries_dock.py" line="1363"/>
         <source>Clear all curves</source>
         <translation>Apagar todas as curvas</translation>
     </message>
@@ -10090,22 +10095,22 @@ Não é possível aplicar as alterações.</translation>
         <translation>Zoom por janela</translation>
     </message>
     <message>
-        <location filename="../ui/analysis/qgisred_timeseries_dock.py" line="2263"/>
+        <location filename="../ui/analysis/qgisred_timeseries_dock.py" line="2281"/>
         <source>Export chart as image</source>
         <translation>Exportar gráfico como imagem</translation>
     </message>
     <message>
-        <location filename="../ui/analysis/qgisred_timeseries_dock.py" line="2281"/>
+        <location filename="../ui/analysis/qgisred_timeseries_dock.py" line="2299"/>
         <source>Time evolution curves</source>
         <translation>Curvas de evolução temporal</translation>
     </message>
     <message>
-        <location filename="../ui/analysis/qgisred_timeseries_dock.py" line="2347"/>
+        <location filename="../ui/analysis/qgisred_timeseries_dock.py" line="2360"/>
         <source>Export chart points to CSV</source>
         <translation>Exportar pontos do gráfico para CSV</translation>
     </message>
     <message>
-        <location filename="../ui/analysis/qgisred_timeseries_dock.py" line="2342"/>
+        <location filename="../ui/analysis/qgisred_timeseries_dock.py" line="2355"/>
         <source>No curves to export</source>
         <translation>Não há curvas para exportar</translation>
     </message>
@@ -10125,82 +10130,82 @@ Não é possível aplicar as alterações.</translation>
         <translation type="obsolete">Sincronizar cursor com a linha selecionada da tabela</translation>
     </message>
     <message>
-        <location filename="../ui/analysis/qgisred_timeseries_dock.py" line="1895"/>
+        <location filename="../ui/analysis/qgisred_timeseries_dock.py" line="1899"/>
         <source>Time of day</source>
         <translation>Hora do dia</translation>
     </message>
     <message>
-        <location filename="../ui/analysis/qgisred_timeseries_dock.py" line="2037"/>
+        <location filename="../ui/analysis/qgisred_timeseries_dock.py" line="2041"/>
         <source>Results panel is not available</source>
         <translation>O Painel de Resultados não está disponível</translation>
     </message>
     <message>
-        <location filename="../ui/analysis/qgisred_timeseries_dock.py" line="2254"/>
+        <location filename="../ui/analysis/qgisred_timeseries_dock.py" line="2272"/>
         <source>PNG image (*.png)</source>
         <translation>Imagem PNG (*.png)</translation>
     </message>
     <message>
-        <location filename="../ui/analysis/qgisred_timeseries_dock.py" line="2255"/>
+        <location filename="../ui/analysis/qgisred_timeseries_dock.py" line="2273"/>
         <source>JPEG image (*.jpg *.jpeg)</source>
         <translation>Imagem JPEG (*.jpg *.jpeg)</translation>
     </message>
     <message>
-        <location filename="../ui/analysis/qgisred_timeseries_dock.py" line="2256"/>
+        <location filename="../ui/analysis/qgisred_timeseries_dock.py" line="2274"/>
         <source>BMP image (*.bmp)</source>
         <translation>Imagem BMP (*.bmp)</translation>
     </message>
     <message>
-        <location filename="../ui/analysis/qgisred_timeseries_dock.py" line="2257"/>
+        <location filename="../ui/analysis/qgisred_timeseries_dock.py" line="2275"/>
         <source>TIFF image (*.tif *.tiff)</source>
         <translation>Imagem TIFF (*.tif *.tiff)</translation>
     </message>
     <message>
-        <location filename="../ui/analysis/qgisred_timeseries_dock.py" line="2260"/>
+        <location filename="../ui/analysis/qgisred_timeseries_dock.py" line="2278"/>
         <source>SVG image (*.svg)</source>
         <translation>Imagem SVG (*.svg)</translation>
     </message>
     <message>
-        <location filename="../ui/analysis/qgisred_timeseries_dock.py" line="2275"/>
+        <location filename="../ui/analysis/qgisred_timeseries_dock.py" line="2293"/>
         <source>SVG export is not available</source>
         <translation>A exportação SVG não está disponível</translation>
     </message>
     <message>
-        <location filename="../ui/analysis/qgisred_timeseries_dock.py" line="2292"/>
+        <location filename="../ui/analysis/qgisred_timeseries_dock.py" line="2305"/>
         <source>The chart image could not be exported</source>
         <translation>Não foi possível exportar a imagem do gráfico</translation>
     </message>
     <message>
-        <location filename="../ui/analysis/qgisred_timeseries_dock.py" line="2295"/>
+        <location filename="../ui/analysis/qgisred_timeseries_dock.py" line="2308"/>
         <source>Chart image exported</source>
         <translation>Imagem do gráfico exportada</translation>
     </message>
     <message>
-        <location filename="../ui/analysis/qgisred_timeseries_dock.py" line="2295"/>
+        <location filename="../ui/analysis/qgisred_timeseries_dock.py" line="1347"/>
         <source>Copy chart to clipboard</source>
         <translation>Copiar gráfico para a área de transferência</translation>
     </message>
     <message>
-        <location filename="../ui/analysis/qgisred_timeseries_dock.py" line="2295"/>
+        <location filename="../ui/analysis/qgisred_timeseries_dock.py" line="2264"/>
         <source>Chart copied to clipboard</source>
         <translation>Gráfico copiado para a área de transferência</translation>
     </message>
     <message>
-        <location filename="../ui/analysis/qgisred_timeseries_dock.py" line="2347"/>
+        <location filename="../ui/analysis/qgisred_timeseries_dock.py" line="2360"/>
         <source>CSV file (*.csv)</source>
         <translation>Arquivo CSV (*.csv)</translation>
     </message>
     <message>
-        <location filename="../ui/analysis/qgisred_timeseries_dock.py" line="2363"/>
+        <location filename="../ui/analysis/qgisred_timeseries_dock.py" line="2376"/>
         <source>No chart points to export</source>
         <translation>Não há pontos do gráfico para exportar</translation>
     </message>
     <message>
-        <location filename="../ui/analysis/qgisred_timeseries_dock.py" line="2375"/>
+        <location filename="../ui/analysis/qgisred_timeseries_dock.py" line="2388"/>
         <source>The CSV file could not be exported</source>
         <translation>Não foi possível exportar o arquivo CSV</translation>
     </message>
     <message>
-        <location filename="../ui/analysis/qgisred_timeseries_dock.py" line="2378"/>
+        <location filename="../ui/analysis/qgisred_timeseries_dock.py" line="2391"/>
         <source>Chart points exported to CSV</source>
         <translation>Pontos do gráfico exportados para CSV</translation>
     </message>
@@ -10270,7 +10275,7 @@ Não é possível aplicar as alterações.</translation>
         <translation type="obsolete">Nome da Curva</translation>
     </message>
     <message>
-        <location filename="../ui/analysis/qgisred_timeseries_dock.py" line="1895"/>
+        <location filename="../ui/analysis/qgisred_timeseries_dock.py" line="1899"/>
         <source>Time (h)</source>
         <translation>Tempo (h)</translation>
     </message>
@@ -10280,87 +10285,87 @@ Não é possível aplicar as alterações.</translation>
         <translation type="obsolete">Hora formatada</translation>
     </message>
     <message>
-        <location filename="../ui/analysis/qgisred_timeseries_dock.py" line="1892"/>
+        <location filename="../ui/analysis/qgisred_timeseries_dock.py" line="1896"/>
         <source>Value</source>
         <translation>Valor</translation>
     </message>
     <message>
-        <location filename="../ui/analysis/qgisred_timeseries_dock.py" line="1647"/>
+        <location filename="../ui/analysis/qgisred_timeseries_dock.py" line="1651"/>
         <source>Copy selection</source>
         <translation>Copiar seleção</translation>
     </message>
     <message>
-        <location filename="../ui/analysis/qgisred_timeseries_dock.py" line="1648"/>
+        <location filename="../ui/analysis/qgisred_timeseries_dock.py" line="1652"/>
         <source>Copy entire table</source>
         <translation>Copiar tabela completa</translation>
     </message>
     <message>
-        <location filename="../ui/analysis/qgisred_timeseries_dock.py" line="1744"/>
+        <location filename="../ui/analysis/qgisred_timeseries_dock.py" line="1748"/>
         <source>The values table could not be copied</source>
         <translation>Não foi possível copiar a tabela de valores</translation>
     </message>
     <message>
-        <location filename="../ui/analysis/qgisred_timeseries_dock.py" line="1746"/>
+        <location filename="../ui/analysis/qgisred_timeseries_dock.py" line="1750"/>
         <source>Values table copied to clipboard</source>
         <translation>Tabela de valores copiada para a área de transferência</translation>
     </message>
     <message>
-        <location filename="../ui/analysis/qgisred_timeseries_dock.py" line="1754"/>
+        <location filename="../ui/analysis/qgisred_timeseries_dock.py" line="1758"/>
         <source>No table selection to copy</source>
         <translation>Não há seleção na tabela para copiar</translation>
     </message>
     <message>
-        <location filename="../ui/analysis/qgisred_timeseries_dock.py" line="1769"/>
+        <location filename="../ui/analysis/qgisred_timeseries_dock.py" line="1773"/>
         <source>No table values to copy</source>
         <translation>Não há valores na tabela para copiar</translation>
     </message>
     <message>
-        <location filename="../ui/analysis/qgisred_timeseries_dock.py" line="2189"/>
+        <location filename="../ui/analysis/qgisred_timeseries_dock.py" line="2193"/>
         <source>Single Period</source>
         <translation>Período Único</translation>
     </message>
     <message>
-        <location filename="../ui/analysis/qgisred_timeseries_dock.py" line="1364"/>
+        <location filename="../ui/analysis/qgisred_timeseries_dock.py" line="1368"/>
         <source>System:</source>
         <translation>Sistema:</translation>
     </message>
     <message>
-        <location filename="../ui/analysis/qgisred_timeseries_dock.py" line="1396"/>
+        <location filename="../ui/analysis/qgisred_timeseries_dock.py" line="1400"/>
         <source>— System variable —</source>
         <translation>— Variável do sistema —</translation>
     </message>
     <message>
-        <location filename="../ui/analysis/qgisred_timeseries_dock.py" line="1371"/>
+        <location filename="../ui/analysis/qgisred_timeseries_dock.py" line="1375"/>
         <source>Add a system-wide variable curve (no map selection needed)</source>
         <translation>Adicionar uma curva de variável do sistema (sem seleção no mapa)</translation>
     </message>
     <message>
-        <location filename="../ui/analysis/qgisred_timeseries_dock.py" line="2403"/>
+        <location filename="../ui/analysis/qgisred_timeseries_dock.py" line="2416"/>
         <source>Export chart configuration</source>
         <translation>Exportar configuração do gráfico</translation>
     </message>
     <message>
-        <location filename="../ui/analysis/qgisred_timeseries_dock.py" line="2460"/>
+        <location filename="../ui/analysis/qgisred_timeseries_dock.py" line="2473"/>
         <source>Import chart configuration</source>
         <translation>Importar configuração do gráfico</translation>
     </message>
     <message>
-        <location filename="../ui/analysis/qgisred_timeseries_dock.py" line="2460"/>
+        <location filename="../ui/analysis/qgisred_timeseries_dock.py" line="2473"/>
         <source>Configuration file (*.cfg)</source>
         <translation>Arquivo de configuração (*.cfg)</translation>
     </message>
     <message>
-        <location filename="../ui/analysis/qgisred_timeseries_dock.py" line="1355"/>
+        <location filename="../ui/analysis/qgisred_timeseries_dock.py" line="1359"/>
         <source>Edit chart description</source>
         <translation>Editar descrição do gráfico</translation>
     </message>
     <message>
-        <location filename="../ui/analysis/qgisred_timeseries_dock.py" line="2418"/>
+        <location filename="../ui/analysis/qgisred_timeseries_dock.py" line="2431"/>
         <source>Chart description</source>
         <translation>Descrição do gráfico</translation>
     </message>
     <message>
-        <location filename="../ui/analysis/qgisred_timeseries_dock.py" line="2421"/>
+        <location filename="../ui/analysis/qgisred_timeseries_dock.py" line="2434"/>
         <source>Describe the chart content (up to 256 characters):</source>
         <translation>Descreva o conteúdo do gráfico (até 256 caracteres):</translation>
     </message>
