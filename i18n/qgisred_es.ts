@@ -6734,7 +6734,7 @@ Crear una leyenda categorizada con más de %3 clases puede afectar al rendimient
     <message>
         <location filename="../ui/project/qgisred_legends_dialog.py" line="2627"/>
         <source>Quantile (Equal Count)</source>
-        <translation>Cuantil (igual cantidad)</translation>
+        <translation>Cuantil (cantidades iguales)</translation>
     </message>
     <message>
         <location filename="../ui/project/qgisred_legends_dialog.py" line="2628"/>
@@ -6749,7 +6749,7 @@ Crear una leyenda categorizada con más de %3 clases puede afectar al rendimient
     <message>
         <location filename="../ui/project/qgisred_legends_dialog.py" line="2630"/>
         <source>Pretty Breaks</source>
-        <translation>Rupturas bonitas</translation>
+        <translation>Intervalos redondeados</translation>
     </message>
     <message>
         <location filename="../ui/project/qgisred_legends_dialog.py" line="3065"/>
@@ -9366,27 +9366,27 @@ No se pueden aplicar los cambios.</translation>
     <message>
         <location filename="../ui/queries/qgisred_statisticsandgraphs_dock.py" line="1417"/>
         <source>Equal Interval</source>
-        <translation type="unfinished">Intervalo Igual</translation>
+        <translation type="unfinished">Intervalo igual</translation>
     </message>
     <message>
         <location filename="../ui/queries/qgisred_statisticsandgraphs_dock.py" line="1417"/>
         <source>Fixed Interval</source>
-        <translation type="unfinished">Intervalo Fijo</translation>
+        <translation type="unfinished">Intervalo fijo</translation>
     </message>
     <message>
         <location filename="../ui/queries/qgisred_statisticsandgraphs_dock.py" line="1417"/>
         <source>Equal Count</source>
-        <translation type="unfinished">Recuento Igual</translation>
+        <translation type="unfinished">Cantidades iguales</translation>
     </message>
     <message>
         <location filename="../ui/queries/qgisred_statisticsandgraphs_dock.py" line="1417"/>
         <source>Natural Breaks</source>
-        <translation type="unfinished">Rupturas Naturales</translation>
+        <translation type="unfinished">Rupturas naturales</translation>
     </message>
     <message>
         <location filename="../ui/queries/qgisred_statisticsandgraphs_dock.py" line="1417"/>
         <source>Pretty Breaks</source>
-        <translation type="unfinished">Rupturas Bonitas</translation>
+        <translation type="unfinished">Intervalos redondeados</translation>
     </message>
     <message>
         <location filename="../ui/queries/qgisred_statisticsandgraphs_dock.py" line="1417"/>
