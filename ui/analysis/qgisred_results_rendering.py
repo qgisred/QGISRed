@@ -207,7 +207,7 @@ class _ResultsRenderingMixin:
     # across languages) so the user can identify the displayed variable by color.
     _MAGNITUDE_COLORS = {
         # Nodes
-        "Pressure": "#2f8f5b",    # verde esmeralda (presión; el verde con más contraste)
+        "Pressure": "#1fa22e",    # verde vivo (sin tinte azul, para no confundirse con Flow)
         "Head": "#b5981f",        # ocre/ámbar (más oscuro e intenso que el ocre previo)
         "Demand": "#67add9",      # azul claro (distinto del azul de Flow)
         "Quality": "#8d5a99",     # morado (calidad en nudos)
