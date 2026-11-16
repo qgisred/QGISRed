@@ -103,6 +103,7 @@ class TimeSeriesPlotWidget(QWidget):
         self.margin_top = 40
         self.margin_bottom = 40
         self.hover_index = None
+        self.description = ""
         self.y_categorical_labels = None
         self.setMouseTracking(True)
         self._base_min_w = 260
@@ -895,12 +896,31 @@ class TimeSeriesPlotWidget(QWidget):
         painter = QPainter(self)
         self._renderer.render(self, painter)
 
+    def _overflowRectAt(self, pos):
+        rect = getattr(self, "_legend_overflow_rect", None)
+        return rect if rect is not None and rect.contains(pos) else None
+
+    def _tooltipTextAt(self, pos):
+        if self._overflowRectAt(pos) is not None:
+            return "\n".join(self._legend_overflow_labels)
+        if self.hover_index is not None:
+            return None
+        return self.description or None
+
     def event(self, event):
         if event is not None and event.type() == QEvent.Type.ToolTip:
-            rect = getattr(self, "_legend_overflow_rect", None)
-            if rect is not None and rect.contains(QPointF(event.pos())):
-                QToolTip.showText(event.globalPos(), "\n".join(self._legend_overflow_labels), self, rect.toRect())
+            pos = QPointF(event.pos())
+            text = self._tooltipTextAt(pos)
+            if not text:
+                QToolTip.hideText()
+                event.ignore()
                 return True
+            overflow_rect = self._overflowRectAt(pos)
+            if overflow_rect is not None:
+                QToolTip.showText(event.globalPos(), text, self, overflow_rect.toRect())
+            else:
+                QToolTip.showText(event.globalPos(), text, self)
+            return True
         return super(TimeSeriesPlotWidget, self).event(event)
 
     def leaveEvent(self, event):
@@ -1127,6 +1147,8 @@ class TimeSeriesPlotWidget(QWidget):
             best_idx = self._nearestDataIndex(xs, target_x)
 
             if self.hover_index != best_idx or self._hover_series_idx != hover_idx:
+                if self.hover_index is None:
+                    QToolTip.hideText()
                 self.hover_index = best_idx
                 self._hover_series_idx = hover_idx
                 self.update()
@@ -1149,7 +1171,15 @@ class QGISRedTimeSeriesDock(QGISRedDockActivationMixin, QDockWidget, FORM_CLASS)
     # Class-level default so attribute lookup never falls through to a mocked
     # Qt base class (tests build instances via __new__ without __init__).
     _resultsDock = None
-    _chartComment = ""
+
+    @property
+    def _chartComment(self) -> str:
+        plot = getattr(self, "plot", None)
+        return plot.description if plot is not None else ""
+
+    @_chartComment.setter
+    def _chartComment(self, text) -> None:
+        self.plot.description = text or ""
 
     def __init__(self, iface, parent=None):
         super(QGISRedTimeSeriesDock, self).__init__(parent or iface.mainWindow())
@@ -1157,7 +1187,6 @@ class QGISRedTimeSeriesDock(QGISRedDockActivationMixin, QDockWidget, FORM_CLASS)
         self.setupUi(self)
         self._toolbarWidget = None
         self._resultsDock = None
-        self._chartComment = ""
         self._lastResultsTimeText = ""
         self._tableVisible = False
         self._resultsTimeFormatKey = None
@@ -2385,7 +2414,7 @@ class QGISRedTimeSeriesDock(QGISRedDockActivationMixin, QDockWidget, FORM_CLASS)
 
     def _onEditCommentClicked(self) -> None:
         MAX = 256
-        dlg = QDialog(self)
+        dlg = QDialog(self.iface.mainWindow())
         dlg.setWindowTitle(self.tr("Chart description"))
         dlg.setWindowIcon(QIcon(":/images/iconComment.svg"))
         layout = QVBoxLayout(dlg)
