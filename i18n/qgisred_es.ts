@@ -2152,6 +2152,31 @@
         <source>Clear routes</source>
         <translation>Borrar rutas</translation>
     </message>
+    <message>
+        <location filename="../sections/flow_paths_section.py" line="880"/>
+        <source>Links: {0}</source>
+        <translation>Líneas: {0}</translation>
+    </message>
+    <message>
+        <location filename="../sections/flow_paths_section.py" line="881"/>
+        <source>Initial flow: {0}</source>
+        <translation>Caudal inicial: {0}</translation>
+    </message>
+    <message>
+        <location filename="../sections/flow_paths_section.py" line="882"/>
+        <source>Final flow: {0}</source>
+        <translation>Caudal final: {0}</translation>
+    </message>
+    <message>
+        <location filename="../sections/flow_paths_section.py" line="883"/>
+        <source>Inflows: {0}</source>
+        <translation>Aportes: {0}</translation>
+    </message>
+    <message>
+        <location filename="../sections/flow_paths_section.py" line="884"/>
+        <source>Withdrawals: {0}</source>
+        <translation>Extracciones: {0}</translation>
+    </message>
 </context>
 <context>
     <name>InputLayerNames</name>

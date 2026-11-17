@@ -4,12 +4,14 @@ from QGISRed.tools.utils.qgisred_flow_paths import (
     ROUTE_MAX_FLOW,
     ROUTE_MIN_LENGTH,
     UPSTREAM,
+    faded,
     optimal_route,
     place_callouts,
     oriented_links,
     route_decomposition,
+    route_flow_balance,
     route_link_costs,
-    route_tones,
+    route_shades,
     source_nodes_from,
     trace_flow_paths,
     upstream_link_sources,
@@ -102,14 +104,20 @@ def test_routes_are_the_busiest_way_plus_the_stretches_only_the_others_use():
     ]
 
 
-def test_alternative_stretches_that_touch_get_different_tones():
-    oriented = {"M1": ("A", "B"), "M2": ("B", "C"), "X": ("A", "B"), "Y": ("A", "C"), "Z": ("B", "C")}
-    routes = [{"own": ["M1", "M2"]}, {"own": ["X"]}, {"own": ["Y"]}, {"own": ["Z"]}]
-    tones = route_tones(routes, oriented, 4)
-    assert tones[0] is None
-    assert len({tones[1], tones[2], tones[3]}) == 3
-    far = {"M": ("A", "B"), "N": ("B", "C"), "O": ("C", "D"), "P": ("A", "B"), "Q": ("C", "D")}
-    assert route_tones([{"own": ["M", "N", "O"]}, {"own": ["P"]}, {"own": ["Q"]}], far, 1) == [None, 0, 0]
+def test_route_shades_fade_step_by_step_without_reaching_white():
+    assert route_shades(2) == [0.0, 0.25]
+    shades = route_shades(9)
+    assert shades == sorted(shades) and shades[0] == 0.0 and abs(shades[-1] - 0.8) < 1e-9
+    assert faded((100, 200, 255), 0.5) == (178, 228, 255)
+
+
+def test_route_flow_balance_adds_what_joins_and_leaves_along_the_way():
+    endpoints = {"AB": ("A", "B"), "BC": ("B", "C"), "CD": ("C", "D"), "XB": ("X", "B"), "CY": ("C", "Y")}
+    flows = {"AB": 10.0, "BC": 11.0, "CD": 6.0, "XB": 4.0, "CY": 3.0}
+    oriented = oriented_links(endpoints, flows)
+    balance = route_flow_balance(["AB", "BC", "CD"], oriented, flows, {"B": 3.0, "C": 2.0, "D": 6.0})
+    assert balance == {"links": 3, "first": 10.0, "gained": 4.0, "lost": 8.0, "last": 6.0}
+    assert balance["first"] + balance["gained"] - balance["lost"] == balance["last"]
 
 
 def test_callouts_avoid_the_routes_and_each_other_or_are_left_out():

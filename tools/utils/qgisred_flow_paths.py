@@ -365,16 +365,37 @@ def route_decomposition(origin, destination, oriented, route_links, link_costs, 
     return routes
 
 
-def route_tones(routes, oriented, count=4):
-    nodes = [{node for lid in route["own"] for node in oriented.get(lid, ())} for route in routes]
-    tones = [None] * len(routes)
-    used = [0] * count
-    for i in range(1, len(routes)):
-        taken = {tones[j] for j in range(1, i) if nodes[i] & nodes[j]}
-        free = [tone for tone in range(count) if tone not in taken] or list(range(count))
-        tones[i] = min(free, key=lambda tone: (used[tone], tone))
-        used[tones[i]] += 1
-    return tones
+def route_flow_balance(route, oriented, flows, demands=None):
+    if not route:
+        return {"links": 0, "first": 0.0, "gained": 0.0, "lost": 0.0, "last": 0.0}
+    inner = {oriented[lid][1] for lid in route[:-1]}
+    on_route = set(route)
+    gained = lost = 0.0
+    for lid, (up_node, down_node) in oriented.items():
+        if lid in on_route:
+            continue
+        if down_node in inner:
+            gained += _magnitude(flows, lid)
+        if up_node in inner:
+            lost += _magnitude(flows, lid)
+    for node in inner:
+        demand = _as_float((demands or {}).get(node)) or 0.0
+        if demand > 0:
+            lost += demand
+        else:
+            gained -= demand
+    return {"links": len(route), "first": _magnitude(flows, route[0]), "gained": gained, "lost": lost,
+            "last": _magnitude(flows, route[-1])}
+
+
+def route_shades(count, step=0.25, reach=0.8):
+    if count > 1:
+        step = min(step, reach / (count - 1))
+    return [step * position for position in range(count)]
+
+
+def faded(rgb, fraction):
+    return tuple(int(round(channel + (255 - channel) * fraction)) for channel in rgb)
 
 
 def route_summary(route, flows, velocities=None, headlosses=None, lengths=None):
@@ -382,7 +403,8 @@ def route_summary(route, flows, velocities=None, headlosses=None, lengths=None):
     time = sum(route_link_costs(ROUTE_MIN_TIME, route, flows, velocities=velocities, lengths=lengths).values())
     energy = sum(route_link_costs(ROUTE_MIN_ENERGY, route, flows, headlosses=headlosses).values())
     carried = route_link_costs(ROUTE_MAX_FLOW, route, flows).values()
-    return {"length": length, "time": time, "energy": energy, "flow": min(carried) if carried else 0.0}
+    return {"length": length, "time": time, "energy": energy,
+            "flow": sum(carried) / len(carried) if carried else 0.0}
 
 
 def place_callouts(callouts, bounds, overlap=None, gap=7.0, margin=3.0):

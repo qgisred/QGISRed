@@ -369,12 +369,15 @@ class QGISRedFlowPathsCanvasItem(QgsMapCanvasItem):
             box = QRectF(spot[0], spot[1], width, height)
             subtitle = (label.get("subtitle") or "") if selected else ""
             font, metrics, padding = compact_font, compact_metrics, _COMPACT_PADDING
+            lines = []
             if selected:
                 font, metrics, padding = title_font, title_metrics, _LABEL_PADDING
+                lines = ([subtitle] if subtitle else []) + list(label.get("details") or [])
                 box = self._unfolded(
                     box, anchor, bounds,
-                    max(metrics.horizontalAdvance(title), sub_metrics.horizontalAdvance(subtitle)) + 2 * padding,
-                    metrics.height() + (sub_metrics.height() if subtitle else 0.0) + 2 * padding)
+                    max([metrics.horizontalAdvance(title)] + [sub_metrics.horizontalAdvance(line) for line in lines])
+                    + 2 * padding,
+                    metrics.height() + sub_metrics.height() * len(lines) + 2 * padding)
             fill = QColor(label["color"]) if selected else QColor(tone_fill)
             border = QColor(label["color"]).darker(130) if selected else QColor(tone_border)
             text = QColor(255, 255, 255) if selected else QColor(60, 60, 60)
@@ -392,8 +395,10 @@ class QGISRedFlowPathsCanvasItem(QgsMapCanvasItem):
             top = box.top() + padding
             painter.drawText(QRectF(box.left(), top, box.width(), metrics.height()),
                              int(Qt.AlignmentFlag.AlignHCenter | Qt.AlignmentFlag.AlignVCenter), title)
-            if subtitle:
-                painter.setFont(sub_font)
-                painter.drawText(QRectF(box.left(), top + metrics.height(), box.width(), sub_metrics.height()),
-                                 int(Qt.AlignmentFlag.AlignHCenter | Qt.AlignmentFlag.AlignVCenter), subtitle)
+            painter.setFont(sub_font)
+            for row, line in enumerate(lines):
+                painter.drawText(
+                    QRectF(box.left(), top + metrics.height() + row * sub_metrics.height(),
+                           box.width(), sub_metrics.height()),
+                    int(Qt.AlignmentFlag.AlignHCenter | Qt.AlignmentFlag.AlignVCenter), line)
             self._routeLabelRects.append((box, label.get("index")))
