@@ -236,6 +236,21 @@
         <source>No variable selected in the Results panel.</source>
         <translation type="unfinished"></translation>
     </message>
+    <message>
+        <location filename="../sections/analysis_section.py" line="1298"/>
+        <source>Do you want to keep this chart to reopen it later, or delete it permanently?</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="../sections/analysis_section.py" line="1299"/>
+        <source>Keep</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="../sections/analysis_section.py" line="1300"/>
+        <source>Delete</source>
+        <translation type="unfinished"></translation>
+    </message>
 </context>
 <context>
     <name>AuxiliaryTypeNames</name>

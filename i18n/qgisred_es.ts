@@ -246,6 +246,21 @@
         <source>No variable selected in the Results panel.</source>
         <translation>No hay ninguna variable seleccionada en el panel de resultados.</translation>
     </message>
+    <message>
+        <location filename="../sections/analysis_section.py" line="1298"/>
+        <source>Do you want to keep this chart to reopen it later, or delete it permanently?</source>
+        <translation>¿Desea conservar esta gráfica para volver a abrirla más tarde o eliminarla definitivamente?</translation>
+    </message>
+    <message>
+        <location filename="../sections/analysis_section.py" line="1299"/>
+        <source>Keep</source>
+        <translation>Conservar</translation>
+    </message>
+    <message>
+        <location filename="../sections/analysis_section.py" line="1300"/>
+        <source>Delete</source>
+        <translation>Eliminar</translation>
+    </message>
 </context>
 <context>
     <name>AuxiliaryTypeNames</name>

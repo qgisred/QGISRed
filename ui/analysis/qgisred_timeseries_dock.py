@@ -1171,6 +1171,7 @@ class QGISRedTimeSeriesDock(QGISRedDockActivationMixin, QDockWidget, FORM_CLASS)
     # Class-level default so attribute lookup never falls through to a mocked
     # Qt base class (tests build instances via __new__ without __init__).
     _resultsDock = None
+    closeHandler = None
 
     @property
     def _chartComment(self) -> str:
@@ -1251,6 +1252,13 @@ class QGISRedTimeSeriesDock(QGISRedDockActivationMixin, QDockWidget, FORM_CLASS)
             if event is not None and event.type() == QEvent.Type.WindowTitleChange:
                 self._updateMinimumWidthForDockTitle()
         return super(QGISRedTimeSeriesDock, self).event(event)
+
+    def closeEvent(self, event):
+        handler = getattr(self, "closeHandler", None)
+        if handler is not None and not handler(self):
+            event.ignore()
+            return
+        super(QGISRedTimeSeriesDock, self).closeEvent(event)
 
     def _initToolbar(self) -> None:
         try:

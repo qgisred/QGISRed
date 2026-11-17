@@ -719,6 +719,7 @@ class AnalysisSection:
         dock.newChartRequested.connect(self._onTimeSeriesNewChartRequested)
         dock.activated.connect(lambda d=dock: self._onTimeSeriesDockActivated(d))
         dock.topLevelChanged.connect(lambda floating, d=dock: self._onTimeSeriesDockTopLevelChanged(floating, d))
+        dock.closeHandler = self._onTimeSeriesDockCloseRequested
         self.timeSeriesDocks.append(dock)
         self._registerTimeSeriesHighlightOwner()
         mainWindow = self.iface.mainWindow()
@@ -1281,6 +1282,80 @@ class AnalysisSection:
                 self.timeSeriesButton.setChecked(False)
         self._restyleTimeSeriesDocks()
 
+    def _timeSeriesDockHasContent(self, dock):
+        try:
+            if dock._plotHasCurves():
+                return True
+        except Exception:
+            if getattr(dock, "selection", None):
+                return True
+        return bool(str(getattr(dock, "_chartComment", "") or "").strip())
+
+    def _askTimeSeriesCloseChoice(self, dock):
+        from qgis.PyQt.QtWidgets import QMessageBox
+        box = QMessageBox(self.iface.mainWindow())
+        box.setIcon(QMessageBox.Icon.Question)
+        box.setWindowTitle(dock.windowTitle())
+        box.setText(self.tr("Do you want to keep this chart to reopen it later, or delete it permanently?"))
+        keepButton = box.addButton(self.tr("Keep"), QMessageBox.ButtonRole.AcceptRole)
+        deleteButton = box.addButton(self.tr("Delete"), QMessageBox.ButtonRole.DestructiveRole)
+        cancelButton = box.addButton(QMessageBox.StandardButton.Cancel)
+        box.setDefaultButton(keepButton)
+        box.setEscapeButton(cancelButton)
+        box.exec()
+        clicked = box.clickedButton()
+        if clicked is keepButton:
+            return "keep"
+        if clicked is deleteButton:
+            return "delete"
+        return "cancel"
+
+    def _onTimeSeriesDockCloseRequested(self, dock):
+        if not self._timeSeriesDockHasContent(dock):
+            self._deleteTimeSeriesDock(dock)
+            return True
+        choice = self._askTimeSeriesCloseChoice(dock)
+        if choice == "cancel":
+            return False
+        if choice == "delete":
+            self._deleteTimeSeriesDock(dock)
+        return True
+
+    def _deleteTimeSeriesDock(self, dock):
+        with suppress(Exception):
+            dock.visibilityChanged.disconnect(self.timeSeriesDockVisibilityChanged)
+        with suppress(Exception):
+            dock.destroyed.disconnect(self._onTimeSeriesDockDestroyed)
+        dock.closeHandler = None
+        with suppress(Exception):
+            self._clearTimeSeriesHighlight(dock)
+        with suppress(Exception):
+            dock.disconnectResultsDock()
+        self.timeSeriesDocks = [d for d in (getattr(self, "timeSeriesDocks", None) or []) if d is not dock]
+        if getattr(self, "_activeTimeSeriesDock", None) is dock:
+            self._activeTimeSeriesDock = None
+            next_active = self._firstVisibleTimeSeriesDock()
+            if next_active is not None:
+                self._setActiveTimeSeriesDock(next_active)
+        if not self.timeSeriesDocks:
+            self._timeSeriesDockCounter = 0
+        self._restyleTimeSeriesDocks()
+        self._releaseTimeSeriesToolIfNoDockVisible()
+        with suppress(Exception):
+            self.iface.removeDockWidget(dock)
+        with suppress(Exception):
+            dock.deleteLater()
+
+    def _releaseTimeSeriesToolIfNoDockVisible(self):
+        if self._anyTimeSeriesDockVisible():
+            return
+        self.timeSeriesButton.setChecked(False)
+        if (
+            "TimeSeries" in self.myMapTools
+            and self.iface.mapCanvas().mapTool() == self.myMapTools.get("TimeSeries")
+        ):
+            self.iface.mapCanvas().unsetMapTool(self.myMapTools["TimeSeries"])
+
     def _onTimeSeriesClearAllRequested(self, dock=None):
         """Clear all curves and return the dock to its initial empty state."""
         if dock is None:
@@ -1329,13 +1404,7 @@ class AnalysisSection:
                     else:
                         self._activeTimeSeriesDock = None
                         self._restyleTimeSeriesDocks()
-                if not self._anyTimeSeriesDockVisible():
-                    self.timeSeriesButton.setChecked(False)
-                    if (
-                        "TimeSeries" in self.myMapTools
-                        and self.iface.mapCanvas().mapTool() == self.myMapTools.get("TimeSeries")
-                    ):
-                        self.iface.mapCanvas().unsetMapTool(self.myMapTools["TimeSeries"])
+                self._releaseTimeSeriesToolIfNoDockVisible()
             elif not getattr(self, "_timeSeriesFocusCeded", False):
                 # Only redraw while the charts still own the canvas. Qt reports
                 # a panel dropping to the back of the pile as "not visible" even

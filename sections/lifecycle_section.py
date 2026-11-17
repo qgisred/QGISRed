@@ -333,6 +333,7 @@ class LifecycleSection:
                 ts_dock.visibilityChanged.disconnect(self.timeSeriesDockVisibilityChanged)
             with suppress(Exception):
                 ts_dock.destroyed.disconnect(self._onTimeSeriesDockDestroyed)
+            ts_dock.closeHandler = None
             docks_to_clean.append(('timeSeriesDock', ts_dock))
         self.timeSeriesDocks = []
         self._activeTimeSeriesDock = None
