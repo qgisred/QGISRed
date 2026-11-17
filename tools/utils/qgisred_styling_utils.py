@@ -1789,6 +1789,10 @@ class QGISRedStylingUtils:
             return rebuilt
         if renderer.type() != "categorizedSymbol":
             return None
+        if not hasattr(renderer, "categories"):
+            # sip hands back the Python wrapper of a renderer already deleted when the new one
+            # lands on its address, whatever class that was; a clone gets a wrapper of its own.
+            renderer = renderer.clone()
         if self._classFieldOfExpression(renderer.classAttribute()) == field:
             return renderer
         rebuilt = self._rebuildCategorizedRenderer(renderer, list(renderer.categories()))
