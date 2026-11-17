@@ -326,9 +326,63 @@ def largest_flow_route(origin, destination, oriented, route_links, flows):
     return _best_way(origin, {destination}, oriented, route_links, {}, flows, True)
 
 
+def highest_mean_flow_route(origin, destination, oriented, route_links, flows):
+    outgoing = {}
+    pending = {}
+    for lid in sorted(route_links, key=str):
+        ends = oriented.get(lid)
+        if ends is None:
+            continue
+        outgoing.setdefault(ends[0], []).append((lid, ends[1]))
+        pending[ends[1]] = pending.get(ends[1], 0) + 1
+        pending.setdefault(ends[0], 0)
+    order = []
+    ready = [node for node, count in pending.items() if count == 0]
+    while ready:
+        node = ready.pop()
+        order.append(node)
+        for _lid, head in outgoing.get(node, ()):
+            pending[head] -= 1
+            if pending[head] == 0:
+                ready.append(head)
+    if len(order) != len(pending):
+        return []
+
+    def heaviest(shift):
+        best = {origin: (0.0, None)}
+        for node in order:
+            if node not in best:
+                continue
+            for lid, head in outgoing.get(node, ()):
+                value = best[node][0] + _magnitude(flows, lid) - shift
+                if head not in best or value > best[head][0]:
+                    best[head] = (value, (node, lid))
+        route = []
+        node = destination
+        while node != origin:
+            if node not in best:
+                return []
+            node, lid = best[node][1]
+            route.append(lid)
+        return route[::-1]
+
+    def mean(route):
+        return sum(_magnitude(flows, lid) for lid in route) / len(route)
+
+    route = heaviest(0.0)
+    while route:
+        better = heaviest(mean(route))
+        if not better or mean(better) <= mean(route) + 1e-9:
+            break
+        route = better
+    return route
+
+
 def route_decomposition(origin, destination, oriented, route_links, link_costs, flows, by_flow=False):
     best = []
     if by_flow:
+        best = highest_mean_flow_route(origin, destination, oriented, route_links, flows)
+    if not best and by_flow:
         best = largest_flow_route(origin, destination, oriented, route_links, flows)
     if not best:
         costs = {lid: _magnitude(flows, lid) for lid in route_links} if by_flow else link_costs

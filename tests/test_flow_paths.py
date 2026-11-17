@@ -104,6 +104,15 @@ def test_routes_are_the_busiest_way_plus_the_stretches_only_the_others_use():
     ]
 
 
+def test_the_best_route_by_flow_is_the_one_with_the_highest_mean_flow():
+    endpoints = {"AB": ("A", "B"), "BD": ("B", "D"), "AC": ("A", "C"), "CD": ("C", "D")}
+    flows = {"AB": 10.0, "BD": 1.0, "AC": 6.0, "CD": 6.0}
+    oriented = oriented_links(endpoints, flows)
+    costs = route_link_costs(ROUTE_MAX_FLOW, set(endpoints), flows)
+    routes = route_decomposition("A", "D", oriented, set(endpoints), costs, flows, by_flow=True)
+    assert [route["links"] for route in routes] == [["AC", "CD"], ["AB", "BD"]]
+
+
 def test_route_shades_fade_step_by_step_without_reaching_white():
     assert route_shades(2) == [0.0, 0.25]
     shades = route_shades(9)
