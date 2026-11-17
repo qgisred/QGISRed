@@ -27,6 +27,7 @@ from .qgisred_results_data import (_ResultsDataMixin, _STAT_VAR_ALIASES,
 from .qgisred_results_distribution import _ResultsDistributionMixin
 from .qgisred_results_evolution import _ResultsEvolutionMixin
 from .qgisred_results_appearance import _ResultsAppearanceMixin
+from .simulation_period import simulation_start_date
 from .timeseries_time_utils import simulation_start_clock_seconds, format_civil_time
 
 import os
@@ -240,6 +241,7 @@ class QGISRedResultsDock(
         self.continuousHoursMode = False
         self._civilLabels = []
         self._startClockSeconds = 0
+        self._startDate = None
         self._iconCivil = QIcon(":/images/iconResultsClockCivil.svg")
         self._iconElapsed = QIcon(":/images/iconResultsElapsedTime.svg")
         self._iconAmPm = QIcon(":/images/iconResultsAmPm.svg")
@@ -928,6 +930,7 @@ class QGISRedResultsDock(
                     self._startClockSeconds,
                     include_seconds=True,
                     am_pm=am_pm,
+                    start_date=self._startDate,
                 )
                 for lbl in labels
             ]
@@ -1084,11 +1087,7 @@ class QGISRedResultsDock(
         self._updateDistributionCheckboxLabels()
         self._updateEvolutionCheckboxLabels()
         if restore["time"]:
-            self._startClockSeconds = simulation_start_clock_seconds(
-                self.ProjectDirectory, self.NetworkName,
-                binary_path=os.path.join(self.getResultsPath(),
-                                         f"{self.NetworkName}_{self.Scenario}.out"),
-            )
+            self._loadStartClock()
             _, _, fmt, _ = self._resolveRestoreTime(restore["time"])
             self.civilMode, self.amPmFormat, self.continuousHoursMode = fmt
         self.loadAppearanceSettings()
@@ -1114,11 +1113,7 @@ class QGISRedResultsDock(
         self.updateQualityItemComboboxes()  # adjusts combo content (Quality, ReactRate)
 
         # Set _startClockSeconds early so _resolveRestoreTime can build civil labels
-        self._startClockSeconds = simulation_start_clock_seconds(
-            self.ProjectDirectory, self.NetworkName,
-            binary_path=os.path.join(self.getResultsPath(),
-                                     f"{self.NetworkName}_{self.Scenario}.out"),
-        )
+        self._loadStartClock()
 
         if restore["node_field"] or restore["link_field"]:
             # ── Restore path ────────────────────────────────────────────────────────
@@ -1248,6 +1243,13 @@ class QGISRedResultsDock(
         self.btAmPm.setToolTip(self.tr("24h format") if self.amPmFormat else self.tr("am/pm format"))
         self.btElapsedFormat.setToolTip(self.tr("dd hh:mm:ss format") if self.continuousHoursMode else self.tr("HH:mm:ss format"))
 
+    def _loadStartClock(self):
+        self._startClockSeconds = simulation_start_clock_seconds(
+            self.ProjectDirectory, self.NetworkName,
+            binary_path=os.path.join(self.getResultsPath(), f"{self.NetworkName}_{self.Scenario}.out"),
+        )
+        self._startDate = simulation_start_date(self.ProjectDirectory, self.NetworkName)
+
     def _elapsedTextToHours(self, text):
         text = (text or "").strip()
         if not text or text == self.lbl_singlePeriod:
@@ -1277,6 +1279,7 @@ class QGISRedResultsDock(
                 self._startClockSeconds,
                 include_seconds=True,
                 am_pm=self.amPmFormat,
+                start_date=self._startDate,
             )
             for t in self.TimeLabels
         ]
@@ -1304,7 +1307,7 @@ class QGISRedResultsDock(
             hours = self._elapsedTextToHours(elapsed_text)
             civil_text = format_civil_time(
                 hours or 0.0, self._startClockSeconds,
-                include_seconds=True, am_pm=self.amPmFormat,
+                include_seconds=True, am_pm=self.amPmFormat, start_date=self._startDate,
             )
             self.lbTime.setText(civil_text)
         elif self.continuousHoursMode:
@@ -1951,14 +1954,13 @@ class QGISRedResultsDock(
                 self.cbTimes.addItem(item)
         self.cbTimes.blockSignals(False)
 
-        self._startClockSeconds = simulation_start_clock_seconds(
-            self.ProjectDirectory, self.NetworkName,
-            binary_path=os.path.join(self.getResultsPath(),
-                                     f"{self.NetworkName}_{self.Scenario}.out"),
-        )
+        had_date = self._startDate is not None
+        self._loadStartClock()
 
         if restore_format is not None:
             self.civilMode, self.amPmFormat, self.continuousHoursMode = restore_format
+        elif self._startDate is not None and not had_date:
+            self.civilMode = True
         self._civilLabels = self._buildCivilLabels()
         self.btAmPm.setIcon(self._icon24h if self.amPmFormat else self._iconAmPm)
         self.btElapsedFormat.setIcon(self._iconSplitDays if self.continuousHoursMode else self._iconContinuousHrs)

@@ -54,3 +54,30 @@ def test_the_start_clock_of_the_period_wins_over_the_options(tmp_path):
 
 def test_the_start_clock_without_a_period_is_unchanged(tmp_path):
     assert simulation_start_clock_seconds(str(tmp_path), "Net", fallback=3600) == 3600
+
+
+def test_civil_time_shows_the_date_instead_of_the_day_count():
+    from datetime import date
+
+    from QGISRed.ui.analysis.timeseries_time_utils import format_civil_time
+
+    start = date(2026, 1, 31)
+    assert format_civil_time(1, 7 * 3600, start_date=start) == "31/01/2026 8:00"
+    assert format_civil_time(18, 7 * 3600, start_date=start) == "01/02/2026 1:00"
+    assert format_civil_time(18, 7 * 3600, start_date=start, am_pm=True) == "01/02/2026 1:00 am"
+
+
+def test_civil_time_without_a_date_is_unchanged():
+    from QGISRed.ui.analysis.timeseries_time_utils import format_civil_time
+
+    assert format_civil_time(1, 7 * 3600) == "8:00"
+    assert format_civil_time(18, 7 * 3600) == "1d 1:00"
+
+
+def test_the_start_date_comes_from_the_period(tmp_path):
+    from datetime import date
+
+    from QGISRed.ui.analysis.simulation_period import simulation_start_date
+
+    assert simulation_start_date(_write(tmp_path, _PERIOD_XML), "Net") == date(2026, 1, 1)
+    assert simulation_start_date(str(tmp_path / "none"), "Net") is None

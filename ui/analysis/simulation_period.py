@@ -3,7 +3,7 @@ from __future__ import annotations
 
 import os
 import xml.etree.ElementTree as ET
-from datetime import datetime, timedelta
+from datetime import date, datetime, timedelta
 from typing import NamedTuple, Optional
 
 
@@ -49,5 +49,10 @@ def read_simulation_period(project_directory: str, network_name: str) -> Optiona
     return SimulationPeriod(start_local, int((end_utc - start_utc).total_seconds()))
 
 
-def format_date(value: datetime) -> str:
+def format_date(value) -> str:
     return value.strftime("%d/%m/%Y")
+
+
+def simulation_start_date(project_directory: str, network_name: str) -> Optional[date]:
+    period = read_simulation_period(project_directory, network_name)
+    return period.start_local.date() if period is not None else None

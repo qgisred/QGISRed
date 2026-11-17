@@ -5,9 +5,10 @@ import math
 import os
 import re
 import unicodedata
+from datetime import timedelta
 from typing import Optional
 
-from .simulation_period import read_simulation_period
+from .simulation_period import format_date, read_simulation_period
 
 _TIME_RE = re.compile(r"^\s*(\d{1,2})(?::(\d{1,2}))?(?::(\d{1,2}))?\s*([ap]\.?\s*m\.?|am|pm)?\s*$", re.IGNORECASE)
 _START_CLOCK_KEYS = {
@@ -174,7 +175,14 @@ def civil_time_parts(hours, start_clock_seconds: int = 0):
     return int(day), int(hour), int(minute), int(second)
 
 
-def format_civil_time(hours, start_clock_seconds: int = 0, *, include_seconds: bool = True, am_pm: bool = False) -> str:
+def format_civil_time(
+    hours,
+    start_clock_seconds: int = 0,
+    *,
+    include_seconds: bool = True,
+    am_pm: bool = False,
+    start_date=None,
+) -> str:
     parts = civil_time_parts(hours, start_clock_seconds)
     if parts is None:
         return ""
@@ -194,6 +202,8 @@ def format_civil_time(hours, start_clock_seconds: int = 0, *, include_seconds: b
     else:
         time_text = f"{hour}:{minute:02d}"
 
+    if start_date is not None:
+        return f"{format_date(start_date + timedelta(days=day))} {time_text}"
     if day > 0:
         return f"{day}d {time_text}"
     return time_text
