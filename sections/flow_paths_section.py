@@ -15,6 +15,7 @@ from ..tools.utils.qgisred_flow_paths import (
     route_decomposition,
     route_link_costs,
     route_summary,
+    route_tones,
     source_nodes_from,
     trace_flow_paths,
     trace_routes,
@@ -34,6 +35,12 @@ _SIGNED_STATISTICS = {"Maximum": "Flow", "Minimum": "Flow", "Average": "Flow_Sig
 _ROUTE_COLORS = {
     UPSTREAM: (((215, 25, 28), (125, 10, 15)), ((242, 168, 163), (180, 120, 118))),
     DOWNSTREAM: (((26, 115, 232), (16, 64, 150)), ((160, 195, 245), (112, 142, 192))),
+}
+_ROUTE_TONES = {
+    UPSTREAM: (((168, 214, 160), (96, 150, 88)), ((250, 208, 132), (190, 140, 60)),
+               ((200, 180, 228), (130, 105, 170)), ((150, 214, 208), (70, 145, 140))),
+    DOWNSTREAM: (((168, 214, 160), (96, 150, 88)), ((250, 208, 132), (190, 140, 60)),
+                 ((200, 180, 228), (130, 105, 170)), ((244, 176, 200), (185, 100, 135))),
 }
 _ROUTE_WIDTH_MM = 1.8
 _ALTERNATIVE_WIDTH_MM = 1.3
@@ -605,12 +612,15 @@ class FlowPathsSection:
             if not routes:
                 continue
             summaries = []
+            trunk = set(routes[0]["links"])
             for route in routes:
                 summary = route_summary(route["links"], flows, values["velocities"], values["headlosses"], lengths)
-                summary["flow"] = route_summary(route["own"][:1], flows)["flow"]
+                leaving = [lid for lid in route["links"] if lid not in trunk] or route["links"]
+                summary["flow"] = route_summary(leaving[:1], flows)["flow"]
                 summaries.append(summary)
             return {"state": _ROUTE_OK, "direction": direction, "routes": routes,
-                    "summaries": summaries, "flows": flows}
+                    "summaries": summaries, "flows": flows,
+                    "tones": route_tones(routes, oriented, len(_ROUTE_TONES[direction]))}
         return dict(empty, state=_ROUTE_DISCONNECTED, flows=flows)
 
     def _flowPathsGeometryIndex(self):
@@ -764,11 +774,15 @@ class FlowPathsSection:
         labels = []
         if result["direction"] is not None:
             (fill, border), (alt_fill, alt_border) = _ROUTE_COLORS[result["direction"]]
-            colors = {True: (QColor(*fill), QColor(*border)), False: (QColor(*alt_fill), QColor(*alt_border))}
+            colors = {"selected": (QColor(*fill), QColor(*border)), None: (QColor(*alt_fill), QColor(*alt_border))}
+            for tone, (tone_fill, tone_border) in enumerate(_ROUTE_TONES[result["direction"]]):
+                colors[tone] = (QColor(*tone_fill), QColor(*tone_border))
+            tones = result.get("tones") or [None] * len(routes)
             symbols = {}
             strong = set(routes[selected]["links"])
-            pale = [lid for route in routes for lid in route["own"] if lid not in strong]
-            for lid, is_selected in [(lid, False) for lid in pale] + [(lid, True) for lid in routes[selected]["links"]]:
+            pale = [(lid, tones[i]) for i, route in enumerate(routes) for lid in route["own"] if lid not in strong]
+            for lid, tone in pale + [(lid, "selected") for lid in routes[selected]["links"]]:
+                is_selected = tone == "selected"
                 found = geometries["links"].get(str(lid))
                 if found is None:
                     continue
@@ -776,23 +790,26 @@ class FlowPathsSection:
                 if (flows.get(lid) or 0) < 0:
                     with suppress(Exception):
                         geometry = self._reversedLine(geometry)
-                key = (_link_kind(link_types.get(lid)), is_selected)
+                key = (_link_kind(link_types.get(lid)), tone)
                 if key not in symbols:
-                    color, casing = colors[is_selected]
+                    color, casing = colors[tone]
                     symbols[key] = build_route_symbol(
                         key[0], color, casing, _ROUTE_WIDTH_MM if is_selected else _ALTERNATIVE_WIDTH_MM,
-                        arrows=is_selected)
+                        arrow_color=None if is_selected else casing.darker(190))
                 entries.append((geometry, crs, symbols[key]))
             ranked = [0] + sorted(range(1, len(routes)), key=lambda i: self._flowRouteRank(result["summaries"][i]))
             rank = {index: position for position, index in enumerate(ranked)}
             order = [i for i in ranked if i != selected] + [selected]
             for index in order:
+                if rank[index] >= _LABELED_ROUTES and index != selected:
+                    continue
                 label = self._flowRouteLabel(index, routes, result["summaries"][index], geometries)
                 if label is not None:
                     label["selected"] = index == selected
                     label["rank"] = rank[index]
                     label["dot"] = rank[index] >= _LABELED_ROUTES
-                    label["color"] = colors[True][0]
+                    label["color"] = colors["selected"][0]
+                    label["tone"] = colors[tones[index]]
                     labels.append(label)
 
         for node_id, shape in ((origin, "circle"), (target, "diamond")):

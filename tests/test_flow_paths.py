@@ -9,6 +9,7 @@ from QGISRed.tools.utils.qgisred_flow_paths import (
     oriented_links,
     route_decomposition,
     route_link_costs,
+    route_tones,
     source_nodes_from,
     trace_flow_paths,
     upstream_link_sources,
@@ -99,6 +100,16 @@ def test_routes_are_the_busiest_way_plus_the_stretches_only_the_others_use():
         {"links": ["AB", "BC", "CD"], "own": ["BC", "CD"]},
         {"links": ["AC", "CD"], "own": ["AC"]},
     ]
+
+
+def test_alternative_stretches_that_touch_get_different_tones():
+    oriented = {"M1": ("A", "B"), "M2": ("B", "C"), "X": ("A", "B"), "Y": ("A", "C"), "Z": ("B", "C")}
+    routes = [{"own": ["M1", "M2"]}, {"own": ["X"]}, {"own": ["Y"]}, {"own": ["Z"]}]
+    tones = route_tones(routes, oriented, 4)
+    assert tones[0] is None
+    assert len({tones[1], tones[2], tones[3]}) == 3
+    far = {"M": ("A", "B"), "N": ("B", "C"), "O": ("C", "D"), "P": ("A", "B"), "Q": ("C", "D")}
+    assert route_tones([{"own": ["M", "N", "O"]}, {"own": ["P"]}, {"own": ["Q"]}], far, 1) == [None, 0, 0]
 
 
 def test_callouts_avoid_the_routes_and_each_other_or_are_left_out():

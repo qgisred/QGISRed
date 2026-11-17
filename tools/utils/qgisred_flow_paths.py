@@ -365,6 +365,18 @@ def route_decomposition(origin, destination, oriented, route_links, link_costs, 
     return routes
 
 
+def route_tones(routes, oriented, count=4):
+    nodes = [{node for lid in route["own"] for node in oriented.get(lid, ())} for route in routes]
+    tones = [None] * len(routes)
+    used = [0] * count
+    for i in range(1, len(routes)):
+        taken = {tones[j] for j in range(1, i) if nodes[i] & nodes[j]}
+        free = [tone for tone in range(count) if tone not in taken] or list(range(count))
+        tones[i] = min(free, key=lambda tone: (used[tone], tone))
+        used[tones[i]] += 1
+    return tones
+
+
 def route_summary(route, flows, velocities=None, headlosses=None, lengths=None):
     length = sum(route_link_costs(ROUTE_MIN_LENGTH, route, flows, lengths=lengths).values())
     time = sum(route_link_costs(ROUTE_MIN_TIME, route, flows, velocities=velocities, lengths=lengths).values())

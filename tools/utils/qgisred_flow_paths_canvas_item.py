@@ -37,9 +37,9 @@ _BACKGROUND_COLOR = QColor(170, 170, 170)
 _BACKGROUND_WIDTH = 0.4
 _VEIL_COLOR = QColor(255, 255, 255, 170)
 _CASING_WIDTH = 0.35
+_ALTERNATIVE_ARROW_SIZE = 2.9
 _LABEL_PADDING = 6.0
 _COMPACT_PADDING = 3.5
-_DOT_RADIUS = 4.5
 _LABEL_POINTER = 7.0
 _LABEL_RADIUS = 6.0
 
@@ -69,7 +69,7 @@ def build_link_symbol(kind, color, width):
     return symbol
 
 
-def build_route_symbol(kind, fill, casing, width, arrows=True):
+def build_route_symbol(kind, fill, casing, width, arrow_color=None):
     border = QgsSimpleLineSymbolLayer(casing, width + 2 * _CASING_WIDTH)
     line = QgsSimpleLineSymbolLayer(fill, width)
     for layer in (border, line):
@@ -80,7 +80,11 @@ def build_route_symbol(kind, fill, casing, width, arrows=True):
         symbol.appendSymbolLayer(_central_marker_layer(
             _LINK_ICONS[kind], fill.darker(150), _VALVE_PUMP_ICON_SIZE - 1.0 + width,
             stroke=QColor(255, 255, 255), stroke_width=0.25))
-    elif arrows:
+    elif arrow_color is not None:
+        symbol.appendSymbolLayer(_central_marker_layer(
+            _LINK_ICONS["pipe"], arrow_color, _ALTERNATIVE_ARROW_SIZE,
+            stroke=arrow_color, stroke_width=0.2))
+    else:
         symbol.appendSymbolLayer(_central_marker_layer(
             _LINK_ICONS["pipe"], QColor(255, 255, 255), width * 1.4,
             stroke=casing, stroke_width=0.1))
@@ -356,16 +360,10 @@ class QGISRedFlowPathsCanvasItem(QgsMapCanvasItem):
         for i, label in enumerate(self._routeLabels):
             anchor, width, height, title = layouts[i]
             selected = bool(label.get("selected"))
+            tone_fill, tone_border = label.get("tone") or (QColor(255, 255, 255), QColor(150, 150, 150))
             spot = spots.get(i)
             if spot is None:
                 if not selected:
-                    if label.get("dot"):
-                        dot = QRectF(anchor.x() - _DOT_RADIUS, anchor.y() - _DOT_RADIUS,
-                                     2 * _DOT_RADIUS, 2 * _DOT_RADIUS)
-                        painter.setPen(QPen(QColor(label["color"]).darker(130), 1.5))
-                        painter.setBrush(QColor(255, 255, 255))
-                        painter.drawEllipse(dot)
-                        self._routeLabelRects.append((dot.adjusted(-3, -3, 3, 3), label.get("index")))
                     continue
                 spot = (anchor.x() - width / 2.0, anchor.y() - _LABEL_POINTER - height)
             box = QRectF(spot[0], spot[1], width, height)
@@ -377,8 +375,8 @@ class QGISRedFlowPathsCanvasItem(QgsMapCanvasItem):
                     box, anchor, bounds,
                     max(metrics.horizontalAdvance(title), sub_metrics.horizontalAdvance(subtitle)) + 2 * padding,
                     metrics.height() + (sub_metrics.height() if subtitle else 0.0) + 2 * padding)
-            fill = QColor(label["color"]) if selected else QColor(255, 255, 255, 235)
-            border = QColor(label["color"]).darker(130) if selected else QColor(150, 150, 150)
+            fill = QColor(label["color"]) if selected else QColor(tone_fill)
+            border = QColor(label["color"]).darker(130) if selected else QColor(tone_border)
             text = QColor(255, 255, 255) if selected else QColor(60, 60, 60)
             path = QPainterPath()
             path.addRoundedRect(box, _LABEL_RADIUS, _LABEL_RADIUS)
