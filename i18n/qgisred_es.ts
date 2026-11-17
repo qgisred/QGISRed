@@ -8858,7 +8858,7 @@ No se pueden aplicar los cambios.</translation>
     <message>
         <location filename="../ui/analysis/qgisred_results_dock.ui" line="20"/>
         <source>QGISRed: Simulation Results</source>
-        <translation>QGISRed: Resultados de la simulación</translation>
+        <translation type="obsolete">QGISRed: Resultados de la simulación</translation>
     </message>
     <message>
         <location filename="../ui/analysis/qgisred_results_dock.py" line="1243"/>
@@ -9255,6 +9255,11 @@ No se pueden aplicar los cambios.</translation>
         <location filename="../ui/analysis/qgisred_results_dock.py" line="120"/>
         <source>Overflow flow</source>
         <translation>Caudal desbordado</translation>
+    </message>
+    <message>
+        <location filename="../ui/analysis/qgisred_results_dock.ui" line="20"/>
+        <source>QGISRed: Simulation results</source>
+        <translation>QGISRed: Resultados de la simulación</translation>
     </message>
 </context>
 <context>

@@ -8901,7 +8901,7 @@ Não é possível aplicar as alterações.</translation>
     <message>
         <location filename="../ui/analysis/qgisred_results_dock.ui" line="20"/>
         <source>QGISRed: Simulation Results</source>
-        <translation>QGISRed: Resultados da simulação</translation>
+        <translation type="obsolete">QGISRed: Resultados da simulação</translation>
     </message>
     <message>
         <location filename="../ui/analysis/qgisred_results_dock.ui" line="312"/>
@@ -9303,6 +9303,11 @@ Não é possível aplicar as alterações.</translation>
         <location filename="../ui/analysis/qgisred_results_dock.py" line="120"/>
         <source>Overflow flow</source>
         <translation>Vazão de extravasamento</translation>
+    </message>
+    <message>
+        <location filename="../ui/analysis/qgisred_results_dock.ui" line="20"/>
+        <source>QGISRed: Simulation results</source>
+        <translation>QGISRed: Resultados da simulação</translation>
     </message>
 </context>
 <context>

@@ -8856,7 +8856,7 @@ Impossible d'appliquer les modifications.</translation>
     <message>
         <location filename="../ui/analysis/qgisred_results_dock.ui" line="20"/>
         <source>QGISRed: Simulation Results</source>
-        <translation type="unfinished">QGISRed : Résultats de la simulation</translation>
+        <translation type="obsolete">QGISRed : Résultats de la simulation</translation>
     </message>
     <message>
         <location filename="../ui/analysis/qgisred_results_dock.ui" line="312"/>
@@ -9248,6 +9248,11 @@ Impossible d'appliquer les modifications.</translation>
         <location filename="../ui/analysis/qgisred_results_dock.py" line="120"/>
         <source>Overflow flow</source>
         <translation>Débit de débordement</translation>
+    </message>
+    <message>
+        <location filename="../ui/analysis/qgisred_results_dock.ui" line="20"/>
+        <source>QGISRed: Simulation results</source>
+        <translation>QGISRed : Résultats de la simulation</translation>
     </message>
 </context>
 <context>

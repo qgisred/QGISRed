@@ -8089,11 +8089,6 @@ Cannot apply changes.</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../ui/analysis/qgisred_results_dock.ui" line="20"/>
-        <source>QGISRed: Simulation Results</source>
-        <translation type="unfinished"></translation>
-    </message>
-    <message>
         <location filename="../ui/analysis/qgisred_results_dock.py" line="1243"/>
         <source>24h format</source>
         <translation type="unfinished"></translation>
@@ -8502,6 +8497,11 @@ Cannot apply changes.</source>
     <message>
         <location filename="../ui/analysis/qgisred_results_dock.py" line="120"/>
         <source>Overflow flow</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="../ui/analysis/qgisred_results_dock.ui" line="20"/>
+        <source>QGISRed: Simulation results</source>
         <translation type="unfinished"></translation>
     </message>
 </context>
