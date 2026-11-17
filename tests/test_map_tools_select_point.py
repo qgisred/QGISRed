@@ -237,3 +237,46 @@ class TestRightClick:
         tool.canvasReleaseEvent(_event(RIGHT))
 
         tool.method.assert_called_once_with(_Point(7, 8), None)
+
+
+@pytest.mark.mock_only
+class TestSnappingToFeaturesTheStyleDoesNotDraw:
+    """QGIS refuses to snap to any feature of a rule-based style whose symbols use
+    attribute(), which every shipped Status style does, so picking must not depend on it."""
+
+    _CANVAS_SIGNALS = ("extentsChanged", "destinationCrsChanged", "layersChanged", "transformContextChanged")
+
+    def _configure(self, monkeypatch):
+        snappers = []
+
+        def _newSnapper(_canvas):
+            snapper = MagicMock()
+            snappers.append(snapper)
+            return snapper
+
+        monkeypatch.setattr(sp, "QgsMapCanvasSnappingUtils", _newSnapper)
+        monkeypatch.setattr(sp, "QgsSnappingConfig", MagicMock())
+        tool = _makeTool(SelectPointType.Line)
+        tool.iface = MagicMock()
+        tool._snapperKeepers = []
+        tool.configSnapper(sp.SNAP_TYPE_SEGMENT)
+        return tool, snappers, tool.iface.mapCanvas.return_value
+
+    def test_the_snapper_snaps_to_features_the_style_does_not_draw(self, monkeypatch):
+        _tool, snappers, _canvas = self._configure(monkeypatch)
+        snappers[-1].setEnableSnappingForInvisibleFeature.assert_called_with(True)
+
+    @pytest.mark.parametrize("signal", _CANVAS_SIGNALS)
+    def test_a_canvas_change_does_not_bring_back_the_qgis_setting(self, monkeypatch, signal):
+        _tool, snappers, canvas = self._configure(monkeypatch)
+        snapper = snappers[-1]
+        snapper.setEnableSnappingForInvisibleFeature.reset_mock()
+        slot = getattr(canvas, signal).connect.call_args[0][0]
+        slot()
+        snapper.setEnableSnappingForInvisibleFeature.assert_called_once_with(True)
+
+    def test_a_new_snapper_releases_the_previous_one(self, monkeypatch):
+        tool, _snappers, canvas = self._configure(monkeypatch)
+        firstSlot = canvas.extentsChanged.connect.call_args[0][0]
+        tool.configSnapper(sp.SNAP_TYPE_SEGMENT)
+        canvas.extentsChanged.disconnect.assert_called_once_with(firstSlot)

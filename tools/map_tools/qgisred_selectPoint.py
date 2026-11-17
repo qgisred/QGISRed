@@ -112,10 +112,14 @@ class QGISRedSelectPointTool(QgsMapTool):
             return SNAP_TYPE_SEGMENT
         return SNAP_TYPE_VERTEX
 
+    _CANVAS_SNAPPER_RESET_SIGNALS = ("extentsChanged", "destinationCrsChanged", "layersChanged", "transformContextChanged")
+
     def configSnapper(self, snapping_type):
-        # Snapping
-        self.snapper = QgsMapCanvasSnappingUtils(self.iface.mapCanvas())
-        self.snapper.setMapSettings(self.iface.mapCanvas().mapSettings())
+        canvas = self.iface.mapCanvas()
+        self._releaseSnapperKeepers()
+        self.snapper = QgsMapCanvasSnappingUtils(canvas)
+        self.snapper.setMapSettings(canvas.mapSettings())
+        self._keepSnappingToUndrawnFeatures(canvas, self.snapper)
         config = QgsSnappingConfig(QgsProject.instance())
         config.setType(snapping_type)  # SNAP_TYPE_VERTEX or SNAP_TYPE_SEGMENT
         config.setMode(QgsSnappingConfig.SnappingMode.AllLayers)  # All layers
@@ -123,6 +127,27 @@ class QGISRedSelectPointTool(QgsMapTool):
         config.setUnits(QgsTolerance.UnitType.Pixels)
         config.setEnabled(True)
         self.snapper.setConfig(config)
+
+    def _keepSnappingToUndrawnFeatures(self, canvas, snapper):
+        # QGIS refuses to snap to every feature of a rule-based style whose symbols call
+        # attribute() (all the shipped Status styles), even though they are drawn. The
+        # canvas snapper rereads the QGIS option on each of these signals, so it is set
+        # again from slots connected after its own, which therefore run after it.
+        snapper.setEnableSnappingForInvisibleFeature(True)
+
+        def keep(*_args):
+            snapper.setEnableSnappingForInvisibleFeature(True)
+
+        for name in self._CANVAS_SNAPPER_RESET_SIGNALS:
+            signal = getattr(canvas, name)
+            signal.connect(keep)
+            self._snapperKeepers.append((signal, keep))
+
+    def _releaseSnapperKeepers(self):
+        for signal, slot in getattr(self, "_snapperKeepers", None) or []:
+            with suppress(TypeError, RuntimeError):
+                signal.disconnect(slot)
+        self._snapperKeepers = []
 
     def callMethod(self, *args):
         self._lastClickActed = bool(self.method(*args))
