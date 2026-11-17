@@ -174,76 +174,94 @@ _PLAIN_TRANSLATION = str.maketrans(_SUPERSCRIPT_EXPONENT_CHARS, _PLAIN_EXPONENT_
 # project shipping an older CSV still gets a plural form.
 PLURAL_PROPERTY_NAMES = {
     "Age": "Ages",
-    "Base Demand": "Base Demands",
-    "Bulk Coefficient": "Bulk Coefficients",
-    "Curve Type": "Curve Types",
+    "Base demand": "Base demands",
+    "Bulk coefficient": "Bulk coefficients",
+    "Curve type": "Curve types",
     "Demand": "Demands",
-    "Demand Charge": "Demand Charges",
-    "Demand Deficit": "Demand Deficits",
-    "Demand Multiplier": "Demand Multipliers",
-    "Demand Pattern": "Demand Patterns",
+    "Demand charge": "Demand charges",
+    "Demand deficit": "Demand deficits",
+    "Demand multiplier": "Demand multipliers",
+    "Demand pattern": "Demand patterns",
     "Description": "Descriptions",
     "Diameter": "Diameters",
-    "Efficiency Curve": "Efficiency Curves",
-    "Element Type": "Element Types",
+    "Efficiency curve": "Efficiency curves",
+    "Element type": "Element types",
     "Elevation": "Elevations",
-    "Emitter Coefficient": "Emitter Coefficients",
-    "Emitter Exponent": "Emitter Exponents",
-    "Emitter Flow": "Emitter Flows",
-    "Energy Price": "Energy Prices",
+    "Emitter coefficient": "Emitter coefficients",
+    "Emitter exponent": "Emitter exponents",
+    "Emitter flow": "Emitter flows",
+    "Energy price": "Energy prices",
     "Flow": "Flows",
     "Friction factor": "Friction factors",
     "Full demand": "Full demands",
     "Head": "Heads",
-    "Head Curve": "Head Curves",
-    "Head Pattern": "Head Patterns",
-    "HeadLoss": "HeadLosses",
-    "HeadLoss Curve": "HeadLoss Curves",
-    "Initial Level": "Initial Levels",
-    "Initial Status": "Initial Statuses",
-    "Installation Date": "Installation Dates",
-    "Leak Area": "Leak Areas",
-    "Leak Expansion Rate": "Leak Expansion Rates",
-    "Leakage Flow": "Leakage Flows",
+    "Head curve": "Head curves",
+    "Head pattern": "Head patterns",
+    "Headloss": "Headlosses",
+    "Headloss curve": "Headloss curves",
+    "Initial level": "Initial levels",
+    "Initial status": "Initial statuses",
+    "Installation date": "Installation dates",
+    "Leak area": "Leak areas",
+    "Leak expansion rate": "Leak expansion rates",
+    "Leakage flow": "Leakage flows",
     "Length": "Lengths",
-    "Link Type": "Link Types",
-    "Loss Coefficient": "Loss Coefficients",
+    "Link type": "Link types",
+    "Loss coefficient": "Loss coefficients",
     "Material": "Materials",
-    "Maximum Level": "Maximum Levels",
-    "Meter Type": "Meter Types",
-    "Minimum Pressure": "Minimum Pressures",
-    "Minimum Volume": "Minimum Volumes",
-    "Mixing Fraction": "Mixing Fractions",
-    "Mixing Model": "Mixing Models",
-    "Node Type": "Node Types",
-    "Overflow Condition": "Overflow Conditions",
-    "Pattern Demand": "Pattern Demands",
-    "Pattern Type": "Pattern Types",
+    "Maximum level": "Maximum levels",
+    "Meter type": "Meter types",
+    "Minimum pressure": "Minimum pressures",
+    "Minimum volume": "Minimum volumes",
+    "Mixing fraction": "Mixing fractions",
+    "Mixing model": "Mixing models",
+    "Node type": "Node types",
+    "Overflow condition": "Overflow conditions",
+    "Pattern demand": "Pattern demands",
+    "Pattern type": "Pattern types",
     "Pressure": "Pressures",
-    "Pressure Exponent": "Pressure Exponents",
-    "Price Pattern": "Price Patterns",
-    "Pump Curve": "Pump Curves",
-    "Quality Pattern": "Quality Patterns",
-    "Reaction Rate": "Reaction Rates",
-    "Required Pressure": "Required Pressures",
-    "Roughness Coeff": "Roughness Coeffs",
+    "Pressure exponent": "Pressure exponents",
+    "Price pattern": "Price patterns",
+    "Pump curve": "Pump curves",
+    "Quality pattern": "Quality patterns",
+    "Reaction rate": "Reaction rates",
+    "Required pressure": "Required pressures",
+    "Roughness coeff": "Roughness coeffs",
     "Setting": "Settings",
-    "Source Pattern": "Source Patterns",
-    "Source Type": "Source Types",
+    "Source pattern": "Source patterns",
+    "Source type": "Source types",
     "Speed": "Speeds",
-    "Speed Pattern": "Speed Patterns",
+    "Speed pattern": "Speed patterns",
     "Status": "Statuses",
     "Tag": "Tags",
-    "Tank Volume": "Tank Volumes",
-    "Total Head": "Total Heads",
+    "Tank volume": "Tank volumes",
+    "Total head": "Total heads",
     "Type": "Types",
-    "Unit HeadLoss": "Unit HeadLosses",
-    "Valve Type": "Valve Types",
+    "Unit headloss": "Unit headlosses",
+    "Valve type": "Valve types",
     "Velocity": "Velocities",
     "Volume": "Volumes",
-    "Volume Curve": "Volume Curves",
-    "Wall Coefficient": "Wall Coefficients",
+    "Volume curve": "Volume curves",
+    "Wall coefficient": "Wall coefficients",
 }
+
+
+def _sentenceCasePrettyName(name):
+    """'Pump Curve' -> 'Pump curve', 'Unit HeadLoss' -> 'Unit headloss'; acronyms and
+    one-word identifiers ('IsActive', 'FlowUnits') are left alone.
+
+    The CSV the plugin reads in a real install comes from the dependencies installer,
+    which is updated apart from the plugin and can still spell the names in title case.
+    Normalizing here keeps them matching the translation keys whichever CSV is there.
+    """
+    if name == "HeadLoss":
+        return "Headloss"
+    if " " not in name:
+        return name
+    first, *rest = name.split(" ")
+    if first == "HeadLoss":
+        first = "Headloss"
+    return " ".join([first] + [word if word.isupper() else word.lower() for word in rest])
 
 
 def normalize_element(element: str) -> str:
@@ -338,7 +356,7 @@ class QGISRedFieldUtils:
         automatically; pass translate=False to get the raw English string.
 
         getProperty('Pipes',      'Length')   -> 'Length'  (or translated)
-        getProperty('Junctions',  'EmittCoef')-> 'Emitter Coefficient'
+        getProperty('Junctions',  'EmittCoef')-> 'Emitter coefficient'
         getProperty('Nodes',      'Quality')  -> 'Chlorine'  (if chemical label set)
         """
         if not fieldName:
@@ -463,14 +481,15 @@ class QGISRedFieldUtils:
 
         normEl = element.replace(" ", "")
         prettyNames = self.loadUnitDefinitions().get("prettyNames", {})
+        wanted = prettyName.lower()
 
         if normEl in prettyNames:
             for rawName, displayName in prettyNames[normEl].items():
-                if displayName == prettyName:
+                if displayName.lower() == wanted:
                     return rawName
 
         for rawName, displayName in prettyNames.get("Common", {}).items():
-            if displayName == prettyName:
+            if displayName.lower() == wanted:
                 return rawName
 
         return prettyName
@@ -589,7 +608,7 @@ class QGISRedFieldUtils:
                             continue
                         element   = line[0].strip()
                         fieldName = line[1].strip()
-                        prop      = line[2].strip()
+                        prop      = _sentenceCasePrettyName(line[2].strip())
                         si_dec_s  = line[5].strip()
                         us_dec_s  = line[8].strip()
                         row = {

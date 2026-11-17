@@ -3,26 +3,26 @@ Pipes,Id,Identifier,Text,,,Text,,,,
 Pipes,PipeID,Identifier,Text,,,Text,,,,
 Pipes,Length,Length,Meters,m,2,Feet,ft,2,,
 Pipes,Diameter,Diameter,Millimeters,mm,1,Inches,in,2,,
-Pipes,RoughCoeff,Roughness Coeff,Millimeters,mm,4,Millifeet,mft,6,D-W,HeadLoss formulae
-Pipes,RoughCoeff,Roughness Coeff,Unitless,,1,Unitless,,1,H-W,HeadLoss formulae
-Pipes,RoughCoeff,Roughness Coeff,seconds/meters(1/3),s/m^(1/3),2,seconds/meters(1/3),s/m^(1/3),2,C-M,HeadLoss formulae
-Pipes,LossCoeff,Loss Coefficient,Unitless,,2,Unitless,,2,,
+Pipes,RoughCoeff,Roughness coeff,Millimeters,mm,4,Millifeet,mft,6,D-W,HeadLoss formulae
+Pipes,RoughCoeff,Roughness coeff,Unitless,,1,Unitless,,1,H-W,HeadLoss formulae
+Pipes,RoughCoeff,Roughness coeff,seconds/meters(1/3),s/m^(1/3),2,seconds/meters(1/3),s/m^(1/3),2,C-M,HeadLoss formulae
+Pipes,LossCoeff,Loss coefficient,Unitless,,2,Unitless,,2,,
 Pipes,Material,Material,Text,,,Text,,,,
-Pipes,InstalDate,Installation Date,Year as Text,,,Year as Text,,,,
+Pipes,InstalDate,Installation date,Year as Text,,,Year as Text,,,,
 Pipes,Age,Age,Years,yrs,1,Years,yrs,1,,
-Pipes,LeakArea,Leak Area,sq mm per 100 m,mm^2/100,2,sq mm per 100 m,mm^2/100,2,,Not yet available
-Pipes,LeakExpRat,Leak Expansion Rate,sq mm per unit press,mm^2/See PressUnits,2,sq mm per unit press,mm^2/See PressUnits,2,,Not yet available
-Pipes,IniStatus,Initial Status,Text,,,Text,,,,
-Pipes,BulkCoeff,Bulk Coefficient,Per day,1/day,2,Per day,1/day,2,1,Bulk reaction order. Leave blank for other order
-Pipes,WallCoeff,Wall Coefficient,mass/L/day,See MassUnits/L/day,3,Mass/L/day,See MassUnits/L/day,3,0,Wall reaction order
-Pipes,WallCoeff,Wall Coefficient,Per day,1/day,2,Per day,1/day,2,1,Wall reaction order
+Pipes,LeakArea,Leak area,sq mm per 100 m,mm^2/100,2,sq mm per 100 m,mm^2/100,2,,Not yet available
+Pipes,LeakExpRat,Leak expansion rate,sq mm per unit press,mm^2/See PressUnits,2,sq mm per unit press,mm^2/See PressUnits,2,,Not yet available
+Pipes,IniStatus,Initial status,Text,,,Text,,,,
+Pipes,BulkCoeff,Bulk coefficient,Per day,1/day,2,Per day,1/day,2,1,Bulk reaction order. Leave blank for other order
+Pipes,WallCoeff,Wall coefficient,mass/L/day,See MassUnits/L/day,3,Mass/L/day,See MassUnits/L/day,3,0,Wall reaction order
+Pipes,WallCoeff,Wall coefficient,Per day,1/day,2,Per day,1/day,2,1,Wall reaction order
 Pipes,Tag,Tag,Text,,,Text,,,,
 Pipes,Descrip,Description,Text,,,Text,,,,
 Valves,Id,Identifier,Text,,,Text,,,,
 Valves,ValveID,Identifier,Text,,,Text,,,,
 Valves,Diameter,Diameter,Millimeters,mm,1,Inches,in,2,,
-Valves,Type,Valve Type,Text,,,Text,,,,
-Valves,ValveType,Valve Type,Text,,,Text,,,,
+Valves,Type,Valve type,Text,,,Text,,,,
+Valves,ValveType,Valve type,Text,,,Text,,,,
 Valves,Setting,Setting,See PressUnits,See PressUnits,,See PressUnits,See PressUnits,,PRV,Type of valve
 Valves,Setting,Setting,See PressUnits,See PressUnits,,See PressUnits,See PressUnits,,PSV,Type of valve
 Valves,Setting,Setting,See PressUnits,See PressUnits,,See PressUnits,See PressUnits,,PBV,Type of valve
@@ -30,69 +30,69 @@ Valves,Setting,Setting,See FlowUnits,See FlowUnits,,See FlowUnits,See FlowUnits,
 Valves,Setting,Setting,Unitless,,2,Unitless,,2,TCV,Type of valve
 Valves,Setting,Setting,Text,,,Text,,,GPV,Type of valve
 Valves,Setting,Setting,Text,,,Text,,,PCV,Type of valve (not yet available)
-Valves,IdHeadLoss,HeadLoss Curve,Text,,,Text,,,,
-Valves,HeadLossID,HeadLoss Curve,Text,,,Text,,,,
-Valves,LossCoeff,Loss Coefficient,Unitless,,2,Unitless,,2,,
-Valves,IniStatus,Initial Status,Text,,,Text,,,,
+Valves,IdHeadLoss,Headloss curve,Text,,,Text,,,,
+Valves,HeadLossID,Headloss curve,Text,,,Text,,,,
+Valves,LossCoeff,Loss coefficient,Unitless,,2,Unitless,,2,,
+Valves,IniStatus,Initial status,Text,,,Text,,,,
 Valves,Tag,Tag,Text,,,Text,,,,
 Valves,Descrip,Description,Text,,,Text,,,,
 Pumps,Id,Identifier,Text,,,Text,,,,
 Pumps,PumpID,Identifier,Text,,,Text,,,,
-Pumps,IdHFCurve,Pump Curve,Text,,,Text,,,,
-Pumps,PumpCurvID,Pump Curve,Text,,,Text,,,,
+Pumps,IdHFCurve,Pump curve,Text,,,Text,,,,
+Pumps,PumpCurvID,Pump curve,Text,,,Text,,,,
 Pumps,Power,Power,Kilowatts,kW,2,Horse Power,HP,2,,
 Pumps,Speed,Speed,Unitless,,2,Unitless,,2,,
-Pumps,IdSpeedPat,Speed Pattern,Text,,,Text,,,,
-Pumps,SpeedPatID,Speed Pattern,Text,,,Text,,,,
-Pumps,IniStatus,Initial Status,Text,,,Text,,,,
-Pumps,IdEffiCur,Efficiency Curve,Text,,,Text,,,,
-Pumps,EffiCurvID,Efficiency Curve,Text,,,Text,,,,
-Pumps,EnergyPric,Energy Price,Currency /kWh,See Currency/kWh,2,Currency /kWh,See Currency/kWh,2,,Not yet available. Default $/kWh
-Pumps,IdPricePat,Price Pattern,Text,,,Text,,,,
-Pumps,PricePatID,Price Pattern,Text,,,Text,,,,
+Pumps,IdSpeedPat,Speed pattern,Text,,,Text,,,,
+Pumps,SpeedPatID,Speed pattern,Text,,,Text,,,,
+Pumps,IniStatus,Initial status,Text,,,Text,,,,
+Pumps,IdEffiCur,Efficiency curve,Text,,,Text,,,,
+Pumps,EffiCurvID,Efficiency curve,Text,,,Text,,,,
+Pumps,EnergyPric,Energy price,Currency /kWh,See Currency/kWh,2,Currency /kWh,See Currency/kWh,2,,Not yet available. Default $/kWh
+Pumps,IdPricePat,Price pattern,Text,,,Text,,,,
+Pumps,PricePatID,Price pattern,Text,,,Text,,,,
 Pumps,Tag,Tag,Text,,,Text,,,,
 Pumps,Descrip,Description,Text,,,Text,,,,
 Junctions,Id,Identifier,Text,,,Text,,,,
 Junctions,JunctionID,Identifier,Text,,,Text,,,,
 Junctions,Elevation,Elevation,Meters,m,2,Feet,ft,2,,
-Junctions,BaseDem,Base Demand,See FlowUnits,See FlowUnits,,See FlowUnits,See FlowUnits,,,
-Junctions,IdPattDem,Demand Pattern,Text,,,Text,,,,
-Junctions,DemPattID,Demand Pattern,Text,,,Text,,,,
-Junctions,EmittCoef,Emitter Coefficient,Flow/sqr(Pressure),See FlowUnits/sqr(See PressUnits),2,Flow/sqr(Pressure),See FlowUnits/sqr(See PressUnits),2,,
-Junctions,IniQuality,Initial Quality,mass/Liter,See MassUnits/L,3,Mass/Liter,See MassUnits/L,3,Chemical,Leave blank for other Quality Models
+Junctions,BaseDem,Base demand,See FlowUnits,See FlowUnits,,See FlowUnits,See FlowUnits,,,
+Junctions,IdPattDem,Demand pattern,Text,,,Text,,,,
+Junctions,DemPattID,Demand pattern,Text,,,Text,,,,
+Junctions,EmittCoef,Emitter coefficient,Flow/sqr(Pressure),See FlowUnits/sqr(See PressUnits),2,Flow/sqr(Pressure),See FlowUnits/sqr(See PressUnits),2,,
+Junctions,IniQuality,Initial quality,mass/Liter,See MassUnits/L,3,Mass/Liter,See MassUnits/L,3,Chemical,Leave blank for other Quality Models
 Junctions,Tag,Tag,Text,,,Text,,,,
 Junctions,Descrip,Description,Text,,,Text,,,,
 Multiple Demands,DemandID,Identifier,Text,,,Text,,,,
-Multiple Demands,BaseDemand,Base Demand,See FlowUnits,See FlowUnits,,See FlowUnits,See FlowUnits,,,
-Multiple Demands,BaseDem,Base Demand,See FlowUnits,See FlowUnits,,See FlowUnits,See FlowUnits,,,
-Multiple Demands,IdPattern,Demand Pattern,Text,,,Text,,,,
-Multiple Demands,IdDemPatt,Demand Pattern,Text,,,Text,,,,
-Multiple Demands,DemPattID,Demand Pattern,Text,,,Text,,,,
+Multiple Demands,BaseDemand,Base demand,See FlowUnits,See FlowUnits,,See FlowUnits,See FlowUnits,,,
+Multiple Demands,BaseDem,Base demand,See FlowUnits,See FlowUnits,,See FlowUnits,See FlowUnits,,,
+Multiple Demands,IdPattern,Demand pattern,Text,,,Text,,,,
+Multiple Demands,IdDemPatt,Demand pattern,Text,,,Text,,,,
+Multiple Demands,DemPattID,Demand pattern,Text,,,Text,,,,
 Multiple Demands,Descrip,Description,Text,,,Text,,,,
 Tanks,Id,Identifier,Text,,,Text,,,,
 Tanks,TankID,Identifier,Text,,,Text,,,,
 Tanks,Elevation,Elevation,Meters,m,2,Feet,ft,2,,
-Tanks,IniLevel,Initial Level,Meters,m,2,Feet,ft,2,,
-Tanks,MinLevel,Minimum Level,Meters,m,2,Feet,ft,2,,
-Tanks,MaxLevel,Maximum Level,Meters,m,2,Feet,ft,2,,
+Tanks,IniLevel,Initial level,Meters,m,2,Feet,ft,2,,
+Tanks,MinLevel,Minimum level,Meters,m,2,Feet,ft,2,,
+Tanks,MaxLevel,Maximum level,Meters,m,2,Feet,ft,2,,
 Tanks,Diameter,Diameter,Meters,m,2,Feet,ft,2,,
-Tanks,MinVolume,Minimum Volume,Cubic meters,m^3,1,Cubic feet,ft^3,1,,
-Tanks,IdVolCurve,Volume Curve,Text,,,Text,,,,
-Tanks,VolCurveID,Volume Curve,Text,,,Text,,,,
-Tanks,Overflow,Overflow Condition,Text,,,Text,,,,
-Tanks,MixingMod,Mixing Model,Text,,,Text,,,,
-Tanks,MixingFrac,Mixing Fraction,Unitless,,2,Unitless,,2,,
-Tanks,ReactCoef,Bulk Coefficient,Per day,1/day,2,Per day,1/day,2,1,Bulk reaction order. Leave blank for other Order
-Tanks,IniQuality,Initial Quality,mass/Liter,See MassUnits/L,3,Mass/Liter,See MassUnits/L,3,Chemical,Leave blank for other Quality Models
+Tanks,MinVolume,Minimum volume,Cubic meters,m^3,1,Cubic feet,ft^3,1,,
+Tanks,IdVolCurve,Volume curve,Text,,,Text,,,,
+Tanks,VolCurveID,Volume curve,Text,,,Text,,,,
+Tanks,Overflow,Overflow condition,Text,,,Text,,,,
+Tanks,MixingMod,Mixing model,Text,,,Text,,,,
+Tanks,MixingFrac,Mixing fraction,Unitless,,2,Unitless,,2,,
+Tanks,ReactCoef,Bulk coefficient,Per day,1/day,2,Per day,1/day,2,1,Bulk reaction order. Leave blank for other Order
+Tanks,IniQuality,Initial quality,mass/Liter,See MassUnits/L,3,Mass/Liter,See MassUnits/L,3,Chemical,Leave blank for other Quality Models
 Tanks,Tag,Tag,Text,,,Text,,,,
 Tanks,Descrip,Description,Text,,,Text,,,,
 Reservoirs,Id,Identifier,Text,,,Text,,,,
 Reservoirs,ReservID,Identifier,Text,,,Text,,,,
-Reservoirs,TotalHead,Total Head,Meters,m,2,Feet,ft,2,,
-Reservoirs,IdHeadPatt,Head Pattern,Text,,,Text,,,,
-Reservoirs,HeadPattID,Head Pattern,Text,,,Text,,,,
-Reservoirs,HedPattID,Head Pattern,Text,,,Text,,,,
-Reservoirs,IniQuality,Initial Quality,mass/Liter,See MassUnits/L,3,Mass/Liter,See MassUnits/L,3,Chemical,Leave blank for other Quality Models
+Reservoirs,TotalHead,Total head,Meters,m,2,Feet,ft,2,,
+Reservoirs,IdHeadPatt,Head pattern,Text,,,Text,,,,
+Reservoirs,HeadPattID,Head pattern,Text,,,Text,,,,
+Reservoirs,HedPattID,Head pattern,Text,,,Text,,,,
+Reservoirs,IniQuality,Initial quality,mass/Liter,See MassUnits/L,3,Mass/Liter,See MassUnits/L,3,Chemical,Leave blank for other Quality Models
 Reservoirs,Tag,Tag,Text,,,Text,-,,,
 Reservoirs,Descrip,Description,Text,,,Text,,,,
 Curves,CurveID,Identifier,Text,,,Text,,,,
@@ -108,64 +108,64 @@ Curves,XValue,Value X axis,Unitless,,2,Unitless,,2,Generic,Curve type
 Curves,Yvalue,Value Y axis,Unitless,,2,Unitless,,2,Generic,Curve type
 Curves,Xvalue,Value X axis,Percent,%,1,Percent,%,1,Valve,Curve type. Not yet available
 Curves,Yvalue,Value Y axis,Percent,%,1,Percent,%,1,Valve,Curve type. Not yet available
-Curves,Type,Curve Type,Text,,,Text,,,,
-Curves,CurveType,Curve Type,Text,,,Text,,,,
+Curves,Type,Curve type,Text,,,Text,,,,
+Curves,CurveType,Curve type,Text,,,Text,,,,
 Curves,Descrip,Description,Text,,,Text,,,,
 Patterns,PatternID,Identifier,Text,,,Text,,,,
-Patterns,Order,Time Order,Unitless,,0,Unitless,,0,,
+Patterns,Order,Time order,Unitless,,0,Unitless,,0,,
 Patterns,Factor,Multiplier,Unitless,,3,Unitless,,3,,
-Patterns,PattType,Pattern Type,Text,,,Text,,,,
+Patterns,PattType,Pattern type,Text,,,Text,,,,
 Patterns,Descrip,Description,Text,,,Text,,,,
 Materials,Abbrev,ShortName,Text,,,,,,,
 Materials,Descrip,Description,Text,,,,,,,
-Materials,InitRough,Initial Roughness,Millimeters,mm,4,,,,,Always given in mm for D-W. Use inner conversion formulas for other HL_Formula or Units
-Materials,AnnIncr,Annual Increment,Millimeters,mm,5,,,,,
+Materials,InitRough,Initial roughness,Millimeters,mm,4,,,,,Always given in mm for D-W. Use inner conversion formulas for other HL_Formula or Units
+Materials,AnnIncr,Annual increment,Millimeters,mm,5,,,,,
 Sources,SourceID,Identifier,Text,,,Text,,,,
-Sources,BaseValue,Source Quality,Mass/Liter,See MassUnits/L,2,Mass/Liter,See MassUnits/L,2,Concentration,
-Sources,BaseValue,Source Quality,Mass/minute,See MassUnits/min,2,Mass/minute,See MassUnits/min,2,Mass Booster,
-Sources,BaseValue,Source Quality,Mass/Liter,See MassUnits/L,2,Mass/Liter,See MassUnits/L,2,Set Point Booster,
-Sources,BaseValue,Source Quality,Mass/Liter,See MassUnits/L,2,Mass/Liter,See MassUnits/L,2,Flow Paced Booster,
-Sources,SourceQual,Source Quality,Mass/Liter,See MassUnits/L,2,Mass/Liter,See MassUnits/L,2,Concentration,
-Sources,SourceQual,Source Quality,Mass/minute,See MassUnits/min,2,Mass/minute,See MassUnits/min,2,Mass Booster,
-Sources,SourceQual,Source Quality,Mass/Liter,See MassUnits/L,2,Mass/Liter,See MassUnits/L,2,Set Point Booster,
-Sources,SourceQual,Source Quality,Mass/Liter,See MassUnits/L,2,Mass/Liter,See MassUnits/L,2,Flow Paced Booster,
-Sources,SourceType,Source Type,Text,,,Text,,,,
-Sources,IdPattern,Quality Pattern,Text,,,Text,,,,
-Sources,IdQualPatt,Quality Pattern,Text,,,Text,,,,
-Sources,QualPattID,Quality Pattern,Text,,,Text,,,,
-Options,Name,Specific Gravity,Unitless,,2,Unitless,,2,,
+Sources,BaseValue,Source quality,Mass/Liter,See MassUnits/L,2,Mass/Liter,See MassUnits/L,2,Concentration,
+Sources,BaseValue,Source quality,Mass/minute,See MassUnits/min,2,Mass/minute,See MassUnits/min,2,Mass Booster,
+Sources,BaseValue,Source quality,Mass/Liter,See MassUnits/L,2,Mass/Liter,See MassUnits/L,2,Set Point Booster,
+Sources,BaseValue,Source quality,Mass/Liter,See MassUnits/L,2,Mass/Liter,See MassUnits/L,2,Flow Paced Booster,
+Sources,SourceQual,Source quality,Mass/Liter,See MassUnits/L,2,Mass/Liter,See MassUnits/L,2,Concentration,
+Sources,SourceQual,Source quality,Mass/minute,See MassUnits/min,2,Mass/minute,See MassUnits/min,2,Mass Booster,
+Sources,SourceQual,Source quality,Mass/Liter,See MassUnits/L,2,Mass/Liter,See MassUnits/L,2,Set Point Booster,
+Sources,SourceQual,Source quality,Mass/Liter,See MassUnits/L,2,Mass/Liter,See MassUnits/L,2,Flow Paced Booster,
+Sources,SourceType,Source type,Text,,,Text,,,,
+Sources,IdPattern,Quality pattern,Text,,,Text,,,,
+Sources,IdQualPatt,Quality pattern,Text,,,Text,,,,
+Sources,QualPattID,Quality pattern,Text,,,Text,,,,
+Options,Name,Specific gravity,Unitless,,2,Unitless,,2,,
 Options,Name,Viscosity,Unitless,,2,Unitless,,2,,
-Options,Name,Demand Multiplier,Unitless,,2,Unitless,,2,,
-Options,Name,Emitter Exponent,Unitless,,2,Unitless,,2,,
-Options,Name,Minimum Pressure,See PressUnits,See PressUnits,,See PressUnits,See PressUnits,,,
-Options,Name,Required Pressure,See PressUnits,See PressUnits,,See PressUnits,See PressUnits,,,
-Options,Name,Pressure Exponent,Unitless,,2,Unitless,,2,,
+Options,Name,Demand multiplier,Unitless,,2,Unitless,,2,,
+Options,Name,Emitter exponent,Unitless,,2,Unitless,,2,,
+Options,Name,Minimum pressure,See PressUnits,See PressUnits,,See PressUnits,See PressUnits,,,
+Options,Name,Required pressure,See PressUnits,See PressUnits,,See PressUnits,See PressUnits,,,
+Options,Name,Pressure exponent,Unitless,,2,Unitless,,2,,
 Options,Name,Diffusivity,Unitless,,2,Unitless,,2,,
-Options,Name,Global Bulk,Per day,1/day,2,Per day,1/day,2,1,Bulk reaction order. Leave blank for other order
-Options,Name,Global Wall,mass/L/day,See MassUnits/L/day,3,Mass/L/day,See MassUnits/L/day,3,0,Wall reaction order
-Options,Name,Global Wall,Per day,1/day,2,Per day,1/day,2,1,Wall reaction order
-Options,Name,Limiting Potential,mass/Liter,See MassUnits/L,2,Mass/Liter,See MassUnits/L,2,,For some raction model
-Options,Name,Global Efficiency,Percent,%,1,Percent,%,1,,
-Options,Name,Global Price,Currency /kWh,See Currency/kWh,2,Currency /kWh,See Currency/kWh,2,,Not yet available. Default $/kWh
-Options,Name,Demand Charge,Currency /Max kW,See Currency/kW,2,Currency /Max kW,See Currency/kW,2,,Not yet available. Default $/kWh
+Options,Name,Global bulk,Per day,1/day,2,Per day,1/day,2,1,Bulk reaction order. Leave blank for other order
+Options,Name,Global wall,mass/L/day,See MassUnits/L/day,3,Mass/L/day,See MassUnits/L/day,3,0,Wall reaction order
+Options,Name,Global wall,Per day,1/day,2,Per day,1/day,2,1,Wall reaction order
+Options,Name,Limiting potential,mass/Liter,See MassUnits/L,2,Mass/Liter,See MassUnits/L,2,,For some raction model
+Options,Name,Global efficiency,Percent,%,1,Percent,%,1,,
+Options,Name,Global price,Currency /kWh,See Currency/kWh,2,Currency /kWh,See Currency/kWh,2,,Not yet available. Default $/kWh
+Options,Name,Demand charge,Currency /Max kW,See Currency/kW,2,Currency /Max kW,See Currency/kW,2,,Not yet available. Default $/kWh
 Service Connection,Id,Identifier,Text,,,Text,,,,
 Service Connection,ConnectID,Identifier,Text,,,Text,,,,
 Service Connection,Length,Length,Meters,m,2,Feet,ft,2,,
 Service Connection,Diameter,Diameter,Millimeters,mm,1,Inches,in,2,,
-Service Connection,Roughness,Roughness Coeff,Millimeters,mm,4,Millifeet,mft,6,D-W,HeadLoss formulae
-Service Connection,Roughness,Roughness Coeff,Unitless,,1,Unitless,,1,H-W,HeadLoss formulae
-Service Connection,Roughness,Roughness Coeff,seconds/meters(1/3),s/m^(1/3),2,seconds/meters(1/3),s/m^(1/3),2,C-M,HeadLoss formulae
-Service Connection,RoughCoeff,Roughness Coeff,Millimeters,mm,4,Millifeet,mft,6,D-W,HeadLoss formulae
-Service Connection,RoughCoeff,Roughness Coeff,Unitless,,1,Unitless,,1,H-W,HeadLoss formulae
-Service Connection,RoughCoeff,Roughness Coeff,seconds/meters(1/3),s/m^(1/3),2,seconds/meters(1/3),s/m^(1/3),2,C-M,HeadLoss formulae
+Service Connection,Roughness,Roughness coeff,Millimeters,mm,4,Millifeet,mft,6,D-W,HeadLoss formulae
+Service Connection,Roughness,Roughness coeff,Unitless,,1,Unitless,,1,H-W,HeadLoss formulae
+Service Connection,Roughness,Roughness coeff,seconds/meters(1/3),s/m^(1/3),2,seconds/meters(1/3),s/m^(1/3),2,C-M,HeadLoss formulae
+Service Connection,RoughCoeff,Roughness coeff,Millimeters,mm,4,Millifeet,mft,6,D-W,HeadLoss formulae
+Service Connection,RoughCoeff,Roughness coeff,Unitless,,1,Unitless,,1,H-W,HeadLoss formulae
+Service Connection,RoughCoeff,Roughness coeff,seconds/meters(1/3),s/m^(1/3),2,seconds/meters(1/3),s/m^(1/3),2,C-M,HeadLoss formulae
 Service Connection,Material,Material,Text,,,Text,,,,
-Service Connection,InstDate,Installation Date,Year as Text,,,Year as Text,,,,
-Service Connection,InstalDate,Installation Date,Year as Text,,,Year as Text,,,,
+Service Connection,InstDate,Installation date,Year as Text,,,Year as Text,,,,
+Service Connection,InstalDate,Installation date,Year as Text,,,Year as Text,,,,
 Service Connection,Age,Age,Years,yrs,1,Years,yrs,1,,
-Service Connection,BaseDemand,Base Demand,See FlowUnits,See FlowUnits,,See FlowUnits,See FlowUnits,,,
-Service Connection,BaseDem,Base Demand,See FlowUnits,See FlowUnits,,See FlowUnits,See FlowUnits,,,
-Service Connection,Pattern,Demand Pattern,Text,,,Text,,,,
-Service Connection,DemPattID,Demand Pattern,Text,,,Text,,,,
+Service Connection,BaseDemand,Base demand,See FlowUnits,See FlowUnits,,See FlowUnits,See FlowUnits,,,
+Service Connection,BaseDem,Base demand,See FlowUnits,See FlowUnits,,See FlowUnits,See FlowUnits,,,
+Service Connection,Pattern,Demand pattern,Text,,,Text,,,,
+Service Connection,DemPattID,Demand pattern,Text,,,Text,,,,
 Service Connection,Reliabilit,Reliability,Unitless,,2,Unitless,,2,,
 Service Connection,Reliab,Reliability,Unitless,,2,Unitless,,2,,
 Service Connection,IsActive,IsActive,Text,,,Text,,,,
@@ -174,54 +174,54 @@ Service Connection,Descrip,Description,Text,,,Text,,,,
 Isolation Valves,Id,Identifier,Text,,,Text,,,,
 Isolation Valves,IsoValveID,Identifier,Text,,,Text,,,,
 Isolation Valves,Diameter,Diameter,Millimeters,mm,1,Inches,in,2,,
-Isolation Valves,LossCoeff,Loss Coefficient,Unitless,,2,Unitless,,2,,
-Isolation Valves,Status,Initial Status,Text,,,Text,,,,
-Isolation Valves,IniStatus,Initial Status,Text,,,Text,,,,
+Isolation Valves,LossCoeff,Loss coefficient,Unitless,,2,Unitless,,2,,
+Isolation Valves,Status,Initial status,Text,,,Text,,,,
+Isolation Valves,IniStatus,Initial status,Text,,,Text,,,,
 Isolation Valves,Available,Available,Text,,,Text,,,,
-Isolation Valves,InstDate,Installation Date,Year as Text,,,Year as Text,,,,
-Isolation Valves,InstalDate,Installation Date,Year as Text,,,Year as Text,,,,
+Isolation Valves,InstDate,Installation date,Year as Text,,,Year as Text,,,,
+Isolation Valves,InstalDate,Installation date,Year as Text,,,Year as Text,,,,
 Isolation Valves,Age,Age,Years,yrs,1,Years,yrs,1,,
 Isolation Valves,Tag,Tag,Text,,,Text,,,,
 Isolation Valves,Descrip,Description,Text,,,Text,,,,
 Meters,Id,Identifier,Text,,,Text,,,,
 Meters,MeterID,Identifier,Text,,,Text,,,,
-Meters,Type,Meter Type,Text,,,Text,,,,
-Meters,MeterType,Meter Type,Text,,,Text,,,,
+Meters,Type,Meter type,Text,,,Text,,,,
+Meters,MeterType,Meter type,Text,,,Text,,,,
 Meters,IsActive,IsActive,Text,,,Text,,,,
-Meters,InstDate,Installation Date,Year as Text,,,Year as Text,,,,
-Meters,InstalDate,Installation Date,Year as Text,,,Year as Text,,,,
+Meters,InstDate,Installation date,Year as Text,,,Year as Text,,,,
+Meters,InstalDate,Installation date,Year as Text,,,Year as Text,,,,
 Meters,Age,Age,Years,yrs,1,Years,yrs,1,,
 Meters,Tag,Tag,Text,,,Text,,,,
 Meters,Descrip,Description,Text,,,Text,,,,
 Nodes,Id,Identifier,Text,,,Text,,,,
 Nodes,NodeID,Identifier,Text,,,Text,,,,
-Nodes,Type,Node Type,Text,,,Text,,,,
-Nodes,NodeType,Node Type,Text,,,Text,,,,
-Nodes,Time,Simulation Time,Time as Text,,,Time as Text,,,,
+Nodes,Type,Node type,Text,,,Text,,,,
+Nodes,NodeType,Node type,Text,,,Text,,,,
+Nodes,Time,Simulation time,Time as Text,,,Time as Text,,,,
 Nodes,Pressure,Pressure,See PressUnits,See PressUnits,,See PressUnits,See PressUnits,,,
 Nodes,Head,Head,Meters,m,2,Feet,ft,2,,
 Nodes,Demand,Demand,See FlowUnits,See FlowUnits,,See FlowUnits,See FlowUnits,,,
-Nodes,Volume,Tank Volume,See VolumeUnits,See VolumeUnits,,See VolumeUnits,See VolumeUnits,,,
+Nodes,Volume,Tank volume,See VolumeUnits,See VolumeUnits,,See VolumeUnits,See VolumeUnits,,,
 Nodes,FullDem,Full demand,See FlowUnits,See FlowUnits,,See FlowUnits,See FlowUnits,,,Not yet available
-Nodes,DemDeficit,Demand Deficit,See FlowUnits,See FlowUnits,,See FlowUnits,See FlowUnits,,,Not yet available
-Nodes,Leaks,Leakage Flow,See FlowUnits,See FlowUnits,,See FlowUnits,See FlowUnits,,,Not yet available
-Nodes,EmittFlow,Emitter Flow,See FlowUnits,See FlowUnits,,See FlowUnits,See FlowUnits,,,Not yet available
+Nodes,DemDeficit,Demand deficit,See FlowUnits,See FlowUnits,,See FlowUnits,See FlowUnits,,,Not yet available
+Nodes,Leaks,Leakage flow,See FlowUnits,See FlowUnits,,See FlowUnits,See FlowUnits,,,Not yet available
+Nodes,EmittFlow,Emitter flow,See FlowUnits,See FlowUnits,,See FlowUnits,See FlowUnits,,,Not yet available
 Nodes,Quality,Chemical,Mass/Liter,See MassUnits/L,2,mass/Liter,See MassUnits/L,2,Chemical,Quality model
 Nodes,Quality,Trace,Percent,%,1,Percent,%,1,Trace,Quality model
 Nodes,Quality,Age,Hours,hr,1,Hours,hr,1,Age,Quality model
 Links,Id,Identifier,Text,,,Text,,,,
 Links,LinkID,Identifier,Text,,,Text,,,,
-Links,Type,Link Type,Text,,,Text,,,,
-Links,LinkType,Link Type,Text,,,Text,,,,
-Links,Time,Simulation Time,Time as Text,,,Time as Text,,,,
+Links,Type,Link type,Text,,,Text,,,,
+Links,LinkType,Link type,Text,,,Text,,,,
+Links,Time,Simulation time,Time as Text,,,Time as Text,,,,
 Links,Status,Status,Text,,,Text,,,,
 Links,Flow,Flow,See FlowUnits,See FlowUnits,,See FlowUnits,See FlowUnits,,,
 Links,Velocity,Velocity,Meters/second,m/s,2,feet/second,ft/s,2,,
-Links,HeadLoss,HeadLoss,Meters water column ,m,2,Feet,ft,2,,
-Links,UnitHdLoss,Unit HeadLoss,Meters per 1000 m,m/Km,2,Feet per 1000 ft,ft/Kft,2,,
+Links,HeadLoss,Headloss,Meters water column ,m,2,Feet,ft,2,,
+Links,UnitHdLoss,Unit headloss,Meters per 1000 m,m/Km,2,Feet per 1000 ft,ft/Kft,2,,
 Links,FricFactor,Friction factor,Unitless,,3,Unitless,,3,,
 Links,Energy,Energy,Kilowatt - hours,kWh,2,Kilowatt - hours,kWh,2,,
-Links,ReactRate,Reaction Rate,mass/L/day,See MassUnits/L/day,3,mass/L/day,See MassUnits/L/day,3,Chemical,Quality model
+Links,ReactRate,Reaction rate,mass/L/day,See MassUnits/L/day,3,mass/L/day,See MassUnits/L/day,3,Chemical,Quality model
 Links,Quality,Chemical,mass/L,See MassUnits/L,3,mass/L,See MassUnits/L,3,Chemical,Quality model
 Links,Quality,Trace,Percent,%,1,Percent,%,1,Trace,Quality model
 Links,Quality,Age,Hours,hr,1,Hours,hr,1,Age,Quality model

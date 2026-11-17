@@ -1212,7 +1212,7 @@ class TestResultLayerLegendName:
         ("Link", "Velocity", "Velocities"),
         ("Link", "Flow", "Flows"),
         ("Link", "Flow_Sig", "Flows"),
-        ("Link", "UnitHdLoss", "Unit HeadLosses"),
+        ("Link", "UnitHdLoss", "Unit headlosses"),
     ])
     def test_plural_name_with_unit(self, layerType, variable, expected):
         assert self._name(layerType, variable) == expected

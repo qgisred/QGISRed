@@ -837,13 +837,13 @@ class QGISRedLegendsDialog(QDialog, formClass):
         """(label, [(text, data)]) of the selector for input layers with several editable variants, or None."""
         if identifier == "qgisred_meters":
             names = self.meterTypeNames()
-            return self.tr("Meter Type"), [(self.tr("All types"), None)] + [(names[t], t) for t in self.METER_TYPES]
+            return self.tr("Meter type"), [(self.tr("All types"), None)] + [(names[t], t) for t in self.METER_TYPES]
         if identifier == "qgisred_junctions":
             return self.tr("Demand"), [
                 (self.tr("All"), None), (self.tr("Outflows (> 0)"), "positive"), (self.tr("Inflows (< 0)"), "negative")
             ]
         if identifier == "qgisred_sources":
-            return self.tr("Source Type"), [(self.tr("All types"), None)] + [(getSourceTypeName(t), t) for t in self.SOURCE_TYPES]
+            return self.tr("Source type"), [(self.tr("All types"), None)] + [(getSourceTypeName(t), t) for t in self.SOURCE_TYPES]
         if identifier == "qgisred_serviceconnections":
             return self.tr("Component"), [
                 (self.tr("All"), None), (self.tr("Line"), "line"), (self.tr("Demand circle"), "circle")

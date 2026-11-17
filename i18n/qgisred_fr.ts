@@ -1241,7 +1241,7 @@
     </message>
     <message>
         <location filename="../tools/qgisred_translatable_strings.py" line="22"/>
-        <source>Loss Coefficient</source>
+        <source>Loss coefficient</source>
         <translation type="unfinished">Coefficient de perte de charge singulière</translation>
     </message>
     <message>
@@ -1251,22 +1251,22 @@
     </message>
     <message>
         <location filename="../tools/qgisred_translatable_strings.py" line="12"/>
-        <source>Installation Date</source>
+        <source>Installation date</source>
         <translation type="unfinished">Date d’installation</translation>
     </message>
     <message>
         <location filename="../tools/qgisred_translatable_strings.py" line="13"/>
-        <source>Initial Status</source>
+        <source>Initial status</source>
         <translation type="unfinished">État initial</translation>
     </message>
     <message>
         <location filename="../tools/qgisred_translatable_strings.py" line="26"/>
-        <source>Bulk Coefficient</source>
+        <source>Bulk coefficient</source>
         <translation type="unfinished">Coefficient de réaction en volume</translation>
     </message>
     <message>
         <location filename="../tools/qgisred_translatable_strings.py" line="27"/>
-        <source>Wall Coefficient</source>
+        <source>Wall coefficient</source>
         <translation type="unfinished">Coefficient de réaction à la paroi</translation>
     </message>
     <message>
@@ -1276,52 +1276,52 @@
     </message>
     <message>
         <location filename="../tools/qgisred_translatable_strings.py" line="38"/>
-        <source>Base Demand</source>
+        <source>Base demand</source>
         <translation type="unfinished">Demande de base</translation>
     </message>
     <message>
         <location filename="../tools/qgisred_translatable_strings.py" line="34"/>
-        <source>Emitter Coefficient</source>
+        <source>Emitter coefficient</source>
         <translation type="unfinished">Coefficient d’émetteur</translation>
     </message>
     <message>
         <location filename="../tools/qgisred_translatable_strings.py" line="35"/>
-        <source>Initial Quality</source>
+        <source>Initial quality</source>
         <translation type="unfinished">Qualité initiale</translation>
     </message>
     <message>
         <location filename="../tools/qgisred_translatable_strings.py" line="41"/>
-        <source>Initial Level</source>
+        <source>Initial level</source>
         <translation type="unfinished">Niveau initial</translation>
     </message>
     <message>
         <location filename="../tools/qgisred_translatable_strings.py" line="43"/>
-        <source>Maximum Level</source>
+        <source>Maximum level</source>
         <translation type="unfinished">Niveau maximal</translation>
     </message>
     <message>
         <location filename="../tools/qgisred_translatable_strings.py" line="46"/>
-        <source>Volume Curve</source>
+        <source>Volume curve</source>
         <translation type="unfinished">Courbe de volume</translation>
     </message>
     <message>
         <location filename="../tools/qgisred_translatable_strings.py" line="59"/>
-        <source>Mixing Model</source>
+        <source>Mixing model</source>
         <translation type="unfinished">Modèle de mélange</translation>
     </message>
     <message>
         <location filename="../tools/qgisred_translatable_strings.py" line="60"/>
-        <source>Mixing Fraction</source>
+        <source>Mixing fraction</source>
         <translation type="unfinished">Fraction de mélange</translation>
     </message>
     <message>
         <location filename="../tools/qgisred_translatable_strings.py" line="63"/>
-        <source>Total Head</source>
+        <source>Total head</source>
         <translation type="unfinished">Charge totale</translation>
     </message>
     <message>
         <location filename="../tools/qgisred_translatable_strings.py" line="64"/>
-        <source>Head Pattern</source>
+        <source>Head pattern</source>
         <translation type="unfinished">Modulation de charge</translation>
     </message>
     <message>
@@ -1336,12 +1336,12 @@
     </message>
     <message>
         <location filename="../tools/qgisred_translatable_strings.py" line="68"/>
-        <source>HeadLoss Curve</source>
+        <source>Headloss curve</source>
         <translation type="unfinished">Courbe de perte de charge</translation>
     </message>
     <message>
         <location filename="../tools/qgisred_translatable_strings.py" line="72"/>
-        <source>Head Curve</source>
+        <source>Head curve</source>
         <translation type="unfinished">Courbe de charge</translation>
     </message>
     <message>
@@ -1356,22 +1356,22 @@
     </message>
     <message>
         <location filename="../tools/qgisred_translatable_strings.py" line="76"/>
-        <source>Speed Pattern</source>
+        <source>Speed pattern</source>
         <translation type="unfinished">Modulation de vitesse</translation>
     </message>
     <message>
         <location filename="../tools/qgisred_translatable_strings.py" line="77"/>
-        <source>Efficiency Curve</source>
+        <source>Efficiency curve</source>
         <translation type="unfinished">Courbe de rendement</translation>
     </message>
     <message>
         <location filename="../tools/qgisred_translatable_strings.py" line="78"/>
-        <source>Energy Price</source>
+        <source>Energy price</source>
         <translation type="unfinished">Prix de l’énergie</translation>
     </message>
     <message>
         <location filename="../tools/qgisred_translatable_strings.py" line="79"/>
-        <source>Price Pattern</source>
+        <source>Price pattern</source>
         <translation type="unfinished">Modulation de prix</translation>
     </message>
     <message>
@@ -1406,22 +1406,22 @@
     </message>
     <message>
         <location filename="../tools/qgisred_translatable_strings.py" line="21"/>
-        <source>Roughness Coeff</source>
+        <source>Roughness coeff</source>
         <translation type="unfinished">Coef. de rugosité</translation>
     </message>
     <message>
         <location filename="../tools/qgisred_translatable_strings.py" line="24"/>
-        <source>Leak Area</source>
+        <source>Leak area</source>
         <translation type="unfinished">Surface de fuite</translation>
     </message>
     <message>
         <location filename="../tools/qgisred_translatable_strings.py" line="25"/>
-        <source>Leak Expansion Rate</source>
+        <source>Leak expansion rate</source>
         <translation type="unfinished">Taux d’expansion de la fuite</translation>
     </message>
     <message>
         <location filename="../tools/qgisred_translatable_strings.py" line="32"/>
-        <source>Pattern Demand</source>
+        <source>Pattern demand</source>
         <translation type="unfinished">Demande de la modulation</translation>
     </message>
     <message>
@@ -1431,7 +1431,7 @@
     </message>
     <message>
         <location filename="../tools/qgisred_translatable_strings.py" line="58"/>
-        <source>Overflow Condition</source>
+        <source>Overflow condition</source>
         <translation type="unfinished">Condition de débordement</translation>
     </message>
     <message>
@@ -1446,17 +1446,17 @@
     </message>
     <message>
         <location filename="../tools/qgisred_translatable_strings.py" line="97"/>
-        <source>Source Quality</source>
+        <source>Source quality</source>
         <translation type="unfinished">Qualité de la source</translation>
     </message>
     <message>
         <location filename="../tools/qgisred_translatable_strings.py" line="98"/>
-        <source>Source Pattern</source>
+        <source>Source pattern</source>
         <translation type="unfinished">Modulation de la source</translation>
     </message>
     <message>
         <location filename="../tools/qgisred_translatable_strings.py" line="112"/>
-        <source>Specific Gravity</source>
+        <source>Specific gravity</source>
         <translation type="unfinished">Densité relative</translation>
     </message>
     <message>
@@ -1466,27 +1466,27 @@
     </message>
     <message>
         <location filename="../tools/qgisred_translatable_strings.py" line="114"/>
-        <source>Demand Multiplier</source>
+        <source>Demand multiplier</source>
         <translation type="unfinished">Multiplicateur de demande</translation>
     </message>
     <message>
         <location filename="../tools/qgisred_translatable_strings.py" line="115"/>
-        <source>Emitter Exponent</source>
+        <source>Emitter exponent</source>
         <translation type="unfinished">Exposant de l’émetteur</translation>
     </message>
     <message>
         <location filename="../tools/qgisred_translatable_strings.py" line="116"/>
-        <source>Minimum Pressure</source>
+        <source>Minimum pressure</source>
         <translation type="unfinished">Pression minimale</translation>
     </message>
     <message>
         <location filename="../tools/qgisred_translatable_strings.py" line="117"/>
-        <source>Required Pressure</source>
+        <source>Required pressure</source>
         <translation type="unfinished">Pression requise</translation>
     </message>
     <message>
         <location filename="../tools/qgisred_translatable_strings.py" line="118"/>
-        <source>Pressure Exponent</source>
+        <source>Pressure exponent</source>
         <translation type="unfinished">Exposant de pression</translation>
     </message>
     <message>
@@ -1496,32 +1496,32 @@
     </message>
     <message>
         <location filename="../tools/qgisred_translatable_strings.py" line="120"/>
-        <source>Global Bulk</source>
+        <source>Global bulk</source>
         <translation type="unfinished">Réaction globale en volume</translation>
     </message>
     <message>
         <location filename="../tools/qgisred_translatable_strings.py" line="121"/>
-        <source>Global Wall</source>
+        <source>Global wall</source>
         <translation type="unfinished">Réaction globale à la paroi</translation>
     </message>
     <message>
         <location filename="../tools/qgisred_translatable_strings.py" line="122"/>
-        <source>Limiting Potential</source>
+        <source>Limiting potential</source>
         <translation type="unfinished">Potentiel limitant</translation>
     </message>
     <message>
         <location filename="../tools/qgisred_translatable_strings.py" line="123"/>
-        <source>Global Efficiency</source>
+        <source>Global efficiency</source>
         <translation type="unfinished">Rendement global</translation>
     </message>
     <message>
         <location filename="../tools/qgisred_translatable_strings.py" line="124"/>
-        <source>Global Price</source>
+        <source>Global price</source>
         <translation type="unfinished">Prix global</translation>
     </message>
     <message>
         <location filename="../tools/qgisred_translatable_strings.py" line="125"/>
-        <source>Demand Charge</source>
+        <source>Demand charge</source>
         <translation type="unfinished">Frais de demande</translation>
     </message>
     <message>
@@ -1546,17 +1546,17 @@
     </message>
     <message>
         <location filename="../tools/qgisred_translatable_strings.py" line="132"/>
-        <source>Demand Deficit</source>
+        <source>Demand deficit</source>
         <translation type="unfinished">Déficit de demande</translation>
     </message>
     <message>
         <location filename="../tools/qgisred_translatable_strings.py" line="133"/>
-        <source>Leakage Flow</source>
+        <source>Leakage flow</source>
         <translation type="unfinished">Débit de fuite</translation>
     </message>
     <message>
         <location filename="../tools/qgisred_translatable_strings.py" line="134"/>
-        <source>Emitter Flow</source>
+        <source>Emitter flow</source>
         <translation type="unfinished">Débit de l’émetteur</translation>
     </message>
     <message>
@@ -1571,12 +1571,12 @@
     </message>
     <message>
         <location filename="../tools/qgisred_translatable_strings.py" line="140"/>
-        <source>HeadLoss</source>
+        <source>Headloss</source>
         <translation type="unfinished">Perte de charge</translation>
     </message>
     <message>
         <location filename="../tools/qgisred_translatable_strings.py" line="141"/>
-        <source>Unit HeadLoss</source>
+        <source>Unit headloss</source>
         <translation type="unfinished">Perte de charge unitaire</translation>
     </message>
     <message>
@@ -1591,17 +1591,17 @@
     </message>
     <message>
         <location filename="../tools/qgisred_translatable_strings.py" line="144"/>
-        <source>Reaction Rate</source>
+        <source>Reaction rate</source>
         <translation type="unfinished">Taux de réaction</translation>
     </message>
     <message>
         <location filename="../tools/qgisred_translatable_strings.py" line="147"/>
-        <source>Element Type</source>
+        <source>Element type</source>
         <translation type="unfinished">Type d’élément</translation>
     </message>
     <message>
         <location filename="../tools/qgisred_translatable_strings.py" line="150"/>
-        <source>Simulation Time</source>
+        <source>Simulation time</source>
         <translation type="unfinished">Temps de simulation</translation>
     </message>
     <message>
@@ -1616,37 +1616,37 @@
     </message>
     <message>
         <location filename="../tools/qgisred_translatable_strings.py" line="94"/>
-        <source>Annual Increment</source>
+        <source>Annual increment</source>
         <translation type="unfinished">Incrément annuel</translation>
     </message>
     <message>
         <location filename="../tools/qgisred_translatable_strings.py" line="84"/>
-        <source>Curve Type</source>
+        <source>Curve type</source>
         <translation type="unfinished">Type de courbe</translation>
     </message>
     <message>
         <location filename="../tools/qgisred_translatable_strings.py" line="33"/>
-        <source>Demand Pattern</source>
+        <source>Demand pattern</source>
         <translation type="unfinished">Modulation de demande</translation>
     </message>
     <message>
         <location filename="../tools/qgisred_translatable_strings.py" line="93"/>
-        <source>Initial Roughness</source>
+        <source>Initial roughness</source>
         <translation type="unfinished">Rugosité initiale</translation>
     </message>
     <message>
         <location filename="../tools/qgisred_translatable_strings.py" line="149"/>
-        <source>Link Type</source>
+        <source>Link type</source>
         <translation type="unfinished">Type de lien</translation>
     </message>
     <message>
         <location filename="../tools/qgisred_translatable_strings.py" line="103"/>
-        <source>Meter Type</source>
+        <source>Meter type</source>
         <translation type="unfinished">Type de compteur</translation>
     </message>
     <message>
         <location filename="../tools/qgisred_translatable_strings.py" line="45"/>
-        <source>Minimum Volume</source>
+        <source>Minimum volume</source>
         <translation type="unfinished">Volume minimal</translation>
     </message>
     <message>
@@ -1656,22 +1656,22 @@
     </message>
     <message>
         <location filename="../tools/qgisred_translatable_strings.py" line="148"/>
-        <source>Node Type</source>
+        <source>Node type</source>
         <translation type="unfinished">Type de noeud</translation>
     </message>
     <message>
         <location filename="../tools/qgisred_translatable_strings.py" line="89"/>
-        <source>Pattern Type</source>
+        <source>Pattern type</source>
         <translation type="unfinished">Type de modulation</translation>
     </message>
     <message>
         <location filename="../tools/qgisred_translatable_strings.py" line="73"/>
-        <source>Pump Curve</source>
+        <source>Pump curve</source>
         <translation type="unfinished">Courbe de la pompe</translation>
     </message>
     <message>
         <location filename="../tools/qgisred_translatable_strings.py" line="99"/>
-        <source>Quality Pattern</source>
+        <source>Quality pattern</source>
         <translation type="unfinished">Modulation de qualité</translation>
     </message>
     <message>
@@ -1681,22 +1681,22 @@
     </message>
     <message>
         <location filename="../tools/qgisred_translatable_strings.py" line="100"/>
-        <source>Source Type</source>
+        <source>Source type</source>
         <translation type="unfinished">Type de source</translation>
     </message>
     <message>
         <location filename="../tools/qgisred_translatable_strings.py" line="135"/>
-        <source>Tank Volume</source>
+        <source>Tank volume</source>
         <translation type="unfinished">Volume du réservoir</translation>
     </message>
     <message>
         <location filename="../tools/qgisred_translatable_strings.py" line="87"/>
-        <source>Time Order</source>
+        <source>Time order</source>
         <translation type="unfinished">Ordre temporel</translation>
     </message>
     <message>
         <location filename="../tools/qgisred_translatable_strings.py" line="69"/>
-        <source>Valve Type</source>
+        <source>Valve type</source>
         <translation type="unfinished">Type de vanne</translation>
     </message>
     <message>
@@ -1706,37 +1706,37 @@
     </message>
     <message>
         <location filename="../tools/qgisred_translatable_strings.py" line="160"/>
-        <source>Base Demands</source>
+        <source>Base demands</source>
         <translation type="unfinished">Demandes de base</translation>
     </message>
     <message>
         <location filename="../tools/qgisred_translatable_strings.py" line="161"/>
-        <source>Bulk Coefficients</source>
+        <source>Bulk coefficients</source>
         <translation type="unfinished">Coefficients de réaction en volume</translation>
     </message>
     <message>
         <location filename="../tools/qgisred_translatable_strings.py" line="162"/>
-        <source>Curve Types</source>
+        <source>Curve types</source>
         <translation type="unfinished">Types de courbe</translation>
     </message>
     <message>
         <location filename="../tools/qgisred_translatable_strings.py" line="163"/>
-        <source>Demand Charges</source>
+        <source>Demand charges</source>
         <translation type="unfinished">Frais de demande</translation>
     </message>
     <message>
         <location filename="../tools/qgisred_translatable_strings.py" line="164"/>
-        <source>Demand Deficits</source>
+        <source>Demand deficits</source>
         <translation type="unfinished">Déficits de demande</translation>
     </message>
     <message>
         <location filename="../tools/qgisred_translatable_strings.py" line="165"/>
-        <source>Demand Multipliers</source>
+        <source>Demand multipliers</source>
         <translation type="unfinished">Multiplicateurs de demande</translation>
     </message>
     <message>
         <location filename="../tools/qgisred_translatable_strings.py" line="166"/>
-        <source>Demand Patterns</source>
+        <source>Demand patterns</source>
         <translation type="unfinished">Profils de demande</translation>
     </message>
     <message>
@@ -1756,12 +1756,12 @@
     </message>
     <message>
         <location filename="../tools/qgisred_translatable_strings.py" line="170"/>
-        <source>Efficiency Curves</source>
+        <source>Efficiency curves</source>
         <translation type="unfinished">Courbes de rendement</translation>
     </message>
     <message>
         <location filename="../tools/qgisred_translatable_strings.py" line="171"/>
-        <source>Element Types</source>
+        <source>Element types</source>
         <translation type="unfinished">Types d’élément</translation>
     </message>
     <message>
@@ -1771,22 +1771,22 @@
     </message>
     <message>
         <location filename="../tools/qgisred_translatable_strings.py" line="173"/>
-        <source>Emitter Coefficients</source>
+        <source>Emitter coefficients</source>
         <translation type="unfinished">Coefficients d’émetteur</translation>
     </message>
     <message>
         <location filename="../tools/qgisred_translatable_strings.py" line="174"/>
-        <source>Emitter Exponents</source>
+        <source>Emitter exponents</source>
         <translation type="unfinished">Exposants de l’émetteur</translation>
     </message>
     <message>
         <location filename="../tools/qgisred_translatable_strings.py" line="175"/>
-        <source>Emitter Flows</source>
+        <source>Emitter flows</source>
         <translation type="unfinished">Débits de l’émetteur</translation>
     </message>
     <message>
         <location filename="../tools/qgisred_translatable_strings.py" line="176"/>
-        <source>Energy Prices</source>
+        <source>Energy prices</source>
         <translation type="unfinished">Prix de l’énergie</translation>
     </message>
     <message>
@@ -1806,22 +1806,22 @@
     </message>
     <message>
         <location filename="../tools/qgisred_translatable_strings.py" line="180"/>
-        <source>Head Curves</source>
+        <source>Head curves</source>
         <translation type="unfinished">Courbes de charge</translation>
     </message>
     <message>
         <location filename="../tools/qgisred_translatable_strings.py" line="181"/>
-        <source>Head Patterns</source>
+        <source>Head patterns</source>
         <translation type="unfinished">Profils de charge</translation>
     </message>
     <message>
         <location filename="../tools/qgisred_translatable_strings.py" line="182"/>
-        <source>HeadLoss Curves</source>
+        <source>Headloss curves</source>
         <translation type="unfinished">Courbes de perte de charge</translation>
     </message>
     <message>
         <location filename="../tools/qgisred_translatable_strings.py" line="183"/>
-        <source>HeadLosses</source>
+        <source>Headlosses</source>
         <translation type="unfinished">Pertes de charge</translation>
     </message>
     <message>
@@ -1831,32 +1831,32 @@
     </message>
     <message>
         <location filename="../tools/qgisred_translatable_strings.py" line="185"/>
-        <source>Initial Levels</source>
+        <source>Initial levels</source>
         <translation type="unfinished">Niveaux initiaux</translation>
     </message>
     <message>
         <location filename="../tools/qgisred_translatable_strings.py" line="186"/>
-        <source>Initial Statuses</source>
+        <source>Initial statuses</source>
         <translation type="unfinished">États initiaux</translation>
     </message>
     <message>
         <location filename="../tools/qgisred_translatable_strings.py" line="187"/>
-        <source>Installation Dates</source>
+        <source>Installation dates</source>
         <translation type="unfinished">Dates d’installation</translation>
     </message>
     <message>
         <location filename="../tools/qgisred_translatable_strings.py" line="188"/>
-        <source>Leak Areas</source>
+        <source>Leak areas</source>
         <translation type="unfinished">Surfaces de fuite</translation>
     </message>
     <message>
         <location filename="../tools/qgisred_translatable_strings.py" line="189"/>
-        <source>Leak Expansion Rates</source>
+        <source>Leak expansion rates</source>
         <translation type="unfinished">Taux d’expansion des fuites</translation>
     </message>
     <message>
         <location filename="../tools/qgisred_translatable_strings.py" line="190"/>
-        <source>Leakage Flows</source>
+        <source>Leakage flows</source>
         <translation type="unfinished">Débits de fuite</translation>
     </message>
     <message>
@@ -1866,12 +1866,12 @@
     </message>
     <message>
         <location filename="../tools/qgisred_translatable_strings.py" line="192"/>
-        <source>Link Types</source>
+        <source>Link types</source>
         <translation type="unfinished">Types de lien</translation>
     </message>
     <message>
         <location filename="../tools/qgisred_translatable_strings.py" line="193"/>
-        <source>Loss Coefficients</source>
+        <source>Loss coefficients</source>
         <translation type="unfinished">Coefficients de perte</translation>
     </message>
     <message>
@@ -1881,57 +1881,57 @@
     </message>
     <message>
         <location filename="../tools/qgisred_translatable_strings.py" line="195"/>
-        <source>Maximum Levels</source>
+        <source>Maximum levels</source>
         <translation type="unfinished">Niveaux maximums</translation>
     </message>
     <message>
         <location filename="../tools/qgisred_translatable_strings.py" line="196"/>
-        <source>Meter Types</source>
+        <source>Meter types</source>
         <translation type="unfinished">Types de compteur</translation>
     </message>
     <message>
         <location filename="../tools/qgisred_translatable_strings.py" line="197"/>
-        <source>Minimum Pressures</source>
+        <source>Minimum pressures</source>
         <translation type="unfinished">Pressions minimales</translation>
     </message>
     <message>
         <location filename="../tools/qgisred_translatable_strings.py" line="198"/>
-        <source>Minimum Volumes</source>
+        <source>Minimum volumes</source>
         <translation type="unfinished">Volumes minimums</translation>
     </message>
     <message>
         <location filename="../tools/qgisred_translatable_strings.py" line="199"/>
-        <source>Mixing Fractions</source>
+        <source>Mixing fractions</source>
         <translation type="unfinished">Fractions de mélange</translation>
     </message>
     <message>
         <location filename="../tools/qgisred_translatable_strings.py" line="200"/>
-        <source>Mixing Models</source>
+        <source>Mixing models</source>
         <translation type="unfinished">Modèles de mélange</translation>
     </message>
     <message>
         <location filename="../tools/qgisred_translatable_strings.py" line="201"/>
-        <source>Node Types</source>
+        <source>Node types</source>
         <translation type="unfinished">Types de noeud</translation>
     </message>
     <message>
         <location filename="../tools/qgisred_translatable_strings.py" line="202"/>
-        <source>Overflow Conditions</source>
+        <source>Overflow conditions</source>
         <translation type="unfinished">Conditions de débordement</translation>
     </message>
     <message>
         <location filename="../tools/qgisred_translatable_strings.py" line="203"/>
-        <source>Pattern Demands</source>
+        <source>Pattern demands</source>
         <translation type="unfinished">Demandes de la modulation</translation>
     </message>
     <message>
         <location filename="../tools/qgisred_translatable_strings.py" line="204"/>
-        <source>Pattern Types</source>
+        <source>Pattern types</source>
         <translation type="unfinished">Types de modulation</translation>
     </message>
     <message>
         <location filename="../tools/qgisred_translatable_strings.py" line="205"/>
-        <source>Pressure Exponents</source>
+        <source>Pressure exponents</source>
         <translation type="unfinished">Exposants de pression</translation>
     </message>
     <message>
@@ -1941,32 +1941,32 @@
     </message>
     <message>
         <location filename="../tools/qgisred_translatable_strings.py" line="207"/>
-        <source>Price Patterns</source>
+        <source>Price patterns</source>
         <translation type="unfinished">Profils de prix</translation>
     </message>
     <message>
         <location filename="../tools/qgisred_translatable_strings.py" line="208"/>
-        <source>Pump Curves</source>
+        <source>Pump curves</source>
         <translation type="unfinished">Courbes de la pompe</translation>
     </message>
     <message>
         <location filename="../tools/qgisred_translatable_strings.py" line="209"/>
-        <source>Quality Patterns</source>
+        <source>Quality patterns</source>
         <translation type="unfinished">Profils de qualité</translation>
     </message>
     <message>
         <location filename="../tools/qgisred_translatable_strings.py" line="210"/>
-        <source>Reaction Rates</source>
+        <source>Reaction rates</source>
         <translation type="unfinished">Taux de réaction</translation>
     </message>
     <message>
         <location filename="../tools/qgisred_translatable_strings.py" line="211"/>
-        <source>Required Pressures</source>
+        <source>Required pressures</source>
         <translation type="unfinished">Pressions requises</translation>
     </message>
     <message>
         <location filename="../tools/qgisred_translatable_strings.py" line="212"/>
-        <source>Roughness Coeffs</source>
+        <source>Roughness coeffs</source>
         <translation type="unfinished">Coefs. de rugosité</translation>
     </message>
     <message>
@@ -1976,17 +1976,17 @@
     </message>
     <message>
         <location filename="../tools/qgisred_translatable_strings.py" line="214"/>
-        <source>Source Patterns</source>
+        <source>Source patterns</source>
         <translation type="unfinished">Profils de la source</translation>
     </message>
     <message>
         <location filename="../tools/qgisred_translatable_strings.py" line="215"/>
-        <source>Source Types</source>
+        <source>Source types</source>
         <translation type="unfinished">Types de source</translation>
     </message>
     <message>
         <location filename="../tools/qgisred_translatable_strings.py" line="216"/>
-        <source>Speed Patterns</source>
+        <source>Speed patterns</source>
         <translation type="unfinished">Profils de vitesse</translation>
     </message>
     <message>
@@ -2006,12 +2006,12 @@
     </message>
     <message>
         <location filename="../tools/qgisred_translatable_strings.py" line="220"/>
-        <source>Tank Volumes</source>
+        <source>Tank volumes</source>
         <translation type="unfinished">Volumes du réservoir</translation>
     </message>
     <message>
         <location filename="../tools/qgisred_translatable_strings.py" line="221"/>
-        <source>Total Heads</source>
+        <source>Total heads</source>
         <translation type="unfinished">Charges totales</translation>
     </message>
     <message>
@@ -2021,12 +2021,12 @@
     </message>
     <message>
         <location filename="../tools/qgisred_translatable_strings.py" line="223"/>
-        <source>Unit HeadLosses</source>
+        <source>Unit headlosses</source>
         <translation type="unfinished">Pertes de charge unitaires</translation>
     </message>
     <message>
         <location filename="../tools/qgisred_translatable_strings.py" line="224"/>
-        <source>Valve Types</source>
+        <source>Valve types</source>
         <translation type="unfinished">Types de vanne</translation>
     </message>
     <message>
@@ -2036,7 +2036,7 @@
     </message>
     <message>
         <location filename="../tools/qgisred_translatable_strings.py" line="226"/>
-        <source>Volume Curves</source>
+        <source>Volume curves</source>
         <translation type="unfinished">Courbes de volume</translation>
     </message>
     <message>
@@ -2046,12 +2046,12 @@
     </message>
     <message>
         <location filename="../tools/qgisred_translatable_strings.py" line="228"/>
-        <source>Wall Coefficients</source>
+        <source>Wall coefficients</source>
         <translation type="unfinished">Coefficients de réaction à la paroi</translation>
     </message>
     <message>
         <location filename="../tools/qgisred_translatable_strings.py" line="42"/>
-        <source>Minimum Level</source>
+        <source>Minimum level</source>
         <translation type="unfinished">Niveau minimal</translation>
     </message>
 </context>
@@ -6374,7 +6374,7 @@ Toutes : une classe pour chaque valeur de la couche.</translation>
     </message>
     <message>
         <location filename="../ui/project/qgisred_legends_dialog.py" line="840"/>
-        <source>Meter Type</source>
+        <source>Meter type</source>
         <translation>Type de compteur</translation>
     </message>
     <message>
@@ -6399,7 +6399,7 @@ Toutes : une classe pour chaque valeur de la couche.</translation>
     </message>
     <message>
         <location filename="../ui/project/qgisred_legends_dialog.py" line="846"/>
-        <source>Source Type</source>
+        <source>Source type</source>
         <translation>Type de source</translation>
     </message>
     <message>

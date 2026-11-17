@@ -552,7 +552,7 @@ class TestVariantItems:
 
     def test_sources_offer_all_types_first(self, monkeypatch):
         label, items = self._items(monkeypatch, "qgisred_sources")
-        assert label == "Source Type"
+        assert label == "Source type"
         assert items[0] == ("All types", None)
         assert [data for _, data in items[1:]] == list(QGISRedLegendsDialog.SOURCE_TYPES)
 

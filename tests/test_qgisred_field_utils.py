@@ -5,6 +5,7 @@ All QGIS dependencies are mocked via conftest.py.  QgsProject.instance()
 is patched per-test to simulate different project settings (flow units,
 concentration units, etc.) without requiring a running QGIS instance.
 """
+import os
 import pytest
 from unittest.mock import MagicMock, patch
 
@@ -287,7 +288,7 @@ class TestVolumeUnits:
     def test_node_volume_keeps_its_property_name(self, fu):
         with patch("QGISRed.tools.utils.qgisred_project_utils.QgsProject") as MockProj:
             MockProj.instance.return_value = _make_project("GPM")
-            assert fu.getProperty("Nodes", "Volume", translate=False) == "Tank Volume"
+            assert fu.getProperty("Nodes", "Volume", translate=False) == "Tank volume"
 
     @pytest.mark.parametrize("unit_code, expected_abbr", [("LPS", "m³"), ("GPM", "ft³")])
     def test_tank_min_volume_keeps_its_own_unit(self, fu, unit_code, expected_abbr):
@@ -400,10 +401,10 @@ class TestCsvLoading:
     def test_renamed_fields_keep_pretty_names(self, fu):
         with patch("QGISRed.tools.utils.qgisred_project_utils.QgsProject") as MockProj:
             MockProj.instance.return_value = _make_project()
-            assert fu.getProperty("Pumps", "PumpCurvID", translate=False) == "Pump Curve"
-            assert fu.getProperty("Pumps", "IdHFCurve", translate=False) == "Pump Curve"
-            assert fu.getProperty("Valves", "ValveType", translate=False) == "Valve Type"
-            assert fu.getProperty("Tanks", "VolCurveID", translate=False) == "Volume Curve"
+            assert fu.getProperty("Pumps", "PumpCurvID", translate=False) == "Pump curve"
+            assert fu.getProperty("Pumps", "IdHFCurve", translate=False) == "Pump curve"
+            assert fu.getProperty("Valves", "ValveType", translate=False) == "Valve type"
+            assert fu.getProperty("Tanks", "VolCurveID", translate=False) == "Volume curve"
 
     def test_cache_reused(self, fu):
         with patch("QGISRed.tools.utils.qgisred_project_utils.QgsProject") as MockProj:
@@ -422,7 +423,7 @@ class TestGetPluralProperty:
             assert fu.getPluralProperty("Pipes", "Length") == "Lengths"
             assert fu.getPluralProperty("Pipes", "Diameter") == "Diameters"
             assert fu.getPluralProperty("Links", "Velocity") == "Velocities"
-            assert fu.getPluralProperty("Pumps", "IdHFCurve") == "Pump Curves"
+            assert fu.getPluralProperty("Pumps", "IdHFCurve") == "Pump curves"
 
     def test_unmapped_name_falls_back_to_singular(self, fu):
         with patch("QGISRed.tools.utils.qgisred_project_utils.QgsProject") as MockProj, \
@@ -432,9 +433,55 @@ class TestGetPluralProperty:
             assert fu.getPluralProperty("Pipes", "NoSuchField") == "NoSuchField"
 
 
+@pytest.fixture
+def titleCaseCsv(tmp_path, monkeypatch):
+    """The CSV as the dependencies installer shipped it before the sentence case change."""
+    import QGISRed.tools.utils.qgisred_field_utils as fieldUtilsModule
+    source = os.path.join(fieldUtilsModule._plugin_root(), "defaults", "qgisred_properties_units_decimals.csv")
+    rows = open(source, encoding="utf-8").read()
+    for current, previous in (("Pump curve", "Pump Curve"), ("Unit headloss", "Unit HeadLoss"), (",Headloss,", ",HeadLoss,")):
+        rows = rows.replace(current, previous)
+    (tmp_path / "defaults").mkdir()
+    (tmp_path / "defaults" / "qgisred_properties_units_decimals.csv").write_text(rows, encoding="utf-8")
+    monkeypatch.setattr(fieldUtilsModule, "_plugin_root", lambda: str(tmp_path))
+
+
+class TestInstalledCsvWithTitleCaseNames:
+    def _translatedAsIs(self):
+        return patch("QGISRed.tools.utils.qgisred_field_utils.QCoreApplication",
+                     **{"translate.side_effect": lambda context, text: text})
+
+    @pytest.mark.parametrize("element, fieldName, expected", [
+        ("Pumps", "IdHFCurve", "Pump curve"), ("Links", "UnitHdLoss", "Unit headloss"), ("Links", "HeadLoss", "Headloss"),
+    ])
+    def test_the_names_match_the_current_translation_keys(self, fu, titleCaseCsv, element, fieldName, expected):
+        assert fu.getProperty(element, fieldName, translate=False) == expected
+
+    def test_the_names_still_pluralize(self, fu, titleCaseCsv):
+        with self._translatedAsIs():
+            assert fu.getPluralProperty("Pumps", "IdHFCurve") == "Pump curves"
+
+    def test_one_word_identifiers_are_left_alone(self, fu, titleCaseCsv):
+        assert fu.getProperty("Meters", "IsActive", translate=False) == "IsActive"
+
+
+class TestGetFieldRawName:
+    def test_the_current_name_resolves_to_its_field(self, fu):
+        assert fu.getFieldRawName("Valves", "Valve type") in ("Type", "ValveType")
+
+    def test_a_name_exported_before_the_sentence_case_change_still_resolves(self, fu):
+        assert fu.getFieldRawName("Valves", "Valve Type") in ("Type", "ValveType")
+        assert fu.getFieldRawName("Links", "Unit HeadLoss") == "UnitHdLoss"
+
+    def test_an_unknown_name_is_returned_unchanged(self, fu):
+        assert fu.getFieldRawName("Valves", "No Such Property") == "No Such Property"
+
+
 # ---------------------------------------------------------------------------
 # Main public API: getUnitAbbreviation
 # ---------------------------------------------------------------------------
+
+
 class TestGetUnitAbbreviation:
     # Via resolve_layer_id (replaces old getUnitAbbreviationForLayer)
     def test_pipes_length_si_via_layer_id(self, fu):
