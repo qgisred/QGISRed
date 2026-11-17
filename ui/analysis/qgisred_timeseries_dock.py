@@ -2200,7 +2200,7 @@ class QGISRedTimeSeriesDock(QGISRedDockActivationMixin, QDockWidget, FORM_CLASS)
                 hours = dock._elapsedTextToHours(text)
                 if hours is not None:
                     return float(hours)
-        if text == self.tr("Single Period"):
+        if text == self.tr("Single period"):
             return 0.0
 
         try:

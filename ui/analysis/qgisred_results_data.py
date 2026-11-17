@@ -78,9 +78,9 @@ def resultVariableUnit(layerType, variable):
 
 _RESULT_VARIABLE_SOURCES = {
     "Pressure": "Pressure", "Head": "Head", "Demand": "Demand", "Flow": "Flow",
-    "Flow_Unsig": "Flow (Unsigned)", "Flow_Sig": "Flow (Signed)", "Velocity": "Velocity",
-    "HeadLoss": "HeadLoss", "UnitHdLoss": "Unit HeadLoss", "FricFactor": "Friction Factor",
-    "Status": "Status", "ReactRate": "Reaction Rate",
+    "Flow_Unsig": "Flow (unsigned)", "Flow_Sig": "Flow (signed)", "Velocity": "Velocity",
+    "HeadLoss": "Headloss", "UnitHdLoss": "Unit headloss", "FricFactor": "Friction factor",
+    "Status": "Status", "ReactRate": "Reaction rate",
 }
 _RESULT_STAT_PREFIX_SOURCES = ("Max", "Min", "Avg", "Rng", "Std")
 _RESULT_ELEMENT_TYPES = ("JUNCTION", "RESERVOIR", "TANK", "PIPE", "PUMP", "VALVE")
@@ -337,7 +337,7 @@ def export_results_to_csv(binary_path, nodes_path, links_path, iface, list_sep, 
     """Export all simulation time steps to two CSV files (Nodes and Links)."""
     import csv
 
-    lbl_singlePeriod = QCoreApplication.translate("QGISRedResultsDock", "Single Period")
+    lbl_singlePeriod = QCoreApplication.translate("QGISRedResultsDock", "Single period")
 
     def _fmt(value):
         if value is None or value == "":

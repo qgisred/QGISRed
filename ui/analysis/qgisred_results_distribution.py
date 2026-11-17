@@ -678,8 +678,8 @@ class _ResultsDistributionMixin:
 
     def _distributionCheckboxText(self, layer_type):
         if layer_type == "Node":
-            return self.tr("Show Node Histogram")
-        return self.tr("Show Link Histogram")
+            return self.tr("Show node histogram")
+        return self.tr("Show link histogram")
 
     def _updateDistributionCheckboxLabels(self):
         self.cbNodeDistribution.setText(self._distributionCheckboxText("Node"))

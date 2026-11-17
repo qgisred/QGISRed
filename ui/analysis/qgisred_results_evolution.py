@@ -186,8 +186,8 @@ class _ResultsEvolutionMixin:
 
     def _evolutionCheckboxText(self, layer_type):
         if layer_type == "Node":
-            return self.tr("Show Node Evolution")
-        return self.tr("Show Link Evolution")
+            return self.tr("Show node evolution")
+        return self.tr("Show link evolution")
 
     def _updateEvolutionCheckboxLabels(self):
         self.cbNodeEvolution.setText(self._evolutionCheckboxText("Node"))

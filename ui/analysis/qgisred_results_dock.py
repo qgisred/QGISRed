@@ -98,7 +98,7 @@ class QGISRedResultsDock(
         self.lbl_average         = self.tr("Average")
         self.lbl_std_deviation   = self.tr("StdDev")
         self.lbl_warning         = self.tr("Warning")
-        self.lbl_singlePeriod       = self.tr("Single Period")
+        self.lbl_singlePeriod       = self.tr("Single period")
         self.lbl_step_times      = self.tr("Step times")
         self.lbl_all_calc_times  = self.tr("All calculation times")
         self.lbl_pressure        = self.tr("Pressure")
@@ -107,17 +107,17 @@ class QGISRedResultsDock(
         self.lbl_quality         = self.tr("Quality")
         self.lbl_flow            = self.tr("Flow")
         self.lbl_velocity        = self.tr("Velocity")
-        self.lbl_headloss        = self.tr("HeadLoss")
-        self.lbl_unit_headloss   = self.tr("Unit HeadLoss")
-        self.lbl_friction_factor = self.tr("Friction Factor")
+        self.lbl_headloss        = self.tr("Headloss")
+        self.lbl_unit_headloss   = self.tr("Unit headloss")
+        self.lbl_friction_factor = self.tr("Friction factor")
         self.lbl_status          = self.tr("Status")
-        self.lbl_reaction_rate   = self.tr("Reaction Rate")
-        self.lbl_signed_flow     = self.tr("Flow (Signed)")
-        self.lbl_unsigned_flow   = self.tr("Flow (Unsigned)")
+        self.lbl_reaction_rate   = self.tr("Reaction rate")
+        self.lbl_signed_flow     = self.tr("Flow (signed)")
+        self.lbl_unsigned_flow   = self.tr("Flow (unsigned)")
         # Tank-only magnitudes: offered in the Time Series right-click menu when a
         # storage tank is picked. Not added to the results-panel combos.
         self.lbl_tank_volume     = self.tr("Volume")
-        self.lbl_tank_overflow   = self.tr("Overflow Flow")
+        self.lbl_tank_overflow   = self.tr("Overflow flow")
 
         self.stat_variables = {
             self.lbl_maximum: self.tr("Maximum values"),

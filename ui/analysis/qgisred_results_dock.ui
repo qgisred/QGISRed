@@ -658,7 +658,7 @@
                           <string notr="true">font-weight: bold;</string>
                          </property>
                          <property name="text">
-                          <string>Reported Times</string>
+                          <string>Reported times</string>
                          </property>
                         </widget>
                        </item>
@@ -810,7 +810,7 @@
                         <string notr="true">font: italic 8pt "MS Shell Dlg 2";</string>
                        </property>
                        <property name="text">
-                        <string>Show Node Labels</string>
+                        <string>Show node labels</string>
                        </property>
                       </widget>
                      </item>
@@ -829,7 +829,7 @@
                         <string notr="true">font: italic 8pt "MS Shell Dlg 2";</string>
                        </property>
                        <property name="text">
-                        <string>Show Node Histogram</string>
+                        <string>Show node histogram</string>
                        </property>
                       </widget>
                      </item>
@@ -848,7 +848,7 @@
                         <string notr="true">font: italic 8pt "MS Shell Dlg 2";</string>
                        </property>
                        <property name="text">
-                        <string>Show Node Evolution</string>
+                        <string>Show node evolution</string>
                        </property>
                       </widget>
                      </item>
@@ -940,7 +940,7 @@
                         <string notr="true">font: italic 8pt "MS Shell Dlg 2";</string>
                        </property>
                        <property name="text">
-                        <string>Show Link Labels</string>
+                        <string>Show link labels</string>
                        </property>
                       </widget>
                      </item>
@@ -959,7 +959,7 @@
                         <string notr="true">font: italic 8pt "MS Shell Dlg 2";</string>
                        </property>
                        <property name="text">
-                        <string>Show Flow Directions</string>
+                        <string>Show flow direction</string>
                        </property>
                       </widget>
                      </item>
@@ -978,7 +978,7 @@
                         <string notr="true">font: italic 8pt "MS Shell Dlg 2";</string>
                        </property>
                        <property name="text">
-                        <string>Show Link Histogram</string>
+                        <string>Show link histogram</string>
                        </property>
                       </widget>
                      </item>
@@ -997,7 +997,7 @@
                         <string notr="true">font: italic 8pt "MS Shell Dlg 2";</string>
                        </property>
                        <property name="text">
-                        <string>Show Link Evolution</string>
+                        <string>Show link evolution</string>
                        </property>
                       </widget>
                      </item>
@@ -1301,7 +1301,7 @@
             <item>
              <widget class="QGroupBox" name="groupBoxLabels">
               <property name="title">
-               <string>Map Labels</string>
+               <string>Map labels</string>
               </property>
               <layout class="QGridLayout" name="gridLayout_labels">
                <item row="0" column="0">
@@ -1460,14 +1460,14 @@
                  <item>
                   <widget class="QCheckBox" name="cbShowNodeId">
                    <property name="text">
-                    <string>Show Node ID</string>
+                    <string>Show node ID</string>
                    </property>
                   </widget>
                  </item>
                  <item>
                   <widget class="QCheckBox" name="cbShowLinkId">
                    <property name="text">
-                    <string>Show Link ID</string>
+                    <string>Show link ID</string>
                    </property>
                   </widget>
                  </item>
@@ -1889,7 +1889,7 @@
             <item>
              <widget class="QGroupBox" name="groupBoxBackground">
               <property name="title">
-               <string>Map Background</string>
+               <string>Map background</string>
               </property>
               <layout class="QVBoxLayout" name="verticalLayout_background">
                <item>
