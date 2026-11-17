@@ -7,6 +7,7 @@ import re
 import unicodedata
 from typing import Optional
 
+from .simulation_period import read_simulation_period
 
 _TIME_RE = re.compile(r"^\s*(\d{1,2})(?::(\d{1,2}))?(?::(\d{1,2}))?\s*([ap]\.?\s*m\.?|am|pm)?\s*$", re.IGNORECASE)
 _START_CLOCK_KEYS = {
@@ -125,6 +126,10 @@ def simulation_start_clock_seconds(
     binary_path: str = "",
     fallback: int = 0,
 ) -> int:
+    period = read_simulation_period(project_directory, network_name)
+    if period is not None:
+        return period.start_clock_seconds
+
     parsed = _read_options_dbf_start_clock(project_directory, network_name)
     if parsed is not None:
         return parsed
