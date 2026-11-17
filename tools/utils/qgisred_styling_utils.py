@@ -37,7 +37,7 @@ from .qgisred_base_demand_fields import resolveBaseDemandField
 from .qgisred_color_utils import deltaE, complementaryColor
 from .qgisred_field_utils import QGISRedFieldUtils
 from .qgisred_project_utils import QGISRedProjectUtils
-from .qgisred_legend_rule_utils import scaleNumericLiterals, OPEN_RANGE_BOUND
+from .qgisred_legend_rule_utils import scaleNumericLiterals, parseCategoricalRuleFilter, OPEN_RANGE_BOUND
 from .qgisred_valve_types import getValveTypeName, getValveTypeAbbreviation, VALVE_TYPE_LONG_NAMES
 from .qgisred_meter_types import getMeterTypeName, METER_TYPE_LABELS
 from .qgisred_source_types import getSourceTypeName, SOURCE_TYPE_LABELS
@@ -45,6 +45,9 @@ from .qgisred_source_types import getSourceTypeName, SOURCE_TYPE_LABELS
 
 _OTHER_VALUES_SOURCE = "Other Values"
 _UNKNOWN_SOURCE = "Unknown"
+_LINK_STATUS_CLASSES = ("Open", "Active", "Closed")
+# The results dock already owns these three words, for its Status histogram
+_LINK_STATUS_CONTEXT = "QGISRedResultsDock"
 _shippedTranslators = None
 
 
@@ -1518,13 +1521,27 @@ class QGISRedStylingUtils:
         rebuilt.setUsingSymbolLevels(renderer.usingSymbolLevels())
         return rebuilt
 
+    @staticmethod
+    def _linkStatusClass(rule):
+        """Open, Active or Closed when the rule is that class of the Status legend and still
+        carries its stock name; a name the user typed is not a translation of it and stays."""
+        parsed = parseCategoricalRuleFilter(rule.filterExpression())
+        if not parsed or parsed[0] != "Status" or parsed[1] not in _LINK_STATUS_CLASSES:
+            return None
+        if rule.label() not in allLanguageTexts(_LINK_STATUS_CONTEXT, parsed[1]):
+            return None
+        return parsed[1]
+
     def _translateRuleLabels(self, rule):
         if rule is None:
             return
         # A saved project keeps the label already translated, so the closed-links rule is
         # told apart by the value it filters on, not by its text.
+        linkStatusClass = self._linkStatusClass(rule)
         if "\"SubNet\" = 'ClosedLinks'" in (rule.filterExpression() or ""):
             label = self.tr("Closed Links")
+        elif linkStatusClass:
+            label = QCoreApplication.translate(_LINK_STATUS_CONTEXT, linkStatusClass)
         elif rule.filterExpression() == "ELSE" and rule.label() in allLanguageTexts("QGISRedStylingUtils", _UNKNOWN_SOURCE):
             label = self.tr("Unknown")
         else:

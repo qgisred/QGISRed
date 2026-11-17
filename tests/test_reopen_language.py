@@ -131,6 +131,46 @@ class TestPostQgzOpenResolvesTheProject:
         section.defineCurrentProject.assert_not_called()
 
 
+class TestLinkStatusClassesSavedInAnotherLanguage:
+    _TEXTS = {"Open": {"Open", "Abierta", "Ouvert"}, "Active": {"Active", "Activa", "Actif"},
+              "Closed": {"Closed", "Cerrada", "Fermé"}}
+    _FRENCH = {"Open": "Ouvert", "Active": "Actif", "Closed": "Fermé"}
+
+    @pytest.fixture(autouse=True)
+    def _languages(self, monkeypatch):
+        monkeypatch.setattr(stylingModule, "allLanguageTexts", lambda context, source: self._TEXTS.get(source, {source}))
+        monkeypatch.setattr(stylingModule.QCoreApplication, "translate",
+                            lambda context, source: self._FRENCH.get(source, source))
+
+    def _rule(self, label, filterExpression):
+        rule = MagicMock()
+        rule.label.return_value = label
+        rule.filterExpression.return_value = filterExpression
+        rule.children.return_value = []
+        return rule
+
+    @pytest.mark.parametrize("label, filterExpression, expected", [
+        ("Open", "\"Status\" LIKE 'Open%'", "Ouvert"),
+        ("Active", "\"Status\" LIKE 'Active%'", "Actif"),
+        ("Closed", "\"Status\" LIKE '%Closed%'", "Fermé"),
+        ("Cerrada", "\"Status\" LIKE '%Closed%'", "Fermé"),
+    ])
+    def test_each_class_follows_the_language_whatever_it_was_saved_in(self, label, filterExpression, expected):
+        rule = self._rule(label, filterExpression)
+        QGISRedStylingUtils("", "")._translateRuleLabels(rule)
+        rule.setLabel.assert_called_once_with(expected)
+
+    def test_a_name_the_user_typed_is_kept(self):
+        rule = self._rule("Shut", "\"Status\" LIKE '%Closed%'")
+        QGISRedStylingUtils("", "")._translateRuleLabels(rule)
+        rule.setLabel.assert_not_called()
+
+    def test_a_class_of_another_legend_with_the_same_name_is_left_alone(self):
+        rule = self._rule("Closed", "\"State\" = 'Closed'")
+        QGISRedStylingUtils("", "")._translateRuleLabels(rule)
+        rule.setLabel.assert_not_called()
+
+
 class TestUnknownRuleSavedInAnotherLanguage:
     def _rule(self, label, filterExpression):
         rule = MagicMock()

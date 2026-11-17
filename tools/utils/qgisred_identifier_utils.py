@@ -327,6 +327,21 @@ class QGISRedIdentifierUtils:
             QGISRedStylingUtils.labelClassesWithUnit(layer, resultVariableUnit(layerType, field))
             layer.legendChanged.emit()
 
+    def translateResultStatusClasses(self):
+        """Name the Open, Active and Closed classes of the Status legend in the active language."""
+        from .qgisred_styling_utils import QGISRedStylingUtils
+
+        styling = QGISRedStylingUtils(self.ProjectDirectory, self.NetworkName, self.iface)
+        for layer in self._getLayers():
+            layerType = self._resultLayerType(layer) if layer is not None else None
+            if not layerType:
+                continue
+            baseName = self._layerBaseName(layer)
+            scenario = baseName[len(self.NetworkName) + 1:].rsplit("_", 1)[0]
+            field, _ = QgsProject.instance().readEntry("QGISRed", f"results_{scenario}_{layerType}", "")
+            if field == "Status":
+                styling.translateRendererLabels(layer)
+
     def _getResultLayerName(self, layer, layerType):
         from ...ui.analysis.qgisred_results_data import NO_VARIABLE_METADATA_TAG, resultLayerDisplayName
 

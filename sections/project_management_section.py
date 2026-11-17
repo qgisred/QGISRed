@@ -1010,6 +1010,7 @@ class ProjectManagementSection:
         identifiers.renameLayersToLocale()
         identifiers.translateResultMapTips()
         identifiers.labelResultClassesWithUnit()
+        identifiers.translateResultStatusClasses()
 
         from ..tools.utils.qgisred_styling_utils import QGISRedStylingUtils
 
