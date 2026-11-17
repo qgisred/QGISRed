@@ -1277,12 +1277,12 @@
     <message>
         <location filename="../tools/qgisred_translatable_strings.py" line="26"/>
         <source>Bulk Coefficient</source>
-        <translation>Coef. de Reacción Medio</translation>
+        <translation>Coef. de reacción medio</translation>
     </message>
     <message>
         <location filename="../tools/qgisred_translatable_strings.py" line="27"/>
         <source>Wall Coefficient</source>
-        <translation>Coef. de Reacción en Pared</translation>
+        <translation>Coef. de reacción en pared</translation>
     </message>
     <message>
         <location filename="../tools/qgisred_translatable_strings.py" line="30"/>
@@ -1297,7 +1297,7 @@
     <message>
         <location filename="../tools/qgisred_translatable_strings.py" line="34"/>
         <source>Emitter Coefficient</source>
-        <translation>Coeficiente Emisor</translation>
+        <translation>Coeficiente emisor</translation>
     </message>
     <message>
         <location filename="../tools/qgisred_translatable_strings.py" line="35"/>
@@ -1382,7 +1382,7 @@
     <message>
         <location filename="../tools/qgisred_translatable_strings.py" line="78"/>
         <source>Energy Price</source>
-        <translation>Precio de Energía</translation>
+        <translation>Precio de energía</translation>
     </message>
     <message>
         <location filename="../tools/qgisred_translatable_strings.py" line="79"/>
@@ -1422,7 +1422,7 @@
     <message>
         <location filename="../tools/qgisred_translatable_strings.py" line="21"/>
         <source>Roughness Coeff</source>
-        <translation>Coef. Rugosidad</translation>
+        <translation>Coef. rugosidad</translation>
     </message>
     <message>
         <location filename="../tools/qgisred_translatable_strings.py" line="24"/>
@@ -1437,7 +1437,7 @@
     <message>
         <location filename="../tools/qgisred_translatable_strings.py" line="32"/>
         <source>Pattern Demand</source>
-        <translation>Patrón Demanda</translation>
+        <translation>Patrón demanda</translation>
     </message>
     <message>
         <location filename="../tools/qgisred_translatable_strings.py" line="44"/>
@@ -1522,7 +1522,7 @@
     <message>
         <location filename="../tools/qgisred_translatable_strings.py" line="122"/>
         <source>Limiting Potential</source>
-        <translation>Potencial Limitante</translation>
+        <translation>Potencial limitante</translation>
     </message>
     <message>
         <location filename="../tools/qgisred_translatable_strings.py" line="123"/>
@@ -1607,7 +1607,7 @@
     <message>
         <location filename="../tools/qgisred_translatable_strings.py" line="144"/>
         <source>Reaction Rate</source>
-        <translation>Velocidad de Reacción</translation>
+        <translation>Velocidad de reacción</translation>
     </message>
     <message>
         <location filename="../tools/qgisred_translatable_strings.py" line="147"/>
@@ -1727,7 +1727,7 @@
     <message>
         <location filename="../tools/qgisred_translatable_strings.py" line="161"/>
         <source>Bulk Coefficients</source>
-        <translation>Coefs. de Reacción Medios</translation>
+        <translation>Coefs. de reacción medios</translation>
     </message>
     <message>
         <location filename="../tools/qgisred_translatable_strings.py" line="162"/>
@@ -1787,7 +1787,7 @@
     <message>
         <location filename="../tools/qgisred_translatable_strings.py" line="173"/>
         <source>Emitter Coefficients</source>
-        <translation>Coeficientes Emisores</translation>
+        <translation>Coeficientes emisores</translation>
     </message>
     <message>
         <location filename="../tools/qgisred_translatable_strings.py" line="174"/>
@@ -1802,7 +1802,7 @@
     <message>
         <location filename="../tools/qgisred_translatable_strings.py" line="176"/>
         <source>Energy Prices</source>
-        <translation>Precios de Energía</translation>
+        <translation>Precios de energía</translation>
     </message>
     <message>
         <location filename="../tools/qgisred_translatable_strings.py" line="177"/>
@@ -1937,7 +1937,7 @@
     <message>
         <location filename="../tools/qgisred_translatable_strings.py" line="203"/>
         <source>Pattern Demands</source>
-        <translation>Patrones Demanda</translation>
+        <translation>Patrones demanda</translation>
     </message>
     <message>
         <location filename="../tools/qgisred_translatable_strings.py" line="204"/>
@@ -1972,7 +1972,7 @@
     <message>
         <location filename="../tools/qgisred_translatable_strings.py" line="210"/>
         <source>Reaction Rates</source>
-        <translation>Velocidades de Reacción</translation>
+        <translation>Velocidades de reacción</translation>
     </message>
     <message>
         <location filename="../tools/qgisred_translatable_strings.py" line="211"/>
@@ -1982,7 +1982,7 @@
     <message>
         <location filename="../tools/qgisred_translatable_strings.py" line="212"/>
         <source>Roughness Coeffs</source>
-        <translation>Coefs. Rugosidad</translation>
+        <translation>Coefs. rugosidad</translation>
     </message>
     <message>
         <location filename="../tools/qgisred_translatable_strings.py" line="213"/>
@@ -2062,7 +2062,7 @@
     <message>
         <location filename="../tools/qgisred_translatable_strings.py" line="228"/>
         <source>Wall Coefficients</source>
-        <translation>Coefs. de Reacción en Pared</translation>
+        <translation>Coefs. de reacción en pared</translation>
     </message>
     <message>
         <location filename="../tools/qgisred_translatable_strings.py" line="42"/>
