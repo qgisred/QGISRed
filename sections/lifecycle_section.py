@@ -346,6 +346,7 @@ class LifecycleSection:
                 continue
             with suppress(Exception):
                 dock.destroyed.disconnect(self._onProfileDockDestroyed)
+            dock.closeHandler = None
             docks_to_clean.append(('profileDock', dock))
         self._profiles = []
         self._activeProfile = None

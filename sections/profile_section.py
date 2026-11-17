@@ -126,6 +126,10 @@ class ProfileSection:
             self._createProfilePanel(out_path)
         else:
             dock = self._activeDock() or self._profiles[0].dock
+            for state in list(self._profiles):
+                if state.dock is not None and state.dock is not dock:
+                    with suppress(Exception):
+                        state.dock.show()
             self._activateProfile(dock)
             dock.show()
             dock.raise_()
@@ -164,6 +168,7 @@ class ProfileSection:
 
         self._wireProfileDock(dock)
         dock.destroyed.connect(self._onProfileDockDestroyed)
+        dock.closeHandler = self._onProfileDockCloseRequested
         with suppress(Exception):
             base = os.path.splitext(os.path.basename(out_path))[0]
             dock._defaultConfigPath = os.path.join(
@@ -384,6 +389,55 @@ class ProfileSection:
         if not remaining:
             self._setProfileButtonChecked(False)
         self._restyleProfileDocks()
+
+    def _profileDockHasContent(self, dock):
+        state = getattr(dock, "_state", None)
+        if state is not None and (state.reference_nodes or state.path or state.branches):
+            return True
+        return bool(str(getattr(dock, "_chartComment", "") or "").strip())
+
+    def _onProfileDockCloseRequested(self, dock):
+        if not self._profileDockHasContent(dock):
+            self._deleteProfileDock(dock)
+            return True
+        choice = self._askChartCloseChoice(dock)
+        if choice == "cancel":
+            return False
+        if choice == "delete":
+            self._deleteProfileDock(dock)
+        return True
+
+    def _deleteProfileDock(self, dock):
+        state = getattr(dock, "_state", None)
+        with suppress(Exception):
+            dock.destroyed.disconnect(self._onProfileDockDestroyed)
+        dock.closeHandler = None
+        dock._state = None
+        was_active = state is not None and getattr(self, "_activeProfile", None) is state
+        if was_active:
+            self._deactivateProfileMapTool()
+        self._clearHighlightForState(state)
+        self._clearProfileMapHover()
+        self._profiles = [s for s in (getattr(self, "_profiles", None) or []) if s is not state]
+        if was_active:
+            self._activeProfile = None
+            for other in self._profiles:
+                shown = False
+                with suppress(Exception):
+                    shown = other.dock.isVisible() and not other.dock.visibleRegion().isEmpty()
+                if shown:
+                    self._setActiveProfileDock(other.dock)
+                    self._rearmProfileMapTool(other.dock)
+                    break
+        if not self._profiles:
+            self._profileDockCounter = 0
+        if not self._anyProfileDockVisible():
+            self._setProfileButtonChecked(False)
+        self._restyleProfileDocks()
+        with suppress(Exception):
+            self.iface.removeDockWidget(dock)
+        with suppress(Exception):
+            dock.deleteLater()
 
     def _setProfileMapTool(self, kind, callback, context_callback=None, cursor=":/images/iconProfile.svg",
                            double_click_callback=None):

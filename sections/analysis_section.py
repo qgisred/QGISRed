@@ -1291,7 +1291,7 @@ class AnalysisSection:
                 return True
         return bool(str(getattr(dock, "_chartComment", "") or "").strip())
 
-    def _askTimeSeriesCloseChoice(self, dock):
+    def _askChartCloseChoice(self, dock):
         from qgis.PyQt.QtWidgets import QMessageBox
         box = QMessageBox(self.iface.mainWindow())
         box.setIcon(QMessageBox.Icon.Question)
@@ -1314,7 +1314,7 @@ class AnalysisSection:
         if not self._timeSeriesDockHasContent(dock):
             self._deleteTimeSeriesDock(dock)
             return True
-        choice = self._askTimeSeriesCloseChoice(dock)
+        choice = self._askChartCloseChoice(dock)
         if choice == "cancel":
             return False
         if choice == "delete":

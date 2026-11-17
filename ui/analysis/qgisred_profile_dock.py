@@ -65,6 +65,15 @@ class QGISRedProfileDock(QGISRedDockActivationMixin, QDockWidget):
     activated = pyqtSignal()
     curveDeleteRequested = pyqtSignal(str)
 
+    closeHandler = None
+
+    def closeEvent(self, event):
+        handler = getattr(self, "closeHandler", None)
+        if handler is not None and not handler(self):
+            event.ignore()
+            return
+        super(QGISRedProfileDock, self).closeEvent(event)
+
     def __init__(self, iface, parent=None):
         super(QGISRedProfileDock, self).__init__(parent or iface.mainWindow())
         self.iface = iface

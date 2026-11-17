@@ -20,7 +20,7 @@ def section():
 def test_deleting_on_close_removes_the_chart_and_keeps_the_others(section):
     closing, other = section.timeSeriesDocks
     other.visibleRegion.return_value.isEmpty.return_value = False
-    section._askTimeSeriesCloseChoice = MagicMock(return_value="delete")
+    section._askChartCloseChoice = MagicMock(return_value="delete")
 
     assert section._onTimeSeriesDockCloseRequested(closing) is True
 
@@ -33,9 +33,9 @@ def test_deleting_on_close_removes_the_chart_and_keeps_the_others(section):
 def test_keeping_on_close_leaves_the_chart_available_and_cancel_aborts(section):
     closing = section.timeSeriesDocks[0]
 
-    section._askTimeSeriesCloseChoice = MagicMock(return_value="keep")
+    section._askChartCloseChoice = MagicMock(return_value="keep")
     assert section._onTimeSeriesDockCloseRequested(closing) is True
-    section._askTimeSeriesCloseChoice = MagicMock(return_value="cancel")
+    section._askChartCloseChoice = MagicMock(return_value="cancel")
     assert section._onTimeSeriesDockCloseRequested(closing) is False
 
     assert closing in section.timeSeriesDocks
