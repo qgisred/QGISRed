@@ -265,6 +265,7 @@ def format_time_like_results_panel(
     civil_mode: bool = False,
     am_pm: bool = False,
     continuous_hours_mode: bool = False,
+    start_date=None,
 ) -> str:
     """Match QGISRedResultsDock time labels (cbTimes / lbTime display)."""
     try:
@@ -280,6 +281,7 @@ def format_time_like_results_panel(
             start_clock_seconds,
             include_seconds=True,
             am_pm=am_pm,
+            start_date=start_date,
         )
 
     if continuous_hours_mode:

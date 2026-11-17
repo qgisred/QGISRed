@@ -81,3 +81,14 @@ def test_the_start_date_comes_from_the_period(tmp_path):
 
     assert simulation_start_date(_write(tmp_path, _PERIOD_XML), "Net") == date(2026, 1, 1)
     assert simulation_start_date(str(tmp_path / "none"), "Net") is None
+
+
+def test_the_cursor_text_of_the_series_follows_the_panel_with_the_date():
+    from datetime import date
+
+    from QGISRed.ui.analysis.timeseries_time_utils import format_time_like_results_panel
+
+    kwargs = dict(start_clock_seconds=7 * 3600, civil_mode=True)
+    assert format_time_like_results_panel(18, start_date=date(2026, 1, 31), **kwargs) == "01/02/2026 1:00"
+    assert format_time_like_results_panel(18, **kwargs) == "1d 1:00"
+    assert format_time_like_results_panel(18, start_date=date(2026, 1, 31), start_clock_seconds=0) == "18:00"

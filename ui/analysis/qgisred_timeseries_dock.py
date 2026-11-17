@@ -1864,6 +1864,7 @@ class QGISRedTimeSeriesDock(QGISRedDockActivationMixin, QDockWidget, FORM_CLASS)
             start_clock,
             include_seconds=True,
             am_pm=self._timeOfDayUsesAmPm(),
+            start_date=getattr(self._resultsDock, "_startDate", None),
         )
 
     def _seriesTableColumnHeaderParts(self, series_dict) -> tuple:
@@ -2123,6 +2124,7 @@ class QGISRedTimeSeriesDock(QGISRedDockActivationMixin, QDockWidget, FORM_CLASS)
                 civil_mode=bool(getattr(dock, "civilMode", False)),
                 am_pm=bool(getattr(dock, "amPmFormat", False)),
                 continuous_hours_mode=bool(getattr(dock, "continuousHoursMode", False)),
+                start_date=getattr(dock, "_startDate", None),
             )
         cfg = getattr(self.plot, "_axis_cfg_x", None)
         renderer = getattr(self.plot, "_renderer", None)

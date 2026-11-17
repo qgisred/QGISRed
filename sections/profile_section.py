@@ -1913,6 +1913,19 @@ class ProfileSection:
             return "-"
         from ..ui.analysis.qgisred_results_data import seconds_to_time_str_no_seconds
 
+        dock = getattr(self, "ResultDockwidget", None)
+        start_date = getattr(dock, "_startDate", None)
+        if start_date is not None and getattr(dock, "civilMode", False):
+            from ..ui.analysis.timeseries_time_utils import format_civil_time
+
+            with suppress(Exception):
+                return format_civil_time(
+                    seconds / 3600.0,
+                    dock._startClockSeconds,
+                    include_seconds=False,
+                    am_pm=bool(getattr(dock, "amPmFormat", False)),
+                    start_date=start_date,
+                )
         with suppress(Exception):
             return seconds_to_time_str_no_seconds(int(seconds))
         return "-"
