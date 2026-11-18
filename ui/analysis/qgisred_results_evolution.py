@@ -238,6 +238,7 @@ class _ResultsEvolutionMixin:
             cfg.x_hour_format = hour_format
             cfg.x_day_format = day_format
         chart.setStartClockSeconds(int(getattr(self, "_startClockSeconds", 0) or 0))
+        chart.setStartDate(getattr(self, "_startDate", None))
 
     def _syncEvolutionTimeAxisFormat(self):
         for chart in (self._node_evolution_chart, self._link_evolution_chart):

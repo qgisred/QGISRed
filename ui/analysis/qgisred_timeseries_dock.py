@@ -138,6 +138,7 @@ class TimeSeriesPlotWidget(QWidget):
         self._synced_cursor_time_hours = None
         self._cursor_time_text_formatter = None
         self._start_clock_seconds = 0
+        self._start_date = None
         self._axis_cfg_x = default_axis_settings()
         self._axis_cfg_y_left = default_axis_settings()
         self._axis_cfg_y_right = default_axis_settings()
@@ -728,6 +729,12 @@ class TimeSeriesPlotWidget(QWidget):
         if self._start_clock_seconds == value:
             return
         self._start_clock_seconds = value
+        self.update()
+
+    def setStartDate(self, value) -> None:
+        if self._start_date == value:
+            return
+        self._start_date = value
         self.update()
 
     def _getCurrentXRange(self):
@@ -2326,7 +2333,9 @@ class QGISRedTimeSeriesDock(QGISRedDockActivationMixin, QDockWidget, FORM_CLASS)
         dock = getattr(self, "_resultsDock", None)
         if dock is None:
             self.plot.setStartClockSeconds(0)
+            self.plot.setStartDate(None)
             return
+        self.plot.setStartDate(getattr(dock, "_startDate", None))
         start_seconds = simulation_start_clock_seconds(
             getattr(dock, "ProjectDirectory", "") or "",
             getattr(dock, "NetworkName", "") or "",

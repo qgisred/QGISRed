@@ -134,7 +134,10 @@ class PlotLayoutCalculator:
                 start_clock_seconds = int(getattr(widget, "_start_clock_seconds", 0) or 0)
                 min_parts = civil_time_parts(min(widget.data_x), start_clock_seconds)
                 max_parts = civil_time_parts(eff_max, start_clock_seconds)
-                has_days = bool(day_format == "split_days" and min_parts is not None and max_parts is not None and max_parts[0] > min_parts[0])
+                has_days = bool(day_format == "split_days" and (
+                    getattr(widget, "_start_date", None) is not None
+                    or (min_parts is not None and max_parts is not None and max_parts[0] > min_parts[0])
+                ))
             else:
                 has_days = eff_max >= 24 and day_format == "split_days"
             tick_block_h = fm_x.height() * 2 + 16 if has_days else fm_x.height() + 20

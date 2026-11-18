@@ -102,3 +102,26 @@ def test_the_cursor_text_of_the_series_follows_the_panel_with_the_date():
     assert format_time_like_results_panel(18, start_date=date(2026, 1, 31), **kwargs) == "01/02/2026 1:00"
     assert format_time_like_results_panel(18, **kwargs) == "1d 1:00"
     assert format_time_like_results_panel(18, start_date=date(2026, 1, 31), start_clock_seconds=0) == "18:00"
+
+
+def test_the_axis_ticks_show_the_date_at_the_first_tick_and_at_midnight():
+    from datetime import date
+
+    from QGISRed.ui.analysis.timeseries_plot_renderer import TimeSeriesPlotRenderer
+
+    renderer = TimeSeriesPlotRenderer()
+    kwargs = dict(hour_format="hm", day_format="split_days", start_clock_seconds=7 * 3600, start_date=date(2026, 1, 31))
+
+    assert renderer._format_time_axis_tick(0, force_date=True, **kwargs) == "7:00\n31/01/2026"
+    assert renderer._format_time_axis_tick(17, **kwargs) == "0:00\n01/02/2026"
+    assert renderer._format_time_axis_tick(5, **kwargs) == "12:00"
+
+
+def test_the_axis_ticks_without_a_date_are_unchanged():
+    from QGISRed.ui.analysis.timeseries_plot_renderer import TimeSeriesPlotRenderer
+
+    renderer = TimeSeriesPlotRenderer()
+    kwargs = dict(hour_format="hm", day_format="split_days", start_clock_seconds=7 * 3600, x_precision="hm")
+
+    assert renderer._format_time_axis_tick(0, **kwargs) == "7:00"
+    assert renderer._format_time_axis_tick(17, **kwargs) == "0:00\n1d"
