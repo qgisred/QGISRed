@@ -8664,7 +8664,7 @@ Não é possível aplicar as alterações.</translation>
         <translation>Estado</translation>
     </message>
     <message>
-        <location filename="../ui/analysis/qgisred_results_dock.py" line="1920"/>
+        <location filename="../ui/analysis/qgisred_results_dock.py" line="1921"/>
         <source>Some issues occurred in the process</source>
         <translation>Ocorreram alguns problemas no processo</translation>
     </message>
@@ -9189,7 +9189,7 @@ Não é possível aplicar as alterações.</translation>
         <translation type="unfinished">seg</translation>
     </message>
     <message>
-        <location filename="../ui/analysis/qgisred_results_dock.py" line="2044"/>
+        <location filename="../ui/analysis/qgisred_results_dock.py" line="2045"/>
         <source>Reading results...</source>
         <translation type="unfinished">Lendo resultados...</translation>
     </message>
@@ -9308,6 +9308,11 @@ Não é possível aplicar as alterações.</translation>
         <location filename="../ui/analysis/qgisred_results_dock.ui" line="20"/>
         <source>QGISRed: Simulation results</source>
         <translation>QGISRed: Resultados da simulação</translation>
+    </message>
+    <message>
+        <location filename="../ui/analysis/qgisred_results_dock.py" line="1918"/>
+        <source>Simulation cancelled by the user</source>
+        <translation>Simulação cancelada pelo usuário</translation>
     </message>
 </context>
 <context>

@@ -8044,7 +8044,7 @@ Cannot apply changes.</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../ui/analysis/qgisred_results_dock.py" line="1920"/>
+        <location filename="../ui/analysis/qgisred_results_dock.py" line="1921"/>
         <source>Some issues occurred in the process</source>
         <translation type="unfinished"></translation>
     </message>
@@ -8384,7 +8384,7 @@ Cannot apply changes.</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../ui/analysis/qgisred_results_dock.py" line="2044"/>
+        <location filename="../ui/analysis/qgisred_results_dock.py" line="2045"/>
         <source>Reading results...</source>
         <translation type="unfinished"></translation>
     </message>
@@ -8502,6 +8502,11 @@ Cannot apply changes.</source>
     <message>
         <location filename="../ui/analysis/qgisred_results_dock.ui" line="20"/>
         <source>QGISRed: Simulation results</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="../ui/analysis/qgisred_results_dock.py" line="1918"/>
+        <source>Simulation cancelled by the user</source>
         <translation type="unfinished"></translation>
     </message>
 </context>

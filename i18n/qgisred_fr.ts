@@ -8619,7 +8619,7 @@ Impossible d'appliquer les modifications.</translation>
         <translation>État</translation>
     </message>
     <message>
-        <location filename="../ui/analysis/qgisred_results_dock.py" line="1920"/>
+        <location filename="../ui/analysis/qgisred_results_dock.py" line="1921"/>
         <source>Some issues occurred in the process</source>
         <translation>Des problèmes sont survenus durant le processus</translation>
     </message>
@@ -9134,7 +9134,7 @@ Impossible d'appliquer les modifications.</translation>
         <translation type="unfinished">sec</translation>
     </message>
     <message>
-        <location filename="../ui/analysis/qgisred_results_dock.py" line="2044"/>
+        <location filename="../ui/analysis/qgisred_results_dock.py" line="2045"/>
         <source>Reading results...</source>
         <translation type="unfinished">Lecture des résultats...</translation>
     </message>
@@ -9253,6 +9253,11 @@ Impossible d'appliquer les modifications.</translation>
         <location filename="../ui/analysis/qgisred_results_dock.ui" line="20"/>
         <source>QGISRed: Simulation results</source>
         <translation>QGISRed : Résultats de la simulation</translation>
+    </message>
+    <message>
+        <location filename="../ui/analysis/qgisred_results_dock.py" line="1918"/>
+        <source>Simulation cancelled by the user</source>
+        <translation>Simulation annulée par l'utilisateur</translation>
     </message>
 </context>
 <context>
