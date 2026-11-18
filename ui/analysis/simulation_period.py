@@ -35,8 +35,8 @@ def _read_xml_root(path: str):
             text = raw.decode(encoding)
         except UnicodeDecodeError:
             continue
-        if text.lstrip("﻿").lstrip().startswith("<"):
-            return ET.fromstring(_XML_DECLARATION.sub("", text.lstrip("﻿")))
+        if text.lstrip("\ufeff").lstrip().startswith("<"):
+            return ET.fromstring(_XML_DECLARATION.sub("", text.lstrip("\ufeff")))
     raise ET.ParseError("unreadable metadata")
 
 
