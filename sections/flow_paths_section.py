@@ -294,7 +294,7 @@ class FlowPathsSection:
 
     def _selectFlowRouteAt(self, point, labels_only=False):
         routes = getattr(self, "_flowPathsShownRoutes", None) or []
-        if getattr(self, "_flowRoutesTarget", None) is None or len(routes) < 2:
+        if getattr(self, "_flowRoutesTarget", None) is None or not routes:
             return False
         index = None
         item = getattr(self, "_flowPathsItem", None)
@@ -782,7 +782,7 @@ class FlowPathsSection:
             colors = {"selected": (QColor(*fill), QColor(*border))}
             for position, shade in enumerate(route_shades(len(routes))):
                 colors[position] = (QColor(*faded(alt_fill, shade)), QColor(*faded(alt_border, shade * 0.5)))
-            arrow_color = QColor(*alt_border).darker(190)
+            arrow_color = QColor(*fill)
             symbols = {}
             strong = set(routes[selected]["links"])
             pale = [(lid, rank[i]) for i, route in enumerate(routes) for lid in route["own"] if lid not in strong]
@@ -877,11 +877,11 @@ class FlowPathsSection:
         if getattr(self, "_flowPathsRouteExpanded", None) != self._flowRouteExpandKey(tuple(route["own"])):
             return []
         return [
-            self.tr("Links: {0}").format(balance["links"]),
-            self.tr("Initial flow: {0}").format(self._formatFlowRouteFlow(balance["first"])),
-            self.tr("Final flow: {0}").format(self._formatFlowRouteFlow(balance["last"])),
-            self.tr("Inflows: {0}").format(self._formatFlowRouteFlow(balance["gained"])),
-            self.tr("Withdrawals: {0}").format(self._formatFlowRouteFlow(balance["lost"])),
+            (self.tr("Number of links in the route"), str(balance["links"])),
+            (self.tr("Initial flow"), self._formatFlowRouteFlow(balance["first"])),
+            (self.tr("Inflows"), self._formatFlowRouteFlow(balance["gained"])),
+            (self.tr("Withdrawals"), self._formatFlowRouteFlow(balance["lost"])),
+            (self.tr("Final flow"), self._formatFlowRouteFlow(balance["last"])),
         ]
 
     def _flowRouteTexts(self, summary):

@@ -42,6 +42,7 @@ _LABEL_PADDING = 6.0
 _COMPACT_PADDING = 3.5
 _LABEL_POINTER = 7.0
 _LABEL_RADIUS = 6.0
+_DETAIL_GAP = 16.0
 
 
 def _central_marker_layer(svg_name, fill, size, stroke=None, stroke_width=0.0):
@@ -370,26 +371,38 @@ class QGISRedFlowPathsCanvasItem(QgsMapCanvasItem):
             subtitle = (label.get("subtitle") or "") if selected else ""
             font, metrics, padding = compact_font, compact_metrics, _COMPACT_PADDING
             lines = []
+            details = []
+            header = height
             if selected:
                 font, metrics, padding = title_font, title_metrics, _LABEL_PADDING
-                lines = ([subtitle] if subtitle else []) + list(label.get("details") or [])
+                lines = [subtitle] if subtitle else []
+                details = list(label.get("details") or [])
+                header = metrics.height() + sub_metrics.height() * len(lines) + 2 * padding
+                names = max([sub_metrics.horizontalAdvance(name) for name, _value in details] or [0.0])
+                values = max([sub_metrics.horizontalAdvance(value) for _name, value in details] or [0.0])
                 box = self._unfolded(
                     box, anchor, bounds,
-                    max([metrics.horizontalAdvance(title)] + [sub_metrics.horizontalAdvance(line) for line in lines])
-                    + 2 * padding,
-                    metrics.height() + sub_metrics.height() * len(lines) + 2 * padding)
+                    max([metrics.horizontalAdvance(title), names + values + (_DETAIL_GAP if details else 0.0)]
+                        + [sub_metrics.horizontalAdvance(line) for line in lines]) + 2 * padding,
+                    header + ((sub_metrics.height() * len(details) + 2 * padding) if details else 0.0))
             fill = QColor(label["color"]) if selected else QColor(tone_fill)
             border = QColor(label["color"]).darker(130) if selected else QColor(tone_border)
             text = QColor(255, 255, 255) if selected else QColor(60, 60, 60)
-            path = QPainterPath()
-            path.addRoundedRect(box, _LABEL_RADIUS, _LABEL_RADIUS)
+            frame = QPainterPath()
+            frame.addRoundedRect(box, _LABEL_RADIUS, _LABEL_RADIUS)
             pointer = QPainterPath()
             pointer.addPolygon(self._calloutPointer(box, anchor))
             pointer.closeSubpath()
-            path = path.united(pointer)
+            path = frame.united(pointer)
             painter.setPen(QPen(border, 1.0))
             painter.setBrush(fill)
             painter.drawPath(path)
+            if details:
+                sheet = QPainterPath()
+                sheet.addRect(QRectF(box.left(), box.top() + header, box.width(), box.height() - header))
+                painter.fillPath(frame.intersected(sheet), QColor(255, 255, 255))
+                painter.setBrush(Qt.BrushStyle.NoBrush)
+                painter.drawPath(path)
             painter.setPen(text)
             painter.setFont(font)
             top = box.top() + padding
@@ -401,4 +414,10 @@ class QGISRedFlowPathsCanvasItem(QgsMapCanvasItem):
                     QRectF(box.left(), top + metrics.height() + row * sub_metrics.height(),
                            box.width(), sub_metrics.height()),
                     int(Qt.AlignmentFlag.AlignHCenter | Qt.AlignmentFlag.AlignVCenter), line)
+            painter.setPen(QColor(label["color"]))
+            for row, (name, value) in enumerate(details):
+                line_box = QRectF(box.left() + padding, box.top() + header + padding + row * sub_metrics.height(),
+                                  box.width() - 2 * padding, sub_metrics.height())
+                painter.drawText(line_box, int(Qt.AlignmentFlag.AlignLeft | Qt.AlignmentFlag.AlignVCenter), name)
+                painter.drawText(line_box, int(Qt.AlignmentFlag.AlignRight | Qt.AlignmentFlag.AlignVCenter), value)
             self._routeLabelRects.append((box, label.get("index")))

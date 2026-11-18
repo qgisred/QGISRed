@@ -2039,27 +2039,27 @@
     </message>
     <message>
         <location filename="../sections/flow_paths_section.py" line="880"/>
-        <source>Links: {0}</source>
+        <source>Number of links in the route</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
         <location filename="../sections/flow_paths_section.py" line="881"/>
-        <source>Initial flow: {0}</source>
+        <source>Initial flow</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
         <location filename="../sections/flow_paths_section.py" line="882"/>
-        <source>Final flow: {0}</source>
+        <source>Final flow</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
         <location filename="../sections/flow_paths_section.py" line="883"/>
-        <source>Inflows: {0}</source>
+        <source>Inflows</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
         <location filename="../sections/flow_paths_section.py" line="884"/>
-        <source>Withdrawals: {0}</source>
+        <source>Withdrawals</source>
         <translation type="unfinished"></translation>
     </message>
 </context>

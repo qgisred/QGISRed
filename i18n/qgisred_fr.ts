@@ -2139,28 +2139,28 @@
     </message>
     <message>
         <location filename="../sections/flow_paths_section.py" line="880"/>
-        <source>Links: {0}</source>
-        <translation>Lignes : {0}</translation>
+        <source>Number of links in the route</source>
+        <translation>Nº de tronçons de l&apos;itinéraire</translation>
     </message>
     <message>
         <location filename="../sections/flow_paths_section.py" line="881"/>
-        <source>Initial flow: {0}</source>
-        <translation>Débit initial : {0}</translation>
+        <source>Initial flow</source>
+        <translation>Débit initial</translation>
     </message>
     <message>
         <location filename="../sections/flow_paths_section.py" line="882"/>
-        <source>Final flow: {0}</source>
-        <translation>Débit final : {0}</translation>
+        <source>Final flow</source>
+        <translation>Débit final</translation>
     </message>
     <message>
         <location filename="../sections/flow_paths_section.py" line="883"/>
-        <source>Inflows: {0}</source>
-        <translation>Apports : {0}</translation>
+        <source>Inflows</source>
+        <translation>Apports</translation>
     </message>
     <message>
         <location filename="../sections/flow_paths_section.py" line="884"/>
-        <source>Withdrawals: {0}</source>
-        <translation>Prélèvements : {0}</translation>
+        <source>Withdrawals</source>
+        <translation>Prélèvements</translation>
     </message>
 </context>
 <context>
