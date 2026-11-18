@@ -1915,6 +1915,7 @@ class QGISRedResultsDock(
 
         # Message
         if resMessage == "Cancelled":
+            QGISRedUIUtils.showGlobalMessage(self.iface, self.tr("Simulation cancelled by the user"), level=0, duration=5)
             return
         elif resMessage == "False":
             QGISRedUIUtils.showGlobalMessage(self.iface, self.tr("Some issues occurred in the process"), level=1, duration=5)
