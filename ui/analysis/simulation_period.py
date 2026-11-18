@@ -2,6 +2,7 @@
 from __future__ import annotations
 
 import os
+import re
 import xml.etree.ElementTree as ET
 from datetime import date, datetime, timedelta
 from typing import NamedTuple, Optional
@@ -20,9 +21,28 @@ class SimulationPeriod(NamedTuple):
         return self.start_local + timedelta(seconds=float(elapsed_seconds))
 
 
+_XML_DECLARATION = re.compile(r"^\s*<\?xml[^>]*\?>")
+_FRACTION = re.compile(r"(\.\d{6})\d+")
+
+
+def _read_xml_root(path: str):
+    # The metadata file declares UTF-16 but is written in a single-byte encoding, so the
+    # declaration cannot be trusted and ElementTree rejects the file as it is.
+    with open(path, "rb") as handle:
+        raw = handle.read()
+    for encoding in ("utf-16", "utf-8-sig", "cp1252"):
+        try:
+            text = raw.decode(encoding)
+        except UnicodeDecodeError:
+            continue
+        if text.lstrip("﻿").lstrip().startswith("<"):
+            return ET.fromstring(_XML_DECLARATION.sub("", text.lstrip("﻿")))
+    raise ET.ParseError("unreadable metadata")
+
+
 def _parse_iso(text: str) -> Optional[datetime]:
     try:
-        parsed = datetime.fromisoformat((text or "").strip().replace("Z", "+00:00"))
+        parsed = datetime.fromisoformat(_FRACTION.sub(r"", (text or "").strip().replace("Z", "+00:00")))
     except ValueError:
         return None
     return parsed.replace(tzinfo=None)
@@ -35,7 +55,7 @@ def read_simulation_period(project_directory: str, network_name: str) -> Optiona
     if not os.path.exists(path):
         return None
     try:
-        node = ET.parse(path).getroot().find(".//SimulationPeriod")
+        node = _read_xml_root(path).find(".//SimulationPeriod")
     except (ET.ParseError, OSError):
         return None
     if node is None:

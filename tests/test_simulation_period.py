@@ -34,6 +34,16 @@ def test_the_date_follows_the_elapsed_time(tmp_path):
     assert format_date(period.date_at(18 * 3600)) == "02/01/2026"
 
 
+def test_the_period_is_read_when_the_declared_encoding_is_wrong(tmp_path):
+    content = _PERIOD_XML.replace('encoding="utf-8"', 'encoding="utf-16"')
+    content = content.replace("<GISRed>", "<GISRed><Notes>reacción</Notes>")
+    (tmp_path / "Net_Metadata.txt").write_bytes(content.encode("cp1252"))
+
+    period = read_simulation_period(str(tmp_path), "Net")
+
+    assert period.start_local == datetime(2026, 1, 1, 7, 0, 0)
+
+
 @pytest.mark.parametrize("content", [
     None,
     "<GISRed><Title>T</Title></GISRed>",
