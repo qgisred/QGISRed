@@ -2624,8 +2624,8 @@ Deseja verificá-los novamente?</translation>
     <name>MenuSection</name>
     <message>
         <location filename="../sections/menu_section.py" line="900"/>
-        <source>Water paths...</source>
-        <translation>Trajetos da água...</translation>
+        <source>Upstream/downstream...</source>
+        <translation>Montante/jusante...</translation>
     </message>
     <message>
         <location filename="../sections/menu_section.py" line="66"/>
