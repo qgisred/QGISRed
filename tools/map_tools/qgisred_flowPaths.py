@@ -6,9 +6,12 @@ from qgis.gui import QgsMapTool
 from ..utils.qgisred_styling_utils import create_combined_cursor
 
 
+_DRAG_THRESHOLD = 4
+
+
 class QGISRedFlowPathsTool(QgsMapTool):
     def __init__(self, button, parent, method, cursor=None, doubleClickMethod=None, rightClickMethod=None,
-                 escapeMethod=None):
+                 escapeMethod=None, dragStartMethod=None, dragMoveMethod=None):
         QgsMapTool.__init__(self, parent.iface.mapCanvas())
         self.canvas = parent.iface.mapCanvas()
         self.iface = parent.iface
@@ -17,6 +20,9 @@ class QGISRedFlowPathsTool(QgsMapTool):
         self.doubleClickMethod = doubleClickMethod
         self.rightClickMethod = rightClickMethod
         self.escapeMethod = escapeMethod
+        self.dragStartMethod = dragStartMethod
+        self.dragMoveMethod = dragMoveMethod
+        self._drag = None
         self._skipRelease = False
         self.setAction(button)
         self.custom_cursor = (
@@ -38,10 +44,31 @@ class QGISRedFlowPathsTool(QgsMapTool):
     def isEditTool(self):
         return False
 
+    def canvasPressEvent(self, event):
+        self._drag = None
+        if getattr(self.parent, "isUnloading", False) or self.dragStartMethod is None:
+            return
+        if event.button() == Qt.MouseButton.LeftButton and self.dragStartMethod(event.pos()):
+            self._drag = [event.pos(), False]
+
+    def canvasMoveEvent(self, event):
+        if self._drag is None or self.dragMoveMethod is None:
+            return
+        last, moved = self._drag
+        step = event.pos() - last
+        if not moved and step.manhattanLength() < _DRAG_THRESHOLD:
+            return
+        self.dragMoveMethod(step.x(), step.y())
+        self._drag = [event.pos(), True]
+
     def canvasReleaseEvent(self, event):
         if getattr(self.parent, "isUnloading", False):
             return
         if event.button() not in (Qt.MouseButton.LeftButton, Qt.MouseButton.RightButton):
+            return
+        dragged = self._drag is not None and self._drag[1]
+        self._drag = None
+        if dragged:
             return
         if self._skipRelease:
             self._skipRelease = False

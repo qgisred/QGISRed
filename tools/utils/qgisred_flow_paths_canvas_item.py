@@ -11,6 +11,7 @@ from qgis.core import (
     QgsLineSymbol,
     QgsMarkerLineSymbolLayer,
     QgsMarkerSymbol,
+    QgsPointXY,
     QgsProject,
     QgsRenderContext,
     QgsSimpleLineSymbolLayer,
@@ -121,6 +122,8 @@ class QGISRedFlowPathsCanvasItem(QgsMapCanvasItem):
         self._labelAreas = None
         self._routeLabels = []
         self._routeLabelRects = []
+        self._routeLabelOffsets = {}
+        self._routeLabelSpots = {}
         self._routeObstacleEntries = []
         self._mapObstacles = None
         self._obstaclesCrs = None
@@ -136,11 +139,23 @@ class QGISRedFlowPathsCanvasItem(QgsMapCanvasItem):
         self._labelAreas = None
         self._sync()
 
-    def setRouteLabels(self, labels, obstacles=None):
+    def setRouteLabels(self, labels, obstacles=None, offsets=None):
+        self._routeLabelOffsets = offsets if offsets is not None else {}
         self._routeLabels = list(labels or [])
         self._routeLabelRects = []
         self._routeObstacleEntries = list(obstacles or [])
         self._obstaclesCrs = None
+        self.update()
+
+    def moveRouteLabel(self, index, dx, dy):
+        index = next((label.get("slot", index) for label in self._routeLabels if label.get("index") == index), index)
+        spot = self._routeLabelSpots.get(index)
+        if spot is None:
+            return
+        spot = (spot[0] + dx, spot[1] + dy)
+        self._routeLabelSpots[index] = spot
+        place = self._canvas.mapSettings().mapToPixel().toMapCoordinates(int(round(spot[0])), int(round(spot[1])))
+        self._routeLabelOffsets[index] = (place.x(), place.y())
         self.update()
 
     def routeLabelAt(self, pixel):
@@ -385,6 +400,13 @@ class QGISRedFlowPathsCanvasItem(QgsMapCanvasItem):
                     max([metrics.horizontalAdvance(title), names + values + (_DETAIL_GAP if details else 0.0)]
                         + [sub_metrics.horizontalAdvance(line) for line in lines]) + 2 * padding,
                     header + ((sub_metrics.height() * len(details) + 2 * padding) if details else 0.0))
+            slot = label.get("slot", label.get("index"))
+            moved = self._routeLabelOffsets.get(slot)
+            if moved is not None:
+                place = converter.transform(QgsPointXY(moved[0], moved[1]))
+                box.moveTo(min(max(place.x(), bounds.left() + 2.0), bounds.right() - 2.0 - box.width()),
+                           min(max(place.y(), bounds.top() + 2.0), bounds.bottom() - 2.0 - box.height()))
+            self._routeLabelSpots[slot] = (box.left(), box.top())
             fill = QColor(label["color"]) if selected else QColor(tone_fill)
             border = QColor(label["color"]).darker(130) if selected else QColor(tone_border)
             text = QColor(255, 255, 255) if selected else QColor(60, 60, 60)

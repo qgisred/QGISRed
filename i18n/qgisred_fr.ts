@@ -2139,8 +2139,8 @@
     </message>
     <message>
         <location filename="../sections/flow_paths_section.py" line="880"/>
-        <source>Number of links in the route</source>
-        <translation>Nº de tronçons de l&apos;itinéraire</translation>
+        <source>Number of links</source>
+        <translation>Nº de tronçons</translation>
     </message>
     <message>
         <location filename="../sections/flow_paths_section.py" line="881"/>

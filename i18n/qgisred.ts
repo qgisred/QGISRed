@@ -2039,7 +2039,7 @@
     </message>
     <message>
         <location filename="../sections/flow_paths_section.py" line="880"/>
-        <source>Number of links in the route</source>
+        <source>Number of links</source>
         <translation type="unfinished"></translation>
     </message>
     <message>

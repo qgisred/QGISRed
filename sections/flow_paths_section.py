@@ -106,12 +106,27 @@ class FlowPathsSection:
     def _flowToolParts(self, mode):
         if mode == _MODE_ROUTES:
             return (getattr(self, "flowRoutesButton", None), self.FLOW_ROUTES_TOOL, ":/images/iconFlowRoutes.svg",
-                    self._flowRoutesClick, None, self._flowRoutesRightClick, self._clearFlowRoutes)
+                    self._flowRoutesClick, None, self._flowRoutesRightClick, self._clearFlowRoutes,
+                    self._flowRouteLabelGrab, self._flowRouteLabelDrag)
         return (getattr(self, "flowPathsButton", None), self.FLOW_PATHS_TOOL, ":/images/iconFlowPaths.svg",
-                self._flowPathsClick, self._flowPathsDoubleClick, None, None)
+                self._flowPathsClick, self._flowPathsDoubleClick, None, None, None, None)
+
+    def _flowRouteLabelGrab(self, pixel):
+        self._flowRouteGrabbed = None
+        item = getattr(self, "_flowPathsItem", None)
+        if item is not None and getattr(self, "_flowRoutesTarget", None) is not None:
+            with suppress(Exception):
+                self._flowRouteGrabbed = item.routeLabelAt(pixel)
+        return self._flowRouteGrabbed is not None
+
+    def _flowRouteLabelDrag(self, dx, dy):
+        item = getattr(self, "_flowPathsItem", None)
+        index = getattr(self, "_flowRouteGrabbed", None)
+        if item is not None and index is not None:
+            item.moveRouteLabel(index, dx, dy)
 
     def _runFlowTool(self, mode):
-        button, key, cursor, click, double_click, right_click, escape = self._flowToolParts(mode)
+        button, key, cursor, click, double_click, right_click, escape, grab, drag = self._flowToolParts(mode)
         if button is not None and not button.isChecked():
             self._leaveFlowPaths(key)
             return False
@@ -135,7 +150,8 @@ class FlowPathsSection:
         tool = self.myMapTools.get(key)
         if tool is None:
             tool = QGISRedFlowPathsTool(button, self, click, cursor=cursor, doubleClickMethod=double_click,
-                                        rightClickMethod=right_click, escapeMethod=escape)
+                                        rightClickMethod=right_click, escapeMethod=escape,
+                                        dragStartMethod=grab, dragMoveMethod=drag)
             self.myMapTools[key] = tool
         changed = mode != getattr(self, "_flowPathsMode", None)
         self._flowPathsMode = mode
@@ -313,13 +329,13 @@ class FlowPathsSection:
             self._flowPathsRouteExpanded = None
             self._redrawFlowPaths()
         elif on_label and self._flowRoutesCriterion() == ROUTE_MAX_FLOW:
-            key = self._flowRouteExpandKey(choice)
+            key = self._flowRouteExpandKey()
             self._flowPathsRouteExpanded = None if getattr(self, "_flowPathsRouteExpanded", None) == key else key
             self._redrawFlowPaths()
         return True
 
-    def _flowRouteExpandKey(self, choice):
-        return (getattr(self, "_flowRoutesOrigin", None), getattr(self, "_flowRoutesTarget", None), choice)
+    def _flowRouteExpandKey(self):
+        return (getattr(self, "_flowRoutesOrigin", None), getattr(self, "_flowRoutesTarget", None))
 
     def _flowRouteNear(self, point, routes):
         from qgis.core import QgsCoordinateTransform, QgsGeometry, QgsProject
@@ -810,11 +826,12 @@ class FlowPathsSection:
                 if label is not None:
                     label["selected"] = index == selected
                     label["rank"] = rank[index]
+                    label["slot"] = min(rank[index], _LABELED_ROUTES)
                     label["dot"] = rank[index] >= _LABELED_ROUTES
                     label["color"] = colors["selected"][0]
                     label["tone"] = colors[rank[index]]
                     if index == selected:
-                        label["details"] = self._flowRouteDetails(routes[index], result["summaries"][index])
+                        label["details"] = self._flowRouteDetails(result["summaries"][index])
                     labels.append(label)
 
         for node_id, shape in ((origin, "circle"), (target, "diamond")):
@@ -830,7 +847,11 @@ class FlowPathsSection:
         kept = {str(lid) for lid in routes[selected]["links"]} if routes else set()
         item.setEntries(entries, kept_labels=kept)
         obstacles = [geometries["links"][lid] for lid in on_route if lid in geometries["links"]]
-        item.setRouteLabels(labels, obstacles)
+        placement = (origin, target, self._flowRoutesCriterion())
+        if getattr(self, "_flowRouteLabelsPlacement", None) != placement:
+            self._flowRouteLabelsPlacement = placement
+            self._flowRouteLabelOffsets = {}
+        item.setRouteLabels(labels, obstacles, offsets=self._flowRouteLabelOffsets)
 
         previous = getattr(self, "_flowPathsRouteState", None)
         if state != previous:
@@ -870,17 +891,17 @@ class FlowPathsSection:
             title = "\u2605 " + title
         return {"geometry": point, "crs": crs, "title": title, "subtitle": subtitle, "index": index}
 
-    def _flowRouteDetails(self, route, summary):
+    def _flowRouteDetails(self, summary):
         balance = summary.get("balance")
         if not balance or self._flowRoutesCriterion() != ROUTE_MAX_FLOW:
             return []
-        if getattr(self, "_flowPathsRouteExpanded", None) != self._flowRouteExpandKey(tuple(route["own"])):
+        if getattr(self, "_flowPathsRouteExpanded", None) != self._flowRouteExpandKey():
             return []
         return [
-            (self.tr("Number of links in the route"), str(balance["links"])),
+            (self.tr("Number of links"), str(balance["links"])),
             (self.tr("Initial flow"), self._formatFlowRouteFlow(balance["first"])),
-            (self.tr("Inflows"), self._formatFlowRouteFlow(balance["gained"])),
-            (self.tr("Withdrawals"), self._formatFlowRouteFlow(balance["lost"])),
+            (self.tr("Inflows"), "+" + self._formatFlowRouteFlow(balance["gained"])),
+            (self.tr("Withdrawals"), "\u2212" + self._formatFlowRouteFlow(balance["lost"])),
             (self.tr("Final flow"), self._formatFlowRouteFlow(balance["last"])),
         ]
 
