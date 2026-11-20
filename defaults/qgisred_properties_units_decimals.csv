@@ -162,8 +162,8 @@ Service Connection,Material,Material,Text,,,Text,,,,
 Service Connection,InstDate,Installation date,Year as Text,,,Year as Text,,,,
 Service Connection,InstalDate,Installation date,Year as Text,,,Year as Text,,,,
 Service Connection,Age,Age,Years,yrs,1,Years,yrs,1,,
-Service Connection,BaseDemand,Base demand,See FlowUnits,See FlowUnits,,See FlowUnits,See FlowUnits,,,
-Service Connection,BaseDem,Base demand,See FlowUnits,See FlowUnits,,See FlowUnits,See FlowUnits,,,
+Service Connection,BaseDemand,Base demand,See SmallFlowUnits,See SmallFlowUnits,,See SmallFlowUnits,See SmallFlowUnits,,,
+Service Connection,BaseDem,Base demand,See SmallFlowUnits,See SmallFlowUnits,,See SmallFlowUnits,See SmallFlowUnits,,,
 Service Connection,Pattern,Demand pattern,Text,,,Text,,,,
 Service Connection,DemPattID,Demand pattern,Text,,,Text,,,,
 Service Connection,Reliabilit,Reliability,Unitless,,2,Unitless,,2,,
@@ -225,6 +225,26 @@ Links,ReactRate,Reaction rate,mass/L/day,See MassUnits/L/day,3,mass/L/day,See Ma
 Links,Quality,Chemical,mass/L,See MassUnits/L,3,mass/L,See MassUnits/L,3,Chemical,Quality model
 Links,Quality,Trace,Percent,%,1,Percent,%,1,Trace,Quality model
 Links,Quality,Age,Hours,hr,1,Hours,hr,1,Age,Quality model
+Consumptions,DemID,Identifier,Text,,,Text,,,,
+Consumptions,Category,Category,Text,,,Text,,,,
+Consumptions,BaseDem,Base demand,See SmallFlowUnits,See SmallFlowUnits,,See SmallFlowUnits,See SmallFlowUnits,,,The user names this column: the row applies to every base demand column of the theme
+Demand Links,DemID,Consumption identifier,Text,,,Text,,,,
+Demand Links,Category,Category,Text,,,Text,,,,
+Demand Links,QDem,Consumption demand,See SmallFlowUnits,See SmallFlowUnits,,See SmallFlowUnits,See SmallFlowUnits,,,Whole demand of the consumption
+Demand Links,%Dem,Share of the consumption,Percent,%,2,Percent,%,2,,QLink / QDem
+Demand Links,QLink,Linked demand,See SmallFlowUnits,See SmallFlowUnits,,See SmallFlowUnits,See SmallFlowUnits,,,Part of the consumption assigned to the junction
+Demand Links,%Load,Share of the junction load,Percent,%,2,Percent,%,2,,QLink / QLoad
+Demand Links,QLoad,Junction load,See SmallFlowUnits,See SmallFlowUnits,,See SmallFlowUnits,See SmallFlowUnits,,,Demand of all the consumptions linked to the junction
+Demand Links,JunctionID,Junction identifier,Text,,,Text,,,,
+Sectors,SectorID,Identifier,Text,,,Text,,,,
+Sectors,TotDem,Total demand,See FlowUnits,See FlowUnits,,See FlowUnits,See FlowUnits,,,
+Sectors,Population,Population,Inhabitants,inhab,0,Inhabitants,inhab,0,,
+Sectors,PopDem,Demand per inhabitant,Liters per inhabitant per day,l/inhab/day,2,Gallons per capita per day,gpcd,2,,Fixed unit whatever the flow units of the project
+Sectors,Area,Served area,Square meters,m^2,2,Acres,ac,2,,
+Sectors,AreaDem,Demand per area,Liters per square meter per day,l/m^2/day,2,Gallons per acre per day,gal/ac/day,2,,Fixed unit whatever the flow units of the project
+Sectors,Efficiency,Efficiency,Percent,%,2,Percent,%,2,,
+Sectors,DemPattID,Demand pattern,Text,,,Text,,,,
+Sectors,Priority,Priority,Unitless,,0,Unitless,,0,,
 Global,FlowUnits,FlowUnits,liters/sec,lps,2,,,,LPS,
 Global,FlowUnits,FlowUnits,liters/min,lpm,1,,,,LPM,
 Global,FlowUnits,FlowUnits,megaliters/day,mld,2,,,,MLD,
@@ -236,6 +256,17 @@ Global,FlowUnits,FlowUnits,,,,Gallons/min,gpm,1,GPM,
 Global,FlowUnits,FlowUnits,,,,Million gal/day,mgd,2,MGD,
 Global,FlowUnits,FlowUnits,,,,Imperial MGD,imgd,2,IMGD,
 Global,FlowUnits,FlowUnits,,,,Acre-feet/day,afd,2,AFD,
+Global,SmallFlowUnits,SmallFlowUnits,liters/sec,lps,4,,,,LPS,Flows of single consumptions (a dwelling can use less than 0.01 l/s)
+Global,SmallFlowUnits,SmallFlowUnits,liters/min,lpm,3,,,,LPM,
+Global,SmallFlowUnits,SmallFlowUnits,megaliters/day,mld,5,,,,MLD,
+Global,SmallFlowUnits,SmallFlowUnits,cubic meters/sec,cms,7,,,,CMS,Not yet available
+Global,SmallFlowUnits,SmallFlowUnits,cubic metres/hr,cmh,4,,,,CMH,
+Global,SmallFlowUnits,SmallFlowUnits,cubic metres/day,cmd,3,,,,CMD,
+Global,SmallFlowUnits,SmallFlowUnits,,,,Cubic feet/sec,cfs,6,CFS,
+Global,SmallFlowUnits,SmallFlowUnits,,,,Gallons/min,gpm,3,GPM,
+Global,SmallFlowUnits,SmallFlowUnits,,,,Million gal/day,mgd,6,MGD,
+Global,SmallFlowUnits,SmallFlowUnits,,,,Imperial MGD,imgd,6,IMGD,
+Global,SmallFlowUnits,SmallFlowUnits,,,,Acre-feet/day,afd,6,AFD,
 Global,PressUnits,PressureUnits,Meters water column ,m,2,,,,METERS,
 Global,PressUnits,PressureUnits,,,,Pounds/ sq inch,psi,2,PSI,
 Global,PressUnits,PressureUnits,KiloPascals,kPa,1,,,,KPA,Not yet available

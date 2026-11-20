@@ -153,6 +153,23 @@ QCoreApplication.translate('FieldPrettyNames', "Simulation time")
 QCoreApplication.translate('FieldPrettyNames', "Chemical")
 QCoreApplication.translate('FieldPrettyNames', "Trace")
 
+# Demand Builder themes (Consumptions, Demand Links, Sectors)
+QCoreApplication.translate('FieldPrettyNames', "Category")
+QCoreApplication.translate('FieldPrettyNames', "Consumption identifier")
+QCoreApplication.translate('FieldPrettyNames', "Consumption demand")
+QCoreApplication.translate('FieldPrettyNames', "Share of the consumption")
+QCoreApplication.translate('FieldPrettyNames', "Linked demand")
+QCoreApplication.translate('FieldPrettyNames', "Share of the junction load")
+QCoreApplication.translate('FieldPrettyNames', "Junction load")
+QCoreApplication.translate('FieldPrettyNames', "Junction identifier")
+QCoreApplication.translate('FieldPrettyNames', "Total demand")
+QCoreApplication.translate('FieldPrettyNames', "Population")
+QCoreApplication.translate('FieldPrettyNames', "Demand per inhabitant")
+QCoreApplication.translate('FieldPrettyNames', "Served area")
+QCoreApplication.translate('FieldPrettyNames', "Demand per area")
+QCoreApplication.translate('FieldPrettyNames', "Efficiency")
+QCoreApplication.translate('FieldPrettyNames', "Priority")
+
 # Plural display names — values of PLURAL_PROPERTY_NAMES in qgisred_field_utils.py.
 # getPluralProperty() translates them in the 'FieldPrettyNames' context, but they
 # live in a dict so pylupdate cannot see them there. Keep both lists in sync.
@@ -285,9 +302,19 @@ QCoreApplication.translate('UnitFullNames', "Currency /kWh")
 QCoreApplication.translate('UnitFullNames', "Currency /Max kW")
 QCoreApplication.translate('UnitFullNames', "Time as Text")
 QCoreApplication.translate('UnitFullNames', "Year as Text")
+QCoreApplication.translate('UnitFullNames', "Inhabitants")
+QCoreApplication.translate('UnitFullNames', "Liters per inhabitant per day")
+QCoreApplication.translate('UnitFullNames', "Gallons per capita per day")
+QCoreApplication.translate('UnitFullNames', "Square meters")
+QCoreApplication.translate('UnitFullNames', "Acres")
+QCoreApplication.translate('UnitFullNames', "Liters per square meter per day")
+QCoreApplication.translate('UnitFullNames', "Gallons per acre per day")
 
 # Unit abbreviations that are words (getUnitAbbreviation) — context 'UnitAbbreviations'
 QCoreApplication.translate('UnitAbbreviations', "yrs")
+QCoreApplication.translate('UnitAbbreviations', "inhab")
+QCoreApplication.translate('UnitAbbreviations', "l/inhab/day")
+QCoreApplication.translate('UnitAbbreviations', "l/m^2/day")
 
 # Layer names shown in QGIS legend (Inputs group)
 QCoreApplication.translate('InputLayerNames', "Pipes")
