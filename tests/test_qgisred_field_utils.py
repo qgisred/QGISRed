@@ -300,6 +300,27 @@ class TestVolumeUnits:
 
 
 # ---------------------------------------------------------------------------
+# Small flow units  (Global/SmallFlowUnits, reached through the 'See SmallFlowUnits' token)
+# ---------------------------------------------------------------------------
+class TestSmallFlowUnits:
+    @pytest.mark.parametrize("element, unit_code, expected_abbr, expected_decimals", [
+        ("Service Connection", "LPS", "lps", 4),
+        ("Service Connection", "GPM", "gpm", 3),
+        ("Consumptions", "CMH", "cmh", 4),
+        ("Demand Links", "MGD", "mgd", 6),
+    ])
+    def test_single_consumption_flows_take_the_small_flow_row_of_the_project_unit(
+        self, fu, element, unit_code, expected_abbr, expected_decimals
+    ):
+        """A dwelling can use less than 0.01 l/s, so these flows keep more decimals than the global flow."""
+        field = "QLoad" if element == "Demand Links" else "BaseDem"
+        with patch("QGISRed.tools.utils.qgisred_project_utils.QgsProject") as MockProj:
+            MockProj.instance.return_value = _make_project(unit_code)
+            assert fu.getUnitAbbreviation(element, field) == expected_abbr
+            assert fu.getDecimals(element, field) == expected_decimals
+
+
+# ---------------------------------------------------------------------------
 # _getMassAbbr
 # ---------------------------------------------------------------------------
 class TestGetMassAbbr:

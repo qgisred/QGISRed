@@ -151,6 +151,7 @@ _TWO_COMPONENTS_MIXING = "2COMP"
 # the whole row so its decimals come from Global/VolumeUnits (see _redirectVolumeRow).
 _UNIT_MARKER_PREFIX = "See "
 _FLOW_UNITS_MARKER = _UNIT_MARKER_PREFIX + "FlowUnits"
+_SMALL_FLOW_UNITS_MARKER = _UNIT_MARKER_PREFIX + "SmallFlowUnits"
 _PRESSURE_UNITS_MARKER = _UNIT_MARKER_PREFIX + "PressUnits"
 _VOLUME_UNITS_MARKER = _UNIT_MARKER_PREFIX + "VolumeUnits"
 _MASS_UNITS_MARKER = _UNIT_MARKER_PREFIX + "MassUnits"
@@ -677,7 +678,21 @@ class QGISRedFieldUtils:
             row = self._getRowByCondition(element, fieldName, conditionFeature)
         else:
             row = self._getFirstRow(element, fieldName) or self._getFirstRowByProperty(element, fieldName)
-        return self._redirectVolumeRow(row)
+        return self._redirectSmallFlowRow(self._redirectVolumeRow(row))
+
+    def _redirectSmallFlowRow(self, row):
+        """Resolve rows of single consumption flows (service connections, consumptions...).
+
+        A row whose whole abbreviation is ``See SmallFlowUnits`` takes its unit and its
+        decimals from the Global/SmallFlowUnits row of the project flow unit: the same unit
+        as any other flow, with more decimals because a dwelling can use less than 0.01 l/s.
+        """
+        if not row or row["element"] == "Global":
+            return row
+        abbr = row["si_abbr"] if QGISRedProjectUtils.getUnits() == "SI" else row["us_abbr"]
+        if abbr.strip() != _SMALL_FLOW_UNITS_MARKER:
+            return row
+        return self._getRowByCondition("Global", "SmallFlowUnits", QGISRedProjectUtils.getFlowUnit()) or row
 
     def _redirectVolumeRow(self, row):
         """Resolve rows that delegate their unit to the project volume units.

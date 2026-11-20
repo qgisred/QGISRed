@@ -1914,11 +1914,11 @@ class QGISRedStylingUtils:
 
     @staticmethod
     def flowValueExpression(valueExpression):
-        """A flow in the user's number format: as many decimals as it has (up to 4) where QGIS
-        can trim the trailing zeros, the decimals of the project's flow unit otherwise."""
+        """A consumption flow in the user's number format, with the small flow decimals of the
+        project's flow unit; where QGIS can, without the trailing zeros."""
+        decimals = QGISRedFieldUtils().getDecimals("Consumptions", "BaseDem", default=4)
         if _formatNumberTrimsZeros():
-            return "format_number(%s, 4, trim_trailing_zeroes:=true)" % valueExpression
-        decimals = QGISRedFieldUtils().getDecimals("Multiple Demands", "BaseDem", default=2)
+            return "format_number(%s, %d, trim_trailing_zeroes:=true)" % (valueExpression, decimals)
         return "format_number(%s, %d)" % (valueExpression, decimals)
 
     def sectorLabelToClassField(self, layer):

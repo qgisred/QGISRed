@@ -398,6 +398,16 @@ class TestDemandBuilderStyleFlag:
         assert 'fieldName="%s"' % expression in text and 'isExpression="1"' in text
         assert "<mapTip enabled=\"1\">Service Connection [% " in text and "'&lt;NULL&gt;') %]</mapTip>" in text
 
+    def test_consumption_flows_keep_the_small_flow_decimals_of_the_project_unit(self, monkeypatch):
+        import QGISRed.tools.utils.qgisred_styling_utils as stylingModule
+        from QGISRed.tools.utils.qgisred_project_utils import QGISRedProjectUtils
+
+        monkeypatch.setattr(QGISRedProjectUtils, "getFlowUnit", staticmethod(lambda: "MGD"))
+        monkeypatch.setattr(QGISRedProjectUtils, "getUnits", staticmethod(lambda: "US"))
+        monkeypatch.setattr(stylingModule, "_formatNumberTrimsZeros", lambda: True)
+        expression = stylingModule.QGISRedStylingUtils.flowValueExpression('"BaseDem"')
+        assert expression == 'format_number("BaseDem", 6, trim_trailing_zeroes:=true)'
+
     def _styling(self):
         from QGISRed.tools.utils.qgisred_styling_utils import QGISRedStylingUtils
 
@@ -483,6 +493,15 @@ class TestDemandBuilderStyleFlag:
 
 
 class TestPointLabelToBaseDemand:
+    @pytest.fixture(autouse=True)
+    def project_units_follow_the_flow_unit(self, monkeypatch):
+        """The map tip reads the flow decimals of the project, which has no QGIS project here."""
+        from QGISRed.tools.utils.qgisred_project_utils import QGISRedProjectUtils
+
+        monkeypatch.setattr(QGISRedProjectUtils, "getFlowUnit", staticmethod(lambda: "LPS"))
+        monkeypatch.setattr(QGISRedProjectUtils, "getUnits", staticmethod(
+            lambda: "US" if QGISRedProjectUtils.getFlowUnit() in ("CFS", "GPM", "MGD", "IMGD", "AFD") else "SI"))
+
     """The shipped style labels BaseDem; the layer says which column the base demand really is."""
 
     @pytest.fixture(autouse=True)
