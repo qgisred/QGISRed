@@ -159,7 +159,9 @@ _CURRENCY_MARKER = _UNIT_MARKER_PREFIX + "Currency"
 # Unit abbreviations that are words, translated under the 'UnitAbbreviations' context
 # (mirrored in tools/qgisred_translatable_strings.py)
 AGE_UNIT_ABBREVIATION = "yrs"
-TRANSLATED_UNIT_ABBREVIATIONS = (AGE_UNIT_ABBREVIATION,)
+# Rates of the demand builder sectors; compared after _formatExponents, hence the superscript
+PER_CAPITA_UNIT_ABBREVIATIONS = ("inhab", "l/inhab/day", "l/m²/day")
+TRANSLATED_UNIT_ABBREVIATIONS = (AGE_UNIT_ABBREVIATION,) + PER_CAPITA_UNIT_ABBREVIATIONS
 # Exponent characters, plain and superscript. Both tables are built from the same two
 # strings so the rendering done by _formatExponents and the plain spelling recovered by
 # plain_unit_abbr() cannot drift apart.

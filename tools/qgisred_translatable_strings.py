@@ -314,7 +314,7 @@ QCoreApplication.translate('UnitFullNames', "Gallons per acre per day")
 QCoreApplication.translate('UnitAbbreviations', "yrs")
 QCoreApplication.translate('UnitAbbreviations', "inhab")
 QCoreApplication.translate('UnitAbbreviations', "l/inhab/day")
-QCoreApplication.translate('UnitAbbreviations', "l/m^2/day")
+QCoreApplication.translate('UnitAbbreviations', "l/m²/day")
 
 # Layer names shown in QGIS legend (Inputs group)
 QCoreApplication.translate('InputLayerNames', "Pipes")
