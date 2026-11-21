@@ -941,7 +941,7 @@ class MenuSection:
 
     def addDigitalTwinMenu(self):
         #    #Menu
-        self.dtMenu = self.qgisredmenu.addMenu(self.tr("Digital Twin"))
+        self.dtMenu = self.qgisredmenu.addMenu(self.tr("Digital twin"))
         self.dtMenu.setIcon(QIcon(":/images/iconDigitalTwinMenu.svg"))
         #    #Toolbar
         self.dtToolbar = self.iface.addToolBar(self.tr("QGISRed Digital Twin"))
@@ -951,7 +951,7 @@ class MenuSection:
         dtDropButton = QToolButton()
         action = self._make_action(
             ":/images/iconDigitalTwinMenu.svg",
-            self.tr("Digital Twin"),
+            self.tr("Digital twin"),
             self.runDtToolbar,
             checkable=True,
             parent=self.iface.mainWindow(),
@@ -1151,7 +1151,7 @@ class MenuSection:
 
         action = self._make_action(
             ":/images/iconFieldDataManager.svg",
-            self.tr("Field Data Manager"),
+            self.tr("Field data manager"),
             self.runManageFieldData,
             parent=self.iface.mainWindow(),
         )

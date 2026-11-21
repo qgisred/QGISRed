@@ -245,7 +245,7 @@
            <item>
             <widget class="QPushButton" name="btImportInp">
              <property name="text">
-              <string>Import From INP</string>
+              <string>Import from INP</string>
              </property>
             </widget>
            </item>
@@ -364,7 +364,7 @@
               </size>
              </property>
              <property name="text">
-              <string>Headloss Formula:</string>
+              <string>Headloss formula:</string>
              </property>
              <property name="alignment">
               <set>Qt::AlignRight|Qt::AlignTrailing|Qt::AlignVCenter</set>
@@ -418,7 +418,7 @@
            <item>
             <widget class="QLabel" name="lbTolerance">
              <property name="text">
-              <string>Spatial Tolerance:</string>
+              <string>Spatial tolerance:</string>
              </property>
             </widget>
            </item>
@@ -514,7 +514,7 @@
            <item>
             <widget class="QPushButton" name="btImportShps">
              <property name="text">
-              <string>Import From SHPs</string>
+              <string>Import from SHPs</string>
              </property>
             </widget>
            </item>
@@ -600,7 +600,7 @@
                      <item>
                       <widget class="QLabel" name="label_6">
                        <property name="text">
-                        <string>Pipe Layer</string>
+                        <string>Pipe layer</string>
                        </property>
                       </widget>
                      </item>
@@ -660,7 +660,7 @@
                            </size>
                           </property>
                           <property name="text">
-                           <string>Inner Diameter</string>
+                           <string>Inner diameter</string>
                           </property>
                           <property name="alignment">
                            <set>Qt::AlignRight|Qt::AlignTrailing|Qt::AlignVCenter</set>
@@ -745,7 +745,7 @@
                            </size>
                           </property>
                           <property name="text">
-                           <string>Initial Status</string>
+                           <string>Initial status</string>
                           </property>
                           <property name="alignment">
                            <set>Qt::AlignRight|Qt::AlignTrailing|Qt::AlignVCenter</set>
@@ -911,7 +911,7 @@
                            </size>
                           </property>
                           <property name="text">
-                           <string>Installation Date</string>
+                           <string>Installation date</string>
                           </property>
                           <property name="alignment">
                            <set>Qt::AlignRight|Qt::AlignTrailing|Qt::AlignVCenter</set>
@@ -985,7 +985,7 @@
                            </size>
                           </property>
                           <property name="text">
-                           <string>Bulk Coeff</string>
+                           <string>Bulk coeff</string>
                           </property>
                           <property name="alignment">
                            <set>Qt::AlignRight|Qt::AlignTrailing|Qt::AlignVCenter</set>
@@ -1001,7 +1001,7 @@
                            </size>
                           </property>
                           <property name="text">
-                           <string>Wall Coeff</string>
+                           <string>Wall coeff</string>
                           </property>
                           <property name="alignment">
                            <set>Qt::AlignRight|Qt::AlignTrailing|Qt::AlignVCenter</set>
@@ -1088,7 +1088,7 @@
                      <item>
                       <widget class="QLabel" name="label_63">
                        <property name="text">
-                        <string>Junction Layer</string>
+                        <string>Junction layer</string>
                        </property>
                       </widget>
                      </item>
@@ -1187,7 +1187,7 @@
                            </size>
                           </property>
                           <property name="text">
-                           <string>Base Demand</string>
+                           <string>Base demand</string>
                           </property>
                           <property name="alignment">
                            <set>Qt::AlignRight|Qt::AlignTrailing|Qt::AlignVCenter</set>
@@ -1317,7 +1317,7 @@
                            </size>
                           </property>
                           <property name="text">
-                           <string>Demand Pattern Id</string>
+                           <string>Demand pattern Id</string>
                           </property>
                           <property name="alignment">
                            <set>Qt::AlignRight|Qt::AlignTrailing|Qt::AlignVCenter</set>
@@ -1368,7 +1368,7 @@
                      <item>
                       <widget class="QLabel" name="label_58">
                        <property name="text">
-                        <string>Reservoir Layer</string>
+                        <string>Reservoir layer</string>
                        </property>
                       </widget>
                      </item>
@@ -1558,7 +1558,7 @@
                            </size>
                           </property>
                           <property name="text">
-                           <string>Id Head Pattern</string>
+                           <string>Id head pattern</string>
                           </property>
                           <property name="alignment">
                            <set>Qt::AlignRight|Qt::AlignTrailing|Qt::AlignVCenter</set>
@@ -1622,7 +1622,7 @@
                      <item>
                       <widget class="QLabel" name="label_43">
                        <property name="text">
-                        <string>Tank Layer</string>
+                        <string>Tank layer</string>
                        </property>
                       </widget>
                      </item>
@@ -1695,7 +1695,7 @@
                            </size>
                           </property>
                           <property name="text">
-                           <string>Max Level</string>
+                           <string>Max level</string>
                           </property>
                           <property name="alignment">
                            <set>Qt::AlignRight|Qt::AlignTrailing|Qt::AlignVCenter</set>
@@ -1858,7 +1858,7 @@
                            </size>
                           </property>
                           <property name="text">
-                           <string>Min Level</string>
+                           <string>Min level</string>
                           </property>
                           <property name="alignment">
                            <set>Qt::AlignRight|Qt::AlignTrailing|Qt::AlignVCenter</set>
@@ -1890,7 +1890,7 @@
                            </size>
                           </property>
                           <property name="text">
-                           <string>Min Volume</string>
+                           <string>Min volume</string>
                           </property>
                           <property name="alignment">
                            <set>Qt::AlignRight|Qt::AlignTrailing|Qt::AlignVCenter</set>
@@ -1946,7 +1946,7 @@
                            </size>
                           </property>
                           <property name="text">
-                           <string>Initial Level</string>
+                           <string>Initial level</string>
                           </property>
                           <property name="alignment">
                            <set>Qt::AlignRight|Qt::AlignTrailing|Qt::AlignVCenter</set>
@@ -1994,7 +1994,7 @@
                            </size>
                           </property>
                           <property name="text">
-                           <string>Mixing Model</string>
+                           <string>Mixing model</string>
                           </property>
                           <property name="alignment">
                            <set>Qt::AlignRight|Qt::AlignTrailing|Qt::AlignVCenter</set>
@@ -2010,7 +2010,7 @@
                            </size>
                           </property>
                           <property name="text">
-                           <string>Mixing Fraction</string>
+                           <string>Mixing fraction</string>
                           </property>
                           <property name="alignment">
                            <set>Qt::AlignRight|Qt::AlignTrailing|Qt::AlignVCenter</set>
@@ -2110,7 +2110,7 @@
                      <item>
                       <widget class="QLabel" name="label_8">
                        <property name="text">
-                        <string>Valve Layer</string>
+                        <string>Valve layer</string>
                        </property>
                       </widget>
                      </item>
@@ -2352,7 +2352,7 @@
                            </size>
                           </property>
                           <property name="text">
-                           <string>Initial Status</string>
+                           <string>Initial status</string>
                           </property>
                           <property name="alignment">
                            <set>Qt::AlignRight|Qt::AlignTrailing|Qt::AlignVCenter</set>
@@ -2429,7 +2429,7 @@
                      <item>
                       <widget class="QLabel" name="label_30">
                        <property name="text">
-                        <string>Pump Layer</string>
+                        <string>Pump layer</string>
                        </property>
                       </widget>
                      </item>
@@ -2515,7 +2515,7 @@
                            </size>
                           </property>
                           <property name="text">
-                           <string>Initial Status</string>
+                           <string>Initial status</string>
                           </property>
                           <property name="alignment">
                            <set>Qt::AlignRight|Qt::AlignTrailing|Qt::AlignVCenter</set>
@@ -2684,7 +2684,7 @@
                            </size>
                           </property>
                           <property name="text">
-                           <string>Id Pump Curve</string>
+                           <string>Id pump curve</string>
                           </property>
                           <property name="alignment">
                            <set>Qt::AlignRight|Qt::AlignTrailing|Qt::AlignVCenter</set>
@@ -2768,7 +2768,7 @@
            </widget>
            <widget class="QWidget" name="tab_2">
             <attribute name="title">
-             <string>Digital Twin</string>
+             <string>Digital twin</string>
             </attribute>
             <layout class="QGridLayout" name="gridLayout_43">
              <item row="0" column="0">
@@ -2801,7 +2801,7 @@
                      <item>
                       <widget class="QLabel" name="label_53">
                        <property name="text">
-                        <string>Service Connection Layer</string>
+                        <string>Service connection layer</string>
                        </property>
                       </widget>
                      </item>
@@ -3108,7 +3108,7 @@
                            </size>
                           </property>
                           <property name="text">
-                           <string>Base Demand</string>
+                           <string>Base demand</string>
                           </property>
                           <property name="alignment">
                            <set>Qt::AlignRight|Qt::AlignTrailing|Qt::AlignVCenter</set>
@@ -3134,7 +3134,7 @@
                            </size>
                           </property>
                           <property name="text">
-                           <string>Id Demand Pattern</string>
+                           <string>Id demand pattern</string>
                           </property>
                           <property name="alignment">
                            <set>Qt::AlignRight|Qt::AlignTrailing|Qt::AlignVCenter</set>
@@ -3160,7 +3160,7 @@
                            </size>
                           </property>
                           <property name="text">
-                           <string>Installation Date</string>
+                           <string>Installation date</string>
                           </property>
                           <property name="alignment">
                            <set>Qt::AlignRight|Qt::AlignTrailing|Qt::AlignVCenter</set>
@@ -3186,7 +3186,7 @@
                            </size>
                           </property>
                           <property name="text">
-                           <string>Is Active</string>
+                           <string>Is active</string>
                           </property>
                           <property name="alignment">
                            <set>Qt::AlignRight|Qt::AlignTrailing|Qt::AlignVCenter</set>
@@ -3213,7 +3213,7 @@
                      <item>
                       <widget class="QLabel" name="label_98">
                        <property name="text">
-                        <string>Service Connection Length</string>
+                        <string>Service connection length</string>
                        </property>
                       </widget>
                      </item>
@@ -3567,7 +3567,7 @@
                            </size>
                           </property>
                           <property name="text">
-                           <string>Installation Date</string>
+                           <string>Installation date</string>
                           </property>
                           <property name="alignment">
                            <set>Qt::AlignRight|Qt::AlignTrailing|Qt::AlignVCenter</set>
@@ -3645,7 +3645,7 @@
                            </size>
                           </property>
                           <property name="text">
-                           <string>Initial Status</string>
+                           <string>Initial status</string>
                           </property>
                           <property name="alignment">
                            <set>Qt::AlignRight|Qt::AlignTrailing|Qt::AlignVCenter</set>
@@ -3675,7 +3675,7 @@
                      <item>
                       <widget class="QLabel" name="label_78">
                        <property name="text">
-                        <string>Isolation Valve Layer</string>
+                        <string>Isolation valve layer</string>
                        </property>
                       </widget>
                      </item>
@@ -3738,7 +3738,7 @@
                      <item>
                       <widget class="QLabel" name="label_85">
                        <property name="text">
-                        <string>Meter Layer</string>
+                        <string>Meter layer</string>
                        </property>
                       </widget>
                      </item>
@@ -3821,7 +3821,7 @@
                            </size>
                           </property>
                           <property name="text">
-                           <string>Installation Date</string>
+                           <string>Installation date</string>
                           </property>
                           <property name="alignment">
                            <set>Qt::AlignRight|Qt::AlignTrailing|Qt::AlignVCenter</set>
@@ -3967,7 +3967,7 @@
                            </size>
                           </property>
                           <property name="text">
-                           <string>Is Active</string>
+                           <string>Is active</string>
                           </property>
                           <property name="alignment">
                            <set>Qt::AlignRight|Qt::AlignTrailing|Qt::AlignVCenter</set>
@@ -4046,7 +4046,7 @@
                      <item>
                       <widget class="QLabel" name="label_86">
                        <property name="text">
-                        <string>Meter Type</string>
+                        <string>Meter type</string>
                        </property>
                       </widget>
                      </item>
@@ -4085,7 +4085,7 @@
                        </item>
                        <item>
                         <property name="text">
-                         <string>Differencial Manometer</string>
+                         <string>Differencial manometer</string>
                         </property>
                        </item>
                        <item>
@@ -4274,7 +4274,7 @@
            <item>
             <widget class="QPushButton" name="btImportProject">
              <property name="text">
-              <string>Import From Project</string>
+              <string>Import from project</string>
              </property>
             </widget>
            </item>

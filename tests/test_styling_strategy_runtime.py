@@ -261,7 +261,7 @@ class TestTranslateRendererLabels:
 
     def test_special_values_are_still_translated(self, monkeypatch):
         rebuiltCategories = self._translate(monkeypatch, [FakeCategory("ClosedLinks", label="whatever")])
-        assert rebuiltCategories[0].label() == "Closed Links"
+        assert rebuiltCategories[0].label() == "Closed links"
 
     ISOLATED_STATUS_FIELD = "CASE WHEN \"Status\" IN ('NOW CLOSED', 'TO CLOSE') THEN \"Status\" ELSE 'ISOLATED' END"
 

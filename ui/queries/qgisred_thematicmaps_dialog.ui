@@ -17,7 +17,7 @@
    </sizepolicy>
   </property>
   <property name="windowTitle">
-   <string>QGISRed: Thematic Maps</string>
+   <string>QGISRed: Thematic maps</string>
   </property>
   <layout class="QHBoxLayout" name="horizontalLayout_2">
    <item>
@@ -33,7 +33,7 @@
      </property>
      <widget class="QWidget" name="tab_basicElements">
       <attribute name="title">
-       <string>Basic Elements</string>
+       <string>Basic elements</string>
       </attribute>
       <layout class="QVBoxLayout" name="verticalLayout">
        <property name="leftMargin">
@@ -112,7 +112,7 @@
               <item row="1" column="3">
                <widget class="QCheckBox" name="cbPipesInitStatus">
                 <property name="text">
-                 <string>Initial Status</string>
+                 <string>Initial status</string>
                 </property>
                </widget>
               </item>
@@ -133,7 +133,7 @@
               <item row="1" column="1">
                <widget class="QCheckBox" name="cbPipesInstallationDate">
                 <property name="text">
-                 <string>Installation Year</string>
+                 <string>Installation year</string>
                 </property>
                </widget>
               </item>
@@ -170,7 +170,7 @@
               <item row="0" column="3">
                <widget class="QCheckBox" name="cbJunctionsEmitterCoeff">
                 <property name="text">
-                 <string>Emitter Coeff</string>
+                 <string>Emitter coeff</string>
                 </property>
                </widget>
               </item>
@@ -191,14 +191,14 @@
               <item row="0" column="1">
                <widget class="QCheckBox" name="cbJunctionsBaseDemand">
                 <property name="text">
-                 <string>Total Base Demand</string>
+                 <string>Total base demand</string>
                 </property>
                </widget>
               </item>
               <item row="1" column="0">
                <widget class="QCheckBox" name="cbJunctionsInitialQuality">
                 <property name="text">
-                 <string>Initial Quality</string>
+                 <string>Initial quality</string>
                 </property>
                </widget>
               </item>
@@ -254,7 +254,7 @@
               <item row="0" column="3">
                <widget class="QCheckBox" name="cbValvesInitialStatus">
                 <property name="text">
-                 <string>Initial Status</string>
+                 <string>Initial status</string>
                 </property>
                </widget>
               </item>
@@ -305,7 +305,7 @@
               <item row="0" column="3">
                <widget class="QCheckBox" name="cbPumpsInitialStatus">
                 <property name="text">
-                 <string>Initial Status</string>
+                 <string>Initial status</string>
                 </property>
                </widget>
               </item>
@@ -319,7 +319,7 @@
               <item row="1" column="1">
                <widget class="QCheckBox" name="cbPumpsEfficiencyCurve">
                 <property name="text">
-                 <string>Efficiency Curve</string>
+                 <string>Efficiency curve</string>
                 </property>
                </widget>
               </item>
@@ -377,7 +377,7 @@
               <item row="1" column="0">
                <widget class="QCheckBox" name="cbTanksInitialQuality">
                 <property name="text">
-                 <string>Initial Quality</string>
+                 <string>Initial quality</string>
                 </property>
                </widget>
               </item>
@@ -391,7 +391,7 @@
               <item row="1" column="2">
                <widget class="QCheckBox" name="cbTanksMixingModel">
                 <property name="text">
-                 <string>Mixing Model</string>
+                 <string>Mixing model</string>
                 </property>
                </widget>
               </item>
@@ -420,21 +420,21 @@
               <item row="0" column="1">
                <widget class="QCheckBox" name="cbReservoirsHeadPattern">
                 <property name="text">
-                 <string>Head Pattern</string>
+                 <string>Head pattern</string>
                 </property>
                </widget>
               </item>
               <item row="0" column="2">
                <widget class="QCheckBox" name="cbReservoirsInitialQuality">
                 <property name="text">
-                 <string>Initial Quality</string>
+                 <string>Initial quality</string>
                 </property>
                </widget>
               </item>
               <item row="0" column="0">
                <widget class="QCheckBox" name="cbReservoirsTotalHead">
                 <property name="text">
-                 <string>Total Head</string>
+                 <string>Total head</string>
                 </property>
                </widget>
               </item>
@@ -500,7 +500,7 @@
      </widget>
      <widget class="QWidget" name="tab_digitalTwins">
       <attribute name="title">
-       <string>Digital Twins</string>
+       <string>Digital twins</string>
       </attribute>
       <layout class="QHBoxLayout" name="horizontalLayout_5">
        <property name="leftMargin">

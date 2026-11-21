@@ -447,7 +447,7 @@ class TimeSeriesAxisOptionsDialog(QDialog):
         lay.setAlignment(Qt.AlignmentFlag.AlignTop)
 
         tabs = QTabWidget(w)
-        x_title = self.tr("Axis X Time")
+        x_title = self.tr("Axis X time")
         y_left_title = self.tr("Axis Y left")
         y_right_title = self.tr("Axis Y right")
         self._tab_axis_x = self._build_tab(self._cfg_x, axis_title=x_title, show_decimals=False, is_time_axis=True)
@@ -691,7 +691,7 @@ class TimeSeriesAxisOptionsDialog(QDialog):
         self._add_form_row(legend_form, self.tr("Font:"), font_size_row)
         lay.addWidget(legend_grp)
 
-        style_grp = self._compact_group(QGroupBox(self.tr("Line Style")))
+        style_grp = self._compact_group(QGroupBox(self.tr("Line style")))
         style_grp.setCheckable(True)
         style_lay = QVBoxLayout(style_grp)
         line_style_row = self._build_line_style_row(

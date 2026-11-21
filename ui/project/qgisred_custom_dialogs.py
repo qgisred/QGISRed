@@ -30,16 +30,16 @@ class QGISRedRangeEditDialog(QDialog):
         self.initializeInterface()
 
     def initializeInterface(self):
-        self.setWindowTitle(self.tr("Edit Range"))
+        self.setWindowTitle(self.tr("Edit range"))
         self.setupLayout()
 
     def setupLayout(self):
         layout = QVBoxLayout(self)
 
-        layout.addWidget(QLabel(self.formatLabelText(self.tr("Lower Value"))))
+        layout.addWidget(QLabel(self.formatLabelText(self.tr("Lower value"))))
         layout.addWidget(self.lowerValueSpinBox)
 
-        layout.addWidget(QLabel(self.formatLabelText(self.tr("Upper Value"))))
+        layout.addWidget(QLabel(self.formatLabelText(self.tr("Upper value"))))
         layout.addWidget(self.upperValueSpinBox)
 
         self.addStandardButtons(layout)
@@ -131,7 +131,7 @@ class QGISRedSaveStrategyDialog(QDialog):
 
     def setupLayout(self):
         layout = QVBoxLayout(self)
-        intro = self.tr("Saving as the Global Style") if self.isGlobal else self.tr("Saving as the Project Style")
+        intro = self.tr("Saving as the global style") if self.isGlobal else self.tr("Saving as the project style")
         layout.addWidget(QLabel(intro))
         layout.addWidget(self.rbFixedLegend)
         layout.addWidget(self.rbAutomaticLegend)

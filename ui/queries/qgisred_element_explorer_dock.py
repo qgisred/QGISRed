@@ -1313,7 +1313,7 @@ class QGISRedElementExplorerDock(QGISRedHighlightOwnerMixin, QDockWidget, FORM_C
 
         if hasTotalDemandsRow:
             totalDemandsRow = displayRow
-            self.setDataRow(displayRow, self.tr("Total Demands"), str(totalDemands), "",
+            self.setDataRow(displayRow, self.tr("Total demands"), str(totalDemands), "",
                             backgroundBrush=self.totalDemandsBrush)
             displayRow += 1
             if paginated:
@@ -2595,7 +2595,7 @@ class QGISRedElementExplorerDock(QGISRedHighlightOwnerMixin, QDockWidget, FORM_C
         """Show warning message when no layers are found in either Inputs or Results groups."""
         QMessageBox.warning(
             self,
-            self.tr("No Layers Found"),
+            self.tr("No layers found"),
             self.tr("No layers found in the Inputs or Results group.")
         )
 

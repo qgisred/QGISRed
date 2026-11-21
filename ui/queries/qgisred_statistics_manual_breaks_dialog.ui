@@ -42,7 +42,7 @@
      <item>
       <widget class="QPushButton" name="btReset">
        <property name="text">
-        <string>Reset to Equal Interval</string>
+        <string>Reset to equal interval</string>
        </property>
       </widget>
      </item>

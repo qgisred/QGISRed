@@ -650,7 +650,7 @@ class LifecycleSection:
         if valueNow == valueBeforeUnload:
             return
         box = QMessageBox(self.iface.mainWindow())
-        box.setWindowTitle(self.tr("QGISRed Dependencies"))
+        box.setWindowTitle(self.tr("QGISRed dependencies"))
         box.setWindowIcon(QIcon(":/images/qgisred.svg"))
         box.setIcon(QMessageBox.Icon.Question)
         box.setText(self.tr("Do you also want to remove the QGISRed dependencies?"))
@@ -664,7 +664,7 @@ class LifecycleSection:
         if self._isUnsupportedPlatform():
             QMessageBox.information(
                 self.iface.mainWindow(),
-                self.tr("QGISRed Dependencies"),
+                self.tr("QGISRed dependencies"),
                 self.tr("QGISRed is not available for Linux ARM64 yet. If you need it, please let us know in GitHub."),
             )
             return False
@@ -676,7 +676,7 @@ class LifecycleSection:
             link = "https://qgisred.upv.es/files/dependencies/" + folder + "/" + installer
             request = QMessageBox.question(
                 self.iface.mainWindow(),
-                self.tr("QGISRed Dependencies"),
+                self.tr("QGISRed dependencies"),
                 self.tr(
                     "QGISRed plugin requires some dependencies (v{}). Do you want to install them now?").format(self.DependenciesVersion),
                 QMessageBox.StandardButtons(QMessageBox.StandardButton.Yes | QMessageBox.StandardButton.No),
@@ -694,7 +694,7 @@ class LifecycleSection:
                 # mode only starts animating on the next timer tick, so it renders with no
                 # visible bar at all until then.
                 progress = QProgressDialog(self.iface.mainWindow())
-                progress.setWindowTitle(self.tr("QGISRed Dependencies"))
+                progress.setWindowTitle(self.tr("QGISRed dependencies"))
                 progress.setWindowIcon(QIcon(":/images/qgisred.svg"))
                 progress.setMinimumWidth(380)  # the label text changes per step and can get long (e.g. French)
                 progress.setLabelText(self.tr("Downloading dependencies…"))
@@ -733,7 +733,7 @@ class LifecycleSection:
                             "QGISRed", level=Qgis.MessageLevel.Warning)
                         QMessageBox.warning(
                             self.iface.mainWindow(),
-                            self.tr("QGISRed Dependencies"),
+                            self.tr("QGISRed dependencies"),
                             self.tr("The QGISRed dependencies could not be downloaded. Please try again later, and if the problem persists, report the issue in GitHub."),
                         )
                         return valid
@@ -752,7 +752,7 @@ class LifecycleSection:
                     else:
                         QMessageBox.warning(
                             self.iface.mainWindow(),
-                            self.tr("QGISRed Dependencies"),
+                            self.tr("QGISRed dependencies"),
                             self.tr("The installation of the QGISRed dependencies failed. Please try again, and if the problem persists, report the issue in GitHub."),
                         )
                 finally:
@@ -775,7 +775,7 @@ class LifecycleSection:
         with urllib.request.urlopen(news_url, timeout=10, context=_ctx) as response:  # nosec B310 — news_url is a hardcoded https:// constant
             data = json.loads(response.read().decode("utf-8"))
         news_id = data.get("id", "")
-        title = data.get("title", self.tr("QGISRed News"))
+        title = data.get("title", self.tr("QGISRed news"))
         html_url = data.get("html_url", "")
         if not news_id or not html_url:
             return None
@@ -842,7 +842,7 @@ class LifecycleSection:
 
         flags = QgsTask.Flag.Hidden | QgsTask.Flag.Silent
         with suppress(Exception):
-            self._newsTask = QgsTask.fromFunction(self.tr("QGISRed News"), fetch, on_finished=finished, flags=flags)
+            self._newsTask = QgsTask.fromFunction(self.tr("QGISRed news"), fetch, on_finished=finished, flags=flags)
             QgsApplication.taskManager().addTask(self._newsTask)
 
     def runNewsDialog(self, force=False):
@@ -855,7 +855,7 @@ class LifecycleSection:
 
         dlg = QGISRedNewsDialog(
             self._latestNewsHtml,
-            self._latestNewsTitle or self.tr("QGISRed News"),
+            self._latestNewsTitle or self.tr("QGISRed news"),
             self._latestNewsId or "",
             show_dont_ask=not force,
             parent=self.iface.mainWindow(),

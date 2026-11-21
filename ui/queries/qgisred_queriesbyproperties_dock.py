@@ -516,7 +516,7 @@ class QGISRedQueriesByPropertiesDock(QGISRedHighlightOwnerMixin, QDockWidget, FO
             if len(self.criteria) > 1:
                 reply = QMessageBox.question(
                     self,
-                    self.tr("Switch to Single Criteria"),
+                    self.tr("Switch to single criteria"),
                     self.tr("Switching to single criteria will discard all criteria except the first one. Proceed?"),
                     QMessageBox.StandardButton.Ok | QMessageBox.StandardButton.Cancel,
                     QMessageBox.StandardButton.Cancel

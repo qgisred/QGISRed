@@ -10,27 +10,27 @@
     </message>
     <message>
         <location filename="../ui/analysis/timeseries_globals.py" line="130"/>
-        <source>Total Water Supply</source>
+        <source>Total water supply</source>
         <translation>Caudal total producido</translation>
     </message>
     <message>
         <location filename="../ui/analysis/timeseries_globals.py" line="131"/>
-        <source>Total Water Demand</source>
+        <source>Total water demand</source>
         <translation>Caudal total demandado</translation>
     </message>
     <message>
         <location filename="../ui/analysis/timeseries_globals.py" line="132"/>
-        <source>Total Stored Volume</source>
+        <source>Total stored volume</source>
         <translation>Volumen total almacenado</translation>
     </message>
     <message>
         <location filename="../ui/analysis/timeseries_globals.py" line="133"/>
-        <source>Total Tank Spill Flow</source>
+        <source>Total tank spill flow</source>
         <translation>Caudal total vertido</translation>
     </message>
     <message>
         <location filename="../ui/analysis/timeseries_globals.py" line="134"/>
-        <source>Average Node Pressure</source>
+        <source>Average node pressure</source>
         <translation>Presión media de nudos</translation>
     </message>
     <message>
@@ -342,8 +342,8 @@
     <name>Dialog</name>
     <message>
         <location filename="../ui/queries/qgisred_thematicmaps_dialog.ui" line="36"/>
-        <source>Basic Elements</source>
-        <translation>Elementos Básicos</translation>
+        <source>Basic elements</source>
+        <translation>Elementos básicos</translation>
     </message>
     <message>
         <location filename="../ui/queries/qgisred_thematicmaps_dialog.ui" line="81"/>
@@ -372,7 +372,7 @@
     </message>
     <message>
         <location filename="../ui/queries/qgisred_thematicmaps_dialog.ui" line="308"/>
-        <source>Initial Status</source>
+        <source>Initial status</source>
         <translation>Estado inicial</translation>
     </message>
     <message>
@@ -387,7 +387,7 @@
     </message>
     <message>
         <location filename="../ui/queries/qgisred_thematicmaps_dialog.ui" line="136"/>
-        <source>Installation Date</source>
+        <source>Installation date</source>
         <translation type="obsolete">Fecha de instalación</translation>
     </message>
     <message>
@@ -412,7 +412,7 @@
     </message>
     <message>
         <location filename="../ui/queries/qgisred_thematicmaps_dialog.ui" line="173"/>
-        <source>Emitter Coeff</source>
+        <source>Emitter coeff</source>
         <translation>Coeficiente emisor</translation>
     </message>
     <message>
@@ -427,12 +427,12 @@
     </message>
     <message>
         <location filename="../ui/queries/qgisred_thematicmaps_dialog.ui" line="194"/>
-        <source>Total Base Demand</source>
+        <source>Total base demand</source>
         <translation>Demanda base total</translation>
     </message>
     <message>
         <location filename="../ui/queries/qgisred_thematicmaps_dialog.ui" line="430"/>
-        <source>Initial Quality</source>
+        <source>Initial quality</source>
         <translation>Calidad inicial</translation>
     </message>
     <message>
@@ -477,7 +477,7 @@
     </message>
     <message>
         <location filename="../ui/queries/qgisred_thematicmaps_dialog.ui" line="322"/>
-        <source>Efficiency Curve</source>
+        <source>Efficiency curve</source>
         <translation>Curva de rendimiento</translation>
     </message>
     <message>
@@ -502,7 +502,7 @@
     </message>
     <message>
         <location filename="../ui/queries/qgisred_thematicmaps_dialog.ui" line="394"/>
-        <source>Mixing Model</source>
+        <source>Mixing model</source>
         <translation>Modelo de mezcla</translation>
     </message>
     <message>
@@ -512,12 +512,12 @@
     </message>
     <message>
         <location filename="../ui/queries/qgisred_thematicmaps_dialog.ui" line="423"/>
-        <source>Head Pattern</source>
+        <source>Head pattern</source>
         <translation>Patrón de altura</translation>
     </message>
     <message>
         <location filename="../ui/queries/qgisred_thematicmaps_dialog.ui" line="437"/>
-        <source>Total Head</source>
+        <source>Total head</source>
         <translation>Altura total</translation>
     </message>
     <message>
@@ -532,7 +532,7 @@
     </message>
     <message>
         <location filename="../ui/queries/qgisred_thematicmaps_dialog.ui" line="503"/>
-        <source>Digital Twins</source>
+        <source>Digital twins</source>
         <translation>Gemelos digitales</translation>
     </message>
     <message>
@@ -557,8 +557,8 @@
     </message>
     <message>
         <location filename="../ui/project/qgisred_legends_dialog.ui" line="20"/>
-        <source>QGISRed Legend Editor</source>
-        <translation>QGISRed Editor de Leyendas</translation>
+        <source>QGISRed legend editor</source>
+        <translation>QGISRed editor de leyendas</translation>
     </message>
     <message>
         <location filename="../ui/project/qgisred_legends_dialog.ui" line="190"/>
@@ -572,12 +572,12 @@
     </message>
     <message>
         <location filename="../ui/project/qgisred_legends_dialog.ui" line="58"/>
-        <source>Map Layer</source>
-        <translation>Capa de Mapa</translation>
+        <source>Map layer</source>
+        <translation>Capa de mapa</translation>
     </message>
     <message>
         <location filename="../ui/project/qgisred_legends_dialog.ui" line="182"/>
-        <source>Legend Type:</source>
+        <source>Legend type:</source>
         <translation type="obsolete">Tipo de Leyenda:</translation>
     </message>
     <message>
@@ -597,8 +597,8 @@
     </message>
     <message>
         <location filename="../ui/project/qgisred_legends_dialog.ui" line="433"/>
-        <source>Interval Range</source>
-        <translation>Rango de Intervalos</translation>
+        <source>Interval range</source>
+        <translation>Rango de intervalos</translation>
     </message>
     <message>
         <location filename="../ui/project/qgisred_legends_dialog.ui" line="544"/>
@@ -637,27 +637,27 @@
     </message>
     <message>
         <location filename="../ui/project/qgisred_legends_dialog.ui" line="712"/>
-        <source>Load Default</source>
+        <source>Load default</source>
         <translation type="obsolete">Cargar Por defecto</translation>
     </message>
     <message>
         <location filename="../ui/project/qgisred_legends_dialog.ui" line="719"/>
-        <source>Save to Global</source>
+        <source>Save to global</source>
         <translation type="obsolete">Guardar en Global</translation>
     </message>
     <message>
         <location filename="../ui/project/qgisred_legends_dialog.ui" line="726"/>
-        <source>Load Global</source>
+        <source>Load global</source>
         <translation type="obsolete">Cargar Global</translation>
     </message>
     <message>
         <location filename="../ui/project/qgisred_legends_dialog.ui" line="733"/>
-        <source>Save to Project</source>
+        <source>Save to project</source>
         <translation type="obsolete">Guardar en Proyecto</translation>
     </message>
     <message>
         <location filename="../ui/project/qgisred_legends_dialog.ui" line="740"/>
-        <source>Load Project</source>
+        <source>Load project</source>
         <translation type="obsolete">Cargar Proyecto</translation>
     </message>
     <message>
@@ -667,8 +667,8 @@
     </message>
     <message>
         <location filename="../ui/queries/qgisred_thematicmaps_dialog.ui" line="20"/>
-        <source>QGISRed: Thematic Maps</source>
-        <translation>QGISRed: Mapas Temáticos</translation>
+        <source>QGISRed: Thematic maps</source>
+        <translation>QGISRed: Mapas temáticos</translation>
     </message>
     <message>
         <location filename="../ui/project/qgisred_legends_dialog.ui" line="587"/>
@@ -677,12 +677,12 @@
     </message>
     <message>
         <location filename="../ui/project/qgisred_legends_dialog.ui" line="131"/>
-        <source>Legend Type</source>
+        <source>Legend type</source>
         <translation>Tipo de leyenda</translation>
     </message>
     <message>
         <location filename="../ui/project/qgisred_legends_dialog.ui" line="108"/>
-        <source>Meter Type</source>
+        <source>Meter type</source>
         <translation>Tipo de medidor</translation>
     </message>
     <message>
@@ -712,12 +712,12 @@
     </message>
     <message>
         <location filename="../ui/edition/qgisred_groupedit_dialog.ui" line="20"/>
-        <source>QGISRed: Edit Properties by Group</source>
+        <source>QGISRed: Edit properties by group</source>
         <translation>QGISRed: Editar propiedades por grupo</translation>
     </message>
     <message>
         <location filename="../ui/edition/qgisred_groupedit_dialog.ui" line="28"/>
-        <source>Select Elements</source>
+        <source>Select elements</source>
         <translation>Seleccionar elementos</translation>
     </message>
     <message>
@@ -792,12 +792,12 @@
     </message>
     <message>
         <location filename="../ui/queries/qgisred_statistics_manual_breaks_dialog.ui" line="45"/>
-        <source>Reset to Equal Interval</source>
-        <translation>Restablecer a Intervalo Igual</translation>
+        <source>Reset to equal interval</source>
+        <translation>Restablecer a intervalo igual</translation>
     </message>
     <message>
         <location filename="../ui/tools/qgisred_demandsectorbuilder_dialog.ui" line="20"/>
-        <source>QGISRed: Demand Sector Builder</source>
+        <source>QGISRed: Demand sector builder</source>
         <translation>QGISRed: Constructor de sectores de demanda</translation>
     </message>
     <message>
@@ -862,8 +862,8 @@
     </message>
     <message>
         <location filename="../ui/tools/qgisred_demandsectorbuilder_dialog.ui" line="267"/>
-        <source>Create / Complete</source>
-        <translation>Crear / Completar</translation>
+        <source>Create / complete</source>
+        <translation>Crear / completar</translation>
     </message>
     <message>
         <location filename="../ui/tools/qgisred_demandsectorbuilder_dialog.ui" line="279"/>
@@ -897,18 +897,18 @@
     </message>
     <message>
         <location filename="../ui/queries/qgisred_thematicmaps_dialog.ui" line="136"/>
-        <source>Installation Year</source>
+        <source>Installation year</source>
         <translation>Año de instalación</translation>
     </message>
     <message>
         <location filename="../ui/project/qgisred_legends_dialog.ui" line="0"/>
-        <source>Style Library</source>
+        <source>Style library</source>
         <translation type="obsolete">Biblioteca de estilos</translation>
     </message>
     <message>
         <location filename="../ui/project/qgisred_legends_dialog.ui" line="888"/>
         <source>Symbol library</source>
-        <translation>Biblioteca de Símbolos</translation>
+        <translation>Biblioteca de símbolos</translation>
     </message>
     <message>
         <location filename="../ui/project/qgisred_legends_dialog.ui" line="908"/>
@@ -958,12 +958,12 @@
     <name>DockWidget</name>
     <message>
         <location filename="../ui/queries/qgisred_element_explorer_dock.ui" line="48"/>
-        <source>Find Elements by Id</source>
+        <source>Find elements by Id</source>
         <translation>Buscar elementos por Id</translation>
     </message>
     <message>
         <location filename="../ui/queries/qgisred_statisticsandgraphs_dock.ui" line="88"/>
-        <source>Element Type</source>
+        <source>Element type</source>
         <translation>Tipo de elemento</translation>
     </message>
     <message>
@@ -973,7 +973,7 @@
     </message>
     <message>
         <location filename="../ui/queries/qgisred_element_explorer_dock.ui" line="104"/>
-        <source>Element ID Mask</source>
+        <source>Element ID mask</source>
         <translation>Máscara de ID de elemento</translation>
     </message>
     <message>
@@ -983,7 +983,7 @@
     </message>
     <message>
         <location filename="../ui/queries/qgisred_element_explorer_dock.ui" line="141"/>
-        <source>Element Properties</source>
+        <source>Element properties</source>
         <translation>Propiedades de los elementos</translation>
     </message>
     <message>
@@ -993,7 +993,7 @@
     </message>
     <message>
         <location filename="../ui/queries/qgisred_element_explorer_dock.ui" line="220"/>
-        <source>Connected Elements</source>
+        <source>Connected elements</source>
         <translation>Elementos conectados</translation>
     </message>
     <message>
@@ -1068,7 +1068,7 @@
     </message>
     <message>
         <location filename="../ui/queries/qgisred_statisticsandgraphs_dock.ui" line="26"/>
-        <source>Statistics &amp; Plots</source>
+        <source>Statistics &amp; plots</source>
         <translation type="obsolete">Estadísticas y Gráficos</translation>
     </message>
     <message>
@@ -1123,23 +1123,23 @@
     </message>
     <message>
         <location filename="../ui/queries/qgisred_statisticsandgraphs_dock.ui" line="515"/>
-        <source>Property (by Classes)</source>
+        <source>Property (by classes)</source>
         <translation type="obsolete">Propiedad (por Clases)</translation>
     </message>
     <message>
         <location filename="../ui/queries/qgisred_queriesbyproperties_dock.ui" line="120"/>
-        <source>One Criterion</source>
+        <source>One criterion</source>
         <translation>Un criterio</translation>
     </message>
     <message>
         <location filename="../ui/queries/qgisred_queriesbyproperties_dock.ui" line="130"/>
-        <source>Multiple Criteria</source>
+        <source>Multiple criteria</source>
         <translation>Múltiples criterios</translation>
     </message>
     <message>
         <location filename="../ui/queries/qgisred_queriesbyproperties_dock.ui" line="26"/>
-        <source>QGISRed: Queries by Properties</source>
-        <translation>QGISRed: Consultas por Propiedades</translation>
+        <source>QGISRed: Queries by properties</source>
+        <translation>QGISRed: Consultas por propiedades</translation>
     </message>
     <message>
         <location filename="../ui/queries/qgisred_statisticsandgraphs_dock.ui" line="512"/>
@@ -1158,7 +1158,7 @@
     </message>
     <message>
         <location filename="../ui/queries/qgisred_element_explorer_dock.ui" line="20"/>
-        <source>QGISRed: Element Explorer</source>
+        <source>QGISRed: Element explorer</source>
         <translation>QGISRed: Explorador de elementos</translation>
     </message>
     <message>
@@ -1203,7 +1203,7 @@
     </message>
     <message>
         <location filename="../ui/queries/qgisred_statisticsandgraphs_dock.ui" line="26"/>
-        <source>QGISRed: Statistics on Properties</source>
+        <source>QGISRed: Statistics on properties</source>
         <translation>QGISRed: Estadísticas sobre propiedades</translation>
     </message>
     <message>
@@ -2586,7 +2586,7 @@ Do you want to check them again?</source>
     </message>
     <message>
         <location filename="../sections/lifecycle_section.py" line="753"/>
-        <source>QGISRed Dependencies</source>
+        <source>QGISRed dependencies</source>
         <translation>Dependencias de QGISRed</translation>
     </message>
     <message>
@@ -2606,7 +2606,7 @@ Do you want to check them again?</source>
     </message>
     <message>
         <location filename="../sections/lifecycle_section.py" line="856"/>
-        <source>QGISRed News</source>
+        <source>QGISRed news</source>
         <translation>Noticias QGISRed</translation>
     </message>
     <message>
@@ -2974,13 +2974,13 @@ Do you want to check them again?</source>
     </message>
     <message>
         <location filename="../sections/menu_section.py" line="952"/>
-        <source>Digital Twin</source>
-        <translation>Gemelo Digital</translation>
+        <source>Digital twin</source>
+        <translation>Gemelo digital</translation>
     </message>
     <message>
         <location filename="../sections/menu_section.py" line="947"/>
         <source>QGISRed Digital Twin</source>
-        <translation>Gemelo Digital de QGISRed</translation>
+        <translation>Gemelo digital de QGISRed</translation>
     </message>
     <message>
         <location filename="../sections/menu_section.py" line="963"/>
@@ -3069,8 +3069,8 @@ Do you want to check them again?</source>
     </message>
     <message>
         <location filename="../sections/menu_section.py" line="1152"/>
-        <source>Field Data Manager</source>
-        <translation>Gestor de Datos de Campo</translation>
+        <source>Field data manager</source>
+        <translation>Gestor de datos de campo</translation>
     </message>
     <message>
         <location filename="../sections/menu_section.py" line="1174"/>
@@ -3814,7 +3814,7 @@ Do you also want to delete the result files from disk?</source>
     <name>QGISRedConnectionsToolDialog</name>
     <message>
         <location filename="../ui/digitaltwin/qgisred_toolConnections_dialog.ui" line="14"/>
-        <source>QGISRed: Include Connections in Model</source>
+        <source>QGISRed: Include connections in model</source>
         <translation>QGISRed: Incluir acometidas en el modelo</translation>
     </message>
     <message>
@@ -3903,7 +3903,7 @@ Do you also want to delete the result files from disk?</source>
     <name>QGISRedCreateProjectDialog</name>
     <message>
         <location filename="../ui/general/qgisred_createproject_dialog.ui" line="14"/>
-        <source>QGISRed: Create Project</source>
+        <source>QGISRed: Create project</source>
         <translation>QGISRed: Crear proyecto</translation>
     </message>
     <message>
@@ -4003,7 +4003,7 @@ Do you also want to delete the result files from disk?</source>
     </message>
     <message>
         <location filename="../ui/general/qgisred_createproject_dialog.ui" line="259"/>
-        <source>Headloss Formula:</source>
+        <source>Headloss formula:</source>
         <translation>Fórmula de pérdidas de carga:</translation>
     </message>
     <message>
@@ -4023,7 +4023,7 @@ Do you also want to delete the result files from disk?</source>
     </message>
     <message>
         <location filename="../ui/general/qgisred_createproject_dialog.ui" line="370"/>
-        <source>Create Project</source>
+        <source>Create project</source>
         <translation>Crear proyecto</translation>
     </message>
     <message>
@@ -4382,7 +4382,7 @@ La información de sectores existente podría ser reemplazada.
     </message>
     <message>
         <location filename="../ui/queries/qgisred_element_explorer_dock.py" line="2596"/>
-        <source>No Layers Found</source>
+        <source>No layers found</source>
         <translation>No se ha encontrado ninguna capa</translation>
     </message>
     <message>
@@ -4393,12 +4393,12 @@ La información de sectores existente podría ser reemplazada.
     <message>
         <location filename="../ui/queries/qgisred_element_explorer_dock.py" line="97"/>
         <source>Multiple Demand</source>
-        <translation>Demanda Múltiple</translation>
+        <translation>Demanda múltiple</translation>
     </message>
     <message>
         <location filename="../ui/queries/qgisred_element_explorer_dock.py" line="1316"/>
-        <source>Total Demands</source>
-        <translation>Demandas Totales</translation>
+        <source>Total demands</source>
+        <translation>Demandas totales</translation>
     </message>
     <message>
         <location filename="../ui/queries/qgisred_element_explorer_dock.py" line="1512"/>
@@ -4431,7 +4431,7 @@ La información de sectores existente podría ser reemplazada.
     <message>
         <location filename="../ui/analysis/qgisred_export_csv_dialog.ui" line="24"/>
         <source>Nodes file</source>
-        <translation>Archivo de Nodos</translation>
+        <translation>Archivo de nodos</translation>
     </message>
     <message>
         <location filename="../ui/analysis/qgisred_export_csv_dialog.ui" line="84"/>
@@ -4441,7 +4441,7 @@ La información de sectores existente podría ser reemplazada.
     <message>
         <location filename="../ui/analysis/qgisred_export_csv_dialog.ui" line="59"/>
         <source>Links file</source>
-        <translation>Archivo de Líneas</translation>
+        <translation>Archivo de líneas</translation>
     </message>
     <message>
         <location filename="../ui/analysis/qgisred_export_csv_dialog.ui" line="94"/>
@@ -4741,7 +4741,7 @@ La información de sectores existente podría ser reemplazada.
     <name>QGISRedGroupEditDialog</name>
     <message>
         <location filename="../ui/edition/qgisred_groupedit_dialog.py" line="1557"/>
-        <source>Edit Properties by Group</source>
+        <source>Edit properties by group</source>
         <translation>Editar propiedades por grupo</translation>
     </message>
     <message>
@@ -4816,7 +4816,7 @@ La información de sectores existente podría ser reemplazada.
     </message>
     <message>
         <location filename="../ui/edition/qgisred_groupedit_dialog.py" line="466"/>
-        <source>No Filter</source>
+        <source>No filter</source>
         <translation>Sin filtro</translation>
     </message>
     <message>
@@ -5117,7 +5117,7 @@ La información de sectores existente podría ser reemplazada.
     </message>
     <message>
         <location filename="../ui/general/qgisred_import_dialog.ui" line="248"/>
-        <source>Import From INP</source>
+        <source>Import from INP</source>
         <translation>Importar desde INP</translation>
     </message>
     <message>
@@ -5182,7 +5182,7 @@ La información de sectores existente podría ser reemplazada.
     </message>
     <message>
         <location filename="../ui/general/qgisred_import_dialog.ui" line="367"/>
-        <source>Headloss Formula:</source>
+        <source>Headloss formula:</source>
         <translation>Fórmula de pérdidas de carga:</translation>
     </message>
     <message>
@@ -5202,7 +5202,7 @@ La información de sectores existente podría ser reemplazada.
     </message>
     <message>
         <location filename="../ui/general/qgisred_import_dialog.ui" line="421"/>
-        <source>Spatial Tolerance:</source>
+        <source>Spatial tolerance:</source>
         <translation>Tolerancia espacial:</translation>
     </message>
     <message>
@@ -5222,7 +5222,7 @@ La información de sectores existente podría ser reemplazada.
     </message>
     <message>
         <location filename="../ui/general/qgisred_import_dialog.ui" line="517"/>
-        <source>Import From SHPs</source>
+        <source>Import from SHPs</source>
         <translation>Importar desde SHPs</translation>
     </message>
     <message>
@@ -5247,7 +5247,7 @@ La información de sectores existente podría ser reemplazada.
     </message>
     <message>
         <location filename="../ui/general/qgisred_import_dialog.ui" line="603"/>
-        <source>Pipe Layer</source>
+        <source>Pipe layer</source>
         <translation>Capa de tuberías</translation>
     </message>
     <message>
@@ -5262,7 +5262,7 @@ La información de sectores existente podría ser reemplazada.
     </message>
     <message>
         <location filename="../ui/general/qgisred_import_dialog.ui" line="663"/>
-        <source>Inner Diameter</source>
+        <source>Inner diameter</source>
         <translation>Diámetro interior</translation>
     </message>
     <message>
@@ -5272,7 +5272,7 @@ La información de sectores existente podría ser reemplazada.
     </message>
     <message>
         <location filename="../ui/general/qgisred_import_dialog.ui" line="3648"/>
-        <source>Initial Status</source>
+        <source>Initial status</source>
         <translation>Estado inicial</translation>
     </message>
     <message>
@@ -5297,7 +5297,7 @@ La información de sectores existente podría ser reemplazada.
     </message>
     <message>
         <location filename="../ui/general/qgisred_import_dialog.ui" line="3824"/>
-        <source>Installation Date</source>
+        <source>Installation date</source>
         <translation>Fecha instalación</translation>
     </message>
     <message>
@@ -5312,12 +5312,12 @@ La información de sectores existente podría ser reemplazada.
     </message>
     <message>
         <location filename="../ui/general/qgisred_import_dialog.ui" line="988"/>
-        <source>Bulk Coeff</source>
+        <source>Bulk coeff</source>
         <translation>Coef. reacción medio</translation>
     </message>
     <message>
         <location filename="../ui/general/qgisred_import_dialog.ui" line="1004"/>
-        <source>Wall Coeff</source>
+        <source>Wall coeff</source>
         <translation>Coef. reacción pared</translation>
     </message>
     <message>
@@ -5327,12 +5327,12 @@ La información de sectores existente podría ser reemplazada.
     </message>
     <message>
         <location filename="../ui/general/qgisred_import_dialog.ui" line="1091"/>
-        <source>Junction Layer</source>
+        <source>Junction layer</source>
         <translation>Capa de uniones</translation>
     </message>
     <message>
         <location filename="../ui/general/qgisred_import_dialog.ui" line="3111"/>
-        <source>Base Demand</source>
+        <source>Base demand</source>
         <translation>Demanda base</translation>
     </message>
     <message>
@@ -5342,7 +5342,7 @@ La información de sectores existente podría ser reemplazada.
     </message>
     <message>
         <location filename="../ui/general/qgisred_import_dialog.ui" line="1320"/>
-        <source>Demand Pattern Id</source>
+        <source>Demand pattern Id</source>
         <translation>ID patrón demanda</translation>
     </message>
     <message>
@@ -5352,7 +5352,7 @@ La información de sectores existente podría ser reemplazada.
     </message>
     <message>
         <location filename="../ui/general/qgisred_import_dialog.ui" line="1371"/>
-        <source>Reservoir Layer</source>
+        <source>Reservoir layer</source>
         <translation>Capa de embalses</translation>
     </message>
     <message>
@@ -5362,7 +5362,7 @@ La información de sectores existente podría ser reemplazada.
     </message>
     <message>
         <location filename="../ui/general/qgisred_import_dialog.ui" line="1561"/>
-        <source>Id Head Pattern</source>
+        <source>Id head pattern</source>
         <translation>ID patrón altura</translation>
     </message>
     <message>
@@ -5372,27 +5372,27 @@ La información de sectores existente podría ser reemplazada.
     </message>
     <message>
         <location filename="../ui/general/qgisred_import_dialog.ui" line="1625"/>
-        <source>Tank Layer</source>
+        <source>Tank layer</source>
         <translation>Capa de depósitos</translation>
     </message>
     <message>
         <location filename="../ui/general/qgisred_import_dialog.ui" line="1698"/>
-        <source>Max Level</source>
+        <source>Max level</source>
         <translation>Nivel máximo</translation>
     </message>
     <message>
         <location filename="../ui/general/qgisred_import_dialog.ui" line="1861"/>
-        <source>Min Level</source>
+        <source>Min level</source>
         <translation>Nivel mínimo</translation>
     </message>
     <message>
         <location filename="../ui/general/qgisred_import_dialog.ui" line="1893"/>
-        <source>Min Volume</source>
+        <source>Min volume</source>
         <translation>Volumen mínimo</translation>
     </message>
     <message>
         <location filename="../ui/general/qgisred_import_dialog.ui" line="1949"/>
-        <source>Initial Level</source>
+        <source>Initial level</source>
         <translation>Nivel inicial</translation>
     </message>
     <message>
@@ -5407,12 +5407,12 @@ La información de sectores existente podría ser reemplazada.
     </message>
     <message>
         <location filename="../ui/general/qgisred_import_dialog.ui" line="1997"/>
-        <source>Mixing Model</source>
+        <source>Mixing model</source>
         <translation>Modelo mezcla</translation>
     </message>
     <message>
         <location filename="../ui/general/qgisred_import_dialog.ui" line="2013"/>
-        <source>Mixing Fraction</source>
+        <source>Mixing fraction</source>
         <translation>Fracción mezcla</translation>
     </message>
     <message>
@@ -5422,7 +5422,7 @@ La información de sectores existente podría ser reemplazada.
     </message>
     <message>
         <location filename="../ui/general/qgisred_import_dialog.ui" line="2113"/>
-        <source>Valve Layer</source>
+        <source>Valve layer</source>
         <translation>Capa de válvulas</translation>
     </message>
     <message>
@@ -5442,7 +5442,7 @@ La información de sectores existente podría ser reemplazada.
     </message>
     <message>
         <location filename="../ui/general/qgisred_import_dialog.ui" line="2432"/>
-        <source>Pump Layer</source>
+        <source>Pump layer</source>
         <translation>Capa de bombas</translation>
     </message>
     <message>
@@ -5452,7 +5452,7 @@ La información de sectores existente podría ser reemplazada.
     </message>
     <message>
         <location filename="../ui/general/qgisred_import_dialog.ui" line="2687"/>
-        <source>Id Pump Curve</source>
+        <source>Id pump curve</source>
         <translation>Id curva característica</translation>
     </message>
     <message>
@@ -5462,7 +5462,7 @@ La información de sectores existente podría ser reemplazada.
     </message>
     <message>
         <location filename="../ui/general/qgisred_import_dialog.ui" line="2771"/>
-        <source>Digital Twin</source>
+        <source>Digital twin</source>
         <translation>Gemelo digital</translation>
     </message>
     <message>
@@ -5472,22 +5472,22 @@ La información de sectores existente podría ser reemplazada.
     </message>
     <message>
         <location filename="../ui/general/qgisred_import_dialog.ui" line="2804"/>
-        <source>Service Connection Layer</source>
+        <source>Service connection layer</source>
         <translation>Capa de acometidas</translation>
     </message>
     <message>
         <location filename="../ui/general/qgisred_import_dialog.ui" line="3137"/>
-        <source>Id Demand Pattern</source>
+        <source>Id demand pattern</source>
         <translation>ID patrón demanda</translation>
     </message>
     <message>
         <location filename="../ui/general/qgisred_import_dialog.ui" line="3970"/>
-        <source>Is Active</source>
-        <translation>Está Activa</translation>
+        <source>Is active</source>
+        <translation>Está activa</translation>
     </message>
     <message>
         <location filename="../ui/general/qgisred_import_dialog.ui" line="3216"/>
-        <source>Service Connection Length</source>
+        <source>Service connection length</source>
         <translation type="obsolete">Longitud de acometida</translation>
     </message>
     <message>
@@ -5507,7 +5507,7 @@ La información de sectores existente podría ser reemplazada.
     </message>
     <message>
         <location filename="../ui/general/qgisred_import_dialog.ui" line="3678"/>
-        <source>Isolation Valve Layer</source>
+        <source>Isolation valve layer</source>
         <translation>Capa de válvulas de seccionamiento</translation>
     </message>
     <message>
@@ -5517,12 +5517,12 @@ La información de sectores existente podría ser reemplazada.
     </message>
     <message>
         <location filename="../ui/general/qgisred_import_dialog.ui" line="3741"/>
-        <source>Meter Layer</source>
+        <source>Meter layer</source>
         <translation>Capa de medidores</translation>
     </message>
     <message>
         <location filename="../ui/general/qgisred_import_dialog.ui" line="4049"/>
-        <source>Meter Type</source>
+        <source>Meter type</source>
         <translation>Tipo de medidor</translation>
     </message>
     <message>
@@ -5547,7 +5547,7 @@ La información de sectores existente podría ser reemplazada.
     </message>
     <message>
         <location filename="../ui/general/qgisred_import_dialog.ui" line="4088"/>
-        <source>Differencial Manometer</source>
+        <source>Differencial manometer</source>
         <translation>Manómetro diferencial</translation>
     </message>
     <message>
@@ -5592,7 +5592,7 @@ La información de sectores existente podría ser reemplazada.
     </message>
     <message>
         <location filename="../ui/general/qgisred_import_dialog.ui" line="4277"/>
-        <source>Import From Project</source>
+        <source>Import from project</source>
         <translation>Importar desde proyecto</translation>
     </message>
     <message>
@@ -5762,7 +5762,7 @@ La información de sectores existente podría ser reemplazada.
     </message>
     <message>
         <location filename="../ui/general/qgisred_import_dialog.ui" line="3216"/>
-        <source>Service Connection Length</source>
+        <source>Service connection length</source>
         <translation>Longitud de acometida</translation>
     </message>
     <message>
@@ -5918,7 +5918,7 @@ La información de sectores existente podría ser reemplazada.
     <name>QGISRedLayerManagementDialog</name>
     <message>
         <location filename="../ui/project/qgisred_layermanagement_dialog.ui" line="14"/>
-        <source>QGISRed: Layer Manager</source>
+        <source>QGISRed: Layer manager</source>
         <translation>QGISRed: Gestor de capas</translation>
     </message>
     <message>
@@ -5943,7 +5943,7 @@ La información de sectores existente podría ser reemplazada.
     </message>
     <message>
         <location filename="../ui/project/qgisred_layermanagement_dialog.ui" line="132"/>
-        <source>Create Pipes Layer</source>
+        <source>Create pipes layer</source>
         <translation>Crear capa de tuberías</translation>
     </message>
     <message>
@@ -5958,7 +5958,7 @@ La información de sectores existente podría ser reemplazada.
     </message>
     <message>
         <location filename="../ui/project/qgisred_layermanagement_dialog.ui" line="183"/>
-        <source>Create Valves Layer</source>
+        <source>Create valves layer</source>
         <translation>Crear capa de válvulas</translation>
     </message>
     <message>
@@ -5968,7 +5968,7 @@ La información de sectores existente podría ser reemplazada.
     </message>
     <message>
         <location filename="../ui/project/qgisred_layermanagement_dialog.ui" line="225"/>
-        <source>Create Pumps Layer</source>
+        <source>Create pumps layer</source>
         <translation>Crear capa de bombas</translation>
     </message>
     <message>
@@ -5978,7 +5978,7 @@ La información de sectores existente podría ser reemplazada.
     </message>
     <message>
         <location filename="../ui/project/qgisred_layermanagement_dialog.ui" line="293"/>
-        <source>Create Junction Layer</source>
+        <source>Create junction layer</source>
         <translation>Crear capa de uniones</translation>
     </message>
     <message>
@@ -5988,7 +5988,7 @@ La información de sectores existente podría ser reemplazada.
     </message>
     <message>
         <location filename="../ui/project/qgisred_layermanagement_dialog.ui" line="335"/>
-        <source>Create Reservoirs Layer</source>
+        <source>Create reservoirs layer</source>
         <translation>Crear capa de embalses</translation>
     </message>
     <message>
@@ -5998,7 +5998,7 @@ La información de sectores existente podría ser reemplazada.
     </message>
     <message>
         <location filename="../ui/project/qgisred_layermanagement_dialog.ui" line="377"/>
-        <source>Create Tanks Layer</source>
+        <source>Create tanks layer</source>
         <translation>Crear capa de depósitos</translation>
     </message>
     <message>
@@ -6008,7 +6008,7 @@ La información de sectores existente podría ser reemplazada.
     </message>
     <message>
         <location filename="../ui/project/qgisred_layermanagement_dialog.ui" line="445"/>
-        <source>Create Demands Layer</source>
+        <source>Create demands layer</source>
         <translation>Crear capa de demandas</translation>
     </message>
     <message>
@@ -6018,7 +6018,7 @@ La información de sectores existente podría ser reemplazada.
     </message>
     <message>
         <location filename="../ui/project/qgisred_layermanagement_dialog.ui" line="487"/>
-        <source>Create Sources Layer</source>
+        <source>Create sources layer</source>
         <translation>Crear capa de fuentes</translation>
     </message>
     <message>
@@ -6028,7 +6028,7 @@ La información de sectores existente podría ser reemplazada.
     </message>
     <message>
         <location filename="../ui/project/qgisred_layermanagement_dialog.ui" line="583"/>
-        <source>Create Service Connections Layer</source>
+        <source>Create service connections layer</source>
         <translation>Crear capa de acometidas</translation>
     </message>
     <message>
@@ -6038,7 +6038,7 @@ La información de sectores existente podría ser reemplazada.
     </message>
     <message>
         <location filename="../ui/project/qgisred_layermanagement_dialog.ui" line="622"/>
-        <source>Create Isolation Valves Layer</source>
+        <source>Create isolation valves layer</source>
         <translation>Crear capa de válvulas de seccionamiento</translation>
     </message>
     <message>
@@ -6048,7 +6048,7 @@ La información de sectores existente podría ser reemplazada.
     </message>
     <message>
         <location filename="../ui/project/qgisred_layermanagement_dialog.ui" line="664"/>
-        <source>Create Manometers Layer</source>
+        <source>Create manometers layer</source>
         <translation>Crear capa de manómetros</translation>
     </message>
     <message>
@@ -6098,8 +6098,8 @@ La información de sectores existente podría ser reemplazada.
     </message>
     <message>
         <location filename="../ui/project/qgisred_layermanagement_dialog.ui" line="546"/>
-        <source>Digital Twin</source>
-        <translation>Gemelo Digital</translation>
+        <source>Digital twin</source>
+        <translation>Gemelo digital</translation>
     </message>
     <message>
         <location filename="../ui/project/qgisred_layermanagement_dialog.ui" line="716"/>
@@ -6109,7 +6109,7 @@ La información de sectores existente podría ser reemplazada.
     <message>
         <location filename="../ui/project/qgisred_layermanagement_dialog.ui" line="722"/>
         <source>Demand Builder</source>
-        <translation>Constructor Demandas</translation>
+        <translation>Constructor demandas</translation>
     </message>
     <message>
         <location filename="../ui/project/qgisred_layermanagement_dialog.ui" line="761"/>
@@ -6123,12 +6123,12 @@ La información de sectores existente podría ser reemplazada.
     </message>
     <message>
         <location filename="../ui/project/qgisred_layermanagement_dialog.ui" line="798"/>
-        <source>Create Auxiliary Theme</source>
+        <source>Create auxiliary theme</source>
         <translation>Crear tema auxiliar</translation>
     </message>
     <message>
         <location filename="../ui/project/qgisred_layermanagement_dialog.ui" line="814"/>
-        <source>Delete Auxiliary Theme</source>
+        <source>Delete auxiliary theme</source>
         <translation>Eliminar tema auxiliar</translation>
     </message>
     <message>
@@ -6229,8 +6229,8 @@ La información de sectores existente podría ser reemplazada.
     <name>QGISRedLegendsDialog</name>
     <message>
         <location filename="../ui/project/qgisred_legends_dialog.py" line="694"/>
-        <source>QGISRed: Legend Editor</source>
-        <translation>QGISRed: Editor de Leyendas</translation>
+        <source>QGISRed: Legend editor</source>
+        <translation>QGISRed: Editor de leyendas</translation>
     </message>
     <message>
         <location filename="../ui/project/qgisred_legends_dialog.py" line="705"/>
@@ -6286,17 +6286,17 @@ Todas: una clase para cada valor de la capa.</translation>
     </message>
     <message>
         <location filename="../ui/project/qgisred_legends_dialog.py" line="1886"/>
-        <source>Too Many Classes</source>
+        <source>Too many classes</source>
         <translation>Demasiadas clases</translation>
     </message>
     <message>
         <location filename="../ui/project/qgisred_legends_dialog.py" line="1897"/>
-        <source>High Class Count Warning</source>
+        <source>High class count warning</source>
         <translation>Advertencia de número grande de clases</translation>
     </message>
     <message>
         <location filename="../ui/project/qgisred_legends_dialog.py" line="2685"/>
-        <source>Single Symbol</source>
+        <source>Single symbol</source>
         <translation>Símbolo único</translation>
     </message>
     <message>
@@ -6321,7 +6321,7 @@ Todas: una clase para cada valor de la capa.</translation>
     </message>
     <message>
         <location filename="../ui/project/qgisred_legends_dialog.py" line="3556"/>
-        <source>Limit Exceeded</source>
+        <source>Limit exceeded</source>
         <translation>Límite superado</translation>
     </message>
     <message>
@@ -6346,7 +6346,7 @@ Todas: una clase para cada valor de la capa.</translation>
     </message>
     <message>
         <location filename="../ui/project/qgisred_legends_dialog.py" line="6376"/>
-        <source>No Project</source>
+        <source>No project</source>
         <translation>No hay proyecto</translation>
     </message>
     <message>
@@ -6356,7 +6356,7 @@ Todas: una clase para cada valor de la capa.</translation>
     </message>
     <message>
         <location filename="../ui/project/qgisred_legends_dialog.py" line="6133"/>
-        <source>Not Found</source>
+        <source>Not found</source>
         <translation>No encontrado</translation>
     </message>
     <message>
@@ -6366,7 +6366,7 @@ Todas: una clase para cada valor de la capa.</translation>
     </message>
     <message>
         <location filename="../ui/project/qgisred_legends_dialog.py" line="5709"/>
-        <source>Cannot Save</source>
+        <source>Cannot save</source>
         <translation>No se puede guardar</translation>
     </message>
     <message>
@@ -6381,7 +6381,7 @@ Todas: una clase para cada valor de la capa.</translation>
     </message>
     <message>
         <location filename="../ui/project/qgisred_legends_dialog.py" line="6061"/>
-        <source>Cannot Load</source>
+        <source>Cannot load</source>
         <translation>No se puede cargar</translation>
     </message>
     <message>
@@ -6401,17 +6401,17 @@ Todas: una clase para cada valor de la capa.</translation>
     </message>
     <message>
         <location filename="../ui/project/qgisred_legends_dialog.py" line="1224"/>
-        <source>Default Style</source>
+        <source>Default style</source>
         <translation>Estilo por defecto</translation>
     </message>
     <message>
         <location filename="../ui/project/qgisred_legends_dialog.py" line="1223"/>
-        <source>Global Style</source>
+        <source>Global style</source>
         <translation>Estilo global</translation>
     </message>
     <message>
         <location filename="../ui/project/qgisred_legends_dialog.py" line="1222"/>
-        <source>Project Style</source>
+        <source>Project style</source>
         <translation>Estilo del proyecto</translation>
     </message>
     <message>
@@ -6426,12 +6426,12 @@ Todas: una clase para cada valor de la capa.</translation>
     </message>
     <message>
         <location filename="../ui/project/qgisred_legends_dialog.py" line="1235"/>
-        <source>To Global…</source>
+        <source>To global…</source>
         <translation>Como estilo global…</translation>
     </message>
     <message>
         <location filename="../ui/project/qgisred_legends_dialog.py" line="1233"/>
-        <source>To Project…</source>
+        <source>To project…</source>
         <translation>Como estilo del proyecto…</translation>
     </message>
     <message>
@@ -6566,7 +6566,7 @@ Todas: una clase para cada valor de la capa.</translation>
     </message>
     <message>
         <location filename="../ui/project/qgisred_legends_dialog.py" line="896"/>
-        <source>Interpolated Palettes</source>
+        <source>Interpolated palettes</source>
         <translation type="obsolete">Paletas interpoladas</translation>
     </message>
     <message>
@@ -6903,32 +6903,32 @@ Crear una leyenda categorizada con más de %3 clases puede afectar al rendimient
     </message>
     <message>
         <location filename="../ui/project/qgisred_legends_dialog.py" line="2625"/>
-        <source>Equal Interval</source>
+        <source>Equal interval</source>
         <translation>Intervalo igual</translation>
     </message>
     <message>
         <location filename="../ui/project/qgisred_legends_dialog.py" line="2626"/>
-        <source>Fixed Interval</source>
+        <source>Fixed interval</source>
         <translation>Intervalo fijo</translation>
     </message>
     <message>
         <location filename="../ui/project/qgisred_legends_dialog.py" line="2627"/>
-        <source>Quantile (Equal Count)</source>
+        <source>Quantile (equal count)</source>
         <translation>Cuantil (cantidades iguales)</translation>
     </message>
     <message>
         <location filename="../ui/project/qgisred_legends_dialog.py" line="2628"/>
-        <source>Natural Breaks (Jenks)</source>
+        <source>Natural breaks (Jenks)</source>
         <translation>Rupturas naturales (Jenks)</translation>
     </message>
     <message>
         <location filename="../ui/project/qgisred_legends_dialog.py" line="2629"/>
-        <source>Standard Deviation</source>
+        <source>Standard deviation</source>
         <translation>Desviación estándar</translation>
     </message>
     <message>
         <location filename="../ui/project/qgisred_legends_dialog.py" line="2630"/>
-        <source>Pretty Breaks</source>
+        <source>Pretty breaks</source>
         <translation>Intervalos redondeados</translation>
     </message>
     <message>
@@ -6945,7 +6945,7 @@ lo que supera el límite de %3.</translation>
     </message>
     <message>
         <location filename="../ui/project/qgisred_legends_dialog.py" line="4149"/>
-        <source>Invalid Range</source>
+        <source>Invalid range</source>
         <translation>Rango no válido</translation>
     </message>
     <message>
@@ -6955,7 +6955,7 @@ lo que supera el límite de %3.</translation>
     </message>
     <message>
         <location filename="../ui/project/qgisred_legends_dialog.py" line="4168"/>
-        <source>Range Overflow</source>
+        <source>Range overflow</source>
         <translation>Rango excedido</translation>
     </message>
     <message>
@@ -7029,8 +7029,8 @@ No se pueden aplicar los cambios.</translation>
     </message>
     <message>
         <location filename="../ui/project/qgisred_legends_dialog.py" line="7202"/>
-        <source>Close Legend Editor</source>
-        <translation>Cerrar el Editor de Leyendas</translation>
+        <source>Close legend editor</source>
+        <translation>Cerrar el editor de leyendas</translation>
     </message>
     <message>
         <location filename="../ui/project/qgisred_legends_dialog.py" line="7204"/>
@@ -8020,7 +8020,7 @@ No se pueden aplicar los cambios.</translation>
     <name>QGISRedProjectManagerDialog</name>
     <message>
         <location filename="../ui/general/qgisred_projectmanager_dialog.ui" line="14"/>
-        <source>QGISRed: Project Manager</source>
+        <source>QGISRed: Project manager</source>
         <translation>QGISRed: Gestor de proyectos</translation>
     </message>
     <message>
@@ -8085,7 +8085,7 @@ No se pueden aplicar los cambios.</translation>
     </message>
     <message>
         <location filename="../ui/general/qgisred_projectmanager_dialog.ui" line="459"/>
-        <source>Go to Folder</source>
+        <source>Go to folder</source>
         <translation>Ir a la carpeta</translation>
     </message>
     <message>
@@ -8311,8 +8311,8 @@ No se pueden aplicar los cambios.</translation>
     </message>
     <message>
         <location filename="../ui/queries/qgisred_queriesbyproperties_dock.py" line="517"/>
-        <source>Switch to Single Criteria</source>
-        <translation>Cambiar a Criterio Único</translation>
+        <source>Switch to single criteria</source>
+        <translation>Cambiar a criterio único</translation>
     </message>
     <message>
         <location filename="../ui/queries/qgisred_queriesbyproperties_dock.py" line="517"/>
@@ -8456,7 +8456,7 @@ No se pueden aplicar los cambios.</translation>
     <name>QGISRedRangeEditDialog</name>
     <message>
         <location filename="../ui/project/qgisred_custom_dialogs.py" line="33"/>
-        <source>Edit Range</source>
+        <source>Edit range</source>
         <translation>Editar rango</translation>
     </message>
     <message>
@@ -8471,12 +8471,12 @@ No se pueden aplicar los cambios.</translation>
     </message>
     <message>
         <location filename="../ui/project/qgisred_custom_dialogs.py" line="39"/>
-        <source>Lower Value</source>
+        <source>Lower value</source>
         <translation>Valor inferior</translation>
     </message>
     <message>
         <location filename="../ui/project/qgisred_custom_dialogs.py" line="42"/>
-        <source>Upper Value</source>
+        <source>Upper value</source>
         <translation>Valor superior</translation>
     </message>
 </context>
@@ -8662,12 +8662,12 @@ No se pueden aplicar los cambios.</translation>
     </message>
     <message>
         <location filename="../ui/analysis/qgisred_results_dock.ui" line="962"/>
-        <source>Show Flow Directions</source>
+        <source>Show flow directions</source>
         <translation type="obsolete">Mostrar Direcciones de Flujo</translation>
     </message>
     <message>
         <location filename="../ui/analysis/qgisred_results_distribution.py" line="263"/>
-        <source>Show the %1 Distribution</source>
+        <source>Show the %1 distribution</source>
         <translation type="obsolete">Mostrar la distribución de %1</translation>
     </message>
     <message>
@@ -9366,12 +9366,12 @@ No se pueden aplicar los cambios.</translation>
     </message>
     <message>
         <location filename="../ui/project/qgisred_custom_dialogs.py" line="134"/>
-        <source>Saving as the Global Style</source>
+        <source>Saving as the global style</source>
         <translation>Se guardará como Estilo global</translation>
     </message>
     <message>
         <location filename="../ui/project/qgisred_custom_dialogs.py" line="134"/>
-        <source>Saving as the Project Style</source>
+        <source>Saving as the project style</source>
         <translation>Se guardará como Estilo del proyecto</translation>
     </message>
     <message>
@@ -9655,27 +9655,27 @@ No se pueden aplicar los cambios.</translation>
     </message>
     <message>
         <location filename="../ui/queries/qgisred_statisticsandgraphs_dock.py" line="1417"/>
-        <source>Equal Interval</source>
+        <source>Equal interval</source>
         <translation>Intervalo igual</translation>
     </message>
     <message>
         <location filename="../ui/queries/qgisred_statisticsandgraphs_dock.py" line="1417"/>
-        <source>Fixed Interval</source>
+        <source>Fixed interval</source>
         <translation>Intervalo fijo</translation>
     </message>
     <message>
         <location filename="../ui/queries/qgisred_statisticsandgraphs_dock.py" line="1417"/>
-        <source>Equal Count</source>
+        <source>Equal count</source>
         <translation>Cantidades iguales</translation>
     </message>
     <message>
         <location filename="../ui/queries/qgisred_statisticsandgraphs_dock.py" line="1417"/>
-        <source>Natural Breaks</source>
+        <source>Natural breaks</source>
         <translation>Rupturas naturales</translation>
     </message>
     <message>
         <location filename="../ui/queries/qgisred_statisticsandgraphs_dock.py" line="1417"/>
-        <source>Pretty Breaks</source>
+        <source>Pretty breaks</source>
         <translation>Intervalos redondeados</translation>
     </message>
     <message>
@@ -9890,7 +9890,7 @@ No se pueden aplicar los cambios.</translation>
     </message>
     <message>
         <location filename="../ui/queries/qgisred_statisticsandgraphs_dock.py" line="1442"/>
-        <source>No Filter</source>
+        <source>No filter</source>
         <translation>Sin filtro</translation>
     </message>
     <message>
@@ -9905,7 +9905,7 @@ No se pueden aplicar los cambios.</translation>
     </message>
     <message>
         <location filename="../ui/queries/qgisred_statisticsandgraphs_dock.py" line="2448"/>
-        <source>on Range</source>
+        <source>on range</source>
         <translation>en el rango</translation>
     </message>
     <message>
@@ -9950,12 +9950,12 @@ No se pueden aplicar los cambios.</translation>
     </message>
     <message>
         <location filename="../ui/queries/qgisred_statisticsandgraphs_dock.py" line="2436"/>
-        <source>by Categories</source>
+        <source>by categories</source>
         <translation>por categorías</translation>
     </message>
     <message>
         <location filename="../ui/queries/qgisred_statisticsandgraphs_dock.py" line="2436"/>
-        <source>by Ranges</source>
+        <source>by ranges</source>
         <translation>por rangos</translation>
     </message>
     <message>
@@ -10001,7 +10001,7 @@ No se pueden aplicar los cambios.</translation>
     <message>
         <location filename="../ui/queries/qgisred_statisticsandgraphs_dock.py" line="1764"/>
         <source>Multiple Demand</source>
-        <translation>Demanda Múltiple</translation>
+        <translation>Demanda múltiple</translation>
     </message>
     <message>
         <location filename="../ui/queries/qgisred_statisticsandgraphs_dock.py" line="1765"/>
@@ -10136,8 +10136,8 @@ No se pueden aplicar los cambios.</translation>
     </message>
     <message>
         <location filename="../tools/utils/qgisred_styling_utils.py" line="1542"/>
-        <source>Closed Links</source>
-        <translation>Líneas Cerradas</translation>
+        <source>Closed links</source>
+        <translation>Líneas cerradas</translation>
     </message>
     <message>
         <location filename="../tools/utils/qgisred_styling_utils.py" line="441"/>
@@ -10182,7 +10182,7 @@ No se pueden aplicar los cambios.</translation>
     <message>
         <location filename="../tools/qgisred_translatable_strings.py" line="451"/>
         <source>Multiple Demand</source>
-        <translation>Demanda Múltiple</translation>
+        <translation>Demanda múltiple</translation>
     </message>
     <message>
         <location filename="../tools/qgisred_translatable_strings.py" line="452"/>
@@ -10378,7 +10378,7 @@ No se pueden aplicar los cambios.</translation>
     </message>
     <message>
         <location filename="../ui/analysis/qgisred_timeseries_dock.ui" line="14"/>
-        <source>QGISRed: Time Series</source>
+        <source>QGISRed: Time series</source>
         <translation type="obsolete">QGISRed: Curvas de evolución</translation>
     </message>
     <message>
@@ -10583,7 +10583,7 @@ No se pueden aplicar los cambios.</translation>
     </message>
     <message>
         <location filename="../ui/analysis/qgisred_timeseries_dock.py" line="2022"/>
-        <source>Curve Name</source>
+        <source>Curve name</source>
         <translation type="obsolete">Nombre Curva</translation>
     </message>
     <message>
@@ -10593,7 +10593,7 @@ No se pueden aplicar los cambios.</translation>
     </message>
     <message>
         <location filename="../ui/analysis/qgisred_timeseries_dock.py" line="2022"/>
-        <source>Formatted Time</source>
+        <source>Formatted time</source>
         <translation type="obsolete">Tiempo con formato</translation>
     </message>
     <message>
@@ -10888,8 +10888,8 @@ No se pueden aplicar los cambios.</translation>
     </message>
     <message>
         <location filename="../ui/analysis/qgisred_timeseries_axis_dialog.py" line="450"/>
-        <source>Axis X Time</source>
-        <translation>Eje X Tiempo</translation>
+        <source>Axis X time</source>
+        <translation>Eje X tiempo</translation>
     </message>
     <message>
         <location filename="../ui/analysis/qgisred_timeseries_axis_dialog.py" line="593"/>
@@ -11188,7 +11188,7 @@ No se pueden aplicar los cambios.</translation>
     </message>
     <message>
         <location filename="../ui/analysis/qgisred_timeseries_axis_dialog.py" line="694"/>
-        <source>Line Style</source>
+        <source>Line style</source>
         <translation>Estilo de línea</translation>
     </message>
     <message>
@@ -11376,27 +11376,27 @@ No se pueden aplicar los cambios.</translation>
     <name>TimeSeriesGlobals</name>
     <message>
         <location filename="../tools/qgisred_translatable_strings.py" line="47"/>
-        <source>Total Water Supply</source>
+        <source>Total water supply</source>
         <translation>Caudal total producido</translation>
     </message>
     <message>
         <location filename="../tools/qgisred_translatable_strings.py" line="48"/>
-        <source>Total Water Demand</source>
+        <source>Total water demand</source>
         <translation>Caudal total demandado</translation>
     </message>
     <message>
         <location filename="../tools/qgisred_translatable_strings.py" line="49"/>
-        <source>Total Stored Volume</source>
+        <source>Total stored volume</source>
         <translation>Volumen total almacenado</translation>
     </message>
     <message>
         <location filename="../tools/qgisred_translatable_strings.py" line="50"/>
-        <source>Total Tank Spill Flow</source>
+        <source>Total tank spill flow</source>
         <translation>Caudal total vertido</translation>
     </message>
     <message>
         <location filename="../tools/qgisred_translatable_strings.py" line="51"/>
-        <source>Average Node Pressure</source>
+        <source>Average node pressure</source>
         <translation>Presión media de nudos</translation>
     </message>
     <message>
@@ -11653,7 +11653,7 @@ No se pueden aplicar los cambios.</translation>
     </message>
     <message>
         <location filename="../tools/qgisred_translatable_strings.py" line="278"/>
-        <source>Horse Power</source>
+        <source>Horse power</source>
         <translation>Caballos de vapor (HP)</translation>
     </message>
     <message>
@@ -11773,17 +11773,17 @@ No se pueden aplicar los cambios.</translation>
     </message>
     <message>
         <location filename="../tools/qgisred_translatable_strings.py" line="302"/>
-        <source>Currency /Max kW</source>
+        <source>Currency /max kW</source>
         <translation>Moneda /kW máx</translation>
     </message>
     <message>
         <location filename="../tools/qgisred_translatable_strings.py" line="303"/>
-        <source>Time as Text</source>
+        <source>Time as text</source>
         <translation>Hora como texto</translation>
     </message>
     <message>
         <location filename="../tools/qgisred_translatable_strings.py" line="304"/>
-        <source>Year as Text</source>
+        <source>Year as text</source>
         <translation>Año como texto</translation>
     </message>
     <message>
@@ -11873,32 +11873,32 @@ No se pueden aplicar los cambios.</translation>
     <message>
         <location filename="../tools/qgisred_translatable_strings.py" line="406"/>
         <source>Pressure Reducing</source>
-        <translation>Reductora de Presión</translation>
+        <translation>Reductora de presión</translation>
     </message>
     <message>
         <location filename="../tools/qgisred_translatable_strings.py" line="407"/>
         <source>Pressure Sustaining</source>
-        <translation>Sostenedora de Presión</translation>
+        <translation>Sostenedora de presión</translation>
     </message>
     <message>
         <location filename="../tools/qgisred_translatable_strings.py" line="408"/>
         <source>Pressure Breaker</source>
-        <translation>Rotura de Carga</translation>
+        <translation>Rotura de carga</translation>
     </message>
     <message>
         <location filename="../tools/qgisred_translatable_strings.py" line="409"/>
         <source>Flow Control</source>
-        <translation>Controladora de Caudal</translation>
+        <translation>Controladora de caudal</translation>
     </message>
     <message>
         <location filename="../tools/qgisred_translatable_strings.py" line="410"/>
         <source>Throttle Control</source>
-        <translation>Reguladora por Estrangulación</translation>
+        <translation>Reguladora por estrangulación</translation>
     </message>
     <message>
         <location filename="../tools/qgisred_translatable_strings.py" line="411"/>
         <source>General Purpose</source>
-        <translation>Propósito General</translation>
+        <translation>Propósito general</translation>
     </message>
     <message>
         <location filename="../tools/qgisred_translatable_strings.py" line="412"/>
@@ -12186,7 +12186,7 @@ No se pueden aplicar los cambios.</translation>
     <name>_StatisticsHistogramPopoutWindow</name>
     <message>
         <location filename="../ui/queries/qgisred_statisticsandgraphs_dock.py" line="133"/>
-        <source>QGISRed: Statistics on Properties Histogram</source>
+        <source>QGISRed: Statistics on properties histogram</source>
         <translation>QGISRed: Histograma de estadísticas sobre propiedades</translation>
     </message>
 </context>

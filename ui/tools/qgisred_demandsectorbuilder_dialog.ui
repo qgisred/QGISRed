@@ -17,7 +17,7 @@
    </size>
   </property>
   <property name="windowTitle">
-   <string>QGISRed: Demand Sector Builder</string>
+   <string>QGISRed: Demand sector builder</string>
   </property>
   <layout class="QGridLayout" name="rootLayout">
    <property name="leftMargin">
@@ -264,7 +264,7 @@
              </size>
             </property>
             <property name="text">
-             <string>Create / Complete</string>
+             <string>Create / complete</string>
             </property>
            </widget>
           </item>

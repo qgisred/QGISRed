@@ -11,7 +11,7 @@
    </rect>
   </property>
   <property name="windowTitle">
-   <string>QGISRed: Project Manager</string>
+   <string>QGISRed: Project manager</string>
   </property>
   <property name="windowIcon">
    <iconset>
@@ -456,7 +456,7 @@
             </size>
            </property>
            <property name="text">
-            <string>Go to Folder</string>
+            <string>Go to folder</string>
            </property>
            <property name="icon">
             <iconset>

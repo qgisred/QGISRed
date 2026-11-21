@@ -691,7 +691,7 @@ class QGISRedLegendsDialog(QDialog, formClass):
 
     def configureWindow(self):
         self.setWindowIcon(QIcon(":/images/iconLegends.svg"))
-        self.setWindowTitle(self.tr("QGISRed: Legend Editor"))
+        self.setWindowTitle(self.tr("QGISRed: Legend editor"))
         # Owned by the QGIS window instead of always on top: it still stays above QGIS, and the
         # questions QGIS asks (removing a group, for one) are no longer hidden behind it
         self.setWindowFlags(Qt.WindowType.Window | Qt.WindowType.WindowCloseButtonHint)
@@ -1219,9 +1219,9 @@ class QGISRedLegendsDialog(QDialog, formClass):
 
     def setupStyleMenus(self):
         loadMenu = QMenu(self)
-        loadMenu.addAction(self.tr("Project Style"), self.loadProjectStyle)
-        loadMenu.addAction(self.tr("Global Style"), self.loadGlobalStyle)
-        loadMenu.addAction(self.tr("Default Style"), self.loadDefaultStyle)
+        loadMenu.addAction(self.tr("Project style"), self.loadProjectStyle)
+        loadMenu.addAction(self.tr("Global style"), self.loadGlobalStyle)
+        loadMenu.addAction(self.tr("Default style"), self.loadDefaultStyle)
         loadMenu.addSeparator()
         self.actionRevertOriginal = loadMenu.addAction(self.tr("Revert to Original Legend"), self.revertToOriginalStyle)
         self.actionRevertOriginal.setToolTip(self.tr("Restore the legend the layer had when this dialog was opened"))
@@ -1230,9 +1230,9 @@ class QGISRedLegendsDialog(QDialog, formClass):
         saveMenu = QMenu(self)
         saveMenu.setToolTipsVisible(True)
         applyNote = self.tr("Saves the legend as shown in the dialog; the layer itself only changes with Apply")
-        actionSaveProject = saveMenu.addAction(self.tr("To Project…"), self.saveProjectStyle)
+        actionSaveProject = saveMenu.addAction(self.tr("To project…"), self.saveProjectStyle)
         actionSaveProject.setToolTip(applyNote)
-        actionSaveGlobal = saveMenu.addAction(self.tr("To Global…"), self.saveGlobalStyle)
+        actionSaveGlobal = saveMenu.addAction(self.tr("To global…"), self.saveGlobalStyle)
         actionSaveGlobal.setToolTip(applyNote)
         self.btSaveMenu.setMenu(saveMenu)
 
@@ -1885,7 +1885,7 @@ class QGISRedLegendsDialog(QDialog, formClass):
         if uniqueCount > self.MAX_CLASSES:
             QMessageBox.critical(
                 self,
-                self.tr("Too Many Classes"),
+                self.tr("Too many classes"),
                 self.tr("The field '%1' has %2 unique values.\nThe maximum allowed is %3.\n"
                         "Please filter the data or choose a different field.")
                 .replace("%1", str(field)).replace("%2", str(uniqueCount)).replace("%3", str(self.MAX_CLASSES)),
@@ -1896,7 +1896,7 @@ class QGISRedLegendsDialog(QDialog, formClass):
         if uniqueCount > self.WARN_CLASSES:
             reply = QMessageBox.question(
                 self,
-                self.tr("High Class Count Warning"),
+                self.tr("High class count warning"),
                 self.tr("The field '%1' has %2 unique values.\nCreating a categorized legend with more than "
                         "%3 classes may affect performance and readability.\n\nDo you want to proceed?")
                 .replace("%1", str(field)).replace("%2", str(uniqueCount)).replace("%3", str(self.WARN_CLASSES)),
@@ -2622,12 +2622,12 @@ class QGISRedLegendsDialog(QDialog, formClass):
         self.cbMode.addItem(self.tr("Manual"), None)
 
         modes = [
-            ("EqualInterval", self.tr("Equal Interval")),
-            ("FixedInterval", self.tr("Fixed Interval")),
-            ("Quantile", self.tr("Quantile (Equal Count)")),
-            ("Jenks", self.tr("Natural Breaks (Jenks)")),
-            ("StdDev", self.tr("Standard Deviation")),
-            ("Pretty", self.tr("Pretty Breaks")),
+            ("EqualInterval", self.tr("Equal interval")),
+            ("FixedInterval", self.tr("Fixed interval")),
+            ("Quantile", self.tr("Quantile (equal count)")),
+            ("Jenks", self.tr("Natural breaks (Jenks)")),
+            ("StdDev", self.tr("Standard deviation")),
+            ("Pretty", self.tr("Pretty breaks")),
         ]
 
         for modeId, modeName in modes:
@@ -2647,7 +2647,7 @@ class QGISRedLegendsDialog(QDialog, formClass):
         self.cbLegendsType.blockSignals(False)
 
     def addDefaultLegendTypes(self):
-        self.cbLegendsType.addItem(self.tr("Single Symbol"), "singleSymbol")
+        self.cbLegendsType.addItem(self.tr("Single symbol"), "singleSymbol")
         self.cbLegendsType.addItem(self.tr("Categorized"), "categorizedSymbol")
         self.cbLegendsType.addItem(self.tr("Graduated"), "graduatedSymbol")
 
@@ -2662,7 +2662,7 @@ class QGISRedLegendsDialog(QDialog, formClass):
         if layerIdentifier in self.DEMANDS_BUILDER_EDITABLE_IDENTIFIERS:
             self.cbLegendsType.addItem(self.tr("Categorized"), "categorizedSymbol")
         elif layerIdentifier in self.SINGLE_EDITABLE_QUERY_IDENTIFIERS:
-            self.cbLegendsType.addItem(self.tr("Single Symbol"), "singleSymbol")
+            self.cbLegendsType.addItem(self.tr("Single symbol"), "singleSymbol")
             self.cbLegendsType.addItem(
                 self.tr("Categorized"), "categorizedSymbol"
             )
@@ -2682,7 +2682,7 @@ class QGISRedLegendsDialog(QDialog, formClass):
         elif currentRendererType in ("graduatedSymbol", "RuleRenderer"):
             self.cbLegendsType.addItem(self.tr("Graduated"), "graduatedSymbol")
         else:
-            self.cbLegendsType.addItem(self.tr("Single Symbol"), "singleSymbol")
+            self.cbLegendsType.addItem(self.tr("Single symbol"), "singleSymbol")
 
     OPEN_RANGE_BOUND = _OPEN_RANGE_BOUND
 
@@ -3497,7 +3497,7 @@ class QGISRedLegendsDialog(QDialog, formClass):
         if totalPotential > self.MAX_CLASSES:
             QMessageBox.critical(
                 self,
-                self.tr("Limit Exceeded"),
+                self.tr("Limit exceeded"),
                 self.tr("Adding %1 classes would result in %2 total classes,\nwhich exceeds the maximum limit of %3.")
                 .replace("%1", str(uniqueCountToAdd))
                 .replace("%2", str(totalPotential))
@@ -3555,7 +3555,7 @@ class QGISRedLegendsDialog(QDialog, formClass):
     def showMaxClassesError(self):
         QMessageBox.critical(
             self,
-            self.tr("Limit Exceeded"),
+            self.tr("Limit exceeded"),
             self.tr("Maximum of %1 classes reached.").replace("%1", str(self.MAX_CLASSES)),
         )
 
@@ -4147,7 +4147,7 @@ class QGISRedLegendsDialog(QDialog, formClass):
     def validateRangeEdit(self, row, newLower, newUpper):
         if newLower >= newUpper:
             QMessageBox.warning(
-                self, self.tr("Invalid Range"), self.tr("Min value must be less than Max value.")
+                self, self.tr("Invalid range"), self.tr("Min value must be less than Max value.")
             )
             return False
 
@@ -4156,7 +4156,7 @@ class QGISRedLegendsDialog(QDialog, formClass):
             if prevRange and newLower < prevRange[0]:
                 QMessageBox.warning(
                     self,
-                    self.tr("Range Overflow"),
+                    self.tr("Range overflow"),
                     self.tr("New minimum (%1) is smaller than the previous row's minimum (%2).\nCannot apply changes.")
                     .replace("%1", str(newLower)).replace("%2", str(prevRange[0])),
                 )
@@ -4167,7 +4167,7 @@ class QGISRedLegendsDialog(QDialog, formClass):
             if nextRange and newUpper > nextRange[1]:
                 QMessageBox.warning(
                     self,
-                    self.tr("Range Overflow"),
+                    self.tr("Range overflow"),
                     self.tr("New maximum (%1) is larger than the next row's maximum (%2).\nCannot apply changes.")
                     .replace("%1", str(newUpper)).replace("%2", str(nextRange[1])),
                 )
@@ -5699,7 +5699,7 @@ class QGISRedLegendsDialog(QDialog, formClass):
         if not identifier:
             QMessageBox.warning(
                 self,
-                self.tr("Cannot Save"),
+                self.tr("Cannot save"),
                 self.tr("This layer is not managed by QGISRed and its style cannot be saved here."),
             )
             return
@@ -5708,7 +5708,7 @@ class QGISRedLegendsDialog(QDialog, formClass):
         if not name:
             QMessageBox.warning(
                 self,
-                self.tr("Cannot Save"),
+                self.tr("Cannot save"),
                 self.tr("Saving styles from this dialog is not supported for this layer type."),
             )
             return
@@ -6051,7 +6051,7 @@ class QGISRedLegendsDialog(QDialog, formClass):
         if not identifier:
             QMessageBox.warning(
                 self,
-                self.tr("Cannot Load"),
+                self.tr("Cannot load"),
                 self.tr("This layer is not managed by QGISRed and its style cannot be loaded here."),
             )
             return
@@ -6060,13 +6060,13 @@ class QGISRedLegendsDialog(QDialog, formClass):
         if not name:
             QMessageBox.warning(
                 self,
-                self.tr("Cannot Load"),
+                self.tr("Cannot load"),
                 self.tr("Loading styles from this dialog is not supported for this layer type."),
             )
             return
 
         if scope == self.STYLE_SCOPE_PROJECT and not self.getProjectDirectoryFromUtils():
-            QMessageBox.warning(self, self.tr("No Project"), self.tr("Project directory not set."))
+            QMessageBox.warning(self, self.tr("No project"), self.tr("Project directory not set."))
             return
 
         path = self.findStylePath(scope, name)[0]
@@ -6130,7 +6130,7 @@ class QGISRedLegendsDialog(QDialog, formClass):
             message = self.tr("No Global Style has been saved for this layer.")
         else:
             message = self.tr("This layer has no Default Style.")
-        QMessageBox.warning(self, self.tr("Not Found"), message)
+        QMessageBox.warning(self, self.tr("Not found"), message)
 
     def loadStyleKeepingLabelVisibility(self, path):
         """A style file also carries whether labels are shown and the custom properties of the
@@ -6373,7 +6373,7 @@ class QGISRedLegendsDialog(QDialog, formClass):
 
         projectDir = self.getProjectDirectoryFromUtils()
         if not projectDir:
-            QMessageBox.warning(self, self.tr("No Project"), self.tr("Project directory not set."))
+            QMessageBox.warning(self, self.tr("No project"), self.tr("Project directory not set."))
             return None
 
         return os.path.join(projectDir, "layerStyles")
@@ -7199,7 +7199,7 @@ class QGISRedLegendsDialog(QDialog, formClass):
             return self.confirmDiscardEdits()
         box = QMessageBox(self)
         box.setIcon(QMessageBox.Icon.Question)
-        box.setWindowTitle(self.tr("Close Legend Editor"))
+        box.setWindowTitle(self.tr("Close legend editor"))
         box.setText(self.appliedChangesQuestion())
         keepButton = box.addButton(self.tr("Keep"), QMessageBox.ButtonRole.AcceptRole)
         revertButton = box.addButton(self.tr("Revert all"), QMessageBox.ButtonRole.DestructiveRole)

@@ -1366,7 +1366,7 @@ class QGISRedStylingUtils:
             if value == DEMAND_BUILDER_UNCATEGORIZED:
                 return self.tr("Uncategorized")
             if value == "ClosedLinks":
-                return self.tr("Closed Links")
+                return self.tr("Closed links")
             if self.isIsolatedStatusAttribute(field) and value in self.isolatedStatusClassNames():
                 return self.isolatedStatusClassNames()[value]
             if field == "ElemType" and value in self.isolatedDemandClassNames():
@@ -1539,7 +1539,7 @@ class QGISRedStylingUtils:
         # told apart by the value it filters on, not by its text.
         linkStatusClass = self._linkStatusClass(rule)
         if "\"SubNet\" = 'ClosedLinks'" in (rule.filterExpression() or ""):
-            label = self.tr("Closed Links")
+            label = self.tr("Closed links")
         elif linkStatusClass:
             label = QCoreApplication.translate(_LINK_STATUS_CONTEXT, linkStatusClass)
         elif rule.filterExpression() == "ELSE" and rule.label() in allLanguageTexts("QGISRedStylingUtils", _UNKNOWN_SOURCE):

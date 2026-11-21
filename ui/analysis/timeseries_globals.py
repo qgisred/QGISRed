@@ -108,11 +108,11 @@ def stored_volume_display_factor() -> float:
 def global_system_variable_choices():
     """Return (key, display_label) pairs for system global-variable combo (no empty entry)."""
     return [
-        (TOTAL_WATER_SUPPLY_KEY, tr("Total Water Supply")),
-        (TOTAL_WATER_DEMAND_KEY, tr("Total Water Demand")),
-        (TOTAL_STORED_VOLUME_KEY, tr("Total Stored Volume")),
-        (TOTAL_TANK_SPILL_KEY, tr("Total Tank Spill Flow")),
-        (AVERAGE_NODE_PRESSURE_KEY, tr("Average Node Pressure")),
+        (TOTAL_WATER_SUPPLY_KEY, tr("Total water supply")),
+        (TOTAL_WATER_DEMAND_KEY, tr("Total water demand")),
+        (TOTAL_STORED_VOLUME_KEY, tr("Total stored volume")),
+        (TOTAL_TANK_SPILL_KEY, tr("Total tank spill flow")),
+        (AVERAGE_NODE_PRESSURE_KEY, tr("Average node pressure")),
     ]
 
 
@@ -127,11 +127,11 @@ def global_series_y_display_decimals(variable_key: str):
 
 def global_variable_display_label(key: str) -> str:
     labels = {
-        TOTAL_WATER_SUPPLY_KEY: tr("Total Water Supply"),
-        TOTAL_WATER_DEMAND_KEY: tr("Total Water Demand"),
-        TOTAL_STORED_VOLUME_KEY: tr("Total Stored Volume"),
-        TOTAL_TANK_SPILL_KEY: tr("Total Tank Spill Flow"),
-        AVERAGE_NODE_PRESSURE_KEY: tr("Average Node Pressure"),
+        TOTAL_WATER_SUPPLY_KEY: tr("Total water supply"),
+        TOTAL_WATER_DEMAND_KEY: tr("Total water demand"),
+        TOTAL_STORED_VOLUME_KEY: tr("Total stored volume"),
+        TOTAL_TANK_SPILL_KEY: tr("Total tank spill flow"),
+        AVERAGE_NODE_PRESSURE_KEY: tr("Average node pressure"),
     }
     return labels.get(key, key)
 

@@ -285,7 +285,7 @@ class QGISRedGroupEditDialog(QGISRedHighlightOwnerMixin, QDialog, FORM_CLASS):
         if self._hasPendingChanges():
             reply = QMessageBox.question(
                 self,
-                self.tr("Edit Properties by Group"),
+                self.tr("Edit properties by group"),
                 self.tr("All temporary changes will be ignored. Continue?"),
                 QMessageBox.StandardButton.Yes | QMessageBox.StandardButton.No,
                 QMessageBox.StandardButton.No,
@@ -463,7 +463,7 @@ class QGISRedGroupEditDialog(QGISRedHighlightOwnerMixin, QDialog, FORM_CLASS):
 
         self.cbFilterProperty.blockSignals(True)
         self.cbFilterProperty.clear()
-        self.cbFilterProperty.addItem(self.tr("No Filter"), "")
+        self.cbFilterProperty.addItem(self.tr("No filter"), "")
         for name, pretty, field in filterable:
             self.cbFilterProperty.addItem(pretty, name)
         self._setPropertyItemBackgrounds(self.cbFilterProperty, identifier)
@@ -1478,7 +1478,7 @@ class QGISRedGroupEditDialog(QGISRedHighlightOwnerMixin, QDialog, FORM_CLASS):
         if self._hasPendingChanges():
             reply = QMessageBox.question(
                 self,
-                self.tr("Edit Properties by Group"),
+                self.tr("Edit properties by group"),
                 self.tr("All provisional changes will be applied permanently. Continue?"),
                 QMessageBox.StandardButton.Yes | QMessageBox.StandardButton.No,
                 QMessageBox.StandardButton.Yes,
@@ -1556,7 +1556,7 @@ class QGISRedGroupEditDialog(QGISRedHighlightOwnerMixin, QDialog, FORM_CLASS):
         bodyLines.append(self.tr("Continue?"))
         reply = QMessageBox.question(
             self,
-            self.tr("Edit Properties by Group"),
+            self.tr("Edit properties by group"),
             "\n".join(bodyLines),
             QMessageBox.StandardButton.Yes | QMessageBox.StandardButton.No,
             QMessageBox.StandardButton.Yes,

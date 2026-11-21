@@ -130,7 +130,7 @@ class _StatisticsHistogramPopoutWindow(QWidget):
     def __init__(self, parent, onClose):
         super().__init__(parent)
         self.setWindowFlags(Qt.WindowType.Window)
-        self.setWindowTitle(self.tr("QGISRed: Statistics on Properties Histogram"))
+        self.setWindowTitle(self.tr("QGISRed: Statistics on properties histogram"))
         self._onClose = onClose
         self._defaultGeometry = None
         self.setMinimumSize(360, 260)
@@ -1373,11 +1373,11 @@ class QGISRedStatisticsDock(QGISRedHighlightOwnerMixin, QDockWidget, formClass):
         else:
             for identifier, label in (
                 ("Categorized", self.tr("Categories")),
-                ("EqualInterval", self.tr("Equal Interval")),
-                ("FixedInterval", self.tr("Fixed Interval")),
-                ("Quantile", self.tr("Equal Count")),
-                ("Jenks", self.tr("Natural Breaks")),
-                ("Pretty", self.tr("Pretty Breaks")),
+                ("EqualInterval", self.tr("Equal interval")),
+                ("FixedInterval", self.tr("Fixed interval")),
+                ("Quantile", self.tr("Equal count")),
+                ("Jenks", self.tr("Natural breaks")),
+                ("Pretty", self.tr("Pretty breaks")),
                 ("Manual", self.tr("Manual")),
             ):
                 self.cbSecondRanged.addItem(label, identifier)
@@ -1416,11 +1416,11 @@ class QGISRedStatisticsDock(QGISRedHighlightOwnerMixin, QDockWidget, formClass):
         else:
             for identifier, label in (
                 ("Categorized", self.tr("Categories")),
-                ("EqualInterval", self.tr("Equal Interval")),
-                ("FixedInterval", self.tr("Fixed Interval")),
-                ("Quantile", self.tr("Equal Count")),
-                ("Jenks", self.tr("Natural Breaks")),
-                ("Pretty", self.tr("Pretty Breaks")),
+                ("EqualInterval", self.tr("Equal interval")),
+                ("FixedInterval", self.tr("Fixed interval")),
+                ("Quantile", self.tr("Equal count")),
+                ("Jenks", self.tr("Natural breaks")),
+                ("Pretty", self.tr("Pretty breaks")),
                 ("Manual", self.tr("Manual")),
             ):
                 self.cbRanged.addItem(label, identifier)
@@ -1439,7 +1439,7 @@ class QGISRedStatisticsDock(QGISRedHighlightOwnerMixin, QDockWidget, formClass):
     def updateAttributes(self):
         self.suspendCascade = True
         self.cbAttribute.clear()
-        self.cbAttribute.addItem(self.tr("No Filter"), "")
+        self.cbAttribute.addItem(self.tr("No filter"), "")
         layer = self.resolveLayer()
         if layer is None:
             self.suspendCascade = False
@@ -2433,7 +2433,7 @@ class QGISRedStatisticsDock(QGISRedHighlightOwnerMixin, QDockWidget, formClass):
         if qualifier:
             pluralProperty = "{} {}".format(qualifier, pluralProperty)
         if context["propertyField"] == context["classifyField"]:
-            rangeKind = self.tr("by Categories") if context["breaks"]["type"] == "categorical" else self.tr("by Ranges")
+            rangeKind = self.tr("by categories") if context["breaks"]["type"] == "categorical" else self.tr("by ranges")
             base = "{} {}".format(pluralProperty, rangeKind)
         else:
             classifyElement = self.elementForField(elementIdentifier, context["classifyField"])
@@ -2445,7 +2445,7 @@ class QGISRedStatisticsDock(QGISRedHighlightOwnerMixin, QDockWidget, formClass):
         groupLabel = self.cbSecondClassValue.currentText()
         prettySecond = self.fieldUtils.getProperty(secondElement, secondField) or secondField
         if secondBreaks is not None and secondBreaks["type"] == "breaks":
-            return "{} {} {} {} {}".format(base, self.tr("for"), prettySecond, self.tr("on Range"), groupLabel)
+            return "{} {} {} {} {}".format(base, self.tr("for"), prettySecond, self.tr("on range"), groupLabel)
         return "{} {} {} {}".format(base, self.tr("for"), prettySecond, groupLabel)
 
     def buildTableTitle(self, context, prettyProperty, prettyClassify, propertyUnit):
