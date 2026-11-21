@@ -2715,7 +2715,7 @@ Do you want to check them again?</source>
     </message>
     <message>
         <location filename="../sections/menu_section.py" line="553"/>
-        <source>Delete issolated subzones</source>
+        <source>Delete isolated subzones</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
@@ -5196,7 +5196,7 @@ Continue?</source>
     </message>
     <message>
         <location filename="../ui/general/qgisred_import_dialog.ui" line="2804"/>
-        <source>Sevice Connection Layer</source>
+        <source>Service Connection Layer</source>
         <translation type="unfinished"></translation>
     </message>
     <message>

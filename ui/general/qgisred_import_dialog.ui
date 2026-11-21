@@ -2801,7 +2801,7 @@
                      <item>
                       <widget class="QLabel" name="label_53">
                        <property name="text">
-                        <string>Sevice Connection Layer</string>
+                        <string>Service Connection Layer</string>
                        </property>
                       </widget>
                      </item>

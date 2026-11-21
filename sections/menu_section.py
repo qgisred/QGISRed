@@ -552,7 +552,7 @@ class MenuSection:
 
         action = self._make_action(
             ":/images/iconDeleteIsolatedAreas.svg",
-            self.tr("Delete issolated subzones"),
+            self.tr("Delete isolated subzones"),
             self.runCheckConnectivityC,
             parent=self.iface.mainWindow(),
         )
