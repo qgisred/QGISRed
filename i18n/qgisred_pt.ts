@@ -1642,7 +1642,7 @@
     <message>
         <location filename="../tools/qgisred_translatable_strings.py" line="154"/>
         <source>Trace</source>
-        <translation>Traçado</translation>
+        <translation>Traçador</translation>
     </message>
     <message>
         <location filename="../tools/qgisred_translatable_strings.py" line="94"/>
@@ -8312,7 +8312,7 @@ Não é possível aplicar as alterações.</translation>
     <message>
         <location filename="../tools/utils/qgisred_project_utils.py" line="60"/>
         <source>Trace</source>
-        <translation>Traçado</translation>
+        <translation>Traçador</translation>
     </message>
     <message>
         <location filename="../tools/utils/qgisred_project_utils.py" line="62"/>
@@ -11437,7 +11437,7 @@ Não é possível aplicar as alterações.</translation>
     <message>
         <location filename="../tools/qgisred_translatable_strings.py" line="248"/>
         <source>Meters</source>
-        <translation>Medidores</translation>
+        <translation>Metros</translation>
     </message>
     <message>
         <location filename="../tools/qgisred_translatable_strings.py" line="249"/>

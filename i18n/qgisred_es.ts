@@ -9608,7 +9608,7 @@ No se pueden aplicar los cambios.</translation>
     <message>
         <location filename="../ui/queries/qgisred_statisticsandgraphs_dock.py" line="707"/>
         <source>No data</source>
-        <translation type="obsolete">No hay datos</translation>
+        <translation type="obsolete">Sin datos</translation>
     </message>
     <message>
         <location filename="../ui/queries/qgisred_statisticsandgraphs_dock.py" line="707"/>
@@ -9691,7 +9691,7 @@ No se pueden aplicar los cambios.</translation>
     <message>
         <location filename="../ui/queries/qgisred_statisticsandgraphs_dock.py" line="3455"/>
         <source>No data</source>
-        <translation>No hay datos</translation>
+        <translation>Sin datos</translation>
     </message>
     <message>
         <location filename="../ui/queries/qgisred_statisticsandgraphs_dock.py" line="1897"/>
@@ -10826,7 +10826,7 @@ No se pueden aplicar los cambios.</translation>
     <message>
         <location filename="../tools/qgisred_translatable_strings.py" line="367"/>
         <source>No data</source>
-        <translation>No hay datos</translation>
+        <translation>Sin datos</translation>
     </message>
     <message>
         <location filename="../tools/qgisred_translatable_strings.py" line="368"/>
@@ -12213,7 +12213,7 @@ No se pueden aplicar los cambios.</translation>
     <message>
         <location filename="../ui/queries/statistics_histogram_renderer.py" line="104"/>
         <source>No data</source>
-        <translation>No hay datos</translation>
+        <translation>Sin datos</translation>
     </message>
     <message>
         <location filename="../ui/queries/statistics_histogram_renderer.py" line="333"/>
