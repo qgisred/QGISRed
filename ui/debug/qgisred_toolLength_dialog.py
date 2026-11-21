@@ -27,12 +27,12 @@ class QGISRedLengthToolDialog(QDialog, FORM_CLASS):
     def accept(self):
         self.Tolerance = self.tbTolerance.text()
         if self.Tolerance == "":
-            self.pushMessage(self.tr("Validations"), self.tr("Not valid Tolerance"), level=1)
+            self.pushMessage(self.tr("Validations"), self.tr("Not valid tolerance"), level=1)
             return
         try:
             _ = float(self.Tolerance)
         except Exception:
-            self.pushMessage(self.tr("Validations"), self.tr("Not numeric Tolerance"), level=1)
+            self.pushMessage(self.tr("Validations"), self.tr("Not numeric tolerance"), level=1)
             return
 
         self.ProcessDone = True

@@ -91,7 +91,7 @@ class QGISRedRenameProjectDialog(QDialog, FORM_CLASS):
         if doProject:
             name = self.tbNetworkName.text().strip()
             if not name:
-                self.pushMessage(self.tr("Validations"), self.tr("Not valid New Project Name"), level=1)
+                self.pushMessage(self.tr("Validations"), self.tr("Not valid new project name"), level=1)
                 return
             if name == self.OldNetworkName:
                 doProject = False  # checkbox checked but name unchanged → treat as no rename

@@ -134,7 +134,7 @@ class ProjectManagementSection:
         if found_any:
             if not silent:
                 self.pushMessage(
-                    self.tr("Please, open the project from the QGISRed Project Manager"),
+                    self.tr("Please, open the project from the QGISRed project manager"),
                     level=1, duration=5
                 )
             return False
@@ -665,7 +665,7 @@ class ProjectManagementSection:
             from qgis.PyQt.QtWidgets import QFileDialog
             suggested = os.path.join(self.ProjectDirectory, self.NetworkName + ".qgz")
             path, _ = QFileDialog.getSaveFileName(
-                None, self.tr("Save QGIS project"), suggested, self.tr("QGIS Projects (*.qgz *.qgs)")
+                None, self.tr("Save QGIS project"), suggested, self.tr("QGIS projects (*.qgz *.qgs)")
             )
             if path:
                 QgsProject.instance().write(path)

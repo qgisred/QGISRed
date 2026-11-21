@@ -50,7 +50,7 @@ class QGISRedMoveProjectDialog(QDialog, FORM_CLASS):
 
     def accept(self):
         if self.TargetDirectory == "":
-            self.pushMessage(self.tr("Validations"), self.tr("Not valid Target Folder"), level=1)
+            self.pushMessage(self.tr("Validations"), self.tr("Not valid target folder"), level=1)
             return
         sameDir = os.path.normcase(os.path.normpath(self.TargetDirectory)) == self._projectPath
         if sameDir and not self._hasQGisProject:

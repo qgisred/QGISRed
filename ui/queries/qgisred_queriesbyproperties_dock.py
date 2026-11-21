@@ -443,7 +443,7 @@ class QGISRedQueriesByPropertiesDock(QGISRedHighlightOwnerMixin, QDockWidget, FO
         if self.queryHasBeenSubmitted and self.effectiveCriteria():
             propertyDisplay = self.cbProperty.currentText()
             self.labelStatisticsPropertyFor.setText(
-                self.tr("Statistics of %1 for selected Elements").replace("%1", propertyDisplay)
+                self.tr("Statistics of %1 for selected elements").replace("%1", propertyDisplay)
             )
             self.calculateStatistics()
         self.updateButtonsState()
@@ -1472,7 +1472,7 @@ class QGISRedQueriesByPropertiesDock(QGISRedHighlightOwnerMixin, QDockWidget, FO
         self.queryHasBeenSubmitted = True
         propertyDisplay = self.cbProperty.currentText()
         propertyInternal = self.getComboInternalName(self.cbProperty)
-        self.labelStatisticsPropertyFor.setText(self.tr("Statistics of %1 for selected Elements").replace("%1", propertyDisplay))
+        self.labelStatisticsPropertyFor.setText(self.tr("Statistics of %1 for selected elements").replace("%1", propertyDisplay))
         statsIdx = self.findComboByInternalName(self.cbStatisticsFor, propertyInternal)
         if statsIdx >= 0:
             self.cbStatisticsFor.setCurrentIndex(statsIdx)
@@ -2072,7 +2072,7 @@ class QGISRedQueriesByPropertiesDock(QGISRedHighlightOwnerMixin, QDockWidget, FO
             self,
             self.tr("Save criteria file"),
             os.path.join(self.exportFolder(), defaultName),
-            self.tr("Text Files (*.txt)")
+            self.tr("Text files (*.txt)")
         )
         if not fname:
             return
@@ -2106,7 +2106,7 @@ class QGISRedQueriesByPropertiesDock(QGISRedHighlightOwnerMixin, QDockWidget, FO
             self,
             self.tr("Open criteria file"),
             str(QgsProject.instance().homePath()),
-            self.tr("Text Files (*.txt)")
+            self.tr("Text files (*.txt)")
         )
         if not fname:
             return

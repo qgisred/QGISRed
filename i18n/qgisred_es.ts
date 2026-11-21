@@ -847,8 +847,8 @@
     </message>
     <message>
         <location filename="../ui/tools/qgisred_demandsectorbuilder_dialog.ui" line="194"/>
-        <source>Create / Complete theme</source>
-        <translation>Crear / Completar tema</translation>
+        <source>Create / complete theme</source>
+        <translation>Crear / completar tema</translation>
     </message>
     <message>
         <location filename="../ui/tools/qgisred_demandsectorbuilder_dialog.ui" line="206"/>
@@ -940,12 +940,12 @@
     <name>DigitalTwinSection</name>
     <message>
         <location filename="../sections/digital_twin_section.py" line="243"/>
-        <source>The Isolation Valves SHP file does not exist</source>
-        <translation>El archivo SHP de Válvulas de seccionamiento no existe</translation>
+        <source>The isolation valves SHP file does not exist</source>
+        <translation>El archivo SHP de válvulas de seccionamiento no existe</translation>
     </message>
     <message>
         <location filename="../sections/digital_twin_section.py" line="267"/>
-        <source>The Service Connections SHP file does not exist</source>
+        <source>The service connections SHP file does not exist</source>
         <translation>El archivo SHP de acometidas no existe</translation>
     </message>
     <message>
@@ -3159,8 +3159,8 @@ Do you want to check them again?</source>
     </message>
     <message>
         <location filename="../sections/menu_section.py" line="654"/>
-        <source>Set roughness coefficients (from Material and Date)</source>
-        <translation>Establecer coeficientes de rugosidad (desde Material y Fecha)</translation>
+        <source>Set roughness coefficients (from material and date)</source>
+        <translation>Establecer coeficientes de rugosidad (desde material y fecha)</translation>
     </message>
     <message>
         <location filename="../sections/menu_section.py" line="663"/>
@@ -3204,8 +3204,8 @@ Do you want to check them again?</source>
     </message>
     <message>
         <location filename="../sections/menu_section.py" line="131"/>
-        <source>User manual (offline - Outdated)</source>
-        <translation>Manual del usuario (sin conexión - Desactualizado)</translation>
+        <source>User manual (offline - outdated)</source>
+        <translation>Manual del usuario (sin conexión - desactualizado)</translation>
     </message>
     <message>
         <location filename="../sections/menu_section.py" line="132"/>
@@ -3631,7 +3631,7 @@ Do you want to check them again?</source>
     </message>
     <message>
         <location filename="../sections/project_management_section.py" line="667"/>
-        <source>QGIS Projects (*.qgz *.qgs)</source>
+        <source>QGIS projects (*.qgz *.qgs)</source>
         <translation>Proyectos de QGIS (*.qgz *.qgs)</translation>
     </message>
     <message>
@@ -3677,7 +3677,7 @@ Do you want to check them again?</source>
     <message>
         <location filename="../sections/project_management_section.py" line="840"/>
         <source>Old simulation results found</source>
-        <translation>Encontrados Resultados de simulación viejos</translation>
+        <translation>Encontrados resultados de simulación viejos</translation>
     </message>
     <message>
         <location filename="../sections/project_management_section.py" line="840"/>
@@ -3690,8 +3690,8 @@ Do you also want to delete the result files from disk?</source>
     </message>
     <message>
         <location filename="../sections/project_management_section.py" line="136"/>
-        <source>Please, open the project from the QGISRed Project Manager</source>
-        <translation>Por favor, abre el proyecto desde el Gestor de Proyectos de QGISRed</translation>
+        <source>Please, open the project from the QGISRed project manager</source>
+        <translation>Por favor, abre el proyecto desde el gestor de proyectos de QGISRed</translation>
     </message>
     <message>
         <location filename="../sections/project_management_section.py" line="691"/>
@@ -3781,7 +3781,7 @@ Do you also want to delete the result files from disk?</source>
     </message>
     <message>
         <location filename="../ui/general/qgisred_cloneproject_dialog.ui" line="77"/>
-        <source>New Project name:</source>
+        <source>New project name:</source>
         <translation>Nuevo nombre del proyecto:</translation>
     </message>
     <message>
@@ -3791,12 +3791,12 @@ Do you also want to delete the result files from disk?</source>
     </message>
     <message>
         <location filename="../ui/general/qgisred_cloneproject_dialog.py" line="38"/>
-        <source>Not valid New Project Name</source>
+        <source>Not valid new project name</source>
         <translation>Nuevo nombre para el proyecto no válido</translation>
     </message>
     <message>
         <location filename="../ui/general/qgisred_cloneproject_dialog.py" line="41"/>
-        <source>Not valid Project Folder</source>
+        <source>Not valid project folder</source>
         <translation>Carpeta de proyecto no válida</translation>
     </message>
     <message>
@@ -4300,7 +4300,7 @@ La información de sectores existente podría ser reemplazada.
     <message>
         <location filename="../tools/map_tools/qgisred_editLinksGeometry.py" line="218"/>
         <source>QGISRed: Drag to move vertex · Right-click to delete</source>
-        <translation>QGISRed: Arrastra para mover el vértice · Botón derecho para borrarlo</translation>
+        <translation>QGISRed: Arrastra para mover el vértice · botón derecho para borrarlo</translation>
     </message>
 </context>
 <context>
@@ -5622,22 +5622,22 @@ La información de sectores existente podría ser reemplazada.
     </message>
     <message>
         <location filename="../ui/general/qgisred_import_dialog.py" line="1248"/>
-        <source>Not valid Tolerance</source>
+        <source>Not valid tolerance</source>
         <translation>Tolerancia no válida</translation>
     </message>
     <message>
         <location filename="../ui/general/qgisred_import_dialog.py" line="1251"/>
-        <source>Not numeric Tolerance</source>
+        <source>Not numeric tolerance</source>
         <translation>Tolerancia no numérica</translation>
     </message>
     <message>
         <location filename="../ui/general/qgisred_import_dialog.py" line="1259"/>
-        <source>Not valid Service Connection Length</source>
+        <source>Not valid service connection length</source>
         <translation>Longitud de acometida no válida</translation>
     </message>
     <message>
         <location filename="../ui/general/qgisred_import_dialog.py" line="1262"/>
-        <source>Not numeric Service Connection Length</source>
+        <source>Not numeric service connection length</source>
         <translation>Longitud de acometida no numérica</translation>
     </message>
     <message>
@@ -5667,8 +5667,8 @@ La información de sectores existente podría ser reemplazada.
     </message>
     <message>
         <location filename="../ui/general/qgisred_import_dialog.ui" line="4063"/>
-        <source>Assign from field Type</source>
-        <translation>Asignar desde el campo Tipo</translation>
+        <source>Assign from field type</source>
+        <translation>Asignar desde el campo tipo</translation>
     </message>
     <message>
         <location filename="../ui/general/qgisred_import_dialog.ui" line="3266"/>
@@ -5807,12 +5807,12 @@ La información de sectores existente podría ser reemplazada.
     </message>
     <message>
         <location filename="../ui/general/qgisred_import_dialog.py" line="1271"/>
-        <source>Not valid Max Pipe Diameter</source>
+        <source>Not valid max pipe diameter</source>
         <translation>Diámetro máximo de tubería no válido</translation>
     </message>
     <message>
         <location filename="../ui/general/qgisred_import_dialog.py" line="1274"/>
-        <source>Not numeric Max Pipe Diameter</source>
+        <source>Not numeric max pipe diameter</source>
         <translation>Diámetro máximo de tubería no numérico</translation>
     </message>
     <message>
@@ -5900,12 +5900,12 @@ La información de sectores existente podría ser reemplazada.
     </message>
     <message>
         <location filename="../ui/general/qgisred_loadproject_dialog.py" line="54"/>
-        <source>Not valid Project Name</source>
+        <source>Not valid project name</source>
         <translation>Nombre de proyecto no válido</translation>
     </message>
     <message>
         <location filename="../ui/general/qgisred_loadproject_dialog.py" line="57"/>
-        <source>Not valid Project Folder</source>
+        <source>Not valid project folder</source>
         <translation>Carpeta de proyecto no válida</translation>
     </message>
     <message>
@@ -6068,7 +6068,7 @@ La información de sectores existente podría ser reemplazada.
     </message>
     <message>
         <location filename="../ui/project/qgisred_layermanagement_dialog.ui" line="537"/>
-        <source>Load/Unload Digital Twin elements in legend</source>
+        <source>Load/Unload digital twin elements in legend</source>
         <translation type="obsolete">Cargar/Descargar elementos del Gemelo Digital en la leyenda</translation>
     </message>
     <message>
@@ -6561,7 +6561,7 @@ Todas: una clase para cada valor de la capa.</translation>
     </message>
     <message>
         <location filename="../ui/project/qgisred_legends_dialog.py" line="895"/>
-        <source>More than 3 colors Ramps</source>
+        <source>More than 3 colors ramps</source>
         <translation type="obsolete">Rampas de más de 3 colores</translation>
     </message>
     <message>
@@ -7244,12 +7244,12 @@ No se pueden aplicar los cambios.</translation>
     </message>
     <message>
         <location filename="../ui/debug/qgisred_toolLength_dialog.py" line="30"/>
-        <source>Not valid Tolerance</source>
+        <source>Not valid tolerance</source>
         <translation>Tolerancia no válida</translation>
     </message>
     <message>
         <location filename="../ui/debug/qgisred_toolLength_dialog.py" line="35"/>
-        <source>Not numeric Tolerance</source>
+        <source>Not numeric tolerance</source>
         <translation>Tolerancia no numérica</translation>
     </message>
     <message>
@@ -7297,7 +7297,7 @@ No se pueden aplicar los cambios.</translation>
     </message>
     <message>
         <location filename="../ui/general/qgisred_moveproject_dialog.py" line="53"/>
-        <source>Not valid Target Folder</source>
+        <source>Not valid target folder</source>
         <translation>La carpeta de destino no es válida</translation>
     </message>
     <message>
@@ -8438,12 +8438,12 @@ No se pueden aplicar los cambios.</translation>
     </message>
     <message>
         <location filename="../ui/queries/qgisred_queriesbyproperties_dock.py" line="1475"/>
-        <source>Statistics of %1 for selected Elements</source>
-        <translation>Estadísticas de %1 para los Elementos seleccionados</translation>
+        <source>Statistics of %1 for selected elements</source>
+        <translation>Estadísticas de %1 para los elementos seleccionados</translation>
     </message>
     <message>
         <location filename="../ui/queries/qgisred_queriesbyproperties_dock.py" line="2105"/>
-        <source>Text Files (*.txt)</source>
+        <source>Text files (*.txt)</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
@@ -8494,7 +8494,7 @@ No se pueden aplicar los cambios.</translation>
     </message>
     <message>
         <location filename="../ui/general/qgisred_renameproject_dialog.py" line="94"/>
-        <source>Not valid New Project Name</source>
+        <source>Not valid new project name</source>
         <translation>Nuevo nombre del proyecto no válido</translation>
     </message>
     <message>
@@ -9367,12 +9367,12 @@ No se pueden aplicar los cambios.</translation>
     <message>
         <location filename="../ui/project/qgisred_custom_dialogs.py" line="134"/>
         <source>Saving as the global style</source>
-        <translation>Se guardará como Estilo global</translation>
+        <translation>Se guardará como estilo global</translation>
     </message>
     <message>
         <location filename="../ui/project/qgisred_custom_dialogs.py" line="134"/>
         <source>Saving as the project style</source>
-        <translation>Se guardará como Estilo del proyecto</translation>
+        <translation>Se guardará como estilo del proyecto</translation>
     </message>
     <message>
         <location filename="../ui/project/qgisred_custom_dialogs.py" line="112"/>
@@ -9620,7 +9620,7 @@ No se pueden aplicar los cambios.</translation>
     <name>QGISRedStatisticsDock</name>
     <message>
         <location filename="../ui/queries/qgisred_statisticsandgraphs_dock.py" line="320"/>
-        <source>Mouse wheel: zoom · Drag: pan · Double-click: reset view</source>
+        <source>Mouse wheel: zoom · drag: pan · Double-click: reset view</source>
         <translation>Rueda del ratón: zoom · Arrastrar: desplazar · Doble clic: restablecer vista</translation>
     </message>
     <message>
@@ -10433,8 +10433,8 @@ No se pueden aplicar los cambios.</translation>
     </message>
     <message>
         <location filename="../ui/analysis/qgisred_timeseries_dock.py" line="1342"/>
-        <source>Sync cursor with Results panel</source>
-        <translation>Sincronizar cursor con el Panel de Resultados</translation>
+        <source>Sync cursor with results panel</source>
+        <translation>Sincronizar cursor con el panel de resultados</translation>
     </message>
     <message>
         <location filename="../ui/analysis/qgisred_timeseries_dock.py" line="1350"/>
@@ -10454,7 +10454,7 @@ No se pueden aplicar los cambios.</translation>
     <message>
         <location filename="../ui/analysis/qgisred_timeseries_dock.py" line="2057"/>
         <source>Results panel is not available</source>
-        <translation>El Panel de Resultados no está disponible</translation>
+        <translation>El panel de resultados no está disponible</translation>
     </message>
     <message>
         <location filename="../ui/analysis/qgisred_timeseries_dock.py" line="2289"/>

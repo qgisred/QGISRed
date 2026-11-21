@@ -317,7 +317,7 @@ class QGISRedStatisticsDock(QGISRedHighlightOwnerMixin, QDockWidget, formClass):
         self.tbExcel.setEditTriggers(QAbstractItemView.EditTrigger.NoEditTriggers)
         self.tbExcel.viewport().installEventFilter(self)
         self.histogram = StatisticsHistogramWidget(self.graphWidget)
-        self.histogram.setToolTip(self.tr("Mouse wheel: zoom · Drag: pan · Double-click: reset view"))
+        self.histogram.setToolTip(self.tr("Mouse wheel: zoom · drag: pan · Double-click: reset view"))
         layout = QVBoxLayout(self.graphWidget)
         layout.setContentsMargins(0, 0, 0, 0)
         layout.addWidget(self.histogram)

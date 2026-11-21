@@ -35,10 +35,10 @@ class QGISRedCloneProjectDialog(QDialog, FORM_CLASS):
     def accept(self):
         self.NetworkName = self.tbNetworkName.text()
         if self.NetworkName == "":
-            self.pushMessage(self.tr("Validations"), self.tr("Not valid New Project Name"), level=1)
+            self.pushMessage(self.tr("Validations"), self.tr("Not valid new project name"), level=1)
             return
         if self.ProjectDirectory == "":
-            self.pushMessage(self.tr("Validations"), self.tr("Not valid Project Folder"), level=1)
+            self.pushMessage(self.tr("Validations"), self.tr("Not valid project folder"), level=1)
             return
 
         if os.path.exists(os.path.join(self.ProjectDirectory, self.NetworkName + "_Pipes.shp")):

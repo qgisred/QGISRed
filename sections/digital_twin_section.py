@@ -241,7 +241,7 @@ class DigitalTwinSection:
 
         if not os.path.exists(os.path.join(self.ProjectDirectory, self.NetworkName + "_IsolationValves.shp")):
             self.pushMessage(
-                self.tr("The Isolation Valves SHP file does not exist"), level=1, duration=5
+                self.tr("The isolation valves SHP file does not exist"), level=1, duration=5
             )
             return
 
@@ -265,7 +265,7 @@ class DigitalTwinSection:
 
         if not os.path.exists(os.path.join(self.ProjectDirectory, self.NetworkName + "_ServiceConnections.shp")):
             self.pushMessage(
-                self.tr("The Service Connections SHP file does not exist"), level=1, duration=5
+                self.tr("The service connections SHP file does not exist"), level=1, duration=5
             )
             return
 

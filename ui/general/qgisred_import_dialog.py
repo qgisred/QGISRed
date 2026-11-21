@@ -1245,10 +1245,10 @@ class QGISRedImportDialog(QDialog, FORM_CLASS):
             try:
                 t = float(tolerance)
                 if t < 0:
-                    self.pushMessage(self.tr("Validations"), self.tr("Not valid Tolerance"), level=1)
+                    self.pushMessage(self.tr("Validations"), self.tr("Not valid tolerance"), level=1)
                     return
             except Exception:
-                self.pushMessage(self.tr("Validations"), self.tr("Not numeric Tolerance"), level=1)
+                self.pushMessage(self.tr("Validations"), self.tr("Not numeric tolerance"), level=1)
                 return
             # ServiceConnection Length
             scLength = self.tbScLength.text()
@@ -1256,10 +1256,10 @@ class QGISRedImportDialog(QDialog, FORM_CLASS):
                 try:
                     t = float(scLength)
                     if t < 0:
-                        self.pushMessage(self.tr("Validations"), self.tr("Not valid Service Connection Length"), level=1)
+                        self.pushMessage(self.tr("Validations"), self.tr("Not valid service connection length"), level=1)
                         return
                 except Exception:
-                    self.pushMessage(self.tr("Validations"), self.tr("Not numeric Service Connection Length"), level=1)
+                    self.pushMessage(self.tr("Validations"), self.tr("Not numeric service connection length"), level=1)
                     return
             # Max pipe diameter for the service connections
             scMaxDiameter = "0"
@@ -1268,10 +1268,10 @@ class QGISRedImportDialog(QDialog, FORM_CLASS):
                 try:
                     t = float(scMaxDiameter)
                     if t <= 0:
-                        self.pushMessage(self.tr("Validations"), self.tr("Not valid Max Pipe Diameter"), level=1)
+                        self.pushMessage(self.tr("Validations"), self.tr("Not valid max pipe diameter"), level=1)
                         return
                 except Exception:
-                    self.pushMessage(self.tr("Validations"), self.tr("Not numeric Max Pipe Diameter"), level=1)
+                    self.pushMessage(self.tr("Validations"), self.tr("Not numeric max pipe diameter"), level=1)
                     return
             scPipeIds = ""
             if self.isPunctualConnection and self.chkScSelectedPipes.isChecked():

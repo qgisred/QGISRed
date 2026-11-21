@@ -1339,7 +1339,7 @@ class QGISRedTimeSeriesDock(QGISRedDockActivationMixin, QDockWidget, FORM_CLASS)
             self.btnFit.clicked.connect(self._onFitClicked)
             hl.addWidget(self.btnFit, 0, Qt.AlignmentFlag.AlignLeft)
 
-            self.btnSyncCursor = _make_btn("btnSyncCursorTimeSeries", QIcon(":/images/iconTsSyncCursor.svg"), self.tr("Sync cursor with Results panel"), checkable=True)
+            self.btnSyncCursor = _make_btn("btnSyncCursorTimeSeries", QIcon(":/images/iconTsSyncCursor.svg"), self.tr("Sync cursor with results panel"), checkable=True)
             self.btnSyncCursor.toggled.connect(self._onSyncCursorToggled)
             hl.addWidget(self.btnSyncCursor, 0, Qt.AlignmentFlag.AlignLeft)
 

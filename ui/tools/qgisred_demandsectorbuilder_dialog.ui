@@ -191,7 +191,7 @@
      <item>
       <widget class="QGroupBox" name="gbCreateComplete">
        <property name="title">
-        <string>Create / Complete theme</string>
+        <string>Create / complete theme</string>
        </property>
        <layout class="QGridLayout" name="createCompleteGrid">
         <property name="horizontalSpacing">

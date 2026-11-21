@@ -128,7 +128,7 @@ class MenuSection:
             (":/images/iconNews.svg",       self.tr("News..."),                          self.runNewsDialogForced),
             (":/images/iconGitHub.svg",     self.tr("Report issues or comments..."),     self.runReportIssues),
             (":/images/iconUserManual.svg", self.tr("User manual"),                      self.runUserManual),
-            (":/images/iconPDF.svg",        self.tr("User manual (offline - Outdated)"), self.runOfflineManual),
+            (":/images/iconPDF.svg",        self.tr("User manual (offline - outdated)"), self.runOfflineManual),
             (":/images/iconRatePlugin.svg", self.tr("Rate the plugin..."),               self.runRatePlugin),
             (":/images/iconNewsletter.svg", self.tr("Subscribe to newsletter..."),       self.runNewsletter),
             (":/images/iconAbout.svg",      self.tr("About..."),                         self.runAbout),
@@ -653,7 +653,7 @@ class MenuSection:
 
         action = self._make_action(
             ":/images/iconSetRoughnessFromMaterialDate.svg",
-            self.tr("Set roughness coefficients (from Material and Date)"),
+            self.tr("Set roughness coefficients (from material and date)"),
             self.runSetRoughness,
             parent=self.iface.mainWindow(),
         )

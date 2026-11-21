@@ -396,7 +396,7 @@ QCoreApplication.translate('QGISRedResultsDock', "Collapse chart back to the pan
 QCoreApplication.translate('QGISRedResultsDock', "Evolution")
 
 # Statistics histogram UI
-QCoreApplication.translate('QGISRedStatisticsDock', "Mouse wheel: zoom · Drag: pan · Double-click: reset view")
+QCoreApplication.translate('QGISRedStatisticsDock', "Mouse wheel: zoom · drag: pan · Double-click: reset view")
 QCoreApplication.translate('QGISRedStatisticsDock', "by")
 QCoreApplication.translate('QGISRedStatisticsDock', "Count")
 
