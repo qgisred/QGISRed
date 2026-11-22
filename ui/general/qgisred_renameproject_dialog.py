@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 from qgis.PyQt.QtWidgets import QDialog
 from qgis.PyQt import uic
-from ...tools.utils.qgisred_ui_utils import QGISRedBanner
+from ...tools.utils.qgisred_ui_utils import QGISRedBanner, QGISRedUIUtils
 from ...tools.utils.qgisred_filesystem_utils import DIR_BACKUPS
 import os
 
@@ -67,6 +67,7 @@ class QGISRedRenameProjectDialog(QDialog, FORM_CLASS):
         self.tbFolderName.textEdited.connect(self._onFolderNameEdited)
 
         self.messageBar = QGISRedBanner.inject(self, self.gridLayout)
+        QGISRedUIUtils.alignLeadingWidgets([self.cbRenameProject, self.cbRenameQGISProject, self.cbRenameFolder])
         self.adjustSize()
 
     def _onProjectNameChanged(self, text):

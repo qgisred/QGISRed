@@ -6,7 +6,7 @@
    <rect>
     <x>0</x>
     <y>0</y>
-    <width>380</width>
+    <width>560</width>
     <height>150</height>
    </rect>
   </property>
@@ -34,6 +34,12 @@
        </item>
        <item>
         <widget class="QLineEdit" name="tbNetworkName">
+         <property name="minimumSize">
+          <size>
+           <width>300</width>
+           <height>0</height>
+          </size>
+         </property>
          <property name="text">
           <string/>
          </property>
@@ -112,6 +118,12 @@
         </item>
         <item>
          <widget class="QLineEdit" name="tbQGISName">
+         <property name="minimumSize">
+          <size>
+           <width>300</width>
+           <height>0</height>
+          </size>
+         </property>
           <property name="text">
            <string/>
           </property>
@@ -147,6 +159,12 @@
         </item>
         <item>
          <widget class="QLineEdit" name="tbFolderName">
+         <property name="minimumSize">
+          <size>
+           <width>300</width>
+           <height>0</height>
+          </size>
+         </property>
           <property name="text">
            <string/>
           </property>

@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 from qgis.PyQt.QtWidgets import QFileDialog, QDialog
 from qgis.PyQt import uic
-from ...tools.utils.qgisred_ui_utils import QGISRedBanner
+from ...tools.utils.qgisred_ui_utils import QGISRedBanner, QGISRedUIUtils
 import os
 
 FORM_CLASS, _ = uic.loadUiType(os.path.join(os.path.dirname(__file__), "qgisred_cloneproject_dialog.ui"))
@@ -21,6 +21,7 @@ class QGISRedCloneProjectDialog(QDialog, FORM_CLASS):
         self.btAccept.clicked.connect(self.accept)
 
         self.messageBar = QGISRedBanner.inject(self, self.gridLayout)
+        QGISRedUIUtils.alignLeadingWidgets([self.label_2, self.label])
 
     def pushMessage(self, title, text, level=0, duration=5):
         self.messageBar.pushMessage(title, text, level, duration)

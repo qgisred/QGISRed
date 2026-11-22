@@ -108,6 +108,14 @@ class QGISRedBanner(QFrame):
 
 class QGISRedUIUtils:
     @staticmethod
+    def alignLeadingWidgets(widgets):
+        """Give the widgets of a column of rows (the labels or check boxes in front of the text boxes) the width of the widest one,
+        so that the text boxes start at the same x whatever the language of the labels."""
+        width = max(w.sizeHint().width() for w in widgets)
+        for w in widgets:
+            w.setMinimumWidth(width)
+
+    @staticmethod
     def formatSize(sizeBytes):
         """Human-readable file size, e.g. '45.3 MB'."""
         size = float(sizeBytes or 0)
