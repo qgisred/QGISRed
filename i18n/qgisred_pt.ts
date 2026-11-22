@@ -3484,12 +3484,12 @@ Deseja verificá-los novamente?</translation>
     <message>
         <location filename="../sections/analysis_section.py" line="936"/>
         <source>Head</source>
-        <translation type="obsolete">Altura piezométrica</translation>
+        <translation>Altura piezométrica</translation>
     </message>
     <message>
         <location filename="../sections/analysis_section.py" line="936"/>
         <source>Pressure</source>
-        <translation type="obsolete">Pressão</translation>
+        <translation>Pressão</translation>
     </message>
     <message>
         <location filename="../sections/profile_section.py" line="1840"/>
@@ -7818,7 +7818,7 @@ Não é possível aplicar as alterações.</translation>
     <message>
         <location filename="../sections/analysis_section.py" line="936"/>
         <source>Elevation</source>
-        <translation type="obsolete">Cotas</translation>
+        <translation>Cotas</translation>
     </message>
     <message>
         <location filename="../sections/analysis_section.py" line="936"/>
@@ -7828,17 +7828,17 @@ Não é possível aplicar as alterações.</translation>
     <message>
         <location filename="../sections/analysis_section.py" line="936"/>
         <source>Pressure</source>
-        <translation type="obsolete">Pressão</translation>
+        <translation>Pressão</translation>
     </message>
     <message>
         <location filename="../sections/analysis_section.py" line="936"/>
         <source>Quality</source>
-        <translation type="obsolete">Qualidade</translation>
+        <translation>Qualidade</translation>
     </message>
     <message>
         <location filename="../sections/analysis_section.py" line="936"/>
         <source>Accumulated head loss</source>
-        <translation type="obsolete">Perdas de carga acumuladas</translation>
+        <translation>Perdas de carga acumuladas</translation>
     </message>
     <message>
         <location filename="../ui/analysis/qgisred_profile_dock.py" line="267"/>
@@ -8008,7 +8008,7 @@ Não é possível aplicar as alterações.</translation>
     <message>
         <location filename="../ui/analysis/qgisred_profile_dock.py" line="218"/>
         <source>Head + Elevation</source>
-        <translation type="obsolete">Altura piezométrica + Cotas</translation>
+        <translation>Altura piezométrica + Cotas</translation>
     </message>
     <message>
         <location filename="../ui/analysis/qgisred_profile_dock.py" line="249"/>

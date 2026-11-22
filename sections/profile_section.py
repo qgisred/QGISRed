@@ -1842,7 +1842,14 @@ class ProfileSection:
     def _profileVariableDisplay(self, key):
         if key == "Quality":
             return self._profileQualityLabel()
-        return self.tr(self._profileVariableLabel(key))
+        # Literal tr() calls on purpose: pylupdate5 cannot see strings passed through a variable and marks them obsolete.
+        names = {
+            "Elevation": self.tr("Elevation"),
+            "Head": self.tr("Head"),
+            "Pressure": self.tr("Pressure"),
+            "HeadLoss": self.tr("Accumulated head loss"),
+        }
+        return names.get(key, self.tr(self._profileVariableLabel(key)))
 
     def _profileVariableUnit(self, key):
         field = PROFILE_VARIABLE_UNIT_FIELDS.get(key)

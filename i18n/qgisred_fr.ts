@@ -3439,12 +3439,12 @@ Voulez-vous les vérifier à nouveau ?</translation>
     <message>
         <location filename="../sections/analysis_section.py" line="936"/>
         <source>Head</source>
-        <translation type="obsolete">Charge hydraulique</translation>
+        <translation>Charge hydraulique</translation>
     </message>
     <message>
         <location filename="../sections/analysis_section.py" line="936"/>
         <source>Pressure</source>
-        <translation type="obsolete">Pression</translation>
+        <translation>Pression</translation>
     </message>
     <message>
         <location filename="../sections/profile_section.py" line="1840"/>
@@ -7773,7 +7773,7 @@ Impossible d'appliquer les modifications.</translation>
     <message>
         <location filename="../sections/analysis_section.py" line="936"/>
         <source>Elevation</source>
-        <translation type="obsolete">Altitude</translation>
+        <translation>Altitude</translation>
     </message>
     <message>
         <location filename="../sections/analysis_section.py" line="936"/>
@@ -7783,17 +7783,17 @@ Impossible d'appliquer les modifications.</translation>
     <message>
         <location filename="../sections/analysis_section.py" line="936"/>
         <source>Pressure</source>
-        <translation type="obsolete">Pression</translation>
+        <translation>Pression</translation>
     </message>
     <message>
         <location filename="../sections/analysis_section.py" line="936"/>
         <source>Quality</source>
-        <translation type="obsolete">Qualité</translation>
+        <translation>Qualité</translation>
     </message>
     <message>
         <location filename="../sections/analysis_section.py" line="936"/>
         <source>Accumulated head loss</source>
-        <translation type="obsolete">Pertes de charge cumulées</translation>
+        <translation>Pertes de charge cumulées</translation>
     </message>
     <message>
         <location filename="../ui/analysis/qgisred_profile_dock.py" line="267"/>
@@ -7963,7 +7963,7 @@ Impossible d'appliquer les modifications.</translation>
     <message>
         <location filename="../ui/analysis/qgisred_profile_dock.py" line="218"/>
         <source>Head + Elevation</source>
-        <translation type="obsolete">Charge hydraulique + Altitudes</translation>
+        <translation>Charge hydraulique + Altitudes</translation>
     </message>
     <message>
         <location filename="../ui/analysis/qgisred_profile_dock.py" line="249"/>

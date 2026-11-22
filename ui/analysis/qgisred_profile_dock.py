@@ -354,7 +354,15 @@ class QGISRedProfileDock(QGISRedDockActivationMixin, QDockWidget):
     def _variableDisplayText(self, key):
         if key == "Quality" and getattr(self, "_qualityDisplayName", ""):
             return self._qualityDisplayName
-        return self.tr(_PROFILE_VARIABLE_DISPLAYS.get(key, key))
+        # Literal tr() calls on purpose: pylupdate5 cannot see strings passed through a variable and marks them obsolete.
+        names = {
+            "Elevation": self.tr("Elevation"),
+            "Head": self.tr("Head + Elevation"),
+            "Pressure": self.tr("Pressure"),
+            "HeadLoss": self.tr("Accumulated head loss"),
+            "Quality": self.tr("Quality"),
+        }
+        return names.get(key, key)
 
     def _rebuildSecondaryVariables(self):
         previous = self.currentSecondaryVariableKey() if self.cbSecondary.count() else ""

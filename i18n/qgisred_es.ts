@@ -3464,12 +3464,12 @@ Do you want to check them again?</source>
     <message>
         <location filename="../sections/analysis_section.py" line="936"/>
         <source>Head</source>
-        <translation type="obsolete">Altura piezométrica</translation>
+        <translation>Altura piezométrica</translation>
     </message>
     <message>
         <location filename="../sections/analysis_section.py" line="936"/>
         <source>Pressure</source>
-        <translation type="obsolete">Presión</translation>
+        <translation>Presión</translation>
     </message>
     <message>
         <location filename="../sections/profile_section.py" line="1840"/>
@@ -7785,7 +7785,7 @@ No se pueden aplicar los cambios.</translation>
     <message>
         <location filename="../sections/analysis_section.py" line="936"/>
         <source>Elevation</source>
-        <translation type="obsolete">Cotas</translation>
+        <translation>Cotas</translation>
     </message>
     <message>
         <location filename="../sections/analysis_section.py" line="936"/>
@@ -7795,17 +7795,17 @@ No se pueden aplicar los cambios.</translation>
     <message>
         <location filename="../sections/analysis_section.py" line="936"/>
         <source>Pressure</source>
-        <translation type="obsolete">Presión</translation>
+        <translation>Presión</translation>
     </message>
     <message>
         <location filename="../sections/analysis_section.py" line="936"/>
         <source>Quality</source>
-        <translation type="obsolete">Calidad</translation>
+        <translation>Calidad</translation>
     </message>
     <message>
         <location filename="../sections/analysis_section.py" line="936"/>
         <source>Accumulated head loss</source>
-        <translation type="obsolete">Pérdidas acumuladas</translation>
+        <translation>Pérdidas acumuladas</translation>
     </message>
     <message>
         <location filename="../ui/analysis/qgisred_profile_dock.py" line="267"/>
@@ -7975,7 +7975,7 @@ No se pueden aplicar los cambios.</translation>
     <message>
         <location filename="../ui/analysis/qgisred_profile_dock.py" line="218"/>
         <source>Head + Elevation</source>
-        <translation type="obsolete">Altura piezométrica + Cotas</translation>
+        <translation>Altura piezométrica + Cotas</translation>
     </message>
     <message>
         <location filename="../ui/analysis/qgisred_profile_dock.py" line="249"/>
