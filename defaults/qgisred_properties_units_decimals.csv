@@ -240,7 +240,7 @@ Sectors,SectorID,Identifier,Text,,,Text,,,,
 Sectors,TotDem,Total demand,See FlowUnits,See FlowUnits,,See FlowUnits,See FlowUnits,,,
 Sectors,Population,Population,Inhabitants,inhab,0,Inhabitants,inhab,0,,
 Sectors,PopDem,Demand per inhabitant,Liters per inhabitant per day,l/inhab/day,2,Gallons per capita per day,gpcd,2,,Fixed unit whatever the flow units of the project
-Sectors,Area,Served area,Square meters,m^2,2,Acres,ac,2,,
+Sectors,Area,Served area,Square meters,m^2,2,Acres,acres,2,,
 Sectors,AreaDem,Demand per area,Liters per square meter per day,l/m^2/day,2,Gallons per acre per day,gal/ac/day,2,,Fixed unit whatever the flow units of the project
 Sectors,Efficiency,Efficiency,Percent,%,2,Percent,%,2,,
 Sectors,DemPattID,Demand pattern,Text,,,Text,,,,
