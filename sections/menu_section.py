@@ -707,15 +707,6 @@ class MenuSection:
 
         action = self._make_action(
             ":/images/iconDemandSectors.svg",
-            self.tr("Obtain demand sectors"),
-            self.runDemandSectors,
-            parent=self.iface.mainWindow(),
-        )
-        self.add_to_group(action, self.toolsMenu, self.toolsToolbar)
-        self.add_to_dropdown(action, toolDropButton)
-
-        action = self._make_action(
-            ":/images/iconDemandSectors.svg",
             self.tr("Demand sector builder (new version)..."),
             self.runDemandSectorBuilder,
             parent=self.iface.mainWindow(),
@@ -1175,6 +1166,19 @@ class MenuSection:
             ":/images/iconIncorporateConnectionsToModel.svg",
             self.tr("Convert service connections into pipes/nodes"),
             self.runAddConnections,
+            parent=self.iface.mainWindow(),
+        )
+        self.add_to_group(action, self.dtMenu, self.dtToolbar)
+        self.add_to_dropdown(action, dtDropButton)
+
+        dtDropButton.menu().addSeparator()
+        self.dtMenu.addSeparator()
+        self.dtToolbar.addSeparator()
+
+        action = self._make_action(
+            ":/images/iconDemandSectors.svg",
+            self.tr("Obtain demand sectors"),
+            self.runDemandSectors,
             parent=self.iface.mainWindow(),
         )
         self.add_to_group(action, self.dtMenu, self.dtToolbar)
