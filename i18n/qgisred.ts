@@ -2499,6 +2499,11 @@ Do you want to check them again?</source>
 <context>
     <name>MenuSection</name>
     <message>
+        <location filename="../sections/menu_section.py" line="1"/>
+        <source>Featured values...</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
         <location filename="../sections/menu_section.py" line="900"/>
         <source>Upstream/downstream...</source>
         <translation type="unfinished"></translation>
@@ -10930,6 +10935,252 @@ Cannot apply changes.</source>
         <location filename="../ui/analysis/results_distribution_renderer.py" line="429"/>
         <source>Cumulative</source>
         <translation type="unfinished">Cumulative</translation>
+    </message>
+</context>
+<context>
+    <name>QGISRedFeaturedValuesDialog</name>
+    <message>
+        <location filename="../ui/analysis/qgisred_featuredvalues_dialog.py" line="1"/>
+        <source>Values</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="../ui/analysis/qgisred_featuredvalues_dialog.py" line="1"/>
+        <source>Display</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="../ui/analysis/qgisred_featuredvalues_dialog.py" line="1"/>
+        <source>Featured Values Manager</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="../ui/analysis/qgisred_featuredvalues_dialog.py" line="1"/>
+        <source>Show featured values on the map</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="../ui/analysis/qgisred_featuredvalues_dialog.py" line="1"/>
+        <source>Simulated values</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="../ui/analysis/qgisred_featuredvalues_dialog.py" line="1"/>
+        <source>Nodes</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="../ui/analysis/qgisred_featuredvalues_dialog.py" line="1"/>
+        <source>Links</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="../ui/analysis/qgisred_featuredvalues_dialog.py" line="1"/>
+        <source>Add</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="../ui/analysis/qgisred_featuredvalues_dialog.py" line="1"/>
+        <source>Pick on map</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="../ui/analysis/qgisred_featuredvalues_dialog.py" line="1"/>
+        <source>Element</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="../ui/analysis/qgisred_featuredvalues_dialog.py" line="1"/>
+        <source>Magnitude</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="../ui/analysis/qgisred_featuredvalues_dialog.py" line="1"/>
+        <source>ID</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="../ui/analysis/qgisred_featuredvalues_dialog.py" line="1"/>
+        <source>Field data</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="../ui/analysis/qgisred_featuredvalues_dialog.py" line="1"/>
+        <source>Add all with data</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="../ui/analysis/qgisred_featuredvalues_dialog.py" line="1"/>
+        <source>The project has no signals with field data.</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="../ui/analysis/qgisred_featuredvalues_dialog.py" line="1"/>
+        <source>Featured values</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="../ui/analysis/qgisred_featuredvalues_dialog.py" line="1"/>
+        <source>Value</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="../ui/analysis/qgisred_featuredvalues_dialog.py" line="1"/>
+        <source>Level</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="../ui/analysis/qgisred_featuredvalues_dialog.py" line="1"/>
+        <source>Remove</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="../ui/analysis/qgisred_featuredvalues_dialog.py" line="1"/>
+        <source>Zoom to</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="../ui/analysis/qgisred_featuredvalues_dialog.py" line="1"/>
+        <source>Create bookmark...</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="../ui/analysis/qgisred_featuredvalues_dialog.py" line="1"/>
+        <source>Values to show</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="../ui/analysis/qgisred_featuredvalues_dialog.py" line="1"/>
+        <source>Simulated</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="../ui/analysis/qgisred_featuredvalues_dialog.py" line="1"/>
+        <source>Measured</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="../ui/analysis/qgisred_featuredvalues_dialog.py" line="1"/>
+        <source>Show up to level</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="../ui/analysis/qgisred_featuredvalues_dialog.py" line="1"/>
+        <source>Reveal the lower levels when zooming in</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="../ui/analysis/qgisred_featuredvalues_dialog.py" line="1"/>
+        <source>Format</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="../ui/analysis/qgisred_featuredvalues_dialog.py" line="1"/>
+        <source>Text only</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="../ui/analysis/qgisred_featuredvalues_dialog.py" line="1"/>
+        <source>Text with halo</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="../ui/analysis/qgisred_featuredvalues_dialog.py" line="1"/>
+        <source>Opaque background</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="../ui/analysis/qgisred_featuredvalues_dialog.py" line="1"/>
+        <source>Frame</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="../ui/analysis/qgisred_featuredvalues_dialog.py" line="1"/>
+        <source>Show the element ID</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="../ui/analysis/qgisred_featuredvalues_dialog.py" line="1"/>
+        <source>Show the units</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="../ui/analysis/qgisred_featuredvalues_dialog.py" line="1"/>
+        <source>Font size</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="../ui/analysis/qgisred_featuredvalues_dialog.py" line="1"/>
+        <source>Node</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="../ui/analysis/qgisred_featuredvalues_dialog.py" line="1"/>
+        <source>Link</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="../ui/analysis/qgisred_featuredvalues_dialog.py" line="1"/>
+        <source>Featured values: %1</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="../ui/analysis/qgisred_featuredvalues_dialog.py" line="1"/>
+        <source>Create bookmark</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="../ui/analysis/qgisred_featuredvalues_dialog.py" line="1"/>
+        <source>Bookmark name</source>
+        <translation type="unfinished"></translation>
+    </message>
+</context>
+<context>
+    <name>FeaturedValuesSection</name>
+    <message>
+        <location filename="../sections/featured_values_section.py" line="1"/>
+        <source>Run the model before declaring featured values.</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="../sections/featured_values_section.py" line="1"/>
+        <source>links</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="../sections/featured_values_section.py" line="1"/>
+        <source>Featured values</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="../sections/featured_values_section.py" line="1"/>
+        <source>Simulated</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="../sections/featured_values_section.py" line="1"/>
+        <source>Measured</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="../sections/featured_values_section.py" line="1"/>
+        <source>The featured values could not be saved: %1</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="../sections/featured_values_section.py" line="1"/>
+        <source>No network element found at this location.</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="../sections/featured_values_section.py" line="1"/>
+        <source>The selected featured values have no position on the map.</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="../sections/featured_values_section.py" line="1"/>
+        <source>Bookmark '%1' created.</source>
+        <translation type="unfinished"></translation>
     </message>
 </context>
 </TS>

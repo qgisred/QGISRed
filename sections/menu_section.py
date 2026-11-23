@@ -908,6 +908,15 @@ class MenuSection:
         self.add_to_group(self.flowRoutesButton, self.analysisMenu, self.analysisToolbar)
         self.add_to_dropdown(self.flowRoutesButton, analysisDropButton)
 
+        action = self._make_action(
+            ":/images/iconFeaturedValues.svg",
+            self.tr("Featured values..."),
+            self.runFeaturedValues,
+            parent=self.iface.mainWindow(),
+        )
+        self.add_to_group(action, self.analysisMenu, self.analysisToolbar)
+        self.add_to_dropdown(action, analysisDropButton)
+
         analysisDropButton.menu().addSeparator()
         self.analysisToolbar.addSeparator()
         self.analysisMenu.addSeparator()

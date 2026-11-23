@@ -15,6 +15,7 @@ from .sections.queries_section import QueriesSection
 
 from .sections.profile_section import ProfileSection
 from .sections.flow_paths_section import FlowPathsSection
+from .sections.featured_values_section import FeaturedValuesSection
 
 
 class QGISRed(
@@ -31,6 +32,7 @@ class QGISRed(
     QueriesSection,
     ProfileSection,
     FlowPathsSection,
+    FeaturedValuesSection,
 ):
     """QGISRed Plugin Implementation."""
 

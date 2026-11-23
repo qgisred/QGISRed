@@ -111,6 +111,7 @@ class LifecycleSection:
         "UtilsSection",
         "ProfileSection",
         "FlowPathsSection",
+        "FeaturedValuesSection",
     ]
 
     def tr(self, message):
@@ -297,6 +298,8 @@ class LifecycleSection:
             self._resetResultsEvolutionMapState()
         with suppress(Exception):
             self.resetFlowPaths()
+        with suppress(Exception):
+            self.closeFeaturedValues()
         # Drops the focusChanged / mapToolSet connections and the whole owner
         # registry in one go; the docks recreated afterwards register again.
         with suppress(Exception):

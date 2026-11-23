@@ -17,6 +17,7 @@ from .digital_twin_section import DigitalTwinSection
 from .queries_section import QueriesSection
 from .profile_section import ProfileSection
 from .flow_paths_section import FlowPathsSection
+from .featured_values_section import FeaturedValuesSection
 __all__ = [
     "LifecycleSection",
     "MenuSection",
@@ -31,4 +32,5 @@ __all__ = [
     "QueriesSection",
     "ProfileSection",
     "FlowPathsSection",
+    "FeaturedValuesSection",
 ]

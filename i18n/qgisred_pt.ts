@@ -2698,6 +2698,11 @@ Deseja verificá-los novamente?</translation>
 <context>
     <name>MenuSection</name>
     <message>
+        <location filename="../sections/menu_section.py" line="1"/>
+        <source>Featured values...</source>
+        <translation>Valores em destaque...</translation>
+    </message>
+    <message>
         <location filename="../sections/menu_section.py" line="900"/>
         <source>Upstream/downstream...</source>
         <translation>Montante/jusante...</translation>
@@ -12190,6 +12195,252 @@ Não é possível aplicar as alterações.</translation>
         <location filename="../ui/analysis/results_distribution_renderer.py" line="429"/>
         <source>Cumulative</source>
         <translation>Acumulada</translation>
+    </message>
+</context>
+<context>
+    <name>QGISRedFeaturedValuesDialog</name>
+    <message>
+        <location filename="../ui/analysis/qgisred_featuredvalues_dialog.py" line="1"/>
+        <source>Values</source>
+        <translation>Valores</translation>
+    </message>
+    <message>
+        <location filename="../ui/analysis/qgisred_featuredvalues_dialog.py" line="1"/>
+        <source>Display</source>
+        <translation>Visualização</translation>
+    </message>
+    <message>
+        <location filename="../ui/analysis/qgisred_featuredvalues_dialog.py" line="1"/>
+        <source>Featured Values Manager</source>
+        <translation>Gestor de Valores em Destaque</translation>
+    </message>
+    <message>
+        <location filename="../ui/analysis/qgisred_featuredvalues_dialog.py" line="1"/>
+        <source>Show featured values on the map</source>
+        <translation>Mostrar os valores em destaque no mapa</translation>
+    </message>
+    <message>
+        <location filename="../ui/analysis/qgisred_featuredvalues_dialog.py" line="1"/>
+        <source>Simulated values</source>
+        <translation>Valores simulados</translation>
+    </message>
+    <message>
+        <location filename="../ui/analysis/qgisred_featuredvalues_dialog.py" line="1"/>
+        <source>Nodes</source>
+        <translation>Nós</translation>
+    </message>
+    <message>
+        <location filename="../ui/analysis/qgisred_featuredvalues_dialog.py" line="1"/>
+        <source>Links</source>
+        <translation>Trechos</translation>
+    </message>
+    <message>
+        <location filename="../ui/analysis/qgisred_featuredvalues_dialog.py" line="1"/>
+        <source>Add</source>
+        <translation>Adicionar</translation>
+    </message>
+    <message>
+        <location filename="../ui/analysis/qgisred_featuredvalues_dialog.py" line="1"/>
+        <source>Pick on map</source>
+        <translation>Escolher no mapa</translation>
+    </message>
+    <message>
+        <location filename="../ui/analysis/qgisred_featuredvalues_dialog.py" line="1"/>
+        <source>Element</source>
+        <translation>Elemento</translation>
+    </message>
+    <message>
+        <location filename="../ui/analysis/qgisred_featuredvalues_dialog.py" line="1"/>
+        <source>Magnitude</source>
+        <translation>Grandeza</translation>
+    </message>
+    <message>
+        <location filename="../ui/analysis/qgisred_featuredvalues_dialog.py" line="1"/>
+        <source>ID</source>
+        <translation>ID</translation>
+    </message>
+    <message>
+        <location filename="../ui/analysis/qgisred_featuredvalues_dialog.py" line="1"/>
+        <source>Field data</source>
+        <translation>Dados de campo</translation>
+    </message>
+    <message>
+        <location filename="../ui/analysis/qgisred_featuredvalues_dialog.py" line="1"/>
+        <source>Add all with data</source>
+        <translation>Adicionar todos com dados</translation>
+    </message>
+    <message>
+        <location filename="../ui/analysis/qgisred_featuredvalues_dialog.py" line="1"/>
+        <source>The project has no signals with field data.</source>
+        <translation>O projeto não tem sinais com dados de campo.</translation>
+    </message>
+    <message>
+        <location filename="../ui/analysis/qgisred_featuredvalues_dialog.py" line="1"/>
+        <source>Featured values</source>
+        <translation>Valores em destaque</translation>
+    </message>
+    <message>
+        <location filename="../ui/analysis/qgisred_featuredvalues_dialog.py" line="1"/>
+        <source>Value</source>
+        <translation>Valor</translation>
+    </message>
+    <message>
+        <location filename="../ui/analysis/qgisred_featuredvalues_dialog.py" line="1"/>
+        <source>Level</source>
+        <translation>Nível</translation>
+    </message>
+    <message>
+        <location filename="../ui/analysis/qgisred_featuredvalues_dialog.py" line="1"/>
+        <source>Remove</source>
+        <translation>Remover</translation>
+    </message>
+    <message>
+        <location filename="../ui/analysis/qgisred_featuredvalues_dialog.py" line="1"/>
+        <source>Zoom to</source>
+        <translation>Aproximar</translation>
+    </message>
+    <message>
+        <location filename="../ui/analysis/qgisred_featuredvalues_dialog.py" line="1"/>
+        <source>Create bookmark...</source>
+        <translation>Criar marcador...</translation>
+    </message>
+    <message>
+        <location filename="../ui/analysis/qgisred_featuredvalues_dialog.py" line="1"/>
+        <source>Values to show</source>
+        <translation>Valores a mostrar</translation>
+    </message>
+    <message>
+        <location filename="../ui/analysis/qgisred_featuredvalues_dialog.py" line="1"/>
+        <source>Simulated</source>
+        <translation>Simulado</translation>
+    </message>
+    <message>
+        <location filename="../ui/analysis/qgisred_featuredvalues_dialog.py" line="1"/>
+        <source>Measured</source>
+        <translation>Medido</translation>
+    </message>
+    <message>
+        <location filename="../ui/analysis/qgisred_featuredvalues_dialog.py" line="1"/>
+        <source>Show up to level</source>
+        <translation>Mostrar até o nível</translation>
+    </message>
+    <message>
+        <location filename="../ui/analysis/qgisred_featuredvalues_dialog.py" line="1"/>
+        <source>Reveal the lower levels when zooming in</source>
+        <translation>Revelar os níveis inferiores ao aproximar o zoom</translation>
+    </message>
+    <message>
+        <location filename="../ui/analysis/qgisred_featuredvalues_dialog.py" line="1"/>
+        <source>Format</source>
+        <translation>Formato</translation>
+    </message>
+    <message>
+        <location filename="../ui/analysis/qgisred_featuredvalues_dialog.py" line="1"/>
+        <source>Text only</source>
+        <translation>Somente texto</translation>
+    </message>
+    <message>
+        <location filename="../ui/analysis/qgisred_featuredvalues_dialog.py" line="1"/>
+        <source>Text with halo</source>
+        <translation>Texto com contorno</translation>
+    </message>
+    <message>
+        <location filename="../ui/analysis/qgisred_featuredvalues_dialog.py" line="1"/>
+        <source>Opaque background</source>
+        <translation>Fundo opaco</translation>
+    </message>
+    <message>
+        <location filename="../ui/analysis/qgisred_featuredvalues_dialog.py" line="1"/>
+        <source>Frame</source>
+        <translation>Moldura</translation>
+    </message>
+    <message>
+        <location filename="../ui/analysis/qgisred_featuredvalues_dialog.py" line="1"/>
+        <source>Show the element ID</source>
+        <translation>Mostrar o ID do elemento</translation>
+    </message>
+    <message>
+        <location filename="../ui/analysis/qgisred_featuredvalues_dialog.py" line="1"/>
+        <source>Show the units</source>
+        <translation>Mostrar as unidades</translation>
+    </message>
+    <message>
+        <location filename="../ui/analysis/qgisred_featuredvalues_dialog.py" line="1"/>
+        <source>Font size</source>
+        <translation>Tamanho da fonte</translation>
+    </message>
+    <message>
+        <location filename="../ui/analysis/qgisred_featuredvalues_dialog.py" line="1"/>
+        <source>Node</source>
+        <translation>Nó</translation>
+    </message>
+    <message>
+        <location filename="../ui/analysis/qgisred_featuredvalues_dialog.py" line="1"/>
+        <source>Link</source>
+        <translation>Trecho</translation>
+    </message>
+    <message>
+        <location filename="../ui/analysis/qgisred_featuredvalues_dialog.py" line="1"/>
+        <source>Featured values: %1</source>
+        <translation>Valores em destaque: %1</translation>
+    </message>
+    <message>
+        <location filename="../ui/analysis/qgisred_featuredvalues_dialog.py" line="1"/>
+        <source>Create bookmark</source>
+        <translation>Criar marcador</translation>
+    </message>
+    <message>
+        <location filename="../ui/analysis/qgisred_featuredvalues_dialog.py" line="1"/>
+        <source>Bookmark name</source>
+        <translation>Nome do marcador</translation>
+    </message>
+</context>
+<context>
+    <name>FeaturedValuesSection</name>
+    <message>
+        <location filename="../sections/featured_values_section.py" line="1"/>
+        <source>Run the model before declaring featured values.</source>
+        <translation>Execute o modelo antes de declarar valores em destaque.</translation>
+    </message>
+    <message>
+        <location filename="../sections/featured_values_section.py" line="1"/>
+        <source>links</source>
+        <translation>trechos</translation>
+    </message>
+    <message>
+        <location filename="../sections/featured_values_section.py" line="1"/>
+        <source>Featured values</source>
+        <translation>Valores em destaque</translation>
+    </message>
+    <message>
+        <location filename="../sections/featured_values_section.py" line="1"/>
+        <source>Simulated</source>
+        <translation>Simulado</translation>
+    </message>
+    <message>
+        <location filename="../sections/featured_values_section.py" line="1"/>
+        <source>Measured</source>
+        <translation>Medido</translation>
+    </message>
+    <message>
+        <location filename="../sections/featured_values_section.py" line="1"/>
+        <source>The featured values could not be saved: %1</source>
+        <translation>Não foi possível salvar os valores em destaque: %1</translation>
+    </message>
+    <message>
+        <location filename="../sections/featured_values_section.py" line="1"/>
+        <source>No network element found at this location.</source>
+        <translation>Nenhum elemento da rede encontrado neste local.</translation>
+    </message>
+    <message>
+        <location filename="../sections/featured_values_section.py" line="1"/>
+        <source>The selected featured values have no position on the map.</source>
+        <translation>Os valores em destaque selecionados não têm posição no mapa.</translation>
+    </message>
+    <message>
+        <location filename="../sections/featured_values_section.py" line="1"/>
+        <source>Bookmark '%1' created.</source>
+        <translation>Marcador '%1' criado.</translation>
     </message>
 </context>
 </TS>

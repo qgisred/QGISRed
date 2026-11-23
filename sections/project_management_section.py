@@ -324,7 +324,7 @@ class ProjectManagementSection:
                 if isinstance(child, QgsLayerTreeLayer):
                     layer = child.layer()
                     identifier = layer.customProperty("qgisred_identifier") if layer else None
-                    if layer and identifier:
+                    if layer and identifier and layer.providerType() != "memory":
                         path = self.getLayerPath(layer)
                         name = os.path.splitext(os.path.basename(path))[0]
                         prefix = net + "_"

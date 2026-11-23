@@ -309,6 +309,7 @@ class AnalysisSection:
             self.ResultDockwidget.timeTextChanged.connect(self._onResultsEvolutionTimeTextChanged)
             self.ResultDockwidget.visibilityChanged.connect(self._onResultsDockVisibilityForEvolution)
             self._registerResultsEvolutionHighlightOwner()
+            self._connectFeaturedValuesToResultsDock()
 
     def _registerTimeSeriesHighlightOwner(self):
         """Publish the time series charts to the highlight arbiter as one subject.

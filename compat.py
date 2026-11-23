@@ -381,3 +381,23 @@ try:
     SL_PROP_WIDTH = _QgsSymbolLayer.PropertyWidth
 except AttributeError:
     SL_PROP_WIDTH = _QgsSymbolLayer.Property.Width
+
+try:
+    PAL_PROPERTY_OFFSET_XY = _QgsPalLayerSettings.Property.OffsetXY
+    PAL_PROPERTY_SHAPE_FILL_COLOR = _QgsPalLayerSettings.Property.ShapeFillColor
+    PAL_PROPERTY_SHAPE_STROKE_COLOR = _QgsPalLayerSettings.Property.ShapeStrokeColor
+except AttributeError:
+    PAL_PROPERTY_OFFSET_XY = _QgsPalLayerSettings.OffsetXY
+    PAL_PROPERTY_SHAPE_FILL_COLOR = _QgsPalLayerSettings.ShapeFillColor
+    PAL_PROPERTY_SHAPE_STROKE_COLOR = _QgsPalLayerSettings.ShapeStrokeColor
+
+try:
+    PAL_QUADRANT_LEFT = _Qgis.LabelQuadrantPosition.Left
+    PAL_QUADRANT_RIGHT = _Qgis.LabelQuadrantPosition.Right
+except AttributeError:
+    try:
+        PAL_QUADRANT_LEFT = _QgsPalLayerSettings.QuadrantPosition.QuadrantLeft
+        PAL_QUADRANT_RIGHT = _QgsPalLayerSettings.QuadrantPosition.QuadrantRight
+    except AttributeError:
+        PAL_QUADRANT_LEFT = _QgsPalLayerSettings.QuadrantLeft
+        PAL_QUADRANT_RIGHT = _QgsPalLayerSettings.QuadrantRight
