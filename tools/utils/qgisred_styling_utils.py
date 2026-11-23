@@ -135,6 +135,10 @@ DEMAND_BUILDER_CLASS_FIELD = "Category"
 DEMAND_BUILDER_SECTOR_CLASS_FIELDS = ("SectorID", "Category")
 DEMAND_BUILDER_UNCATEGORIZED = "Uncategorized"
 DEMAND_BUILDER_PALETTE_NAME = "QGISRed Qualitative 10"
+# Demand sectors without demand (Z) are drawn in this colour; no other sector takes one close to it
+Z_SECTOR_COLOR = "#e8451e"
+Z_SECTOR_MIN_DELTA_E = 25
+Z_SECTOR_CLASS = re.compile(r"^Z\d+$")
 # Themes classified by Category give one category the same colour in all of them
 DEMAND_BUILDER_SHARED_COLOR_IDENTIFIERS = (
     "qgisred_demandbuilder_consumptionpoints", "qgisred_demandbuilder_demandlinks",
@@ -1942,6 +1946,15 @@ class QGISRedStylingUtils:
         if oldField and newField and oldField != newField and '"%s"' % oldField in mapTip:
             layer.setMapTipTemplate(mapTip.replace('"%s"' % oldField, '"%s"' % newField))
 
+    @staticmethod
+    def isZSectorClass(value):
+        return isinstance(value, str) and Z_SECTOR_CLASS.match(value) is not None
+
+    @staticmethod
+    def sectorPalette(palette):
+        zColor = QColor(Z_SECTOR_COLOR)
+        return [color for color in palette if deltaE(color, zColor) >= Z_SECTOR_MIN_DELTA_E] or list(palette)
+
     def setSectorsStyle(self, layer):
         # get unique values
         field = "Class"
@@ -1955,7 +1968,7 @@ class QGISRedStylingUtils:
         uniqueValues = sorted(uniqueValues)
 
         # Nodes and links of one sector share the colour: both take the palette in sector order
-        palette = self.demandBuilderPaletteColors()
+        palette = self.sectorPalette(self.demandBuilderPaletteColors())
         usedColors = []
 
         # define categories
@@ -1963,7 +1976,8 @@ class QGISRedStylingUtils:
         for uniqueValue in uniqueValues:
             symbol = QgsSymbol.defaultSymbol(layer.geometryType())
             symbolLayer = None
-            value_color = self._nextPaletteColor(palette, usedColors)
+            isZSector = field == "Class" and self.isZSectorClass(uniqueValue)
+            value_color = QColor(Z_SECTOR_COLOR) if isZSector else self._nextPaletteColor(palette, usedColors)
 
             if layer.geometryType() == 0:  # Point
                 layerStyle = {
@@ -1977,6 +1991,9 @@ class QGISRedStylingUtils:
                 lineSymbol = QgsSimpleLineSymbolLayer()
                 lineSymbol.setWidth(0.8)
                 lineSymbol.setColor(value_color)
+                if isZSector:
+                    from qgis.PyQt.QtCore import Qt
+                    lineSymbol.setPenStyle(Qt.PenStyle.DashLine)
                 symbol.appendSymbolLayer(lineSymbol)
 
             if symbolLayer is not None:
