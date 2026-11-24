@@ -1,7 +1,15 @@
 """Digital Twin toolbar DLL calls (service connections, isolation valves, meters, readings/SCADA)."""
 
+import locale
 from ctypes import c_char_p
 from ._base import _load_dll, _encode, _to_string
+
+
+def _decode_text(binary):
+    try:
+        return binary.decode("utf-8")
+    except UnicodeDecodeError:
+        return binary.decode(locale.getpreferredencoding(False), "replace")
 
 
 class QGISRedDigitalTwinMixin:
@@ -93,6 +101,30 @@ class QGISRedDigitalTwinMixin:
         mydll.ManageFieldData.restype = c_char_p
         b = mydll.ManageFieldData(projectFolder, networkName, tempFolder)
         return _to_string(b)
+
+    @staticmethod
+    def GetFieldDataSignals(projectFolder, networkName):
+        projectFolder = _encode(projectFolder)
+        networkName = _encode(networkName)
+
+        mydll = _load_dll()
+        mydll.GetFieldDataSignals.argtypes = (c_char_p, c_char_p)
+        mydll.GetFieldDataSignals.restype = c_char_p
+        b = mydll.GetFieldDataSignals(projectFolder, networkName)
+        return _decode_text(b)
+
+    @staticmethod
+    def GetFieldDataValues(projectFolder, networkName, signalIds, elapsedSeconds):
+        projectFolder = _encode(projectFolder)
+        networkName = _encode(networkName)
+        signalIds = _encode(signalIds)
+        elapsedSeconds = _encode(elapsedSeconds)
+
+        mydll = _load_dll()
+        mydll.GetFieldDataValues.argtypes = (c_char_p, c_char_p, c_char_p, c_char_p)
+        mydll.GetFieldDataValues.restype = c_char_p
+        b = mydll.GetFieldDataValues(projectFolder, networkName, signalIds, elapsedSeconds)
+        return _decode_text(b)
 
     @staticmethod
     def SetInitialStatusPipes(projectFolder, networkName, tempFolder):

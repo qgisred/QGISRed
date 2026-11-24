@@ -4,19 +4,19 @@ from contextlib import suppress
 
 from qgis.PyQt.QtCore import QLocale, QTimer
 from qgis.core import (
-    QgsBookmark, QgsFeatureRequest, QgsGeometry, QgsMessageLog, QgsProject, QgsRectangle, QgsReferencedRectangle,
-    QgsVectorLayer,
+    QgsBookmark, QgsFeatureRequest, QgsGeometry, QgsMessageLog, QgsPointXY, QgsProject, QgsRectangle,
+    QgsReferencedRectangle,
 )
 from qgis.gui import QgsMapToolEmitPoint
 
 from ..compat import QGIS_WARNING
+from ..tools.qgisred_dependencies import QGISRedDependencies as GISRed
 from ..tools.utils.qgisred_field_utils import QGISRedFieldUtils
 from ..tools.utils.qgisred_layer_utils import QGISRedLayerUtils
 from ..tools.utils.qgisred_result_fields import resultIdField
 from ..ui.analysis import featured_values_config as fv_config
 from ..ui.analysis import featured_values_fielddata as fv_data
 from ..ui.analysis import featured_values_layer as fv_layer
-from ..ui.analysis.simulation_period import _parse_iso, _read_xml_root
 
 _SIGNAL_COLOR = "#555555"
 _MISSING_TEXT = "—"
@@ -40,7 +40,7 @@ class FeaturedValuesSection:
     _featuredValuesPickTool = None
     _featuredValuesStyleKey = None
     _featuredValuesPoints = None
-    _featuredValuesCache = None
+    _featuredValuesSignals = None
 
     def runFeaturedValues(self):
         if not self.checkDependencies():
@@ -77,7 +77,7 @@ class FeaturedValuesSection:
         self._featuredValuesConfigPath = ""
         self._featuredValuesStyleKey = None
         self._featuredValuesPoints = None
-        self._featuredValuesCache = None
+        self._featuredValuesSignals = None
 
     def _connectFeaturedValuesToResultsDock(self):
         dock = self.ResultDockwidget
@@ -104,22 +104,6 @@ class FeaturedValuesSection:
             self._featuredValuesStyleKey = None
         return self._featuredValuesConfig
 
-    def _featuredValuesCached(self, key, path, reader):
-        if self._featuredValuesCache is None:
-            self._featuredValuesCache = {}
-        try:
-            stamp = (path, os.path.getmtime(path))
-        except OSError:
-            return None
-        cached = self._featuredValuesCache.get(key)
-        if cached is None or cached[0] != stamp:
-            value = None
-            with suppress(Exception):
-                value = reader(path)
-            cached = (stamp, value)
-            self._featuredValuesCache[key] = cached
-        return cached[1]
-
     def _featuredValuesTopology(self):
         topology = None
         with suppress(Exception):
@@ -128,102 +112,26 @@ class FeaturedValuesSection:
             return [], []
         return list(topology[0]), list(topology[1])
 
-    @staticmethod
-    def _readFeaturedSignals(path):
-        table = QgsVectorLayer(path, "signals", "ogr")
-        if not table.isValid():
+    def _featuredValuesQuery(self, method, *arguments):
+        try:
+            answer = method(self.ProjectDirectory, self.NetworkName, *arguments)
+        except Exception as exc:
+            answer = str(exc)
+        if not answer.startswith(fv_data.OK):
+            QgsMessageLog.logMessage("Featured values: {}".format(answer), "QGISRed", QGIS_WARNING)
+        return answer
+
+    def featuredValuesSignals(self, reload=False):
+        if reload or self._featuredValuesSignals is None:
+            self._featuredValuesSignals = fv_data.parse_signals(self._featuredValuesQuery(GISRed.GetFieldDataSignals))
+        return self._featuredValuesSignals
+
+    def _featuredValuesMeasured(self, rows, elapsed_seconds):
+        signal_ids = sorted({row["signal"] for row in rows if row["slot"] >= 0 and row["showMeasured"]})
+        if not signal_ids:
             return {}
-        names = table.fields().names()
-
-        def text(feature, *candidates):
-            for candidate in candidates:
-                if candidate in names:
-                    value = feature[candidate]
-                    return "" if value is None or not isinstance(value, (str, int, float)) else str(value).strip()
-            return ""
-
-        def number(feature, name, default):
-            try:
-                return float(text(feature, name))
-            except ValueError:
-                return default
-
-        signals = {}
-        for feature in table.getFeatures():
-            signal_id = text(feature, "SignalID", "Id")
-            if not signal_id:
-                continue
-            signals[signal_id] = {
-                "id": signal_id,
-                "meter": text(feature, "MeterID"),
-                "element": text(feature, "EpanetID"),
-                "magnitude": text(feature, "Magnitude"),
-                "units": text(feature, "Units"),
-                "frequency": int(number(feature, "Frequency", fv_data.DEFAULT_FREQUENCY_SECONDS)),
-                "rules": fv_data.Rules(
-                    number(feature, "ScalFact", 1.0), number(feature, "Offset", 0.0),
-                    number(feature, "ScalLimit", 0.0),
-                    number(feature, "Negatives", 1.0) != 0, number(feature, "Zeros", 1.0) != 0,
-                ),
-            }
-        return signals
-
-    def featuredValuesSignals(self):
-        path = os.path.join(self.ProjectDirectory, self.NetworkName + "_Signals.dbf")
-        signals = self._featuredValuesCached("signals", path, self._readFeaturedSignals) or {}
-        files = fv_data.list_series_files(os.path.join(self.ProjectDirectory, fv_data.FOLDER_NAME))
-        for signal_id, signal in signals.items():
-            signal["file"] = files.get(signal_id.lower())
-        return signals
-
-    @staticmethod
-    def _readFeaturedMeterPoints(path):
-        layer = QgsVectorLayer(path, "meters", "ogr")
-        points = {}
-        if not layer.isValid():
-            return points
-        names = layer.fields().names()
-        id_field = next((name for name in ("MeterID", "Id") if name in names), None)
-        if id_field is None:
-            return points
-        for feature in layer.getFeatures():
-            if feature.hasGeometry():
-                points[str(feature[id_field])] = feature.geometry().asPoint()
-        return points
-
-    def _featuredValuesMeterPoints(self):
-        path = os.path.join(self.ProjectDirectory, self.NetworkName + "_Meters.shp")
-        return self._featuredValuesCached("meters", path, self._readFeaturedMeterPoints) or {}
-
-    @staticmethod
-    def _readFeaturedSimulationStart(path):
-        node = _read_xml_root(path).find(".//SimulationPeriod")
-        start = _parse_iso(node.findtext("Start")) if node is not None else None
-        return fv_data.datetime_to_ticks(start) if start is not None else None
-
-    def _featuredValuesSimulationStart(self):
-        path = os.path.join(self.ProjectDirectory, self.NetworkName + "_Metadata.txt")
-        return self._featuredValuesCached("period", path, self._readFeaturedSimulationStart)
-
-    def _featuredValuesMeasured(self, signal, elapsed_seconds):
-        path = signal.get("file")
-        if not path:
-            return None
-        rules = signal["rules"]
-
-        def reader(series_path):
-            series = fv_data.read_series(series_path)
-            return series, fv_data.effective_points(series, rules)
-
-        loaded = self._featuredValuesCached(("series", signal["id"], tuple(rules)), path, reader)
-        if not loaded:
-            return None
-        series, points = loaded
-        origin = fv_data.series_origin_ticks(series, self._featuredValuesSimulationStart())
-        if origin is None:
-            return None
-        ticks = origin + int(round(elapsed_seconds * fv_data.TICKS_PER_SECOND))
-        return fv_data.value_at(points, ticks, signal["frequency"])
+        return fv_data.parse_values(self._featuredValuesQuery(
+            GISRed.GetFieldDataValues, fv_data.join_ids(signal_ids), repr(float(elapsed_seconds))))
 
     def _featuredValuesElementData(self, rows):
         dock = self.ResultDockwidget
@@ -290,19 +198,20 @@ class FeaturedValuesSection:
         dock = self.ResultDockwidget
         signals = self.featuredValuesSignals()
         elements = self._featuredValuesElementData(rows)
-        meters = self._featuredValuesMeterPoints()
         field_utils = QGISRedFieldUtils()
         stats_mode = bool(getattr(dock, "_statsMode", False))
         index = dock.cbTimes.currentIndex()
         elapsed_text = dock.TimeLabels[index] if 0 <= index < len(dock.TimeLabels) else ""
         elapsed = dock._elapsedTextToSeconds(elapsed_text) if elapsed_text else 0
         var_decimals = getattr(dock, "_varDecimals", {}) or {}
+        measured = {} if stats_mode else self._featuredValuesMeasured(rows, elapsed)
 
         records = []
         points = {}
         for row in rows:
             element_data = elements.get((row["element"], row["id"]))
-            point = meters.get(row["meter"]) if row["meter"] else None
+            signal = signals.get(row["signal"], {}) if row["signal"] else {}
+            point = QgsPointXY(*signal["point"]) if signal.get("point") else None
             if point is None and element_data is not None:
                 point = element_data[0]
             if point is None:
@@ -323,8 +232,7 @@ class FeaturedValuesSection:
             sim_text = self._formatFeaturedValue(sim_value, decimals, unit, display["showUnits"])
             meas_value, meas_text = None, ""
             if row["showMeasured"] and not stats_mode:
-                signal = signals.get(row["signal"], {})
-                meas_value = self._featuredValuesMeasured(signal, elapsed) if signal else None
+                meas_value = measured.get(row["signal"])
                 meas_text = self._formatFeaturedValue(meas_value, decimals, signal.get("units", ""),
                                                       display["showUnits"]) or _MISSING_TEXT
             if not sim_text and not meas_text:
@@ -401,6 +309,7 @@ class FeaturedValuesSection:
             return
         config = self._featuredValuesCurrentConfig()
         display = config["display"]
+        self.featuredValuesSignals(reload=True)
         rows = fv_config.assign_slots(self.featuredValuesRows(), display)
         records = self._featuredValuesRecords(rows, display) if rows else []
         if not records:
@@ -427,7 +336,7 @@ class FeaturedValuesSection:
     def _loadFeaturedValuesDialog(self):
         node_ids, link_ids = self._featuredValuesTopology()
         self.featuredValuesDialog.setData(
-            self._featuredValuesCurrentConfig(), node_ids, link_ids, self.featuredValuesSignals())
+            self._featuredValuesCurrentConfig(), node_ids, link_ids, self.featuredValuesSignals(reload=True))
 
     def featuredValuesConfigChanged(self):
         config = self._featuredValuesCurrentConfig()

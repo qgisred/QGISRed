@@ -2,21 +2,16 @@
 from QGISRed.ui.analysis import featured_values_config as fv_config
 from QGISRed.ui.analysis import featured_values_fielddata as fv_data
 
-HOUR = 3600 * fv_data.TICKS_PER_SECOND
 
+def test_field_data_answers_from_the_dll_become_signals_and_values():
+    signals = fv_data.parse_signals("OK\nS_P\tM1\tN1\tPressure\tm\t10.5\t20\t1\nS_Q\t\tP1\tFlow\tl/s\t\t\t0")
+    values = fv_data.parse_values("OK\nS_P\t31.25\nS_Q\t")
 
-def test_measured_value_follows_edits_rules_and_gaps():
-    original = [(0, 10.0), (HOUR, -1.0), (2 * HOUR, 12.0), (8 * HOUR, 20.0)]
-    changes = [fv_data.Change(2 * HOUR, 14.0, 1, fv_data.CHANGE_VALUE)]
-    series = fv_data.Series(True, 0, original, changes, [])
-    rules = fv_data.Rules(2.0, 0.0, 0.0, False, True)
-
-    points = fv_data.effective_points(series, rules)
-
-    assert points == [(0, 20.0), (2 * HOUR, 14.0), (8 * HOUR, 40.0)]
-    assert fv_data.value_at(points, 0, 3600) == 20.0
-    assert fv_data.value_at(points, 2 * HOUR + HOUR // 4, 3600) == 14.0
-    assert fv_data.value_at(points, 5 * HOUR, 3600) is None
+    assert signals["S_P"] == {"id": "S_P", "meter": "M1", "element": "N1", "magnitude": "Pressure", "units": "m",
+                              "point": (10.5, 20.0), "hasData": True}
+    assert signals["S_Q"]["point"] is None and not signals["S_Q"]["hasData"]
+    assert values == {"S_P": 31.25, "S_Q": None}
+    assert fv_data.parse_signals("Error: no folder") == {}
 
 
 def test_rows_merge_signals_with_their_simulated_value_and_stack_by_level():

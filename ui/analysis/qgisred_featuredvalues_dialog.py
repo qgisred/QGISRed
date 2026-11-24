@@ -240,7 +240,7 @@ class QGISRedFeaturedValuesDialog(QDialog):
         self.cbSignal.clear()
         for signal_id in sorted(self.signals, key=str.lower):
             signal = self.signals[signal_id]
-            if signal.get("file"):
+            if signal.get("hasData"):
                 self.cbSignal.addItem(self._signalText(signal), signal_id)
         has_signals = self.cbSignal.count() > 0
         self.lbNoSignals.setVisible(not has_signals)
