@@ -19,6 +19,7 @@ from ..tools.map_tools.qgisred_selectPoint import QGISRedSelectPointTool, Select
 from ..compat import LAYER_TYPE_VECTOR
 
 from ..ui.tools.qgisred_demandsectorbuilder_dialog import (QGISRedDemandSectorBuilderDialog)
+from ..ui.digitaltwin.qgisred_demandsectors_dialog import QGISRedDemandSectorsDialog
 
 
 class ToolsSection:
@@ -356,13 +357,32 @@ class ToolsSection:
         if self.isLayerOnEdition():
             return
 
+        available = GISRed.DemandSectorsAvailable(self.ProjectDirectory, self.NetworkName)
+        if available != "True":
+            self.processCsharpResult(available, "")
+            return
+
+        dialog = QGISRedDemandSectorsDialog(self._identifyDemandSectors, self.iface.mainWindow())
+        dialog.exec()
+        if not dialog.ProcessDone:
+            return
+
         self.Sectors = "DemandSectors"
         # Process
         QApplication.setOverrideCursor(Qt.CursorShape.WaitCursor)
-        resMessage = GISRed.DemandSectors(self.ProjectDirectory, self.NetworkName, self.tempFolder)
+        resMessage = GISRed.DemandSectors(self.ProjectDirectory, self.NetworkName, self.tempFolder, dialog.options())
         QApplication.restoreOverrideCursor()
 
         self.processCsharpResult(resMessage, "", layerType="sectors")
+
+    def _identifyDemandSectors(self, options):
+        QApplication.setOverrideCursor(Qt.CursorShape.WaitCursor)
+        try:
+            return GISRed.DemandSectorsIdentify(self.ProjectDirectory, self.NetworkName, options)
+        except Exception as exc:
+            return "Error: {}".format(exc)
+        finally:
+            QApplication.restoreOverrideCursor()
 
     def runDemandSectorBuilder(self):
         if not self.checkDependencies():

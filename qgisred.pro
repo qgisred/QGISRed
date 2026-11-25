@@ -80,7 +80,8 @@ SOURCES = qgisred.py \
           ui/analysis/qgisred_export_csv_dialog.py \
           ui/debug/qgisred_toolConnectivity_dialog.py \
           ui/debug/qgisred_toolLength_dialog.py \
-          ui/digitaltwin/qgisred_toolConnections_dialog.py
+          ui/digitaltwin/qgisred_toolConnections_dialog.py \
+          ui/digitaltwin/qgisred_demandsectors_dialog.py
 
 FORMS = ui/general/qgisred_about_dialog.ui \
         ui/general/qgisred_cloneproject_dialog.ui \

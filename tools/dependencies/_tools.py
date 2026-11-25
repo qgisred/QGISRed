@@ -2,6 +2,7 @@
 
 from ctypes import c_char_p
 from ._base import _load_dll, _encode, _to_string
+from ._digital_twin import _decode_text
 
 
 class QGISRedToolsMixin:
@@ -137,15 +138,39 @@ class QGISRedToolsMixin:
         return _to_string(b)
 
     @staticmethod
-    def DemandSectors(projectFolder, networkName, tempFolder):
+    def DemandSectorsAvailable(projectFolder, networkName):
+        projectFolder = _encode(projectFolder)
+        networkName = _encode(networkName)
+
+        mydll = _load_dll()
+        mydll.DemandSectorsAvailable.argtypes = (c_char_p, c_char_p)
+        mydll.DemandSectorsAvailable.restype = c_char_p
+        b = mydll.DemandSectorsAvailable(projectFolder, networkName)
+        return _to_string(b)
+
+    @staticmethod
+    def DemandSectorsIdentify(projectFolder, networkName, options):
+        projectFolder = _encode(projectFolder)
+        networkName = _encode(networkName)
+        options = _encode(options)
+
+        mydll = _load_dll()
+        mydll.DemandSectorsIdentify.argtypes = (c_char_p, c_char_p, c_char_p)
+        mydll.DemandSectorsIdentify.restype = c_char_p
+        b = mydll.DemandSectorsIdentify(projectFolder, networkName, options)
+        return _decode_text(b)
+
+    @staticmethod
+    def DemandSectors(projectFolder, networkName, tempFolder, options):
         projectFolder = _encode(projectFolder)
         networkName = _encode(networkName)
         tempFolder = _encode(tempFolder)
+        options = _encode(options)
 
         mydll = _load_dll()
-        mydll.DemandSectors.argtypes = (c_char_p, c_char_p, c_char_p)
+        mydll.DemandSectors.argtypes = (c_char_p, c_char_p, c_char_p, c_char_p)
         mydll.DemandSectors.restype = c_char_p
-        b = mydll.DemandSectors(projectFolder, networkName, tempFolder)
+        b = mydll.DemandSectors(projectFolder, networkName, tempFolder, options)
         return _to_string(b)
 
     @staticmethod
