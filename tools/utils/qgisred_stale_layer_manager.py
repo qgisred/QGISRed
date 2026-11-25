@@ -35,7 +35,7 @@ MONITORED_SUBDIRS = (DIR_ISSUES, DIR_QUERIES, DIR_RESULTS)
 # input edited afterwards says nothing about whether they are still valid. Excluded by
 # qgisred_identifier because the Demands Manager can add them to the group from anywhere,
 # a monitored folder included.
-EXCLUDED_IDENTIFIER_PREFIXES = ("qgisred_demandbuilder",)
+EXCLUDED_IDENTIFIER_PREFIXES = ("qgisred_demandbuilder", "qgisred_featuredvalues")
 
 # Thematic maps whose legend class labels embed a length unit, so the units they were
 # built with can be recovered for layers created before the qgisred_theme_units stamp.

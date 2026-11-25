@@ -22,6 +22,14 @@ class QGISRedFeaturedValuesDialog(QDialog):
 
         self.setWindowTitle(self.tr("Featured Values Manager"))
         self.setWindowIcon(QIcon(":/images/iconFeaturedValues.svg"))
+        self.setWindowFlags(
+            Qt.WindowType.Window
+            | Qt.WindowType.CustomizeWindowHint
+            | Qt.WindowType.WindowTitleHint
+            | Qt.WindowType.WindowMinimizeButtonHint
+            | Qt.WindowType.WindowCloseButtonHint
+            | Qt.WindowType.WindowStaysOnTopHint
+        )
         self.setModal(False)
         self.setSizeGripEnabled(True)
 
@@ -49,7 +57,7 @@ class QGISRedFeaturedValuesDialog(QDialog):
         layout.addWidget(buttons)
         self.resize(600, 460)
 
-        self.cbVisible.toggled.connect(self._onDisplayChanged)
+        self.cbVisible.toggled.connect(self._onVisibleToggled)
 
     @staticmethod
     def _compactCombo(combo):
@@ -362,7 +370,6 @@ class QGISRedFeaturedValuesDialog(QDialog):
         if self._loading:
             return
         display = self.config["display"]
-        display["visible"] = self.cbVisible.isChecked()
         display["showSimulated"] = self.cbShowSimulated.isChecked()
         display["showMeasured"] = self.cbShowMeasured.isChecked()
         display["hiddenMagnitudes"] = [
@@ -378,6 +385,10 @@ class QGISRedFeaturedValuesDialog(QDialog):
         display["showId"] = self.cbShowId.isChecked()
         display["showUnits"] = self.cbShowUnits.isChecked()
         self.controller.featuredValuesConfigChanged()
+
+    def _onVisibleToggled(self, checked):
+        if not self._loading:
+            self.controller.featuredValuesSetVisible(checked)
 
     def closeEvent(self, event):
         self.controller.featuredValuesStopPicking()

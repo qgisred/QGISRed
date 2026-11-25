@@ -813,7 +813,7 @@ class ProjectManagementSection:
         if results_group:
             for tree_item in results_group.findLayers():
                 layer = tree_item.layer()
-                if not layer:
+                if not layer or layer.customProperty("qgisred_identifier") == "qgisred_featuredvalues":
                     continue
                 if has_version:
                     snapshot["results_with_id"].append(layer.id())

@@ -1,10 +1,12 @@
 # -*- coding: utf-8 -*-
+import os
+
 from qgis.PyQt.QtCore import QSizeF
 from qgis.PyQt.QtGui import QColor, QFont
 from qgis.core import (
-    QgsCategorizedSymbolRenderer, QgsFeature, QgsField, QgsGeometry, QgsMarkerSymbol, QgsPalLayerSettings,
-    QgsProject, QgsProperty, QgsPropertyCollection, QgsRendererCategory, QgsRuleBasedLabeling,
-    QgsTextBackgroundSettings, QgsTextBufferSettings, QgsTextFormat, QgsVectorLayer,
+    NULL, QgsCategorizedSymbolRenderer, QgsFeature, QgsField, QgsFields, QgsGeometry, QgsMarkerSymbol,
+    QgsPalLayerSettings, QgsProject, QgsProperty, QgsPropertyCollection, QgsRendererCategory, QgsRuleBasedLabeling,
+    QgsTextBackgroundSettings, QgsTextBufferSettings, QgsTextFormat, QgsVectorFileWriter, QgsVectorLayer,
 )
 
 from ...compat import (
@@ -27,6 +29,9 @@ _BACKGROUND_BUFFER = 0.8
 _HALO_SIZE = 0.8
 _FRAME_WIDTH = 0.4
 _MARKER_SIZE = 1.8
+_MAP_MARKER_SIZE = 0.4
+_KEY_FIELDS = ("Type", "Id", "Signal", "Magnitude")
+_FIELD_SIZES = {FIELD_TYPE_STRING: (254, 0), FIELD_TYPE_DOUBLE: (20, 8), FIELD_TYPE_INT: (6, 0)}
 _LABEL_GAP = 2.0
 
 
@@ -43,30 +48,90 @@ def find_layer():
     return None
 
 
-def create_layer(crs, name):
-    layer = QgsVectorLayer("Point?crs=" + crs.authid(), name, "memory")
-    if not crs.authid():
-        layer.setCrs(crs)
-    layer.dataProvider().addAttributes([QgsField(field_name, field_type) for field_name, field_type in _FIELDS])
-    layer.updateFields()
+def layer_path(results_directory, network_name, scenario):
+    return os.path.join(results_directory, "{}_{}_FeaturedValues.shp".format(network_name, scenario))
+
+
+def is_current(layer):
+    return layer.providerType() == "ogr" and layer.fields().names() == [name for name, _ in _FIELDS]
+
+
+def _open_layer(path, name):
+    layer = QgsVectorLayer(path, name, "ogr")
+    return layer if layer.isValid() and is_current(layer) else None
+
+
+def _write_empty_shapefile(path, crs):
+    fields = QgsFields()
+    for field_name, field_type in _FIELDS:
+        field = QgsField(field_name, field_type)
+        length, precision = _FIELD_SIZES[field_type]
+        field.setLength(length)
+        field.setPrecision(precision)
+        fields.append(field)
+    options = QgsVectorFileWriter.SaveVectorOptions()
+    options.driverName = "ESRI Shapefile"
+    options.fileEncoding = "UTF-8"
+    point_type = QgsVectorLayer("Point", "template", "memory").wkbType()
+    context = QgsProject.instance().transformContext()
+    writer = QgsVectorFileWriter.create(path, fields, point_type, crs, context, options)
+    del writer
+
+
+def create_layer(crs, name, path):
+    layer = _open_layer(path, name) if os.path.exists(path) else None
+    if layer is None:
+        if os.path.exists(path):
+            QgsVectorFileWriter.deleteShapeFile(path)
+        os.makedirs(os.path.dirname(path), exist_ok=True)
+        _write_empty_shapefile(path, crs)
+        layer = _open_layer(path, name)
+    if layer is None:
+        return None
     layer.setCustomProperty("qgisred_identifier", IDENTIFIER)
-    layer.setCustomProperty("skipMemoryLayersCheck", 1)
     return layer
+
+
+def _plain(value):
+    return None if value is None or value == NULL else value
+
+
+def _same_features(features, records):
+    if len(features) != len(records):
+        return False
+    for feature, record in zip(features, records):
+        if any(_plain(feature[name]) != record.get(name) for name in _KEY_FIELDS):
+            return False
+        point = feature.geometry().asPoint() if feature.hasGeometry() else None
+        if point is None or abs(point.x() - record["point"].x()) > 1e-6 or abs(point.y() - record["point"].y()) > 1e-6:
+            return False
+    return True
 
 
 def set_records(layer, records):
     provider = layer.dataProvider()
-    provider.truncate()
     fields = layer.fields()
-    features = []
-    for record in records:
-        feature = QgsFeature(fields)
-        feature.setGeometry(QgsGeometry.fromPointXY(record["point"]))
-        for field_name, _ in _FIELDS:
-            feature.setAttribute(field_name, record.get(field_name))
-        features.append(feature)
-    provider.addFeatures(features)
-    layer.updateExtents()
+    features = list(provider.getFeatures())
+    if _same_features(features, records):
+        changes = {}
+        for feature, record in zip(features, records):
+            changed = {fields.indexOf(name): record.get(name) for name, _ in _FIELDS
+                       if _plain(feature[name]) != record.get(name)}
+            if changed:
+                changes[feature.id()] = changed
+        if changes:
+            provider.changeAttributeValues(changes)
+    else:
+        provider.truncate()
+        new_features = []
+        for record in records:
+            feature = QgsFeature(fields)
+            feature.setGeometry(QgsGeometry.fromPointXY(record["point"]))
+            for field_name, _ in _FIELDS:
+                feature.setAttribute(field_name, record.get(field_name))
+            new_features.append(feature)
+        provider.addFeatures(new_features)
+        layer.updateExtents()
     layer.triggerRepaint()
 
 
@@ -152,5 +217,7 @@ def apply_renderer(layer, magnitudes):
             "name": "circle", "color": color, "outline_color": "#ffffff",
             "outline_width": "0.3", "size": str(_MARKER_SIZE),
         })
+        symbol.setDataDefinedSize(QgsProperty.fromExpression(
+            'if("Row" IS NULL, {}, {})'.format(_MARKER_SIZE, _MAP_MARKER_SIZE)))
         categories.append(QgsRendererCategory(name, symbol, name))
     layer.setRenderer(QgsCategorizedSymbolRenderer("Magnitude", categories))

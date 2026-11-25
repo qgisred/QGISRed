@@ -37,8 +37,8 @@ _DEFAULT_DISPLAY = {
     "fontSize": 10,
     "showId": False,
     "showUnits": True,
-    "simulatedStyle": STYLE_HALO,
-    "measuredStyle": STYLE_OPAQUE,
+    "simulatedStyle": STYLE_OPAQUE,
+    "measuredStyle": STYLE_FRAME,
 }
 
 

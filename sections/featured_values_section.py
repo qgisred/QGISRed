@@ -64,7 +64,7 @@ class FeaturedValuesSection:
         self.featuredValuesDialog.showNormal()
         self.featuredValuesDialog.raise_()
         self.featuredValuesDialog.activateWindow()
-        self.refreshFeaturedValues()
+        self.refreshFeaturedValues(create=True)
 
     def closeFeaturedValues(self):
         self.featuredValuesStopPicking()
@@ -271,37 +271,54 @@ class FeaturedValuesSection:
         QgsProject.instance().removeMapLayer(layer.id())
         self._featuredValuesStyleKey = None
 
-    def _featuredValuesLayer(self, display):
+    def _featuredValuesLayer(self, display, create):
         layer = fv_layer.find_layer()
-        if layer is not None and layer.fields().names() != [name for name, _ in fv_layer._FIELDS]:
+        if layer is not None and not fv_layer.is_current(layer):
             self._removeFeaturedValuesLayer()
             layer = None
-        if layer is not None:
+            create = True
+        if layer is not None or not create:
             return layer
         dock = self.ResultDockwidget
         node_layer = dock._findResultLayer(fv_config.NODE)
         crs = node_layer.crs() if node_layer is not None else QgsProject.instance().crs()
-        layer = fv_layer.create_layer(crs, self.tr("Featured values"))
+        path = fv_layer.layer_path(dock.getResultsPath(), self.NetworkName, dock.Scenario)
+        layer = fv_layer.create_layer(crs, self.tr("Featured values"), path)
+        if layer is None:
+            return None
         utils = QGISRedLayerUtils(self.ProjectDirectory, self.NetworkName, self.iface)
         group = utils.getOrCreateNestedGroup([self.NetworkName, "Results", dock.Scenario])
         QgsProject.instance().addMapLayer(layer, False)
         group.insertLayer(0, layer)
         self._featuredValuesStyleKey = None
-        self._applyFeaturedValuesVisibility(layer, display)
+        self._setFeaturedValuesLayerVisible(layer, display["visible"])
         return layer
 
-    def _applyFeaturedValuesVisibility(self, layer, display):
+    def _setFeaturedValuesLayerVisible(self, layer, visible):
         node = QgsProject.instance().layerTreeRoot().findLayer(layer.id())
         if node is not None:
-            node.setItemVisibilityChecked(bool(display["visible"]))
+            node.setItemVisibilityChecked(bool(visible))
 
-    def refreshFeaturedValues(self):
+    def featuredValuesLayerVisible(self):
+        layer = fv_layer.find_layer()
+        node = QgsProject.instance().layerTreeRoot().findLayer(layer.id()) if layer is not None else None
+        return None if node is None else node.itemVisibilityChecked()
+
+    def featuredValuesSetVisible(self, visible):
+        config = self._featuredValuesCurrentConfig()
+        config["display"]["visible"] = bool(visible)
+        self.featuredValuesConfigChanged()
+        layer = fv_layer.find_layer()
+        if layer is not None:
+            self._setFeaturedValuesLayerVisible(layer, visible)
+
+    def refreshFeaturedValues(self, create=False):
         try:
-            self._refreshFeaturedValues()
+            self._refreshFeaturedValues(create)
         except Exception as exc:
             QgsMessageLog.logMessage("Featured values: {}".format(exc), "QGISRed", QGIS_WARNING)
 
-    def _refreshFeaturedValues(self):
+    def _refreshFeaturedValues(self, create):
         dock = self.ResultDockwidget
         if dock is None or not self.ProjectDirectory or not self.NetworkName:
             return
@@ -312,12 +329,12 @@ class FeaturedValuesSection:
         self.featuredValuesSignals(reload=True)
         rows = fv_config.assign_slots(self.featuredValuesRows(), display)
         records = self._featuredValuesRecords(rows, display) if rows else []
-        if not records:
-            self._removeFeaturedValuesLayer()
+        layer = self._featuredValuesLayer(display, create and bool(records))
+        if layer is None:
             return
-
-        layer = self._featuredValuesLayer(display)
         fv_layer.set_records(layer, records)
+        if not records:
+            return
         magnitudes = sorted({(record["Magnitude"], record["Color"]) for record in records})
         extent = None
         node_layer = dock._findResultLayer(fv_config.NODE)
@@ -335,8 +352,11 @@ class FeaturedValuesSection:
 
     def _loadFeaturedValuesDialog(self):
         node_ids, link_ids = self._featuredValuesTopology()
-        self.featuredValuesDialog.setData(
-            self._featuredValuesCurrentConfig(), node_ids, link_ids, self.featuredValuesSignals(reload=True))
+        config = self._featuredValuesCurrentConfig()
+        visible = self.featuredValuesLayerVisible()
+        if visible is not None:
+            config["display"]["visible"] = visible
+        self.featuredValuesDialog.setData(config, node_ids, link_ids, self.featuredValuesSignals(reload=True))
 
     def featuredValuesConfigChanged(self):
         config = self._featuredValuesCurrentConfig()
@@ -344,10 +364,7 @@ class FeaturedValuesSection:
             fv_config.save(self._featuredValuesConfigPath, config)
         except OSError as exc:
             self.pushMessage(self.tr("The featured values could not be saved: %1").replace("%1", str(exc)), level=1)
-        self.refreshFeaturedValues()
-        layer = fv_layer.find_layer()
-        if layer is not None:
-            self._applyFeaturedValuesVisibility(layer, config["display"])
+        self.refreshFeaturedValues(create=True)
 
     def featuredValuesStartPicking(self):
         canvas = self.iface.mapCanvas()
