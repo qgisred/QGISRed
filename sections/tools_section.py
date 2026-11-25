@@ -20,6 +20,7 @@ from ..compat import LAYER_TYPE_VECTOR
 
 from ..ui.tools.qgisred_demandsectorbuilder_dialog import (QGISRedDemandSectorBuilderDialog)
 from ..ui.digitaltwin.qgisred_demandsectors_dialog import QGISRedDemandSectorsDialog
+from ..ui.digitaltwin import demand_sectors_data as ds_data
 
 
 class ToolsSection:
@@ -357,13 +358,16 @@ class ToolsSection:
         if self.isLayerOnEdition():
             return
 
-        available = GISRed.DemandSectorsAvailable(self.ProjectDirectory, self.NetworkName)
-        if available != "True":
-            self.processCsharpResult(available, "")
+        if not self._hasDemandSectorMeters():
+            message = self.tr("The project has no flow or level meters, so the demand sectors cannot be identified.")
+            self.pushMessage(message, level=1, duration=5)
             return
 
         dialog = QGISRedDemandSectorsDialog(self._identifyDemandSectors, self.iface.mainWindow())
-        dialog.exec()
+        try:
+            dialog.exec()
+        finally:
+            GISRed.DemandSectorsRelease()
         if not dialog.ProcessDone:
             return
 
@@ -374,6 +378,16 @@ class ToolsSection:
         QApplication.restoreOverrideCursor()
 
         self.processCsharpResult(resMessage, "", layerType="sectors")
+
+    def _hasDemandSectorMeters(self):
+        for layer in self.getLayers():
+            if layer is None or layer.customProperty("qgisred_identifier") != "qgisred_meters":
+                continue
+            index = layer.fields().indexOf("MeterType")
+            if index < 0:
+                return layer.featureCount() > 0
+            return ds_data.has_sector_meters(feature.attribute(index) for feature in layer.getFeatures())
+        return False
 
     def _identifyDemandSectors(self, options):
         QApplication.setOverrideCursor(Qt.CursorShape.WaitCursor)

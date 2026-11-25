@@ -138,15 +138,11 @@ class QGISRedToolsMixin:
         return _to_string(b)
 
     @staticmethod
-    def DemandSectorsAvailable(projectFolder, networkName):
-        projectFolder = _encode(projectFolder)
-        networkName = _encode(networkName)
-
+    def DemandSectorsRelease():
         mydll = _load_dll()
-        mydll.DemandSectorsAvailable.argtypes = (c_char_p, c_char_p)
-        mydll.DemandSectorsAvailable.restype = c_char_p
-        b = mydll.DemandSectorsAvailable(projectFolder, networkName)
-        return _to_string(b)
+        mydll.DemandSectorsRelease.argtypes = ()
+        mydll.DemandSectorsRelease.restype = c_char_p
+        return _to_string(mydll.DemandSectorsRelease())
 
     @staticmethod
     def DemandSectorsIdentify(projectFolder, networkName, options):

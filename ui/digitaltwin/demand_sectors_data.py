@@ -3,6 +3,7 @@ OK = "OK"
 VALID = "Valid"
 Z = "Z"
 UNCONTROLLED = "Uncontrolled"
+SECTOR_METER_TYPES = ("flowmeter", "countermeter", "levelsensor")
 
 
 def build_options(z_limit):
@@ -50,3 +51,7 @@ def error_message(text):
 
 def can_create(identification):
     return identification is not None and any(sector["kind"] != UNCONTROLLED for sector in identification["sectors"])
+
+
+def has_sector_meters(meter_types):
+    return any(str(meter_type or "").strip().lower() in SECTOR_METER_TYPES for meter_type in meter_types)

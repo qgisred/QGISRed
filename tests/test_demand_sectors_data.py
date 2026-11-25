@@ -37,3 +37,10 @@ def test_the_sectors_can_be_created_only_when_one_is_not_uncontrolled():
     assert ds_data.can_create(ds_data.parse_identification(ANSWER))
     assert not ds_data.can_create(uncontrolled)
     assert not ds_data.can_create(None)
+
+
+def test_only_flow_counter_and_level_meters_delimit_sectors():
+    assert ds_data.has_sector_meters(["Manometer", "Flowmeter"])
+    assert ds_data.has_sector_meters([" levelsensor "])
+    assert not ds_data.has_sector_meters(["Manometer", None, ""])
+    assert not ds_data.has_sector_meters([])
