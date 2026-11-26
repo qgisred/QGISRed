@@ -261,6 +261,11 @@
         <source>Delete</source>
         <translation>Supprimer</translation>
     </message>
+    <message>
+        <location filename="../sections/analysis_section.py" line="760"/>
+        <source>There are no field data for the plotted curves.</source>
+        <translation>Il n'y a pas de données de terrain pour les courbes tracées.</translation>
+    </message>
 </context>
 <context>
     <name>AuxiliaryTypeNames</name>
@@ -10534,6 +10539,11 @@ Impossible d'appliquer les modifications.</translation>
         <source>Single period</source>
         <translation>Période unique</translation>
     </message>
+    <message>
+        <location filename="../ui/analysis/qgisred_timeseries_dock.py" line="1362"/>
+        <source>Show field data over the curves</source>
+        <translation>Afficher les données de terrain sur les courbes</translation>
+    </message>
 </context>
 <context>
     <name>ResultsDistributionWidget</name>
@@ -11224,6 +11234,51 @@ Impossible d'appliquer les modifications.</translation>
         <source>Grid color</source>
         <translation>Couleur de la grille</translation>
     </message>
+    <message>
+        <location filename="../ui/analysis/qgisred_timeseries_axis_dialog.py" line="97"/>
+        <source>Field data</source>
+        <translation>Données de terrain</translation>
+    </message>
+    <message>
+        <location filename="../ui/analysis/qgisred_timeseries_axis_dialog.py" line="1150"/>
+        <source>Field data markers</source>
+        <translation>Marqueurs des données de terrain</translation>
+    </message>
+    <message>
+        <location filename="../ui/analysis/qgisred_timeseries_axis_dialog.py" line="1174"/>
+        <source>Same as the curve</source>
+        <translation>Identique à la courbe</translation>
+    </message>
+    <message>
+        <location filename="../ui/analysis/qgisred_timeseries_axis_dialog.py" line="1175"/>
+        <source>Field data marker color</source>
+        <translation>Couleur des marqueurs des données de terrain</translation>
+    </message>
+    <message>
+        <location filename="../ui/analysis/qgisred_timeseries_axis_dialog.py" line="1177"/>
+        <source>Fill markers</source>
+        <translation>Remplir les marqueurs</translation>
+    </message>
+    <message>
+        <location filename="../ui/analysis/qgisred_timeseries_axis_dialog.py" line="1182"/>
+        <source>Soft marker color</source>
+        <translation>Couleur du marqueur adoucie</translation>
+    </message>
+    <message>
+        <location filename="../ui/analysis/qgisred_timeseries_axis_dialog.py" line="1183"/>
+        <source>Field data marker fill color</source>
+        <translation>Couleur de remplissage des marqueurs des données de terrain</translation>
+    </message>
+    <message>
+        <location filename="../ui/analysis/qgisred_timeseries_axis_dialog.py" line="1188"/>
+        <source>Marker:</source>
+        <translation>Marqueur :</translation>
+    </message>
+    <message>
+        <location filename="../ui/analysis/qgisred_timeseries_axis_dialog.py" line="1192"/>
+        <source>Fill color:</source>
+        <translation>Couleur de remplissage :</translation>
+    </message>
 </context>
 <context>
     <name>TimeSeriesGlobals</name>
@@ -11314,6 +11369,21 @@ Impossible d'appliquer les modifications.</translation>
         <location filename="../ui/analysis/timeseries_plot_renderer.py" line="1346"/>
         <source>+%1 more...</source>
         <translation>+%1 de plus...</translation>
+    </message>
+    <message>
+        <location filename="../ui/analysis/qgisred_timeseries_dock.py" line="530"/>
+        <source>Field data</source>
+        <translation>Données de terrain</translation>
+    </message>
+    <message>
+        <location filename="../ui/analysis/qgisred_timeseries_dock.py" line="531"/>
+        <source>Measured values</source>
+        <translation>Valeurs mesurées</translation>
+    </message>
+    <message>
+        <location filename="../ui/analysis/timeseries_plot_renderer.py" line="1848"/>
+        <source>measured</source>
+        <translation>mesuré</translation>
     </message>
 </context>
 <context>

@@ -34,6 +34,7 @@ from qgis.PyQt.QtWidgets import (
     QWidget,
 )
 
+from . import timeseries_field_data as field_data
 from .timeseries_axis_settings import TimeSeriesAxisSettings, TimeSeriesGeneralSettings, clone_axis_settings, clone_general_settings
 from .timeseries_plot_style import FONT_FAMILY, GRID_COLOR
 from .timeseries_time_utils import civil_time_parts
@@ -94,6 +95,8 @@ class TimeSeriesAxisOptionsDialog(QDialog):
         tabs.addTab(tab_legend, self.tr("Legend"))
         tab_curves = self._build_curves_tab()
         tabs.addTab(tab_curves, self.tr("Curves"))
+        tab_field = self._build_field_data_tab(self._cfg_gen)
+        tabs.addTab(tab_field, self.tr("Field data"))
 
         content_lay.addWidget(tabs)
         content_scroll.setWidget(content)
@@ -126,6 +129,7 @@ class TimeSeriesAxisOptionsDialog(QDialog):
         self._tab_general = tab_general
         self._tab_legend = tab_legend
         self._tab_curves = tab_curves
+        self._tab_field = tab_field
         self._connect_live_update_signals(content)
         self._configure_initial_geometry()
 
@@ -1100,6 +1104,110 @@ class TimeSeriesAxisOptionsDialog(QDialog):
         w._gen_title_style_row = title_style_row
         return w
 
+    def _build_field_data_tab(self, cfg: TimeSeriesGeneralSettings) -> QWidget:
+        w = QWidget()
+        lay = QVBoxLayout(w)
+        lay.setSpacing(10)
+        lay.setContentsMargins(8, 8, 8, 8)
+        lay.setAlignment(Qt.AlignmentFlag.AlignTop)
+
+        def make_color_picker(current_raw: str, default_color: QColor, default_text: str, title: str):
+            picked = QColor(current_raw or "")
+            if not picked.isValid():
+                picked = QColor(default_color)
+
+            btn = QPushButton()
+            chk_default = QCheckBox(default_text)
+            chk_default.setChecked(not (current_raw or "").strip())
+            row = QWidget()
+            row_lay = QHBoxLayout(row)
+            row_lay.setContentsMargins(0, 0, 0, 0)
+            row_lay.setSpacing(8)
+            row_lay.addWidget(btn, 1)
+            row_lay.addWidget(chk_default)
+            row_lay.addStretch(1)
+
+            def refresh():
+                self._show_color_on_button(btn, default_color if chk_default.isChecked() else picked)
+
+            def pick_color():
+                nonlocal picked
+                nc = QColorDialog.getColor(picked, self, title)
+                if nc.isValid():
+                    picked = nc
+                    chk_default.setChecked(False)
+                    refresh()
+                    self._schedule_live_apply()
+
+            btn.clicked.connect(pick_color)
+            chk_default.toggled.connect(lambda _checked: refresh())
+            refresh()
+
+            def value():
+                return "" if chk_default.isChecked() else picked.name(QColor.NameFormat.HexRgb)
+
+            return row, value
+
+        grp = self._compact_group(QGroupBox(self.tr("Field data markers")))
+        form = QFormLayout(grp)
+        form.setLabelAlignment(Qt.AlignmentFlag.AlignRight | Qt.AlignmentFlag.AlignVCenter)
+        form.setHorizontalSpacing(12)
+        form.setVerticalSpacing(8)
+        with suppress(Exception):
+            form.setRowWrapPolicy(QFormLayout.RowWrapPolicy.WrapLongRows)
+
+        cb_symbol = QComboBox()
+        cb_symbol.addItem(self.tr("Circle"), "circle")
+        cb_symbol.addItem(self.tr("Square"), "square")
+        cb_symbol.addItem(self.tr("Triangle"), "triangle")
+        cb_symbol.addItem(self.tr("Diamond"), "diamond")
+        cb_symbol.addItem(self.tr("Cross"), "cross")
+        idx_symbol = cb_symbol.findData((getattr(cfg, "field_marker_symbol", "") or "circle").strip())
+        cb_symbol.setCurrentIndex(idx_symbol if idx_symbol >= 0 else 0)
+        self._limit_field_width(cb_symbol, self._FORM_FIELD_WIDTH)
+
+        sp_size = QSpinBox()
+        sp_size.setRange(2, 24)
+        sp_size.setValue(max(2, min(int(getattr(cfg, "field_marker_size", 7) or 7), 24)))
+
+        outline_row, outline_value = make_color_picker(
+            getattr(cfg, "field_marker_color_hex", ""),
+            field_data.NEUTRAL_COLOR,
+            self.tr("Same as the curve"),
+            self.tr("Field data marker color"),
+        )
+        chk_filled = QCheckBox(self.tr("Fill markers"))
+        chk_filled.setChecked(bool(getattr(cfg, "field_marker_filled", True)))
+        fill_row, fill_value = make_color_picker(
+            getattr(cfg, "field_marker_fill_hex", ""),
+            field_data.soft_color(field_data.NEUTRAL_COLOR),
+            self.tr("Soft marker color"),
+            self.tr("Field data marker fill color"),
+        )
+
+        self._add_form_row(form, self.tr("Marker:"), cb_symbol)
+        self._add_form_row(form, self.tr("Size:"), sp_size)
+        self._add_form_row(form, self.tr("Color:"), outline_row)
+        form.addRow("", chk_filled)
+        self._add_form_row(form, self.tr("Fill color:"), fill_row)
+        fill_label = form.labelForField(fill_row)
+
+        def sync_fill_controls(checked: bool) -> None:
+            fill_row.setEnabled(checked)
+            if fill_label is not None:
+                fill_label.setEnabled(checked)
+
+        sync_fill_controls(chk_filled.isChecked())
+        chk_filled.toggled.connect(sync_fill_controls)
+        lay.addWidget(grp)
+
+        w._field_symbol = cb_symbol
+        w._field_size = sp_size
+        w._field_filled = chk_filled
+        w._field_color_value = outline_value
+        w._field_fill_value = fill_value
+        return w
+
     def _build_legend_tab(self, cfg: TimeSeriesGeneralSettings) -> QWidget:
         w = QWidget()
         lay = QVBoxLayout(w)
@@ -1563,6 +1671,12 @@ class TimeSeriesAxisOptionsDialog(QDialog):
         self._cfg_gen.legend_show_background = bool(legend_tab._legend_bg.isChecked())
         self._cfg_gen.legend_bg_hex = legend_tab._legend_bg_color_value()
         self._cfg_gen.legend_symbol_size = int(legend_tab._legend_sym.value())
+        field_tab = self._tab_field
+        self._cfg_gen.field_marker_symbol = str(field_tab._field_symbol.currentData() or "circle")
+        self._cfg_gen.field_marker_size = int(field_tab._field_size.value())
+        self._cfg_gen.field_marker_filled = bool(field_tab._field_filled.isChecked())
+        self._cfg_gen.field_marker_color_hex = field_tab._field_color_value()
+        self._cfg_gen.field_marker_fill_hex = field_tab._field_fill_value()
 
         self._read_tab(self._tab_axis_x, self._cfg_x)
         if self._tab_axis_yl is not None:

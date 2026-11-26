@@ -107,6 +107,11 @@ class TimeSeriesGeneralSettings:
     legend_show_background: bool = False
     legend_bg_hex: str = ""
     legend_symbol_size: int = 12
+    field_marker_symbol: str = "circle"
+    field_marker_size: int = 7
+    field_marker_filled: bool = True
+    field_marker_color_hex: str = ""
+    field_marker_fill_hex: str = ""
 
     def resolved_title_font_family(self) -> str:
         f = (self.title_font_family or "").strip()

@@ -228,6 +228,7 @@ class DigitalTwinSection:
             self.zoomToElementsFromProperties(layerName, elementIds.split(";"))
 
         self.processCsharpResult(resMessage, "")
+        self.refreshTimeSeriesFieldData()
 
     def runSetPipeStatus(self):
         if not self.checkDependencies():

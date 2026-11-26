@@ -261,6 +261,11 @@
         <source>Delete</source>
         <translation>Excluir</translation>
     </message>
+    <message>
+        <location filename="../sections/analysis_section.py" line="760"/>
+        <source>There are no field data for the plotted curves.</source>
+        <translation>Não há dados de campo para as curvas representadas.</translation>
+    </message>
 </context>
 <context>
     <name>AuxiliaryTypeNames</name>
@@ -10619,6 +10624,11 @@ Não é possível aplicar as alterações.</translation>
         <source>Single period</source>
         <translation>Período único</translation>
     </message>
+    <message>
+        <location filename="../ui/analysis/qgisred_timeseries_dock.py" line="1362"/>
+        <source>Show field data over the curves</source>
+        <translation>Mostrar os dados de campo sobre as curvas</translation>
+    </message>
 </context>
 <context>
     <name>ResultsDistributionWidget</name>
@@ -11309,6 +11319,51 @@ Não é possível aplicar as alterações.</translation>
         <source>Grid color</source>
         <translation>Cor da grade</translation>
     </message>
+    <message>
+        <location filename="../ui/analysis/qgisred_timeseries_axis_dialog.py" line="97"/>
+        <source>Field data</source>
+        <translation>Dados de campo</translation>
+    </message>
+    <message>
+        <location filename="../ui/analysis/qgisred_timeseries_axis_dialog.py" line="1150"/>
+        <source>Field data markers</source>
+        <translation>Marcadores de dados de campo</translation>
+    </message>
+    <message>
+        <location filename="../ui/analysis/qgisred_timeseries_axis_dialog.py" line="1174"/>
+        <source>Same as the curve</source>
+        <translation>Igual à curva</translation>
+    </message>
+    <message>
+        <location filename="../ui/analysis/qgisred_timeseries_axis_dialog.py" line="1175"/>
+        <source>Field data marker color</source>
+        <translation>Cor dos marcadores de dados de campo</translation>
+    </message>
+    <message>
+        <location filename="../ui/analysis/qgisred_timeseries_axis_dialog.py" line="1177"/>
+        <source>Fill markers</source>
+        <translation>Preencher marcadores</translation>
+    </message>
+    <message>
+        <location filename="../ui/analysis/qgisred_timeseries_axis_dialog.py" line="1182"/>
+        <source>Soft marker color</source>
+        <translation>Cor do marcador suavizada</translation>
+    </message>
+    <message>
+        <location filename="../ui/analysis/qgisred_timeseries_axis_dialog.py" line="1183"/>
+        <source>Field data marker fill color</source>
+        <translation>Cor de preenchimento dos marcadores de dados de campo</translation>
+    </message>
+    <message>
+        <location filename="../ui/analysis/qgisred_timeseries_axis_dialog.py" line="1188"/>
+        <source>Marker:</source>
+        <translation>Marcador:</translation>
+    </message>
+    <message>
+        <location filename="../ui/analysis/qgisred_timeseries_axis_dialog.py" line="1192"/>
+        <source>Fill color:</source>
+        <translation>Cor de preenchimento:</translation>
+    </message>
 </context>
 <context>
     <name>TimeSeriesGlobals</name>
@@ -11399,6 +11454,21 @@ Não é possível aplicar as alterações.</translation>
         <location filename="../ui/analysis/timeseries_plot_renderer.py" line="1346"/>
         <source>+%1 more...</source>
         <translation>+%1 mais...</translation>
+    </message>
+    <message>
+        <location filename="../ui/analysis/qgisred_timeseries_dock.py" line="530"/>
+        <source>Field data</source>
+        <translation>Dados de campo</translation>
+    </message>
+    <message>
+        <location filename="../ui/analysis/qgisred_timeseries_dock.py" line="531"/>
+        <source>Measured values</source>
+        <translation>Valores medidos</translation>
+    </message>
+    <message>
+        <location filename="../ui/analysis/timeseries_plot_renderer.py" line="1848"/>
+        <source>measured</source>
+        <translation>medido</translation>
     </message>
 </context>
 <context>

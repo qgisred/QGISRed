@@ -4,7 +4,7 @@
 from contextlib import suppress
 import os
 
-from qgis.core import QgsRectangle
+from qgis.core import QgsMessageLog, QgsRectangle
 from qgis.PyQt.QtWidgets import QApplication
 from qgis.PyQt.QtCore import Qt, QTimer
 from qgis.PyQt.QtGui import QColor
@@ -14,12 +14,13 @@ from ..tools.utils.qgisred_layer_utils import QGISRedLayerUtils
 from ..tools.utils.qgisred_filesystem_utils import DIR_RESULTS
 from ..tools.utils.qgisred_ui_utils import QGISRedUIUtils
 from ..tools.utils.qgisred_field_utils import QGISRedFieldUtils, normalize_element
-from ..compat import DIALOG_ACCEPTED
+from ..compat import DIALOG_ACCEPTED, QGIS_WARNING
 from ..tools.qgisred_dependencies import QGISRedDependencies as GISRed
 from ..tools.map_tools.qgisred_selectPoint import QGISRedSelectPointTool, SelectPointType
 from ..ui.analysis.qgisred_results_dock import QGISRedResultsDock
 from ..ui.queries.qgisred_element_explorer_dock import QGISRedElementExplorerDock
 from ..ui.analysis.qgisred_timeseries_dock import QGISRedTimeSeriesDock
+from ..ui.analysis import timeseries_field_data as field_data
 from ..ui.analysis.qgisred_results_data import export_results_to_csv, get_regional_separators
 
 
@@ -691,6 +692,7 @@ class AnalysisSection:
             dock.raise_()
             dock.setFocus()
             self._restoreTimeSeriesState()
+            self._refreshTimeSeriesFieldDataAvailability()
         else:
             if "TimeSeries" in self.myMapTools and self.iface.mapCanvas().mapTool() == self.myMapTools["TimeSeries"]:
                 self.iface.mapCanvas().unsetMapTool(self.myMapTools["TimeSeries"])
@@ -718,6 +720,7 @@ class AnalysisSection:
         dock.importConfigRequested.connect(lambda path, d=dock: self._onTimeSeriesImportConfig(path, d))
         dock.globalSystemVariableChosen.connect(lambda key, d=dock: self._onTimeSeriesGlobalSystemVariable(key, d))
         dock.newChartRequested.connect(self._onTimeSeriesNewChartRequested)
+        dock.fieldDataToggled.connect(lambda checked, d=dock: self._onTimeSeriesFieldDataToggled(checked, d))
         dock.activated.connect(lambda d=dock: self._onTimeSeriesDockActivated(d))
         dock.topLevelChanged.connect(lambda floating, d=dock: self._onTimeSeriesDockTopLevelChanged(floating, d))
         dock.closeHandler = self._onTimeSeriesDockCloseRequested
@@ -737,7 +740,50 @@ class AnalysisSection:
             self.iface.addDockWidget(Qt.DockWidgetArea.BottomDockWidgetArea, dock)
         with suppress(Exception):
             dock.connectResultsDock(self.ResultDockwidget)
+        self._refreshTimeSeriesFieldDataAvailability()
         return dock
+
+    def _refreshTimeSeriesFieldDataAvailability(self):
+        docks = getattr(self, "timeSeriesDocks", None) or []
+        if not docks:
+            return
+        available = False
+        with suppress(Exception):
+            available = field_data.has_stored_data(self.featuredValuesSignals(reload=True))
+        for dock in docks:
+            with suppress(Exception):
+                dock.setFieldDataAvailable(available)
+
+    def _onTimeSeriesFieldDataToggled(self, checked, dock):
+        shown = self._updateTimeSeriesFieldData(dock)
+        if checked and not shown and dock.plot.series:
+            self.pushMessage(self.tr("There are no field data for the plotted curves."), level=0, duration=5)
+
+    def _updateTimeSeriesFieldData(self, dock, source=None):
+        curves = {}
+        if dock.fieldDataRequested() and dock.plot.series:
+            if source is None:
+                with suppress(Exception):
+                    source = self._getTimeSeriesSource()
+            window = field_data.sampling_window(source["times"]) if source else None
+            requests = field_data.build_requests(dock.plot.series)
+            if window and requests:
+                try:
+                    answer = GISRed.GetFieldDataSeries(
+                        self.ProjectDirectory, self.NetworkName, requests, *(repr(float(value)) for value in window))
+                except Exception as exc:
+                    answer = str(exc)
+                if not answer.startswith(field_data.OK):
+                    QgsMessageLog.logMessage("Field data curves: {}".format(answer), "QGISRed", QGIS_WARNING)
+                curves = field_data.parse_series(answer)
+        dock.plot.setFieldData(curves)
+        return bool(curves)
+
+    def refreshTimeSeriesFieldData(self):
+        self._refreshTimeSeriesFieldDataAvailability()
+        for dock in (getattr(self, "timeSeriesDocks", None) or []):
+            with suppress(Exception):
+                self._updateTimeSeriesFieldData(dock)
 
     def _onTimeSeriesNewChartRequested(self):
         dock = self._createTimeSeriesDock(tabifyWith=self.activeTimeSeriesDock)
@@ -1942,6 +1988,7 @@ class AnalysisSection:
 
         translated_time = self.tr("Time")
         dock.updatePlotSeries(series, "", f"{translated_time} (h)", self.tr("Value"))
+        self._updateTimeSeriesFieldData(dock, source)
 
     def _onTimeSeriesSeriesReordered(self, order_keys, dock=None):
         try:
@@ -2072,6 +2119,7 @@ class AnalysisSection:
         magnitude selector: each curve keeps the magnitude chosen when it was
         added on the map.
         """
+        self._refreshTimeSeriesFieldDataAvailability()
         for dock in (getattr(self, "timeSeriesDocks", None) or []):
             if getattr(dock, "selection", None):
                 self._renderTimeSeriesSelection(dock)

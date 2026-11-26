@@ -62,6 +62,7 @@ from .timeseries_time_utils import (
     simulation_start_clock_seconds,
 )
 from .timeseries_values_table import FrozenColumnOverlay
+from . import timeseries_field_data as field_data
 
 try:
     from qgis.PyQt.QtSvg import QSvgGenerator
@@ -94,6 +95,7 @@ class TimeSeriesPlotWidget(QWidget):
         self.data_x = []
         self.data_y = []
         self.series = []
+        self.field_series = {}
         self.title = ""
         self.x_label = "Time"
         self.y_label = "Value"
@@ -422,6 +424,9 @@ class TimeSeriesPlotWidget(QWidget):
             if xs and ys:
                 all_x.extend(xs)
                 all_y.extend(ys)
+                field = self._fieldDataFor(s)
+                if field:
+                    all_y.extend(field["y"])
             if s.get("y_categorical_labels"):
                 any_categorical = True
                 y_categorical_labels = s.get("y_categorical_labels")
@@ -492,6 +497,19 @@ class TimeSeriesPlotWidget(QWidget):
     def _seriesIsDrawn(self, series_dict) -> bool:
         return bool(series_dict.get("visible", True)) or bool(series_dict.get("show_markers", False))
 
+    def setFieldData(self, curves) -> None:
+        self.field_series = dict(curves or {})
+        self.update()
+
+    def _fieldDataFor(self, series_dict):
+        if not self.field_series or not self._seriesIsDrawn(series_dict) or series_dict.get("y_categorical_labels"):
+            return None
+        field = self.field_series.get(str(series_dict.get("series_key") or ""))
+        return field if field and field.get("x") and field.get("y") else None
+
+    def _fieldDataShown(self) -> bool:
+        return any(self._fieldDataFor(s) for s in self.series)
+
     def _legendItems(self, limit=None):
         items = []
         for idx, s in enumerate(self.series):
@@ -511,7 +529,11 @@ class TimeSeriesPlotWidget(QWidget):
             if mag not in grouped:
                 grouped[mag] = []
             grouped[mag].append((series_idx, color, label, legend_type))
-        return list(grouped.items())
+        groups = list(grouped.items())
+        if self._fieldDataShown():
+            item = (field_data.LEGEND_INDEX, field_data.NEUTRAL_COLOR, self.tr("Measured values"), field_data.LEGEND_TYPE)
+            groups.append((self.tr("Field data"), [item]))
+        return groups
 
     def _legendRequiredWidth(self):
         groups = self._legendGroups()
@@ -1173,6 +1195,7 @@ class QGISRedTimeSeriesDock(QGISRedDockActivationMixin, QDockWidget, FORM_CLASS)
     exportConfigRequested = pyqtSignal(str)
     importConfigRequested = pyqtSignal(str)
     newChartRequested = pyqtSignal()
+    fieldDataToggled = pyqtSignal(bool)
     activated = pyqtSignal()
 
     # Class-level default so attribute lookup never falls through to a mocked
@@ -1201,6 +1224,7 @@ class QGISRedTimeSeriesDock(QGISRedDockActivationMixin, QDockWidget, FORM_CLASS)
         self._tableAutoSizedSignature = None
         self._table_x_hours = []
         self._table_row_sync_blocked = False
+        self._fieldDataAvailable = False
 
         self.selection = []
         self.selectionKey = None
@@ -1342,6 +1366,11 @@ class QGISRedTimeSeriesDock(QGISRedDockActivationMixin, QDockWidget, FORM_CLASS)
             self.btnSyncCursor = _make_btn("btnSyncCursorTimeSeries", QIcon(":/images/iconTsSyncCursor.svg"), self.tr("Sync cursor with results panel"), checkable=True)
             self.btnSyncCursor.toggled.connect(self._onSyncCursorToggled)
             hl.addWidget(self.btnSyncCursor, 0, Qt.AlignmentFlag.AlignLeft)
+
+            self.btnFieldData = _make_btn("btnFieldDataTimeSeries", QIcon(":/images/iconTsFieldData.svg"), self.tr("Show field data over the curves"), checkable=True)
+            self.btnFieldData.setEnabled(False)
+            self.btnFieldData.toggled.connect(self.fieldDataToggled)
+            hl.addWidget(self.btnFieldData, 0, Qt.AlignmentFlag.AlignLeft)
 
             self.btnAxes = _make_btn("btnAxesTimeSeries", QIcon(":/images/iconTsAxes.svg"), self.tr("Chart options"))
             self.btnAxes.clicked.connect(self._onAxisOptionsClicked)
@@ -2596,6 +2625,19 @@ class QGISRedTimeSeriesDock(QGISRedDockActivationMixin, QDockWidget, FORM_CLASS)
             sync_btn.setEnabled(bool(has_curves and self._resultsDock is not None))
             if not sync_btn.isEnabled() and sync_btn.isChecked():
                 sync_btn.setChecked(False)
+
+    def setFieldDataAvailable(self, available: bool) -> None:
+        self._fieldDataAvailable = bool(available)
+        btn = getattr(self, "btnFieldData", None)
+        if btn is None:
+            return
+        btn.setEnabled(self._fieldDataAvailable)
+        if not self._fieldDataAvailable and btn.isChecked():
+            btn.setChecked(False)
+
+    def fieldDataRequested(self) -> bool:
+        btn = getattr(self, "btnFieldData", None)
+        return bool(btn is not None and btn.isChecked())
 
     def _onPlotViewChanged(self) -> None:
         self._updateClearToolbarVisibility()

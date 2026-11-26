@@ -127,6 +127,21 @@ class QGISRedDigitalTwinMixin:
         return _decode_text(b)
 
     @staticmethod
+    def GetFieldDataSeries(projectFolder, networkName, requests, startSeconds, endSeconds, stepSeconds):
+        projectFolder = _encode(projectFolder)
+        networkName = _encode(networkName)
+        requests = _encode(requests)
+        startSeconds = _encode(startSeconds)
+        endSeconds = _encode(endSeconds)
+        stepSeconds = _encode(stepSeconds)
+
+        mydll = _load_dll()
+        mydll.GetFieldDataSeries.argtypes = (c_char_p, c_char_p, c_char_p, c_char_p, c_char_p, c_char_p)
+        mydll.GetFieldDataSeries.restype = c_char_p
+        b = mydll.GetFieldDataSeries(projectFolder, networkName, requests, startSeconds, endSeconds, stepSeconds)
+        return _decode_text(b)
+
+    @staticmethod
     def SetInitialStatusPipes(projectFolder, networkName, tempFolder):
         projectFolder = _encode(projectFolder)
         networkName = _encode(networkName)

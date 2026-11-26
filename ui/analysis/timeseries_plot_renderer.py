@@ -21,6 +21,7 @@ from ...tools.utils.qgisred_axis_scale_utils import (
 from ...tools.utils.qgisred_field_utils import QGISRedFieldUtils, normalize_element
 from .timeseries_axis_settings import TimeSeriesAxisSettings, build_fixed_linear_scale
 from .timeseries_plot_layout import layout_side_legend
+from . import timeseries_field_data as field_data
 from datetime import timedelta
 
 from .simulation_period import format_date
@@ -525,13 +526,16 @@ class TimeSeriesPlotRenderer:
         *,
         hollow: bool = True,
         emphasized: bool = False,
+        fill: Optional[QColor] = None,
     ) -> None:
         r = max(1.0, float(size) / 2.0)
         if emphasized:
             r = min(r + 1.25, 14.0)
         pen_w = 2.4 if emphasized else 1.4
         painter.setPen(QPen(color, pen_w))
-        if hollow:
+        if fill is not None:
+            painter.setBrush(fill)
+        elif hollow:
             painter.setBrush(QColor(255, 255, 255))
         else:
             painter.setBrush(color)
@@ -557,6 +561,52 @@ class TimeSeriesPlotRenderer:
             ]))
         else:
             painter.drawEllipse(pt, r, r)
+
+    def _field_data_for(self, widget, s):
+        lookup = getattr(widget, "_fieldDataFor", None)
+        return lookup(s) if callable(lookup) else None
+
+    def _field_marker_size(self, widget) -> float:
+        gen = getattr(widget, "_general_cfg", None)
+        try:
+            return max(2.0, min(float(getattr(gen, "field_marker_size", 7) or 7), 24.0))
+        except Exception:
+            return 7.0
+
+    def _draw_field_marker(self, widget, painter, pt: QPointF, size: float, curve_color, alpha: int = 255) -> None:
+        gen = getattr(widget, "_general_cfg", None)
+        outline, fill = field_data.marker_colors(curve_color, gen)
+        outline.setAlpha(alpha)
+        fill.setAlpha(alpha)
+        symbol = getattr(gen, "field_marker_symbol", "circle") or "circle"
+        self._draw_point_marker(painter, pt, size, symbol, outline, fill=fill)
+
+    def _draw_field_data(self, widget, painter, plot_rect, x_state, y_state_left, y_state_right=None) -> None:
+        size = self._field_marker_size(widget)
+        for s in widget.series:
+            field = self._field_data_for(widget, s)
+            if not field:
+                continue
+            axis = (s.get("y_axis") or "left")
+            y_state = y_state_right if (axis == "right" and y_state_right is not None) else y_state_left
+            if y_state is None:
+                continue
+            alpha = 70 if bool(s.get("muted", False)) else 255
+            color = self._series_qcolor(s.get("color") or DEFAULT_SERIES_COLOR)
+            for x, y in zip(field["x"], field["y"]):
+                point = self._to_screen(x, y, plot_rect, x_state, y_state)
+                self._draw_field_marker(widget, painter, point, size, color, alpha)
+
+    def _draw_field_legend_item(self, widget, painter, x: float, y: float, sym: float, label: str) -> None:
+        gen = getattr(widget, "_general_cfg", None)
+        fixed = QColor(getattr(gen, "field_marker_color_hex", "") or "")
+        size = min(float(sym), float(LEGEND_POINT_SYMBOL_SIZE_MAX)) - 3
+        center = QPointF(x + sym / 2.0, y + LEGEND_ROW_H / 2.0)
+        self._draw_field_marker(widget, painter, center, size, fixed if fixed.isValid() else field_data.NEUTRAL_COLOR)
+        painter.setFont(qfont(8))
+        painter.setPen(Qt.GlobalColor.black)
+        text_rect = QRectF(x + sym + 6, y, QFontMetrics(qfont(8)).horizontalAdvance(label) + 2, LEGEND_ROW_H)
+        painter.drawText(text_rect, Qt.AlignmentFlag.AlignLeft | Qt.AlignmentFlag.AlignVCenter, label)
 
     def _legend_row_font(self, s, *, bold: bool = False) -> QFont:
         try:
@@ -1276,6 +1326,7 @@ class TimeSeriesPlotRenderer:
                         value_label_texts[i],
                     )
 
+        self._draw_field_data(widget, painter, plot_rect, x_state, y_state_left, y_state_right)
         painter.restore()
 
     def _draw_legend_icon(
@@ -1309,6 +1360,12 @@ class TimeSeriesPlotRenderer:
         t = (legend_type or "").lower()
         cx = x + size / 2
         cy = y + size / 2
+
+        if t == field_data.LEGEND_TYPE:
+            painter.setPen(QPen(c, 1.4))
+            painter.setBrush(field_data.soft_color(c))
+            painter.drawEllipse(QPointF(cx, cy), (size - 4) / 2, (size - 4) / 2)
+            return
 
         if "qgisred_pipes" in t or t == "link" or "pipe" in t:
             painter.drawLine(QPointF(x, cy), QPointF(x + size, cy))
@@ -1453,6 +1510,9 @@ class TimeSeriesPlotRenderer:
             item_col_w = min(item_col_w, max(40.0, (content_rect.width() - (item_cols - 1) * gap_cols) / float(item_cols)))
 
             def draw_item(series_idx, color, label, legend_type, cx, cy, col_w):
+                if int(series_idx) == field_data.LEGEND_INDEX:
+                    self._draw_field_legend_item(widget, painter, cx, cy, sym, label)
+                    return
                 if not (0 <= int(series_idx) < len(widget.series)):
                     return
                 s = widget.series[int(series_idx)]
@@ -1526,6 +1586,8 @@ class TimeSeriesPlotRenderer:
             frame_w = max(1.0, (legend_w - 2 * pad) / float(max(1, len(groups))))
 
             def item_width(series_idx, label):
+                if int(series_idx) == field_data.LEGEND_INDEX:
+                    return float(widget._legendItemWidth(series_idx, label, sym))
                 if not (0 <= int(series_idx) < len(widget.series)):
                     return 0.0
                 s = widget.series[int(series_idx)]
@@ -1551,13 +1613,18 @@ class TimeSeriesPlotRenderer:
                     y_row += float(LEGEND_ROW_GAP)
 
                 for series_idx, color, label, legend_type in items:
-                    if not (0 <= int(series_idx) < len(widget.series)):
+                    is_field_item = int(series_idx) == field_data.LEGEND_INDEX
+                    if not is_field_item and not (0 <= int(series_idx) < len(widget.series)):
                         continue
-                    s = widget.series[int(series_idx)]
                     item_w = item_width(series_idx, label)
                     if cur_x > frame_x and cur_x + item_w > frame_right:
                         y_row += float(LEGEND_ROW_GAP)
                         cur_x = frame_x
+                    if is_field_item:
+                        self._draw_field_legend_item(widget, painter, cur_x, y_row, sym, label)
+                        cur_x += item_w + gap
+                        continue
+                    s = widget.series[int(series_idx)]
 
                     muted = bool(s.get("muted", False))
                     highlighted = bool(s.get("highlighted", False))
@@ -1650,6 +1717,9 @@ class TimeSeriesPlotRenderer:
                 continue
 
             series_idx, color, label, legend_type = row[1]
+            if int(series_idx) == field_data.LEGEND_INDEX:
+                self._draw_field_legend_item(widget, painter, cx0, cy0, sym, label)
+                continue
             if not (0 <= int(series_idx) < len(widget.series)):
                 continue
             s = widget.series[int(series_idx)]
@@ -1776,6 +1846,15 @@ class TimeSeriesPlotRenderer:
 
             legend_type = (s.get("legend_type") or "").strip()
             tooltip_lines.append((color, muted, legend_type, f"{label}: ", val_y_str, unit_suffix))
+            field = self._field_data_for(widget, s)
+            if field:
+                tolerance = abs(float(xs[-1]) - float(xs[0])) / (2.0 * (len(xs) - 1)) if len(xs) > 1 else 0.0
+                measured = field_data.nearest_value(field, float(val_x), tolerance)
+                if measured is not None:
+                    measured_label = QCoreApplication.translate("TimeSeriesPlotWidget", "measured")
+                    tooltip_lines.append((
+                        color, muted, field_data.LEGEND_TYPE, f"{label} ({measured_label}): ",
+                        self._point_value_text(s, measured), unit_suffix))
             axis = (s.get("y_axis") or "left")
             y_state = y_state_right if (axis == "right" and y_state_right is not None) else y_state_left
             marker_pts.append((color, muted, legend_type, self._to_screen(val_x, val_y, plot_rect, x_state, y_state)))
